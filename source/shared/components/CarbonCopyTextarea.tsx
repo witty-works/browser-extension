@@ -1,40 +1,18 @@
-import React, { useEffect, useState } from 'react';
-// import Highlights from './Highlights';
-import { HighlightProps } from './Highlights';
+import React from 'react';
+import { IAlert } from '../types';
 
 export interface CarbonCopyTextareaProps {
   element: HTMLTextAreaElement | HTMLInputElement;
 }
 
-interface Alert {
-  startOffset: number;
-  endOffset: number;
-  id: string;
-}
-
-// interface Highlight {
-//   rect: DOMRect;
-// }
-
-const initialHighlights = { rects: [] };
-
 const CarbonCopyTextarea: React.FC<CarbonCopyTextareaProps> = ({
   element,
 }: CarbonCopyTextareaProps) => {
-  // const [alerts, setAlerts] = useState<Alert[]>([]);
-  // const [text, setText] = useState<string | null>('');
-  const [highlightsOld, setHighlightsOld] =
-    useState<HighlightProps>(initialHighlights);
-  const [highlights, setHighlights] =
-    useState<HighlightProps>(initialHighlights);
-
-  // const highlights: DOMRect[] = [];
-
   const style = window.getComputedStyle(element);
 
-  const checkText = (text: string): Alert[] => {
+  const checkText = (text: string): IAlert[] => {
     const tokens = text.split(/([\s,.!?]+)/g);
-    const alerts: Alert[] = [];
+    const alerts: IAlert[] = [];
     let curPos = 0;
     let id = 0;
 
@@ -54,55 +32,11 @@ const CarbonCopyTextarea: React.FC<CarbonCopyTextareaProps> = ({
   };
 
   const checkContent = (elem: HTMLElement) => {
-    if (highlightsOld != highlights) {
-      setHighlightsOld(highlights);
-      return false;
-    }
-
-    console.log('refref! ', elem);
+    console.log('elem = ', elem);
 
     const results = checkText(elem.textContent || '');
-    // setText(elem.textContent);
-
-    const nodeText = elem.childNodes[0];
-
-    const rects = results.map((result) => {
-      const range = document.createRange();
-
-      range.setStart(nodeText, result.startOffset);
-      range.setEnd(nodeText, result.endOffset);
-      const rect = range.getClientRects()[0];
-      console.log('rect = ', rect);
-
-      return rect;
-    });
-
-    setHighlights({
-      rects,
-    });
+    console.log('results = ', results);
   };
-
-  // const updateHighlights = (elem: HTMLElement, alerts: Alert[]) => {
-  //   console.log('update HS');
-
-  //   alerts.forEach((alert) => {
-  //     // console.log('alert: ', alert);
-
-  //     const range = document.createRange();
-  //     const nodeText = elem.childNodes[0];
-
-  //     range.setStart(nodeText, alert.startOffset);
-  //     range.setEnd(nodeText, alert.endOffset);
-  //     const rect = range.getClientRects()[0];
-  //     console.log('rect = ', rect);
-
-  //     // setHighlights((prevHighlights) => ({
-  //     //   rects: [...prevHighlights.rects, rect],
-  //     // }));
-  //   });
-
-  //   // console.log('highlights = ', highlights);
-  // };
 
   return (
     <div>
@@ -125,7 +59,6 @@ const CarbonCopyTextarea: React.FC<CarbonCopyTextareaProps> = ({
       >
         {element.value}
       </div>
-      {/* <Highlights rects={highlights.rects} /> */}
     </div>
   );
 };
