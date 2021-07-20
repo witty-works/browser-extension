@@ -1,5 +1,7 @@
 import React from 'react';
-import { IAlert } from '../types';
+import { IAlert, IElementWithAlerts } from '../types';
+
+import { MessageService } from '../MessageService';
 
 export interface CarbonCopyTextareaProps {
   element: HTMLTextAreaElement | HTMLInputElement;
@@ -31,34 +33,36 @@ const CarbonCopyTextarea: React.FC<CarbonCopyTextareaProps> = ({
     return alerts;
   };
 
-  const checkContent = (elem: HTMLElement) => {
-    console.log('elem = ', elem);
-
+  const checkContent = (elem: HTMLDivElement) => {
     const results = checkText(elem.textContent || '');
-    console.log('results = ', results);
+
+    const elementWithAlerts: IElementWithAlerts = {
+      element: elem,
+      alerts: results,
+    };
+
+    MessageService.sendMessage(elementWithAlerts);
   };
 
   return (
-    <div>
-      <div
-        // contentEditable={true}
-        ref={(ref) => {
-          if (ref !== null) checkContent(ref);
-        }}
-        spellCheck={false}
-        style={{
-          appearance: 'textarea',
-          whiteSpace: 'pre-wrap',
-          position: 'absolute',
-          visibility: 'hidden',
-          top: `${element.offsetTop + element.clientTop}px`,
-          left: `${element.offsetLeft + element.clientLeft}px`,
-          paddingTop: style.paddingTop,
-          paddingLeft: style.paddingLeft,
-        }}
-      >
-        {element.value}
-      </div>
+    <div
+      ref={(ref) => {
+        if (ref !== null) checkContent(ref);
+      }}
+      spellCheck={false}
+      style={{
+        appearance: 'textarea',
+        whiteSpace: 'pre-wrap',
+        position: 'absolute',
+        visibility: 'hidden',
+        top: `${element.offsetTop + element.clientTop}px`,
+        left: `${element.offsetLeft + element.clientLeft}px`,
+        paddingTop: style.paddingTop,
+        paddingLeft: style.paddingLeft,
+        width: style.width,
+      }}
+    >
+      {element.value}
     </div>
   );
 };

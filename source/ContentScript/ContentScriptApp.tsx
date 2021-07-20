@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import CarbonCopyTextarea, {
   CarbonCopyTextareaProps,
 } from '../shared/components/CarbonCopyTextarea';
-
-// import { InputElement } from '../shared/types';
+import Highlights from '../shared/components/Highlights';
 
 const ContentScriptApp: React.FC = () => {
   const [elem, setElem] =
@@ -31,8 +30,13 @@ const ContentScriptApp: React.FC = () => {
     });
   };
 
-  return elem === undefined ? null : (
-    <CarbonCopyTextarea element={elem.element} />
+  return (
+    <div>
+      {elem === undefined ? null : (
+        <CarbonCopyTextarea element={elem.element} />
+      )}
+      <Highlights />
+    </div>
   );
 };
 
