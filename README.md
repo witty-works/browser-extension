@@ -1,4 +1,4 @@
-# Diversifier
+# Inclusifier
 
 ## Requirements to start
 
@@ -7,7 +7,7 @@
 
 ## Preparing the project
 
-Go to project directory `cd diversifier`
+Go to project directory `cd inclusifier`
 
 Run `yarn install` to install dependencies.
 
