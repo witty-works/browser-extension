@@ -34,15 +34,32 @@ const CarbonCopyTextarea: React.FC<CarbonCopyTextareaProps> = ({
   };
 
   const checkContent = (elem: HTMLDivElement) => {
+    // console.log('elem.innerText = ', elem.innerText);
+
     const results = checkText(elem.textContent || '');
 
     const elementWithAlerts: IElementWithAlerts = {
       element: elem,
+      originalElement: element,
       alerts: results,
     };
 
     MessageService.sendMessage(elementWithAlerts);
   };
+
+  // cons
+
+  // const handleScroll = (e: React.UIEvent<HTMLElement>): void => {
+  //   console.log('holi 2');
+
+  //   e.stopPropagation(); // Handy if you want to prevent event bubbling to scrollable parent
+  //   console.log({
+  //     event: e,
+  //     target: e.target, // Note 1* scrollTop is undefined on e.target
+  //     currentTarget: e.currentTarget,
+  //     scrollTop: e.currentTarget.scrollTop,
+  //   });
+  // };
 
   return (
     <div
@@ -55,11 +72,13 @@ const CarbonCopyTextarea: React.FC<CarbonCopyTextareaProps> = ({
         whiteSpace: 'pre-wrap',
         position: 'absolute',
         visibility: 'hidden',
-        top: `${element.offsetTop + element.clientTop}px`,
+        overflow: 'auto',
+        top: `${element.offsetTop + element.clientTop - element.scrollTop}px`,
         left: `${element.offsetLeft + element.clientLeft}px`,
         paddingTop: style.paddingTop,
         paddingLeft: style.paddingLeft,
         width: style.width,
+        height: style.height,
       }}
     >
       {element.value}

@@ -6,5 +6,6 @@ export interface IAlert {
 
 export interface IElementWithAlerts {
   element: HTMLDivElement | null,
+  originalElement: HTMLTextAreaElement | HTMLInputElement | null,
   alerts: IAlert[]
 }
