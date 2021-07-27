@@ -26,7 +26,6 @@ const ContentScriptApp: React.FC = () => {
   }, [elem]);
 
   const scrollElement = (event: Event) => {
-    console.log('scrolling e top = ', event.target?.scrollTop);
     setElem({
       element: event.target as HTMLTextAreaElement | HTMLInputElement,
     });

@@ -10,9 +10,6 @@ const Highlights = () => {
       alerts: [],
     });
   const [rects, setRects] = useState<DOMRect[]>([]);
-  // const [elemStyle, setElemStyle] = useState<CSSStyleDeclaration>(
-  //   {} as CSSStyleDeclaration
-  // );
 
   useEffect(() => {
     // Subscribe to the message service
@@ -20,10 +17,6 @@ const Highlights = () => {
       (message: IElementWithAlerts) => {
         if (message) {
           setElementWithAlerts(message);
-          // setElemStyle(
-          //   window.getComputedStyle(message.element as HTMLDivElement)
-          // );
-          // console.log('elemStyle = ', elemStyle);
         } else {
           // clear messages when empty message received
           setElementWithAlerts({
@@ -40,14 +33,11 @@ const Highlights = () => {
   }, []);
 
   useEffect(() => {
-    const elem = elementWithAlerts.element;
-    const originalElem = elementWithAlerts.originalElement;
+    const element = elementWithAlerts.element;
+    const originalElement = elementWithAlerts.originalElement;
 
-    console.log('element = ', elem);
-    console.log('element.offsetTop = ', elem?.offsetTop);
-
-    if (elem !== null) {
-      const nodeText = elem.childNodes[0];
+    if (element !== null) {
+      const nodeText = element.childNodes[0];
 
       const rects = elementWithAlerts.alerts
         .map((alert) => {
@@ -60,13 +50,13 @@ const Highlights = () => {
           return rect;
         })
         .filter((rect) => {
-          console.log('rect.top = ', rect.top);
-          console.log('originalElem.offsetTop = ', originalElem?.offsetTop);
+          const elementToTrack =
+            originalElement === null ? element : originalElement;
 
           return (
-            rect.top + rect.height > originalElem?.offsetTop &&
+            rect.top + rect.height > elementToTrack?.offsetTop &&
             rect.top + rect.height <
-              originalElem?.offsetTop + originalElem?.clientHeight
+              elementToTrack?.offsetTop + elementToTrack?.clientHeight
           );
         });
 
@@ -75,17 +65,7 @@ const Highlights = () => {
   }, [elementWithAlerts]);
 
   return (
-    <div
-    // style={{
-    //   position: 'fixed',
-    //   top: elemStyle.top,
-    //   left: elemStyle.left,
-    //   width: elemStyle.width,
-    //   height: elemStyle.height,
-    //   zIndex: -1,
-    //   border: '1px solid red',
-    // }}
-    >
+    <div>
       {rects.map((rect, index) => (
         <div
           key={index}
