@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
-import CarbonCopyTextarea, {
-  CarbonCopyTextareaProps,
-} from '../shared/components/CarbonCopyTextarea';
+import TextAreaClone, {
+  TextAreaCloneProps,
+} from '../shared/components/TextAreaClone';
 import Highlights from '../shared/components/Highlights';
 
 const ContentScriptApp: React.FC = () => {
-  const [elem, setElem] =
-    useState<CarbonCopyTextareaProps | undefined>(undefined);
+  const [elem, setElem] = useState<TextAreaCloneProps | undefined>(undefined);
 
   useEffect(() => {
     document.addEventListener('focusin', focusedElement, true);
@@ -45,9 +44,7 @@ const ContentScriptApp: React.FC = () => {
 
   return (
     <div>
-      {elem === undefined ? null : (
-        <CarbonCopyTextarea element={elem.element} />
-      )}
+      {elem === undefined ? null : <TextAreaClone element={elem.element} />}
       <Highlights />
     </div>
   );

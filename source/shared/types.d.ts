@@ -5,7 +5,32 @@ export interface IAlert {
 }
 
 export interface IElementWithAlerts {
-  element: HTMLDivElement | null,
+  cloneElement: HTMLDivElement | null,
   originalElement: HTMLTextAreaElement | HTMLInputElement | null,
   alerts: IAlert[]
+}
+
+export interface IRequest {
+  url: string,
+  config: RequestInit
+}
+
+export interface IEntities {
+  start: number,
+  end: number,
+  type: string,
+  type: string
+}
+export interface IEntitiesResponse {
+  entities: IEntities[],
+  language: string
+}
+
+export interface IEntitiesError {
+  loc: string[],
+  msg: string,
+  type: string
+}
+export interface IEntitiesResponseError {
+  detail: IEntitiesError[]
 }

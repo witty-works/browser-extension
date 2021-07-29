@@ -5,7 +5,7 @@ import { IElementWithAlerts } from '../types';
 const Highlights = () => {
   const [elementWithAlerts, setElementWithAlerts] =
     useState<IElementWithAlerts>({
-      element: null,
+      cloneElement: null,
       originalElement: null,
       alerts: [],
     });
@@ -20,7 +20,7 @@ const Highlights = () => {
         } else {
           // clear messages when empty message received
           setElementWithAlerts({
-            element: null,
+            cloneElement: null,
             originalElement: null,
             alerts: [],
           });
@@ -33,7 +33,7 @@ const Highlights = () => {
   }, []);
 
   useEffect(() => {
-    const element = elementWithAlerts.element;
+    const element = elementWithAlerts.cloneElement;
     const originalElement = elementWithAlerts.originalElement;
 
     if (element !== null) {
