@@ -21,19 +21,6 @@ From inside the directory, start the development server depending on the browser
 
 This will run in the background, watching for changes and rebuilding the project automatically.
 
-## Building for production
-
-You can several options:
-
-- `yarn run build:chrome` to build chrome extension
-- `yarn run build:firefox` to build firefox addon
-- `yarn run build:opera` to build opera extension
-- `yarn run build` builds and packs extensions all at once to `extension/BROWSER` directory respectively.
-
-**Note:** By default the `manifest.json` is set with version `0.0.0`. The webpack loader will update the version in the build with that of the `package.json` version. In order to release a new version, update version in `package.json` and run script.
-
-If you don't want to use `package.json` version, you can disable the option [here](https://github.com/abhijithvijayan/web-extension-starter/blob/e10158c4a49948dea9fdca06592876d9ca04e028/webpack.config.js#L79).
-
 ## Load the extension in the browser
 
 ### Chrome
@@ -53,6 +40,18 @@ If you don't want to use `package.json` version, you can disable the option [her
   - Load the extension via `opera:extensions`
   - Check the `Developer Mode` and load as unpacked from extension’s extracted directory.
 
+## Building for production
+
+You can several options:
+
+- `yarn run build:chrome` to build chrome extension
+- `yarn run build:firefox` to build firefox addon
+- `yarn run build:opera` to build opera extension
+- `yarn run build` builds and packs extensions all at once to `extension/BROWSER` directory respectively.
+
+**Note:** By default the `manifest.json` is set with version `0.0.0`. The webpack loader will update the version in the build with that of the `package.json` version. In order to release a new version, update version in `package.json` and run script.
+
+If you don't want to use `package.json` version, you can disable the option [here](https://github.com/abhijithvijayan/web-extension-starter/blob/e10158c4a49948dea9fdca06592876d9ca04e028/webpack.config.js#L79).
 
 ## Generating browser specific manifest.json
 
