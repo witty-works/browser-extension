@@ -1,7 +1,7 @@
 import { IRequest } from '../types';
 
 export const BASE_URL = 'https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/';
-// export const BASE_URL = 'http://127.0.0.1/api/MNWA3RmpViV2AxlPVBHjEiAASVnlCH0xbDNut7Q9nQBRQoTVWEERgGELl9jU/';
+// export const BASE_URL = 'https://diversifier.lndo.site/api/MNWA3RmpViV2AxlPVBHjEiAASVnlCH0xbDNut7Q9nQBRQoTVWEERgGELl9jU/';
 // export const BASE_URL = 'https://diversifier.develop-sr3snxi-oczmhzy2xpkpc.eu-4.platformsh.site/api/MNWA3RmpViV2AxlPVBHjEiAASVnlCH0xbDNut7Q9nQBRQoTVWEERgGELl9jU/';
 // export const BASE_URL = 'https://diversifier.witty.works/api/MNWA3RmpViV2AxlPVBHjEiAASVnlCH0xbDNut7Q9nQBRQoTVWEERgGELl9jU/';
 
