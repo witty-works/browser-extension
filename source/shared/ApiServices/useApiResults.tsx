@@ -9,8 +9,6 @@ const useApiResult = (request: IRequest, sendText: any) => {
   });
   const [error, setError] = useState<IEntitiesResponseError>({ detail: [] });
 
-  // console.log('useApiResult request = ', request);
-
   useEffect(() => {
     const ac = new AbortController();
     fetch(request.url, request.config)
@@ -26,8 +24,7 @@ const useApiResult = (request: IRequest, sendText: any) => {
       })
       .catch((error) => {
         console.log('useApiResult error = ', error);
-
-        setError(error);
+        // setError(error);   //FIX, this is not received outside
       });
     return () => ac.abort(); // Abort both fetches on unmount
   }, [request.config.body]);

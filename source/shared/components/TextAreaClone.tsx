@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { IAlert, IElementWithAlerts } from '../types';
 
 import useEntities from '../ApiServices/useEntities';
@@ -14,30 +14,36 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   const [entities, error, sendText] = useEntities();
 
   const style = window.getComputedStyle(element);
+  let cloneElement: HTMLDivElement | null = null;
 
-  const checkContent = (elem: HTMLDivElement) => {
-    sendText(elem.textContent || '');
+  useEffect(() => {
+    const alerts: IAlert[] = entities.entities.map((entity: any) => {
+      return {
+        id: `${entity.type}-${entity.text}-${entity.start}-${entity.end}`,
+        startOffset: entity.start,
+        endOffset: entity.end,
+      };
+    });
 
+    const elementWithAlerts: IElementWithAlerts = {
+      cloneElement,
+      originalElement: element,
+      alerts,
+    };
+
+    MessageService.sendMessage(elementWithAlerts);
+  }, [entities]);
+
+  useEffect(() => {
     if (error.detail && error.detail.length > 0) {
       // Error!
       console.log('ERROR! = ', error);
-    } else {
-      const alerts: IAlert[] = entities.entities.map((entity: any) => {
-        return {
-          id: `${entity.type}-${entity.text}-${entity.start}-${entity.end}`,
-          startOffset: entity.start,
-          endOffset: entity.end,
-        };
-      });
-
-      const elementWithAlerts: IElementWithAlerts = {
-        cloneElement: elem,
-        originalElement: element,
-        alerts,
-      };
-
-      MessageService.sendMessage(elementWithAlerts);
     }
+  }, [error]);
+
+  const checkContent = (elem: HTMLDivElement) => {
+    cloneElement = elem;
+    sendText(elem.textContent || '');
   };
 
   return (

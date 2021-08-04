@@ -10,8 +10,6 @@ const createUrl = (base: string, path: string): string => `${base}${path}`;
 
 export const getEntities = (text: string):IRequest => {
 
-  // console.log('getEntities text = ', text);
-
   return {
     url: createUrl(BASE_URL, 'entities'),
     config:{

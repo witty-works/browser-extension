@@ -1,12 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
 import { getEntities } from './requests';
 import { IRequest } from '../types';
 
 const useEntities = () => {
-  const [textToAnalyze, setTextToAnalyse] = useState('');
+  const [textToAnalyze, setTextToAnalyse] = useState<string>('');
 
-  // console.log('useEntities textToAnalyze = ', textToAnalyze);
+  useEffect(() => {
+    return () => {
+      setTextToAnalyse('');
+    };
+  }, []);
 
   const request: IRequest = useMemo(
     () => getEntities(textToAnalyze),
