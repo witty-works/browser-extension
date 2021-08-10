@@ -5,8 +5,9 @@ import { IElementWithAlerts } from '../types';
 const Highlights = () => {
   const [elementWithAlerts, setElementWithAlerts] =
     useState<IElementWithAlerts>({
-      cloneElement: null,
-      originalElement: null,
+      // cloneElement: null,
+      // originalElement: null,
+      element: null,
       alerts: [],
     });
   const [rects, setRects] = useState<DOMRect[]>([]);
@@ -20,8 +21,9 @@ const Highlights = () => {
         } else {
           // clear messages when empty message received
           setElementWithAlerts({
-            cloneElement: null,
-            originalElement: null,
+            // cloneElement: null,
+            // originalElement: null,
+            element: null,
             alerts: [],
           });
         }
@@ -33,30 +35,43 @@ const Highlights = () => {
   }, []);
 
   useEffect(() => {
-    const element = elementWithAlerts.cloneElement;
-    const originalElement = elementWithAlerts.originalElement;
+    console.log('elementWithAlerts = ', elementWithAlerts);
+
+    // const element = elementWithAlerts.cloneElement;
+    // const originalElement = elementWithAlerts.originalElement;
+    const element = elementWithAlerts.element;
 
     if (element !== null) {
       const nodeText = element.childNodes[0];
+      console.log('nodeText = ', nodeText);
 
       const rects = elementWithAlerts.alerts
         .map((alert) => {
+          console.log('alert = ', alert);
+
           const range = document.createRange();
+          console.log('range 1 = ', range);
 
           range.setStart(nodeText, alert.startOffset);
           range.setEnd(nodeText, alert.endOffset);
+
+          console.log('range 2 = ', range);
+          console.log('range.getClientRects() = ', range.getClientRects());
+
           const rect = range.getClientRects()[0];
+          console.log('rect = ', rect);
 
           return rect;
         })
         .filter((rect) => {
-          const elementToTrack =
-            originalElement === null ? element : originalElement;
+          //const elementToTrack = originalElement === null ? element : originalElement;
+          //TODO We need the original!!!
+
+          console.log(rect.top + rect.height, element?.offsetTop);
 
           return (
-            rect.top + rect.height > elementToTrack?.offsetTop &&
-            rect.top + rect.height <
-              elementToTrack?.offsetTop + elementToTrack?.clientHeight
+            rect.top + rect.height > element?.offsetTop &&
+            rect.top + rect.height < element?.offsetTop + element?.clientHeight
           );
         });
 

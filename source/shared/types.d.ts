@@ -5,8 +5,9 @@ export interface IAlert {
 }
 
 export interface IElementWithAlerts {
-  cloneElement: HTMLDivElement | null,
-  originalElement: HTMLTextAreaElement | HTMLInputElement | null,
+  // cloneElement: HTMLDivElement | null,
+  // originalElement: HTMLTextAreaElement | HTMLInputElement | null,
+  element: HTMLDivElement | HTMLInputElement | null,
   alerts: IAlert[]
 }
 

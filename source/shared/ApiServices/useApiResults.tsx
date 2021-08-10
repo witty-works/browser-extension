@@ -11,22 +11,29 @@ const useApiResult = (request: IRequest, sendText: any) => {
 
   useEffect(() => {
     const ac = new AbortController();
+    let canceled = false; // Canceled is used to avoid race conditions
+
     fetch(request.url, request.config)
       .then(async (response) => {
-        // console.log('useApiResult response = ', response);
+        if (!canceled) {
+          // console.log('useApiResult response = ', response);
 
-        if (response.ok) {
-          setResults(await response.json());
-          setError({ detail: [] });
-        } else {
-          setError(await response.json());
+          if (response.ok) {
+            setResults(await response.json());
+            setError({ detail: [] });
+          } else {
+            setError(await response.json());
+          }
         }
       })
       .catch((error) => {
         console.log('useApiResult error = ', error);
-        // setError(error);   //FIX, this is not received outside
+        // setError(error); //FIX, this is not received outside
       });
-    return () => ac.abort(); // Abort both fetches on unmount
+    return () => {
+      ac.abort(); // Abort both fetches on unmount
+      canceled = true;
+    };
   }, [request.config.body]);
 
   return [results, error, sendText];
