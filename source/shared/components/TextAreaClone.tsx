@@ -19,7 +19,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
 
   const style = window.getComputedStyle(element);
   // let cloneElement: HTMLDivElement | null = null;
-  let timer: any;
+  let timer: any; // TODO Use a proper Debouncer
 
   const onListMutation = useCallback(
     (mutationList) => {
@@ -69,9 +69,13 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
     sendAlerts(alerts, cloneRef.current);
   }, [alerts]);
 
-  const sendAlerts = (alerts: IAlert[], element: HTMLDivElement | null) => {
+  const sendAlerts = (
+    alerts: IAlert[],
+    cloneElement: HTMLDivElement | null
+  ) => {
     const elementWithAlerts: IElementWithAlerts = {
-      element,
+      originalElement: element,
+      cloneElement,
       alerts,
     };
 
