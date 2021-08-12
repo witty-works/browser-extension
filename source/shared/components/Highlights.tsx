@@ -45,7 +45,7 @@ const Highlights = () => {
           range.setStart(nodeText, alert.startOffset);
           range.setEnd(nodeText, alert.endOffset);
           const rect = range.getClientRects()[0];
-          console.log('rect = ', rect);
+          // console.log('rect = ', rect);
 
           return rect;
         })

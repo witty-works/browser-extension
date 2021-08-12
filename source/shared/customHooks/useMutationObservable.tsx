@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 
+import { CustomInputElement } from '../types';
+
 const DEFAULT_OPTIONS = {
   config: { attributes: true, childList: true, subtree: true },
 };
 
 const useMutationObservable = (
-  targetElement: HTMLTextAreaElement | HTMLInputElement | HTMLDivElement,
+  targetElement: CustomInputElement | Window,
   callback: ([]) => void,
   options = DEFAULT_OPTIONS
 ) => {

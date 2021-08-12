@@ -1,3 +1,7 @@
+export type CustomInputElement = HTMLTextArea | HTMLInputElement | HTMLDivElement;
+export interface IElement {
+  element: HTMLTextAreaElement | HTMLInputElement | HTMLDivElement | null
+}
 export interface IAlert {
   id: string;
   startOffset: number;
