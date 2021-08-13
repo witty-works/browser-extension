@@ -28,7 +28,7 @@ const useApiResult = (request: IRequest, sendText: any) => {
       })
       .catch((error) => {
         console.log('useApiResult error = ', error);
-        // setError(error); //FIX, this is not received outside
+        // setError(error); //TODO FIX, this is not received outside
       });
     return () => {
       ac.abort(); // Abort both fetches on unmount

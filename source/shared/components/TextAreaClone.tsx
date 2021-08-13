@@ -14,49 +14,26 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
 }: TextAreaCloneProps) => {
   const [entities, error, sendText] = useEntities();
   const cloneRef = useRef<HTMLDivElement | null>(null);
-  // const [cloneElement, setCloneElement] = useState<HTMLDivElement | null>(null);
   const [alerts, setAlerts] = useState<IAlert[]>([]);
 
   const elementStyle = window.getComputedStyle(element);
   const elementBoundingClientRect = element.getBoundingClientRect();
-  console.log(
-    '* elementBoundingClientRect top = ',
-    elementBoundingClientRect.top
-  );
-  console.log('* element offsetTop = ', element.offsetTop);
-  console.log('* element scrollTop = ', element.scrollTop);
-  console.log(
-    '* element top total = ',
-    element.offsetTop + element.clientTop - element.scrollTop
-  );
 
-  // let cloneElement: HTMLDivElement | null = null;
   let timer: any; // TODO Use a proper Debouncer
 
-  const onListMutation = useCallback(
-    (mutationList) => {
-      // console.log('mutationList = ', mutationList);
-      // console.log('mutationList[0].target = ', mutationList[0].target);
-      // console.log(
-      //   'mutationList[0].target style top = ',
-      //   mutationList[0].target.style.top
-      // );
-
-      // console.log('aaaaaaaalerts = ', alerts);
+  const onElementMutation = useCallback(
+    (mutation) => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
-        sendAlerts(alerts, mutationList[0].target);
+        sendAlerts(alerts, mutation[0].target);
       }, 10);
     },
     [alerts, timer]
   );
 
-  useMutationObservable(cloneRef.current as HTMLDivElement, onListMutation);
+  useMutationObservable(cloneRef.current as HTMLDivElement, onElementMutation);
 
   useEffect(() => {
-    // console.log('ENTITIES! = ', entities.entities);
-    // console.log(JSON.stringify(entities.entities));
-
     const alerts: IAlert[] = entities.entities.map((entity: any) => {
       return {
         id: `${entity.type}-${entity.text}-${entity.start}-${entity.end}`,
@@ -66,15 +43,6 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
     });
 
     setAlerts(alerts);
-
-    // const elementWithAlerts: IElementWithAlerts = {
-    //   // cloneElement,
-    //   // originalElement: element,
-    //   element: cloneRef.current,
-    //   alerts,
-    // };
-
-    // MessageService.sendMessage(elementWithAlerts);
   }, [entities]);
 
   useEffect(() => {
@@ -118,12 +86,12 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
         appearance: 'textarea',
         whiteSpace: 'pre-wrap',
         position: 'fixed',
-        // visibility: 'hidden',
-        zIndex: -1,
-        outline: '3px solid red',
+        visibility: 'hidden',
+        // zIndex: -1,
+        // outline: '3px solid red',
         overflow: 'auto',
         top: `${elementBoundingClientRect.top - element.scrollTop}px`, //TODO would work define scrollTop property and not substract it here?
-        left: `${elementBoundingClientRect.left}px`,
+        left: `${elementBoundingClientRect.left - element.scrollLeft}px`,
         paddingTop: elementStyle.paddingTop,
         paddingLeft: elementStyle.paddingLeft,
         width: elementStyle.width,

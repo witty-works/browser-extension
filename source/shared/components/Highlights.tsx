@@ -45,20 +45,20 @@ const Highlights = () => {
           range.setStart(nodeText, alert.startOffset);
           range.setEnd(nodeText, alert.endOffset);
           const rect = range.getClientRects()[0];
-          // console.log('rect = ', rect);
-
           return rect;
         })
         .filter((rect) => {
-          const elementToTrack =
-            originalElement === null ? element : originalElement;
+          const elementToTrackRect = (
+            originalElement === null ? element : originalElement
+          ).getBoundingClientRect();
 
           return (
-            rect.top + rect.height >
-              elementToTrack?.getBoundingClientRect().top &&
+            rect.top + rect.height > elementToTrackRect.top &&
             rect.top + rect.height <
-              elementToTrack?.getBoundingClientRect().top +
-                elementToTrack?.getBoundingClientRect().height
+              elementToTrackRect.top + elementToTrackRect.height &&
+            rect.left > elementToTrackRect.left &&
+            rect.left + rect.width <
+              elementToTrackRect.left + elementToTrackRect.width
           );
         });
 
