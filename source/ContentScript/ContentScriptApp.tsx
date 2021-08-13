@@ -30,11 +30,35 @@ const ContentScriptApp: React.FC = () => {
     //Capture all the scrolling events, including window scrolling
     window.addEventListener('scroll', handleScrollElement, true);
 
+    document.addEventListener('input', handleInputElement);
+
     return () => {
       //Don't forget to remove the listeners at the end
       window.removeEventListener('scroll', handleScrollElement);
+      document.removeEventListener('input', handleInputElement);
     };
   }, []);
+
+  const findInputElement = (
+    inputs: CustomInputElement[],
+    element: HTMLElement
+  ): number => {
+    return inputs.findIndex(
+      (input: CustomInputElement) =>
+        input.getAttribute('data-id') === element.getAttribute('data-id')
+    );
+  };
+
+  const handleInputElement = useCallback(
+    (event: Event) => {
+      console.log('updating input');
+      const target = event.target as HTMLElement;
+      const index = findInputElement(inputsRef.current, target);
+      inputsRef.current[index] = target;
+      setInputs([...inputsRef.current]);
+    },
+    [inputsRef, setInputs]
+  );
 
   const handleScrollElement = useCallback(
     (event: Event) => {
@@ -45,10 +69,7 @@ const ContentScriptApp: React.FC = () => {
         setInputs([...getAllInputElements()]);
       } else {
         //User is scrolling a specific component, we just update this one
-        const index = inputsRef.current.findIndex(
-          (input: CustomInputElement) =>
-            input.getAttribute('data-id') === target.getAttribute('data-id')
-        );
+        const index = findInputElement(inputsRef.current, target);
         inputsRef.current[index] = target;
         setInputs([...inputsRef.current]);
       }
