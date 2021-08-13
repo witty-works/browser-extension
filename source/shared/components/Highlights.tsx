@@ -54,9 +54,11 @@ const Highlights = () => {
             originalElement === null ? element : originalElement;
 
           return (
-            rect.top + rect.height > elementToTrack?.offsetTop &&
+            rect.top + rect.height >
+              elementToTrack?.getBoundingClientRect().top &&
             rect.top + rect.height <
-              elementToTrack?.offsetTop + elementToTrack?.clientHeight
+              elementToTrack?.getBoundingClientRect().top +
+                elementToTrack?.getBoundingClientRect().height
           );
         });
 

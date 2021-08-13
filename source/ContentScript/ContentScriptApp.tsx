@@ -39,12 +39,12 @@ const ContentScriptApp: React.FC = () => {
 
   useEffect(() => {
     console.log('inputs UPDATE = ', inputs);
-    if (inputs.length > 0)
-      console.log(
-        'inputs TEXTAREA offsetTop = ',
-        inputs[1].offsetTop,
-        inputs[1].scrollTop
-      );
+    // if (inputs.length > 0)
+    //   console.log(
+    //     'inputs TEXTAREA offsetTop = ',
+    //     inputs[1].offsetTop,
+    //     inputs[1].scrollTop
+    //   );
   }, [inputs]);
 
   // useEffect(() => {

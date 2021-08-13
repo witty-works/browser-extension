@@ -16,20 +16,19 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   const cloneRef = useRef<HTMLDivElement | null>(null);
   // const [cloneElement, setCloneElement] = useState<HTMLDivElement | null>(null);
   const [alerts, setAlerts] = useState<IAlert[]>([]);
-  const [elementRect, setElementRect] = useState<DOMRect>(
-    element.getBoundingClientRect()
+
+  const elementStyle = window.getComputedStyle(element);
+  const elementBoundingClientRect = element.getBoundingClientRect();
+  console.log(
+    '* elementBoundingClientRect top = ',
+    elementBoundingClientRect.top
   );
-
-  const style = window.getComputedStyle(element);
-  console.log('*** elementRec 1 = ', element.getBoundingClientRect());
-
-  useEffect(() => {
-    console.log('*** elementRec 2 = ', elementRect);
-  }, []);
-
-  useEffect(() => {
-    console.log('*** elementRec 3 = ', elementRect);
-  }, [elementRect]);
+  console.log('* element offsetTop = ', element.offsetTop);
+  console.log('* element scrollTop = ', element.scrollTop);
+  console.log(
+    '* element top total = ',
+    element.offsetTop + element.clientTop - element.scrollTop
+  );
 
   // let cloneElement: HTMLDivElement | null = null;
   let timer: any; // TODO Use a proper Debouncer
@@ -103,8 +102,6 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   }, [error]);
 
   const checkContent = (elem: HTMLDivElement) => {
-    // cloneElement = elem;
-    // setCloneElement(elem.cloneNode(true));
     sendText(elem.textContent || '');
   };
 
@@ -120,17 +117,17 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
       style={{
         appearance: 'textarea',
         whiteSpace: 'pre-wrap',
-        position: 'absolute',
+        position: 'fixed',
         // visibility: 'hidden',
         zIndex: -1,
         outline: '3px solid red',
         overflow: 'auto',
-        top: `${element.offsetTop + element.clientTop - element.scrollTop}px`, //TODO would work define scrollTop property and not substract it here?
-        left: `${element.offsetLeft + element.clientLeft}px`,
-        paddingTop: style.paddingTop,
-        paddingLeft: style.paddingLeft,
-        width: style.width,
-        height: style.height,
+        top: `${elementBoundingClientRect.top - element.scrollTop}px`, //TODO would work define scrollTop property and not substract it here?
+        left: `${elementBoundingClientRect.left}px`,
+        paddingTop: elementStyle.paddingTop,
+        paddingLeft: elementStyle.paddingLeft,
+        width: elementStyle.width,
+        height: elementStyle.height,
       }}
     >
       {element.value}
