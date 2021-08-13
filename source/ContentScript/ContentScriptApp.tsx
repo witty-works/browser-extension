@@ -51,7 +51,6 @@ const ContentScriptApp: React.FC = () => {
 
   const handleInputElement = useCallback(
     (event: Event) => {
-      console.log('updating input');
       const target = event.target as HTMLElement;
       const index = findInputElement(inputsRef.current, target);
       inputsRef.current[index] = target;
