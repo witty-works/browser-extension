@@ -25,7 +25,12 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
     (mutation) => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
-        sendAlerts(alerts, mutation[0].target);
+        //MutationObserver Detects when there is no text in Textarea (childList = 0),
+        //so it can trigger its callback before alerts its updated.
+        //That's why we do this check and setAlerts to an empty array
+        mutation[0].target.textContent.localeCompare('') === 0
+          ? setAlerts([])
+          : sendAlerts(alerts, mutation[0].target);
       }, 10);
     },
     [alerts, timer]
