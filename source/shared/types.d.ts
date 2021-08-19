@@ -38,3 +38,8 @@ export interface IEntitiesError {
 export interface IEntitiesResponseError {
   detail: IEntitiesError[]
 }
+
+// export interface IExtensionMessage {
+//   command: string,
+//   value: string
+// }

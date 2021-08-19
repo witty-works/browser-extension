@@ -13,13 +13,17 @@ const useApiResult = (request: IRequest, sendText: any) => {
     const ac = new AbortController();
     let canceled = false; // Canceled is used to avoid race conditions
 
+    console.log('useApiResult request = ', request);
+
     fetch(request.url, request.config)
       .then(async (response) => {
         if (!canceled) {
-          // console.log('useApiResult response = ', response);
+          console.log('useApiResult response = ', response);
 
           if (response.ok) {
-            setResults(await response.json());
+            const responseResults = await response.json();
+            console.log('useApiResult responseResults= ', responseResults);
+            setResults(responseResults);
             setError({ detail: [] });
           } else {
             setError(await response.json());
