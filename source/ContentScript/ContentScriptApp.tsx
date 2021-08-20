@@ -1,8 +1,7 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { StorageKeys } from '../shared/constants';
-import { DefaultBaseUrlKey } from '../shared/ApiServices/baseUrl.constants';
+import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import { setBaseURL } from '../shared/ApiServices/requests';
 import TextAreaClone from '../shared/components/TextAreaClone';
 import Highlights from '../shared/components/Highlights';
@@ -14,10 +13,10 @@ const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
 
   useEffect(() => {
+    //Define the Endpoint
     browser.storage.local
       .get(StorageKeys.API_ENDPOINT_KEY)
       .then((result) => {
-        console.log('result = ', result);
         if (result[StorageKeys.API_ENDPOINT_KEY])
           setUrlEndpointKey(result[StorageKeys.API_ENDPOINT_KEY]);
         else setUrlEndpointKey(DefaultBaseUrlKey);
@@ -27,30 +26,22 @@ const ContentScriptApp: React.FC = () => {
     //Capture all the scrolling events, including window scrolling
     window.addEventListener('scroll', handleScrollElement, true);
     document.addEventListener('input', handleInputElement);
-    // browser.runtime.onMessage.addListener(handleExtensionMessages);
     browser.storage.onChanged.addListener(storageChange);
 
     return () => {
       //Don't forget to remove the listeners at the end
       window.removeEventListener('scroll', handleScrollElement);
       document.removeEventListener('input', handleInputElement);
-      // browser.runtime.onMessage.removeListener(handleExtensionMessages);
       browser.storage.onChanged.removeListener(storageChange);
     };
   }, []);
 
-  const storageChange = (changes: any, area: any) => {
-    console.log('storageChange = ', changes, area);
-
+  const storageChange = (changes: any) => {
     let changedItems = Object.keys(changes);
 
     for (let item of changedItems) {
-      console.log('item = ', item);
-
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
-          //setBaseURL(item.newValue);
-          console.log('changes[item].newValue = ', changes[item].newValue);
           setUrlEndpointKey(changes[item].newValue);
           break;
       }
@@ -58,30 +49,12 @@ const ContentScriptApp: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('urlEndpointKey = ', urlEndpointKey);
-
     if (urlEndpointKey.localeCompare('') !== 0) {
-      console.log('YEAH ITS DEFINED urlEndpointKey = ', urlEndpointKey);
-
       setBaseURL(urlEndpointKey);
       const inputs = getAllInputElements(); //TODO Needs forcing a rerender
       setInputs(inputs);
     }
   }, [urlEndpointKey]);
-
-  // const setBaseURLAndStoreIt = (value: string) => {
-  //   console.log('saving base url.... value = ', value);
-
-  //   setBaseURL(value);
-  //   storeLocalData(StorageKeys.API_ENDPOINT_KEY, value);
-  // };
-
-  // const storeLocalData = (key: string, value: string) => {
-  //   browser.storage.local
-  //     .set({ [key]: value })
-  //     .then(() => console.log(`new api endpoint ${value} saved`))
-  //     .catch(onError);
-  // };
 
   const onError = (error: string) => {
     console.log('onError = ', error);
