@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
-import { getEntities } from './requests';
+import { getAnalyzedTextResults } from './requests';
 import { IRequest } from '../types';
 
-const useEntities = () => {
+const useEndpoint = () => {
   const [textToAnalyze, setTextToAnalyse] = useState<string>('');
 
   useEffect(() => {
@@ -13,10 +13,10 @@ const useEntities = () => {
   }, []);
 
   const request: IRequest = useMemo(
-    () => getEntities(textToAnalyze),
+    () => getAnalyzedTextResults(textToAnalyze),
     [textToAnalyze]
   );
   return useApiResults(request, setTextToAnalyse);
 };
 
-export default useEntities;
+export default useEndpoint;

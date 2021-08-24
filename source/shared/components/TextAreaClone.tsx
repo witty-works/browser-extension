@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { IAlert, IElementWithAlerts } from '../types';
 
-import useEntities from '../ApiServices/useEntities';
+import useEndpoint from '../ApiServices/useEndpoint';
 import useMutationObservable from '../customHooks/useMutationObservable';
 import { MessageService } from '../MessageService';
 
@@ -12,7 +12,7 @@ export interface TextAreaCloneProps {
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
 }: TextAreaCloneProps) => {
-  const [entities, error, sendText] = useEntities();
+  const [analyzedText, analyzedTextError, sendText] = useEndpoint();
   const cloneRef = useRef<HTMLDivElement | null>(null);
   const [alerts, setAlerts] = useState<IAlert[]>([]);
 
@@ -39,16 +39,16 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   useMutationObservable(cloneRef.current as HTMLDivElement, onElementMutation);
 
   useEffect(() => {
-    const alerts: IAlert[] = entities.entities.map((entity: any) => {
+    const alerts: IAlert[] = analyzedText.results.map((result: any) => {
       return {
-        id: `${entity.type}-${entity.text}-${entity.start}-${entity.end}`,
-        startOffset: entity.start,
-        endOffset: entity.end,
+        id: `${result.category}-${result.text}-${result.start}-${result.end}`,
+        startOffset: result.start,
+        endOffset: result.end,
       };
     });
 
     setAlerts(alerts);
-  }, [entities]);
+  }, [analyzedText]);
 
   useEffect(() => {
     sendAlerts(alerts, cloneRef.current);
@@ -68,11 +68,11 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   };
 
   useEffect(() => {
-    if (error.detail && error.detail.length > 0) {
+    if (analyzedTextError.detail && analyzedTextError.detail.length > 0) {
       // Error!
-      console.log('ERROR! = ', error);
+      console.log('ERROR! = ', analyzedTextError);
     }
-  }, [error]);
+  }, [analyzedTextError]);
 
   const checkContent = (elem: HTMLDivElement) => {
     sendText(elem.textContent || '');
