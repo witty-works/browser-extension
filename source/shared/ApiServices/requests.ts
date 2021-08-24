@@ -7,9 +7,9 @@ const createUrl = (base: string, path: string): string => `${base}${path}`;
 
 export const setBaseURL = (urlKey: string) => BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls];
 
-export const getEntities = (text: string):IRequest => {
+export const getAnalyzedTextResults = (text: string):IRequest => {
   return {
-    url: createUrl(BASE_URL, 'entities'),
+    url: createUrl(BASE_URL, 'check'),
     config:{
       method: 'POST',
       headers: {

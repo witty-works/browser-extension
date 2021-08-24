@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 
-import { IEntitiesResponse, IEntitiesResponseError, IRequest } from '../types';
+import { IEndpointResponse, IEndpointResponseError, IRequest } from '../types';
 
 const useApiResult = (request: IRequest, sendText: any) => {
-  const [results, setResults] = useState<IEntitiesResponse>({
-    entities: [],
+  const [endpointResponse, setEndpointResponse] = useState<IEndpointResponse>({
+    results: [],
     language: '',
   });
-  const [error, setError] = useState<IEntitiesResponseError>({ detail: [] });
+  const [endpointError, setEndpointError] = useState<IEndpointResponseError>({
+    detail: [],
+  });
 
   useEffect(() => {
     const ac = new AbortController();
@@ -22,11 +24,11 @@ const useApiResult = (request: IRequest, sendText: any) => {
 
           if (response.ok) {
             const responseResults = await response.json();
-            console.log('useApiResult responseResults= ', responseResults);
-            setResults(responseResults);
-            setError({ detail: [] });
+            console.log('useApiResult responseResults = ', responseResults);
+            setEndpointResponse(responseResults);
+            setEndpointError({ detail: [] });
           } else {
-            setError(await response.json());
+            setEndpointError(await response.json());
           }
         }
       })
@@ -40,7 +42,7 @@ const useApiResult = (request: IRequest, sendText: any) => {
     };
   }, [request.config.body]);
 
-  return [results, error, sendText];
+  return [endpointResponse, endpointError, sendText];
 };
 
 export default useApiResult;

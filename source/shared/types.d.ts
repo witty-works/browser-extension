@@ -19,24 +19,27 @@ export interface IRequest {
   config: RequestInit
 }
 
-export interface IEntities {
+export interface IEndpointResult {
   start: number,
   end: number,
-  type: string,
-  type: string
+  category: string,
+  text: string,
+  label: string,
+  reason: string,
+  solution: string,
 }
-export interface IEntitiesResponse {
-  entities: IEntities[],
+export interface IEndpointResponse {
+  results: IEndpointResult[],
   language: string
 }
 
-export interface IEntitiesError {
+export interface IEndpointResultError {
   loc: string[],
   msg: string,
   type: string
 }
-export interface IEntitiesResponseError {
-  detail: IEntitiesError[]
+export interface IEndpointResponseError {
+  detail: IEndpointResultError[]
 }
 
 // export interface IExtensionMessage {
