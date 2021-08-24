@@ -44,6 +44,13 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
         id: `${result.category}-${result.text}-${result.start}-${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
+        data: {
+          category: result.category,
+          text: result.text,
+          label: result.label,
+          reason: result.reason,
+          solution: result.solution,
+        },
       };
     });
 

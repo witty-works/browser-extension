@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import CSS from 'csstype';
 
-import { IHighlightData } from '../../types';
+import { IAlertContentData } from '../../types';
 import Modal from '../Modal/Modal';
 
 type HandleClick = () => void;
@@ -9,7 +9,7 @@ type HandleClick = () => void;
 export interface HighlightProps {
   alertID: string;
   rect: DOMRect;
-  data: IHighlightData;
+  data: IAlertContentData;
 }
 const Highlight: React.FC<HighlightProps> = ({
   rect,
