@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageService } from '../MessageService';
 import { IElementWithAlerts } from '../types';
+import Highlight, { HighlightProps } from './Highlight/Highlight';
 
 const Highlights = () => {
   const [elementWithAlerts, setElementWithAlerts] =
@@ -9,7 +10,7 @@ const Highlights = () => {
       originalElement: null,
       alerts: [],
     });
-  const [rects, setRects] = useState<DOMRect[]>([]);
+  const [highlights, setHighlights] = useState<HighlightProps[]>([]);
 
   useEffect(() => {
     // Subscribe to the message service
@@ -39,47 +40,63 @@ const Highlights = () => {
     if (element !== null) {
       const nodeText = element.childNodes[0];
 
-      const rects = elementWithAlerts.alerts
+      const highlights = elementWithAlerts.alerts
         .map((alert) => {
           const range = document.createRange();
           range.setStart(nodeText, alert.startOffset);
           range.setEnd(nodeText, alert.endOffset);
           const rect = range.getClientRects()[0];
-          return rect;
+          return {
+            alertID: alert.id,
+            rect,
+            data: {
+              category: 'Lorem Ipsum',
+              reason:
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+              solution:
+                'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+            },
+          };
         })
-        .filter((rect) => {
+        .filter((alert) => {
           const elementToTrackRect = (
             originalElement === null ? element : originalElement
           ).getBoundingClientRect();
 
           return (
-            rect.top + rect.height > elementToTrackRect.top &&
-            rect.top + rect.height <
+            alert.rect.top + alert.rect.height > elementToTrackRect.top &&
+            alert.rect.top + alert.rect.height <
               elementToTrackRect.top + elementToTrackRect.height &&
-            rect.left > elementToTrackRect.left &&
-            rect.left + rect.width <
+            alert.rect.left > elementToTrackRect.left &&
+            alert.rect.left + alert.rect.width <
               elementToTrackRect.left + elementToTrackRect.width
           );
         });
 
-      setRects(rects);
+      setHighlights(highlights);
     }
   }, [elementWithAlerts]);
 
   return (
     <div>
-      {rects.map((rect, index) => (
-        <div
+      {highlights.map((highlight, index) => (
+        // <div
+        //   key={index}
+        //   style={{
+        //     position: 'fixed',
+        //     top: rect.top + rect.height,
+        //     left: rect.left,
+        //     width: rect.width,
+        //     height: '3px',
+        //     backgroundColor: 'purple',
+        //   }}
+        // ></div>
+        <Highlight
           key={index}
-          style={{
-            position: 'fixed',
-            top: rect.top + rect.height,
-            left: rect.left,
-            width: rect.width,
-            height: '3px',
-            backgroundColor: 'purple',
-          }}
-        ></div>
+          alertID={highlight.alertID}
+          rect={highlight.rect}
+          data={highlight.data}
+        />
       ))}
     </div>
   );

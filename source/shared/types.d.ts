@@ -46,3 +46,8 @@ export interface IEndpointResponseError {
 //   command: string,
 //   value: string
 // }
+export interface IHighlightData {
+  category: string;
+  reason: string;
+  solution: string;
+}
