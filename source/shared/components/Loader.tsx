@@ -1,63 +1,49 @@
 import React from 'react';
 
 export interface LoaderProps {
-  width?: number;
-  height?: number;
   color?: string;
   label?: string;
   radius?: number;
 }
 
 const Loader: React.FC<LoaderProps> = ({
-  width = 16,
-  height = 16,
   color = 'purple',
-  radius = 1,
+  radius = 16,
   label = 'loading',
 }: LoaderProps) => (
   <svg
-    width={width}
-    height={height}
-    viewBox='0 0 38 38'
+    width={radius * 2}
+    height={radius * 2}
     xmlns='http://www.w3.org/2000/svg'
     aria-label={label}
   >
-    <defs>
-      <linearGradient x1='8.042%' y1='0%' x2='65.682%' y2='23.865%' id='a'>
-        <stop stopColor={color} stopOpacity='0' offset='0%' />
-        <stop stopColor={color} stopOpacity='.631' offset='63.146%' />
-        <stop stopColor={color} offset='100%' />
-      </linearGradient>
-    </defs>
-    <g fill='none' fillRule='evenodd'>
-      <g transform='translate(1 1)'>
-        <path
-          d='M36 18c0-9.94-8.06-18-18-18'
-          id='Oval-2'
-          stroke={color}
-          strokeWidth='2'
-        >
-          <animateTransform
-            attributeName='transform'
-            type='rotate'
-            from='0 18 18'
-            to='360 18 18'
-            dur='0.9s'
-            repeatCount='indefinite'
-          />
-        </path>
-        <circle fill='#fff' cx='36' cy='18' r={radius}>
-          <animateTransform
-            attributeName='transform'
-            type='rotate'
-            from='0 18 18'
-            to='360 18 18'
-            dur='0.9s'
-            repeatCount='indefinite'
-          />
-        </circle>
-      </g>
-    </g>
+    <circle
+      fill={color}
+      cx='0'
+      cy='0'
+      r={radius}
+      transform={`translate(${radius} ${radius})`}
+    >
+      <animateTransform
+        attributeName='transform'
+        type='scale'
+        additive='sum'
+        from='0 0'
+        to='1 1'
+        begin='0s'
+        dur='1s'
+        repeatCount='indefinite'
+      />
+      <animate
+        id='opacityAnimation'
+        attributeName='opacity'
+        from='0'
+        to='0.7'
+        begin='0s'
+        dur='1s'
+        repeatCount='indefinite'
+      />
+    </circle>
   </svg>
 );
 

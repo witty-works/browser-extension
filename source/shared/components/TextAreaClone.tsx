@@ -20,7 +20,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   const elementStyle = window.getComputedStyle(element);
   const elementBoundingClientRect = element.getBoundingClientRect();
 
-  const SPINNER_SIZE: number = 8;
+  const LOADER_RADIUS: number = 8;
 
   let timer: any; // TODO Use a proper Debouncer
 
@@ -114,15 +114,15 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
         <div
           style={{
             position: 'fixed',
-            width: `${SPINNER_SIZE}px`,
-            height: `${SPINNER_SIZE}px`,
-            top: `${elementBoundingClientRect.top + 8}px`,
+            top: `${elementBoundingClientRect.top + LOADER_RADIUS}px`,
             left: `${
-              elementBoundingClientRect.left + parseInt(elementStyle.width) - 24
+              elementBoundingClientRect.left +
+              parseInt(elementStyle.width) -
+              LOADER_RADIUS * 3
             }px`,
           }}
         >
-          <Loader />
+          <Loader radius={LOADER_RADIUS} />
         </div>
       ) : null}
     </div>
