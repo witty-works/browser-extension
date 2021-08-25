@@ -6,8 +6,15 @@ export interface IAlert {
   id: string;
   startOffset: number;
   endOffset: number;
+  data: IAlertContentData
 }
-
+export interface IAlertContentData {
+  category: string,
+  text: string,
+  label: string,
+  reason: string,
+  solution: string,
+}
 export interface IElementWithAlerts {
   cloneElement: HTMLDivElement | null,
   originalElement: HTMLTextAreaElement | HTMLInputElement | null,
