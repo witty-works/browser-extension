@@ -98,21 +98,34 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           }
         }}
         spellCheck={false}
-        style={{
-          appearance: 'textarea',
-          whiteSpace: 'pre-wrap',
-          position: 'fixed',
-          visibility: 'hidden',
-          // zIndex: -1,
-          // outline: '3px solid red',
-          overflow: 'auto',
-          top: `${elementBoundingClientRect.top - element.scrollTop}px`, //TODO would work define scrollTop property and not substract it here?
-          left: `${elementBoundingClientRect.left - element.scrollLeft}px`,
-          paddingTop: elementStyle.paddingTop,
-          paddingLeft: elementStyle.paddingLeft,
-          width: elementStyle.width,
-          height: elementStyle.height,
-        }}
+        style={
+          {
+            appearance: 'textarea',
+            whiteSpace: 'pre-wrap',
+            position: 'fixed',
+            overflow: 'auto',
+            top: `${elementBoundingClientRect.top - element.scrollTop}px`, //TODO would work define scrollTop property and not substract it here?
+            left: `${elementBoundingClientRect.left - element.scrollLeft}px`,
+            paddingTop: elementStyle.paddingTop,
+            paddingLeft: elementStyle.paddingLeft,
+            paddingRight: elementStyle.paddingRight,
+            paddingBottom: elementStyle.paddingBottom,
+            width: elementStyle.width,
+            height: elementStyle.height,
+            fontSize: elementStyle.fontSize,
+            fontWeight: elementStyle.fontWeight,
+            lineHeight: elementStyle.lineHeight,
+            visibility: 'hidden',
+            // zIndex: -1,
+            // outline: '3px solid red',
+            // top: `${
+            //   elementBoundingClientRect.top -
+            //   element.scrollTop +
+            //   elementBoundingClientRect.height +
+            //   50
+            // }px`,
+          } as React.CSSProperties
+        }
       >
         {element.value}
       </div>

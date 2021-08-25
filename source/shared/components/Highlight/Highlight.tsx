@@ -17,15 +17,14 @@ const Highlight: React.FC<HighlightProps> = ({
 }: HighlightProps) => {
   console.log('data = ', data);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  // const toggle = () => setIsOpen(!isOpen);
 
   const HighlightStyling: CSS.Properties = {
     position: 'fixed',
     zIndex: 1,
     top: `${rect.top}px`,
-    left: `${rect.left - 2}px`,
-    width: `${rect.width + 6}px`,
-    height: `${rect.height + 3}px`,
+    left: `${rect.left + 2}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height + 1}px`,
     backgroundColor: `rgba(88,0,208,.1)`,
     borderBottom: '3px solid rgb(88,0,208)',
     borderRadius: '2px',
