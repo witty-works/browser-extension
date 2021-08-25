@@ -4,6 +4,7 @@ import { IAlert, IElementWithAlerts } from '../types';
 import useEndpoint from '../ApiServices/useEndpoint';
 import useMutationObservable from '../customHooks/useMutationObservable';
 import { MessageService } from '../MessageService';
+import Loader from './Loader';
 
 export interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
@@ -12,12 +13,14 @@ export interface TextAreaCloneProps {
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
 }: TextAreaCloneProps) => {
-  const [analyzedText, analyzedTextError, sendText] = useEndpoint();
+  const [loading, analyzedText, analyzedTextError, sendText] = useEndpoint();
   const cloneRef = useRef<HTMLDivElement | null>(null);
   const [alerts, setAlerts] = useState<IAlert[]>([]);
 
   const elementStyle = window.getComputedStyle(element);
   const elementBoundingClientRect = element.getBoundingClientRect();
+
+  const LOADER_RADIUS: number = 8;
 
   let timer: any; // TODO Use a proper Debouncer
 
@@ -86,31 +89,49 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   };
 
   return (
-    <div
-      ref={(ref) => {
-        if (ref !== null) {
-          cloneRef.current = ref as HTMLDivElement;
-          checkContent(ref);
-        }
-      }}
-      spellCheck={false}
-      style={{
-        appearance: 'textarea',
-        whiteSpace: 'pre-wrap',
-        position: 'fixed',
-        visibility: 'hidden',
-        // zIndex: -1,
-        // outline: '3px solid red',
-        overflow: 'auto',
-        top: `${elementBoundingClientRect.top - element.scrollTop}px`, //TODO would work define scrollTop property and not substract it here?
-        left: `${elementBoundingClientRect.left - element.scrollLeft}px`,
-        paddingTop: elementStyle.paddingTop,
-        paddingLeft: elementStyle.paddingLeft,
-        width: elementStyle.width,
-        height: elementStyle.height,
-      }}
-    >
-      {element.value}
+    <div>
+      <div
+        ref={(ref) => {
+          if (ref !== null) {
+            cloneRef.current = ref as HTMLDivElement;
+            checkContent(ref);
+          }
+        }}
+        spellCheck={false}
+        style={{
+          appearance: 'textarea',
+          whiteSpace: 'pre-wrap',
+          position: 'fixed',
+          visibility: 'hidden',
+          // zIndex: -1,
+          // outline: '3px solid red',
+          overflow: 'auto',
+          top: `${elementBoundingClientRect.top - element.scrollTop}px`, //TODO would work define scrollTop property and not substract it here?
+          left: `${elementBoundingClientRect.left - element.scrollLeft}px`,
+          paddingTop: elementStyle.paddingTop,
+          paddingLeft: elementStyle.paddingLeft,
+          width: elementStyle.width,
+          height: elementStyle.height,
+        }}
+      >
+        {element.value}
+      </div>
+
+      {loading ? (
+        <div
+          style={{
+            position: 'fixed',
+            top: `${elementBoundingClientRect.top + LOADER_RADIUS}px`,
+            left: `${
+              elementBoundingClientRect.left +
+              parseInt(elementStyle.width) -
+              LOADER_RADIUS * 3
+            }px`,
+          }}
+        >
+          <Loader radius={LOADER_RADIUS} />
+        </div>
+      ) : null}
     </div>
   );
 };

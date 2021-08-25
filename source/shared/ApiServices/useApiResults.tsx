@@ -11,16 +11,21 @@ const useApiResult = (request: IRequest, sendText: any) => {
     detail: [],
   });
 
+  const [loading, setLoading] = useState<boolean>(false);
+
   useEffect(() => {
     const ac = new AbortController();
     let canceled = false; // Canceled is used to avoid race conditions
 
     console.log('useApiResult request = ', request);
+    setLoading(true);
 
     fetch(request.url, request.config)
       .then(async (response) => {
         if (!canceled) {
           console.log('useApiResult response = ', response);
+
+          setLoading(false);
 
           if (response.ok) {
             const responseResults = await response.json();
@@ -39,10 +44,11 @@ const useApiResult = (request: IRequest, sendText: any) => {
     return () => {
       ac.abort(); // Abort both fetches on unmount
       canceled = true;
+      setLoading(false);
     };
   }, [request.config.body]);
 
-  return [endpointResponse, endpointError, sendText];
+  return [loading, endpointResponse, endpointError, sendText];
 };
 
 export default useApiResult;
