@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { MessageService } from '../MessageService';
 import { IElementWithAlerts } from '../types';
-import Highlight, { HighlightProps } from './Highlight/Highlight';
+// import Highlight, { HighlightProps } from './Highlight/Highlight';
 
 const Highlights = () => {
   const [elementWithAlerts, setElementWithAlerts] =
     useState<IElementWithAlerts>({
-      cloneElement: null,
+      element: null,
       originalElement: null,
       alerts: [],
     });
-  const [highlights, setHighlights] = useState<HighlightProps[]>([]);
 
   useEffect(() => {
     // Subscribe to the message service
@@ -21,7 +20,7 @@ const Highlights = () => {
         } else {
           // clear messages when empty message received
           setElementWithAlerts({
-            cloneElement: null,
+            element: null,
             originalElement: null,
             alerts: [],
           });
@@ -34,10 +33,17 @@ const Highlights = () => {
   }, []);
 
   useEffect(() => {
-    const element = elementWithAlerts.cloneElement;
+    const element = elementWithAlerts.element;
     const originalElement = elementWithAlerts.originalElement;
 
     if (element !== null) {
+      const elementToTrackRect = (
+        typeof originalElement === 'undefined' || originalElement === null
+          ? element // Track the contentEditable directly
+          : originalElement
+      ) // Track the Textarea
+        .getBoundingClientRect();
+
       const nodeText = element.childNodes[0];
 
       const highlights = elementWithAlerts.alerts
@@ -53,10 +59,6 @@ const Highlights = () => {
           };
         })
         .filter((alert) => {
-          const elementToTrackRect = (
-            originalElement === null ? element : originalElement
-          ).getBoundingClientRect();
-
           return (
             alert.rect.top + alert.rect.height > elementToTrackRect.top &&
             alert.rect.top + alert.rect.height <
@@ -67,33 +69,111 @@ const Highlights = () => {
           );
         });
 
-      setHighlights(highlights);
+      const canvas: HTMLCanvasElement = document.getElementById(
+        'canvas-highlights'
+      ) as HTMLCanvasElement;
+
+      if (canvas && canvas.getContext) {
+        const context: CanvasRenderingContext2D | null =
+          canvas.getContext('2d');
+        if (context) {
+          //Clear the whole canvas first
+          context.clearRect(0, 0, canvas.width, canvas.height);
+
+          //Draw a rectangle for each highlight
+          highlights.forEach((highlight) => {
+            context.fillStyle = 'rgb(88, 0, 208)';
+
+            const highlightRect = highlight.rect;
+
+            const rectToRender: DOMRect = {
+              x: highlightRect.x - elementToTrackRect.x + 1,
+              y: highlightRect.y - canvas.offsetTop + highlightRect.height + 1,
+              width: highlightRect.width,
+              height: 3,
+            } as DOMRect;
+
+            context.fillRect(
+              rectToRender.x,
+              rectToRender.y,
+              rectToRender.width,
+              rectToRender.height
+            );
+          });
+        }
+      } else {
+        //TODO Provide Canvas Fallback content?
+        //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
+      }
+
+      // setHighlights(highlights);
     }
   }, [elementWithAlerts]);
 
-  return (
-    <div>
-      {highlights.map((highlight, index) => (
-        // <div
-        //   key={index}
-        //   style={{
-        //     position: 'fixed',
-        //     top: rect.top + rect.height,
-        //     left: rect.left,
-        //     width: rect.width,
-        //     height: '3px',
-        //     backgroundColor: 'purple',
-        //   }}
-        // ></div>
-        <Highlight
-          key={index}
-          alertID={highlight.alertID}
-          rect={highlight.rect}
-          data={highlight.data}
-        />
-      ))}
-    </div>
-  );
+  // useEffect(() => {
+  //   const canvas: HTMLCanvasElement = document.getElementById(
+  //     'canvas-highlights'
+  //   ) as HTMLCanvasElement;
+
+  //   if (canvas && canvas.getContext) {
+  //     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+  //     highlights.forEach((highlight) => {
+
+  //       context.fillStyle = 'rgb(88, 0, 208)';
+  //       const rect:DOMRect = {
+  //         x: elementWithAlerts.element.rect
+  //       } as DOMRect;
+  //       console.log('* highlight rect = ', highlight.rect);
+  //       context.fillRect(5, 5, rect.width, 3);
+  //     });
+  //   } else {
+  //     //TODO Provide Canvas Fallback content?
+  //     //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
+  //   }
+  // }, [highlights]);
+
+  const originalElement = elementWithAlerts.originalElement;
+  const originalElementRect = originalElement
+    ? originalElement.getBoundingClientRect()
+    : null;
+
+  return originalElement && originalElementRect ? (
+    <canvas
+      id='canvas-highlights'
+      style={
+        {
+          position: 'fixed',
+          overflow: 'auto',
+          top: `${originalElementRect.top}px`,
+          left: `${originalElementRect.left}px`,
+          outline: '3px solid blue',
+          pointerEvents: 'none',
+        } as React.CSSProperties
+      }
+      width={originalElementRect.width}
+      height={originalElementRect.height}
+    ></canvas>
+  ) : null;
+
+  // <div>
+  //   <div id='highlights'>
+  //     {highlights.map((highlight, index) => (
+  //       <Highlight
+  //         key={index}
+  //         alertID={highlight.alertID}
+  //         rect={highlight.rect}
+  //         data={highlight.data}
+  //       />
+  //     ))}
+  //   </div>
+  //   {elementWithAlerts.element ? (
+  //     <canvas
+  //       id='canvas-highlights'
+  //       width={elementWithAlerts?.element?.getBoundingClientRect().width}
+  //       height={elementWithAlerts?.element?.getBoundingClientRect().height}
+  //     ></canvas>
+  //   ) : null}
+  // </div>
 };
 
 export default Highlights;

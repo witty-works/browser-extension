@@ -70,7 +70,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   ) => {
     const elementWithAlerts: IElementWithAlerts = {
       originalElement: element,
-      cloneElement,
+      element: cloneElement,
       alerts,
     };
 

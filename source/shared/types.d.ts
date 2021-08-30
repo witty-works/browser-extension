@@ -16,8 +16,8 @@ export interface IAlertContentData {
   solution: string,
 }
 export interface IElementWithAlerts {
-  cloneElement: HTMLDivElement | null,
-  originalElement: HTMLTextAreaElement | HTMLInputElement | null,
+  element: HTMLDivElement | null,
+  originalElement?: HTMLTextAreaElement | HTMLInputElement | null,
   alerts: IAlert[]
 }
 
