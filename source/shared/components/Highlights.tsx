@@ -1,46 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { MessageService } from '../MessageService';
+import React, { useEffect } from 'react';
 import { IElementWithAlerts } from '../types';
-import Highlight, { HighlightProps } from './Highlight/Highlight';
+export interface HighlightsProps {
+  data: IElementWithAlerts;
+}
 
-const Highlights = () => {
-  const [elementWithAlerts, setElementWithAlerts] =
-    useState<IElementWithAlerts>({
-      cloneElement: null,
-      originalElement: null,
-      alerts: [],
-    });
-  const [highlights, setHighlights] = useState<HighlightProps[]>([]);
-
+const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
   useEffect(() => {
-    // Subscribe to the message service
-    const subscription = MessageService.onMessage().subscribe(
-      (message: IElementWithAlerts) => {
-        if (message) {
-          setElementWithAlerts(message);
-        } else {
-          // clear messages when empty message received
-          setElementWithAlerts({
-            cloneElement: null,
-            originalElement: null,
-            alerts: [],
-          });
-        }
-      }
-    );
-
-    // return unsubscribe method to execute when component unmounts
-    return subscription.unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    const element = elementWithAlerts.cloneElement;
-    const originalElement = elementWithAlerts.originalElement;
+    const element = data.element;
+    const originalElement = data.originalElement;
 
     if (element !== null) {
+      const elementToTrackRect = (
+        typeof originalElement === 'undefined' || originalElement === null
+          ? element // Track the contentEditable directly
+          : originalElement
+      ).getBoundingClientRect();
+
       const nodeText = element.childNodes[0];
 
-      const highlights = elementWithAlerts.alerts
+      const highlights = data.alerts
         .map((alert) => {
           const range = document.createRange();
           range.setStart(nodeText, alert.startOffset);
@@ -53,10 +31,6 @@ const Highlights = () => {
           };
         })
         .filter((alert) => {
-          const elementToTrackRect = (
-            originalElement === null ? element : originalElement
-          ).getBoundingClientRect();
-
           return (
             alert.rect.top + alert.rect.height > elementToTrackRect.top &&
             alert.rect.top + alert.rect.height <
@@ -67,33 +41,67 @@ const Highlights = () => {
           );
         });
 
-      setHighlights(highlights);
-    }
-  }, [elementWithAlerts]);
+      const canvas: HTMLCanvasElement = document.getElementById(
+        'canvas-highlights'
+      ) as HTMLCanvasElement;
 
-  return (
-    <div>
-      {highlights.map((highlight, index) => (
-        // <div
-        //   key={index}
-        //   style={{
-        //     position: 'fixed',
-        //     top: rect.top + rect.height,
-        //     left: rect.left,
-        //     width: rect.width,
-        //     height: '3px',
-        //     backgroundColor: 'purple',
-        //   }}
-        // ></div>
-        <Highlight
-          key={index}
-          alertID={highlight.alertID}
-          rect={highlight.rect}
-          data={highlight.data}
-        />
-      ))}
-    </div>
-  );
+      if (canvas && canvas.getContext) {
+        const context: CanvasRenderingContext2D | null =
+          canvas.getContext('2d');
+        if (context) {
+          //Clear the whole canvas first
+          context.clearRect(0, 0, canvas.width, canvas.height);
+
+          //Draw a rectangle for each highlight
+          highlights.forEach((highlight) => {
+            context.fillStyle = 'rgb(88, 0, 208)'; //TODO color constant
+
+            const highlightRect = highlight.rect;
+
+            const rectToRender: DOMRect = {
+              x: highlightRect.x - elementToTrackRect.x + 1,
+              y: highlightRect.y - canvas.offsetTop + highlightRect.height + 1,
+              width: highlightRect.width,
+              height: 3,
+            } as DOMRect;
+
+            context.fillRect(
+              rectToRender.x,
+              rectToRender.y,
+              rectToRender.width,
+              rectToRender.height
+            );
+          });
+        }
+      } else {
+        //TODO Provide Canvas Fallback content?
+        //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
+      }
+    }
+  }, [data]);
+
+  const originalElement = data.originalElement;
+  const originalElementRect = originalElement
+    ? originalElement.getBoundingClientRect()
+    : null;
+
+  return originalElement && originalElementRect ? (
+    <canvas
+      id='canvas-highlights'
+      style={
+        {
+          position: 'fixed',
+          overflow: 'auto',
+          top: `${originalElementRect.top}px`,
+          left: `${originalElementRect.left}px`,
+          pointerEvents: 'none',
+          // outline: '3px solid blue',
+        } as React.CSSProperties
+      }
+      width={originalElementRect.width}
+      height={originalElementRect.height}
+    ></canvas>
+  ) : null;
 };
 
 export default Highlights;

@@ -14,10 +14,11 @@ export interface IAlertContentData {
   label: string,
   reason: string,
   solution: string,
+  alternatives: string[]
 }
 export interface IElementWithAlerts {
-  cloneElement: HTMLDivElement | null,
-  originalElement: HTMLTextAreaElement | HTMLInputElement | null,
+  element: HTMLDivElement | null,
+  originalElement?: HTMLTextAreaElement | HTMLInputElement | null,
   alerts: IAlert[]
 }
 
