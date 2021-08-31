@@ -14,6 +14,7 @@ export interface IAlertContentData {
   label: string,
   reason: string,
   solution: string,
+  alternatives: string[]
 }
 export interface IElementWithAlerts {
   element: HTMLDivElement | null,

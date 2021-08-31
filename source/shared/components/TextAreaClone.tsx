@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
-import { IAlert, IElementWithAlerts } from '../types';
+import { IAlert, IElementWithAlerts, IAlertContentData } from '../types';
 
 import useEndpoint from '../ApiServices/useEndpoint';
 import useMutationObservable from '../customHooks/useMutationObservable';
@@ -53,8 +53,9 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           label: result.label,
           reason: result.reason,
           solution: result.solution,
-        },
-      };
+          alternatives: result.alternatives,
+        } as IAlertContentData,
+      } as IAlert;
     });
 
     setAlerts(alerts);

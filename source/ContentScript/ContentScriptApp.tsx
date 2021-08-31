@@ -5,12 +5,25 @@ import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import { setBaseURL } from '../shared/ApiServices/requests';
 import TextAreaClone from '../shared/components/TextAreaClone';
 import Highlights from '../shared/components/Highlights';
-import { CustomInputElement } from '../shared/types';
+import { CustomInputElement, IAlert } from '../shared/types';
 import useStateRef from '../shared/customHooks/useStateRef';
+import { IElementWithAlerts } from '../shared/types';
+import { MessageService } from '../shared/MessageService';
+import Modal, { ModalData } from '../shared/components/Modal/Modal';
+
+type HandleHighlightClick = () => void;
 
 const ContentScriptApp: React.FC = () => {
-  const [inputs, setInputs, inputsRef] = useStateRef([]);
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
+  const [modalData, setModalData] = useState<ModalData | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [inputs, setInputs, inputsRef] = useStateRef([]);
+  const [elementWithAlerts, setElementWithAlerts, elementWithAlertsRef] =
+    useStateRef({
+      element: null,
+      originalElement: null,
+      alerts: [],
+    });
 
   useEffect(() => {
     //Define the Endpoint
@@ -23,15 +36,35 @@ const ContentScriptApp: React.FC = () => {
       })
       .catch(onError);
 
+    // Subscribe to the message service
+    const subscription = MessageService.onMessage().subscribe(
+      (message: IElementWithAlerts) => {
+        if (message) {
+          setElementWithAlerts(message);
+        } else {
+          // clear messages when empty message received
+          setElementWithAlerts({
+            element: null,
+            originalElement: null,
+            alerts: [],
+          });
+        }
+      }
+    );
+
     //Capture all the scrolling events, including window scrolling
     window.addEventListener('scroll', handleScrollElement, true);
     document.addEventListener('input', handleInputElement);
+    document.addEventListener('click', handleClickElement);
     browser.storage.onChanged.addListener(storageChange);
 
     return () => {
+      // return unsubscribe method to execute when component unmounts
+      subscription.unsubscribe;
       //Don't forget to remove the listeners at the end
       window.removeEventListener('scroll', handleScrollElement);
       document.removeEventListener('input', handleInputElement);
+      document.removeEventListener('click', handleClickElement);
       browser.storage.onChanged.removeListener(storageChange);
     };
   }, []);
@@ -111,6 +144,86 @@ const ContentScriptApp: React.FC = () => {
     [inputsRef, setInputs]
   );
 
+  const handleClickElement = useCallback(
+    (event: Event) => {
+      const target = event.target as HTMLTextAreaElement;
+      const result = getInputSelection(target);
+      const clickedHighlight: IAlert = elementWithAlertsRef.current.alerts.find(
+        (alert: IAlert) => {
+          return (
+            alert.startOffset <= result.start && alert.endOffset >= result.end
+          );
+        }
+      );
+
+      const range = document.createRange();
+      const nodeText = elementWithAlertsRef.current.element.childNodes[0];
+      range.setStart(nodeText, clickedHighlight.startOffset);
+      range.setEnd(nodeText, clickedHighlight.endOffset);
+      const clickedRect = range.getClientRects()[0];
+
+      setModalData({
+        content: clickedHighlight.data,
+        position: clickedRect,
+      });
+
+      handleHighlightClick();
+    },
+    [elementWithAlertsRef]
+  );
+
+  const getInputSelection = (element: any) => {
+    let start = 0;
+    let end = 0;
+    // normalizedValue,
+    // range,
+    // textInputRange,
+    // len,
+    // endRange;
+
+    if (typeof element.selectionStart == 'number') {
+      start = element.selectionStart;
+      end = element.selectionEnd;
+    } else {
+      //TODO If it's not a textarea...
+      //https://jsfiddle.net/ourcodeworld/o4k7rfu0/1/
+      // range = document.selection.createRange();
+      // if (range && range.parentElement() == el) {
+      //     len = el.value.length;
+      //     normalizedValue = el.value.replace(/\r\n/g, "\n");
+      //     // Create a working TextRange that lives only in the input
+      //     textInputRange = el.createTextRange();
+      //     textInputRange.moveToBookmark(range.getBookmark());
+      //     // Check if the start and end of the selection are at the very end
+      //     // of the input, since moveStart/moveEnd doesn't return what we want
+      //     // in those cases
+      //     endRange = el.createTextRange();
+      //     endRange.collapse(false);
+      //     if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
+      //         start = end = len;
+      //     } else {
+      //         start = -textInputRange.moveStart("character", -len);
+      //         start += normalizedValue.slice(0, start).split("\n").length - 1;
+      //         if (textInputRange.compareEndPoints("EndToEnd", endRange) > -1) {
+      //             end = len;
+      //         } else {
+      //             end = -textInputRange.moveEnd("character", -len);
+      //             end += normalizedValue.slice(0, end).split("\n").length - 1;
+      //         }
+      //     }
+      // }
+    }
+
+    return {
+      start: start,
+      end: end,
+    };
+  };
+
+  const handleHighlightClick: HandleHighlightClick = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div>
       {/* {elem === undefined ? null : <TextAreaClone element={elem.element} />} */}
@@ -119,7 +232,10 @@ const ContentScriptApp: React.FC = () => {
         .map((textarea: HTMLTextAreaElement, index: number) => (
           <TextAreaClone key={index} element={textarea} />
         ))}
-      <Highlights />
+      <Highlights data={elementWithAlerts} />
+      {modalData ? (
+        <Modal isOpen={isOpen} data={modalData} hide={handleHighlightClick} />
+      ) : null}
     </div>
   );
 };
