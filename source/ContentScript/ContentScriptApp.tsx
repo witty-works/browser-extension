@@ -11,13 +11,14 @@ import { IElementWithAlerts } from '../shared/types';
 import { MessageService } from '../shared/MessageService';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
 
-type HandleHighlightClick = () => void;
+type HandleClick = () => void;
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
   const [modalData, setModalData] = useState<ModalData | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [inputs, setInputs, inputsRef] = useStateRef([]);
+  const [focusedInput, setFocusedInput, focusedInputRef] = useStateRef({}); //TODO try to use CustomInputElement
   const [elementWithAlerts, setElementWithAlerts, elementWithAlertsRef] =
     useStateRef({
       element: null,
@@ -103,7 +104,7 @@ const ContentScriptApp: React.FC = () => {
     `)
     ).map((input, index) => {
       input.setAttribute('data-id', `${input.tagName}-${index}`); //Set an ID to each of them, to recognize them later
-      return input;
+      return input as CustomInputElement;
     });
   };
 
@@ -119,12 +120,13 @@ const ContentScriptApp: React.FC = () => {
 
   const handleInputElement = useCallback(
     (event: Event) => {
-      const target = event.target as HTMLElement;
+      const target = event.target as HTMLTextAreaElement;
+      focusedInputRef.current = target;
       const index = findInputElement(inputsRef.current, target);
       inputsRef.current[index] = target;
       setInputs([...inputsRef.current]);
     },
-    [inputsRef, setInputs]
+    [inputsRef, setInputs, focusedInputRef]
   );
 
   const handleScrollElement = useCallback(
@@ -220,7 +222,47 @@ const ContentScriptApp: React.FC = () => {
     };
   };
 
-  const handleHighlightClick: HandleHighlightClick = () => {
+  const handleHighlightClick: HandleClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleAlternativeClick = (index: number) => {
+    console.log('switch alternative!');
+    console.log('index = ', index);
+    console.log('modalData = ', modalData);
+    console.log('modalData alt = ', modalData?.content.alternatives[index]);
+
+    console.log('inputs = ', inputs);
+    const focusedElementIndex = 0; //TODO Don't hardcode this
+    let focusedElement = inputs[focusedElementIndex];
+
+    //Remove all highlights, need to be updated!
+    setElementWithAlerts({
+      element: null,
+      originalElement: null,
+      alerts: [],
+    });
+
+    //Replace text with the new alternative
+    const textToInsert = focusedElement.value.replaceAll(
+      modalData?.content.text,
+      modalData?.content.alternatives[index]
+    );
+
+    console.log('textToInsert = ', textToInsert);
+
+    focusedElement.value = textToInsert;
+
+    console.log('focusedElement.value = ', focusedElement.value);
+
+    inputsRef.current[focusedElementIndex] = focusedElement;
+    console.log('inputsRef.current = ', inputsRef.current);
+
+    setInputs([...inputsRef.current]);
+
+    //...
+
+    //Close Modal
     setIsOpen(!isOpen);
   };
 
@@ -234,7 +276,12 @@ const ContentScriptApp: React.FC = () => {
         ))}
       <Highlights data={elementWithAlerts} />
       {modalData ? (
-        <Modal isOpen={isOpen} data={modalData} hide={handleHighlightClick} />
+        <Modal
+          isOpen={isOpen}
+          data={modalData}
+          hide={handleHighlightClick}
+          switchAlternative={handleAlternativeClick}
+        />
       ) : null}
     </div>
   );

@@ -11,9 +11,15 @@ interface ModalProps {
   isOpen: boolean;
   data: ModalData;
   hide: () => void;
+  switchAlternative: (index: number) => void;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, data, hide }: ModalProps) => {
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  data,
+  hide,
+  switchAlternative,
+}: ModalProps) => {
   const modalWidth =
     window.innerWidth > 640 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
 
@@ -41,6 +47,29 @@ const Modal: React.FC<ModalProps> = ({ isOpen, data, hide }: ModalProps) => {
     zIndex: 9,
   };
 
+  const ParagraphStyling: CSS.Properties = {
+    marginBottom: '1rem',
+  };
+
+  const AlternativesContainerStyling: CSS.Properties = {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'baseline',
+  };
+
+  const AlternativeButtonStyling: CSS.Properties = {
+    marginRight: '.5rem',
+    marginBottom: '.5rem',
+    backgroundColor: 'rgb(88, 0, 208)',
+    color: '#ffffff',
+    opacity: '.83',
+    padding: '.3rem',
+    border: 'none',
+    borderRadius: '3px',
+    cursor: 'pointer',
+  };
+
   useEffect(() => {
     document.addEventListener('keydown', onKeyDown, false);
     return () => {
@@ -66,21 +95,36 @@ const Modal: React.FC<ModalProps> = ({ isOpen, data, hide }: ModalProps) => {
         role='dialog'
         style={ModalStyling}
       >
-        <p>
+        <p style={ParagraphStyling}>
           <strong>Category:</strong> {data.content.category}
         </p>
-        <p>
+        <p style={ParagraphStyling}>
           <strong>Label:</strong> {data.content.label}
         </p>
-        <p>
+        <p style={ParagraphStyling}>
           <strong>Reason:</strong> {data.content.reason}
         </p>
-        <p>
+        <p style={ParagraphStyling}>
           <strong>Solution:</strong> {data.content.solution}
         </p>
-        <p>
-          <strong>Alternatives:</strong> {data.content.alternatives.join(', ')}
-        </p>
+        <div style={ParagraphStyling}>
+          <strong>Alternatives:</strong>{' '}
+          <div style={AlternativesContainerStyling}>
+            {data.content.alternatives.length > 0 ? (
+              data.content.alternatives.map((alternative, index) => (
+                <button
+                  key={`${index}-${alternative}`}
+                  style={AlternativeButtonStyling}
+                  onClick={() => switchAlternative(index)}
+                >
+                  {alternative}
+                </button>
+              ))
+            ) : (
+              <div>delete it!</div>
+            )}
+          </div>
+        </div>
       </div>
     </React.Fragment>
   );

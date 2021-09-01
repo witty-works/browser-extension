@@ -1,7 +1,7 @@
-export type CustomInputElement = HTMLTextArea | HTMLInputElement | HTMLDivElement;
-export interface IElement {
-  element: HTMLTextAreaElement | HTMLInputElement | HTMLDivElement | null
-}
+export type CustomInputElement = HTMLTextArea | HTMLInputElement | HTMLDivElement;  //TODO fix HTMLTextAreaElement instead of HTMLTextArea
+// export interface IElement {
+//   element: HTMLTextAreaElement | HTMLInputElement | HTMLDivElement | null
+// }
 export interface IAlert {
   id: string;
   startOffset: number;
