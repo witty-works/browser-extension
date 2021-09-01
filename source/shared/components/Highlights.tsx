@@ -59,10 +59,10 @@ const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
             const highlightRect = highlight.rect;
 
             const rectToRender: DOMRect = {
-              x: highlightRect.x - elementToTrackRect.x + 1,
-              y: highlightRect.y - canvas.offsetTop + highlightRect.height + 1,
+              x: highlightRect.x - elementToTrackRect.x,
+              y: highlightRect.y - canvas.offsetTop + highlightRect.height,
               width: highlightRect.width,
-              height: 3,
+              height: 2,
             } as DOMRect;
 
             context.fillRect(

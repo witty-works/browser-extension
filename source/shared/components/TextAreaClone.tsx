@@ -19,7 +19,6 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
 
   const elementStyle = window.getComputedStyle(element);
   const elementBoundingClientRect = element.getBoundingClientRect();
-
   const LOADER_RADIUS: number = 8;
 
   let timer: any; // TODO Use a proper Debouncer
@@ -116,8 +115,10 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
             fontSize: elementStyle.fontSize,
             fontWeight: elementStyle.fontWeight,
             lineHeight: elementStyle.lineHeight,
+            fontFamily: elementStyle.fontFamily,
+            border: `${elementStyle.borderBottomWidth} solid black`,
             visibility: 'hidden',
-            // zIndex: -1,
+            // zIndex: 1,
             // outline: '3px solid red',
             // top: `${
             //   elementBoundingClientRect.top -
