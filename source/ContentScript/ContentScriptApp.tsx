@@ -11,13 +11,14 @@ import { IElementWithAlerts } from '../shared/types';
 import { MessageService } from '../shared/MessageService';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
 
-type HandleHighlightClick = () => void;
+type HandleClick = () => void;
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
   const [modalData, setModalData] = useState<ModalData | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [inputs, setInputs, inputsRef] = useStateRef([]);
+  const [focusedInput, setFocusedInput] = useState<CustomInputElement>({});
   const [elementWithAlerts, setElementWithAlerts, elementWithAlertsRef] =
     useStateRef({
       element: null,
@@ -103,7 +104,7 @@ const ContentScriptApp: React.FC = () => {
     `)
     ).map((input, index) => {
       input.setAttribute('data-id', `${input.tagName}-${index}`); //Set an ID to each of them, to recognize them later
-      return input;
+      return input as CustomInputElement;
     });
   };
 
@@ -119,7 +120,7 @@ const ContentScriptApp: React.FC = () => {
 
   const handleInputElement = useCallback(
     (event: Event) => {
-      const target = event.target as HTMLElement;
+      const target = event.target as HTMLTextAreaElement;
       const index = findInputElement(inputsRef.current, target);
       inputsRef.current[index] = target;
       setInputs([...inputsRef.current]);
@@ -147,6 +148,7 @@ const ContentScriptApp: React.FC = () => {
   const handleClickElement = useCallback(
     (event: Event) => {
       const target = event.target as HTMLTextAreaElement;
+      setFocusedInput(target);
       const result = getInputSelection(target);
       const clickedHighlight: IAlert = elementWithAlertsRef.current.alerts.find(
         (alert: IAlert) => {
@@ -167,7 +169,7 @@ const ContentScriptApp: React.FC = () => {
         position: clickedRect,
       });
 
-      handleHighlightClick();
+      toggleModal();
     },
     [elementWithAlertsRef]
   );
@@ -220,8 +222,35 @@ const ContentScriptApp: React.FC = () => {
     };
   };
 
-  const handleHighlightClick: HandleHighlightClick = () => {
+  const toggleModal: HandleClick = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleAlternativeClick = (index: number) => {
+    const inputIndex = findInputElement(inputsRef.current, focusedInput);
+
+    //Remove all highlights, need to be updated!
+    setElementWithAlerts({
+      element: null,
+      originalElement: null,
+      alerts: [],
+    });
+
+    //Replace text with the new alternative or simply remove it
+    const textToInsert =
+      index === -1
+        ? focusedInput.value.replaceAll(`${modalData?.content.text} `, '')
+        : focusedInput.value.replaceAll(
+            modalData?.content.text,
+            modalData?.content.alternatives[index]
+          );
+
+    focusedInput.value = textToInsert;
+    inputsRef.current[inputIndex] = focusedInput;
+    setInputs([...inputsRef.current]);
+
+    //Close Modal
+    toggleModal();
   };
 
   return (
@@ -234,7 +263,12 @@ const ContentScriptApp: React.FC = () => {
         ))}
       <Highlights data={elementWithAlerts} />
       {modalData ? (
-        <Modal isOpen={isOpen} data={modalData} hide={handleHighlightClick} />
+        <Modal
+          isOpen={isOpen}
+          data={modalData}
+          hide={toggleModal}
+          switchAlternative={(index) => handleAlternativeClick(index)}
+        />
       ) : null}
     </div>
   );
