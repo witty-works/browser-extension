@@ -120,29 +120,33 @@ const Modal: React.FC<ModalProps> = ({
         <p style={ParagraphStyling}>
           <strong>Solution:</strong> {data.content.solution}
         </p>
-        <div style={ParagraphStyling}>
-          <strong>Alternatives:</strong>{' '}
-          <div style={AlternativesContainerStyling}>
-            {data.content.alternatives.length > 0 ? (
-              data.content.alternatives.map((alternative, index) => (
-                <button
-                  key={`${index}-${alternative}`}
-                  style={AlternativeButtonStyling}
-                  onClick={() => switchAlternative(index)}
-                >
-                  {alternative}
-                </button>
-              ))
-            ) : (
-              <button
-                style={RemoveButtonStyling}
-                onClick={() => switchAlternative(-1)}
-              >
-                {data.content.text}
-              </button>
-            )}
+        {data.content.alternatives.length === 0 ? null : (
+          <div style={ParagraphStyling}>
+            <div>
+              <strong>Alternatives:</strong>
+              <div style={AlternativesContainerStyling}>
+                {data.content.alternatives[0].localeCompare('-') === 0 ? (
+                  <button
+                    style={RemoveButtonStyling}
+                    onClick={() => switchAlternative(-1)}
+                  >
+                    {data.content.text}
+                  </button>
+                ) : (
+                  data.content.alternatives.map((alternative, index) => (
+                    <button
+                      key={`${index}-${alternative}`}
+                      style={AlternativeButtonStyling}
+                      onClick={() => switchAlternative(index)}
+                    >
+                      {alternative}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </React.Fragment>
   );
