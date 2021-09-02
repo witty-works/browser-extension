@@ -1,4 +1,4 @@
-export type CustomInputElement = HTMLTextArea | HTMLInputElement | HTMLDivElement;  //TODO fix HTMLTextAreaElement instead of HTMLTextArea
+export type CustomInputElement = HTMLTextArea | HTMLInputElement | HTMLDivElement;  //TODO use HTMLTextAreaElement instead of HTMLTextArea
 // export interface IElement {
 //   element: HTMLTextAreaElement | HTMLInputElement | HTMLDivElement | null
 // }

@@ -18,7 +18,7 @@ const ContentScriptApp: React.FC = () => {
   const [modalData, setModalData] = useState<ModalData | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [inputs, setInputs, inputsRef] = useStateRef([]);
-  const [focusedInput, setFocusedInput, focusedInputRef] = useStateRef({}); //TODO try to use CustomInputElement
+  const [focusedInput, setFocusedInput] = useState<CustomInputElement>({});
   const [elementWithAlerts, setElementWithAlerts, elementWithAlertsRef] =
     useStateRef({
       element: null,
