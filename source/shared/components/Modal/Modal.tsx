@@ -70,6 +70,19 @@ const Modal: React.FC<ModalProps> = ({
     cursor: 'pointer',
   };
 
+  const RemoveButtonStyling: CSS.Properties = {
+    marginRight: '.5rem',
+    marginBottom: '.5rem',
+    backgroundColor: 'rgb(88, 0, 208)',
+    color: '#ffffff',
+    opacity: '.83',
+    padding: '.3rem',
+    border: 'none',
+    borderRadius: '3px',
+    cursor: 'pointer',
+    textDecoration: 'line-through',
+  };
+
   useEffect(() => {
     document.addEventListener('keydown', onKeyDown, false);
     return () => {
@@ -121,7 +134,12 @@ const Modal: React.FC<ModalProps> = ({
                 </button>
               ))
             ) : (
-              <div>delete it!</div>
+              <button
+                style={RemoveButtonStyling}
+                onClick={() => switchAlternative(-1)}
+              >
+                {data.content.text}
+              </button>
             )}
           </div>
         </div>

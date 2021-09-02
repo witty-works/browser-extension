@@ -121,12 +121,11 @@ const ContentScriptApp: React.FC = () => {
   const handleInputElement = useCallback(
     (event: Event) => {
       const target = event.target as HTMLTextAreaElement;
-      focusedInputRef.current = target;
       const index = findInputElement(inputsRef.current, target);
       inputsRef.current[index] = target;
       setInputs([...inputsRef.current]);
     },
-    [inputsRef, setInputs, focusedInputRef]
+    [inputsRef, setInputs]
   );
 
   const handleScrollElement = useCallback(
@@ -149,6 +148,7 @@ const ContentScriptApp: React.FC = () => {
   const handleClickElement = useCallback(
     (event: Event) => {
       const target = event.target as HTMLTextAreaElement;
+      setFocusedInput(target);
       const result = getInputSelection(target);
       const clickedHighlight: IAlert = elementWithAlertsRef.current.alerts.find(
         (alert: IAlert) => {
@@ -169,7 +169,7 @@ const ContentScriptApp: React.FC = () => {
         position: clickedRect,
       });
 
-      handleHighlightClick();
+      toggleModal();
     },
     [elementWithAlertsRef]
   );
@@ -222,19 +222,12 @@ const ContentScriptApp: React.FC = () => {
     };
   };
 
-  const handleHighlightClick: HandleClick = () => {
+  const toggleModal: HandleClick = () => {
     setIsOpen(!isOpen);
   };
 
   const handleAlternativeClick = (index: number) => {
-    console.log('switch alternative!');
-    console.log('index = ', index);
-    console.log('modalData = ', modalData);
-    console.log('modalData alt = ', modalData?.content.alternatives[index]);
-
-    console.log('inputs = ', inputs);
-    const focusedElementIndex = 0; //TODO Don't hardcode this
-    let focusedElement = inputs[focusedElementIndex];
+    const inputIndex = findInputElement(inputsRef.current, focusedInput);
 
     //Remove all highlights, need to be updated!
     setElementWithAlerts({
@@ -243,27 +236,21 @@ const ContentScriptApp: React.FC = () => {
       alerts: [],
     });
 
-    //Replace text with the new alternative
-    const textToInsert = focusedElement.value.replaceAll(
-      modalData?.content.text,
-      modalData?.content.alternatives[index]
-    );
+    //Replace text with the new alternative or simply remove it
+    const textToInsert =
+      index === -1
+        ? focusedInput.value.replaceAll(`${modalData?.content.text} `, '')
+        : focusedInput.value.replaceAll(
+            modalData?.content.text,
+            modalData?.content.alternatives[index]
+          );
 
-    console.log('textToInsert = ', textToInsert);
-
-    focusedElement.value = textToInsert;
-
-    console.log('focusedElement.value = ', focusedElement.value);
-
-    inputsRef.current[focusedElementIndex] = focusedElement;
-    console.log('inputsRef.current = ', inputsRef.current);
-
+    focusedInput.value = textToInsert;
+    inputsRef.current[inputIndex] = focusedInput;
     setInputs([...inputsRef.current]);
 
-    //...
-
     //Close Modal
-    setIsOpen(!isOpen);
+    toggleModal();
   };
 
   return (
@@ -279,8 +266,8 @@ const ContentScriptApp: React.FC = () => {
         <Modal
           isOpen={isOpen}
           data={modalData}
-          hide={handleHighlightClick}
-          switchAlternative={handleAlternativeClick}
+          hide={toggleModal}
+          switchAlternative={(index) => handleAlternativeClick(index)}
         />
       ) : null}
     </div>
