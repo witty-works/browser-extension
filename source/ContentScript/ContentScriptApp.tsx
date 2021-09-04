@@ -153,7 +153,7 @@ const ContentScriptApp: React.FC = () => {
       const clickedHighlight: IAlert = elementWithAlertsRef.current.alerts.find(
         (alert: IAlert) => {
           return (
-            alert.startOffset <= result.start && alert.endOffset >= result.end
+            alert.startOffset <= result.start && alert.endOffset > result.end
           );
         }
       );
