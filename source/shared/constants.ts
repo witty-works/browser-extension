@@ -10,3 +10,16 @@ export enum BaseUrls {
 }
 
 export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(BaseUrls)[0] as keyof typeof BaseUrls;
+
+
+//COLORS
+export enum Colors {
+  inclusive_words = '#8EC15C',
+  male_coded_terms = '#855B67',
+  discriminating_words = '#328FAC',
+  gendered_denominations = '#855B67',
+  empty_words = '#8892B0',
+  boasting_words = '#8892B0',
+}
+
+export const getColor = (color:string):string => (<any>Colors)[color];
