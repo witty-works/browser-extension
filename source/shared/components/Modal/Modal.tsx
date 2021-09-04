@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import CSS from 'csstype';
 
 import { IAlertContentData } from '../../types';
+import { getColor } from '../../constants';
 export interface ModalData {
   content: IAlertContentData;
   position: DOMRect;
@@ -20,22 +21,24 @@ const Modal: React.FC<ModalProps> = ({
   hide,
   switchAlternative,
 }: ModalProps) => {
+  const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
+
   const modalWidth =
     window.innerWidth > 640 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
 
   const ModalStyling: CSS.Properties = {
-    padding: '1rem',
+    padding: '1rem 1rem 0 1rem',
     backgroundColor: 'white',
     position: 'fixed',
     zIndex: 10,
-    top: `${data.position.top - 100}px`,
-    left:
-      data.position.left + data.position.width < window.innerWidth / 2
-        ? `${data.position.left + data.position.width + 10}px`
-        : `${data.position.left - modalWidth - 10}px`,
+    top: `${data.position.top + data.position.height + 3}px`,
+    left: `${data.position.left}px`,
     width: `${modalWidth}px`,
-    boxShadow: '0 3px 7px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 3px 5px rgba(0, 0, 0, 0.3)',
     backgroundClip: 'padding-box',
+    border: '1px solid #cccccc',
+    borderRadius: '5px',
+    fontSize: '.8rem',
   };
 
   const BackdropStyling: CSS.Properties = {
@@ -47,7 +50,7 @@ const Modal: React.FC<ModalProps> = ({
     zIndex: 9,
   };
 
-  const ParagraphStyling: CSS.Properties = {
+  const RowStyling: CSS.Properties = {
     marginBottom: '1rem',
   };
 
@@ -61,19 +64,20 @@ const Modal: React.FC<ModalProps> = ({
   const AlternativeButtonStyling: CSS.Properties = {
     marginRight: '.5rem',
     marginBottom: '.5rem',
-    backgroundColor: 'rgb(88, 0, 208)',
+    backgroundColor: `${getColor(data.content.category)}`,
     color: '#ffffff',
     opacity: '.83',
     padding: '.3rem',
     border: 'none',
     borderRadius: '3px',
     cursor: 'pointer',
+    fontWeight: 600,
   };
 
   const RemoveButtonStyling: CSS.Properties = {
     marginRight: '.5rem',
     marginBottom: '.5rem',
-    backgroundColor: 'rgb(88, 0, 208)',
+    backgroundColor: `${getColor(data.content.category)}`,
     color: '#ffffff',
     opacity: '.83',
     padding: '.3rem',
@@ -81,6 +85,23 @@ const Modal: React.FC<ModalProps> = ({
     borderRadius: '3px',
     cursor: 'pointer',
     textDecoration: 'line-through',
+    fontWeight: 600,
+  };
+
+  const TitleStyling: CSS.Properties = {
+    fontWeight: 600,
+    color: '#000000',
+  };
+
+  const SeparatorStyling: CSS.Properties = {
+    marginBottom: '.5rem',
+    borderBottom: '1px solid #cccccc',
+  };
+
+  const RowTitleStyling: CSS.Properties = {
+    fontWeight: 600,
+    color: '#000000',
+    marginBottom: '6px',
   };
 
   useEffect(() => {
@@ -97,6 +118,15 @@ const Modal: React.FC<ModalProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (ref.current !== null && ref.current.style && ref.current.clientHeight) {
+      ref.current.style.top =
+        data.position.top < window.innerHeight / 2
+          ? `${data.position.top + data.position.height + 3}px`
+          : `${data.position.top - ref.current.clientHeight}px`;
+    }
+  });
+
   const modal = (
     <React.Fragment>
       <div id='backdrop' style={BackdropStyling} onClick={hide} />
@@ -107,23 +137,14 @@ const Modal: React.FC<ModalProps> = ({
         tabIndex={-1}
         role='dialog'
         style={ModalStyling}
+        ref={ref}
       >
-        <p style={ParagraphStyling}>
-          <strong>Category:</strong> {data.content.category}
-        </p>
-        <p style={ParagraphStyling}>
-          <strong>Label:</strong> {data.content.label}
-        </p>
-        <p style={ParagraphStyling}>
-          <strong>Reason:</strong> {data.content.reason}
-        </p>
-        <p style={ParagraphStyling}>
-          <strong>Solution:</strong> {data.content.solution}
-        </p>
+        <div style={RowStyling}>
+          <span style={TitleStyling}>{data.content.label}</span>
+        </div>
         {data.content.alternatives.length === 0 ? null : (
-          <div style={ParagraphStyling}>
+          <div style={RowStyling}>
             <div>
-              <strong>Alternatives:</strong>
               <div style={AlternativesContainerStyling}>
                 {data.content.alternatives[0].localeCompare('-') === 0 ? (
                   <button
@@ -147,6 +168,15 @@ const Modal: React.FC<ModalProps> = ({
             </div>
           </div>
         )}
+        <div style={SeparatorStyling}></div>
+        <div style={RowStyling}>
+          <div style={RowTitleStyling}>Begründung</div>
+          <div>{data.content.reason}</div>
+        </div>
+        <div style={RowStyling}>
+          <div style={RowTitleStyling}>Lösung</div>{' '}
+          <div>{data.content.solution}</div>
+        </div>
       </div>
     </React.Fragment>
   );
