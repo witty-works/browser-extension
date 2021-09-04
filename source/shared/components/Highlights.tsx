@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { IElementWithAlerts } from '../types';
+
+import { getColor } from '../constants';
 export interface HighlightsProps {
   data: IElementWithAlerts;
 }
@@ -54,7 +56,7 @@ const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
 
           //Draw a rectangle for each highlight
           highlights.forEach((highlight) => {
-            context.fillStyle = 'rgb(88, 0, 208)'; //TODO color constant
+            context.fillStyle = `${getColor(highlight.data.category)}`;
 
             const highlightRect = highlight.rect;
 
