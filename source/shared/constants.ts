@@ -15,7 +15,9 @@ export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(BaseUrls)[0]
 //COLORS
 export enum Colors {
   inclusive_words = '#8EC15C',
+  non_inclusive = '#f1951c',
   male_coded_terms = '#855B67',
+  male_coded_job_title = '#855B67',
   discriminating_words = '#328FAC',
   gendered_denominations = '#855B67',
   empty_words = '#8892B0',
