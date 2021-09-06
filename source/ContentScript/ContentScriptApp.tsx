@@ -147,29 +147,34 @@ const ContentScriptApp: React.FC = () => {
 
   const handleClickElement = useCallback(
     (event: Event) => {
-      const target = event.target as HTMLTextAreaElement;
-      setFocusedInput(target);
-      const result = getInputSelection(target);
-      const clickedHighlight: IAlert = elementWithAlertsRef.current.alerts.find(
-        (alert: IAlert) => {
-          return (
-            alert.startOffset <= result.start && alert.endOffset > result.end
-          );
+      if (elementWithAlertsRef.current.alerts.length > 0) {
+        const target = event.target as HTMLTextAreaElement;
+        setFocusedInput(target);
+        const result = getInputSelection(target);
+        const clickedHighlight: IAlert =
+          elementWithAlertsRef.current.alerts.find((alert: IAlert) => {
+            return (
+              alert.startOffset <= result.start && alert.endOffset > result.end
+            );
+          });
+
+        const range = document.createRange();
+        const nodeText = elementWithAlertsRef.current.element.childNodes[0];
+
+        if (clickedHighlight) {
+          range.setStart(nodeText, clickedHighlight.startOffset);
+          range.setEnd(nodeText, clickedHighlight.endOffset);
+
+          const clickedRect = range.getClientRects()[0];
+
+          setModalData({
+            content: clickedHighlight.data,
+            position: clickedRect,
+          });
+
+          toggleModal();
         }
-      );
-
-      const range = document.createRange();
-      const nodeText = elementWithAlertsRef.current.element.childNodes[0];
-      range.setStart(nodeText, clickedHighlight.startOffset);
-      range.setEnd(nodeText, clickedHighlight.endOffset);
-      const clickedRect = range.getClientRects()[0];
-
-      setModalData({
-        content: clickedHighlight.data,
-        position: clickedRect,
-      });
-
-      toggleModal();
+      }
     },
     [elementWithAlertsRef]
   );
