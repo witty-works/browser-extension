@@ -58,6 +58,7 @@ const ContentScriptApp: React.FC = () => {
     document.addEventListener('input', handleInputElement);
     document.addEventListener('click', handleClickElement);
     browser.storage.onChanged.addListener(storageChange);
+    window.addEventListener('resize', handleWindowResize);
 
     return () => {
       // return unsubscribe method to execute when component unmounts
@@ -67,6 +68,7 @@ const ContentScriptApp: React.FC = () => {
       document.removeEventListener('input', handleInputElement);
       document.removeEventListener('click', handleClickElement);
       browser.storage.onChanged.removeListener(storageChange);
+      window.removeEventListener('resize', handleWindowResize);
     };
   }, []);
 
@@ -256,6 +258,10 @@ const ContentScriptApp: React.FC = () => {
 
     //Close Modal
     toggleModal();
+  };
+
+  const handleWindowResize = () => {
+    setInputs([...getAllInputElements()]);
   };
 
   return (
