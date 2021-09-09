@@ -65,8 +65,7 @@
 
   "content_scripts": [{
     "matches": [
-      "http://*/*",
-      "https://*/*"
+      "https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/form"
     ],
     "js": [
       "js/contentScript.bundle.js"
