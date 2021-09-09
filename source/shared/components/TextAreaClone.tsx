@@ -5,6 +5,7 @@ import useEndpoint from '../ApiServices/useEndpoint';
 import useMutationObservable from '../customHooks/useMutationObservable';
 import { MessageService } from '../MessageService';
 import Loader from './Loader';
+import { DEV_ENV } from '../constants';
 
 export interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
@@ -80,7 +81,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   useEffect(() => {
     if (analyzedTextError.detail && analyzedTextError.detail.length > 0) {
       // Error!
-      console.log('ERROR! = ', analyzedTextError);
+      if (DEV_ENV) console.log('API Error = ', analyzedTextError);
     }
   }, [analyzedTextError]);
 

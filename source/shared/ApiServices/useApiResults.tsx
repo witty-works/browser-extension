@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { DEV_ENV } from '../constants';
 
 import { IEndpointResponse, IEndpointResponseError, IRequest } from '../types';
 
@@ -21,13 +22,14 @@ const useApiResult = (request: IRequest, sendText: any) => {
 
     fetch(request.url, request.config)
       .then(async (response) => {
-        console.log('useApiResult response = ', response);
+        if (DEV_ENV) console.log('useApiResult response = ', response);
 
         setLoading(false);
 
         if (response.ok) {
           const responseResults = await response.json();
-          console.log('useApiResult responseResults = ', responseResults);
+          if (DEV_ENV)
+            console.log('useApiResult responseResults = ', responseResults);
           setEndpointResponse(responseResults);
           setEndpointError({ detail: [] });
         } else {
@@ -38,7 +40,7 @@ const useApiResult = (request: IRequest, sendText: any) => {
         // AbortError is created when a request is aborted.
         // We don't need to shown an error message in this case
         if (error.name !== 'AbortError') {
-          console.log('useApiResult error = ', error);
+          if (DEV_ENV) console.log('useApiResult error = ', error);
           // setError(error); //TODO FIX, this is not received outside
         }
       })

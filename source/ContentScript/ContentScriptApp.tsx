@@ -10,6 +10,7 @@ import useStateRef from '../shared/customHooks/useStateRef';
 import { IElementWithAlerts } from '../shared/types';
 import { MessageService } from '../shared/MessageService';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
+import { DEV_ENV } from '../shared/constants';
 
 type HandleClick = () => void;
 
@@ -93,7 +94,7 @@ const ContentScriptApp: React.FC = () => {
   }, [urlEndpointKey]);
 
   const onError = (error: string) => {
-    console.log('onError = ', error);
+    if (DEV_ENV) console.log('onError = ', error);
   };
 
   const getAllInputElements = (): CustomInputElement[] => {
