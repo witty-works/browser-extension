@@ -3,6 +3,9 @@ import { BaseUrls } from '../constants';
 
 let BASE_URL: string = '';
 
+console.log('process.env.NODE_ENV = ', process.env.NODE_ENV);
+
+
 const createUrl = (base: string, path: string): string => `${base}${path}`;
 
 export const setBaseURL = (urlKey: string) => BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls];
