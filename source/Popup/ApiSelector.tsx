@@ -6,8 +6,6 @@ import { OptionsProp } from '../shared/components/Dropdown/Dropdown';
 import { BaseUrls, DefaultBaseUrlKey } from '../shared/constants';
 import { StorageKeys } from '../shared/constants';
 
-import './ApiSelector.scss';
-
 const ApiSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionsProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');

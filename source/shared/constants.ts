@@ -1,7 +1,12 @@
+//Development
+export const DEV_ENV = process.env.NODE_ENV === 'development';
+
+//Storage
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint'
 }
 
+//API endpoints
 export enum BaseUrls {
   ENTITIES_PLATFORMSH = 'https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/',
   DIVERSIFIER_LOCAL = 'https://diversifier.lndo.site/api/MNWA3RmpViV2AxlPVBHjEiAASVnlCH0xbDNut7Q9nQBRQoTVWEERgGELl9jU/',
