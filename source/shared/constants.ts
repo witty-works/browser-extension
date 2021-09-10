@@ -3,7 +3,8 @@ export const DEV_ENV = process.env.NODE_ENV === 'development';
 
 //Storage
 export enum StorageKeys {
-  API_ENDPOINT_KEY = 'apiEndpoint'
+  API_ENDPOINT_KEY = 'apiEndpoint',
+  UNIQUE_ID = 'id',
 }
 
 //API endpoints
