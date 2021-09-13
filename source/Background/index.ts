@@ -1,14 +1,41 @@
 import 'emoji-log';
 import {browser} from 'webextension-polyfill-ts';
 
-// browser.runtime.onInstalled.addListener((): void => {
-//   console.emoji('🦄', 'extension installed');
-// });
+import { DEV_ENV, StorageKeys } from '../shared/constants';
 
-async function getActiveTabs() {
-    return await browser.tabs.query({ active: true });
+//Generate unique ID if it's no already defined
+const onError = (error: string) => {
+  if (DEV_ENV) console.log('Manage Unique ID onError = ', error);
+};
+
+const useToken = (id: string) => {
+  // TODO: sent this information on every request
+  console.log('useToken id = ', id);
 }
 
-export {
-  getActiveTabs
+const getRandomToken = () => {
+  const bytes = new Uint8Array(32);  //256 bits token
+
+  window.crypto.getRandomValues(bytes);
+
+  // convert byte array to hexademical representation
+  const bytesHex = bytes.reduce((item, acc) => item + (`00${acc.toString(16)}`).slice(-2), '');
+
+  // convert hexademical value to a decimal string
+  return BigInt('0x' + bytesHex).toString(10);
 }
+
+browser.storage.local.get(StorageKeys.UNIQUE_ID)
+.then((result)=>{
+  let id:string = result.id;
+
+  if(id) useToken(id)
+  else{
+    id = DEV_ENV ? 'development':getRandomToken();
+
+    browser.storage.local.set({ [StorageKeys.UNIQUE_ID]: id })
+    .then(() => useToken(id))
+    .catch(onError);
+  }
+})
+.catch(onError);
