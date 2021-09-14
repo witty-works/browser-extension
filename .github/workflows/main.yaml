@@ -47,9 +47,20 @@ jobs:
           path: |
             extension/firefox.xpi
 
-      - name: Store Opera artifacts
+      - name: Limit content scripts to "https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/form"
+        run: |
+           sed ':a;N;$!ba;s_http://\*/\*_TODELETE_2' source/manifest.json > manifest.json
+           sed -i '/TODELETE/d' manifest.json
+           sed ':a;N;$!ba;s_https://\*/\*_https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/form_2' manifest.json > source/manifest.json
+           rm manifest.json
+
+      - name: Build artifacts
+        run: |
+          yarn run build:chrome
+
+      - name: Store Chrome artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: opera
+          name: dbmindbox-witty-works
           path: |
-            extension/opera.crx
+            extension/chrome
