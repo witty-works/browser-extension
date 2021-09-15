@@ -1,5 +1,5 @@
 import { IRequest, IAlternative } from '../types';
-import { BaseUrls, StorageKeys } from '../constants';
+import { BaseUrls, StorageKeys, DEV_ENV } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 
 let BASE_URL: string = '';
@@ -16,7 +16,7 @@ browser.storage.local
   .then((result) => {
     appID = result.id;
   })
-  .catch(error => console.log('getAppID error = ', error));
+  .catch(error => (DEV_ENV) ? console.log('getAppID error = ', error) : null);
 
 
 export const getAnalyzedTextResults = (text: string):IRequest => {
@@ -34,8 +34,6 @@ export const getAnalyzedTextResults = (text: string):IRequest => {
 };
 
 export const logAlternative = (alternative: IAlternative) => {
-  console.log('logAlternative alternative = ', alternative);
-
   return {
     url: createUrl(BASE_URL, 'log'),
     config: {

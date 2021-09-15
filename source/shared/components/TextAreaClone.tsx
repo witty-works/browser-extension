@@ -43,8 +43,6 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   useMutationObservable(cloneRef.current as HTMLDivElement, onElementMutation);
 
   useEffect(() => {
-    console.log('checkEndpointResponse = ', checkEndpointResponse);
-
     if (checkEndpointResponse) {
       const alerts: IAlert[] = checkEndpointResponse.results.map(
         (result: any) => {

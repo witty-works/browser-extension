@@ -141,7 +141,6 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickAlternative = (index: number) => {
     //Log the clicked alternative
-    // console.log('modalData = ', modalData);
     sendAlternative({
       text: data.alert.data.text,
       alternative: index === -1 ? '' : data.alert.data.alternatives[index],
@@ -149,6 +148,7 @@ const Modal: React.FC<ModalProps> = ({
       end: data.alert.endOffset,
     } as IAlternative);
 
+    //switch alternative on text
     switchAlternative(index);
   };
 
