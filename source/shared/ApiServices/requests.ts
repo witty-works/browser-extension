@@ -1,4 +1,4 @@
-import { IRequest } from '../types';
+import { IRequest, IAlternative } from '../types';
 import { BaseUrls, StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 
@@ -32,3 +32,19 @@ export const getAnalyzedTextResults = (text: string):IRequest => {
     }
   }
 };
+
+export const logAlternative = (alternative: IAlternative) => {
+  console.log('logAlternative alternative = ', alternative);
+
+  return {
+    url: createUrl(BASE_URL, 'log'),
+    config: {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({text: alternative.text, lang: 'auto', id: appID, alternative: alternative.alternative, start: alternative.start, end: alternative.end})
+    }
+  }
+}

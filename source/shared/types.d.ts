@@ -36,11 +36,6 @@ export interface IEndpointResult {
   reason: string,
   solution: string,
 }
-export interface IEndpointResponse {
-  results: IEndpointResult[],
-  language: string
-}
-
 export interface IEndpointResultError {
   loc: string[],
   msg: string,
@@ -50,7 +45,9 @@ export interface IEndpointResponseError {
   detail: IEndpointResultError[]
 }
 
-// export interface IExtensionMessage {
-//   command: string,
-//   value: string
-// }
+export interface IAlternative {
+  text: string,
+  alternative: string,
+  start:number,
+  end: number
+}

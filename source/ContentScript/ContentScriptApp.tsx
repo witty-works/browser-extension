@@ -16,7 +16,7 @@ type HandleClick = () => void;
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
-  const [modalData, setModalData] = useState<ModalData | null>(null);
+  const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [inputs, setInputs, inputsRef] = useStateRef([]);
   const [focusedInput, setFocusedInput] = useState<CustomInputElement>({});
@@ -171,7 +171,7 @@ const ContentScriptApp: React.FC = () => {
           const clickedRect = range.getClientRects()[0];
 
           setModalData({
-            content: clickedHighlight.data,
+            alert: clickedHighlight,
             position: clickedRect,
           });
 
@@ -247,10 +247,10 @@ const ContentScriptApp: React.FC = () => {
     //Replace text with the new alternative or simply remove it
     const textToInsert =
       index === -1
-        ? focusedInput.value.replaceAll(`${modalData?.content.text} `, '')
+        ? focusedInput.value.replaceAll(`${modalData.alert.data.text} `, '')
         : focusedInput.value.replaceAll(
-            modalData?.content.text,
-            modalData?.content.alternatives[index]
+            modalData.alert.data.text,
+            modalData.alert.data.alternatives[index]
           );
 
     focusedInput.value = textToInsert;
@@ -274,7 +274,7 @@ const ContentScriptApp: React.FC = () => {
           <TextAreaClone key={index} element={textarea} />
         ))}
       <Highlights data={elementWithAlerts} />
-      {modalData ? (
+      {modalData.alert ? (
         <Modal
           isOpen={isOpen}
           data={modalData}
