@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { IAlert, IElementWithAlerts, IAlertContentData } from '../types';
 
-import useEndpoint from '../ApiServices/useEndpoint';
+import { useCheckEndpoint } from '../ApiServices/useEndpoint';
 import useMutationObservable from '../customHooks/useMutationObservable';
 import { MessageService } from '../MessageService';
 import Loader from './Loader';
@@ -14,7 +14,8 @@ export interface TextAreaCloneProps {
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
 }: TextAreaCloneProps) => {
-  const [loading, analyzedText, analyzedTextError, sendText] = useEndpoint();
+  const [loading, checkEndpointResponse, checkEndpointError, sendText] =
+    useCheckEndpoint();
   const cloneRef = useRef<HTMLDivElement | null>(null);
   const [alerts, setAlerts] = useState<IAlert[]>([]);
 
@@ -42,24 +43,28 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   useMutationObservable(cloneRef.current as HTMLDivElement, onElementMutation);
 
   useEffect(() => {
-    const alerts: IAlert[] = analyzedText.results.map((result: any) => {
-      return {
-        id: `${result.category}-${result.text}-${result.start}-${result.end}`,
-        startOffset: result.start,
-        endOffset: result.end,
-        data: {
-          category: result.category,
-          text: result.text,
-          label: result.label,
-          reason: result.reason,
-          solution: result.solution,
-          alternatives: result.alternatives,
-        } as IAlertContentData,
-      } as IAlert;
-    });
+    if (checkEndpointResponse) {
+      const alerts: IAlert[] = checkEndpointResponse.results.map(
+        (result: any) => {
+          return {
+            id: `${result.category}-${result.text}-${result.start}-${result.end}`,
+            startOffset: result.start,
+            endOffset: result.end,
+            data: {
+              category: result.category,
+              text: result.text,
+              label: result.label,
+              reason: result.reason,
+              solution: result.solution,
+              alternatives: result.alternatives,
+            } as IAlertContentData,
+          } as IAlert;
+        }
+      );
 
-    setAlerts(alerts);
-  }, [analyzedText]);
+      setAlerts(alerts);
+    }
+  }, [checkEndpointResponse]);
 
   useEffect(() => {
     sendAlerts(alerts, cloneRef.current);
@@ -79,11 +84,11 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   };
 
   useEffect(() => {
-    if (analyzedTextError.detail && analyzedTextError.detail.length > 0) {
+    if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
       // Error!
-      if (DEV_ENV) console.log('API Error = ', analyzedTextError);
+      if (DEV_ENV) console.log('API Error = ', checkEndpointError);
     }
-  }, [analyzedTextError]);
+  }, [checkEndpointError]);
 
   const checkContent = (elem: HTMLDivElement) => {
     sendText(elem.textContent || '');

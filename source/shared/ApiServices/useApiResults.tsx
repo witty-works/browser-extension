@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
 import { DEV_ENV } from '../constants';
 
-import { IEndpointResponse, IEndpointResponseError, IRequest } from '../types';
+import { IEndpointResponseError, IRequest } from '../types';
 
-const useApiResult = (request: IRequest, sendText: any) => {
-  const [endpointResponse, setEndpointResponse] = useState<IEndpointResponse>({
-    results: [],
-    language: '',
-  });
+const useApiResult = (request: IRequest, sendData: any) => {
+  const [endpointResponse, setEndpointResponse] = useState<any>(null); //TODO update type any
   const [endpointError, setEndpointError] = useState<IEndpointResponseError>({
     detail: [],
   });
@@ -19,6 +16,8 @@ const useApiResult = (request: IRequest, sendText: any) => {
     setLoading(true);
 
     request.config = { ...request.config, signal: ac.signal };
+
+    if (DEV_ENV) console.log('useApiResult request = ', request);
 
     fetch(request.url, request.config)
       .then(async (response) => {
@@ -53,7 +52,7 @@ const useApiResult = (request: IRequest, sendText: any) => {
     };
   }, [request.config.body]);
 
-  return [loading, endpointResponse, endpointError, sendText];
+  return [loading, endpointResponse, endpointError, sendData];
 };
 
 export default useApiResult;

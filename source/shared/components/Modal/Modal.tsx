@@ -2,10 +2,13 @@ import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import CSS from 'csstype';
 
-import { IAlertContentData } from '../../types';
+import { IAlert, IAlternative } from '../../types';
 import { getColor } from '../../constants';
+import { useLogEndpoint } from '../../ApiServices/useEndpoint';
+import { DEV_ENV } from '../../constants';
+
 export interface ModalData {
-  content: IAlertContentData;
+  alert: IAlert;
   position: DOMRect;
 }
 interface ModalProps {
@@ -22,6 +25,7 @@ const Modal: React.FC<ModalProps> = ({
   switchAlternative,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
+  const [, logResponse, logError, sendAlternative] = useLogEndpoint();
 
   const modalWidth =
     window.innerWidth > 640 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
@@ -64,7 +68,7 @@ const Modal: React.FC<ModalProps> = ({
   const AlternativeButtonStyling: CSS.Properties = {
     marginRight: '.5rem',
     marginBottom: '.5rem',
-    backgroundColor: `${getColor(data.content.category)}`,
+    backgroundColor: `${getColor(data.alert.data.category)}`,
     color: '#ffffff',
     opacity: '.83',
     padding: '.3rem',
@@ -77,7 +81,7 @@ const Modal: React.FC<ModalProps> = ({
   const RemoveButtonStyling: CSS.Properties = {
     marginRight: '.5rem',
     marginBottom: '.5rem',
-    backgroundColor: `${getColor(data.content.category)}`,
+    backgroundColor: `${getColor(data.alert.data.category)}`,
     color: '#ffffff',
     opacity: '.83',
     padding: '.3rem',
@@ -105,6 +109,14 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   useEffect(() => {
+    if (DEV_ENV) console.log('logResponse = ', logResponse);
+  }, [logResponse]);
+
+  useEffect(() => {
+    if (DEV_ENV) console.log('logError = ', logError);
+  }, [logError]);
+
+  useEffect(() => {
     document.addEventListener('keydown', onKeyDown, false);
     return () => {
       document.removeEventListener('keydown', onKeyDown, false);
@@ -127,6 +139,19 @@ const Modal: React.FC<ModalProps> = ({
     }
   });
 
+  const clickAlternative = (index: number) => {
+    //Log the clicked alternative
+    sendAlternative({
+      text: data.alert.data.text,
+      alternative: index === -1 ? '' : data.alert.data.alternatives[index],
+      start: data.alert.startOffset,
+      end: data.alert.endOffset,
+    } as IAlternative);
+
+    //switch alternative on text
+    switchAlternative(index);
+  };
+
   const modal = (
     <React.Fragment>
       <div id='backdrop' style={BackdropStyling} onClick={hide} />
@@ -140,25 +165,25 @@ const Modal: React.FC<ModalProps> = ({
         ref={ref}
       >
         <div style={RowStyling}>
-          <span style={TitleStyling}>{data.content.label}</span>
+          <span style={TitleStyling}>{data.alert.data.label}</span>
         </div>
-        {data.content.alternatives.length === 0 ? null : (
+        {data.alert.data.alternatives.length === 0 ? null : (
           <div style={RowStyling}>
             <div>
               <div style={AlternativesContainerStyling}>
-                {data.content.alternatives[0].localeCompare('-') === 0 ? (
+                {data.alert.data.alternatives[0].localeCompare('-') === 0 ? (
                   <button
                     style={RemoveButtonStyling}
-                    onClick={() => switchAlternative(-1)}
+                    onClick={() => clickAlternative(-1)}
                   >
-                    {data.content.text}
+                    {data.alert.data.text}
                   </button>
                 ) : (
-                  data.content.alternatives.map((alternative, index) => (
+                  data.alert.data.alternatives.map((alternative, index) => (
                     <button
                       key={`${index}-${alternative}`}
                       style={AlternativeButtonStyling}
-                      onClick={() => switchAlternative(index)}
+                      onClick={() => clickAlternative(index)}
                     >
                       {alternative}
                     </button>
@@ -171,11 +196,11 @@ const Modal: React.FC<ModalProps> = ({
         <div style={SeparatorStyling}></div>
         <div style={RowStyling}>
           <div style={RowTitleStyling}>Begründung</div>
-          <div>{data.content.reason}</div>
+          <div>{data.alert.data.reason}</div>
         </div>
         <div style={RowStyling}>
           <div style={RowTitleStyling}>Lösung</div>{' '}
-          <div>{data.content.solution}</div>
+          <div>{data.alert.data.solution}</div>
         </div>
       </div>
     </React.Fragment>

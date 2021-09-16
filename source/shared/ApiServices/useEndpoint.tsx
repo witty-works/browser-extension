@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
-import { getAnalyzedTextResults } from './requests';
-import { IRequest } from '../types';
+import { getAnalyzedTextResults, logAlternative } from './requests';
+import { IRequest, IAlternative } from '../types';
 
-const useEndpoint = () => {
+export const useCheckEndpoint = () => {
   const [textToAnalyze, setTextToAnalyse] = useState<string>('');
 
   useEffect(() => {
@@ -16,7 +16,25 @@ const useEndpoint = () => {
     () => getAnalyzedTextResults(textToAnalyze),
     [textToAnalyze]
   );
+
   return useApiResults(request, setTextToAnalyse);
 };
 
-export default useEndpoint;
+export const useLogEndpoint = () => {
+  const [alternative, setAlternative] = useState<IAlternative>(
+    {} as IAlternative
+  );
+
+  useEffect(() => {
+    return () => {
+      setAlternative({} as IAlternative);
+    };
+  }, []);
+
+  const request: IRequest = useMemo(
+    () => logAlternative(alternative),
+    [alternative]
+  );
+
+  return useApiResults(request, setAlternative);
+};
