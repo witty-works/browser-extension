@@ -1,16 +1,18 @@
-import 'emoji-log';
 import {browser} from 'webextension-polyfill-ts';
 
 import { DEV_ENV, StorageKeys } from '../shared/constants';
 
 //Generate unique ID if it's no already defined
+
+let disableID:boolean = true;
+
 const onError = (error: string) => {
   if (DEV_ENV) console.log('Manage Unique ID onError = ', error);
 };
 
 const useToken = (id: string) => {
   // TODO: sent this information on every request
-  console.log('useToken id = ', id);
+  if (DEV_ENV) console.log('useToken id = ', id);
 }
 
 const getRandomToken = () => {
@@ -31,11 +33,16 @@ browser.storage.local.get(StorageKeys.UNIQUE_ID)
 
   if(id) useToken(id)
   else{
-    id = DEV_ENV ? 'development':getRandomToken();
 
-    browser.storage.local.set({ [StorageKeys.UNIQUE_ID]: id })
-    .then(() => useToken(id))
-    .catch(onError);
+    id = DEV_ENV
+      ? 'development'
+      : disableID ? '':getRandomToken();
+
+    if (id !== '') {
+      browser.storage.local.set({ [StorageKeys.UNIQUE_ID]: id })
+        .then(() => useToken(id))
+        .catch(onError);
+    }
   }
 })
 .catch(onError);
