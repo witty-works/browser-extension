@@ -61,6 +61,6 @@ jobs:
       - name: Store Chrome artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: dbmindbox-witty-works
+          name: witty-works-inclusifier
           path: |
             extension/chrome
