@@ -32,11 +32,8 @@ browser.storage.local.get(StorageKeys.UNIQUE_ID)
   let id:string = result.id;
 
   if(id) useToken(id)
-  else{
-
-    id = DEV_ENV
-      ? 'development'
-      : disableID ? '':getRandomToken();
+  else {
+    id = disableID ? '':getRandomToken();
 
     if (id !== '') {
       browser.storage.local.set({ [StorageKeys.UNIQUE_ID]: id })
