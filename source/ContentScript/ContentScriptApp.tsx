@@ -247,7 +247,7 @@ const ContentScriptApp: React.FC = () => {
     //Replace text with the new alternative or simply remove it
     const textToInsert =
       index === -1
-        ? focusedInput.value.replaceAll(`${modalData.alert.data.text} `, '')
+        ? focusedInput.value.replaceAll(` ${modalData.alert.data.text}`, '')
         : focusedInput.value.replaceAll(
             modalData.alert.data.text,
             modalData.alert.data.alternatives[index]
