@@ -54,6 +54,11 @@ jobs:
            sed ':a;N;$!ba;s_https://\*/\*_https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/form_2' manifest.json > source/manifest.json
            rm manifest.json
 
+      - name: Enable ID generation
+        run: |
+           sed 's/let disableID:boolean = true;/let disableID:boolean = false;/' source/Background/index.ts > index.ts
+           mv index.ts source/Background/index.ts
+
       - name: Build artifacts
         run: |
           yarn run build:chrome
