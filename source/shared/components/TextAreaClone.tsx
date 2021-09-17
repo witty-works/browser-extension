@@ -87,10 +87,15 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
       // Error!
       if (DEV_ENV) console.log('API Error = ', checkEndpointError);
+      // if(checkEndpointError.detail === 'No features in text.') setAlerts([]);
     }
   }, [checkEndpointError]);
 
   const checkContent = (elem: HTMLDivElement) => {
+    //Check for whitespaces and remove them
+    const detectWhiteSpace = elem.textContent?.match(/^\s+$/);
+    if (detectWhiteSpace) elem.textContent = '';
+
     sendText(elem.textContent || '');
   };
 
