@@ -3,13 +3,14 @@
 @import "../styles/variables";
 
 body {
+  font-family: Helvetica, Arial, sans-serif;
   color: $black;
   background-color: $greyWhite;
 }
 
 #popup {
   min-width: 400px;
-  padding: 30px 20px;
+  padding-bottom: 1rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -19,5 +20,11 @@ body {
   h2 {
     font-size: 25px;
     text-align: center;
+    background-color: $grey;
+    padding: 1rem 1rem 1rem 0;
+  }
+
+  div {
+    padding: 0.5rem 1rem 0;
   }
 }

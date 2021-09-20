@@ -100,7 +100,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   };
 
   return (
-    <div>
+    <>
       <div
         ref={(ref) => {
           if (ref !== null) {
@@ -158,7 +158,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           <Loader radius={LOADER_RADIUS} />
         </div>
       ) : null}
-    </div>
+    </>
   );
 };
 

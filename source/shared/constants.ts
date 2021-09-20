@@ -5,6 +5,7 @@ export const DEV_ENV = process.env.NODE_ENV === 'development';
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   UNIQUE_ID = 'id',
+  ENABLED = 'enabled'
 }
 
 //API endpoints
@@ -21,6 +22,7 @@ export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(BaseUrls)[0]
 
 //COLORS
 export enum Colors {
+  green = '#06D6A0',
   inclusive_words = '#8EC15C',
   non_inclusive = '#f1951c',
   male_coded_terms = '#855B67',
