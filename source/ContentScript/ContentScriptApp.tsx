@@ -266,8 +266,7 @@ const ContentScriptApp: React.FC = () => {
   };
 
   return (
-    <div>
-      {/* {elem === undefined ? null : <TextAreaClone element={elem.element} />} */}
+    <>
       {inputs
         .filter((input: CustomInputElement) => input.tagName === 'TEXTAREA')
         .map((textarea: HTMLTextAreaElement, index: number) => (
@@ -282,7 +281,7 @@ const ContentScriptApp: React.FC = () => {
           switchAlternative={(index) => handleAlternativeClick(index)}
         />
       ) : null}
-    </div>
+    </>
   );
 };
 

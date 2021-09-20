@@ -5,6 +5,7 @@ export const DEV_ENV = process.env.NODE_ENV === 'development';
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   UNIQUE_ID = 'id',
+  ENABLED = 'enabled'
 }
 
 //API endpoints
@@ -50,6 +51,7 @@ export enum Colors {
   workload_biased_requirements = '#ebc8b2',
   ethnicity_biased_requirements = '#ebc8b2',
   age_biased_requirements = '#ebc8b2',
+  green = '#06D6A0',
 }
 
 export const getColor = (color:string):string => (<any>Colors)[color];
