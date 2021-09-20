@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import CSS from 'csstype';
 
 import { IAlert, IAlternative } from '../../types';
-import { getColor } from '../../constants';
+import { getColor, getDarkerColor } from '../../constants';
 import { useLogEndpoint } from '../../ApiServices/useEndpoint';
 import { DEV_ENV } from '../../constants';
 
@@ -69,7 +69,7 @@ const Modal: React.FC<ModalProps> = ({
     marginRight: '.5rem',
     marginBottom: '.5rem',
     backgroundColor: `${getColor(data.alert.data.category)}`,
-    color: '#ffffff',
+    color: `${getDarkerColor(data.alert.data.category)}`,
     opacity: '.83',
     padding: '.3rem',
     border: 'none',
@@ -82,7 +82,7 @@ const Modal: React.FC<ModalProps> = ({
     marginRight: '.5rem',
     marginBottom: '.5rem',
     backgroundColor: `${getColor(data.alert.data.category)}`,
-    color: '#ffffff',
+    color: `${getDarkerColor(data.alert.data.category)}`,
     opacity: '.83',
     padding: '.3rem',
     border: 'none',
