@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
-  "name": "Inclusifier",
-  "version": "0.0.0",
+  "name": "Witty",
+  "version": "1.0.0",
 
   "icons": {
     "16": "assets/icons/favicon-16x16-diversifier.png",
@@ -11,7 +11,7 @@
   },
   "description": "Web extension to make inclusive language available to everyone. ",
   "homepage_url": "https://witty.works",
-  "short_name": "Inclusifier",
+  "short_name": "Witty",
 
   "permissions": [
     "activeTab",
@@ -44,7 +44,7 @@
       "48": "assets/icons/favicon-diversifier.ico",
       "128": "assets/icons/favicon-diversifier.ico"
     },
-    "default_title": "Inclusifier",
+    "default_title": "Witty",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
   },
