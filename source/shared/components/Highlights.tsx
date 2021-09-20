@@ -21,6 +21,12 @@ const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
       const nodeText = element.childNodes[0];
 
       const highlights = data.alerts
+        .filter(
+          //filter out repeating cases
+          (alert, index, array) =>
+            array.findIndex((item) => item.data.text === alert.data.text) ===
+            index
+        )
         .map((alert) => {
           const range = document.createRange();
           range.setStart(nodeText, alert.startOffset);

@@ -21,14 +21,41 @@ export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(BaseUrls)[0]
 
 //COLORS
 export enum Colors {
-  inclusive_words = '#8EC15C',
-  non_inclusive = '#f1951c',
-  male_coded_terms = '#855B67',
-  male_coded_job_title = '#855B67',
-  discriminating_words = '#328FAC',
-  gendered_denominations = '#855B67',
-  empty_words = '#8892B0',
-  boasting_words = '#8892B0',
+  gendered_roles = '#e9dbb2',
+  gendered_roles_hierachy = '#e9dbb2',
+  gendered_roles_image = '#e9dbb2',
+  gendered_denominations = '#e9dbb2',
+  gendered_language = '#e9dbb2',
+  agentic_language = '#d2bcb2',
+  communal_language = '#b2d2ca',
+  d_and_i_words = '#b2d2ca',
+  empty_words = '#c1ddf7',
+  boasting_words = '#c1ddf7',
+  gendered_pronouns = '#e9dbb2',
+  stereotypes = '#ebc8b2',
+  gendered_stereotypes = '#e9dbb2',
+  biased_language = '#ebc8b2',
+  ability_bias = '#ebc8b2',
+  age_bias_old = '#ebc8b2',
+  age_bias_young = '#ebc8b2',
+  culture_bias = '#ebc8b2',
+  migration_background_bias = '#ebc8b2',
+  anti_lgtbqiplus_bias = '#ebc8b2',
+  classism_bias = '#ebc8b2',
+  old_language = '#c1ddf7',
+  new_language = '#c1ddf7',
+  job_requirements_bias = '#ebc8b2',
+  requirements_overload = '#ebc8b2',
+  education_biased_requirements = '#ebc8b2',
+  workload_biased_requirements = '#ebc8b2',
+  ethnicity_biased_requirements = '#ebc8b2',
+  age_biased_requirements = '#ebc8b2',
 }
 
 export const getColor = (color:string):string => (<any>Colors)[color];
+
+const adjustColor = (color:string, amount: number) => {
+  return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+}
+
+export const getDarkerColor = (color: string) => adjustColor(getColor(color),-100);
