@@ -37,7 +37,7 @@ const Popup: React.FC = () => {
 
   return (
     <section id='popup'>
-      <h2>Willkommen bei {manifest.name}</h2>
+      <h2>Witty Works - Sprache bewegt</h2>
       <Toggle
         on={enabled}
         handleToggle={() => setEnabled(!enabled)}
