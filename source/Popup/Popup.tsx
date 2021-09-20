@@ -37,13 +37,13 @@ const Popup: React.FC = () => {
 
   return (
     <section id='popup'>
-      <h2>Welcome to {manifest.name}</h2>
+      <h2>Willkommen bei {manifest.name}</h2>
       <Toggle
         on={enabled}
         handleToggle={() => setEnabled(!enabled)}
         color={Colors.green}
         scale={0.5}
-        label={`Enable ${manifest.name}`}
+        label={`${manifest.name} aktivieren`}
       />
       {DEV_ENV ? <ApiSelector /> : null}
     </section>

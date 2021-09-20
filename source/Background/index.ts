@@ -43,26 +43,3 @@ browser.storage.local.get(StorageKeys.UNIQUE_ID)
   }
 })
 .catch(onError);
-
-const storageChange = (changes: any) => {
-  let changedItems = Object.keys(changes);
-
-  for (let item of changedItems) {
-    switch (item) {
-      case StorageKeys.ENABLED:
-        (changes[item].newValue === true)
-        ? browser.tabs.executeScript({
-            file: 'js/contentScript.bundle.js'
-          })
-        : browser.tabs.executeScript({
-            code: `if (document.querySelector('witty-code')) document.querySelector('witty-code').remove();`   //Don't load content script and remove all witty-code elements
-          });
-
-        break;
-    }
-  }
-};
-
-browser.storage.onChanged.addListener(storageChange);
-
-
