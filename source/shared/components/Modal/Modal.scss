@@ -1,0 +1,58 @@
+@import "../../../styles/variables";
+
+#modal {
+  padding: 1rem 1rem 0 1rem;
+  background-color: $white;
+  position: fixed;
+  z-index: 10;
+  box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
+  background-clip: padding-box;
+  // border: 1px solid #cccccc;
+  border-radius: 5px;
+  font-size: .8rem;
+}
+
+#backdrop {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 9;
+}
+
+#modal-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-row {
+  margin-bottom: 0.5rem;
+
+  img {
+    margin: 0.5rem 0;
+    width: 2rem;
+  }
+}
+
+.modal-sub-text {
+  font-size: .7rem;
+}
+
+.list-links-container {
+  display: flex;
+  flex-direction: column;
+  margin-left: -1rem;
+  margin-right: -1rem;
+
+  a {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 1rem;
+    cursor: pointer;
+
+    &.remove-text {
+      text-decoration: line-through;
+    }
+  }
+}

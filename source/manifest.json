@@ -69,6 +69,13 @@
       ],
     "js": [
       "js/contentScript.bundle.js"
+    ],
+    "css": [
+      "css/contentScript.css"
     ]
-  }]
+  }],
+  "web_accessible_resources": [
+    "assets/icons/favicon-16x16-diversifier.png",
+    "/assets/icons/ww-wire-logo.svg"
+  ]
 }
