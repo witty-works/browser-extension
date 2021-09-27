@@ -41,6 +41,11 @@
 .modal-link {
   text-decoration: underline;
   cursor: pointer;
+  color: #656565;
+
+  &:hover {
+    color:inherit;
+  }
 }
 
 .list-links-container {
