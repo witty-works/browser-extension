@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import CSS from 'csstype';
 import { browser } from 'webextension-polyfill-ts';
@@ -28,6 +28,7 @@ const Modal: React.FC<ModalProps> = ({
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   const [, logResponse, logError, sendAlternative] = useLogEndpoint();
+  const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
 
   const modalWidth =
     window.innerWidth > 640 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
@@ -69,7 +70,7 @@ const Modal: React.FC<ModalProps> = ({
   const onKeyDown = () => {
     // event: KeyboardEvent not needed
     if (isOpen) {
-      hide();
+      closeAndHide();
     }
   };
 
@@ -96,6 +97,11 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   const clickAccept = () => {
+    closeAndHide();
+  };
+
+  const closeAndHide = () => {
+    setIsToggleOpen(false);
     hide();
   };
 
@@ -115,9 +121,13 @@ const Modal: React.FC<ModalProps> = ({
     currentTarget.style.color = `${getDarkerColor(data.alert.data.category)}`;
   };
 
+  const toggleText = () => {
+    setIsToggleOpen(!isToggleOpen);
+  };
+
   const modal = (
     <React.Fragment>
-      <div id='backdrop' onClick={hide} />
+      <div id='backdrop' onClick={closeAndHide} />
       <div
         id='modal'
         aria-modal
@@ -131,7 +141,12 @@ const Modal: React.FC<ModalProps> = ({
           <div className='modal-row'>
             <span className='modal-main-text'>{data.alert.data.solution}</span>
           </div>
-          <div className='modal-row'>
+          <div className='modal-row-no-bottom-padding'>
+            {data.alert.data.alternatives.length === 0 ? null : (
+              <div className='modal-row-title'>
+                Stattdessen könnten Sie versuchen
+              </div>
+            )}
             <div className='list-links-container'>
               {data.alert.data.alternatives.length === 0 ? (
                 <a
@@ -167,11 +182,23 @@ const Modal: React.FC<ModalProps> = ({
               )}
             </div>
           </div>
-          <div className='modal-row'>
-            <span className='modal-sub-text'>{data.alert.data.reason}</span>
-          </div>
+          {isToggleOpen ? (
+            <div className='modal-row'>
+              <span>{data.alert.data.reason}</span>
+              <span onClick={() => toggleText()} className='modal-link'>
+                Verstanden.
+              </span>
+            </div>
+          ) : (
+            <div className='modal-row'>
+              <a onClick={() => toggleText()} className='modal-link'>
+                Erfahren Sie, warum diese Alternativen.
+              </a>
+            </div>
+          )}
           <div className='modal-row'>
             <img
+              className='modal-icon'
               src={browser.runtime.getURL(
                 '../../../assets/icons/ww-wire-logo.svg'
               )}

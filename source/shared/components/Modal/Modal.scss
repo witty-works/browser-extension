@@ -27,16 +27,20 @@
 }
 
 .modal-row {
-  margin-bottom: 0.5rem;
-
-  img {
-    margin: 0.5rem 0;
-    width: 2rem;
-  }
+  margin-bottom: 1rem;
 }
 
-.modal-sub-text {
-  font-size: .7rem;
+.modal-icon {
+  width: 2rem;
+}
+
+.modal-main-text {
+  font-weight: 600;
+}
+
+.modal-link {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .list-links-container {
@@ -45,7 +49,7 @@
   margin-left: -1rem;
   margin-right: -1rem;
 
-  a {
+  a{
     font-size: 1rem;
     font-weight: 600;
     padding: 1rem;
