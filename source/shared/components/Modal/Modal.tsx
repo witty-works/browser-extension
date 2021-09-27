@@ -61,6 +61,7 @@ const Modal: React.FC<ModalProps> = ({
   }, [logError]);
 
   useEffect(() => {
+    if (isOpen && isToggleOpen) setIsToggleOpen(false); //if modal is open and description text is also expanded, collapse it
     document.addEventListener('keydown', onKeyDown, false);
     return () => {
       document.removeEventListener('keydown', onKeyDown, false);
@@ -70,7 +71,7 @@ const Modal: React.FC<ModalProps> = ({
   const onKeyDown = () => {
     // event: KeyboardEvent not needed
     if (isOpen) {
-      closeAndHide();
+      hide();
     }
   };
 
@@ -97,11 +98,6 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   const clickAccept = () => {
-    closeAndHide();
-  };
-
-  const closeAndHide = () => {
-    setIsToggleOpen(false);
     hide();
   };
 
@@ -127,7 +123,7 @@ const Modal: React.FC<ModalProps> = ({
 
   const modal = (
     <React.Fragment>
-      <div id='backdrop' onClick={closeAndHide} />
+      <div id='backdrop' onClick={hide} />
       <div
         id='modal'
         aria-modal
@@ -185,13 +181,13 @@ const Modal: React.FC<ModalProps> = ({
           {isToggleOpen ? (
             <div className='modal-row'>
               <span>{data.alert.data.reason}</span>
-              <span onClick={() => toggleText()} className='modal-link'>
+              <span onClick={toggleText} className='modal-link'>
                 Verstanden.
               </span>
             </div>
           ) : (
             <div className='modal-row'>
-              <a onClick={() => toggleText()} className='modal-link'>
+              <a onClick={toggleText} className='modal-link'>
                 Erfahren Sie, warum diese Alternativen.
               </a>
             </div>
