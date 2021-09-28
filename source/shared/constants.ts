@@ -32,6 +32,7 @@ export enum Colors {
   communal_language = '#b2d2ca',
   d_and_i_words = '#b2d2ca',
   empty_words = '#c1ddf7',
+  orthography = '#c1ddf7',
   boasting_words = '#c1ddf7',
   gendered_pronouns = '#e9dbb2',
   stereotypes = '#ebc8b2',
