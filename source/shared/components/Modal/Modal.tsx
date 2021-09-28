@@ -4,7 +4,7 @@ import CSS from 'csstype';
 import { browser } from 'webextension-polyfill-ts';
 
 import { IAlert, IAlternative } from '../../types';
-import { getDarkerColor } from '../../constants';
+import { getColor } from '../../constants';
 import { useLogEndpoint } from '../../ApiServices/useEndpoint';
 import { DEV_ENV } from '../../constants';
 
@@ -48,9 +48,13 @@ const Modal: React.FC<ModalProps> = ({
     width: `${modalWidth}px`,
   };
 
-  const AlternativeButtonStyling: CSS.Properties = {
-    color: `${getDarkerColor(data.alert.data.category)}`,
+  const CategoryDotStyling: CSS.Properties = {
+    backgroundColor: `${getColor(data.alert.data.category)}`,
   };
+
+  // const AlternativeButtonStyling: CSS.Properties = {
+  //   color: `${getColor(data.alert.data.category)}`,
+  // };
 
   useEffect(() => {
     if (DEV_ENV) console.log('logResponse = ', logResponse);
@@ -104,17 +108,15 @@ const Modal: React.FC<ModalProps> = ({
   const hoveredAlternativeButton = (event: React.MouseEvent) => {
     const currentTarget = event.currentTarget as HTMLElement;
 
-    currentTarget.style.backgroundColor = `${getDarkerColor(
-      data.alert.data.category
-    )}`;
-    currentTarget.style.color = '#ffffff';
+    currentTarget.style.backgroundColor = `#9489DB`;
+    currentTarget.style.color = `#ffffff`;
   };
 
   const resetAlternativeButton = (event: React.MouseEvent) => {
     const currentTarget = event.currentTarget as HTMLElement;
 
     currentTarget.style.backgroundColor = `transparent`;
-    currentTarget.style.color = `${getDarkerColor(data.alert.data.category)}`;
+    currentTarget.style.color = `#9489DB`;
   };
 
   const toggleText = () => {
@@ -134,19 +136,36 @@ const Modal: React.FC<ModalProps> = ({
         ref={ref}
       >
         <div id='modal-container'>
-          <div className='modal-row'>
-            <span className='modal-main-text'>{data.alert.data.solution}</span>
+          <div className='row'>
+            <span className='category-dot' style={CategoryDotStyling}></span>
+            <span className='main-text'>{data.alert.data.solution}</span>
           </div>
-          <div className='modal-row-no-bottom-padding'>
+          <div className='row-no-bottom-margin'>
             {data.alert.data.alternatives.length === 0 ? null : (
-              <div className='modal-row-title'>
-                Stattdessen könnten Sie versuchen
-              </div>
+              <>
+                <div className='row-title'>
+                  Stattdessen könnten Sie versuchen...
+                  {isToggleOpen ? (
+                    <a onClick={toggleText} className='expand-link'>
+                      Verstanden.
+                    </a>
+                  ) : (
+                    <a onClick={toggleText} className='expand-link'>
+                      Warum?
+                    </a>
+                  )}
+                </div>
+                {isToggleOpen ? (
+                  <div className='sub-text'>{data.alert.data.reason}</div>
+                ) : null}
+              </>
             )}
+          </div>
+          <div className='row'>
             <div className='list-links-container'>
               {data.alert.data.alternatives.length === 0 ? (
                 <a
-                  style={AlternativeButtonStyling}
+                  // style={AlternativeButtonStyling}
                   onMouseEnter={hoveredAlternativeButton}
                   onMouseLeave={resetAlternativeButton}
                   onClick={clickAccept}
@@ -155,7 +174,7 @@ const Modal: React.FC<ModalProps> = ({
                 </a>
               ) : data.alert.data.alternatives[0].localeCompare('-') === 0 ? (
                 <a
-                  style={AlternativeButtonStyling}
+                  // style={AlternativeButtonStyling}
                   onMouseEnter={hoveredAlternativeButton}
                   onMouseLeave={resetAlternativeButton}
                   onClick={() => clickAlternative(-1)}
@@ -167,7 +186,7 @@ const Modal: React.FC<ModalProps> = ({
                 data.alert.data.alternatives.map((alternative, index) => (
                   <a
                     key={`${index}-${alternative}`}
-                    style={AlternativeButtonStyling}
+                    // style={AlternativeButtonStyling}
                     onMouseEnter={hoveredAlternativeButton}
                     onMouseLeave={resetAlternativeButton}
                     onClick={() => clickAlternative(index)}
@@ -178,23 +197,9 @@ const Modal: React.FC<ModalProps> = ({
               )}
             </div>
           </div>
-          {isToggleOpen ? (
-            <div className='modal-row'>
-              <span>{data.alert.data.reason}</span>
-              <span onClick={toggleText} className='modal-link'>
-                Verstanden.
-              </span>
-            </div>
-          ) : (
-            <div className='modal-row'>
-              <a onClick={toggleText} className='modal-link'>
-                Erfahren Sie, warum diese Alternativen.
-              </a>
-            </div>
-          )}
-          <div className='modal-row'>
+          <div className='row'>
             <img
-              className='modal-icon'
+              className='icon'
               src={browser.runtime.getURL(
                 '../../../assets/icons/ww-wire-logo.svg'
               )}
