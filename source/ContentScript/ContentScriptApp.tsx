@@ -148,10 +148,18 @@ const ContentScriptApp: React.FC = () => {
     [inputsRef, setInputs]
   );
 
+  const isInputElement = (element: HTMLElement) => {
+    return element.tagName === 'TEXTAREA'; //TODO include other types of fields
+  };
+
   const handleClickElement = useCallback(
     (event: Event) => {
-      if (elementWithAlertsRef.current.alerts.length > 0) {
-        const target = event.target as HTMLTextAreaElement;
+      const target = event.target as HTMLTextAreaElement;
+
+      if (
+        isInputElement(target) &&
+        elementWithAlertsRef.current.alerts.length > 0
+      ) {
         setFocusedInput(target);
         const result = getInputSelection(target);
         const clickedHighlight: IAlert =
