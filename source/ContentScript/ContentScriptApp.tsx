@@ -253,13 +253,15 @@ const ContentScriptApp: React.FC = () => {
     });
 
     //Replace text with the new alternative or simply remove it
-    const textToInsert =
-      index === -1
-        ? focusedInput.value.replaceAll(` ${modalData.alert.data.text}`, '')
-        : focusedInput.value.replaceAll(
-            modalData.alert.data.text,
-            modalData.alert.data.alternatives[index]
-          );
+    //This only replaces the specific occurrence. If there are other identical terms in the text
+    //they will keep highlighted
+    const splitText = focusedInput.value.split('');
+    splitText.splice(
+      modalData.alert.startOffset,
+      modalData.alert.endOffset - modalData.alert.startOffset,
+      index === -1 ? '' : modalData.alert.data.alternatives[index]
+    );
+    const textToInsert = splitText.join('');
 
     focusedInput.value = textToInsert;
     inputsRef.current[inputIndex] = focusedInput;
