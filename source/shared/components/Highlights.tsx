@@ -24,8 +24,12 @@ const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
         .filter(
           //filter out repeating cases
           (alert, index, array) =>
-            array.findIndex((item) => item.data.text === alert.data.text) ===
-            index
+            array.findIndex(
+              (item) =>
+                item.data.text === alert.data.text &&
+                item.startOffset === alert.startOffset &&
+                item.endOffset === alert.endOffset
+            ) === index
         )
         .map((alert) => {
           const range = document.createRange();
