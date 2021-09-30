@@ -29,6 +29,11 @@ jobs:
         run: |
           yarn install
 
+      - name: Enable development mode
+        run: |
+           sed 's/export const DEV_ENV = .*$/export const DEV_ENV = true;/' source/shared/constants.ts > constants.ts
+           mv constants.ts source/shared/constants.ts
+
       - name: Build artifacts
         run: |
           yarn run build
@@ -53,6 +58,11 @@ jobs:
            sed -i '/TODELETE/d' manifest.json
            sed ':a;N;$!ba;s_https://\*/\*_https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/form_2' manifest.json > source/manifest.json
            rm manifest.json
+
+      - name: Disable development mode
+        run: |
+           sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
+           mv constants.ts source/shared/constants.ts
 
       - name: Enable ID generation
         run: |

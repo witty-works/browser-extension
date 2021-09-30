@@ -4,10 +4,9 @@
   "version": "1.0.0",
 
   "icons": {
-    "16": "assets/icons/favicon-16x16-diversifier.png",
-    "32": "assets/icons/favicon-32x32-diversifier.png",
-    "48": "assets/icons/favicon-diversifier.ico",
-    "128": "assets/icons/favicon-diversifier.ico"
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png"
   },
   "description": "Web extension to make inclusive language available to everyone. ",
   "homepage_url": "https://witty.works",
@@ -39,10 +38,9 @@
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "assets/icons/favicon-16x16-diversifier.png",
-      "32": "assets/icons/favicon-32x32-diversifier.png",
-      "48": "assets/icons/favicon-diversifier.ico",
-      "128": "assets/icons/favicon-diversifier.ico"
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png"
     },
     "default_title": "Witty",
     "__chrome|opera__chrome_style": false,
@@ -69,6 +67,13 @@
       ],
     "js": [
       "js/contentScript.bundle.js"
+    ],
+    "css": [
+      "css/contentScript.css"
     ]
-  }]
+  }],
+  "web_accessible_resources": [
+    "assets/icons/favicon-16x16-diversifier.png",
+    "assets/icons/ww-wire-logo.svg"
+  ]
 }

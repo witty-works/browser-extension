@@ -148,10 +148,18 @@ const ContentScriptApp: React.FC = () => {
     [inputsRef, setInputs]
   );
 
+  const isInputElement = (element: HTMLElement) => {
+    return element.tagName === 'TEXTAREA'; //TODO include other types of fields
+  };
+
   const handleClickElement = useCallback(
     (event: Event) => {
-      if (elementWithAlertsRef.current.alerts.length > 0) {
-        const target = event.target as HTMLTextAreaElement;
+      const target = event.target as HTMLTextAreaElement;
+
+      if (
+        isInputElement(target) &&
+        elementWithAlertsRef.current.alerts.length > 0
+      ) {
         setFocusedInput(target);
         const result = getInputSelection(target);
         const clickedHighlight: IAlert =
@@ -245,13 +253,15 @@ const ContentScriptApp: React.FC = () => {
     });
 
     //Replace text with the new alternative or simply remove it
-    const textToInsert =
-      index === -1
-        ? focusedInput.value.replaceAll(` ${modalData.alert.data.text}`, '')
-        : focusedInput.value.replaceAll(
-            modalData.alert.data.text,
-            modalData.alert.data.alternatives[index]
-          );
+    //This only replaces the specific occurrence. If there are other identical terms in the text
+    //they will keep highlighted
+    const splitText = focusedInput.value.split('');
+    splitText.splice(
+      modalData.alert.startOffset,
+      modalData.alert.endOffset - modalData.alert.startOffset,
+      index === -1 ? '' : modalData.alert.data.alternatives[index]
+    );
+    const textToInsert = splitText.join('');
 
     focusedInput.value = textToInsert;
     inputsRef.current[inputIndex] = focusedInput;
