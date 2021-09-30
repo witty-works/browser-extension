@@ -31,6 +31,7 @@ export enum Colors {
   agentic_language = '#F06464',
   communal_language = '#5ACFB9',
   d_and_i_words = '#5ACFB9',
+  corporate_rules = '#37D1E5',
   empty_words = '#37D1E5',
   boasting_words = '#37D1E5',
   orthography = '#37D1E5',
