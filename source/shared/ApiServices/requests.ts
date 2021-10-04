@@ -28,7 +28,7 @@ export const getAnalyzedTextResults = (text: string):IRequest => {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({text: text, lang: 'auto', id: appID})
+      body: text ? JSON.stringify({text: text, lang: 'auto', id: appID}) : null
     }
   }
 };
@@ -42,7 +42,7 @@ export const logAlternative = (alternative: IAlternative) => {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({text: alternative.text, lang: 'auto', id: appID, alternative: alternative.alternative, start: alternative.start, end: alternative.end})
+      body: alternative.text ? JSON.stringify({text: alternative.text, lang: 'auto', id: appID, alternative: alternative.alternative, start: alternative.start, end: alternative.end}) : null
     }
   }
 }

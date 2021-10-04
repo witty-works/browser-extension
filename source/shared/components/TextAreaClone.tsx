@@ -95,8 +95,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
     //Check for whitespaces and remove them
     const detectWhiteSpace = elem.textContent?.match(/^\s+$/);
     if (detectWhiteSpace) elem.textContent = '';
-
-    sendText(elem.textContent || '');
+    sendText(elem.textContent);
   };
 
   return (
