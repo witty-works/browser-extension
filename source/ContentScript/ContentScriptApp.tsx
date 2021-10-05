@@ -1,31 +1,25 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
+import {
+  CustomInputElement,
+  // ClonableInputElement,
+  Iinput,
+} from '../shared/types';
 import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import { setBaseURL } from '../shared/ApiServices/requests';
 import TextAreaClone from '../shared/components/TextAreaClone';
-import Highlights from '../shared/components/Highlights';
-import { CustomInputElement, IAlert } from '../shared/types';
 import useStateRef from '../shared/customHooks/useStateRef';
-import { IElementWithAlerts } from '../shared/types';
-import { MessageService } from '../shared/MessageService';
-import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { DEV_ENV } from '../shared/constants';
-
-type HandleClick = () => void;
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
-  const [modalData, setModalData] = useState<ModalData>({} as ModalData);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  // const [inputs, setInputs] = useState<Iinput[]>([]);
+  // const inputs = useRef<Iinput[]>([]);
   const [inputs, setInputs, inputsRef] = useStateRef([]);
-  const [focusedInput, setFocusedInput] = useState<CustomInputElement>({});
-  const [elementWithAlerts, setElementWithAlerts, elementWithAlertsRef] =
-    useStateRef({
-      element: null,
-      originalElement: null,
-      alerts: [],
-    });
+  // const [focusedInput, setFocusedInput] = useState<CustomInputElement>(
+  //   {} as CustomInputElement
+  // );
 
   useEffect(() => {
     //Define the Endpoint
@@ -38,40 +32,26 @@ const ContentScriptApp: React.FC = () => {
       })
       .catch(onError);
 
-    // Subscribe to the message service
-    const subscription = MessageService.onMessage().subscribe(
-      (message: IElementWithAlerts) => {
-        if (message) {
-          setElementWithAlerts(message);
-        } else {
-          // clear messages when empty message received
-          setElementWithAlerts({
-            element: null,
-            originalElement: null,
-            alerts: [],
-          });
-        }
-      }
-    );
+    //TEMPORAL, create an extra textarea
+    const section = document.querySelector('section');
+    const newTextarea: HTMLTextAreaElement = document.createElement(
+      'TEXTAREA'
+    ) as HTMLTextAreaElement;
+    newTextarea.id = 'editor-copy';
+    newTextarea.cols = 25;
+    newTextarea.rows = 25;
+    if (section) section.appendChild(newTextarea);
 
     //Capture all the scrolling events, including window scrolling
-    window.addEventListener('scroll', handleScrollElement, true);
+    browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('input', handleInputElement);
-    document.addEventListener('click', handleClickElement);
-    browser.storage.onChanged.addListener(storageChange);
-    window.addEventListener('resize', handleWindowResize);
 
     return () => {
-      // return unsubscribe method to execute when component unmounts
-      subscription.unsubscribe;
       //Don't forget to remove the listeners at the end
-      window.removeEventListener('scroll', handleScrollElement);
+      browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('input', handleInputElement);
-      document.removeEventListener('click', handleClickElement);
-      browser.storage.onChanged.removeListener(storageChange);
-      window.removeEventListener('resize', handleWindowResize);
     };
   }, []);
 
@@ -87,6 +67,30 @@ const ContentScriptApp: React.FC = () => {
     }
   };
 
+  const isInputElement = (element: CustomInputElement) => {
+    return (
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLInputElement ||
+      element instanceof HTMLDivElement
+    );
+  };
+
+  const findInputElement = (element: CustomInputElement): number => {
+    // console.log(
+    //   'element instanceof HTMLTextAreaElement = ',
+    //   element instanceof HTMLTextAreaElement
+    // );
+
+    return inputsRef.current.findIndex((input: Iinput) =>
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLInputElement
+        ? input.inputElement &&
+          isInputElement(input.inputElement) &&
+          input.inputElement === element
+        : input.divElement === element
+    );
+  };
+
   useEffect(() => {
     if (urlEndpointKey.localeCompare('') !== 0) {
       setBaseURL(urlEndpointKey);
@@ -97,208 +101,62 @@ const ContentScriptApp: React.FC = () => {
     if (DEV_ENV) console.log('onError = ', error);
   };
 
-  const getAllInputElements = (): CustomInputElement[] => {
-    //Detect all Inputs
-    return Array.from(
-      document.querySelectorAll(`
-      input[type=text],
-      textarea,
-      div[contenteditable=true]
-    `)
-    ).map((input, index) => {
-      input.setAttribute('data-id', `${input.tagName}-${index}`); //Set an ID to each of them, to recognize them later
-      return input as CustomInputElement;
-    });
-  };
-
-  const findInputElement = (
-    inputs: CustomInputElement[],
-    element: HTMLElement
-  ): number => {
-    return inputs.findIndex(
-      (input: CustomInputElement) =>
-        input.getAttribute('data-id') === element.getAttribute('data-id')
-    );
-  };
-
   const handleFocusinElement = (event: Event) => {
-    const target = event.target as HTMLTextAreaElement;
-    const index = findInputElement(inputsRef.current, target);
-    index === -1
-      ? setInputs([...inputsRef.current, target])
-      : (inputsRef.current[index] = target);
-  };
+    const target = event.target as HTMLTextAreaElement; //TODO Cover other types of inputs
+    // setFocusedInput(target);
 
-  const handleInputElement = useCallback(
-    (event: Event) => {
-      const target = event.target as HTMLTextAreaElement;
-      const index = findInputElement(inputsRef.current, target);
-      inputsRef.current[index] = target;
-      setInputs([...inputsRef.current]);
-    },
-    [inputsRef, setInputs]
-  );
+    const index = findInputElement(target);
+    console.log('-----> handleFocusinElement index = ', index);
 
-  const handleScrollElement = useCallback(
-    (event: Event) => {
-      const target = event.target as HTMLElement;
-
-      if (target.nodeName.localeCompare('#document') === 0) {
-        //User is scrolling the whole page, update all the input elements
-        setInputs([...getAllInputElements()]);
-      } else {
-        //User is scrolling a specific component, we just update this one
-        const index = findInputElement(inputsRef.current, target);
-        inputsRef.current[index] = target;
-        setInputs([...inputsRef.current]);
-      }
-    },
-    [inputsRef, setInputs]
-  );
-
-  const isInputElement = (element: HTMLElement) => {
-    return element.tagName === 'TEXTAREA'; //TODO include other types of fields
-  };
-
-  const handleClickElement = useCallback(
-    (event: Event) => {
-      const target = event.target as HTMLTextAreaElement;
-
-      if (
-        isInputElement(target) &&
-        elementWithAlertsRef.current.alerts.length > 0
-      ) {
-        setFocusedInput(target);
-        const result = getInputSelection(target);
-        const clickedHighlight: IAlert =
-          elementWithAlertsRef.current.alerts.find((alert: IAlert) => {
-            return (
-              alert.startOffset < result.start && alert.endOffset > result.end
-            );
-          });
-
-        const range = document.createRange();
-        const nodeText = elementWithAlertsRef.current.element.childNodes[0];
-
-        if (clickedHighlight) {
-          range.setStart(nodeText, clickedHighlight.startOffset);
-          range.setEnd(nodeText, clickedHighlight.endOffset);
-
-          const clickedRect = range.getClientRects()[0];
-
-          setModalData({
-            alert: clickedHighlight,
-            position: clickedRect,
-          });
-
-          toggleModal();
-        }
-      }
-    },
-    [elementWithAlertsRef]
-  );
-
-  const getInputSelection = (element: any) => {
-    let start = 0;
-    let end = 0;
-    // normalizedValue,
-    // range,
-    // textInputRange,
-    // len,
-    // endRange;
-
-    if (typeof element.selectionStart == 'number') {
-      start = element.selectionStart;
-      end = element.selectionEnd;
-    } else {
-      //TODO If it's not a textarea...
-      //https://jsfiddle.net/ourcodeworld/o4k7rfu0/1/
-      // range = document.selection.createRange();
-      // if (range && range.parentElement() == el) {
-      //     len = el.value.length;
-      //     normalizedValue = el.value.replace(/\r\n/g, "\n");
-      //     // Create a working TextRange that lives only in the input
-      //     textInputRange = el.createTextRange();
-      //     textInputRange.moveToBookmark(range.getBookmark());
-      //     // Check if the start and end of the selection are at the very end
-      //     // of the input, since moveStart/moveEnd doesn't return what we want
-      //     // in those cases
-      //     endRange = el.createTextRange();
-      //     endRange.collapse(false);
-      //     if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
-      //         start = end = len;
-      //     } else {
-      //         start = -textInputRange.moveStart("character", -len);
-      //         start += normalizedValue.slice(0, start).split("\n").length - 1;
-      //         if (textInputRange.compareEndPoints("EndToEnd", endRange) > -1) {
-      //             end = len;
-      //         } else {
-      //             end = -textInputRange.moveEnd("character", -len);
-      //             end += normalizedValue.slice(0, end).split("\n").length - 1;
-      //         }
-      //     }
-      // }
+    if (index === -1) {
+      setInputs([
+        ...inputsRef.current,
+        {
+          divElement: {} as HTMLDivElement,
+          inputElement: target,
+          alerts: [],
+        },
+      ]);
     }
-
-    return {
-      start: start,
-      end: end,
-    };
   };
 
-  const toggleModal: HandleClick = () => {
-    setIsOpen(!isOpen);
-  };
+  const handleInputElement = (event: Event) => {
+    const target = event.target as HTMLTextAreaElement; //TODO Cover other types of inputs
+    // console.log('handleInputElement target = ', target);
 
-  const handleAlternativeClick = (index: number) => {
-    const inputIndex = findInputElement(inputsRef.current, focusedInput);
+    const index: number = findInputElement(target);
+    // console.log('handleInputElement index = ', index);
 
-    //Remove all highlights, need to be updated!
-    setElementWithAlerts({
-      element: null,
-      originalElement: null,
-      alerts: [],
-    });
-
-    //Replace text with the new alternative or simply remove it
-    //This only replaces the specific occurrence. If there are other identical terms in the text
-    //they will keep highlighted
-    const splitText = focusedInput.value.split('');
-    splitText.splice(
-      modalData.alert.startOffset,
-      modalData.alert.endOffset - modalData.alert.startOffset,
-      index === -1 ? '' : modalData.alert.data.alternatives[index]
-    );
-    const textToInsert = splitText.join('');
-
-    focusedInput.value = textToInsert;
-    inputsRef.current[inputIndex] = focusedInput;
+    inputsRef.current[index].inputElement = target;
     setInputs([...inputsRef.current]);
-
-    //Close Modal
-    toggleModal();
   };
 
-  const handleWindowResize = () => {
-    setInputs([...getAllInputElements()]);
+  const updateCloneData = (
+    textAreaElement: HTMLTextAreaElement,
+    divElement: HTMLDivElement
+  ) => {
+    // console.log('divElement = ', divElement);
+
+    const index: number = findInputElement(textAreaElement);
+    inputsRef.current[index].divElement = divElement;
+    // console.log('updateCloneData index = ', index);
+
+    // console.log('divElement textContent = ', divElement.textContent);
   };
+
+  useEffect(() => {
+    console.log('INPUTS = ', inputs);
+  }, [inputs]);
 
   return (
     <>
-      {inputs
-        .filter((input: CustomInputElement) => input.tagName === 'TEXTAREA')
-        .map((textarea: HTMLTextAreaElement, index: number) => (
-          <TextAreaClone key={index} element={textarea} />
-        ))}
-      <Highlights data={elementWithAlerts} />
-      {modalData.alert ? (
-        <Modal
-          isOpen={isOpen}
-          data={modalData}
-          hide={toggleModal}
-          switchAlternative={(index) => handleAlternativeClick(index)}
+      {inputs.map((input: Iinput, index: number) => (
+        <TextAreaClone
+          key={index}
+          element={input.inputElement as HTMLTextAreaElement}
+          updateClone={updateCloneData}
         />
-      ) : null}
+      ))}
     </>
   );
 };
