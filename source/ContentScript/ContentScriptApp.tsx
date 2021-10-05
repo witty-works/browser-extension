@@ -42,6 +42,14 @@ const ContentScriptApp: React.FC = () => {
     newTextarea.rows = 25;
     if (section) section.appendChild(newTextarea);
 
+    const newEditableDiv: HTMLDivElement = document.createElement(
+      'DIV'
+    ) as HTMLDivElement;
+    newEditableDiv.id = 'div-editable';
+    newEditableDiv.contentEditable = 'true';
+    newEditableDiv.style.backgroundColor = 'white';
+    if (section) section.appendChild(newEditableDiv);
+
     //Capture all the scrolling events, including window scrolling
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
@@ -102,32 +110,41 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleFocusinElement = (event: Event) => {
-    const target = event.target as HTMLTextAreaElement; //TODO Cover other types of inputs
+    const target = event.target as CustomInputElement;
     // setFocusedInput(target);
 
     const index = findInputElement(target);
     console.log('-----> handleFocusinElement index = ', index);
 
     if (index === -1) {
-      setInputs([
-        ...inputsRef.current,
-        {
-          divElement: {} as HTMLDivElement,
-          inputElement: target,
-          alerts: [],
-        },
-      ]);
+      const newInput =
+        target.tagName === 'DIV'
+          ? {
+              divElement: target,
+              inputElement: null,
+              alerts: [],
+            }
+          : {
+              divElement: {} as HTMLDivElement,
+              inputElement: target,
+              alerts: [],
+            };
+
+      setInputs([...inputsRef.current, newInput]);
     }
   };
 
   const handleInputElement = (event: Event) => {
-    const target = event.target as HTMLTextAreaElement; //TODO Cover other types of inputs
+    const target = event.target as CustomInputElement;
     // console.log('handleInputElement target = ', target);
 
     const index: number = findInputElement(target);
     // console.log('handleInputElement index = ', index);
 
-    inputsRef.current[index].inputElement = target;
+    target.tagName === 'DIV'
+      ? (inputsRef.current[index].divElement = target)
+      : (inputsRef.current[index].inputElement = target);
+
     setInputs([...inputsRef.current]);
   };
 
@@ -150,13 +167,15 @@ const ContentScriptApp: React.FC = () => {
 
   return (
     <>
-      {inputs.map((input: Iinput, index: number) => (
-        <TextAreaClone
-          key={index}
-          element={input.inputElement as HTMLTextAreaElement}
-          updateClone={updateCloneData}
-        />
-      ))}
+      {inputs
+        .filter((input: Iinput) => input.inputElement?.tagName === 'TEXTAREA')
+        .map((input: Iinput, index: number) => (
+          <TextAreaClone
+            key={index}
+            element={input.inputElement as HTMLTextAreaElement}
+            updateClone={updateCloneData}
+          />
+        ))}
     </>
   );
 };
