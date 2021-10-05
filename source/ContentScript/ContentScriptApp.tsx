@@ -56,6 +56,7 @@ const ContentScriptApp: React.FC = () => {
 
     //Capture all the scrolling events, including window scrolling
     window.addEventListener('scroll', handleScrollElement, true);
+    document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('input', handleInputElement);
     document.addEventListener('click', handleClickElement);
     browser.storage.onChanged.addListener(storageChange);
@@ -66,6 +67,7 @@ const ContentScriptApp: React.FC = () => {
       subscription.unsubscribe;
       //Don't forget to remove the listeners at the end
       window.removeEventListener('scroll', handleScrollElement);
+      document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('input', handleInputElement);
       document.removeEventListener('click', handleClickElement);
       browser.storage.onChanged.removeListener(storageChange);
@@ -88,8 +90,6 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     if (urlEndpointKey.localeCompare('') !== 0) {
       setBaseURL(urlEndpointKey);
-      const inputs = getAllInputElements(); //TODO Needs forcing a rerender
-      setInputs(inputs);
     }
   }, [urlEndpointKey]);
 
@@ -119,6 +119,14 @@ const ContentScriptApp: React.FC = () => {
       (input: CustomInputElement) =>
         input.getAttribute('data-id') === element.getAttribute('data-id')
     );
+  };
+
+  const handleFocusinElement = (event: Event) => {
+    const target = event.target as HTMLTextAreaElement;
+    const index = findInputElement(inputsRef.current, target);
+    index === -1
+      ? setInputs([...inputsRef.current, target])
+      : (inputsRef.current[index] = target);
   };
 
   const handleInputElement = useCallback(
