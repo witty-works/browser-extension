@@ -1,29 +1,53 @@
-import React, { useEffect } from 'react';
-import { IElementWithAlerts } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Iinput,
+  IAlert,
+  IAlertContentData,
+  CustomInputElement,
+} from '../types';
 
 import { getColor } from '../constants';
-export interface HighlightsProps {
-  data: IElementWithAlerts;
-}
 
-const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
+type Highlight = {
+  alertID: string;
+  rect: DOMRect;
+  data: IAlertContentData;
+};
+
+const Highlights: React.FC<Iinput> = ({
+  divElement,
+  inputElement,
+  alerts,
+}: Iinput) => {
+  const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
+  const [elementToTrack, setElementToTrack] =
+    useState<CustomInputElement | null>(null);
+  const [elementToTrackRect, setElementToTrackRect] = useState<DOMRect>(
+    {} as DOMRect
+  );
+
   useEffect(() => {
-    const element = data.element;
-    const originalElement = data.originalElement;
+    setElementToTrack(
+      typeof inputElement === 'undefined' || inputElement === null
+        ? divElement
+        : inputElement
+    );
+  }, []);
 
-    if (element !== null) {
-      const elementToTrackRect = (
-        typeof originalElement === 'undefined' || originalElement === null
-          ? element // Track the contentEditable directly
-          : originalElement
-      ).getBoundingClientRect();
+  useEffect(() => {
+    if (elementToTrack)
+      setElementToTrackRect(elementToTrack.getBoundingClientRect());
+  }, [elementToTrack]);
 
-      const nodeText = element.childNodes[0];
+  useEffect(() => {
+    if (elementToTrack) {
+      // const elementToTrackRect = elementToTrack.getBoundingClientRect();
+      const nodeText = divElement.childNodes[0];
 
-      const highlights = data.alerts
+      const highlights: Highlight[] = alerts
         .filter(
           //filter out repeating cases
-          (alert, index, array) =>
+          (alert: IAlert, index: number, array: IAlert[]) =>
             array.findIndex(
               (item) =>
                 item.data.text === alert.data.text &&
@@ -31,7 +55,7 @@ const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
                 item.endOffset === alert.endOffset
             ) === index
         )
-        .map((alert) => {
+        .map((alert: IAlert) => {
           const range = document.createRange();
           range.setStart(nodeText, alert.startOffset);
           range.setEnd(nodeText, alert.endOffset);
@@ -53,9 +77,7 @@ const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
           );
         });
 
-      const canvas: HTMLCanvasElement = document.getElementById(
-        'canvas-highlights'
-      ) as HTMLCanvasElement;
+      const canvas: HTMLCanvasElement = canvasRef.current;
 
       if (canvas && canvas.getContext) {
         const context: CanvasRenderingContext2D | null =
@@ -67,9 +89,7 @@ const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
           //Draw a rectangle for each highlight
           highlights.forEach((highlight) => {
             context.fillStyle = `${getColor(highlight.data.category)}`;
-
             const highlightRect = highlight.rect;
-
             const rectToRender: DOMRect = {
               x: highlightRect.x - elementToTrackRect.x,
               y: highlightRect.y - canvas.offsetTop + highlightRect.height,
@@ -90,28 +110,23 @@ const Highlights: React.FC<HighlightsProps> = ({ data }: HighlightsProps) => {
         //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
       }
     }
-  }, [data]);
+  }, [alerts]);
 
-  const originalElement = data.originalElement;
-  const originalElementRect = originalElement
-    ? originalElement.getBoundingClientRect()
-    : null;
-
-  return originalElement && originalElementRect ? (
+  return elementToTrack && alerts.length > 0 ? (
     <canvas
-      id='canvas-highlights'
+      ref={canvasRef}
       style={
         {
           position: 'fixed',
           overflow: 'auto',
-          top: `${originalElementRect.top}px`,
-          left: `${originalElementRect.left}px`,
+          top: `${elementToTrackRect.top}px`,
+          left: `${elementToTrackRect.left}px`,
           pointerEvents: 'none',
           // outline: '3px solid blue',
         } as React.CSSProperties
       }
-      width={originalElementRect.width}
-      height={originalElementRect.height}
+      width={elementToTrackRect.width}
+      height={elementToTrackRect.height}
     ></canvas>
   ) : null;
 };

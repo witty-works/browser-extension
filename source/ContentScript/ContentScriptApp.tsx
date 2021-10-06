@@ -5,6 +5,7 @@ import {
   CustomInputElement,
   // ClonableInputElement,
   Iinput,
+  IAlertContentData,
 } from '../shared/types';
 import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import { setBaseURL } from '../shared/ApiServices/requests';
@@ -12,10 +13,11 @@ import TextAreaClone from '../shared/components/TextAreaClone';
 import useStateRef from '../shared/customHooks/useStateRef';
 import { DEV_ENV } from '../shared/constants';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
+import Highlights from '../shared/components/Highlights';
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
-  const [inputs, setInputs, inputsRef] = useStateRef([]);
+  const [inputs, setInputs, inputsRef] = useStateRef([] as Iinput[]);
   const [focusedInput, setFocusedInput] = useState<CustomInputElement>(
     {} as CustomInputElement
   );
@@ -49,6 +51,9 @@ const ContentScriptApp: React.FC = () => {
     newEditableDiv.id = 'div-editable';
     newEditableDiv.contentEditable = 'true';
     newEditableDiv.style.backgroundColor = 'white';
+    newEditableDiv.style.width = '400px';
+    newEditableDiv.style.height = '200px';
+    newEditableDiv.style.padding = '10px';
     if (section) section.appendChild(newEditableDiv);
 
     //Capture all the scrolling events, including window scrolling
@@ -118,7 +123,7 @@ const ContentScriptApp: React.FC = () => {
     console.log('-----> handleFocusinElement index = ', index);
 
     if (index === -1) {
-      const newInput =
+      const newInput: Iinput = (
         target.tagName === 'DIV'
           ? {
               divElement: target,
@@ -129,9 +134,10 @@ const ContentScriptApp: React.FC = () => {
               divElement: {} as HTMLDivElement,
               inputElement: target,
               alerts: [],
-            };
+            }
+      ) as Iinput;
 
-      setInputs([...inputsRef.current, newInput]);
+      setInputs([...(inputsRef.current as Iinput[]), newInput]); //TODO needed?
     }
   };
 
@@ -148,10 +154,13 @@ const ContentScriptApp: React.FC = () => {
       ? (inputsRef.current[index].divElement = target)
       : (inputsRef.current[index].inputElement = target);
 
-    setInputs([...inputsRef.current]); //TODO I think it's not needed
+    setInputs([...(inputsRef.current as Iinput[])]); //TODO I think it's not needed
 
     //Check for whitespaces and remove them
-    let text = target.tagName === 'DIV' ? target.textContent : target.value;
+    let text =
+      (target.tagName === 'DIV'
+        ? target.textContent
+        : (target as HTMLTextAreaElement).value) || '';
     const detectWhiteSpace = text.match(/^\s+$/);
     if (detectWhiteSpace) text = '';
     console.log('text = ', text);
@@ -165,7 +174,7 @@ const ContentScriptApp: React.FC = () => {
     // console.log('divElement = ', divElement);
 
     const index: number = findInputElement(textAreaElement);
-    inputsRef.current[index].divElement = divElement;
+    (inputsRef.current[index] as Iinput).divElement = divElement;
     // console.log('updateCloneData index = ', index);
 
     // console.log('divElement textContent = ', divElement.textContent);
@@ -182,7 +191,20 @@ const ContentScriptApp: React.FC = () => {
     const index: number = findInputElement(focusedInput);
     console.log('checkEndpointResponse index = ', index);
     if (index !== -1)
-      inputsRef.current[index].alerts = checkEndpointResponse.results;
+      (inputsRef.current[index] as Iinput).alerts =
+        checkEndpointResponse.results.map((result: any) => ({
+          id: `${result.category}-${result.text}-${result.start}-${result.end}`,
+          startOffset: result.start,
+          endOffset: result.end,
+          data: {
+            category: result.category,
+            text: result.text,
+            label: result.label,
+            reason: result.reason,
+            solution: result.solution,
+            alternatives: result.alternatives,
+          } as IAlertContentData,
+        }));
   }, [checkEndpointResponse]);
 
   useEffect(() => {
@@ -203,6 +225,14 @@ const ContentScriptApp: React.FC = () => {
             updateClone={updateCloneData}
           />
         ))}
+      {inputs.map((input: Iinput, index: number) => (
+        <Highlights
+          key={index}
+          divElement={input.divElement}
+          inputElement={input.inputElement}
+          alerts={input.alerts}
+        />
+      ))}
     </>
   );
 };
