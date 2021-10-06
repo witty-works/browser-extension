@@ -11,15 +11,16 @@ import { setBaseURL } from '../shared/ApiServices/requests';
 import TextAreaClone from '../shared/components/TextAreaClone';
 import useStateRef from '../shared/customHooks/useStateRef';
 import { DEV_ENV } from '../shared/constants';
+import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
-  // const [inputs, setInputs] = useState<Iinput[]>([]);
-  // const inputs = useRef<Iinput[]>([]);
   const [inputs, setInputs, inputsRef] = useStateRef([]);
-  // const [focusedInput, setFocusedInput] = useState<CustomInputElement>(
-  //   {} as CustomInputElement
-  // );
+  const [focusedInput, setFocusedInput] = useState<CustomInputElement>(
+    {} as CustomInputElement
+  );
+  const [loading, checkEndpointResponse, checkEndpointError, sendText] =
+    useCheckEndpoint();
 
   useEffect(() => {
     //Define the Endpoint
@@ -137,15 +138,24 @@ const ContentScriptApp: React.FC = () => {
   const handleInputElement = (event: Event) => {
     const target = event.target as CustomInputElement;
     // console.log('handleInputElement target = ', target);
+    setFocusedInput(target);
 
     const index: number = findInputElement(target);
     // console.log('handleInputElement index = ', index);
 
+    //TODO checking type of input it's too much repeated...
     target.tagName === 'DIV'
       ? (inputsRef.current[index].divElement = target)
       : (inputsRef.current[index].inputElement = target);
 
-    setInputs([...inputsRef.current]);
+    setInputs([...inputsRef.current]); //TODO I think it's not needed
+
+    //Check for whitespaces and remove them
+    let text = target.tagName === 'DIV' ? target.textContent : target.value;
+    const detectWhiteSpace = text.match(/^\s+$/);
+    if (detectWhiteSpace) text = '';
+    console.log('text = ', text);
+    sendText(text);
   };
 
   const updateCloneData = (
@@ -164,6 +174,23 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     console.log('INPUTS = ', inputs);
   }, [inputs]);
+
+  useEffect(() => {
+    console.log('checkEndpointResponse = ', checkEndpointResponse);
+    console.log('focusedInput = ', focusedInput);
+
+    const index: number = findInputElement(focusedInput);
+    console.log('checkEndpointResponse index = ', index);
+    if (index !== -1)
+      inputsRef.current[index].alerts = checkEndpointResponse.results;
+  }, [checkEndpointResponse]);
+
+  useEffect(() => {
+    if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
+      // Error!
+      if (DEV_ENV) console.log('API Error = ', checkEndpointError);
+    }
+  }, [checkEndpointError]);
 
   return (
     <>
