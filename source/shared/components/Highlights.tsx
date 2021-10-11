@@ -1,10 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  Iinput,
-  IAlert,
-  IAlertContentData,
-  CustomInputElement,
-} from '../types';
+import React, { useEffect, useRef } from 'react';
+import { Iinput, IAlert, IAlertContentData } from '../types';
 
 import { getColor } from '../constants';
 
@@ -20,28 +15,19 @@ const Highlights: React.FC<Iinput> = ({
   alerts,
 }: Iinput) => {
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-  const [elementToTrack, setElementToTrack] =
-    useState<CustomInputElement | null>(null);
-  const [elementToTrackRect, setElementToTrackRect] = useState<DOMRect>(
-    {} as DOMRect
-  );
+
+  const getElementToTrack = () => {
+    return typeof inputElement === 'undefined' || inputElement === null
+      ? divElement
+      : inputElement;
+  };
 
   useEffect(() => {
-    setElementToTrack(
-      typeof inputElement === 'undefined' || inputElement === null
-        ? divElement
-        : inputElement
-    );
-  }, []);
+    const elementToTrack = getElementToTrack();
 
-  useEffect(() => {
-    if (elementToTrack)
-      setElementToTrackRect(elementToTrack.getBoundingClientRect());
-  }, [elementToTrack]);
+    if (divElement.childNodes) {
+      const elementToTrackRect = elementToTrack.getBoundingClientRect();
 
-  useEffect(() => {
-    if (elementToTrack) {
-      // const elementToTrackRect = elementToTrack.getBoundingClientRect();
       const nodeText = divElement.childNodes[0];
 
       const highlights: Highlight[] = alerts
@@ -110,23 +96,23 @@ const Highlights: React.FC<Iinput> = ({
         //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
       }
     }
-  }, [alerts]);
+  }, [Object.keys(divElement), inputElement, alerts]);
 
-  return elementToTrack && alerts.length > 0 ? (
+  return getElementToTrack() && alerts.length > 0 ? (
     <canvas
       ref={canvasRef}
       style={
         {
           position: 'fixed',
           overflow: 'auto',
-          top: `${elementToTrackRect.top}px`,
-          left: `${elementToTrackRect.left}px`,
+          top: `${getElementToTrack().getBoundingClientRect().top}px`,
+          left: `${getElementToTrack().getBoundingClientRect().left}px`,
           pointerEvents: 'none',
           // outline: '3px solid blue',
         } as React.CSSProperties
       }
-      width={elementToTrackRect.width}
-      height={elementToTrackRect.height}
+      width={getElementToTrack().getBoundingClientRect().width}
+      height={getElementToTrack().getBoundingClientRect().height}
     ></canvas>
   ) : null;
 };

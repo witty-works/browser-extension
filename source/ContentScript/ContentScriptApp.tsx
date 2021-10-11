@@ -60,12 +60,14 @@ const ContentScriptApp: React.FC = () => {
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('input', handleInputElement);
+    window.addEventListener('scroll', handleScrollElement, true);
 
     return () => {
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('input', handleInputElement);
+      window.removeEventListener('scroll', handleScrollElement);
     };
   }, []);
 
@@ -89,12 +91,7 @@ const ContentScriptApp: React.FC = () => {
     );
   };
 
-  const findInputElement = (element: CustomInputElement): number => {
-    // console.log(
-    //   'element instanceof HTMLTextAreaElement = ',
-    //   element instanceof HTMLTextAreaElement
-    // );
-
+  const getInputElementIndexPos = (element: CustomInputElement): number => {
     return inputsRef.current.findIndex((input: Iinput) =>
       element instanceof HTMLTextAreaElement ||
       element instanceof HTMLInputElement
@@ -119,8 +116,7 @@ const ContentScriptApp: React.FC = () => {
     const target = event.target as CustomInputElement;
     // setFocusedInput(target);
 
-    const index = findInputElement(target);
-    console.log('-----> handleFocusinElement index = ', index);
+    const index = getInputElementIndexPos(target);
 
     if (index === -1) {
       const newInput: Iinput = (
@@ -141,20 +137,24 @@ const ContentScriptApp: React.FC = () => {
     }
   };
 
-  const handleInputElement = (event: Event) => {
-    const target = event.target as CustomInputElement;
-    // console.log('handleInputElement target = ', target);
-    setFocusedInput(target);
-
-    const index: number = findInputElement(target);
-    // console.log('handleInputElement index = ', index);
+  const updateInputElement = (element: CustomInputElement): void => {
+    const index: number = getInputElementIndexPos(element);
 
     //TODO checking type of input it's too much repeated...
-    target.tagName === 'DIV'
-      ? (inputsRef.current[index].divElement = target)
-      : (inputsRef.current[index].inputElement = target);
+    if (index !== -1) {
+      element.tagName === 'DIV'
+        ? (inputsRef.current[index].divElement = element)
+        : (inputsRef.current[index].inputElement = element);
 
-    setInputs([...(inputsRef.current as Iinput[])]); //TODO I think it's not needed
+      setInputs([...(inputsRef.current as Iinput[])]);
+    }
+  };
+
+  const handleInputElement = (event: Event) => {
+    const target = event.target as CustomInputElement;
+    setFocusedInput(target);
+
+    updateInputElement(target);
 
     //Check for whitespaces and remove them
     let text =
@@ -163,21 +163,36 @@ const ContentScriptApp: React.FC = () => {
         : (target as HTMLTextAreaElement).value) || '';
     const detectWhiteSpace = text.match(/^\s+$/);
     if (detectWhiteSpace) text = '';
-    console.log('text = ', text);
     sendText(text);
+  };
+
+  const handleScrollElement = (event: Event) => {
+    const target = event.target as CustomInputElement;
+
+    if (target.nodeName.localeCompare('#document') === 0) {
+      //User is scrolling the whole page, update all the input elements
+      const elements = Array.from(
+        document.querySelectorAll(`
+          textarea,
+          div[contenteditable=true]
+        `)
+      ) as HTMLElement[];
+
+      elements.forEach((element: HTMLElement) =>
+        updateInputElement(element as CustomInputElement)
+      );
+    } else {
+      //User is scrolling a specific component, we just update this one
+      updateInputElement(target as CustomInputElement);
+    }
   };
 
   const updateCloneData = (
     textAreaElement: HTMLTextAreaElement,
     divElement: HTMLDivElement
   ) => {
-    // console.log('divElement = ', divElement);
-
-    const index: number = findInputElement(textAreaElement);
+    const index: number = getInputElementIndexPos(textAreaElement);
     (inputsRef.current[index] as Iinput).divElement = divElement;
-    // console.log('updateCloneData index = ', index);
-
-    // console.log('divElement textContent = ', divElement.textContent);
   };
 
   useEffect(() => {
@@ -185,11 +200,7 @@ const ContentScriptApp: React.FC = () => {
   }, [inputs]);
 
   useEffect(() => {
-    console.log('checkEndpointResponse = ', checkEndpointResponse);
-    console.log('focusedInput = ', focusedInput);
-
-    const index: number = findInputElement(focusedInput);
-    console.log('checkEndpointResponse index = ', index);
+    const index: number = getInputElementIndexPos(focusedInput);
     if (index !== -1)
       (inputsRef.current[index] as Iinput).alerts =
         checkEndpointResponse.results.map((result: any) => ({
@@ -225,14 +236,16 @@ const ContentScriptApp: React.FC = () => {
             updateClone={updateCloneData}
           />
         ))}
-      {inputs.map((input: Iinput, index: number) => (
-        <Highlights
-          key={index}
-          divElement={input.divElement}
-          inputElement={input.inputElement}
-          alerts={input.alerts}
-        />
-      ))}
+      {inputs.map((input: Iinput, index: number) => {
+        return (
+          <Highlights
+            key={index}
+            divElement={input.divElement}
+            inputElement={input.inputElement}
+            alerts={input.alerts}
+          />
+        );
+      })}
     </>
   );
 };
