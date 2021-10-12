@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Iinput, IAlert, IAlertContentData } from '../types';
 
 import { getColor } from '../constants';
+import { isObjectEmpty } from '../utils';
 
 type Highlight = {
   alertID: string;
@@ -42,18 +43,29 @@ const Highlights: React.FC<Iinput> = ({
             ) === index
         )
         .map((alert: IAlert) => {
-          const range = document.createRange();
-          range.setStart(nodeText, alert.startOffset);
-          range.setEnd(nodeText, alert.endOffset);
-          const rect = range.getClientRects()[0];
-          return {
-            alertID: alert.id,
-            rect,
-            data: alert.data,
-          };
+          try {
+            const range = document.createRange();
+            range.setStart(nodeText, alert.startOffset);
+            range.setEnd(nodeText, alert.endOffset);
+            const rect = range.getClientRects()[0];
+            return {
+              alertID: alert.id,
+              rect,
+              data: alert.data,
+            };
+          } catch (error) {
+            //Offset is larger than node's length
+            //so just return an object without a defined DOMRect
+            return {
+              alertID: alert.id,
+              rect: {} as DOMRect,
+              data: alert.data,
+            };
+          }
         })
-        .filter((alert) => {
+        .filter((alert: Highlight) => {
           return (
+            !isObjectEmpty(alert.rect) &&
             alert.rect.top + alert.rect.height > elementToTrackRect.top &&
             alert.rect.top + alert.rect.height <
               elementToTrackRect.top + elementToTrackRect.height &&
