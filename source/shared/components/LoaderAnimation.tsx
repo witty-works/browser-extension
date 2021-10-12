@@ -1,16 +1,16 @@
 import React from 'react';
 
-export interface LoaderProps {
+export interface LoaderAnimationProps {
   color?: string;
   label?: string;
   radius?: number;
 }
 
-const Loader: React.FC<LoaderProps> = ({
+const LoaderAnimation: React.FC<LoaderAnimationProps> = ({
   color = 'purple',
   radius = 16,
   label = 'loading',
-}: LoaderProps) => (
+}: LoaderAnimationProps) => (
   <svg
     width={radius * 2}
     height={radius * 2}
@@ -47,4 +47,4 @@ const Loader: React.FC<LoaderProps> = ({
   </svg>
 );
 
-export default Loader;
+export default LoaderAnimation;

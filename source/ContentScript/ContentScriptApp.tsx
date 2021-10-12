@@ -14,6 +14,7 @@ import useStateRef from '../shared/customHooks/useStateRef';
 import { DEV_ENV } from '../shared/constants';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import Highlights from '../shared/components/Highlights';
+import HighlightsLoader from './HighlightsLoader';
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
@@ -246,6 +247,7 @@ const ContentScriptApp: React.FC = () => {
           />
         );
       })}
+      {loading ? <HighlightsLoader elementReference={focusedInput} /> : null}
     </>
   );
 };
