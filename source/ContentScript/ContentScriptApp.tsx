@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import {
-  CustomInputElement,
-  // ClonableInputElement,
-  Iinput,
-  IAlertContentData,
-} from '../shared/types';
+import { CustomInputElement, Iinput, IAlertContentData } from '../shared/types';
 import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import { setBaseURL } from '../shared/ApiServices/requests';
-import TextAreaClone from '../shared/components/TextAreaClone';
+import TextAreaClone from './TextAreaClone';
+import DivClone from './DivClone';
 import useStateRef from '../shared/customHooks/useStateRef';
 import { DEV_ENV } from '../shared/constants';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import Highlights from '../shared/components/Highlights';
 import HighlightsLoader from './HighlightsLoader';
+import { convertHTMLToText } from '../shared/utils';
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
@@ -52,9 +49,10 @@ const ContentScriptApp: React.FC = () => {
     newEditableDiv.id = 'div-editable';
     newEditableDiv.contentEditable = 'true';
     newEditableDiv.style.backgroundColor = 'white';
-    newEditableDiv.style.width = '400px';
-    newEditableDiv.style.height = '200px';
+    newEditableDiv.style.width = '600px';
+    newEditableDiv.style.height = '300px';
     newEditableDiv.style.padding = '10px';
+    newEditableDiv.style.overflow = 'auto';
     if (section) section.appendChild(newEditableDiv);
 
     //Capture all the scrolling events, including window scrolling
@@ -93,13 +91,11 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const getInputElementIndexPos = (element: CustomInputElement): number => {
-    return inputsRef.current.findIndex((input: Iinput) =>
-      element instanceof HTMLTextAreaElement ||
-      element instanceof HTMLInputElement
-        ? input.inputElement &&
-          isInputElement(input.inputElement) &&
-          input.inputElement === element
-        : input.divElement === element
+    return inputsRef.current.findIndex(
+      (input: Iinput) =>
+        input.inputElement &&
+        isInputElement(input.inputElement) &&
+        input.inputElement === element
     );
   };
 
@@ -115,24 +111,14 @@ const ContentScriptApp: React.FC = () => {
 
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
-    // setFocusedInput(target);
-
     const index = getInputElementIndexPos(target);
 
     if (index === -1) {
-      const newInput: Iinput = (
-        target.tagName === 'DIV'
-          ? {
-              divElement: target,
-              inputElement: null,
-              alerts: [],
-            }
-          : {
-              divElement: {} as HTMLDivElement,
-              inputElement: target,
-              alerts: [],
-            }
-      ) as Iinput;
+      const newInput: Iinput = {
+        cloneElement: {} as HTMLDivElement,
+        inputElement: target,
+        alerts: [],
+      } as Iinput;
 
       setInputs([...(inputsRef.current as Iinput[]), newInput]); //TODO needed?
     }
@@ -143,9 +129,7 @@ const ContentScriptApp: React.FC = () => {
 
     //TODO checking type of input it's too much repeated...
     if (index !== -1) {
-      element.tagName === 'DIV'
-        ? (inputsRef.current[index].divElement = element)
-        : (inputsRef.current[index].inputElement = element);
+      inputsRef.current[index].inputElement = element;
 
       setInputs([...(inputsRef.current as Iinput[])]);
     }
@@ -160,10 +144,10 @@ const ContentScriptApp: React.FC = () => {
     //Check for whitespaces and remove them
     let text =
       (target.tagName === 'DIV'
-        ? target.textContent
+        ? convertHTMLToText(target.innerHTML)
         : (target as HTMLTextAreaElement).value) || '';
-    const detectWhiteSpace = text.match(/^\s+$/);
-    if (detectWhiteSpace) text = '';
+    // const detectWhiteSpace = text.match(/^\s+$/);
+    // if (detectWhiteSpace) text = '';
     sendText(text);
   };
 
@@ -188,12 +172,20 @@ const ContentScriptApp: React.FC = () => {
     }
   };
 
-  const updateCloneData = (
+  const updateTextAreaCloneData = (
     textAreaElement: HTMLTextAreaElement,
     divElement: HTMLDivElement
   ) => {
     const index: number = getInputElementIndexPos(textAreaElement);
-    (inputsRef.current[index] as Iinput).divElement = divElement;
+    (inputsRef.current[index] as Iinput).cloneElement = divElement;
+  };
+
+  const updateDivCloneData = (
+    originalElement: HTMLDivElement,
+    divElement: HTMLDivElement
+  ) => {
+    const index: number = getInputElementIndexPos(originalElement);
+    (inputsRef.current[index] as Iinput).cloneElement = divElement;
   };
 
   useEffect(() => {
@@ -228,20 +220,26 @@ const ContentScriptApp: React.FC = () => {
 
   return (
     <>
-      {inputs
-        .filter((input: Iinput) => input.inputElement?.tagName === 'TEXTAREA')
-        .map((input: Iinput, index: number) => (
+      {inputs.map((input: Iinput, index: number) =>
+        input.inputElement?.tagName === 'TEXTAREA' ? (
           <TextAreaClone
             key={index}
             element={input.inputElement as HTMLTextAreaElement}
-            updateClone={updateCloneData}
+            updateClone={updateTextAreaCloneData}
           />
-        ))}
+        ) : (
+          <DivClone
+            key={index}
+            element={input.inputElement as HTMLDivElement}
+            updateClone={updateDivCloneData}
+          />
+        )
+      )}
       {inputs.map((input: Iinput, index: number) => {
         return (
           <Highlights
             key={index}
-            divElement={input.divElement}
+            cloneElement={input.cloneElement}
             inputElement={input.inputElement}
             alerts={input.alerts}
           />

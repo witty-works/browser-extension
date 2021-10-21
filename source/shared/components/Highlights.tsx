@@ -11,7 +11,7 @@ type Highlight = {
 };
 
 const Highlights: React.FC<Iinput> = ({
-  divElement,
+  cloneElement,
   inputElement,
   alerts,
 }: Iinput) => {
@@ -19,17 +19,17 @@ const Highlights: React.FC<Iinput> = ({
 
   const getElementToTrack = () => {
     return typeof inputElement === 'undefined' || inputElement === null
-      ? divElement
+      ? cloneElement
       : inputElement;
   };
 
   useEffect(() => {
     const elementToTrack = getElementToTrack();
 
-    if (divElement.childNodes) {
+    if (cloneElement.childNodes) {
       const elementToTrackRect = elementToTrack.getBoundingClientRect();
 
-      const nodeText = divElement.childNodes[0];
+      let nodeText: Node = cloneElement.childNodes[0];
 
       const highlights: Highlight[] = alerts
         .filter(
@@ -108,7 +108,7 @@ const Highlights: React.FC<Iinput> = ({
         //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
       }
     }
-  }, [Object.keys(divElement), inputElement, alerts]);
+  }, [Object.keys(cloneElement), inputElement, alerts]);
 
   return getElementToTrack() && alerts.length > 0 ? (
     <canvas
@@ -120,6 +120,7 @@ const Highlights: React.FC<Iinput> = ({
           top: `${getElementToTrack().getBoundingClientRect().top}px`,
           left: `${getElementToTrack().getBoundingClientRect().left}px`,
           pointerEvents: 'none',
+          // zIndex: 999999999,
           // outline: '3px solid blue',
         } as React.CSSProperties
       }

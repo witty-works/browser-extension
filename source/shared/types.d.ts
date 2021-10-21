@@ -2,7 +2,7 @@ export type CustomInputElement = HTMLTextAreaElement | HTMLInputElement | HTMLDi
 
 export type ClonableInputElement = HTMLTextAreaElement | HTMLInputElement;
 export interface Iinput {
-  divElement: HTMLDivElement,
+  cloneElement: HTMLDivElement,
   inputElement?: ClonableInputElement | null,
   alerts: IAlert[]
 }
