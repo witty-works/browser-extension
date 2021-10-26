@@ -28,7 +28,7 @@ const DivClone: React.FC<DivCloneProps> = ({
         spellCheck={false}
         style={
           {
-            display: 'flex',
+            // display: 'flex',
             whiteSpace: 'pre-wrap',
             position: 'fixed',
             overflow: elementStyle.overflow,

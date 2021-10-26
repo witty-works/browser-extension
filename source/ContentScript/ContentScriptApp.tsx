@@ -14,7 +14,7 @@ import DivClone from './DivClone';
 import useStateRef from '../shared/customHooks/useStateRef';
 import { DEV_ENV } from '../shared/constants';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
-import Highlights from '../shared/components/Highlights';
+import Highlights from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { convertHTMLToText, convertTextToHTML } from '../shared/utils';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';

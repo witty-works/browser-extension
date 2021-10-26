@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { Iinput, IAlert, IAlertContentData } from '../types';
+import { Iinput, IAlert, IAlertContentData } from '../shared/types';
 
-import { getColor } from '../constants';
-import { isObjectEmpty } from '../utils';
+import { getColor } from '../shared/constants';
+import { isObjectEmpty } from '../shared/utils';
 
 type Highlight = {
   alertID: string;
