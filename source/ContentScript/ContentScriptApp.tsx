@@ -43,27 +43,27 @@ const ContentScriptApp: React.FC = () => {
       })
       .catch(onError);
 
-    const section = document.querySelector('section');
-    const newEditableDiv: HTMLDivElement = document.createElement(
-      'DIV'
-    ) as HTMLDivElement;
-    newEditableDiv.id = 'div-editable';
-    newEditableDiv.contentEditable = 'true';
-    newEditableDiv.style.backgroundColor = 'white';
-    newEditableDiv.style.width = '600px';
-    newEditableDiv.style.height = '300px';
-    newEditableDiv.style.padding = '10px';
-    newEditableDiv.style.overflow = 'auto';
-    if (section) section.appendChild(newEditableDiv);
+    // const section = document.querySelector('section');
+    // const newEditableDiv: HTMLDivElement = document.createElement(
+    //   'DIV'
+    // ) as HTMLDivElement;
+    // newEditableDiv.id = 'div-editable';
+    // newEditableDiv.contentEditable = 'true';
+    // newEditableDiv.style.backgroundColor = 'white';
+    // newEditableDiv.style.width = '600px';
+    // newEditableDiv.style.height = '300px';
+    // newEditableDiv.style.padding = '10px';
+    // newEditableDiv.style.overflow = 'auto';
+    // if (section) section.appendChild(newEditableDiv);
 
     //TEMPORAL, create an extra textarea
-    const newTextarea: HTMLTextAreaElement = document.createElement(
-      'TEXTAREA'
-    ) as HTMLTextAreaElement;
-    newTextarea.id = 'editor-copy';
-    newTextarea.cols = 25;
-    newTextarea.rows = 25;
-    if (section) section.appendChild(newTextarea);
+    // const newTextarea: HTMLTextAreaElement = document.createElement(
+    //   'TEXTAREA'
+    // ) as HTMLTextAreaElement;
+    // newTextarea.id = 'editor-copy';
+    // newTextarea.cols = 25;
+    // newTextarea.rows = 25;
+    // if (section) section.appendChild(newTextarea);
 
     //Capture all the scrolling events, including window scrolling
     browser.storage.onChanged.addListener(storageChange);
