@@ -152,6 +152,8 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleInputElement = (event: Event) => {
+    console.log('handleInputElement event = ', event);
+
     const target = event.target as CustomInputElement;
     setFocusedInput(target);
 
@@ -200,8 +202,9 @@ const ContentScriptApp: React.FC = () => {
 
     if (index !== -1 && currentInput.alerts.length > 0) {
       setFocusedInput(target); //TODO needed?
+
       const caretPosition: number = getInputClickedPosition(
-        currentInput.cloneElement
+        currentInput.inputElement
       );
 
       if (caretPosition > -1) {
@@ -213,21 +216,16 @@ const ContentScriptApp: React.FC = () => {
             );
           }
         );
-
         const range = document.createRange();
         const nodeText = currentInput.cloneElement.childNodes[0];
-
         if (clickedHighlight) {
           range.setStart(nodeText, clickedHighlight.startOffset);
           range.setEnd(nodeText, clickedHighlight.endOffset);
-
           const clickedRect = range.getClientRects()[0];
-
           setModalData({
             alert: clickedHighlight,
             position: clickedRect,
           });
-
           toggleModal();
         }
       }
