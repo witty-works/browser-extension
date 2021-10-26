@@ -29,6 +29,11 @@ const Highlights: React.FC<Iinput> = ({
     if (cloneElement.childNodes) {
       const elementToTrackRect = elementToTrack.getBoundingClientRect();
 
+      // console.log(
+      //   'Highlights cloneElement.childNodes = ',
+      //   cloneElement.childNodes
+      // );
+
       let nodeText: Node = cloneElement.childNodes[0];
 
       const highlights: Highlight[] = alerts

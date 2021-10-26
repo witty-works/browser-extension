@@ -1,9 +1,7 @@
 export type CustomInputElement = HTMLTextAreaElement | HTMLInputElement | HTMLDivElement;
-
-export type ClonableInputElement = HTMLTextAreaElement | HTMLInputElement;
 export interface Iinput {
   cloneElement: HTMLDivElement,
-  inputElement?: ClonableInputElement | null,
+  inputElement: CustomInputElement,
   alerts: IAlert[]
 }
 export interface IAlert {

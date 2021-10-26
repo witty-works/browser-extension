@@ -44,7 +44,22 @@ const convertHTMLToText = (str: string = ''):string => {
   return value;
 }
 
+const convertTextToHTML = (str: string = ''):string => {
+  // Ensure string.
+  let value: string = String(str);
+
+  // Convert to string with HTML tags
+  const newValue:string = value.split('\n')
+    .reduce((acc:string, item: string, index: number) => (index === 0)
+      ? item
+      : (item === '' ? `${acc}<div><br></div>` : `${acc}<div>${item}</div>`)
+    ,'');
+
+  return newValue;
+}
+
 export {
   isObjectEmpty,
-  convertHTMLToText
+  convertHTMLToText,
+  convertTextToHTML
 }

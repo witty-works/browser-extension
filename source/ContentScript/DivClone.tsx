@@ -46,6 +46,7 @@ const DivClone: React.FC<DivCloneProps> = ({
             fontFamily: elementStyle.fontFamily,
             border: `${elementStyle.borderBottomWidth} solid black`,
             visibility: 'hidden',
+            // color: 'red',
             // zIndex: 1,
             // outline: '3px solid red',
           } as React.CSSProperties
@@ -58,3 +59,5 @@ const DivClone: React.FC<DivCloneProps> = ({
 };
 
 export default DivClone;
+
+//dangerouslySetInnerHTML={{ __html: element.innerHTML }}

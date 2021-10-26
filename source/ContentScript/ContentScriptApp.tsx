@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CustomInputElement, Iinput, IAlertContentData } from '../shared/types';
+import {
+  CustomInputElement,
+  Iinput,
+  IAlert,
+  IAlertContentData,
+} from '../shared/types';
 import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import { setBaseURL } from '../shared/ApiServices/requests';
 import TextAreaClone from './TextAreaClone';
@@ -11,7 +16,10 @@ import { DEV_ENV } from '../shared/constants';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import Highlights from '../shared/components/Highlights';
 import HighlightsLoader from './HighlightsLoader';
-import { convertHTMLToText } from '../shared/utils';
+import { convertHTMLToText, convertTextToHTML } from '../shared/utils';
+import Modal, { ModalData } from '../shared/components/Modal/Modal';
+
+type HandleClick = () => void;
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
@@ -21,6 +29,8 @@ const ContentScriptApp: React.FC = () => {
   );
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
+  const [modalData, setModalData] = useState<ModalData>({} as ModalData);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   useEffect(() => {
     //Define the Endpoint
@@ -33,16 +43,7 @@ const ContentScriptApp: React.FC = () => {
       })
       .catch(onError);
 
-    //TEMPORAL, create an extra textarea
     const section = document.querySelector('section');
-    const newTextarea: HTMLTextAreaElement = document.createElement(
-      'TEXTAREA'
-    ) as HTMLTextAreaElement;
-    newTextarea.id = 'editor-copy';
-    newTextarea.cols = 25;
-    newTextarea.rows = 25;
-    if (section) section.appendChild(newTextarea);
-
     const newEditableDiv: HTMLDivElement = document.createElement(
       'DIV'
     ) as HTMLDivElement;
@@ -55,11 +56,21 @@ const ContentScriptApp: React.FC = () => {
     newEditableDiv.style.overflow = 'auto';
     if (section) section.appendChild(newEditableDiv);
 
+    //TEMPORAL, create an extra textarea
+    const newTextarea: HTMLTextAreaElement = document.createElement(
+      'TEXTAREA'
+    ) as HTMLTextAreaElement;
+    newTextarea.id = 'editor-copy';
+    newTextarea.cols = 25;
+    newTextarea.rows = 25;
+    if (section) section.appendChild(newTextarea);
+
     //Capture all the scrolling events, including window scrolling
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('input', handleInputElement);
     window.addEventListener('scroll', handleScrollElement, true);
+    document.addEventListener('click', handleClickElement);
 
     return () => {
       //Don't forget to remove the listeners at the end
@@ -67,6 +78,7 @@ const ContentScriptApp: React.FC = () => {
       document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('input', handleInputElement);
       window.removeEventListener('scroll', handleScrollElement);
+      document.removeEventListener('click', handleClickElement);
     };
   }, []);
 
@@ -111,16 +123,20 @@ const ContentScriptApp: React.FC = () => {
 
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
-    const index = getInputElementIndexPos(target);
 
-    if (index === -1) {
-      const newInput: Iinput = {
-        cloneElement: {} as HTMLDivElement,
-        inputElement: target,
-        alerts: [],
-      } as Iinput;
+    //Ignore the modal, does not need to be tracked
+    if (target.id !== 'modal') {
+      const index = getInputElementIndexPos(target);
 
-      setInputs([...(inputsRef.current as Iinput[]), newInput]); //TODO needed?
+      if (index === -1) {
+        const newInput: Iinput = {
+          cloneElement: {} as HTMLDivElement,
+          inputElement: target,
+          alerts: [],
+        } as Iinput;
+
+        setInputs([...(inputsRef.current as Iinput[]), newInput]); //TODO needed?
+      }
     }
   };
 
@@ -141,13 +157,10 @@ const ContentScriptApp: React.FC = () => {
 
     updateInputElement(target);
 
-    //Check for whitespaces and remove them
-    let text =
-      (target.tagName === 'DIV'
-        ? convertHTMLToText(target.innerHTML)
-        : (target as HTMLTextAreaElement).value) || '';
-    // const detectWhiteSpace = text.match(/^\s+$/);
-    // if (detectWhiteSpace) text = '';
+    const text =
+      target instanceof HTMLTextAreaElement
+        ? target.value
+        : convertHTMLToText(target.innerHTML);
     sendText(text);
   };
 
@@ -170,6 +183,187 @@ const ContentScriptApp: React.FC = () => {
       //User is scrolling a specific component, we just update this one
       updateInputElement(target as CustomInputElement);
     }
+  };
+
+  const handleClickElement = (event: Event) => {
+    console.log('handleClickElement event = ', event);
+
+    const target: CustomInputElement = (
+      event.target instanceof HTMLTextAreaElement
+        ? event.target
+        : (event.composedPath && event.composedPath()).find(
+            (element) => (element as HTMLDivElement).contentEditable === 'true'
+          )
+    ) as CustomInputElement;
+
+    console.log('handleClickElement target = ', target);
+
+    const index = getInputElementIndexPos(target);
+
+    console.log('handleClickElement index = ', index);
+
+    const currentInput = inputsRef.current[index];
+
+    console.log('handleClickElement currentInput= ', currentInput);
+
+    if (index !== -1 && currentInput.alerts.length > 0) {
+      setFocusedInput(target); //TODO needed?
+      const caretPosition: number = getInputClickedPosition(
+        currentInput.cloneElement
+      );
+      console.log('handleClickElement caretPosition = ', caretPosition);
+
+      if (caretPosition > -1) {
+        const clickedHighlight: IAlert = currentInput.alerts.find(
+          (alert: IAlert) => {
+            return (
+              alert.startOffset < caretPosition &&
+              alert.endOffset > caretPosition
+            );
+          }
+        );
+
+        console.log('handleClickElement clickedHighlight = ', clickedHighlight);
+
+        const range = document.createRange();
+        const nodeText = currentInput.cloneElement.childNodes[0];
+
+        console.log('handleClickElement nodeText = ', nodeText);
+
+        if (clickedHighlight) {
+          range.setStart(nodeText, clickedHighlight.startOffset);
+          range.setEnd(nodeText, clickedHighlight.endOffset);
+
+          const clickedRect = range.getClientRects()[0];
+
+          console.log('handleClickElement clickedRect = ', clickedRect);
+
+          setModalData({
+            alert: clickedHighlight,
+            position: clickedRect,
+          });
+
+          toggleModal();
+        }
+      }
+    }
+  };
+
+  const getInputClickedPosition = (element: CustomInputElement): number => {
+    console.log('sss element 1 = ', element);
+
+    if (element instanceof HTMLTextAreaElement) {
+      return element.selectionStart;
+    } else {
+      const selection: Selection | null = document.getSelection();
+
+      if (selection !== null) {
+        //Modify is a non-standard feature, although currently is supported by all browsers except IE
+        //https://developer.mozilla.org/en-US/docs/Web/API/Selection/modify
+
+        //TODO In order to remove error from typescript we can augment the interface
+        //https://github.com/Microsoft/TypeScript/issues/12296
+        //Temporaly ignore this error
+        // @ts-ignore
+        selection.modify('extend', 'backward', 'documentboundary');
+        const position = selection.toString().length as number;
+        console.log('sss position = ', position);
+        if (selection.anchorNode != undefined) selection.collapseToEnd();
+        return position;
+      } else return -1;
+    }
+  };
+
+  const toggleModal: HandleClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleAlternativeClick = (index: number) => {
+    console.log('handleAlternativeClick index = ', index);
+
+    const inputIndex = getInputElementIndexPos(focusedInput);
+    console.log('handleAlternativeClick inputIndex = ', inputIndex);
+
+    const myInput: Iinput = inputsRef.current[inputIndex];
+    console.log('handleAlternativeClick myInput = ', myInput);
+
+    //Replace text with the new alternative or simply remove it
+    //This only replaces the specific occurrence. If there are other identical terms in the text
+    //they will keep highlighted
+    const myText: string =
+      myInput.inputElement instanceof HTMLTextAreaElement
+        ? myInput.inputElement.value
+        : myInput.cloneElement.innerHTML;
+
+    console.log('handleAlternativeClick myText = ', myText);
+
+    const splitText: string[] = myText.split('');
+
+    console.log('handleAlternativeClick splitText = ', splitText);
+
+    // const splitText: string[] = (
+    //   focusedInput instanceof HTMLTextAreaElement
+    //     ? focusedInput.value
+    //     : // : focusedInput.innerText
+    //       convertHTMLToText(focusedInput.innerHTML)
+    // ) //fails
+    //   .split('');
+
+    splitText.splice(
+      modalData.alert.startOffset,
+      modalData.alert.endOffset - modalData.alert.startOffset,
+      index === -1 ? '' : modalData.alert.data.alternatives[index]
+    );
+
+    const textToInsert = splitText.join('');
+
+    console.log('handleAlternativeClick textToInsert = ', textToInsert);
+
+    // focusedInput instanceof HTMLTextAreaElement
+    //   ? (focusedInput.value = textToInsert)
+    //   : (focusedInput.innerText = textToInsert);
+
+    const htmlString: string = convertTextToHTML(textToInsert);
+    console.log('handleAlternativeClick htmlString = ', htmlString);
+
+    myInput.inputElement instanceof HTMLTextAreaElement
+      ? (myInput.inputElement.value = textToInsert)
+      : // : (myInput.inputElement.innerText = textToInsert);
+        (myInput.inputElement.innerHTML = htmlString);
+
+    // if (myInput.inputElement instanceof HTMLTextAreaElement) {
+    //   myInput.inputElement.value = textToInsert;
+    // } else {
+    //   myInput.inputElement.innerText = textToInsert;
+    //   myInput.cloneElement.innerHTML = textToInsert;
+    // }
+
+    console.log(
+      'handleAlternativeClick inputsRef.current 1 = ',
+      inputsRef.current
+    );
+
+    // inputsRef.current[inputIndex] = focusedInput;
+    // setInputs([...inputsRef.current]);
+
+    inputsRef.current[inputIndex] = {
+      ...inputsRef.current[inputIndex],
+      alerts: [],
+      inputElement: focusedInput,
+    };
+
+    console.log(
+      'handleAlternativeClick inputsRef.current 2 = ',
+      inputsRef.current
+    );
+
+    // setInputs([...(inputsRef.current as Iinput[])]);
+
+    //Close Modal
+    toggleModal();
+
+    //Send again all the text to recalculate highlight positions
+    sendText(textToInsert);
   };
 
   const updateTextAreaCloneData = (
@@ -246,6 +440,14 @@ const ContentScriptApp: React.FC = () => {
         );
       })}
       {loading ? <HighlightsLoader elementReference={focusedInput} /> : null}
+      {modalData.alert ? (
+        <Modal
+          isOpen={isOpen}
+          data={modalData}
+          hide={toggleModal}
+          switchAlternative={(index) => handleAlternativeClick(index)}
+        />
+      ) : null}
     </>
   );
 };
