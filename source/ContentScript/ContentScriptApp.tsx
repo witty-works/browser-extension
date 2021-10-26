@@ -186,8 +186,6 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleClickElement = (event: Event) => {
-    console.log('handleClickElement event = ', event);
-
     const target: CustomInputElement = (
       event.target instanceof HTMLTextAreaElement
         ? event.target
@@ -196,22 +194,15 @@ const ContentScriptApp: React.FC = () => {
           )
     ) as CustomInputElement;
 
-    console.log('handleClickElement target = ', target);
-
     const index = getInputElementIndexPos(target);
 
-    console.log('handleClickElement index = ', index);
-
     const currentInput = inputsRef.current[index];
-
-    console.log('handleClickElement currentInput= ', currentInput);
 
     if (index !== -1 && currentInput.alerts.length > 0) {
       setFocusedInput(target); //TODO needed?
       const caretPosition: number = getInputClickedPosition(
         currentInput.cloneElement
       );
-      console.log('handleClickElement caretPosition = ', caretPosition);
 
       if (caretPosition > -1) {
         const clickedHighlight: IAlert = currentInput.alerts.find(
@@ -223,20 +214,14 @@ const ContentScriptApp: React.FC = () => {
           }
         );
 
-        console.log('handleClickElement clickedHighlight = ', clickedHighlight);
-
         const range = document.createRange();
         const nodeText = currentInput.cloneElement.childNodes[0];
-
-        console.log('handleClickElement nodeText = ', nodeText);
 
         if (clickedHighlight) {
           range.setStart(nodeText, clickedHighlight.startOffset);
           range.setEnd(nodeText, clickedHighlight.endOffset);
 
           const clickedRect = range.getClientRects()[0];
-
-          console.log('handleClickElement clickedRect = ', clickedRect);
 
           setModalData({
             alert: clickedHighlight,
@@ -250,8 +235,6 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const getInputClickedPosition = (element: CustomInputElement): number => {
-    console.log('sss element 1 = ', element);
-
     if (element instanceof HTMLTextAreaElement) {
       return element.selectionStart;
     } else {
@@ -267,7 +250,6 @@ const ContentScriptApp: React.FC = () => {
         // @ts-ignore
         selection.modify('extend', 'backward', 'documentboundary');
         const position = selection.toString().length as number;
-        console.log('sss position = ', position);
         if (selection.anchorNode != undefined) selection.collapseToEnd();
         return position;
       } else return -1;
@@ -279,13 +261,8 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleAlternativeClick = (index: number) => {
-    console.log('handleAlternativeClick index = ', index);
-
     const inputIndex = getInputElementIndexPos(focusedInput);
-    console.log('handleAlternativeClick inputIndex = ', inputIndex);
-
     const myInput: Iinput = inputsRef.current[inputIndex];
-    console.log('handleAlternativeClick myInput = ', myInput);
 
     //Replace text with the new alternative or simply remove it
     //This only replaces the specific occurrence. If there are other identical terms in the text
@@ -295,19 +272,7 @@ const ContentScriptApp: React.FC = () => {
         ? myInput.inputElement.value
         : myInput.cloneElement.innerHTML;
 
-    console.log('handleAlternativeClick myText = ', myText);
-
     const splitText: string[] = myText.split('');
-
-    console.log('handleAlternativeClick splitText = ', splitText);
-
-    // const splitText: string[] = (
-    //   focusedInput instanceof HTMLTextAreaElement
-    //     ? focusedInput.value
-    //     : // : focusedInput.innerText
-    //       convertHTMLToText(focusedInput.innerHTML)
-    // ) //fails
-    //   .split('');
 
     splitText.splice(
       modalData.alert.startOffset,
@@ -317,47 +282,17 @@ const ContentScriptApp: React.FC = () => {
 
     const textToInsert = splitText.join('');
 
-    console.log('handleAlternativeClick textToInsert = ', textToInsert);
-
-    // focusedInput instanceof HTMLTextAreaElement
-    //   ? (focusedInput.value = textToInsert)
-    //   : (focusedInput.innerText = textToInsert);
-
     const htmlString: string = convertTextToHTML(textToInsert);
-    console.log('handleAlternativeClick htmlString = ', htmlString);
 
     myInput.inputElement instanceof HTMLTextAreaElement
       ? (myInput.inputElement.value = textToInsert)
-      : // : (myInput.inputElement.innerText = textToInsert);
-        (myInput.inputElement.innerHTML = htmlString);
-
-    // if (myInput.inputElement instanceof HTMLTextAreaElement) {
-    //   myInput.inputElement.value = textToInsert;
-    // } else {
-    //   myInput.inputElement.innerText = textToInsert;
-    //   myInput.cloneElement.innerHTML = textToInsert;
-    // }
-
-    console.log(
-      'handleAlternativeClick inputsRef.current 1 = ',
-      inputsRef.current
-    );
-
-    // inputsRef.current[inputIndex] = focusedInput;
-    // setInputs([...inputsRef.current]);
+      : (myInput.inputElement.innerHTML = htmlString);
 
     inputsRef.current[inputIndex] = {
       ...inputsRef.current[inputIndex],
       alerts: [],
       inputElement: focusedInput,
     };
-
-    console.log(
-      'handleAlternativeClick inputsRef.current 2 = ',
-      inputsRef.current
-    );
-
-    // setInputs([...(inputsRef.current as Iinput[])]);
 
     //Close Modal
     toggleModal();

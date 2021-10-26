@@ -59,5 +59,3 @@ const DivClone: React.FC<DivCloneProps> = ({
 };
 
 export default DivClone;
-
-//dangerouslySetInnerHTML={{ __html: element.innerHTML }}
