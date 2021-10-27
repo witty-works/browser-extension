@@ -58,8 +58,11 @@ const convertTextToHTML = (str: string = ''):string => {
   return newValue;
 }
 
+const elementExistsinDOM = (element: HTMLElement):boolean =>  document.body.contains(element);
+
 export {
   isObjectEmpty,
   convertHTMLToText,
-  convertTextToHTML
+  convertTextToHTML,
+  elementExistsinDOM
 }

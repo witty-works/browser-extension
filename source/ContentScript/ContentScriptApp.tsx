@@ -16,7 +16,11 @@ import { DEV_ENV } from '../shared/constants';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import Highlights from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
-import { convertHTMLToText, convertTextToHTML } from '../shared/utils';
+import {
+  convertHTMLToText,
+  convertTextToHTML,
+  elementExistsinDOM,
+} from '../shared/utils';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
 
 type HandleClick = () => void;
@@ -120,6 +124,20 @@ const ContentScriptApp: React.FC = () => {
   const onError = (error: string) => {
     if (DEV_ENV) console.log('onError = ', error);
   };
+
+  //Check if tracked inputs are still visible
+  //If not, remove it from the list of inputs.
+  //That way the highlights are also removed
+  const mutationObserver = new MutationObserver(() => {
+    inputsRef.current.forEach((input: Iinput) => {
+      if (!elementExistsinDOM(input.inputElement))
+        setInputs([
+          ...inputsRef.current.filter((inp: Iinput) => inp !== input),
+        ]);
+    });
+  });
+
+  mutationObserver.observe(document.body, { childList: true, subtree: true });
 
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
@@ -362,16 +380,14 @@ const ContentScriptApp: React.FC = () => {
           />
         )
       )}
-      {inputs.map((input: Iinput, index: number) => {
-        return (
-          <Highlights
-            key={index}
-            cloneElement={input.cloneElement}
-            inputElement={input.inputElement}
-            alerts={input.alerts}
-          />
-        );
-      })}
+      {inputs.map((input: Iinput, index: number) => (
+        <Highlights
+          key={index}
+          cloneElement={input.cloneElement}
+          inputElement={input.inputElement}
+          alerts={input.alerts}
+        />
+      ))}
       {loading ? <HighlightsLoader elementReference={focusedInput} /> : null}
       {modalData.alert ? (
         <Modal
