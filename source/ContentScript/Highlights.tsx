@@ -120,7 +120,7 @@ const Highlights: React.FC<Iinput> = ({
           top: `${getElementToTrack().getBoundingClientRect().top}px`,
           left: `${getElementToTrack().getBoundingClientRect().left}px`,
           pointerEvents: 'none',
-          // zIndex: 999999999,
+          zIndex: 999999999,
           // outline: '3px solid blue',
         } as React.CSSProperties
       }

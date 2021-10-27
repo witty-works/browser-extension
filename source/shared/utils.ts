@@ -38,7 +38,7 @@ const convertHTMLToText = (str: string = ''):string => {
 
   // Clean up spaces.
   value = value.replace(/[ ]+/g, ' ');
-  // value = value.trim();
+  value = value.trim();
 
   // Expose string.
   return value;

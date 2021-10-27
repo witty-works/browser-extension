@@ -124,8 +124,8 @@ const ContentScriptApp: React.FC = () => {
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
 
-    //Ignore the modal, does not need to be tracked
-    if (target.id !== 'modal') {
+    //Ignore anything that is not a TextArea or a contentEditable element
+    if (target instanceof HTMLTextAreaElement || target.isContentEditable) {
       const index = getInputElementIndexPos(target);
 
       if (index === -1) {
@@ -152,8 +152,6 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleInputElement = (event: Event) => {
-    console.log('handleInputElement event = ', event);
-
     const target = event.target as CustomInputElement;
     setFocusedInput(target);
 
@@ -304,7 +302,8 @@ const ContentScriptApp: React.FC = () => {
     divElement: HTMLDivElement
   ) => {
     const index: number = getInputElementIndexPos(textAreaElement);
-    (inputsRef.current[index] as Iinput).cloneElement = divElement;
+    if (index !== -1)
+      (inputsRef.current[index] as Iinput).cloneElement = divElement;
   };
 
   const updateDivCloneData = (
@@ -312,7 +311,8 @@ const ContentScriptApp: React.FC = () => {
     divElement: HTMLDivElement
   ) => {
     const index: number = getInputElementIndexPos(originalElement);
-    (inputsRef.current[index] as Iinput).cloneElement = divElement;
+    if (index !== -1)
+      (inputsRef.current[index] as Iinput).cloneElement = divElement;
   };
 
   useEffect(() => {
