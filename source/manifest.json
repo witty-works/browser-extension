@@ -13,7 +13,6 @@
   "short_name": "Witty",
 
   "permissions": [
-    "activeTab",
     "storage",
     "http://*/*",
     "https://*/*"
