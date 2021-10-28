@@ -97,6 +97,9 @@ if the vendor is `chrome` or `opera`, this compiles to:
 
 See the original [README](https://github.com/abhijithvijayan/wext-manifest-loader) of `wext-manifest-loader` package for more details
 
+## Unit Testing
+
+From inside the directory just run `yarn run test`
 
 ## Linting & TypeScript Config
 
