@@ -1,23 +1,30 @@
-export type CustomInputElement = HTMLTextAreaElement | HTMLInputElement | HTMLDivElement;
-export interface Iinput {
-  cloneElement: HTMLDivElement,
-  inputElement: CustomInputElement,
-  alerts: IAlert[]
-}
+export type CustomInputElement =
+  | HTMLTextAreaElement
+  | HTMLInputElement
+  | HTMLDivElement;
+
 export interface IAlert {
   id: string;
   startOffset: number;
   endOffset: number;
-  data: IAlertContentData
+  data: IAlertContentData;
 }
 export interface IAlertContentData {
-  category: string,
-  text: string,
-  label: string,
-  reason: string,
-  solution: string,
-  alternatives: string[]
+  category: string;
+  text: string;
+  label: string;
+  reason: string;
+  solution: string;
+  alternatives: string[];
 }
+
+export interface IAlternative {
+  text: string;
+  alternative: string;
+  start: number;
+  end: number;
+}
+
 
 export interface IRequest {
   url: string,
@@ -42,9 +49,4 @@ export interface IEndpointResponseError {
   detail: IEndpointResultError[]
 }
 
-export interface IAlternative {
-  text: string,
-  alternative: string,
-  start:number,
-  end: number
-}
+

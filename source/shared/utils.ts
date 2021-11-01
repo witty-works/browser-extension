@@ -1,11 +1,20 @@
-const isObjectEmpty = (obj: object) => {
-  return obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype;
-}
+import { CustomInputElement } from './types';
+
+const isObjectEmpty = (obj: object) =>
+   obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype;
+
+
+ const isInputElement = (element: CustomInputElement) =>
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLInputElement ||
+    (element instanceof HTMLDivElement && element.isContentEditable)
 
 const convertHTMLToText = (str: string = ''):string => {
 
   // Ensure string.
   let value: string = String(str);
+  console.log('aaa str = ', value);
+
 
   // Convert encoding.
   value = value.replace(/&nbsp;/gi, ' ');
@@ -40,6 +49,9 @@ const convertHTMLToText = (str: string = ''):string => {
   value = value.replace(/[ ]+/g, ' ');
   value = value.trim();
 
+  console.log('aaa value = ', value);
+
+
   // Expose string.
   return value;
 }
@@ -62,6 +74,7 @@ const elementExistsinDOM = (element: HTMLElement):boolean =>  document.body.cont
 
 export {
   isObjectEmpty,
+  isInputElement,
   convertHTMLToText,
   convertTextToHTML,
   elementExistsinDOM
