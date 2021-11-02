@@ -57,11 +57,11 @@ const Modal: React.FC<ModalProps> = ({
   // };
 
   useEffect(() => {
-    if (DEV_ENV) console.log('logResponse = ', logResponse);
+    if (DEV_ENV) console.log('Modal logResponse = ', logResponse);
   }, [logResponse]);
 
   useEffect(() => {
-    if (DEV_ENV) console.log('logError = ', logError);
+    if (DEV_ENV) console.log('Modal logError = ', logError);
   }, [logError]);
 
   useEffect(() => {
