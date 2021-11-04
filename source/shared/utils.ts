@@ -56,6 +56,20 @@ const convertHTMLToText = (str: string = ''):string => {
   return value;
 }
 
+const fixLineBreaks = (str: string = ''):string => {
+
+  // Ensure string.
+  let value: string = String(str);
+
+  //Element's innerHTML does not provide the correct spacing when there are line-breaks.
+  //(e.g. <div><br></div> provides two spaces when transformed to string)
+  //So we need a specific fix for that
+  value = value.replace(/(\n+)/g, ($1) =>  new Array(Math.ceil($1.length/2)).fill('\n',0).join(''));
+
+  // Expose string.
+  return value;
+}
+
 const convertTextToHTML = (str: string = ''):string => {
   // Ensure string.
   let value: string = String(str);
@@ -77,5 +91,6 @@ export {
   isInputElement,
   convertHTMLToText,
   convertTextToHTML,
+  fixLineBreaks,
   elementExistsinDOM
 }

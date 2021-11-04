@@ -6,35 +6,52 @@ import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { DEV_ENV } from '../shared/constants';
 import { CustomInputElement, IAlert, IAlertContentData } from '../shared/types';
+import { fixLineBreaks } from '../shared/utils';
 
-export interface InputProps {
-  id: string;
-  element: CustomInputElement;
-}
-
-const Input: React.FC<InputProps> = ({ element }: InputProps) => {
+const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [clone, setClone] = useState<HTMLDivElement>();
-
-  console.log('====================================== ');
+  const [elementRect, setElementRect] = useState<DOMRect>({} as DOMRect);
 
   useEffect(() => {
-    element.addEventListener('input', handleInputElement);
+    //Listener should be on input, but on Twitter it simply does not fire when deleting
+    //The turn around (at least for the moment) is to use 'keyup'
+    element.addEventListener('keyup', handleKeyupEvent);
+    element.addEventListener('scroll', handleScrollEvent);
     return () => {
       //Don't forget to remove the listeners at the end
-      element.removeEventListener('input', handleInputElement);
+      element.removeEventListener('keyup', handleKeyupEvent);
+      element.removeEventListener('scroll', handleScrollEvent);
     };
   }, []);
 
-  const handleInputElement = (event: Event) => {
+  useEffect(() => {
+    console.log('input element = ', element);
+    console.log(
+      'input element.getBoundingClientRect() = ',
+      element.getBoundingClientRect()
+    );
+
+    setElementRect(element.getBoundingClientRect());
+  }, [element]);
+
+  const handleKeyupEvent = (event: Event) => {
     const target = event.target as CustomInputElement;
     const text: string =
-      target instanceof HTMLTextAreaElement ? target.value : target.innerText;
+      target instanceof HTMLTextAreaElement
+        ? target.value
+        : fixLineBreaks(target.innerText);
 
-    console.log('INPUT handleInputElement text = ', text);
     sendText(text);
+  };
+
+  const handleScrollEvent = (event: Event) => {
+    const target = event.target as CustomInputElement;
+    console.log('Input scroll event target = ', target);
+
+    setElementRect(target.getBoundingClientRect());
   };
 
   // useEffect(() => {
@@ -45,7 +62,7 @@ const Input: React.FC<InputProps> = ({ element }: InputProps) => {
     if (checkEndpointResponse) {
       const alerts: IAlert[] = checkEndpointResponse.results.map(
         (result: any) => ({
-          //TODO specify this type
+          //TODO specify this 'any' type on the line before
           id: `${result.category}-${result.text}-${result.start}-${result.end}`,
           startOffset: result.start,
           endOffset: result.end,
@@ -84,6 +101,8 @@ const Input: React.FC<InputProps> = ({ element }: InputProps) => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
       // Error!
       if (DEV_ENV) console.log('API Error = ', checkEndpointError);
+      if (checkEndpointError.detail === 'Language could not be determined')
+        setAlerts([]);
     }
   }, [checkEndpointError]);
 
@@ -102,11 +121,19 @@ const Input: React.FC<InputProps> = ({ element }: InputProps) => {
       {loading ? <HighlightsLoader elementReference={element} /> : null}
       {alerts.length > 0 ? (
         <Highlights
-          element={
-            (element instanceof HTMLTextAreaElement
-              ? clone
-              : element) as HTMLDivElement
+          // element={
+          //   (element instanceof HTMLTextAreaElement
+          //     ? clone
+          //     : element) as HTMLDivElement
+          // }
+          elementChildNodes={
+            (
+              (element instanceof HTMLTextAreaElement
+                ? clone
+                : element) as HTMLDivElement
+            ).childNodes
           }
+          elementRect={elementRect}
           alerts={alerts}
         />
       ) : null}

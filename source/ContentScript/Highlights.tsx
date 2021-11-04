@@ -1,118 +1,31 @@
+/*
 import React, { useEffect, useRef } from 'react';
-import { IAlert, IAlertContentData } from '../shared/types';
+import { IAlertContentData } from '../shared/types';
 import { getColor } from '../shared/constants';
-
-interface HighlightsProps {
-  element: HTMLDivElement;
-  alerts: IAlert[];
+export interface HighlightsProps {
+  highlights: Highlight[];
+  elementRect: DOMRect;
 }
 
-// type ConvertedAlert = {
-//   node: HTMLElement;
-//   start: number;
-//   end: number;
-// };
-
-type Highlight = {
-  // alertID: string;
+export type Highlight = {
   rect: DOMRect;
   data: IAlertContentData;
 };
 
 const Highlights: React.FC<HighlightsProps> = ({
-  element,
-  alerts,
+  highlights,
+  elementRect,
 }: HighlightsProps) => {
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-  // const [convertedAlerts, setConvertedAlerts] = useState<ConvertedAlert[]>([]);
-  // const [highlights, setHighlights] = useState<Highlight[]>([]);
-
-  // useEffect(() => {
-  //   console.log('Highlights useEffect element = ', element);
-  // }, [element]);
 
   useEffect(() => {
-    console.log('Highlights ALERTS = ', alerts);
-
-    const childNodes: NodeListOf<ChildNode> = element.childNodes;
-    console.log('Highlights childNodes = ', childNodes);
-
-    const highlights: Highlight[] = [];
-
-    const convertAlert = (
-      node: ChildNode,
-      nodeStartPos: number,
-      nodeEndPos: number
-    ): void => {
-      alerts.forEach((alert: IAlert) => {
-        if (
-          alert.startOffset >= nodeStartPos &&
-          alert.endOffset <= nodeEndPos
-        ) {
-          const newStartingPos: number = alert.startOffset - nodeStartPos;
-          const newEndPos: number = alert.endOffset - nodeStartPos;
-
-          const range = document.createRange();
-          range.setStart(node, newStartingPos);
-          range.setEnd(node, newEndPos);
-          const rect = range.getClientRects()[0];
-
-          console.log('Highlights rect = ', rect);
-
-          const newHighlight: Highlight = {
-            rect,
-            data: alert.data,
-          };
-
-          highlights.push(newHighlight);
-        }
-      });
-    };
-
-    let textstartingPosition: number = 0;
-    let textEndPosition: number = 0;
-
-    const traverseNodes = (nodes: NodeListOf<ChildNode>) => {
-      for (let node of nodes) {
-        console.log('*** Highlights node = ', node);
-        textstartingPosition = textEndPosition;
-        console.log(
-          '*** Highlights textstartingPosition = ',
-          textstartingPosition
-        );
-        if (node.nodeName === '#text') {
-          if (node.nodeValue) {
-            console.log('*** Highlights text = ', node.nodeValue);
-            const nodeValueLength = node.nodeValue.length;
-            textEndPosition = textstartingPosition + nodeValueLength;
-            console.log('*** Highlights textEndPosition 1 = ', textEndPosition);
-            convertAlert(node, textstartingPosition, textEndPosition);
-          }
-        } else {
-          if (node.nodeName === 'DIV' || node.nodeName === 'BR')
-            textEndPosition++;
-          console.log('*** Highlights textEndPosition 2 = ', textEndPosition);
-
-          if (node.childNodes.length > 0) {
-            traverseNodes(node.childNodes);
-          }
-        }
-      }
-    };
-
-    traverseNodes(childNodes);
-
-    if (highlights.length === alerts.length) {
-      console.log('--->>> Highlights highlights = ', highlights);
-
+    if (highlights.length) {
       const canvas: HTMLCanvasElement = canvasRef.current;
 
       if (canvas && canvas.getContext) {
-        const elementToTrack = element; //TODO temporal...
-        const elementToTrackRect = elementToTrack.getBoundingClientRect();
-
         const context: CanvasRenderingContext2D | null =
           canvas.getContext('2d');
+
         if (context) {
           //Clear the whole canvas first
           context.clearRect(0, 0, canvas.width, canvas.height);
@@ -121,8 +34,8 @@ const Highlights: React.FC<HighlightsProps> = ({
           highlights.forEach((highlight) => {
             context.fillStyle = `${getColor(highlight.data.category)}`;
             const highlightRect = highlight.rect;
-            const rectToRender: DOMRect = {
-              x: highlightRect.x - elementToTrackRect.x,
+            const rectToRender = {
+              x: highlightRect.x - elementRect.x,
               y: highlightRect.y - canvas.offsetTop + highlightRect.height,
               width: highlightRect.width,
               height: 2,
@@ -141,7 +54,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
       }
     }
-  }, [alerts]);
+  }, [highlights, elementRect]);
 
   return (
     <canvas
@@ -150,151 +63,224 @@ const Highlights: React.FC<HighlightsProps> = ({
         {
           position: 'fixed',
           overflow: 'auto',
-          top: `${element.getBoundingClientRect().top}px`,
-          left: `${element.getBoundingClientRect().left}px`,
+          top: `${elementRect.top}px`,
+          left: `${elementRect.left}px`,
           pointerEvents: 'none',
           zIndex: 999999999,
-          // outline: '3px solid blue',
+          outline: '3px solid blue',
         } as React.CSSProperties
       }
-      width={element.getBoundingClientRect().width}
-      height={element.getBoundingClientRect().height}
+      width={elementRect.width}
+      height={elementRect.height}
     ></canvas>
   );
 };
 
 export default Highlights;
+*/
 
-// import React, { useEffect, useRef } from 'react';
-// import { Iinput, IAlert, IAlertContentData } from '../shared/types';
+import React, { useEffect, useRef, useContext } from 'react';
+import { IAlert, IAlertContentData } from '../shared/types';
+import { getColor } from '../shared/constants';
+import { ScrollOffsetContext } from './ContentScriptApp';
 
-// import { getColor } from '../shared/constants';
-// import { isObjectEmpty } from '../shared/utils';
+interface HighlightsProps {
+  // element: HTMLDivElement;
+  elementChildNodes: NodeListOf<ChildNode>;
+  elementRect: DOMRect;
+  alerts: IAlert[];
+}
 
-// type Highlight = {
-//   alertID: string;
-//   rect: DOMRect;
-//   data: IAlertContentData;
-// };
+type Highlight = {
+  // alertID: string;
+  rect: DOMRect;
+  data: IAlertContentData;
+};
 
-// const Highlights: React.FC<Iinput> = ({
-//   cloneElement,
-//   inputElement,
-//   alerts,
-// }: Iinput) => {
-//   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
+const Highlights: React.FC<HighlightsProps> = ({
+  elementRect,
+  elementChildNodes,
+  alerts,
+}: HighlightsProps) => {
+  const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
+  const documentScrollOffset = useContext(ScrollOffsetContext);
 
-//   const getElementToTrack = () => {
-//     return typeof inputElement === 'undefined' || inputElement === null
-//       ? cloneElement
-//       : inputElement;
-//   };
+  useEffect(() => {
+    // console.log('Highlights ============================================ ');
+    // console.log('Highlights ALERTS = ', alerts);
+    // console.log('Highlights elementRect = ', elementRect);
+    // console.log('Highlights elementChildNodes = ', elementChildNodes);
+    // console.log('Highlights documentScrollOffset = ', documentScrollOffset);
 
-//   useEffect(() => {
-//     const elementToTrack = getElementToTrack();
+    const highlights: Highlight[] = [];
 
-//     if (cloneElement.childNodes) {
-//       const elementToTrackRect = elementToTrack.getBoundingClientRect();
+    const convertAlertToHighlight = (
+      node: ChildNode,
+      nodeStartPos: number,
+      nodeEndPos: number
+    ): void => {
+      alerts.forEach((alert: IAlert) => {
+        // console.log(
+        //   'Highlights alert.startOffset / alert.endOffset = ',
+        //   alert.startOffset,
+        //   alert.endOffset
+        // );
+        // console.log(
+        //   'Highlights nodeStartPos / nodeEndPos = ',
+        //   nodeStartPos,
+        //   nodeEndPos
+        // );
+        if (
+          alert.startOffset >= nodeStartPos &&
+          alert.endOffset <= nodeEndPos
+        ) {
+          const newStartingPos: number = alert.startOffset - nodeStartPos;
+          const newEndPos: number = alert.endOffset - nodeStartPos;
 
-//       let nodeText: Node = cloneElement.childNodes[0];
+          // console.log('Highlights aaa newStartingPos = ', newStartingPos);
+          // console.log('Highlights aaa newEndPos = ', newEndPos);
 
-//       const highlights: Highlight[] = alerts
-//         .filter(
-//           //filter out repeating cases
-//           (alert: IAlert, index: number, array: IAlert[]) =>
-//             array.findIndex(
-//               (item) =>
-//                 item.data.text === alert.data.text &&
-//                 item.startOffset === alert.startOffset &&
-//                 item.endOffset === alert.endOffset
-//             ) === index
-//         )
-//         .map((alert: IAlert) => {
-//           try {
-//             const range = document.createRange();
-//             range.setStart(nodeText, alert.startOffset);
-//             range.setEnd(nodeText, alert.endOffset);
-//             const rect = range.getClientRects()[0];
-//             return {
-//               alertID: alert.id,
-//               rect,
-//               data: alert.data,
-//             };
-//           } catch (error) {
-//             //Offset is larger than node's length
-//             //so just return an object without a defined DOMRect
-//             return {
-//               alertID: alert.id,
-//               rect: {} as DOMRect,
-//               data: alert.data,
-//             };
-//           }
-//         })
-//         .filter((alert: Highlight) => {
-//           return (
-//             !isObjectEmpty(alert.rect) &&
-//             alert.rect.top + alert.rect.height > elementToTrackRect.top &&
-//             alert.rect.top + alert.rect.height <
-//               elementToTrackRect.top + elementToTrackRect.height &&
-//             alert.rect.left > elementToTrackRect.left &&
-//             alert.rect.left + alert.rect.width <
-//               elementToTrackRect.left + elementToTrackRect.width
-//           );
-//         });
+          // console.log('Highlights aaa node = ', node);
 
-//       const canvas: HTMLCanvasElement = canvasRef.current;
+          const range = document.createRange();
+          range.setStart(node, newStartingPos);
+          range.setEnd(node, newEndPos);
 
-//       if (canvas && canvas.getContext) {
-//         const context: CanvasRenderingContext2D | null =
-//           canvas.getContext('2d');
-//         if (context) {
-//           //Clear the whole canvas first
-//           context.clearRect(0, 0, canvas.width, canvas.height);
+          // console.log(
+          //   'Highlights aaa range.getClientRects() = ',
+          //   range.getClientRects()
+          // );
 
-//           //Draw a rectangle for each highlight
-//           highlights.forEach((highlight) => {
-//             context.fillStyle = `${getColor(highlight.data.category)}`;
-//             const highlightRect = highlight.rect;
-//             const rectToRender: DOMRect = {
-//               x: highlightRect.x - elementToTrackRect.x,
-//               y: highlightRect.y - canvas.offsetTop + highlightRect.height,
-//               width: highlightRect.width,
-//               height: 2,
-//             } as DOMRect;
+          const rect = range.getClientRects()[0];
 
-//             context.fillRect(
-//               rectToRender.x,
-//               rectToRender.y,
-//               rectToRender.width,
-//               rectToRender.height
-//             );
-//           });
-//         }
-//       } else {
-//         //TODO Provide Canvas Fallback content?
-//         //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
-//       }
-//     }
-//   }, [Object.keys(cloneElement), inputElement, alerts]);
+          // console.log('Highlights aaa rect = ', rect);
 
-//   return getElementToTrack() && alerts.length > 0 ? (
-//     <canvas
-//       ref={canvasRef}
-//       style={
-//         {
-//           position: 'fixed',
-//           overflow: 'auto',
-//           top: `${getElementToTrack().getBoundingClientRect().top}px`,
-//           left: `${getElementToTrack().getBoundingClientRect().left}px`,
-//           pointerEvents: 'none',
-//           zIndex: 999999999,
-//           // outline: '3px solid blue',
-//         } as React.CSSProperties
-//       }
-//       width={getElementToTrack().getBoundingClientRect().width}
-//       height={getElementToTrack().getBoundingClientRect().height}
-//     ></canvas>
-//   ) : null;
-// };
+          if (
+            rect.top + rect.height > elementRect.top - documentScrollOffset.y &&
+            rect.top + rect.height < elementRect.top + elementRect.height &&
+            rect.left > elementRect.left - documentScrollOffset.x &&
+            rect.left + rect.width < elementRect.left + elementRect.width
+          ) {
+            // console.log('Highlights aaa alert = ', alert);
 
-// export default Highlights;
+            const newHighlight: Highlight = {
+              rect,
+              data: alert.data,
+            };
+
+            highlights.push(newHighlight);
+          }
+
+          // const newHighlight: Highlight = {
+          //   rect,
+          //   data: alert.data,
+          // };
+
+          // highlights.push(newHighlight);
+        }
+      });
+
+      // console.log('Highlights aaa highlights FINAL = ', highlights);
+    };
+
+    let textstartingPosition: number = 0;
+    let textEndPosition: number = 0;
+
+    const traverseNodes = (nodes: NodeListOf<ChildNode>) => {
+      for (let node of nodes) {
+        // console.log('*** Highlights node = ', node);
+        textstartingPosition = textEndPosition;
+        // console.log(
+        //   '*** Highlights textstartingPosition = ',
+        //   textstartingPosition
+        // );
+        if (node.nodeName === '#text') {
+          if (node.nodeValue) {
+            // console.log('*** Highlights text = ', node.nodeValue);
+            const nodeValueLength = node.nodeValue.length;
+            textEndPosition = textstartingPosition + nodeValueLength;
+            // console.log('*** Highlights textEndPosition 1 = ', textEndPosition);
+            convertAlertToHighlight(
+              node,
+              textstartingPosition,
+              textEndPosition
+            );
+          }
+        } else {
+          if (node.previousSibling !== null) {
+            if (node.nodeName === 'DIV' || 'BR' || 'P') textEndPosition++;
+          }
+
+          // console.log('*** Highlights textEndPosition 2 = ', textEndPosition);
+
+          if (node.childNodes.length > 0) {
+            traverseNodes(node.childNodes);
+          }
+        }
+      }
+    };
+
+    traverseNodes(elementChildNodes);
+
+    if (highlights.length <= alerts.length) {
+      // console.log('--->>> Highlights highlights = ', highlights);
+
+      const canvas: HTMLCanvasElement = canvasRef.current;
+
+      if (canvas && canvas.getContext) {
+        const context: CanvasRenderingContext2D | null =
+          canvas.getContext('2d');
+
+        // console.log('Highlights context = ', context);
+
+        if (context) {
+          //Clear the whole canvas first
+          context.clearRect(0, 0, canvas.width, canvas.height);
+
+          //Draw a rectangle for each highlight
+          highlights.forEach((highlight) => {
+            context.fillStyle = `${getColor(highlight.data.category)}`;
+            const highlightRect = highlight.rect;
+            const rectToRender: DOMRect = {
+              x: highlightRect.x - elementRect.x,
+              y: highlightRect.y - canvas.offsetTop + highlightRect.height,
+              width: highlightRect.width,
+              height: 2,
+            } as DOMRect;
+
+            context.fillRect(
+              rectToRender.x,
+              rectToRender.y,
+              rectToRender.width,
+              rectToRender.height
+            );
+          });
+        }
+      } else {
+        //TODO Provide Canvas Fallback content?
+        //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
+      }
+    }
+  }, [elementRect, elementChildNodes, alerts, documentScrollOffset]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={
+        {
+          position: 'fixed',
+          overflow: 'auto',
+          top: `${elementRect.top - documentScrollOffset.y}px`,
+          left: `${elementRect.left - documentScrollOffset.x}px`,
+          pointerEvents: 'none',
+          zIndex: 999999999,
+          outline: '3px solid blue',
+        } as React.CSSProperties
+      }
+      width={elementRect.width}
+      height={elementRect.height}
+    ></canvas>
+  );
+};
+
+export default Highlights;
