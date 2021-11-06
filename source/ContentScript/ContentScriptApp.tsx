@@ -1,4 +1,4 @@
-import React, { useEffect, useState, createContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import { CustomInputElement } from '../shared/types';
@@ -9,23 +9,12 @@ import { setBaseURL } from '../shared/ApiServices/requests';
 import { DEV_ENV } from '../shared/constants';
 import { isInputElement } from '../shared/utils';
 
-export type ScrollOffset = {
-  x: number;
-  y: number;
-};
-export const ScrollOffsetContext = createContext<ScrollOffset>({ x: 0, y: 0 });
-
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
   // const [inputs, setInputs] = useState<CustomInputElement[]>([]);
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
   );
-  const [documentScrollOffset, setDocumentScrollOffset] =
-    useState<ScrollOffset>({
-      x: 0,
-      y: 0,
-    });
 
   useEffect(() => {
     //Define the Endpoint
@@ -45,7 +34,7 @@ const ContentScriptApp: React.FC = () => {
     newEditableDiv.id = 'div-editable';
     newEditableDiv.contentEditable = 'true';
     newEditableDiv.style.backgroundColor = 'white';
-    newEditableDiv.style.width = '600px';
+    // newEditableDiv.style.width = '600px';
     newEditableDiv.style.height = '150px';
     newEditableDiv.style.padding = '10px';
     newEditableDiv.style.overflow = 'auto';
@@ -62,30 +51,13 @@ const ContentScriptApp: React.FC = () => {
 
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
-    window.addEventListener('scroll', handleScrollElement);
-    // document.addEventListener('input', handleInputElement);
 
     return () => {
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
-      window.removeEventListener('scroll', handleScrollElement);
-      // document.removeEventListener('input', handleInputElement);
     };
   }, []);
-
-  // useEffect(() => {
-  //   browser.storage.onChanged.addListener(storageChange);
-  //   document.addEventListener('focusin', handleFocusinElement, true);
-  //   window.addEventListener('scroll', handleScrollElement);
-
-  //   return () => {
-  //     //Don't forget to remove the listeners at the end
-  //     browser.storage.onChanged.removeListener(storageChange);
-  //     document.removeEventListener('focusin', handleFocusinElement);
-  //     window.removeEventListener('scroll', handleScrollElement);
-  //   };
-  // });
 
   const storageChange = (changes: any) => {
     let changedItems = Object.keys(changes);
@@ -113,25 +85,9 @@ const ContentScriptApp: React.FC = () => {
     const target = event.target as CustomInputElement;
 
     //Ignore anything that is not a TextArea or a contentEditable element
-    if (isInputElement(target)) {
+    if (isInputElement(target))
       if (!inputsRef.current.includes(target))
         setInputs([...inputsRef.current, target]);
-    }
-  };
-
-  const initScrollY = (document.documentElement || document.body).scrollTop;
-
-  const handleScrollElement = () => {
-    const deltaScrollY =
-      (document.documentElement || document.body).scrollTop - initScrollY;
-    // console.log('ContentScriptApp scroll deltaScrollY = ', deltaScrollY);
-
-    const scrollOffset: ScrollOffset = {
-      x: 0,
-      y: deltaScrollY,
-    };
-    // console.log('ContentScriptApp scroll scrollOffset = ', scrollOffset);
-    setDocumentScrollOffset(scrollOffset);
   };
 
   useEffect(() => {
@@ -140,11 +96,9 @@ const ContentScriptApp: React.FC = () => {
 
   return (
     <>
-      <ScrollOffsetContext.Provider value={documentScrollOffset}>
-        {inputs.map((input: CustomInputElement, index: number) => (
-          <Input key={index} element={input} />
-        ))}
-      </ScrollOffsetContext.Provider>
+      {inputs.map((input: CustomInputElement, index: number) => (
+        <Input key={index} element={input} />
+      ))}
     </>
   );
 };

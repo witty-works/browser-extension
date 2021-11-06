@@ -1,15 +1,16 @@
 import React from 'react';
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
+  elementRect: DOMRect;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
+  elementRect,
   updateClone,
 }: TextAreaCloneProps) => {
   const elementStyle = window.getComputedStyle(element);
-  const elementBoundingClientRect = element.getBoundingClientRect();
 
   return (
     <div
@@ -23,10 +24,10 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
         {
           appearance: 'textarea',
           whiteSpace: 'pre-wrap',
-          position: 'fixed',
+          position: 'absolute',
           overflow: 'auto',
-          top: `${elementBoundingClientRect.top - element.scrollTop}px`, //TODO would work define scrollTop property and not substract it here?
-          left: `${elementBoundingClientRect.left - element.scrollLeft}px`,
+          top: `${elementRect.top}px`, //TODO would work define scrollTop property and not substract it here?
+          left: `${elementRect.left}px`,
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
@@ -40,7 +41,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           border: `${elementStyle.borderBottomWidth} solid black`,
           visibility: 'hidden',
           // zIndex: 1,
-          // outline: '3px solid red',
+          // outline: '5px solid red',
           // top: `${
           //   elementBoundingClientRect.top -
           //   element.scrollTop +
