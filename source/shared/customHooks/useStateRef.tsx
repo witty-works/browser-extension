@@ -1,6 +1,6 @@
 import React from 'react';
 
-const useStateRef = (defaultValue: any) => {
+export const useStateRef = (defaultValue: any) => {
   //TODO define type
   const [state, setState] = React.useState(defaultValue);
   const ref = React.useRef(state);
@@ -13,5 +13,3 @@ const useStateRef = (defaultValue: any) => {
 
   return [state, dispatch, ref];
 };
-
-export default useStateRef;

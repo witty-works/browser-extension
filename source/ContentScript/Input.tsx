@@ -5,31 +5,44 @@ import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { DEV_ENV } from '../shared/constants';
-import { CustomInputElement, IAlert, IAlertContentData } from '../shared/types';
-import { fixLineBreaks } from '../shared/utils';
+import {
+  CustomInputElement,
+  IAlert,
+  IAlertContentData,
+  INodeWithAlerts,
+} from '../shared/types';
+import { fixLineBreaks, isTextArea } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
+import { useStateRef } from '../shared/customHooks/useStateRef';
+import Modal, { ModalData } from '../shared/components/Modal/Modal';
+
+type HandleClick = () => void;
 
 const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
-  const [alerts, setAlerts] = useState<IAlert[]>([]);
+  const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
+    [] as INodeWithAlerts[]
+  );
   const [clone, setClone] = useState<HTMLDivElement>();
   const elementRect = useResizeObserver(element);
   const [elementScroll, setElementScroll] = useState<ScrollPos>(
     {} as ScrollPos
   );
+  const [modalData, setModalData] = useState<ModalData>({} as ModalData);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('scroll', handleScrollEvent, true);
-    // element.addEventListener('click', handleClickElement);
+    element.addEventListener('click', handleClickElement);
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('scroll', handleScrollEvent);
-      // element.removeEventListener('click', handleClickElement);
+      element.removeEventListener('click', handleClickElement);
     };
   }, []);
 
@@ -50,60 +63,53 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
     setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
   };
 
-  /*const handleClickElement = (event: Event) => {
-    const target: CustomInputElement = (
-      event.target instanceof HTMLTextAreaElement
-        ? event.target
-        : (event.composedPath && event.composedPath()).find(
-            (element) => (element as HTMLDivElement).contentEditable === 'true'
-          )
-    ) as CustomInputElement;
+  const handleClickElement = (event: Event) => {
+    // const target: CustomInputElement = (
+    //   event.target instanceof HTMLTextAreaElement
+    //     ? event.target
+    //     : (event.composedPath && event.composedPath()).find(
+    //         (element) => (element as HTMLDivElement).contentEditable === 'true'
+    //       )
+    // ) as CustomInputElement;
 
-    console.log('Input handleClickElement target = ', target);
-
+    const target = event.target as CustomInputElement;
     const caretPosition: number = getInputClickedPosition(target);
 
-    console.log('Input handleClickElement caretPosition = ', caretPosition);
+    if (caretPosition > -1) {
+      const nodeAlerts = nodesWithAlertsRef.current;
 
-    /*
-    const index = getInputElementIndexPos(target);
-
-    const currentInput = inputsRef.current[index];
-
-    if (index !== -1 && currentInput.alerts.length > 0) {
-      setFocusedInput(target); //TODO needed?
-
-      const caretPosition: number = getInputClickedPosition(
-        currentInput.inputElement
+      const oneNodeWithAlerts = nodeAlerts.find(
+        (nodeWithAlerts: INodeWithAlerts) =>
+          nodeWithAlerts.node.parentNode === target //TODO potentially this can fail
       );
 
-      if (caretPosition > -1) {
-        const clickedHighlight: IAlert = currentInput.alerts.find(
-          (alert: IAlert) => {
-            return (
-              alert.startOffset < caretPosition &&
-              alert.endOffset > caretPosition
-            );
-          }
-        );
-        const range = document.createRange();
-        const nodeText = currentInput.cloneElement.childNodes[0];
-        if (clickedHighlight) {
-          range.setStart(nodeText, clickedHighlight.startOffset);
-          range.setEnd(nodeText, clickedHighlight.endOffset);
+      if (oneNodeWithAlerts) {
+        const selectedAlert = oneNodeWithAlerts.alerts.find((alert: IAlert) => {
+          return (
+            alert.startOffset < caretPosition && alert.endOffset > caretPosition
+          );
+        }) as IAlert;
+
+        const nodeText = oneNodeWithAlerts.node;
+
+        if (selectedAlert) {
+          const range = document.createRange();
+          range.setStart(nodeText, selectedAlert.startOffset);
+          range.setEnd(nodeText, selectedAlert.endOffset);
           const clickedRect = range.getClientRects()[0];
+
           setModalData({
-            alert: clickedHighlight,
+            alert: selectedAlert,
             position: clickedRect,
+            node: oneNodeWithAlerts.node,
           });
           toggleModal();
         }
       }
     }
-    * /
-  };*/
+  };
 
-  /*const getInputClickedPosition = (element: CustomInputElement): number => {
+  const getInputClickedPosition = (element: CustomInputElement): number => {
     if (element instanceof HTMLTextAreaElement) {
       return element.selectionStart;
     } else {
@@ -117,18 +123,18 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
         //https://github.com/Microsoft/TypeScript/issues/12296
         //Temporaly ignore this error
         // @ts-ignore
-        selection.modify('extend', 'backward', 'documentboundary');
+        selection.modify('extend', 'backward', 'paragraph');
         const position = selection.toString().length as number;
         if (selection.anchorNode != undefined) selection.collapseToEnd();
         return position;
       } else return -1;
     }
-  };*/
+  };
 
   useEffect(() => {
     if (checkEndpointResponse) {
-      const alerts: IAlert[] = checkEndpointResponse.results.map(
-        (result: any) => ({
+      const alerts: IAlert[] = checkEndpointResponse.results
+        .map((result: any) => ({
           //TODO specify this 'any' type on the line before
           id: `${result.category}-${result.text}-${result.start}-${result.end}`,
           startOffset: result.start,
@@ -141,23 +147,117 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
             solution: result.solution,
             alternatives: result.alternatives,
           } as IAlertContentData,
-        })
-      );
-      setAlerts(alerts);
+        }))
+        .sort((firstAlert: IAlert, secondAlert: IAlert) => {
+          return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
+        });
+
+      if (isTextArea(element))
+        setNodesWithAlerts([
+          {
+            node: clone,
+            alerts: alerts.map((alert: IAlert) => ({
+              ...alert,
+              originalStartOffset: alert.startOffset,
+              originalEndOffset: alert.endOffset,
+            })),
+          },
+        ]);
+      else {
+        console.log('Input checkEndpointResponse = ', alerts);
+        console.log('Input element.childNodes = ', element.childNodes);
+
+        const nodesWithAlertsTemp: INodeWithAlerts[] =
+          getNodesWithRecalculatedAlerts(element.childNodes, alerts);
+
+        console.log('Input nodesWithAlertsTemp = ', nodesWithAlertsTemp);
+        setNodesWithAlerts(nodesWithAlertsTemp);
+      }
     }
   }, [checkEndpointResponse]);
+
+  const getNodesWithRecalculatedAlerts = (
+    nodes: NodeListOf<ChildNode>,
+    alerts: IAlert[]
+  ) => {
+    const nodesWithAlertsTemp: INodeWithAlerts[] = [];
+    let textStartingAbsPosition: number = 0;
+    let textEndAbsPosition: number = 0;
+
+    const traverseNodes = (nodes: NodeListOf<ChildNode>) => {
+      for (let node of nodes) {
+        textStartingAbsPosition = textEndAbsPosition;
+
+        if (node.nodeName === '#text') {
+          if (node.nodeValue) {
+            const nodeValueLength = node.nodeValue.length;
+            textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+
+            const alertsTemp: IAlert[] = alerts
+              .filter(
+                (alert: IAlert) =>
+                  alert.startOffset >= textStartingAbsPosition &&
+                  alert.endOffset <= textEndAbsPosition
+              )
+              .map((alert: IAlert) => {
+                const newAlert: IAlert = {
+                  ...alert,
+                  startOffset: alert.startOffset - textStartingAbsPosition,
+                  endOffset: alert.endOffset - textStartingAbsPosition,
+                  originalStartOffset: alert.startOffset,
+                  originalEndOffset: alert.endOffset,
+                };
+
+                return newAlert;
+              });
+
+            nodesWithAlertsTemp.push({
+              node: node as HTMLElement,
+              alerts: alertsTemp,
+            });
+          }
+        } else {
+          if (node.previousSibling !== null) {
+            if (node.nodeName === 'DIV' || 'BR' || 'P') textEndAbsPosition++;
+          }
+
+          if (node.childNodes.length > 0) {
+            traverseNodes(node.childNodes);
+          }
+        }
+      }
+    };
+
+    traverseNodes(nodes);
+
+    return nodesWithAlertsTemp;
+  };
 
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
       // Error!
       if (DEV_ENV) console.log('API Error = ', checkEndpointError);
       if (checkEndpointError.detail === 'Language could not be determined')
-        setAlerts([]);
+        // setAlerts([]);
+        setNodesWithAlerts([]);
     }
   }, [checkEndpointError]);
 
   const updateTextAreaCloneData = (clone: HTMLDivElement) => {
     setClone(clone);
+  };
+
+  const toggleModal: HandleClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const resendText = () => {
+    const text: string =
+      element instanceof HTMLTextAreaElement
+        ? element.value
+        : fixLineBreaks(element.innerText);
+
+    sendText(text);
   };
 
   return (
@@ -170,18 +270,19 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
         />
       ) : null}
       {loading ? <HighlightsLoader elementReference={element} /> : null}
-      {alerts.length > 0 ? (
+      {nodesWithAlerts.length > 0 ? (
         <Highlights
           elementScroll={elementScroll}
           elementRect={elementRect}
-          elementChildNodes={
-            (
-              (element instanceof HTMLTextAreaElement
-                ? clone
-                : element) as HTMLDivElement
-            ).childNodes
-          }
-          alerts={alerts}
+          nodesWithAlerts={nodesWithAlerts}
+        />
+      ) : null}
+      {modalData.alert ? (
+        <Modal
+          isOpen={isOpen}
+          data={modalData}
+          hide={toggleModal}
+          resendText={resendText}
         />
       ) : null}
     </div>

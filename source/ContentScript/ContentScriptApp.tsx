@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import { CustomInputElement } from '../shared/types';
-import useStateRef from '../shared/customHooks/useStateRef';
+import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import { setBaseURL } from '../shared/ApiServices/requests';

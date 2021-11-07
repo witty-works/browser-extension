@@ -3,10 +3,16 @@ export type CustomInputElement =
   | HTMLInputElement
   | HTMLDivElement;
 
+export interface INodeWithAlerts {
+  node:HTMLElement;
+  alerts:IAlert[];
+}
 export interface IAlert {
   id: string;
   startOffset: number;
   endOffset: number;
+  originalStartOffset: number;
+  originalEndOffset: number;
   data: IAlertContentData;
 }
 export interface IAlertContentData {
