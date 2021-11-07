@@ -3,6 +3,7 @@ import { IAlert, IAlertContentData } from '../shared/types';
 import { getColor } from '../shared/constants';
 
 interface HighlightsProps {
+  elementScroll: ScrollPos;
   elementRect: DOMRect;
   elementChildNodes: NodeListOf<ChildNode>;
   alerts: IAlert[];
@@ -14,7 +15,13 @@ type Highlight = {
   data: IAlertContentData;
 };
 
+export type ScrollPos = {
+  top: number;
+  left: number;
+};
+
 const Highlights: React.FC<HighlightsProps> = ({
+  elementScroll,
   elementRect,
   elementChildNodes,
   alerts,
@@ -22,160 +29,163 @@ const Highlights: React.FC<HighlightsProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const customDoc = document.documentElement || document.body;
 
-  // useEffect(() => {
-  //   const highlights: Highlight[] = [];
+  useEffect(() => {
+    const highlights: Highlight[] = [];
 
-  //   const convertAlertToHighlight = (
-  //     node: ChildNode,
-  //     nodeStartPos: number,
-  //     nodeEndPos: number
-  //   ): void => {
-  //     alerts.forEach((alert: IAlert) => {
-  //       // console.log(
-  //       //   'Highlights alert.startOffset / alert.endOffset = ',
-  //       //   alert.startOffset,
-  //       //   alert.endOffset
-  //       // );
-  //       // console.log(
-  //       //   'Highlights nodeStartPos / nodeEndPos = ',
-  //       //   nodeStartPos,
-  //       //   nodeEndPos
-  //       // );
-  //       if (
-  //         alert.startOffset >= nodeStartPos &&
-  //         alert.endOffset <= nodeEndPos
-  //       ) {
-  //         const newStartingPos: number = alert.startOffset - nodeStartPos;
-  //         const newEndPos: number = alert.endOffset - nodeStartPos;
+    const convertAlertToHighlight = (
+      node: ChildNode,
+      nodeStartPos: number,
+      nodeEndPos: number
+    ): void => {
+      console.log('Highlights ALERTS = ', alerts);
 
-  //         // console.log('Highlights aaa newStartingPos = ', newStartingPos);
-  //         // console.log('Highlights aaa newEndPos = ', newEndPos);
+      alerts
+        .sort((firstAlert: IAlert, secondAlert: IAlert) => {
+          return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
+        })
+        .forEach((alert: IAlert) => {
+          console.log('------------ Highlights alert = ', alert.data.text);
 
-  //         // console.log('Highlights aaa node = ', node);
+          console.log('Highlights alert.startOffset = ', alert.startOffset);
+          console.log('Highlights  alert.endOffset = ', alert.endOffset);
 
-  //         const range = document.createRange();
-  //         range.setStart(node, newStartingPos);
-  //         range.setEnd(node, newEndPos);
+          if (
+            alert.startOffset >= nodeStartPos &&
+            alert.endOffset <= nodeEndPos
+          ) {
+            console.log('Highlights we ARE IN = ', alert.data.text);
 
-  //         // console.log(
-  //         //   'Highlights aaa range.getClientRects() = ',
-  //         //   range.getClientRects()
-  //         // );
+            const newStartingPos: number = alert.startOffset - nodeStartPos;
+            const newEndPos: number = alert.endOffset - nodeStartPos;
 
-  //         const rect = range.getClientRects()[0];
+            const range = document.createRange();
+            range.setStart(node, newStartingPos);
+            range.setEnd(node, newEndPos);
+            const rect = range.getClientRects()[0];
 
-  //         // console.log('Highlights node rect = ', rect);
-  //         // console.log('Highlights elementRect = ', elementRect);
+            // console.log('Highlights rect = ', rect);
+            // console.log('Highlights customDoc.scrollTop = ', customDoc.scrollTop);
 
-  //         if (
-  //           rect.top + customDoc.scrollTop + rect.height > elementRect.top &&
-  //           rect.top + customDoc.scrollTop + rect.height <
-  //             elementRect.top + elementRect.height &&
-  //           rect.left + customDoc.scrollLeft > elementRect.left &&
-  //           rect.left + customDoc.scrollLeft + rect.width <
-  //             elementRect.left + elementRect.width
-  //         ) {
-  //           // console.log('Highlights aaa alert = ', alert);
+            const rectTop = rect.top + customDoc.scrollTop + rect.height;
+            console.log('Highlights rectTop = ', rectTop);
+            console.log('Highlights elementRect.top = ', elementRect.top);
+            console.log('Highlights elementRect.height = ', elementRect.height);
+            const rectLeft = rect.left + customDoc.scrollLeft;
+            console.log('Highlights rectLeft = ', rectLeft);
+            console.log('Highlights elementRect.left = ', elementRect.left);
+            console.log('Highlights elementRect.width = ', elementRect.width);
 
-  //           const newHighlight: Highlight = {
-  //             rect,
-  //             data: alert.data,
-  //           };
+            if (
+              rectTop > elementRect.top &&
+              rectTop < elementRect.top + elementRect.height &&
+              rectLeft >= elementRect.left &&
+              rectLeft + rect.width <= elementRect.left + elementRect.width
+            ) {
+              const newRect: DOMRect = {
+                ...rect,
+                bottom: rect.top + customDoc.scrollTop + rect.height,
+                height: rect.height,
+                left: rect.left + customDoc.scrollLeft - elementScroll.left,
+                right: rect.left + customDoc.scrollLeft + rect.width,
+                top: rect.top + customDoc.scrollTop - elementScroll.top,
+                width: rect.width,
+                x: rect.left + customDoc.scrollLeft,
+                y: rect.top + customDoc.scrollTop,
+              };
 
-  //           highlights.push(newHighlight);
-  //         }
+              const newHighlight: Highlight = {
+                rect: newRect,
+                data: alert.data,
+              };
 
-  //         // const newHighlight: Highlight = {
-  //         //   rect,
-  //         //   data: alert.data,
-  //         // };
+              console.log('Highlights newHighlight = ', newHighlight);
 
-  //         // highlights.push(newHighlight);
-  //       }
-  //     });
+              highlights.push(newHighlight);
+            }
+          }
+        });
+    };
 
-  //     // console.log('Highlights aaa highlights FINAL = ', highlights);
-  //   };
+    let textstartingPosition: number = 0;
+    let textEndPosition: number = 0;
 
-  //   let textstartingPosition: number = 0;
-  //   let textEndPosition: number = 0;
+    const traverseNodes = (nodes: NodeListOf<ChildNode>) => {
+      for (let node of nodes) {
+        textstartingPosition = textEndPosition;
 
-  //   const traverseNodes = (nodes: NodeListOf<ChildNode>) => {
-  //     for (let node of nodes) {
-  //       // console.log('*** Highlights node = ', node);
-  //       textstartingPosition = textEndPosition;
-  //       // console.log(
-  //       //   '*** Highlights textstartingPosition = ',
-  //       //   textstartingPosition
-  //       // );
-  //       if (node.nodeName === '#text') {
-  //         if (node.nodeValue) {
-  //           // console.log('*** Highlights text = ', node.nodeValue);
-  //           const nodeValueLength = node.nodeValue.length;
-  //           textEndPosition = textstartingPosition + nodeValueLength;
-  //           // console.log('*** Highlights textEndPosition 1 = ', textEndPosition);
-  //           convertAlertToHighlight(
-  //             node,
-  //             textstartingPosition,
-  //             textEndPosition
-  //           );
-  //         }
-  //       } else {
-  //         if (node.previousSibling !== null) {
-  //           if (node.nodeName === 'DIV' || 'BR' || 'P') textEndPosition++;
-  //         }
+        if (node.nodeName === '#text') {
+          if (node.nodeValue) {
+            const nodeValueLength = node.nodeValue.length;
+            textEndPosition = textstartingPosition + nodeValueLength;
 
-  //         // console.log('*** Highlights textEndPosition 2 = ', textEndPosition);
+            console.log(
+              'highlights TRY node = ',
+              node.nodeValue,
+              textstartingPosition,
+              textEndPosition
+            );
 
-  //         if (node.childNodes.length > 0) {
-  //           traverseNodes(node.childNodes);
-  //         }
-  //       }
-  //     }
-  //   };
+            convertAlertToHighlight(
+              node,
+              textstartingPosition,
+              textEndPosition
+            );
+          }
+        } else {
+          if (node.previousSibling !== null) {
+            if (node.nodeName === 'DIV' || 'BR' || 'P') textEndPosition++;
+          }
 
-  //   traverseNodes(elementChildNodes);
+          if (node.childNodes.length > 0) {
+            traverseNodes(node.childNodes);
+          }
+        }
+      }
+    };
 
-  //   if (highlights.length <= alerts.length) {
-  //     // console.log('--->>> Highlights highlights = ', highlights);
+    traverseNodes(elementChildNodes);
 
-  //     const canvas: HTMLCanvasElement = canvasRef.current;
+    console.log('Highlights highlights = ', highlights);
 
-  //     if (canvas && canvas.getContext) {
-  //       const context: CanvasRenderingContext2D | null =
-  //         canvas.getContext('2d');
+    if (highlights.length <= alerts.length) {
+      const canvas: HTMLCanvasElement = canvasRef.current;
 
-  //       // console.log('Highlights context = ', context);
+      if (canvas && canvas.getContext) {
+        const context: CanvasRenderingContext2D | null =
+          canvas.getContext('2d');
 
-  //       if (context) {
-  //         //Clear the whole canvas first
-  //         context.clearRect(0, 0, canvas.width, canvas.height);
+        if (context) {
+          //Clear the whole canvas first
+          context.clearRect(0, 0, canvas.width, canvas.height);
 
-  //         //Draw a rectangle for each highlight
-  //         highlights.forEach((highlight) => {
-  //           context.fillStyle = `${getColor(highlight.data.category)}`;
-  //           const highlightRect = highlight.rect;
-  //           const rectToRender: DOMRect = {
-  //             x: highlightRect.x - elementRect.x,
-  //             y: highlightRect.y - canvas.offsetTop + highlightRect.height,
-  //             width: highlightRect.width,
-  //             height: 2,
-  //           } as DOMRect;
+          //Draw a rectangle for each highlight
+          highlights.forEach((highlight) => {
+            context.fillStyle = `${getColor(highlight.data.category)}`;
+            const highlightRect = highlight.rect;
 
-  //           context.fillRect(
-  //             rectToRender.x,
-  //             rectToRender.y,
-  //             rectToRender.width,
-  //             rectToRender.height
-  //           );
-  //         });
-  //       }
-  //     } else {
-  //       //TODO Provide Canvas Fallback content?
-  //       //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
-  //     }
-  //   }
-  // }, [elementRect, elementChildNodes, alerts]);
+            const rectToRender: DOMRect = {
+              x: highlightRect.x - elementRect.x,
+              y: highlightRect.y - elementRect.y + highlightRect.height,
+              width: highlightRect.width,
+              height: 2,
+            } as DOMRect;
+
+            // console.log('Highlights rectToRender = ', rectToRender);
+
+            context.fillRect(
+              rectToRender.x,
+              rectToRender.y,
+              rectToRender.width,
+              rectToRender.height
+            );
+          });
+        }
+      } else {
+        //TODO Provide Canvas Fallback content?
+        //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
+      }
+    }
+  }, [elementRect, elementChildNodes, alerts, elementScroll]);
 
   return (
     <canvas
@@ -188,7 +198,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           left: `${elementRect.left}px`,
           pointerEvents: 'none',
           zIndex: 999999999,
-          outline: '3px solid blue',
+          // outline: '3px solid blue',
         } as React.CSSProperties
       }
       width={elementRect.width}

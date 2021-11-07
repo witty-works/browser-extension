@@ -7,7 +7,7 @@ import Input from './Input';
 import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import { setBaseURL } from '../shared/ApiServices/requests';
 import { DEV_ENV } from '../shared/constants';
-import { isInputElement } from '../shared/utils';
+import { isInputElement, elementExistsinDOM } from '../shared/utils';
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
@@ -93,6 +93,22 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     console.log('ContentScriptApp INPUTS = ', inputs);
   }, [inputs]);
+
+  //Check if tracked inputs are still visible
+  //If not, remove it from the list of inputs.
+  //That way the highlights are also removed
+  const mutationObserver = new MutationObserver(() => {
+    inputsRef.current.forEach((input: CustomInputElement) => {
+      if (!elementExistsinDOM(input))
+        setInputs([
+          ...inputsRef.current.filter(
+            (filterInput: CustomInputElement) => filterInput !== input
+          ),
+        ]);
+    });
+  });
+
+  mutationObserver.observe(document.body, { childList: true, subtree: true });
 
   return (
     <>

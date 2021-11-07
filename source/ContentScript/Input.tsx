@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import TextAreaClone from './TextAreaClone';
-import Highlights from './Highlights';
+import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { DEV_ENV } from '../shared/constants';
@@ -15,15 +15,20 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [clone, setClone] = useState<HTMLDivElement>();
   const elementRect = useResizeObserver(element);
+  const [elementScroll, setElementScroll] = useState<ScrollPos>(
+    {} as ScrollPos
+  );
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
+    element.addEventListener('scroll', handleScrollEvent, true);
     // element.addEventListener('click', handleClickElement);
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
+      element.removeEventListener('scroll', handleScrollEvent);
       // element.removeEventListener('click', handleClickElement);
     };
   }, []);
@@ -36,6 +41,13 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
         : fixLineBreaks(target.innerText);
 
     sendText(text);
+  };
+
+  const handleScrollEvent = (event: Event) => {
+    //TODO add throttle
+    const target = event.target as CustomInputElement;
+    console.log('handleScrollEvent target.scrollTop = ', target.scrollTop);
+    setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
   };
 
   /*const handleClickElement = (event: Event) => {
@@ -160,6 +172,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
       {loading ? <HighlightsLoader elementReference={element} /> : null}
       {alerts.length > 0 ? (
         <Highlights
+          elementScroll={elementScroll}
           elementRect={elementRect}
           elementChildNodes={
             (
