@@ -22,17 +22,22 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ./node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.lock') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install dependencies
         if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: |
           yarn install
 
-      - name: Enable development mode
+      - name: Disable development mode
         run: |
-           sed 's/export const DEV_ENV = .*$/export const DEV_ENV = true;/' source/shared/constants.ts > constants.ts
+           sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
            mv constants.ts source/shared/constants.ts
+
+      - name: Enable ID generation
+        run: |
+           sed 's/let disableID:boolean = true;/let disableID:boolean = false;/' source/Background/index.ts > index.ts
+           mv index.ts source/Background/index.ts
 
       - name: Build artifacts
         run: |
@@ -52,30 +57,23 @@ jobs:
           path: |
             extension/firefox.xpi
 
-      - name: Limit content scripts to "https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/form"
+      - name: Enable development mode
         run: |
-           sed ':a;N;$!ba;s_http://\*/\*_TODELETE_2' source/manifest.json > manifest.json
-           sed -i '/TODELETE/d' manifest.json
-           sed ':a;N;$!ba;s_https://\*/\*_https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/form_2' manifest.json > source/manifest.json
-           rm manifest.json
-
-      - name: Disable development mode
-        run: |
-           sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
+           sed 's/export const DEV_ENV = .*$/export const DEV_ENV = true;/' source/shared/constants.ts > constants.ts
            mv constants.ts source/shared/constants.ts
 
-      - name: Enable ID generation
+      - name: Disable ID generation
         run: |
-           sed 's/let disableID:boolean = true;/let disableID:boolean = false;/' source/Background/index.ts > index.ts
+           sed 's/let disableID:boolean = false;/let disableID:boolean = true;/' source/Background/index.ts > index.ts
            mv index.ts source/Background/index.ts
 
       - name: Build artifacts
         run: |
           yarn run build:chrome
 
-      - name: Store Chrome artifacts
+      - name: Store Chrome Development artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: witty-works-inclusifier
+          name: chrome-dev
           path: |
             extension/chrome

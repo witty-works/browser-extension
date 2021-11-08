@@ -10,7 +10,6 @@ export enum StorageKeys {
 
 //API endpoints
 export enum BaseUrls {
-  MAIN_PLATFORMSH = 'https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/',
   API_PLATFORMSH = 'https://api.witty.works/',
   DEV_PLATFORMSH = 'https://dev-54ta5gq-qh3uq7skrqxzg.de-2.platformsh.site/',
   WITTY_LOCAL = 'http://127.0.0.1:8000/',
