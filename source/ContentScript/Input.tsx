@@ -24,7 +24,8 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
-  const [clone, setClone] = useState<HTMLDivElement>();
+  // const [clone, setClone] = useState<HTMLDivElement>();
+  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const elementRect = useResizeObserver(element);
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
@@ -72,7 +73,10 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
 
       const oneNodeWithAlerts = nodeAlerts.find(
         (nodeWithAlerts: INodeWithAlerts) =>
-          nodeWithAlerts.node.parentNode === target //TODO potentially this can fail
+          //TODO potentially this acces to parentNode could fail
+          isTextArea(target)
+            ? nodeWithAlerts.node.parentNode === cloneRef.current
+            : nodeWithAlerts.node.parentNode === target
       );
 
       if (oneNodeWithAlerts) {
@@ -94,6 +98,9 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
             alert: selectedAlert,
             position: clickedRect,
             node: oneNodeWithAlerts.node,
+            originalNode: isTextArea(target)
+              ? (target as HTMLTextAreaElement)
+              : null,
           });
           toggleModal();
         }

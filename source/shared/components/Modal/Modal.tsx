@@ -13,6 +13,7 @@ export interface ModalData {
   alert: IAlert;
   position: DOMRect;
   node: HTMLElement;
+  originalNode: HTMLTextAreaElement | null;
 }
 interface ModalProps {
   isOpen: boolean;
@@ -103,6 +104,7 @@ const Modal: React.FC<ModalProps> = ({
     //they will keep highlighted
 
     const text = data.node.nodeValue;
+
     const splitText: string[] = text?.split('') as string[];
     splitText.splice(
       data.alert.startOffset,
@@ -110,7 +112,10 @@ const Modal: React.FC<ModalProps> = ({
       index === -1 ? '' : data.alert.data.alternatives[index]
     );
     const textToInsert = splitText.join('');
-    data.node.nodeValue = textToInsert;
+
+    data.originalNode
+      ? (data.originalNode.value = textToInsert)
+      : (data.node.nodeValue = textToInsert);
 
     //Close Modal
     hide();
