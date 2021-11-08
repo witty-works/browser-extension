@@ -1,13 +1,16 @@
 import React from 'react';
+import { ScrollPos } from './Highlights';
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
   elementRect: DOMRect;
+  elementScroll: ScrollPos;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
   elementRect,
+  elementScroll,
   updateClone,
 }: TextAreaCloneProps) => {
   const elementStyle = window.getComputedStyle(element);
@@ -26,8 +29,8 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top}px`, //TODO would work define scrollTop property and not substract it here?
-          left: `${elementRect.left}px`,
+          top: `${elementRect.top - elementScroll.top}px`, //TODO would work define scrollTop property and not substract it here?
+          left: `${elementRect.left - elementScroll.left}px`,
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
@@ -40,8 +43,9 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           fontFamily: elementStyle.fontFamily,
           border: `${elementStyle.borderBottomWidth} solid black`,
           visibility: 'hidden',
-          // zIndex: 1,
           // outline: '5px solid red',
+          // pointerEvents: 'none',
+          // zIndex: 1,
           // top: `${
           //   elementBoundingClientRect.top -
           //   element.scrollTop +

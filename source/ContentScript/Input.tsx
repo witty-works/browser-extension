@@ -26,9 +26,10 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   );
   const [clone, setClone] = useState<HTMLDivElement>();
   const elementRect = useResizeObserver(element);
-  const [elementScroll, setElementScroll] = useState<ScrollPos>(
-    {} as ScrollPos
-  );
+  const [elementScroll, setElementScroll] = useState<ScrollPos>({
+    top: 0,
+    left: 0,
+  } as ScrollPos);
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -59,19 +60,10 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   const handleScrollEvent = (event: Event) => {
     //TODO add throttle
     const target = event.target as CustomInputElement;
-    console.log('handleScrollEvent target.scrollTop = ', target.scrollTop);
     setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
   };
 
   const handleClickElement = (event: Event) => {
-    // const target: CustomInputElement = (
-    //   event.target instanceof HTMLTextAreaElement
-    //     ? event.target
-    //     : (event.composedPath && event.composedPath()).find(
-    //         (element) => (element as HTMLDivElement).contentEditable === 'true'
-    //       )
-    // ) as CustomInputElement;
-
     const target = event.target as CustomInputElement;
     const caretPosition: number = getInputClickedPosition(target);
 
@@ -155,7 +147,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
       if (isTextArea(element))
         setNodesWithAlerts([
           {
-            node: clone,
+            node: clone?.firstChild,
             alerts: alerts.map((alert: IAlert) => ({
               ...alert,
               originalStartOffset: alert.startOffset,
@@ -164,13 +156,9 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
           },
         ]);
       else {
-        console.log('Input checkEndpointResponse = ', alerts);
-        console.log('Input element.childNodes = ', element.childNodes);
-
         const nodesWithAlertsTemp: INodeWithAlerts[] =
           getNodesWithRecalculatedAlerts(element.childNodes, alerts);
 
-        console.log('Input nodesWithAlertsTemp = ', nodesWithAlertsTemp);
         setNodesWithAlerts(nodesWithAlertsTemp);
       }
     }
@@ -266,6 +254,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
         <TextAreaClone
           element={element}
           elementRect={elementRect}
+          elementScroll={elementScroll}
           updateClone={updateTextAreaCloneData}
         />
       ) : null}

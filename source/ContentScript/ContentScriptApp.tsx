@@ -27,18 +27,18 @@ const ContentScriptApp: React.FC = () => {
       })
       .catch(onBrowserStorageError);
 
-    const section = document.querySelector('section');
-    const newEditableDiv: HTMLDivElement = document.createElement(
-      'DIV'
-    ) as HTMLDivElement;
-    newEditableDiv.id = 'div-editable';
-    newEditableDiv.contentEditable = 'true';
-    newEditableDiv.style.backgroundColor = 'white';
-    // newEditableDiv.style.width = '600px';
-    newEditableDiv.style.height = '150px';
-    newEditableDiv.style.padding = '10px';
-    newEditableDiv.style.overflow = 'auto';
-    if (section) section.appendChild(newEditableDiv);
+    // const section = document.querySelector('section');
+    // const newEditableDiv: HTMLDivElement = document.createElement(
+    //   'DIV'
+    // ) as HTMLDivElement;
+    // newEditableDiv.id = 'div-editable';
+    // newEditableDiv.contentEditable = 'true';
+    // newEditableDiv.style.backgroundColor = 'white';
+    // // newEditableDiv.style.width = '600px';
+    // newEditableDiv.style.height = '150px';
+    // newEditableDiv.style.padding = '10px';
+    // newEditableDiv.style.overflow = 'auto';
+    // if (section) section.appendChild(newEditableDiv);
 
     //TEMPORAL, create an extra textarea
     // const newTextarea: HTMLTextAreaElement = document.createElement(

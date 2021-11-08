@@ -103,16 +103,13 @@ const Modal: React.FC<ModalProps> = ({
     //they will keep highlighted
 
     const text = data.node.nodeValue;
-    console.log('Modal text = ', text);
     const splitText: string[] = text?.split('') as string[];
-    console.log('Modal splitText = ', splitText);
     splitText.splice(
       data.alert.startOffset,
       data.alert.endOffset - data.alert.startOffset,
       index === -1 ? '' : data.alert.data.alternatives[index]
     );
     const textToInsert = splitText.join('');
-    console.log('Modal textToInsert = ', textToInsert);
     data.node.nodeValue = textToInsert;
 
     //Close Modal

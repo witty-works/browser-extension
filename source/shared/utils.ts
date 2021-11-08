@@ -16,12 +16,19 @@ const convertHTMLToText = (str: string = ''):string => {
 
   // Ensure string.
   let value: string = String(str);
-  console.log('aaa str = ', value);
+  // console.log('convertHTMLToText value 0',value);
+
+  //remove all html attributes
+  // value = value.replace(/<([a-z][a-z0-9]*)[^>]*?(\/?)>/gsi, '');
+  // console.log('convertHTMLToText value 1',value);
 
 
   // Convert encoding.
   value = value.replace(/&nbsp;/gi, ' ');
   value = value.replace(/&amp;/gi, '&');
+
+  // Replace `<p><br></p>`.
+  // value = value.replace(/<p><br><\/p>/gi, '\n');
 
   // Replace `<br>`.
   value = value.replace(/<br>/gi, '\n');
@@ -46,13 +53,13 @@ const convertHTMLToText = (str: string = ''):string => {
   //Element's innerHTML does not provide the correct spacing when there are line-breaks.
   //(e.g. <div><br></div> provides two spaces when transformed to string)
   //So we need a specific fix for that
-  value = value.replace(/(\n+)/g, ($1) =>  new Array(Math.ceil($1.length/2)).fill('\n',0).join(''));
+  // value = value.replace(/(\n+)/g, ($1) =>  new Array(Math.ceil($1.length/2)).fill('\n',0).join(''));
 
   // Clean up spaces.
   value = value.replace(/[ ]+/g, ' ');
   value = value.trim();
 
-  console.log('aaa value = ', value);
+  // console.log('convertHTMLToText value FINAL',value);
 
 
   // Expose string.
@@ -67,7 +74,8 @@ const fixLineBreaks = (str: string = ''):string => {
   //Element's innerHTML does not provide the correct spacing when there are line-breaks.
   //(e.g. <div><br></div> provides two spaces when transformed to string)
   //So we need a specific fix for that
-  value = value.replace(/(\n+)/g, ($1) =>  new Array(Math.ceil($1.length/2)).fill('\n',0).join(''));
+  value = value.replace(/(\n+)/g, ($1) => new Array(Math.ceil($1.length/2)).fill('\n',0).join(''));
+
 
   // Expose string.
   return value;
