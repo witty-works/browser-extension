@@ -12,19 +12,21 @@ import './Modal.scss';
 export interface ModalData {
   alert: IAlert;
   position: DOMRect;
+  node: HTMLElement;
+  originalNode: HTMLTextAreaElement | null;
 }
 interface ModalProps {
   isOpen: boolean;
   data: ModalData;
   hide: () => void;
-  switchAlternative: (index: number) => void;
+  resendText: () => void;
 }
 
 const Modal: React.FC<ModalProps> = ({
   isOpen,
   data,
   hide,
-  switchAlternative,
+  resendText,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   const [, logResponse, logError, sendAlternative] = useLogEndpoint();
@@ -93,12 +95,33 @@ const Modal: React.FC<ModalProps> = ({
     sendAlternative({
       text: data.alert.data.text,
       alternative: index === -1 ? '' : data.alert.data.alternatives[index],
-      start: data.alert.startOffset,
-      end: data.alert.endOffset,
+      start: data.alert.originalStartOffset,
+      end: data.alert.originalEndOffset,
     } as IAlternative);
 
-    //switch alternative on text
-    switchAlternative(index);
+    //Replace text with the new alternative or simply remove it
+    //This only replaces the specific occurrence. If there are other identical terms in the text
+    //they will keep highlighted
+
+    const text = data.node.nodeValue;
+
+    const splitText: string[] = text?.split('') as string[];
+    splitText.splice(
+      data.alert.startOffset,
+      data.alert.endOffset - data.alert.startOffset,
+      index === -1 ? '' : data.alert.data.alternatives[index]
+    );
+    const textToInsert = splitText.join('');
+
+    data.originalNode
+      ? (data.originalNode.value = textToInsert)
+      : (data.node.nodeValue = textToInsert);
+
+    //Close Modal
+    hide();
+
+    //Send again all the text to recalculate highlight positions
+    resendText();
   };
 
   const clickAccept = () => {
