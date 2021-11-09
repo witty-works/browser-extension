@@ -20,6 +20,7 @@ export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(BaseUrls)[0]
 
 //COLORS
 export enum Colors {
+  default = '#e9dbb2',
   gendered_roles = '#e9dbb2',
   gendered_roles_hierachy = '#e9dbb2',
   gendered_roles_image = '#e9dbb2',
@@ -54,7 +55,7 @@ export enum Colors {
   green = '#06D6A0',
 }
 
-export const getColor = (color:string):string => (<any>Colors)[color];
+export const getColor = (color:string):string => (color in Colors) ? (<any>Colors)[color]:Colors.default;
 
 const adjustColor = (color:string, amount: number) => {
   return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
