@@ -6,7 +6,8 @@
   "icons": {
     "16": "assets/icons/icon16.png",
     "32": "assets/icons/icon32.png",
-    "48": "assets/icons/icon48.png"
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
   },
   "description": "Inclusive writing, anywhere and real time - Witty",
   "homepage_url": "https://witty.works",
@@ -72,7 +73,6 @@
     ]
   }],
   "web_accessible_resources": [
-    "assets/icons/favicon-16x16-diversifier.png",
-    "assets/icons/ww-wire-logo.svg"
+    "assets/icons/w-logo-wire-color.svg"
   ]
 }

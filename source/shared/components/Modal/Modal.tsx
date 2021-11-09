@@ -224,7 +224,7 @@ const Modal: React.FC<ModalProps> = ({
             <img
               className='icon'
               src={browser.runtime.getURL(
-                '../../../assets/icons/ww-wire-logo.svg'
+                '../../../assets/icons/w-logo-wire-color.svg'
               )}
             />
           </div>
