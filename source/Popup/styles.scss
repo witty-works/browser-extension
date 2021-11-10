@@ -2,29 +2,31 @@
 @import "../styles/reset";
 @import "../styles/variables";
 
+
 body {
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: $lato;
   color: $black;
-  background-color: $greyWhite;
 }
 
-#popup {
-  min-width: 400px;
-  padding-bottom: 1rem;
+#popup-root {
+  min-width: 300px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  width: 50%;
-  margin: 0 auto;
+  justify-content:space-around;
+}
 
-  h2 {
-    font-size: 25px;
-    text-align: center;
-    background-color: $grey;
-    padding: 1rem 1rem 1rem 0;
-  }
+header {
+  padding: 1rem 1rem 0 1rem;
+}
 
-  div {
-    padding: 0.5rem 1rem 0;
+section {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content:space-around;
+
+h2 {
+    font-weight: 700;
   }
 }
+

@@ -223,6 +223,7 @@ const Modal: React.FC<ModalProps> = ({
           <div className='row'>
             <img
               className='icon'
+              alt='Witty Works Logo'
               src={browser.runtime.getURL(
                 '../../../assets/icons/w-logo-wire-color.svg'
               )}

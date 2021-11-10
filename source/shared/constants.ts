@@ -52,7 +52,12 @@ export enum Colors {
   workload_biased_requirements = '#9489DB',
   ethnicity_biased_requirements = '#9489DB',
   age_biased_requirements = '#9489DB',
-  green = '#06D6A0',
+  red = '#F06464',
+  magenta = '#F277D0',
+  purple = '#9489DB',
+  blue  ='#55B8E9',
+  cyan = '#37D1E5',
+  green = '#5ACFB9',
 }
 
 export const getColor = (color:string):string => (color in Colors) ? (<any>Colors)[color]:Colors.default;

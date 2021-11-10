@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ApiSelector from './ApiSelector';
 import Toggle from '../shared/components/Toggle/Toggle';
-import { DEV_ENV, Colors, StorageKeys } from '../shared/constants';
+import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
 import { browser } from 'webextension-polyfill-ts';
 
 import './styles.scss';
@@ -36,17 +36,39 @@ const Popup: React.FC = () => {
   };
 
   return (
-    <section id='popup'>
-      <h2>Witty Works - Sprache bewegt</h2>
-      <Toggle
-        on={enabled}
-        handleToggle={() => setEnabled(!enabled)}
-        color={Colors.green}
-        scale={0.5}
-        label={`${manifest.name} aktivieren`}
-      />
-      {DEV_ENV ? <ApiSelector /> : null}
-    </section>
+    <>
+      <header>
+        <h1>
+          <img
+            className='icon'
+            alt='Witty Works Logo'
+            width='100'
+            height='15'
+            src={browser.runtime.getURL('../assets/icons/witty-logo-color.svg')}
+          />
+        </h1>
+      </header>
+      <hr></hr>
+      <section>
+        <h2>Einstellung</h2>
+        <Toggle
+          on={enabled}
+          handleToggle={() => setEnabled(!enabled)}
+          color={Colors.green}
+          scale={0.35}
+          label={`${manifest.name} aktivieren`}
+        />
+      </section>
+      {DEV_ENV ? (
+        <>
+          <hr></hr>
+          <section>
+            <h2>Entwicklung Einstellungen</h2>
+            <ApiSelector />
+          </section>
+        </>
+      ) : null}
+    </>
   );
 };
 
