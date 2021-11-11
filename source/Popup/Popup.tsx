@@ -7,7 +7,7 @@ import { browser } from 'webextension-polyfill-ts';
 import './styles.scss';
 
 const Popup: React.FC = () => {
-  const [enabled, setEnabled] = useState<boolean>(false);
+  const [enabled, setEnabled] = useState<boolean>(true);
 
   const manifest = browser.runtime.getManifest();
 
