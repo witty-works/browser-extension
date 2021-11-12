@@ -4,13 +4,17 @@ const isObjectEmpty = (obj: object) =>
    obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype;
 
 
-const isInputElement = (element: CustomInputElement) =>
-    element instanceof HTMLTextAreaElement ||
-    element instanceof HTMLInputElement ||
-    (element instanceof HTMLDivElement && element.isContentEditable)
-
 const isTextArea = (element: CustomInputElement) =>
     element instanceof HTMLTextAreaElement
+
+const isInputText = (element: CustomInputElement) =>
+    element instanceof HTMLInputElement && element.type === 'text'
+
+//Ignore anything that is not a TextArea, an Input type=text or a contenteditable
+const isInputElement = (element: CustomInputElement) =>
+    isTextArea(element) ||
+    isInputText(element) ||
+    element.isContentEditable
 
 const convertHTMLToText = (str: string = ''):string => {
 
@@ -101,6 +105,7 @@ export {
   isObjectEmpty,
   isInputElement,
   isTextArea,
+  isInputText,
   convertHTMLToText,
   convertTextToHTML,
   fixLineBreaks,

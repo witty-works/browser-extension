@@ -11,7 +11,6 @@ import { isInputElement, elementExistsinDOM } from '../shared/utils';
 
 const ContentScriptApp: React.FC = () => {
   const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
-  // const [inputs, setInputs] = useState<CustomInputElement[]>([]);
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
   );
@@ -84,15 +83,16 @@ const ContentScriptApp: React.FC = () => {
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
 
-    //Ignore anything that is not a TextArea or a contentEditable element
     if (isInputElement(target))
       if (!inputsRef.current.includes(target))
         setInputs([...inputsRef.current, target]);
   };
 
-  useEffect(() => {
-    console.log('ContentScriptApp INPUTS = ', inputs);
-  }, [inputs]);
+  if (DEV_ENV) {
+    useEffect(() => {
+      console.log('ContentScriptApp INPUTS = ', inputs);
+    }, [inputs]);
+  }
 
   //Check if tracked inputs are still visible
   //If not, remove it from the list of inputs.
