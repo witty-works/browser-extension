@@ -1,18 +1,15 @@
 import React from 'react';
-import { ScrollPos } from './Highlights';
-interface TextAreaCloneProps {
-  element: HTMLTextAreaElement;
+interface InputTextCloneProps {
+  element: HTMLInputElement;
   elementRect: DOMRect;
-  elementScroll: ScrollPos;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
-const TextAreaClone: React.FC<TextAreaCloneProps> = ({
+const InputTextClone: React.FC<InputTextCloneProps> = ({
   element,
   elementRect,
-  elementScroll,
   updateClone,
-}: TextAreaCloneProps) => {
+}: InputTextCloneProps) => {
   const elementStyle = window.getComputedStyle(element);
 
   return (
@@ -29,8 +26,8 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top - elementScroll.top}px`,
-          left: `${elementRect.left - elementScroll.left}px`,
+          top: `${elementRect.top}px`,
+          left: `${elementRect.left}px`,
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
@@ -60,4 +57,4 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   );
 };
 
-export default TextAreaClone;
+export default InputTextClone;

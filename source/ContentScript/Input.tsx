@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import TextAreaClone from './TextAreaClone';
+import InputTextClone from './InputTextClone';
 import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
@@ -11,7 +12,7 @@ import {
   IAlertContentData,
   INodeWithAlerts,
 } from '../shared/types';
-import { fixLineBreaks, isTextArea } from '../shared/utils';
+import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
@@ -50,9 +51,10 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
 
   const handleKeyupEvent = (event: Event) => {
     const target = event.target as CustomInputElement;
+
     const text: string =
-      target instanceof HTMLTextAreaElement
-        ? target.value
+      isTextArea(target) || isInputText(target)
+        ? (target as HTMLTextAreaElement | HTMLInputElement).value
         : fixLineBreaks(target.innerText);
 
     sendText(text);
@@ -74,7 +76,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
       const oneNodeWithAlerts = nodeAlerts.find(
         (nodeWithAlerts: INodeWithAlerts) =>
           //TODO potentially this acces to parentNode could fail
-          isTextArea(target)
+          isTextArea(target) || isInputText(target)
             ? nodeWithAlerts.node.parentNode === cloneRef.current
             : nodeWithAlerts.node.parentNode === target
       );
@@ -98,9 +100,10 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
             alert: selectedAlert,
             position: clickedRect,
             node: oneNodeWithAlerts.node,
-            originalNode: isTextArea(target)
-              ? (target as HTMLTextAreaElement)
-              : null,
+            originalNode:
+              isTextArea(target) || isInputText(target)
+                ? (target as HTMLTextAreaElement)
+                : null,
           });
           toggleModal();
         }
@@ -109,8 +112,9 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   };
 
   const getInputClickedPosition = (element: CustomInputElement): number => {
-    if (element instanceof HTMLTextAreaElement) {
-      return element.selectionStart;
+    if (isTextArea(element) || isInputText(element)) {
+      return (element as HTMLTextAreaElement | HTMLInputElement)
+        .selectionStart as number;
     } else {
       const selection: Selection | null = document.getSelection();
 
@@ -151,7 +155,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
           return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
         });
 
-      if (isTextArea(element))
+      if (isTextArea(element) || isInputText(element))
         setNodesWithAlerts([
           {
             node: clone?.firstChild,
@@ -165,7 +169,6 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
       else {
         const nodesWithAlertsTemp: INodeWithAlerts[] =
           getNodesWithRecalculatedAlerts(element.childNodes, alerts);
-
         setNodesWithAlerts(nodesWithAlertsTemp);
       }
     }
@@ -230,15 +233,13 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
 
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
-      // Error!
       if (DEV_ENV) console.log('API Error = ', checkEndpointError);
       if (checkEndpointError.detail === 'Language could not be determined')
-        // setAlerts([]);
         setNodesWithAlerts([]);
     }
   }, [checkEndpointError]);
 
-  const updateTextAreaCloneData = (clone: HTMLDivElement) => {
+  const updateCloneData = (clone: HTMLDivElement) => {
     setClone(clone);
   };
 
@@ -248,8 +249,8 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
 
   const resendText = () => {
     const text: string =
-      element instanceof HTMLTextAreaElement
-        ? element.value
+      isTextArea(element) || isInputText(element)
+        ? (element as HTMLTextAreaElement | HTMLInputElement).value
         : fixLineBreaks(element.innerText);
 
     sendText(text);
@@ -257,12 +258,19 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
 
   return (
     <div className='canvas-container'>
-      {element instanceof HTMLTextAreaElement ? (
+      {isTextArea(element) ? (
         <TextAreaClone
-          element={element}
+          element={element as HTMLTextAreaElement}
           elementRect={elementRect}
           elementScroll={elementScroll}
-          updateClone={updateTextAreaCloneData}
+          updateClone={updateCloneData}
+        />
+      ) : null}
+      {isInputText(element) ? (
+        <InputTextClone
+          element={element as HTMLInputElement}
+          elementRect={elementRect}
+          updateClone={updateCloneData}
         />
       ) : null}
       {loading ? <HighlightsLoader elementReference={element} /> : null}

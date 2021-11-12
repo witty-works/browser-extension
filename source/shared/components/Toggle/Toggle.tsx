@@ -18,7 +18,12 @@ const Toggle: React.FC<ToggleProps> = ({
   label,
 }: ToggleProps) => {
   return (
-    <div className='toggle-container'>
+    <div
+      className='toggle-container'
+      style={{
+        height: `${50 * scale}px`,
+      }}
+    >
       <label className='toggle-label'>{label}:</label>
       <input
         checked={on}
