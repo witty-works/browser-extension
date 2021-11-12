@@ -106,6 +106,7 @@ module.exports = {
           {
             loader: 'css-loader', // Takes the CSS files and returns the CSS with imports and url(...) for Webpack
             options: {
+              url: false, //when set to true (default) things like "background-image: url("../assets/bkg/bkg-gradient.jpg")" fail...
               sourceMap: true,
             },
           },
