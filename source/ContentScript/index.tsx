@@ -9,9 +9,10 @@ document.body.appendChild(document.createElement('witty-code'));
 
 //get extension enable status
 browser.storage.local
-  .get(StorageKeys.ENABLED)
+  .get(StorageKeys.APP_ENABLED)
   .then((result) => {
-    if (result[StorageKeys.ENABLED]) customRender(result[StorageKeys.ENABLED]);
+    if (result[StorageKeys.APP_ENABLED])
+      customRender(result[StorageKeys.APP_ENABLED]);
   })
   .catch((error: string) => {
     if (DEV_ENV) console.log('onError = ', error);
@@ -22,7 +23,7 @@ const storageChange = (changes: any) => {
 
   for (let item of changedItems) {
     switch (item) {
-      case StorageKeys.ENABLED:
+      case StorageKeys.APP_ENABLED:
         customRender(changes[item].newValue);
         break;
     }
