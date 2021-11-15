@@ -6,10 +6,6 @@ import defaultConfig from "../witty.config.json";
 
 type DefaultConfigValue = string | boolean | string[] | (() => string);
 
-//Generate unique ID if it's no already defined
-//TODO move it to witty.config.json
-let disableID:boolean = false;
-
 const onSave = (key: string, value: DefaultConfigValue) => {
   if (DEV_ENV) console.log(`Key *${key}* with value *${value}* saved correctly in local storage`);
 };
@@ -58,7 +54,8 @@ const setSettings = () => {
   }
 
   //Set ID if we are not in DEV mode
-  if(!disableID) setInLocalStorage(StorageKeys.APP_ID, getRandomToken)
+  if(defaultConfig.APP_ID_ENABLED) setInLocalStorage(StorageKeys.APP_ID, getRandomToken)
+
 }
 
 setSettings();
