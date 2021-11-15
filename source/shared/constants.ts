@@ -4,8 +4,11 @@ export const DEV_ENV = process.env.NODE_ENV === 'development';
 //Storage
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
-  UNIQUE_ID = 'id',
-  ENABLED = 'enabled'
+  APP_ID = 'id',
+  APP_ENABLED = 'enabled',
+  PRIMARY_LANGUAGE = 'primaryLanguage',
+  PREFERRED_LANGUAGES = 'preferredLanguages',
+  GERMAN_GENDER_ENDING = 'germanGenderEnding'
 }
 
 //API endpoints
@@ -67,3 +70,24 @@ const adjustColor = (color:string, amount: number) => {
 }
 
 export const getDarkerColor = (color: string) => adjustColor(getColor(color),-80);
+
+export enum Languages {
+  en_GB = 'British English',
+  en_US = 'American English',
+  en_AU = 'Australian English',
+  en_NZ = 'New Zeland English',
+  en_SA = 'South African English',
+  en_CA = 'Canadian English',
+  de_DE = 'German',
+  de_AT = 'Austrian German',
+  de_CH = 'Swiss German',
+}
+
+export enum GermanGenderEndings {
+  slash_in = '/in',
+  slash_dash_in = '/-in',
+  underscore_in = '_in',
+  asterisk_in = '*in',
+  colon_in = ':in',
+  uppercase_in = 'In',
+}

@@ -11,8 +11,10 @@ export const setBaseURL = (urlKey: string) => BASE_URL = BaseUrls[urlKey as keyo
 let appID:string = '';
 
 //Get Extension Unique ID
+//If StorageKeys.APP_ID does not exist (e.g. we are in DEV mode) appID will be undefined
+//and will not be sent in the options
 browser.storage.local
-  .get(StorageKeys.UNIQUE_ID)
+  .get(StorageKeys.APP_ID)
   .then((result) => {
     appID = result.id;
   })

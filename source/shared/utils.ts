@@ -3,6 +3,8 @@ import { CustomInputElement } from './types';
 const isObjectEmpty = (obj: object) =>
    obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype;
 
+const isFunction = (functionToCheck: Function) =>
+  functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
 const isTextArea = (element: CustomInputElement) =>
     element instanceof HTMLTextAreaElement
@@ -103,6 +105,7 @@ const elementExistsinDOM = (element: HTMLElement):boolean =>  document.body.cont
 
 export {
   isObjectEmpty,
+  isFunction,
   isInputElement,
   isTextArea,
   isInputText,

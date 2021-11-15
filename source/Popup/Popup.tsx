@@ -7,23 +7,23 @@ import { browser } from 'webextension-polyfill-ts';
 import './styles.scss';
 
 const Popup: React.FC = () => {
-  const [enabled, setEnabled] = useState<boolean>(true);
+  const [enabled, setEnabled] = useState<boolean>(false);
 
   const manifest = browser.runtime.getManifest();
 
   useEffect(() => {
     browser.storage.local
-      .get(StorageKeys.ENABLED)
+      .get(StorageKeys.APP_ENABLED)
       .then((result) => {
-        if (result[StorageKeys.ENABLED])
-          setEnabled(result[StorageKeys.ENABLED]);
+        if (result[StorageKeys.APP_ENABLED])
+          setEnabled(result[StorageKeys.APP_ENABLED]);
       })
       .catch(onError);
   }, []);
 
   useEffect(() => {
     browser.storage.local
-      .set({ [StorageKeys.ENABLED]: enabled })
+      .set({ [StorageKeys.APP_ENABLED]: enabled })
       .then(() => {
         if (DEV_ENV)
           console.log(`content script  ${enabled ? 'enabled' : 'disabled'}`);
