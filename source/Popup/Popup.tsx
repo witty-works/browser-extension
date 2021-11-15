@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ApiSelector from './ApiSelector';
+import LanguageSelector from './LanguageSelector';
 import Toggle from '../shared/components/Toggle/Toggle';
 import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
 import { browser } from 'webextension-polyfill-ts';
@@ -58,6 +59,7 @@ const Popup: React.FC = () => {
           scale={0.35}
           label={`${manifest.name} aktivieren`}
         />
+        <LanguageSelector />
       </section>
       {DEV_ENV ? (
         <>

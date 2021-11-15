@@ -25,8 +25,13 @@ section {
   flex-direction: column;
   justify-content:space-around;
 
-h2 {
+  div:not(:last-child) {
+    margin-bottom: 0.8rem;
+  }
+
+  h2 {
     font-weight: 700;
+    margin-bottom: 1rem;
   }
 }
 
