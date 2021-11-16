@@ -5,6 +5,7 @@ import Toggle from '../shared/components/Toggle/Toggle';
 import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
 import { browser } from 'webextension-polyfill-ts';
 import PreferredLanguagesSelector from './PreferedLanguagesSelector';
+import GermanGenderEndSelector from './GermanGenderEndSelector';
 
 import './styles.scss';
 
@@ -62,6 +63,7 @@ const Popup: React.FC = () => {
         />
         <LanguageSelector />
         <PreferredLanguagesSelector />
+        <GermanGenderEndSelector />
       </section>
       {DEV_ENV ? (
         <>

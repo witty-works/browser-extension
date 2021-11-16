@@ -45,8 +45,6 @@ const ApiSelector: React.FC = () => {
         if (DEV_ENV) console.log(`new api endpoint ${value} saved`);
       })
       .catch(onError);
-
-    window.close();
   };
 
   return (

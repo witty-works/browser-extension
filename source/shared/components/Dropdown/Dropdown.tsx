@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 
 import './styles.scss';
 
@@ -18,13 +18,20 @@ const Dropdown: React.FC<DropdownProps> = ({
   options,
   selectedOption,
 }: DropdownProps) => {
+  const [selected, setSelected] = useState<string>('');
+
+  useEffect(() => {
+    setSelected(selectedOption);
+  }, [selectedOption]);
+
   const handleOptionChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    selectedOption = (event.target as HTMLSelectElement).value;
+    const selectedOption = (event.target as HTMLSelectElement).value;
+    setSelected(selectedOption);
     onDropdownChange(selectedOption);
   };
 
   return (
-    <select onChange={handleOptionChange} value={selectedOption}>
+    <select onChange={handleOptionChange} value={selected}>
       {options.map((option) => (
         <option key={option.key} value={option.key}>
           {option.value.length > 42
