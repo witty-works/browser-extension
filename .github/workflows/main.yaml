@@ -64,7 +64,7 @@ jobs:
       - name: Disable ID generation
         run: |
           sed 's/"APP_ID_ENABLED": true,/"APP_ID_ENABLED": false,/' source/witty.config.json > witty.config.json
-          mv index.ts source/Background/index.ts
+          mv witty.config.json source/witty.config.json
 
       - name: Build artifacts
         run: |
