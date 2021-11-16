@@ -1,3 +1,10 @@
+export interface RequestConfig {
+  german_gender_ending: string,
+  preferred_languages: string,
+  preferred_variants: string,
+  primary_language: string
+}
+
 export type CustomInputElement =
   | HTMLTextAreaElement
   | HTMLInputElement

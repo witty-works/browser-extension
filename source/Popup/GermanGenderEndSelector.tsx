@@ -12,7 +12,7 @@ const GermanGenderEndSelector: React.FC = () => {
   useEffect(() => {
     const dropdownOptions: OptionProp[] = Object.keys(GermanGenderEndings).map(
       (key: string) => ({
-        key: key.replace('_', '-'),
+        key,
         value: GermanGenderEndings[key as keyof typeof GermanGenderEndings],
       })
     );
