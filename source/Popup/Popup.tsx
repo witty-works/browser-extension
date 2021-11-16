@@ -4,6 +4,7 @@ import LanguageSelector from './LanguageSelector';
 import Toggle from '../shared/components/Toggle/Toggle';
 import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
 import { browser } from 'webextension-polyfill-ts';
+import PreferredLanguagesSelector from './PreferedLanguagesSelector';
 
 import './styles.scss';
 
@@ -60,6 +61,7 @@ const Popup: React.FC = () => {
           label={`${manifest.name} aktivieren`}
         />
         <LanguageSelector />
+        <PreferredLanguagesSelector />
       </section>
       {DEV_ENV ? (
         <>

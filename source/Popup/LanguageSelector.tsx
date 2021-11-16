@@ -23,10 +23,7 @@ const LanguageSelector: React.FC = () => {
       .get(StorageKeys.PRIMARY_LANGUAGE)
       .then((result) => {
         if (result[StorageKeys.PRIMARY_LANGUAGE])
-          setSelectedOption(
-            result[StorageKeys.PRIMARY_LANGUAGE].replace('_', '-')
-          );
-        //else setSelectedOption(DefaultBaseUrlKey);
+          setSelectedOption(result[StorageKeys.PRIMARY_LANGUAGE]);
       })
       .catch(onError);
   }, []);
@@ -43,13 +40,11 @@ const LanguageSelector: React.FC = () => {
         if (DEV_ENV) console.log(`new language ${value} saved`);
       })
       .catch(onError);
-
-    window.close();
   };
 
   return (
     <div>
-      <label>Select Language:</label>
+      <label>Select Primary Language:</label>
       <Dropdown
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}
