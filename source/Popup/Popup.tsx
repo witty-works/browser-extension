@@ -42,13 +42,17 @@ const Popup: React.FC = () => {
     <>
       <header>
         <h1>
-          <img
-            className='icon'
-            alt='Witty Works Logo'
-            width='100'
-            height='15'
-            src={browser.runtime.getURL('../assets/icons/witty-logo-color.svg')}
-          />
+          <a href='https://www.witty.works/' target='_blank'>
+            <img
+              className='icon'
+              alt='Witty Works Logo'
+              width='100'
+              height='15'
+              src={browser.runtime.getURL(
+                '../assets/icons/witty-logo-color.svg'
+              )}
+            />
+          </a>
         </h1>
       </header>
       <hr></hr>
@@ -74,6 +78,12 @@ const Popup: React.FC = () => {
           </section>
         </>
       ) : null}
+      <footer>
+        {/* <div>Need help?</div> */}
+        <a href='https://www.witty.works/help' target='_blank'>
+          Need Help?
+        </a>
+      </footer>
     </>
   );
 };
