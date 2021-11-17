@@ -8,6 +8,10 @@ body {
   color: $black;
 }
 
+a {
+  color: $black;
+}
+
 #popup-root {
   min-width: 300px;
   display: flex;
@@ -33,5 +37,15 @@ section {
     font-weight: 700;
     margin-bottom: 1rem;
   }
+}
+
+hr {
+  border: 1px solid $greyWhite;
+  margin: 0;
+}
+
+footer{
+  padding: 1rem;
+  background-color: $greyWhite;
 }
 
