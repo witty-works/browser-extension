@@ -1,15 +1,15 @@
-import React, { ChangeEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 
 import './styles.scss';
 
-export interface OptionsProp {
+export interface OptionProp {
   key: string;
   value: string;
 }
 
 export interface DropdownProps {
   onDropdownChange: (value: string) => void;
-  options: OptionsProp[];
+  options: OptionProp[];
   selectedOption: string;
 }
 
@@ -18,16 +18,25 @@ const Dropdown: React.FC<DropdownProps> = ({
   options,
   selectedOption,
 }: DropdownProps) => {
+  const [selected, setSelected] = useState<string>('');
+
+  useEffect(() => {
+    setSelected(selectedOption);
+  }, [selectedOption]);
+
   const handleOptionChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    selectedOption = (event.target as HTMLSelectElement).value;
+    const selectedOption = (event.target as HTMLSelectElement).value;
+    setSelected(selectedOption);
     onDropdownChange(selectedOption);
   };
 
   return (
-    <select onChange={handleOptionChange} value={selectedOption}>
+    <select onChange={handleOptionChange} value={selected}>
       {options.map((option) => (
         <option key={option.key} value={option.key}>
-          {option.value.slice(0, 50).concat('...')}
+          {option.value.length > 42
+            ? option.value.slice(0, 40).concat('...')
+            : option.value}
         </option>
       ))}
     </select>

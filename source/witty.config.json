@@ -1,0 +1,7 @@
+{
+  "APP_ENABLED": true,
+  "APP_ID_ENABLED": false,
+  "PRIMARY_LANGUAGE": "de-DE",
+  "PREFERRED_LANGUAGES": ["de-DE","en-GB"],
+  "GERMAN_GENDER_ENDING":"slash_in"
+}

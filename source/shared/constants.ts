@@ -4,14 +4,18 @@ export const DEV_ENV = process.env.NODE_ENV === 'development';
 //Storage
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
-  UNIQUE_ID = 'id',
-  ENABLED = 'enabled'
+  APP_ID = 'id',
+  APP_ENABLED = 'enabled',
+  PRIMARY_LANGUAGE = 'primaryLanguage',
+  PREFERRED_LANGUAGES = 'preferredLanguages',
+  GERMAN_GENDER_ENDING = 'germanGenderEnding'
 }
 
 //API endpoints
 export enum BaseUrls {
   API_PLATFORMSH = 'https://api.witty.works/',
-  DEV_PLATFORMSH = 'https://dev-54ta5gq-qh3uq7skrqxzg.de-2.platformsh.site/',
+  DEV_PLATFORMSH = 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
+  MAIN_PLATFORMSH = 'https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/',
   WITTY_LOCAL = 'http://127.0.0.1:8000/',
 }
 
@@ -67,3 +71,26 @@ const adjustColor = (color:string, amount: number) => {
 }
 
 export const getDarkerColor = (color: string) => adjustColor(getColor(color),-80);
+
+//Languages Supported
+export enum Languages {
+  en_GB = 'British English',
+  en_US = 'American English',
+  en_AU = 'Australian English',
+  en_NZ = 'New Zeland English',
+  en_SA = 'South African English',
+  en_CA = 'Canadian English',
+  de_DE = 'German',
+  de_AT = 'Austrian German',
+  de_CH = 'Swiss German',
+}
+
+//German Gender Endings
+export enum GermanGenderEndings {
+  slash_in = '/in',
+  slash_dash_in = '/-in',
+  underscore_in = '_in',
+  asterisk_in = '*in',
+  colon_in = ':in',
+  uppercase_in = 'In',
+}

@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -31,13 +30,13 @@ jobs:
 
       - name: Disable development mode
         run: |
-           sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
-           mv constants.ts source/shared/constants.ts
+          sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
 
       - name: Enable ID generation
         run: |
-           sed 's/let disableID:boolean = true;/let disableID:boolean = false;/' source/Background/index.ts > index.ts
-           mv index.ts source/Background/index.ts
+          sed 's/"APP_ID_ENABLED": false,/"APP_ID_ENABLED": true,/' source/witty.config.json > witty.config.json
+          mv witty.config.json source/witty.config.json
 
       - name: Build artifacts
         run: |
@@ -59,13 +58,13 @@ jobs:
 
       - name: Enable development mode
         run: |
-           sed 's/export const DEV_ENV = .*$/export const DEV_ENV = true;/' source/shared/constants.ts > constants.ts
-           mv constants.ts source/shared/constants.ts
+          sed 's/export const DEV_ENV = .*$/export const DEV_ENV = true;/' source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
 
       - name: Disable ID generation
         run: |
-           sed 's/let disableID:boolean = false;/let disableID:boolean = true;/' source/Background/index.ts > index.ts
-           mv index.ts source/Background/index.ts
+          sed 's/"APP_ID_ENABLED": true,/"APP_ID_ENABLED": false,/' source/witty.config.json > witty.config.json
+          mv witty.config.json source/witty.config.json
 
       - name: Build artifacts
         run: |

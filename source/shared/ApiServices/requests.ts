@@ -1,23 +1,15 @@
-import { IRequest, IAlternative } from '../types';
-import { BaseUrls, StorageKeys, DEV_ENV } from '../constants';
-import { browser } from 'webextension-polyfill-ts';
+import { IRequest, IAlternative, RequestConfig } from '../types';
+import { BaseUrls} from '../constants';
 
 let BASE_URL: string = '';
+let appID:string = '';
+let requestConfig:RequestConfig = {} as RequestConfig;
 
 const createUrl = (base: string, path: string): string => `${base}${path}`;
 
 export const setBaseURL = (urlKey: string) => BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls];
-
-let appID:string = '';
-
-//Get Extension Unique ID
-browser.storage.local
-  .get(StorageKeys.UNIQUE_ID)
-  .then((result) => {
-    appID = result.id;
-  })
-  .catch(error => (DEV_ENV) ? console.log('getAppID error = ', error) : null);
-
+export const setRequestConfig = (reqConfig:RequestConfig) => requestConfig = reqConfig;
+export const setAppID = (id: string) => appID = id;
 
 export const getAnalyzedTextResults = (text: string):IRequest => {
   return {
@@ -28,7 +20,7 @@ export const getAnalyzedTextResults = (text: string):IRequest => {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: text ? JSON.stringify({text: text, lang: 'auto', id: appID}) : null
+      body: text ? JSON.stringify({text: text, lang: 'auto', id:appID, config: requestConfig}) : null
     }
   }
 };
@@ -42,7 +34,17 @@ export const logAlternative = (alternative: IAlternative) => {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: alternative.text ? JSON.stringify({text: alternative.text, lang: 'auto', id: appID, alternative: alternative.alternative, start: alternative.start, end: alternative.end}) : null
+      body: alternative.text ? JSON.stringify({
+        text: alternative.text,
+        lang: alternative.language,
+        id: appID,
+        config: requestConfig,
+        type:alternative.type,
+        context: alternative.context,
+        details: alternative.details,
+        start: alternative.start,
+        end: alternative.end})
+        : null
     }
   }
 }

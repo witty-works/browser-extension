@@ -3,53 +3,47 @@ import { browser } from 'webextension-polyfill-ts';
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
 
-import {
-  DEV_ENV,
-  BaseUrls,
-  DefaultBaseUrlKey,
-  StorageKeys,
-} from '../shared/constants';
+import { DEV_ENV, Languages, StorageKeys } from '../shared/constants';
 
-const ApiSelector: React.FC = () => {
+const LanguageSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
 
   useEffect(() => {
-    const dropdownOptions: OptionProp[] = Object.keys(BaseUrls).map(
+    const dropdownOptions: OptionProp[] = Object.keys(Languages).map(
       (key: string) => ({
-        key,
-        value: BaseUrls[key as keyof typeof BaseUrls],
+        key: key.replace('_', '-'),
+        value: Languages[key as keyof typeof Languages],
       })
     );
 
     setDropdownOptions(dropdownOptions);
 
     browser.storage.local
-      .get(StorageKeys.API_ENDPOINT_KEY)
+      .get(StorageKeys.PRIMARY_LANGUAGE)
       .then((result) => {
-        if (result[StorageKeys.API_ENDPOINT_KEY])
-          setSelectedOption(result[StorageKeys.API_ENDPOINT_KEY]);
-        else setSelectedOption(DefaultBaseUrlKey);
+        if (result[StorageKeys.PRIMARY_LANGUAGE])
+          setSelectedOption(result[StorageKeys.PRIMARY_LANGUAGE]);
       })
       .catch(onError);
   }, []);
 
   const onError = (error: string) => {
-    if (DEV_ENV) console.log('ApiSelector onError = ', error);
+    if (DEV_ENV) console.log('LanguageSelector onError = ', error);
   };
 
   const handleDropdownChange = (value: string) => {
     browser.storage.local
-      .set({ [StorageKeys.API_ENDPOINT_KEY]: value })
+      .set({ [StorageKeys.PRIMARY_LANGUAGE]: value })
       .then(() => {
-        if (DEV_ENV) console.log(`new api endpoint ${value} saved`);
+        if (DEV_ENV) console.log(`new language ${value} saved`);
       })
       .catch(onError);
   };
 
   return (
     <div>
-      <label>Select API:</label>
+      <label>Select Primary Language:</label>
       <Dropdown
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}
@@ -59,4 +53,4 @@ const ApiSelector: React.FC = () => {
   );
 };
 
-export default ApiSelector;
+export default LanguageSelector;
