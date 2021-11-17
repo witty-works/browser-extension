@@ -15,6 +15,7 @@ export enum StorageKeys {
 export enum BaseUrls {
   API_PLATFORMSH = 'https://api.witty.works/',
   DEV_PLATFORMSH = 'https://dev-54ta5gq-qh3uq7skrqxzg.de-2.platformsh.site/',
+  MAIN_PLATFORMSH = 'https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/',
   WITTY_LOCAL = 'http://127.0.0.1:8000/',
 }
 
@@ -71,6 +72,7 @@ const adjustColor = (color:string, amount: number) => {
 
 export const getDarkerColor = (color: string) => adjustColor(getColor(color),-80);
 
+//Languages Supported
 export enum Languages {
   en_GB = 'British English',
   en_US = 'American English',
@@ -83,6 +85,7 @@ export enum Languages {
   de_CH = 'Swiss German',
 }
 
+//German Gender Endings
 export enum GermanGenderEndings {
   slash_in = '/in',
   slash_dash_in = '/-in',

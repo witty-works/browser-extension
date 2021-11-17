@@ -1,30 +1,15 @@
 import { IRequest, IAlternative, RequestConfig } from '../types';
-import { BaseUrls, GermanGenderEndings, DEV_ENV } from '../constants';
-import { browser } from 'webextension-polyfill-ts';
+import { BaseUrls} from '../constants';
 
 let BASE_URL: string = '';
+let appID:string = '';
+let requestConfig:RequestConfig = {} as RequestConfig;
 
 const createUrl = (base: string, path: string): string => `${base}${path}`;
 
 export const setBaseURL = (urlKey: string) => BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls];
-
-let appID:string = '';
-const config:RequestConfig = {} as RequestConfig;
-
-//Get App Settings
-browser.storage.local
-  .get(null)
-  .then((result) => {
-    //If StorageKeys.APP_ID does not exist (e.g. we are in DEV mode) appID will be undefined
-    //and will not be sent in the options
-    appID = result.id;
-    config.primary_language = result.primaryLanguage;
-    config.preferred_languages = result.preferredLanguages.map((lang:string) => lang.split('-')[0]).join(',');
-    config.preferred_variants = result.preferredLanguages.join(',');
-    config.german_gender_ending = GermanGenderEndings[result.germanGenderEnding as keyof typeof GermanGenderEndings]
-  })
-  .catch(error => (DEV_ENV) ? console.log('getAppID error = ', error) : null);
-
+export const setRequestConfig = (reqConfig:RequestConfig) => requestConfig = reqConfig;
+export const setAppID = (id: string) => appID = id;
 
 export const getAnalyzedTextResults = (text: string):IRequest => {
   return {
@@ -35,7 +20,7 @@ export const getAnalyzedTextResults = (text: string):IRequest => {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: text ? JSON.stringify({text: text, lang: 'auto', id:appID, config}) : null
+      body: text ? JSON.stringify({text: text, lang: 'auto', id:appID, requestConfig}) : null
     }
   }
 };
@@ -49,7 +34,7 @@ export const logAlternative = (alternative: IAlternative) => {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: alternative.text ? JSON.stringify({text: alternative.text, lang: 'auto', id: appID, config, alternative: alternative.alternative, start: alternative.start, end: alternative.end}) : null
+      body: alternative.text ? JSON.stringify({text: alternative.text, lang: 'auto', id: appID, requestConfig, alternative: alternative.alternative, start: alternative.start, end: alternative.end}) : null
     }
   }
 }
