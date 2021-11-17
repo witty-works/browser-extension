@@ -34,7 +34,17 @@ export const logAlternative = (alternative: IAlternative) => {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: alternative.text ? JSON.stringify({text: alternative.text, lang: 'auto', id: appID, config:requestConfig, alternative: alternative.alternative, start: alternative.start, end: alternative.end}) : null
+      body: alternative.text ? JSON.stringify({
+        text: alternative.text,
+        lang: alternative.language,
+        id: appID,
+        config: requestConfig,
+        type:alternative.type,
+        context: alternative.context,
+        details: alternative.details,
+        start: alternative.start,
+        end: alternative.end})
+        : null
     }
   }
 }
