@@ -1,29 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import ApiSelector from './ApiSelector';
+import LanguageSelector from './LanguageSelector';
 import Toggle from '../shared/components/Toggle/Toggle';
 import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
 import { browser } from 'webextension-polyfill-ts';
+import PreferredLanguagesSelector from './PreferedLanguagesSelector';
+import GermanGenderEndSelector from './GermanGenderEndSelector';
 
 import './styles.scss';
 
 const Popup: React.FC = () => {
-  const [enabled, setEnabled] = useState<boolean>(true);
+  const [enabled, setEnabled] = useState<boolean>(false);
 
   const manifest = browser.runtime.getManifest();
 
   useEffect(() => {
     browser.storage.local
-      .get(StorageKeys.ENABLED)
+      .get(StorageKeys.APP_ENABLED)
       .then((result) => {
-        if (result[StorageKeys.ENABLED])
-          setEnabled(result[StorageKeys.ENABLED]);
+        if (result[StorageKeys.APP_ENABLED])
+          setEnabled(result[StorageKeys.APP_ENABLED]);
       })
       .catch(onError);
   }, []);
 
   useEffect(() => {
     browser.storage.local
-      .set({ [StorageKeys.ENABLED]: enabled })
+      .set({ [StorageKeys.APP_ENABLED]: enabled })
       .then(() => {
         if (DEV_ENV)
           console.log(`content script  ${enabled ? 'enabled' : 'disabled'}`);
@@ -58,6 +61,9 @@ const Popup: React.FC = () => {
           scale={0.35}
           label={`${manifest.name} aktivieren`}
         />
+        <LanguageSelector />
+        <PreferredLanguagesSelector />
+        <GermanGenderEndSelector />
       </section>
       {DEV_ENV ? (
         <>

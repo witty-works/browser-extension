@@ -143,7 +143,10 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
           startOffset: result.start,
           endOffset: result.end,
           data: {
+            language: checkEndpointResponse.language,
             category: result.category,
+            subcategory: result.subcategory,
+            context: result.context,
             text: result.text,
             label: result.label,
             reason: result.reason,

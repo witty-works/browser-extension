@@ -1,3 +1,10 @@
+export interface RequestConfig {
+  german_gender_ending: string,
+  preferred_languages: string,
+  preferred_variants: string,
+  primary_language: string
+}
+
 export type CustomInputElement =
   | HTMLTextAreaElement
   | HTMLInputElement
@@ -16,7 +23,10 @@ export interface IAlert {
   data: IAlertContentData;
 }
 export interface IAlertContentData {
+  language: string,
   category: string;
+  subcategory: string;
+  context: string;
   text: string;
   label: string;
   reason: string;
@@ -26,7 +36,10 @@ export interface IAlertContentData {
 
 export interface IAlternative {
   text: string;
-  alternative: string;
+  language: string,
+  type:string,
+  context: string;
+  details:object,
   start: number;
   end: number;
 }

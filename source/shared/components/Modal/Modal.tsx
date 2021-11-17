@@ -4,9 +4,8 @@ import CSS from 'csstype';
 import { browser } from 'webextension-polyfill-ts';
 
 import { IAlert, IAlternative } from '../../types';
-import { getColor } from '../../constants';
+import { getColor, DEV_ENV } from '../../constants';
 import { useLogEndpoint } from '../../ApiServices/useEndpoint';
-import { DEV_ENV } from '../../constants';
 
 import './Modal.scss';
 export interface ModalData {
@@ -54,10 +53,6 @@ const Modal: React.FC<ModalProps> = ({
     backgroundColor: `${getColor(data.alert.data.category)}`,
   };
 
-  // const AlternativeButtonStyling: CSS.Properties = {
-  //   color: `${getColor(data.alert.data.category)}`,
-  // };
-
   useEffect(() => {
     if (DEV_ENV) console.log('Modal logResponse = ', logResponse);
   }, [logResponse]);
@@ -93,8 +88,13 @@ const Modal: React.FC<ModalProps> = ({
   const clickAlternative = (index: number) => {
     //Log the clicked alternative
     sendAlternative({
+      language: data.alert.data.language,
+      type: 'alternative',
       text: data.alert.data.text,
-      alternative: index === -1 ? '' : data.alert.data.alternatives[index],
+      context: data.alert.data.context,
+      details: {
+        alternative: index === -1 ? '' : data.alert.data.alternatives[index],
+      },
       start: data.alert.originalStartOffset,
       end: data.alert.originalEndOffset,
     } as IAlternative);

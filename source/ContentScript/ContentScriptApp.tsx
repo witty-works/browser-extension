@@ -1,28 +1,61 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CustomInputElement } from '../shared/types';
+import { CustomInputElement, RequestConfig } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
-import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
-import { setBaseURL } from '../shared/ApiServices/requests';
+import {
+  StorageKeys,
+  DefaultBaseUrlKey,
+  GermanGenderEndings,
+} from '../shared/constants';
+import {
+  setBaseURL,
+  setRequestConfig,
+  setAppID,
+} from '../shared/ApiServices/requests';
 import { DEV_ENV } from '../shared/constants';
 import { isInputElement, elementExistsinDOM } from '../shared/utils';
 
 const ContentScriptApp: React.FC = () => {
-  const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
+  // const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
+  const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
+    {} as RequestConfig
+  );
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
   );
 
   useEffect(() => {
-    //Define the Endpoint
+    //Init API requests Config
     browser.storage.local
-      .get(StorageKeys.API_ENDPOINT_KEY)
+      .get(null)
       .then((result) => {
-        if (result[StorageKeys.API_ENDPOINT_KEY])
-          setUrlEndpointKey(result[StorageKeys.API_ENDPOINT_KEY]);
-        else setUrlEndpointKey(DefaultBaseUrlKey);
+        //Set appID
+        setAppID(result[StorageKeys.APP_ID]);
+
+        //Set the Endpoint url
+        setBaseURL(
+          result[StorageKeys.API_ENDPOINT_KEY]
+            ? result[StorageKeys.API_ENDPOINT_KEY]
+            : DefaultBaseUrlKey
+        );
+
+        //Define API requests config
+        const reqConfig: RequestConfig = {
+          german_gender_ending:
+            GermanGenderEndings[
+              result[
+                StorageKeys.GERMAN_GENDER_ENDING
+              ] as keyof typeof GermanGenderEndings
+            ],
+          preferred_languages: result[StorageKeys.PREFERRED_LANGUAGES]
+            .map((lang: string) => lang.split('-')[0])
+            .join(','),
+          preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES].join(','),
+          primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
+        };
+        setReqConfig(reqConfig);
       })
       .catch(onBrowserStorageError);
 
@@ -64,17 +97,40 @@ const ContentScriptApp: React.FC = () => {
     for (let item of changedItems) {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
-          setUrlEndpointKey(changes[item].newValue);
+          setBaseURL(changes[item].newValue);
+          // setUrlEndpointKey(changes[item].newValue);
+          break;
+        case StorageKeys.PRIMARY_LANGUAGE:
+          setReqConfig({
+            ...reqConfigRef.current,
+            primary_language: changes[item].newValue,
+          });
+          break;
+        case StorageKeys.PREFERRED_LANGUAGES:
+          setReqConfig({
+            ...reqConfigRef.current,
+            preferred_languages: changes[item].newValue
+              .map((lang: string) => lang.split('-')[0])
+              .join(','),
+            preferred_variants: changes[item].newValue.join(','),
+          });
+          break;
+        case StorageKeys.GERMAN_GENDER_ENDING:
+          setReqConfig({
+            ...reqConfigRef.current,
+            german_gender_ending:
+              GermanGenderEndings[
+                changes[item].newValue as keyof typeof GermanGenderEndings
+              ],
+          });
           break;
       }
     }
   };
 
   useEffect(() => {
-    if (urlEndpointKey.localeCompare('') !== 0) {
-      setBaseURL(urlEndpointKey);
-    }
-  }, [urlEndpointKey]);
+    setRequestConfig(reqConfig);
+  }, [reqConfig]);
 
   const onBrowserStorageError = (error: string) => {
     if (DEV_ENV) console.log('onBrowserStorage Error = ', error);
