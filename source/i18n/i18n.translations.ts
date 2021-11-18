@@ -25,7 +25,8 @@ export const de = {
     selectPreferredLanguage: 'Gewünschte Sprache',
     selectGermanGenderEnding: 'Deutsch Geschlecht Ende',
     developmentSettings: "Entwicklung Einstellungen",
-    apiEndpoint: 'API Endpoint'
+    apiEndpoint: 'API Endpoint',
+    needHelpQuestionMark: 'Brauchen Sie Hilfe?'
   },
   [namespaces.modal]: {
     insteadTry: 'Stattdessen könnten Sie versuchen...',
@@ -60,7 +61,8 @@ export const en = {
     preferredLanguage: 'Preferred Language',
     germanGenderEnding: 'German Gender Ending',
     developmentSettings: "Development Settings",
-    apiEndpoint: 'API Endpoint'
+    apiEndpoint: 'API Endpoint',
+    needHelpQuestionMark: 'Need Help?'
   },
   [namespaces.modal]: {
     insteadTry: 'Instead, you could try...',
