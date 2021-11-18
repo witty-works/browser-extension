@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
+
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../i18n/i18n.constants';
 
 import {
   DEV_ENV,
@@ -13,6 +16,7 @@ import {
 const ApiSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
+  const { t } = useTranslation(namespaces.pages.popup);
 
   useEffect(() => {
     const dropdownOptions: OptionProp[] = Object.keys(BaseUrls).map(
@@ -49,7 +53,7 @@ const ApiSelector: React.FC = () => {
 
   return (
     <div>
-      <label>Select API:</label>
+      <label>{t('apiEndpoint')}:</label>
       <Dropdown
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}

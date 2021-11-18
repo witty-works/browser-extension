@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
+
 import DropdownMultiSelect from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
 import { OptionProp } from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
-
 import { DEV_ENV, Languages, StorageKeys } from '../shared/constants';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../i18n/i18n.constants';
 
 const PreferredLanguagesSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<OptionProp[]>([]);
+  const { t } = useTranslation(namespaces.pages.popup);
 
   useEffect(() => {
     const dropdownOptions: OptionProp[] = Object.keys(Languages).map(
@@ -58,8 +61,7 @@ const PreferredLanguagesSelector: React.FC = () => {
 
   return (
     <div>
-      <label>Select Preferred Languages:</label>
-      {/* <DropdownMultiSelect options={dropdownOptions} /> */}
+      <label>{t('preferredLanguage')}:</label>
       <DropdownMultiSelect
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}

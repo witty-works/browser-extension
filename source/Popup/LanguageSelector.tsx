@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
+
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
-
 import { DEV_ENV, Languages, StorageKeys } from '../shared/constants';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../i18n/i18n.constants';
 
 const LanguageSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
+  const { t } = useTranslation(namespaces.pages.popup);
 
   useEffect(() => {
     const dropdownOptions: OptionProp[] = Object.keys(Languages).map(
@@ -43,7 +46,7 @@ const LanguageSelector: React.FC = () => {
 
   return (
     <div>
-      <label>Select Primary Language:</label>
+      <label>{t('primaryLanguage')}:</label>
       <Dropdown
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}
