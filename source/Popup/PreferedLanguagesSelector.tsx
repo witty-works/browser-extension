@@ -3,7 +3,7 @@ import { browser } from 'webextension-polyfill-ts';
 
 import DropdownMultiSelect from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
 import { OptionProp } from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
-import { DEV_ENV, Languages, StorageKeys } from '../shared/constants';
+import { DEV_ENV, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 
@@ -13,12 +13,17 @@ const PreferredLanguagesSelector: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
 
   useEffect(() => {
-    const dropdownOptions: OptionProp[] = Object.keys(Languages).map(
-      (key: string) => ({
-        value: key.replace('_', '-'),
-        label: Languages[key as keyof typeof Languages],
+    const dropdownOptions: OptionProp[] = Object.keys(
+      t('languages', {
+        ns: namespaces.common,
+        returnObjects: true,
       })
-    );
+    ).map((key: string) => ({
+      value: key.replace('_', '-'),
+      label: t(`languages.${key}`, {
+        ns: namespaces.common,
+      }),
+    }));
 
     setDropdownOptions(dropdownOptions);
 
@@ -31,7 +36,9 @@ const PreferredLanguagesSelector: React.FC = () => {
           ].map((opt: string) => {
             return {
               value: opt,
-              label: Languages[opt.replace('-', '_') as keyof typeof Languages],
+              label: t(`languages.${opt.replace('-', '_')}`, {
+                ns: namespaces.common,
+              }),
             };
           });
           setSelectedOption(selecOptions);

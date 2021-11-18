@@ -1,11 +1,11 @@
 export const namespaces = {
   pages: {
-    popup: "pages.popup",
+    popup: 'pages.popup',
   },
-  common: "common",
+  common: 'common',
 };
 
 export const languages = {
-  de: "de",
-  en: "en",
+  de: 'de',
+  en: 'en',
 };
