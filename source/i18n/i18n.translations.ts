@@ -27,6 +27,12 @@ export const de = {
     developmentSettings: "Entwicklung Einstellungen",
     apiEndpoint: 'API Endpoint'
   },
+  [namespaces.modal]: {
+    insteadTry: 'Stattdessen könnten Sie versuchen...',
+    whyQuestionMark: 'Warum?',
+    understood:'Verstanden',
+    okUnderstood:'Ok, Verstanden!',
+  },
 };
 
 export const en = {
@@ -55,5 +61,11 @@ export const en = {
     germanGenderEnding: 'German Gender Ending',
     developmentSettings: "Development Settings",
     apiEndpoint: 'API Endpoint'
+  },
+  [namespaces.modal]: {
+    insteadTry: 'Instead, you could try...',
+    whyQuestionMark: 'Why?',
+    understood: 'Understood',
+    okUnderstood: 'Ok, Understood!',
   },
 };

@@ -82,7 +82,7 @@ const Popup: React.FC = () => {
         </>
       ) : null}
       <footer>
-        {/* <div>Need help?</div> */}
+        {/* <div>Need help?</div> //TODO translation */}
         <a href='https://www.witty.works/help' target='_blank'>
           Need Help?
         </a>

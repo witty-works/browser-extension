@@ -6,6 +6,8 @@ import { browser } from 'webextension-polyfill-ts';
 import { IAlert, IAlternative } from '../../types';
 import { getColor, DEV_ENV } from '../../constants';
 import { useLogEndpoint } from '../../ApiServices/useEndpoint';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../../../i18n/i18n.constants';
 
 import './Modal.scss';
 export interface ModalData {
@@ -30,6 +32,7 @@ const Modal: React.FC<ModalProps> = ({
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   const [, logResponse, logError, sendAlternative] = useLogEndpoint();
   const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
+  const { t } = useTranslation(namespaces.modal);
 
   const modalWidth =
     window.innerWidth > 640 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
@@ -167,14 +170,14 @@ const Modal: React.FC<ModalProps> = ({
             {data.alert.data.alternatives.length === 0 ? null : (
               <>
                 <div className='row-title'>
-                  Stattdessen könnten Sie versuchen...
+                  {t('insteadTry')}
                   {isToggleOpen ? (
                     <a onClick={toggleText} className='expand-link'>
-                      Verstanden.
+                      {t('understood')}
                     </a>
                   ) : (
                     <a onClick={toggleText} className='expand-link'>
-                      Warum?
+                      {t('whyQuestionMark')}
                     </a>
                   )}
                 </div>
@@ -193,7 +196,7 @@ const Modal: React.FC<ModalProps> = ({
                   onMouseLeave={resetAlternativeButton}
                   onClick={clickAccept}
                 >
-                  Ok, Verstanden!
+                  {t('okUnderstood')}
                 </a>
               ) : data.alert.data.alternatives[0].localeCompare('-') === 0 ? (
                 <a
@@ -223,7 +226,7 @@ const Modal: React.FC<ModalProps> = ({
           <div className='row'>
             <img
               className='icon'
-              alt='Witty Works Logo'
+              alt='Witty Works Logo' //TODO translation
               src={browser.runtime.getURL(
                 '../../../assets/icons/w-logo-wire-color.svg'
               )}
