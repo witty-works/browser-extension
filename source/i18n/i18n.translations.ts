@@ -21,9 +21,9 @@ export const de = {
   [namespaces.pages.popup]: {
     settings: "Einstellungen",
     enableWitty:'Witty aktivieren',
-    selectPrimaryLanguage: 'Primäre Sprache',
-    selectPreferredLanguage: 'Gewünschte Sprache',
-    selectGermanGenderEnding: 'Inklusive Geschlechter-Nennung',
+    primaryLanguage: 'Primäre Sprache',
+    preferredLanguage: 'Gewünschte Sprache',
+    germanGenderEnding: 'Inklusive Geschlechter-Nennung',
     developmentSettings: "Entwicklungs-Einstellungen",
     apiEndpoint: 'API Endpunkt',
     needHelpQuestionMark: 'Brauchen Sie Hilfe?'
