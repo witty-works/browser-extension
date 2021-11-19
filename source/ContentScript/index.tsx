@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import ContentScriptApp from './ContentScriptApp';
 import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys, DEV_ENV } from '../shared/constants';
+import '../i18n/i18n';
 
 //Main element to add extra markup
 document.body.appendChild(document.createElement('witty-code'));

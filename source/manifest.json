@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Witty",
-  "version": "1.4.1",
+  "version": "1.5.0",
 
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -28,7 +28,7 @@
 
   "__firefox__applications": {
     "gecko": {
-      "id": "{754FB1AD-CC3B-4856-B6A0-7786F8CA9D17}"
+      "id": "{4b376457-9460-4891-b28a-60499c2e3343}"
     }
   },
 
