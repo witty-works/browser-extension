@@ -32,7 +32,12 @@ const Modal: React.FC<ModalProps> = ({
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   const [, logResponse, logError, sendAlternative] = useLogEndpoint();
   const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
-  const { t } = useTranslation(namespaces.modal);
+  const { t, i18n } = useTranslation(namespaces.modal);
+
+  useEffect(() => {
+    //Dynamically sets the language depending on the text language
+    i18n.changeLanguage(data.alert.data.language);
+  }, [data.alert.data.language]);
 
   const modalWidth =
     window.innerWidth > 640 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
