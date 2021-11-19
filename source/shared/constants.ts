@@ -105,19 +105,6 @@ const adjustColor = (color:string, amount: number) => {
 
 export const getDarkerColor = (color: string) => adjustColor(getColor(color),-80);
 
-//Languages Supported
-export enum Languages {
-  en_GB = 'British English',
-  en_US = 'American English',
-  en_AU = 'Australian English',
-  en_NZ = 'New Zeland English',
-  en_SA = 'South African English',
-  en_CA = 'Canadian English',
-  de_DE = 'German',
-  de_AT = 'Austrian German',
-  de_CH = 'Swiss German',
-}
-
 //German Gender Endings
 export enum GermanGenderEndings {
   colon_in = ':in',

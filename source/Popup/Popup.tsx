@@ -6,13 +6,16 @@ import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
 import { browser } from 'webextension-polyfill-ts';
 import PreferredLanguagesSelector from './PreferedLanguagesSelector';
 import GermanGenderEndSelector from './GermanGenderEndSelector';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../i18n/i18n.constants';
 
 import './styles.scss';
 
 const Popup: React.FC = () => {
   const [enabled, setEnabled] = useState<boolean>(false);
+  const { t } = useTranslation(namespaces.pages.popup);
 
-  const manifest = browser.runtime.getManifest();
+  // const manifest = browser.runtime.getManifest();
 
   useEffect(() => {
     browser.storage.local
@@ -57,13 +60,13 @@ const Popup: React.FC = () => {
       </header>
       <hr></hr>
       <section>
-        <h2>Einstellung</h2>
+        <h2>{t('settings')}</h2>
         <Toggle
           on={enabled}
           handleToggle={() => setEnabled(!enabled)}
           color={Colors.green}
           scale={0.35}
-          label={`${manifest.name} aktivieren`}
+          label={t('enableWitty')}
         />
         <LanguageSelector />
         <PreferredLanguagesSelector />
@@ -73,15 +76,14 @@ const Popup: React.FC = () => {
         <>
           <hr></hr>
           <section>
-            <h2>Entwicklung Einstellungen</h2>
+            <h2>{t('developmentSettings')}</h2>
             <ApiSelector />
           </section>
         </>
       ) : null}
       <footer>
-        {/* <div>Need help?</div> */}
         <a href='https://www.witty.works/help' target='_blank'>
-          Need Help?
+          {t('needHelpQuestionMark')}
         </a>
       </footer>
     </>
