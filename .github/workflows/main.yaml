@@ -10,8 +10,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
-          cache: 'npm'
+          node-version: "14"
+          cache: "npm"
 
       - name: Install yarn
         run: |
@@ -32,11 +32,6 @@ jobs:
         run: |
           sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
           mv constants.ts source/shared/constants.ts
-
-      - name: Enable ID generation
-        run: |
-          sed 's/"APP_ID_ENABLED": false,/"APP_ID_ENABLED": true,/' source/witty.config.json > witty.config.json
-          mv witty.config.json source/witty.config.json
 
       - name: Build artifacts
         run: |
@@ -60,11 +55,6 @@ jobs:
         run: |
           sed 's/export const DEV_ENV = .*$/export const DEV_ENV = true;/' source/shared/constants.ts > constants.ts
           mv constants.ts source/shared/constants.ts
-
-      - name: Disable ID generation
-        run: |
-          sed 's/"APP_ID_ENABLED": true,/"APP_ID_ENABLED": false,/' source/witty.config.json > witty.config.json
-          mv witty.config.json source/witty.config.json
 
       - name: Build artifacts
         run: |

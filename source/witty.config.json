@@ -1,7 +1,10 @@
 {
   "APP_ENABLED": true,
-  "APP_ID_ENABLED": false,
+  "APP_ID_ENABLED": true,
   "PRIMARY_LANGUAGE": "de-DE",
-  "PREFERRED_LANGUAGES": ["de-DE","en-GB"],
-  "GERMAN_GENDER_ENDING":"colon_in"
+  "PREFERRED_LANGUAGES": [
+    "de-DE",
+    "en-GB"
+  ],
+  "GERMAN_GENDER_ENDING": "colon_in"
 }
