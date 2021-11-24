@@ -1,9 +1,12 @@
 import { IRequest, ILog, RequestConfig } from '../types';
 import { BaseUrls} from '../constants';
+import { browser } from 'webextension-polyfill-ts';
 
 let BASE_URL: string = '';
 let appID:string = '';
 let requestConfig:RequestConfig = {} as RequestConfig;
+
+const wittyVersion = browser.runtime.getManifest().version;
 
 const createUrl = (base: string, path: string): string => `${base}${path}`;
 
@@ -20,7 +23,7 @@ export const getAnalyzedTextResults = (text: string):IRequest => {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: text ? JSON.stringify({text: text, lang: 'auto', id:appID, config: requestConfig}) : null
+      body: text ? JSON.stringify({text: text, lang: 'auto', id:appID, client: wittyVersion, config: requestConfig}) : null
     }
   }
 };
@@ -38,6 +41,7 @@ export const logAction = (log: ILog) => {
         text: log.text,
         lang: log.language,
         id: appID,
+        client: wittyVersion,
         config: requestConfig,
         type:log.type,
         context: log.context,
