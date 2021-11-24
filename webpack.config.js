@@ -172,6 +172,10 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [{from: 'source/assets', to: 'assets'}],
     }),
+    // copy locales
+    new CopyWebpackPlugin({
+      patterns: [{from: 'source/_locales', to: '_locales'}],
+    }),
     // plugin to enable browser reloading in development mode
     extensionReloaderPlugin,
   ],
