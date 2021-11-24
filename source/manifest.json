@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_appName__",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "default_locale": "en",
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -12,29 +12,23 @@
   "description": "__MSG_appDesc__",
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
-
   "permissions": [
     "storage",
     "http://*/*",
     "https://*/*"
   ],
-
   "content_security_policy": "script-src 'self'; object-src 'self'",
-
   "__chrome|firefox__author": "Witty Works",
   "__opera__developer": {
     "name": "Witty Works"
   },
-
   "__firefox__applications": {
     "gecko": {
       "id": "{4b376457-9460-4891-b28a-60499c2e3343}"
     }
   },
-
   "__chrome__minimum_chrome_version": "49",
   "__opera__minimum_opera_version": "36",
-
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -46,32 +40,32 @@
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
   },
-
   "__chrome|opera__options_page": "options.html",
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true,
     "__chrome__chrome_style": false
   },
-
   "background": {
     "scripts": [
       "js/background.bundle.js"
     ],
     "__chrome|opera__persistent": false
   },
-  "content_scripts": [{
-    "matches": [
-      "http://*/*",
-      "https://*/*"
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
       ],
-    "js": [
-      "js/contentScript.bundle.js"
-    ],
-    "css": [
-      "css/contentScript.css"
-    ]
-  }],
+      "js": [
+        "js/contentScript.bundle.js"
+      ],
+      "css": [
+        "css/contentScript.css"
+      ]
+    }
+  ],
   "web_accessible_resources": [
     "assets/icons/w-logo-wire-color.svg"
   ]
