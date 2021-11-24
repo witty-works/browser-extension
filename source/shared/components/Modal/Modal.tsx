@@ -21,6 +21,7 @@ interface ModalProps {
   data: ModalData;
   hide: () => void;
   resendText: () => void;
+  addIgnoredTerm: (term: string) => void;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -28,6 +29,7 @@ const Modal: React.FC<ModalProps> = ({
   data,
   hide,
   resendText,
+  addIgnoredTerm,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   const [, logResponse, logError, sendAlternative] = useLogEndpoint();
@@ -42,6 +44,11 @@ const Modal: React.FC<ModalProps> = ({
   const modalWidth =
     window.innerWidth > 640 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
 
+  const modalMaxHeight = Math.min(
+    (window.innerHeight - data.position.top) * 0.9,
+    window.innerHeight * 0.5
+  );
+
   const modalLeftPos =
     modalWidth < window.innerWidth - data.position.left
       ? data.position.left -
@@ -55,6 +62,7 @@ const Modal: React.FC<ModalProps> = ({
     top: `${data.position.top + data.position.height + 3}px`, //TODO convert this 3
     left: `${modalLeftPos}px`,
     width: `${modalWidth}px`,
+    maxHeight: `${modalMaxHeight}px`,
   };
 
   const CategoryDotStyling: CSS.Properties = {
@@ -154,6 +162,23 @@ const Modal: React.FC<ModalProps> = ({
     setIsToggleOpen(!isToggleOpen);
   };
 
+  const hoveredIgnoreButton = (event: React.MouseEvent) => {
+    const currentTarget = event.currentTarget as HTMLElement;
+
+    currentTarget.style.backgroundColor = `#f3f3f3`;
+  };
+
+  const resetIgnoreButton = (event: React.MouseEvent) => {
+    const currentTarget = event.currentTarget as HTMLElement;
+
+    currentTarget.style.backgroundColor = `transparent`;
+  };
+
+  const clickIgnoreTerm = () => {
+    hide();
+    addIgnoredTerm(data.alert.data.text);
+  };
+
   const modal = (
     <React.Fragment>
       <div id='backdrop' onClick={hide} />
@@ -171,7 +196,7 @@ const Modal: React.FC<ModalProps> = ({
             <span className='category-dot' style={CategoryDotStyling}></span>
             <span className='main-text'>{data.alert.data.solution}</span>
           </div>
-          <div className='row-no-bottom-margin'>
+          <div className='row'>
             {data.alert.data.alternatives.length === 0 ? null : (
               <>
                 <div className='row-title'>
@@ -192,46 +217,57 @@ const Modal: React.FC<ModalProps> = ({
               </>
             )}
           </div>
-          <div className='row'>
-            <div className='list-links-container'>
-              {data.alert.data.alternatives.length === 0 ? (
+          <div className='list-links-container'>
+            {data.alert.data.alternatives.length === 0 ? (
+              <a
+                // style={AlternativeButtonStyling}
+                onMouseEnter={hoveredAlternativeButton}
+                onMouseLeave={resetAlternativeButton}
+                onClick={clickAccept}
+              >
+                {t('okUnderstood')}
+              </a>
+            ) : data.alert.data.alternatives[0].localeCompare('-') === 0 ? (
+              <a
+                // style={AlternativeButtonStyling}
+                onMouseEnter={hoveredAlternativeButton}
+                onMouseLeave={resetAlternativeButton}
+                onClick={() => clickAlternative(-1)}
+                className='remove-text'
+              >
+                {data.alert.data.text}
+              </a>
+            ) : (
+              data.alert.data.alternatives.map((alternative, index) => (
                 <a
+                  key={`${index}-${alternative}`}
                   // style={AlternativeButtonStyling}
                   onMouseEnter={hoveredAlternativeButton}
                   onMouseLeave={resetAlternativeButton}
-                  onClick={clickAccept}
+                  onClick={() => clickAlternative(index)}
                 >
-                  {t('okUnderstood')}
+                  {alternative}
                 </a>
-              ) : data.alert.data.alternatives[0].localeCompare('-') === 0 ? (
-                <a
-                  // style={AlternativeButtonStyling}
-                  onMouseEnter={hoveredAlternativeButton}
-                  onMouseLeave={resetAlternativeButton}
-                  onClick={() => clickAlternative(-1)}
-                  className='remove-text'
-                >
-                  {data.alert.data.text}
-                </a>
-              ) : (
-                data.alert.data.alternatives.map((alternative, index) => (
-                  <a
-                    key={`${index}-${alternative}`}
-                    // style={AlternativeButtonStyling}
-                    onMouseEnter={hoveredAlternativeButton}
-                    onMouseLeave={resetAlternativeButton}
-                    onClick={() => clickAlternative(index)}
-                  >
-                    {alternative}
-                  </a>
-                ))
-              )}
-            </div>
+              ))
+            )}
           </div>
+          <hr />
           <div className='row'>
+            <a
+              className='sub-link'
+              onMouseEnter={hoveredIgnoreButton}
+              onMouseLeave={resetIgnoreButton}
+              onClick={() => clickIgnoreTerm()}
+            >
+              Ø Ignore this term
+            </a>
+            <hr />
+          </div>
+          <div>
             <img
               className='icon'
               alt='Witty Works Logo' //TODO translation
+              height='100%'
               src={browser.runtime.getURL(
                 '../../../assets/icons/w-logo-wire-color.svg'
               )}
