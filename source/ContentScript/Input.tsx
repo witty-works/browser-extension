@@ -22,6 +22,8 @@ type HandleClick = () => void;
 const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
+  const [alerts, setAlerts] = useState<IAlert[]>([]);
+
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
@@ -34,6 +36,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   } as ScrollPos);
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
@@ -158,11 +161,21 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
           return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
         });
 
+      setAlerts([...alerts]);
+    }
+  }, [checkEndpointResponse]);
+
+  useEffect(() => {
+    if (alerts.length > 0) {
+      const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
+        return !ignoredTerms.includes(alert.data.text);
+      });
+
       if (isTextArea(element) || isInputText(element))
         setNodesWithAlerts([
           {
             node: clone?.firstChild,
-            alerts: alerts.map((alert: IAlert) => ({
+            alerts: filteredAlerts.map((alert: IAlert) => ({
               ...alert,
               originalStartOffset: alert.startOffset,
               originalEndOffset: alert.endOffset,
@@ -171,11 +184,11 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
         ]);
       else {
         const nodesWithAlertsTemp: INodeWithAlerts[] =
-          getNodesWithRecalculatedAlerts(element.childNodes, alerts);
+          getNodesWithRecalculatedAlerts(element.childNodes, filteredAlerts);
         setNodesWithAlerts(nodesWithAlertsTemp);
       }
     }
-  }, [checkEndpointResponse]);
+  }, [alerts]);
 
   const getNodesWithRecalculatedAlerts = (
     nodes: NodeListOf<ChildNode>,
@@ -259,6 +272,11 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
     sendText(text);
   };
 
+  const addIgnoredTerm = (term: string): void => {
+    setIgnoredTerms([...ignoredTerms, term]);
+    setAlerts([...alerts]);
+  };
+
   return (
     <div className='canvas-container'>
       {isTextArea(element) ? (
@@ -290,6 +308,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
           data={modalData}
           hide={toggleModal}
           resendText={resendText}
+          addIgnoredTerm={addIgnoredTerm}
         />
       ) : null}
     </div>
