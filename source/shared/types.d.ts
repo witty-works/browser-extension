@@ -34,14 +34,17 @@ export interface IAlertContentData {
   alternatives: string[];
 }
 
-export interface IAlternative {
-  text: string;
+export interface ILog {
+  text: string,
   language: string,
-  type:string,
-  context: string;
-  details:object,
+  id: string,
+  client: string,
+  config: object,
+  type: string,
+  context: string,
   start: number;
   end: number;
+  details:object,
 }
 
 

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import CSS from 'csstype';
 import { browser } from 'webextension-polyfill-ts';
 
-import { IAlert, IAlternative } from '../../types';
+import { IAlert, ILog } from '../../types';
 import { getColor, DEV_ENV } from '../../constants';
 import { useLogEndpoint } from '../../ApiServices/useEndpoint';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +32,7 @@ const Modal: React.FC<ModalProps> = ({
   addIgnoredTerm,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const [, logResponse, logError, sendAlternative] = useLogEndpoint();
+  const [, logResponse, logError, sendLog] = useLogEndpoint();
   const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
   const { t, i18n } = useTranslation(namespaces.modal);
 
@@ -103,17 +103,17 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickAlternative = (index: number) => {
     //Log the clicked alternative
-    sendAlternative({
+    sendLog({
       language: data.alert.data.language,
       type: 'alternative',
       text: data.alert.data.text,
       context: data.alert.data.context,
+      start: data.alert.originalStartOffset,
+      end: data.alert.originalEndOffset,
       details: {
         alternative: index === -1 ? '' : data.alert.data.alternatives[index],
       },
-      start: data.alert.originalStartOffset,
-      end: data.alert.originalEndOffset,
-    } as IAlternative);
+    } as ILog);
 
     //Replace text with the new alternative or simply remove it
     //This only replaces the specific occurrence. If there are other identical terms in the text
@@ -164,18 +164,27 @@ const Modal: React.FC<ModalProps> = ({
 
   const hoveredIgnoreButton = (event: React.MouseEvent) => {
     const currentTarget = event.currentTarget as HTMLElement;
-
     currentTarget.style.backgroundColor = `#f3f3f3`;
   };
 
   const resetIgnoreButton = (event: React.MouseEvent) => {
     const currentTarget = event.currentTarget as HTMLElement;
-
     currentTarget.style.backgroundColor = `transparent`;
   };
 
   const clickIgnoreTerm = () => {
     hide();
+    sendLog({
+      language: data.alert.data.language,
+      type: 'ignore',
+      text: data.alert.data.text,
+      context: data.alert.data.context,
+      start: data.alert.originalStartOffset,
+      end: data.alert.originalEndOffset,
+      details: {
+        ignore: data.alert.data.text,
+      },
+    } as ILog);
     addIgnoredTerm(data.alert.data.text);
   };
 

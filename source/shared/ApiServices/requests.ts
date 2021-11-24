@@ -1,4 +1,4 @@
-import { IRequest, IAlternative, RequestConfig } from '../types';
+import { IRequest, ILog, RequestConfig } from '../types';
 import { BaseUrls} from '../constants';
 
 let BASE_URL: string = '';
@@ -25,7 +25,7 @@ export const getAnalyzedTextResults = (text: string):IRequest => {
   }
 };
 
-export const logAlternative = (alternative: IAlternative) => {
+export const logAction = (log: ILog) => {
   return {
     url: createUrl(BASE_URL, 'log'),
     config: {
@@ -34,17 +34,18 @@ export const logAlternative = (alternative: IAlternative) => {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: alternative.text ? JSON.stringify({
-        text: alternative.text,
-        lang: alternative.language,
+      body: log.text ? JSON.stringify({
+        text: log.text,
+        lang: log.language,
         id: appID,
         config: requestConfig,
-        type:alternative.type,
-        context: alternative.context,
-        details: alternative.details,
-        start: alternative.start,
-        end: alternative.end})
-        : null
+        type:log.type,
+        context: log.context,
+        start: log.start,
+        end: log.end,
+        details: log.details,
+      })
+      : null
     }
   }
 }
