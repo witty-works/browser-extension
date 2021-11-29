@@ -10,7 +10,7 @@ interface HighlightsProps {
 }
 
 type Highlight = {
-  rect: DOMRect;
+  rects: DOMRect[];
   data: IAlertContentData;
 };
 
@@ -33,43 +33,52 @@ const Highlights: React.FC<HighlightsProps> = ({
     nodesWithAlerts.forEach((nodeWithAlerts) => {
       const node = nodeWithAlerts.node;
 
-      //quick fix to avoid error
-      if (elementExistsinDOM(node)) {
-        nodeWithAlerts.alerts.forEach((alert: IAlert) => {
-          const range = document.createRange();
-          range.setStart(node, alert.startOffset);
-          range.setEnd(node, alert.endOffset);
-          const rect = range.getClientRects()[0];
+      //quick fix to avoid error: check if node exists in the DOM
+      //but also filter alerts that have a bigger endOffset than the length of the text
+      if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
+        nodeWithAlerts.alerts
+          .filter(
+            (alert: IAlert) =>
+              node.textContent !== null &&
+              alert.endOffset <= node.textContent.length
+          )
+          .forEach((alert: IAlert) => {
+            const range = document.createRange();
+            range.setStart(node, alert.startOffset);
+            range.setEnd(node, alert.endOffset);
 
-          const rectTop = rect.top + customDoc.scrollTop + rect.height;
-          const rectLeft = rect.left + customDoc.scrollLeft;
-
-          if (
-            rectTop > elementRect.top &&
-            rectTop < elementRect.top + elementRect.height &&
-            rectLeft >= elementRect.left &&
-            rectLeft + rect.width <= elementRect.left + elementRect.width
-          ) {
-            const newRect: DOMRect = {
-              ...rect,
-              bottom: rect.top + customDoc.scrollTop + rect.height,
-              height: rect.height,
-              left: rect.left + customDoc.scrollLeft - elementScroll.left,
-              right: rect.left + customDoc.scrollLeft + rect.width,
-              top: rect.top + customDoc.scrollTop - elementScroll.top,
-              width: rect.width,
-              x: rect.left + customDoc.scrollLeft,
-              y: rect.top + customDoc.scrollTop,
-            };
+            const rects: DOMRect[] = Array.from(range.getClientRects())
+              .filter((rect: DOMRect) => {
+                const rectTop = rect.top + customDoc.scrollTop + rect.height;
+                const rectLeft = rect.left + customDoc.scrollLeft;
+                return (
+                  rectTop > elementRect.top &&
+                  rectTop < elementRect.top + elementRect.height &&
+                  rectLeft >= elementRect.left &&
+                  rectLeft + rect.width <= elementRect.left + elementRect.width
+                );
+              })
+              .map((rect: DOMRect) => {
+                return {
+                  ...rect,
+                  bottom: rect.top + customDoc.scrollTop + rect.height,
+                  height: rect.height,
+                  left: rect.left + customDoc.scrollLeft - elementScroll.left,
+                  right: rect.left + customDoc.scrollLeft + rect.width,
+                  top: rect.top + customDoc.scrollTop - elementScroll.top,
+                  width: rect.width,
+                  x: rect.left + customDoc.scrollLeft,
+                  y: rect.top + customDoc.scrollTop,
+                };
+              });
 
             const newHighlight: Highlight = {
-              rect: newRect,
+              rects,
               data: alert.data,
             };
 
             highlights.push(newHighlight);
-          }
-        });
+          });
       }
     });
 
@@ -82,24 +91,26 @@ const Highlights: React.FC<HighlightsProps> = ({
         //Clear the whole canvas first
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        //Draw a rectangle for each highlight
+        //Draw a rectangle for each highlight...
         highlights.forEach((highlight) => {
           context.fillStyle = `${getColor(highlight.data.category)}`;
-          const highlightRect = highlight.rect;
 
-          const rectToRender: DOMRect = {
-            x: highlightRect.x - elementRect.x,
-            y: highlightRect.y - elementRect.y + highlightRect.height,
-            width: highlightRect.width,
-            height: 2,
-          } as DOMRect;
+          //... which can include several DOMRects
+          highlight.rects.forEach((rect: DOMRect) => {
+            const rectToRender: DOMRect = {
+              x: rect.x - elementRect.x,
+              y: rect.y - elementRect.y + rect.height,
+              width: rect.width,
+              height: 2,
+            } as DOMRect;
 
-          context.fillRect(
-            rectToRender.x,
-            rectToRender.y,
-            rectToRender.width,
-            rectToRender.height
-          );
+            context.fillRect(
+              rectToRender.x,
+              rectToRender.y,
+              rectToRender.width,
+              rectToRender.height
+            );
+          });
         });
       }
     } else {
