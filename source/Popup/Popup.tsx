@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { browser } from 'webextension-polyfill-ts';
+
 import ApiSelector from './ApiSelector';
 import LanguageSelector from './LanguageSelector';
 import Toggle from '../shared/components/Toggle/Toggle';
 import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
-import { browser } from 'webextension-polyfill-ts';
 import PreferredLanguagesSelector from './PreferedLanguagesSelector';
 import GermanGenderEndSelector from './GermanGenderEndSelector';
 import { useTranslation } from 'react-i18next';
@@ -14,8 +15,6 @@ import './styles.scss';
 const Popup: React.FC = () => {
   const [enabled, setEnabled] = useState<boolean>(false);
   const { t } = useTranslation(namespaces.pages.popup);
-
-  // const manifest = browser.runtime.getManifest();
 
   useEffect(() => {
     browser.storage.local
@@ -28,13 +27,33 @@ const Popup: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    //Save app status on the local storage
     browser.storage.local
       .set({ [StorageKeys.APP_ENABLED]: enabled })
       .then(() => {
         if (DEV_ENV)
-          console.log(`content script  ${enabled ? 'enabled' : 'disabled'}`);
+          console.log(
+            `Witty status *${enabled ? 'enabled' : 'disabled'}* correctly saved`
+          );
       })
       .catch(onError);
+
+    //Change app icon acordingly
+    enabled
+      ? browser.browserAction.setIcon({
+          path: {
+            '16': 'assets/icons/icon16.png',
+            '32': 'assets/icons/icon32.png',
+            '48': 'assets/icons/icon48.png',
+          },
+        })
+      : browser.browserAction.setIcon({
+          path: {
+            '16': 'assets/icons/icon16_disabled.png',
+            '32': 'assets/icons/icon32_disabled.png',
+            '48': 'assets/icons/icon48_disabled.png',
+          },
+        });
   }, [enabled]);
 
   const onError = (error: string) => {
