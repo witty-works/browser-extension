@@ -29,28 +29,28 @@
   width: 100%;
 }
 
-hr {
+hr.modal-separator {
   border: 1px solid $greyWhite;
   margin: 0;
    margin-left: -1rem;
    margin-right: -1rem;
 }
 
-.row {
+.modal-row {
   margin-bottom: 1rem;
 }
 
-.row-title {
+.modal-row-title {
   font-family: $ibarra;
   font-size: .9em;
   color: #656565;
 }
 
-.icon {
-  width: 2rem;
+.modal-icon {
+  height: 1rem;
 }
 
-.category-dot {
+.modal-category-dot {
   display: inline-block;
   width: .5rem;
   height: .5rem;
@@ -59,18 +59,18 @@ hr {
   border-radius: .5rem;
 }
 
-.main-text {
+.modal-main-text {
   font-family: $ibarra;
 }
 
-.sub-text {
+.modal-sub-text {
   font-family: $ibarra;
   font-size: .9em;
   margin-top: 4px;
   color: #656565;
 }
 
-.expand-link {
+.modal-expand-link {
   font-family: $ibarra;
   text-decoration: underline;
   cursor: pointer;
@@ -81,11 +81,11 @@ hr {
   }
 }
 
-a {
+a.modal-link {
   font-family: $lato;
   cursor: pointer;
 
-  &.sub-link{
+  &.modal-sub-link{
     color: #656565;
     display: block;
     margin-left: -1rem;
@@ -101,7 +101,7 @@ a {
   margin-left: -1rem;
   margin-right: -1rem;
 
-  a{
+  a.modal-link {
     color: #9489DB;
     font-weight: 600;
     font-size: 1.1em;

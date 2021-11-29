@@ -201,27 +201,30 @@ const Modal: React.FC<ModalProps> = ({
         ref={ref}
       >
         <div id='modal-container'>
-          <div className='row'>
-            <span className='category-dot' style={CategoryDotStyling}></span>
-            <span className='main-text'>{data.alert.data.solution}</span>
+          <div className='modal-row'>
+            <span
+              className='modal-category-dot'
+              style={CategoryDotStyling}
+            ></span>
+            <span className='modal-main-text'>{data.alert.data.solution}</span>
           </div>
-          <div className='row'>
+          <div className='modal-row'>
             {data.alert.data.alternatives.length === 0 ? null : (
               <>
-                <div className='row-title'>
+                <div className='modal-row-title'>
                   {t('insteadTry')}
                   {isToggleOpen ? (
-                    <a onClick={toggleText} className='expand-link'>
+                    <a onClick={toggleText} className='modal-expand-link'>
                       {t('understood')}
                     </a>
                   ) : (
-                    <a onClick={toggleText} className='expand-link'>
+                    <a onClick={toggleText} className='modal-expand-link'>
                       {t('whyQuestionMark')}
                     </a>
                   )}
                 </div>
                 {isToggleOpen ? (
-                  <div className='sub-text'>{data.alert.data.reason}</div>
+                  <div className='modal-sub-text'>{data.alert.data.reason}</div>
                 ) : null}
               </>
             )}
@@ -229,7 +232,7 @@ const Modal: React.FC<ModalProps> = ({
           <div className='list-links-container'>
             {data.alert.data.alternatives.length === 0 ? (
               <a
-                // style={AlternativeButtonStyling}
+                className='modal-link'
                 onMouseEnter={hoveredAlternativeButton}
                 onMouseLeave={resetAlternativeButton}
                 onClick={clickAccept}
@@ -238,17 +241,17 @@ const Modal: React.FC<ModalProps> = ({
               </a>
             ) : data.alert.data.alternatives[0].localeCompare('-') === 0 ? (
               <a
-                // style={AlternativeButtonStyling}
+                className='modal-link remove-text'
                 onMouseEnter={hoveredAlternativeButton}
                 onMouseLeave={resetAlternativeButton}
                 onClick={() => clickAlternative(-1)}
-                className='remove-text'
               >
                 {data.alert.data.text}
               </a>
             ) : (
               data.alert.data.alternatives.map((alternative, index) => (
                 <a
+                  className='modal-link'
                   key={`${index}-${alternative}`}
                   // style={AlternativeButtonStyling}
                   onMouseEnter={hoveredAlternativeButton}
@@ -260,21 +263,21 @@ const Modal: React.FC<ModalProps> = ({
               ))
             )}
           </div>
-          <hr />
-          <div className='row'>
+          <hr className='modal-separator' />
+          <div className='modal-row'>
             <a
-              className='sub-link'
+              className='modal-link modal-sub-link'
               onMouseEnter={hoveredIgnoreButton}
               onMouseLeave={resetIgnoreButton}
               onClick={() => clickIgnoreTerm()}
             >
               Ø Ignore this term
             </a>
-            <hr />
+            <hr className='modal-separator' />
           </div>
           <div>
             <img
-              className='icon'
+              className='modal-icon'
               alt='Witty Works Logo' //TODO translation
               height='100%'
               src={browser.runtime.getURL(
