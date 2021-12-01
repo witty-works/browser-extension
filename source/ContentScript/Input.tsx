@@ -5,7 +5,7 @@ import InputTextClone from './InputTextClone';
 import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
-import { DEV_ENV } from '../shared/constants';
+import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
@@ -37,6 +37,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
+  const log = useLog('Input');
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
@@ -249,7 +250,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
 
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
-      if (DEV_ENV) console.log('API Error = ', checkEndpointError);
+      log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
       if (checkEndpointError.detail === 'Language could not be determined')
         setNodesWithAlerts([]);
     }

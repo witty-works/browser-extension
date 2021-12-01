@@ -4,7 +4,7 @@ import CSS from 'csstype';
 import { browser } from 'webextension-polyfill-ts';
 
 import { IAlert, ILog } from '../../types';
-import { getColor, DEV_ENV } from '../../constants';
+import { getColor } from '../../constants';
 import { useLogEndpoint } from '../../ApiServices/useEndpoint';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
@@ -32,7 +32,7 @@ const Modal: React.FC<ModalProps> = ({
   addIgnoredTerm,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const [, logResponse, logError, sendLog] = useLogEndpoint();
+  const [, , , sendLog] = useLogEndpoint();
   const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
   const { t, i18n } = useTranslation(namespaces.modal);
 
@@ -68,14 +68,6 @@ const Modal: React.FC<ModalProps> = ({
   const CategoryDotStyling: CSS.Properties = {
     backgroundColor: `${getColor(data.alert.data.category)}`,
   };
-
-  useEffect(() => {
-    if (DEV_ENV) console.log('Modal logResponse = ', logResponse);
-  }, [logResponse]);
-
-  useEffect(() => {
-    if (DEV_ENV) console.log('Modal logError = ', logError);
-  }, [logError]);
 
   useEffect(() => {
     if (isOpen && isToggleOpen) setIsToggleOpen(false); //if modal is open and description text is also expanded, collapse it

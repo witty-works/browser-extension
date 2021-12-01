@@ -3,14 +3,16 @@ import { browser } from 'webextension-polyfill-ts';
 
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
-import { DEV_ENV, StorageKeys } from '../shared/constants';
+import { StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import { useLog, logTypes } from '../shared/customHooks/useLog';
 
 const LanguageSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const { t } = useTranslation(namespaces.pages.popup);
+  const log = useLog('LanguageSelector');
 
   useEffect(() => {
     const dropdownOptions: OptionProp[] = Object.keys(
@@ -37,14 +39,14 @@ const LanguageSelector: React.FC = () => {
   }, []);
 
   const onError = (error: string) => {
-    if (DEV_ENV) console.log('LanguageSelector onError = ', error);
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
   const handleDropdownChange = (value: string) => {
     browser.storage.local
       .set({ [StorageKeys.PRIMARY_LANGUAGE]: value })
       .then(() => {
-        if (DEV_ENV) console.log(`new language ${value} saved`);
+        log(`New language ${value} saved`);
       })
       .catch(onError);
   };
