@@ -85,11 +85,18 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
       );
 
       if (oneNodeWithAlerts) {
-        const selectedAlert = oneNodeWithAlerts.alerts.find((alert: IAlert) => {
-          return (
-            alert.startOffset < caretPosition && alert.endOffset > caretPosition
-          );
-        }) as IAlert;
+        console.log('oneNodeWithAlerts = ', oneNodeWithAlerts);
+
+        const selectedAlert = oneNodeWithAlerts.alerts
+          .filter((alert: IAlert) => {
+            return (
+              alert.startOffset < caretPosition &&
+              alert.endOffset > caretPosition
+            );
+          })
+          .pop() as IAlert;
+
+        console.log('selectedAlert = ', selectedAlert);
 
         const nodeText = oneNodeWithAlerts.node;
 
