@@ -85,8 +85,6 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
       );
 
       if (oneNodeWithAlerts) {
-        console.log('oneNodeWithAlerts = ', oneNodeWithAlerts);
-
         const selectedAlert = oneNodeWithAlerts.alerts
           .filter((alert: IAlert) => {
             return (
@@ -95,8 +93,6 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
             );
           })
           .pop() as IAlert;
-
-        console.log('selectedAlert = ', selectedAlert);
 
         const nodeText = oneNodeWithAlerts.node;
 
