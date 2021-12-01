@@ -120,20 +120,20 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
         .selectionStart as number;
     } else {
       const selection: Selection | null = document.getSelection();
+      let position: number = -1;
 
-      if (selection !== null) {
+      if (selection !== null && selection.type === 'Caret') {
         //Modify is a non-standard feature, although currently is supported by all browsers except IE
         //https://developer.mozilla.org/en-US/docs/Web/API/Selection/modify
-
         //TODO In order to remove error from typescript we can augment the interface
         //https://github.com/Microsoft/TypeScript/issues/12296
         //Temporaly ignore this error
         // @ts-ignore
         selection.modify('extend', 'backward', 'paragraph');
-        const position = selection.toString().length as number;
+        position = selection.toString().length as number;
         if (selection.anchorNode != undefined) selection.collapseToEnd();
-        return position;
-      } else return -1;
+      }
+      return position;
     }
   };
 
