@@ -3,14 +3,16 @@ import { browser } from 'webextension-polyfill-ts';
 
 import DropdownMultiSelect from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
 import { OptionProp } from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
-import { DEV_ENV, StorageKeys } from '../shared/constants';
+import { StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import { useLog, logTypes } from '../shared/customHooks/useLog';
 
 const PreferredLanguagesSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<OptionProp[]>([]);
   const { t } = useTranslation(namespaces.pages.popup);
+  const log = useLog('PreferredLanguagesSelector');
 
   useEffect(() => {
     const dropdownOptions: OptionProp[] = Object.keys(
@@ -48,7 +50,7 @@ const PreferredLanguagesSelector: React.FC = () => {
   }, []);
 
   const onError = (error: string) => {
-    if (DEV_ENV) console.log('PreferedLanguageSelector onError = ', error);
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
   const handleDropdownChange = (options: OptionProp[]) => {
@@ -56,10 +58,7 @@ const PreferredLanguagesSelector: React.FC = () => {
     browser.storage.local
       .set({ [StorageKeys.PREFERRED_LANGUAGES]: prefLanguages })
       .then(() => {
-        if (DEV_ENV)
-          console.log(
-            `new Preferred languages ${prefLanguages.join(',')} saved`
-          );
+        log(`New Preferred languages ${prefLanguages.join(',')} saved`);
       })
       .catch(onError);
 
