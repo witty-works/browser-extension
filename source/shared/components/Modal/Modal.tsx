@@ -42,12 +42,7 @@ const Modal: React.FC<ModalProps> = ({
   }, [data.alert.data.language]);
 
   const modalWidth =
-    window.innerWidth > 640 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
-
-  const modalMaxHeight = Math.min(
-    (window.innerHeight - data.position.top) * 0.9,
-    window.innerHeight * 0.5
-  );
+    window.innerWidth > 720 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
 
   const modalLeftPos =
     modalWidth < window.innerWidth - data.position.left
@@ -62,7 +57,7 @@ const Modal: React.FC<ModalProps> = ({
     top: `${data.position.top + data.position.height + 3}px`, //TODO convert this 3
     left: `${modalLeftPos}px`,
     width: `${modalWidth}px`,
-    maxHeight: `${modalMaxHeight}px`,
+    height: `${window.innerHeight * 0.33}px`,
   };
 
   const CategoryDotStyling: CSS.Properties = {
@@ -245,7 +240,6 @@ const Modal: React.FC<ModalProps> = ({
                 <a
                   className='modal-link'
                   key={`${index}-${alternative}`}
-                  // style={AlternativeButtonStyling}
                   onMouseEnter={hoveredAlternativeButton}
                   onMouseLeave={resetAlternativeButton}
                   onClick={() => clickAlternative(index)}
