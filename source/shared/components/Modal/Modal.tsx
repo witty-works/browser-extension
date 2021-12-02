@@ -201,25 +201,25 @@ const Modal: React.FC<ModalProps> = ({
             <span className='modal-main-text'>{data.alert.data.solution}</span>
           </div>
           <div className='modal-row'>
-            {data.alert.data.alternatives.length === 0 ? null : (
-              <>
-                <div className='modal-row-title'>
-                  {t('insteadTry')}
-                  {isToggleOpen ? (
-                    <a onClick={toggleText} className='modal-expand-link'>
-                      {t('understood')}
-                    </a>
-                  ) : (
-                    <a onClick={toggleText} className='modal-expand-link'>
-                      {t('whyQuestionMark')}
-                    </a>
-                  )}
-                </div>
+            <>
+              <div className='modal-row-title'>
+                {data.alert.data.alternatives.length === 0
+                  ? null
+                  : t('insteadTry')}
                 {isToggleOpen ? (
-                  <div className='modal-sub-text'>{data.alert.data.reason}</div>
-                ) : null}
-              </>
-            )}
+                  <a onClick={toggleText} className='modal-expand-link'>
+                    {t('understood')}
+                  </a>
+                ) : (
+                  <a onClick={toggleText} className='modal-expand-link'>
+                    {t('whyQuestionMark')}
+                  </a>
+                )}
+              </div>
+              {isToggleOpen ? (
+                <div className='modal-sub-text'>{data.alert.data.reason}</div>
+              ) : null}
+            </>
           </div>
           <div className='list-links-container'>
             {data.alert.data.alternatives.length === 0 ? (
