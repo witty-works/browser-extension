@@ -61,7 +61,9 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
         ? (target as HTMLTextAreaElement | HTMLInputElement).value
         : fixLineBreaks(target.innerText);
 
-    sendText(text);
+    //If there isn't text, there's nothing to highlight
+    if (text.length === 0) setNodesWithAlerts([]);
+    else sendText(text);
   };
 
   const handleScrollEvent = (event: Event) => {
@@ -170,7 +172,8 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   }, [checkEndpointResponse]);
 
   useEffect(() => {
-    if (alerts.length > 0) {
+    if (alerts.length === 0) setNodesWithAlerts([]);
+    else {
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
