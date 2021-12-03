@@ -4,7 +4,6 @@
 #modal {
   display: flex;
   padding: 1rem;
-  min-height: 300px;
   background-color: $white;
   position: fixed;
   z-index: 999999999;
@@ -27,13 +26,15 @@
   height:auto;
   width: 100%;
   font-family: $lato !important;
+  font-size: 16px;
+  line-height: 1.2;
 }
 
 hr.modal-separator {
   border: 1px solid $greyWhite;
   margin: 0;
-   margin-left: -1rem;
-   margin-right: -1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
 }
 
 .modal-row {
@@ -106,6 +107,7 @@ a.modal-link {
     color: #9489DB;
     font-weight: 600;
     font-size: 1.1em;
+    line-height: 1.4;
     padding: 0.5rem 1rem;
 
     &.remove-text {

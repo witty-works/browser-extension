@@ -53,11 +53,18 @@ const Modal: React.FC<ModalProps> = ({
         parseFloat(getComputedStyle(document.documentElement).fontSize);
 
   //Positions the modal dinamically
+  const minHeight = window.innerHeight < 920 ? window.innerHeight * 0.33 : 200;
+  const maxHeight =
+    (window.innerHeight < 920
+      ? window.innerHeight * 0.5
+      : window.innerHeight * 0.33) + (isToggleOpen ? 100 : 0);
   const ModalStyling: CSS.Properties = {
     top: `${data.position.top + data.position.height + 3}px`, //TODO convert this 3
     left: `${modalLeftPos}px`,
     width: `${modalWidth}px`,
-    height: `${window.innerHeight * 0.33}px`,
+    // height: `${window.innerHeight * 0.33}px`,
+    minHeight: `${minHeight}px`,
+    maxHeight: `${maxHeight}px`,
   };
 
   const CategoryDotStyling: CSS.Properties = {
