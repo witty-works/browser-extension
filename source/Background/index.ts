@@ -1,17 +1,21 @@
 import {browser} from 'webextension-polyfill-ts';
 
-import { DEV_ENV, StorageKeys } from '../shared/constants';
+import { StorageKeys } from '../shared/constants';
 import { isFunction } from '../shared/utils';
 import defaultConfig from "../witty.config.json";
+import { useLog } from '../shared/customHooks/useLog';
+
+
+const log = useLog('Background index');
 
 type DefaultConfigValue = string | boolean | string[] | (() => string);
 
 const onSave = (key: string, value: DefaultConfigValue) => {
-  if (DEV_ENV) console.log(`Key *${key}* with value *${value}* saved correctly in local storage`);
+  log(`Key *${key}* with value *${value}* saved correctly in local storage`);
 };
 
 const onError = (error: string) => {
-  if (DEV_ENV) console.log(`Local Storage Error: ${error}`);
+  log(`Local Storage Error: ${error}`);
 };
 
 const getRandomToken = () => {

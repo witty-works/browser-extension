@@ -3,14 +3,16 @@ import { browser } from 'webextension-polyfill-ts';
 
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
-import { DEV_ENV, GermanGenderEndings, StorageKeys } from '../shared/constants';
+import { GermanGenderEndings, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import { useLog, logTypes } from '../shared/customHooks/useLog';
 
 const GermanGenderEndSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const { t } = useTranslation(namespaces.pages.popup);
+  const log = useLog('GermanGenderEndSelector');
 
   useEffect(() => {
     const dropdownOptions: OptionProp[] = Object.keys(GermanGenderEndings).map(
@@ -32,14 +34,14 @@ const GermanGenderEndSelector: React.FC = () => {
   }, []);
 
   const onError = (error: string) => {
-    if (DEV_ENV) console.log('GermanGenderEndSelector onError = ', error);
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
   const handleDropdownChange = (value: string) => {
     browser.storage.local
       .set({ [StorageKeys.GERMAN_GENDER_ENDING]: value })
       .then(() => {
-        if (DEV_ENV) console.log(`new German Gender Ending ${value} saved`);
+        log(`New German Gender Ending ${value} saved`);
       })
       .catch(onError);
   };

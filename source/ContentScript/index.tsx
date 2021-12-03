@@ -2,8 +2,12 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 import ContentScriptApp from './ContentScriptApp';
 import { browser } from 'webextension-polyfill-ts';
-import { StorageKeys, DEV_ENV } from '../shared/constants';
+import { StorageKeys } from '../shared/constants';
 import '../i18n/i18n';
+
+import { useLog, logTypes } from '../shared/customHooks/useLog';
+
+const log = useLog('ContentScript index');
 
 //Main element to add extra markup
 document.body.appendChild(document.createElement('witty-code'));
@@ -16,7 +20,7 @@ browser.storage.local
       customRender(result[StorageKeys.APP_ENABLED]);
   })
   .catch((error: string) => {
-    if (DEV_ENV) console.log('onError = ', error);
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   });
 
 const storageChange = (changes: any) => {

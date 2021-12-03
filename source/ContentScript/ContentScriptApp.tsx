@@ -14,8 +14,8 @@ import {
   setRequestConfig,
   setAppID,
 } from '../shared/ApiServices/requests';
-import { DEV_ENV } from '../shared/constants';
 import { isInputElement, elementExistsinDOM } from '../shared/utils';
+import { useLog, logTypes } from '../shared/customHooks/useLog';
 
 const ContentScriptApp: React.FC = () => {
   // const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
@@ -25,6 +25,7 @@ const ContentScriptApp: React.FC = () => {
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
   );
+  const log = useLog('ContentScriptApp');
 
   useEffect(() => {
     //Init API requests Config
@@ -133,7 +134,7 @@ const ContentScriptApp: React.FC = () => {
   }, [reqConfig]);
 
   const onBrowserStorageError = (error: string) => {
-    if (DEV_ENV) console.log('onBrowserStorage Error = ', error);
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
   const handleFocusinElement = (event: Event) => {
@@ -144,11 +145,9 @@ const ContentScriptApp: React.FC = () => {
         setInputs([...inputsRef.current, target]);
   };
 
-  if (DEV_ENV) {
-    useEffect(() => {
-      console.log('ContentScriptApp INPUTS = ', inputs);
-    }, [inputs]);
-  }
+  useEffect(() => {
+    log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
+  }, [inputs]);
 
   //Check if tracked inputs are still visible
   //If not, remove it from the list of inputs.

@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { DEV_ENV } from '../constants';
 
 import { IEndpointResponseError, IRequest } from '../types';
+import { useLog, logTypes } from '../customHooks/useLog';
 
 const useApiResult = (request: IRequest, sendData: any) => {
   const [endpointResponse, setEndpointResponse] = useState<any>(null); //TODO update type any
   const [endpointError, setEndpointError] = useState<IEndpointResponseError>({
     detail: [],
   });
-
   const [loading, setLoading] = useState<boolean>(false);
+  const log = useLog('useApiResult');
 
   useEffect(() => {
     const ac = new AbortController();
@@ -20,18 +20,24 @@ const useApiResult = (request: IRequest, sendData: any) => {
 
       request.config = { ...request.config, signal: ac.signal };
 
-      if (DEV_ENV) console.log('useApiResult request = ', request);
+      log('Request:', logTypes.INFO, request);
 
       fetch(request.url, request.config)
         .then(async (response) => {
-          if (DEV_ENV) console.log('useApiResult response = ', response);
+          log('Response: ', logTypes.INFO, response);
 
           setLoading(false);
 
           if (response.ok) {
             const responseResults = await response.json();
-            if (DEV_ENV)
-              console.log('useApiResult responseResults = ', responseResults);
+
+            log(
+              `Results: Language is ${responseResults.language.toUpperCase()} and the relevant terms are: `,
+              logTypes.INFO,
+              responseResults.results.length > 0
+                ? responseResults.results
+                : 'None'
+            );
             setEndpointResponse(responseResults);
             setEndpointError({ detail: [] });
           } else {
@@ -42,7 +48,7 @@ const useApiResult = (request: IRequest, sendData: any) => {
           // AbortError is created when a request is aborted.
           // We don't need to shown an error message in this case
           if (error.name !== 'AbortError') {
-            if (DEV_ENV) console.log('useApiResult error = ', error);
+            log(error, logTypes.ERROR);
             // setError(error); //TODO FIX, this is not received outside
           }
         })

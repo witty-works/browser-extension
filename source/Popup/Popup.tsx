@@ -9,12 +9,14 @@ import PreferredLanguagesSelector from './PreferedLanguagesSelector';
 import GermanGenderEndSelector from './GermanGenderEndSelector';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import { useLog, logTypes } from '../shared/customHooks/useLog';
 
 import './styles.scss';
 
 const Popup: React.FC = () => {
   const [enabled, setEnabled] = useState<boolean>(false);
   const { t } = useTranslation(namespaces.pages.popup);
+  const log = useLog('Popup');
 
   useEffect(() => {
     browser.storage.local
@@ -31,10 +33,9 @@ const Popup: React.FC = () => {
     browser.storage.local
       .set({ [StorageKeys.APP_ENABLED]: enabled })
       .then(() => {
-        if (DEV_ENV)
-          console.log(
-            `Witty status *${enabled ? 'enabled' : 'disabled'}* correctly saved`
-          );
+        log(
+          `Witty status *${enabled ? 'enabled' : 'disabled'}* correctly saved`
+        );
       })
       .catch(onError);
 
@@ -57,7 +58,7 @@ const Popup: React.FC = () => {
   }, [enabled]);
 
   const onError = (error: string) => {
-    if (DEV_ENV) console.log('Storage enabled state error = ', error);
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
   return (

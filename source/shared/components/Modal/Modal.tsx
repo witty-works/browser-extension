@@ -4,7 +4,7 @@ import CSS from 'csstype';
 import { browser } from 'webextension-polyfill-ts';
 
 import { IAlert, ILog } from '../../types';
-import { getColor, DEV_ENV } from '../../constants';
+import { getColor } from '../../constants';
 import { useLogEndpoint } from '../../ApiServices/useEndpoint';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
@@ -32,7 +32,7 @@ const Modal: React.FC<ModalProps> = ({
   addIgnoredTerm,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const [, logResponse, logError, sendLog] = useLogEndpoint();
+  const [, , , sendLog] = useLogEndpoint();
   const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
   const { t, i18n } = useTranslation(namespaces.modal);
 
@@ -42,12 +42,7 @@ const Modal: React.FC<ModalProps> = ({
   }, [data.alert.data.language]);
 
   const modalWidth =
-    window.innerWidth > 640 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
-
-  const modalMaxHeight = Math.min(
-    (window.innerHeight - data.position.top) * 0.9,
-    window.innerHeight * 0.5
-  );
+    window.innerWidth > 720 ? window.innerWidth * 0.3 : window.innerWidth * 0.5;
 
   const modalLeftPos =
     modalWidth < window.innerWidth - data.position.left
@@ -58,24 +53,23 @@ const Modal: React.FC<ModalProps> = ({
         parseFloat(getComputedStyle(document.documentElement).fontSize);
 
   //Positions the modal dinamically
+  const minHeight = window.innerHeight < 920 ? window.innerHeight * 0.33 : 200;
+  const maxHeight =
+    (window.innerHeight < 920
+      ? window.innerHeight * 0.5
+      : window.innerHeight * 0.33) + (isToggleOpen ? 100 : 0);
   const ModalStyling: CSS.Properties = {
     top: `${data.position.top + data.position.height + 3}px`, //TODO convert this 3
     left: `${modalLeftPos}px`,
     width: `${modalWidth}px`,
-    maxHeight: `${modalMaxHeight}px`,
+    // height: `${window.innerHeight * 0.33}px`,
+    minHeight: `${minHeight}px`,
+    maxHeight: `${maxHeight}px`,
   };
 
   const CategoryDotStyling: CSS.Properties = {
     backgroundColor: `${getColor(data.alert.data.category)}`,
   };
-
-  useEffect(() => {
-    if (DEV_ENV) console.log('Modal logResponse = ', logResponse);
-  }, [logResponse]);
-
-  useEffect(() => {
-    if (DEV_ENV) console.log('Modal logError = ', logError);
-  }, [logError]);
 
   useEffect(() => {
     if (isOpen && isToggleOpen) setIsToggleOpen(false); //if modal is open and description text is also expanded, collapse it
@@ -209,25 +203,25 @@ const Modal: React.FC<ModalProps> = ({
             <span className='modal-main-text'>{data.alert.data.solution}</span>
           </div>
           <div className='modal-row'>
-            {data.alert.data.alternatives.length === 0 ? null : (
-              <>
-                <div className='modal-row-title'>
-                  {t('insteadTry')}
-                  {isToggleOpen ? (
-                    <a onClick={toggleText} className='modal-expand-link'>
-                      {t('understood')}
-                    </a>
-                  ) : (
-                    <a onClick={toggleText} className='modal-expand-link'>
-                      {t('whyQuestionMark')}
-                    </a>
-                  )}
-                </div>
+            <>
+              <div className='modal-row-title'>
+                {data.alert.data.alternatives.length === 0
+                  ? null
+                  : t('insteadTry')}
                 {isToggleOpen ? (
-                  <div className='modal-sub-text'>{data.alert.data.reason}</div>
-                ) : null}
-              </>
-            )}
+                  <a onClick={toggleText} className='modal-expand-link'>
+                    {t('understood')}
+                  </a>
+                ) : (
+                  <a onClick={toggleText} className='modal-expand-link'>
+                    {t('whyQuestionMark')}
+                  </a>
+                )}
+              </div>
+              {isToggleOpen ? (
+                <div className='modal-sub-text'>{data.alert.data.reason}</div>
+              ) : null}
+            </>
           </div>
           <div className='list-links-container'>
             {data.alert.data.alternatives.length === 0 ? (
@@ -253,7 +247,6 @@ const Modal: React.FC<ModalProps> = ({
                 <a
                   className='modal-link'
                   key={`${index}-${alternative}`}
-                  // style={AlternativeButtonStyling}
                   onMouseEnter={hoveredAlternativeButton}
                   onMouseLeave={resetAlternativeButton}
                   onClick={() => clickAlternative(index)}

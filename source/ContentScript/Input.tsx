@@ -5,7 +5,7 @@ import InputTextClone from './InputTextClone';
 import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
-import { DEV_ENV } from '../shared/constants';
+import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
@@ -37,6 +37,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
+  const log = useLog('Input');
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
@@ -60,7 +61,9 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
         ? (target as HTMLTextAreaElement | HTMLInputElement).value
         : fixLineBreaks(target.innerText);
 
-    sendText(text);
+    //If there isn't text, there's nothing to highlight
+    if (text.length === 0) setNodesWithAlerts([]);
+    else sendText(text);
   };
 
   const handleScrollEvent = (event: Event) => {
@@ -85,11 +88,14 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
       );
 
       if (oneNodeWithAlerts) {
-        const selectedAlert = oneNodeWithAlerts.alerts.find((alert: IAlert) => {
-          return (
-            alert.startOffset < caretPosition && alert.endOffset > caretPosition
-          );
-        }) as IAlert;
+        const selectedAlert = oneNodeWithAlerts.alerts
+          .filter((alert: IAlert) => {
+            return (
+              alert.startOffset < caretPosition &&
+              alert.endOffset > caretPosition
+            );
+          })
+          .pop() as IAlert;
 
         const nodeText = oneNodeWithAlerts.node;
 
@@ -120,20 +126,20 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
         .selectionStart as number;
     } else {
       const selection: Selection | null = document.getSelection();
+      let position: number = -1;
 
-      if (selection !== null) {
+      if (selection !== null && selection.type === 'Caret') {
         //Modify is a non-standard feature, although currently is supported by all browsers except IE
         //https://developer.mozilla.org/en-US/docs/Web/API/Selection/modify
-
         //TODO In order to remove error from typescript we can augment the interface
         //https://github.com/Microsoft/TypeScript/issues/12296
         //Temporaly ignore this error
         // @ts-ignore
         selection.modify('extend', 'backward', 'paragraph');
-        const position = selection.toString().length as number;
+        position = selection.toString().length as number;
         if (selection.anchorNode != undefined) selection.collapseToEnd();
-        return position;
-      } else return -1;
+      }
+      return position;
     }
   };
 
@@ -166,7 +172,8 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
   }, [checkEndpointResponse]);
 
   useEffect(() => {
-    if (alerts.length > 0) {
+    if (alerts.length === 0) setNodesWithAlerts([]);
+    else {
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
@@ -249,7 +256,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
 
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
-      if (DEV_ENV) console.log('API Error = ', checkEndpointError);
+      log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
       if (checkEndpointError.detail === 'Language could not be determined')
         setNodesWithAlerts([]);
     }
