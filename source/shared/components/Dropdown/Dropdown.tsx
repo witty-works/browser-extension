@@ -31,7 +31,11 @@ const Dropdown: React.FC<DropdownProps> = ({
   };
 
   return (
-    <select onChange={handleOptionChange} value={selected}>
+    <select
+      className='dropdown-select'
+      onChange={handleOptionChange}
+      value={selected}
+    >
       {options.map((option) => (
         <option key={option.key} value={option.key}>
           {option.value.length > 42
