@@ -1,13 +1,17 @@
-# Inclusifier
+# Witty Browser Extension (formerly known as Inclusifier)
 
 ## Requirements to start
 
-- [Node.js](https://nodejs.org) 10 or later installed
+- [Node.js](https://nodejs.org) v14.16 (later versions can have problems with some packages, for example node-sass)
 - [Yarn](https://yarnpkg.com) v1 or v2 installed
+
+# Get the code
+
+Clone repo `git clone https://github.com/witty-works/browser-extension.git`
 
 ## Preparing the project
 
-Go to project directory `cd inclusifier`
+Go to project directory `cd browser-extension`
 
 Run `yarn install` to install dependencies.
 
