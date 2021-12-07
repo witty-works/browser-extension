@@ -37,11 +37,11 @@ const Highlights: React.FC<HighlightsProps> = ({
       //but also filter alerts that have a bigger endOffset than the length of the text
       if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
         nodeWithAlerts.alerts
-          // .filter(
-          //   (alert: IAlert) =>
-          //     node.textContent !== null &&
-          //     alert.endOffset <= node.textContent.length
-          // )
+          .filter(
+            (alert: IAlert) =>
+              node.textContent !== null &&
+              alert.endOffset <= node.textContent.length
+          )
           .forEach((alert: IAlert) => {
             const range = document.createRange();
             range.setStart(node, alert.startOffset);
