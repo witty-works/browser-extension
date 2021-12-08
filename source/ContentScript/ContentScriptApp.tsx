@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import { CustomInputElement, RequestConfig } from '../shared/types';
@@ -16,6 +16,7 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, elementExistsinDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
+import { ScrollPos } from './Highlights';
 
 const ContentScriptApp: React.FC = () => {
   // const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
@@ -24,6 +25,13 @@ const ContentScriptApp: React.FC = () => {
   );
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
+  );
+  const [documentScroll, setDocumentScroll] = useState<ScrollPos>({
+    top: 0,
+    left: 0,
+  } as ScrollPos);
+  const [scrolledElement, setScrolledElement] = useState<HTMLElement>(
+    document.documentElement || document.body
   );
   const log = useLog('ContentScriptApp');
 
@@ -84,11 +92,12 @@ const ContentScriptApp: React.FC = () => {
 
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
-
+    document.addEventListener('scroll', handleDocumentScrollEvent, true);
     return () => {
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
+      document.removeEventListener('scroll', handleDocumentScrollEvent);
     };
   }, []);
 
@@ -145,6 +154,19 @@ const ContentScriptApp: React.FC = () => {
         setInputs([...inputsRef.current, target]);
   };
 
+  const handleDocumentScrollEvent = (event: Event) => {
+    //TODO add throttle
+    const target = event.target as CustomInputElement;
+    // log('handleDocumentScrollEvent target', logTypes.INFO, target);
+    // log('document scrollTop', logTypes.INFO, {
+    //   top: target.scrollTop,
+    //   left: target.scrollLeft,
+    // });
+
+    setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
+    setScrolledElement(target);
+  };
+
   useEffect(() => {
     log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
   }, [inputs]);
@@ -168,7 +190,12 @@ const ContentScriptApp: React.FC = () => {
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (
-        <Input key={index} element={input} />
+        <Input
+          key={index}
+          element={input}
+          documentScroll={documentScroll}
+          scrolledElement={scrolledElement}
+        />
       ))}
     </>
   );
