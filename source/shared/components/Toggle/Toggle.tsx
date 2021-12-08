@@ -3,7 +3,7 @@ import React from 'react';
 import './Toggle.scss';
 
 interface ToggleProps {
-  on: boolean;
+  on: boolean | undefined;
   handleToggle: () => void;
   color: string;
   scale: number;
