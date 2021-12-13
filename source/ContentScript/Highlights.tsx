@@ -57,7 +57,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                   documentScroll.top +
                   rect.height;
                 const rectLeft =
-                  rect.left + customDoc.scrollLeft + documentScroll.top;
+                  rect.left + customDoc.scrollLeft + documentScroll.left;
                 return (
                   rectTop > elementRect.top &&
                   rectTop < elementRect.top + elementRect.height &&
@@ -112,9 +112,9 @@ const Highlights: React.FC<HighlightsProps> = ({
 
           //... which can include several DOMRects
           highlight.rects.forEach((rect: DOMRect) => {
-            console.log('witty documentScroll.top:', documentScroll.top);
-            console.log('witty elementScroll.top:', elementScroll.top);
-            console.log('witty rect top / y:', rect.top, rect.y);
+            // console.log('witty documentScroll.top:', documentScroll.top);
+            // console.log('witty elementScroll.top:', elementScroll.top);
+            // console.log('witty rect top / y:', rect.top, rect.y);
 
             const rectToRender: DOMRect = {
               // x: rect.x,
