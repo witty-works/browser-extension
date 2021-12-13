@@ -30,9 +30,7 @@ const ContentScriptApp: React.FC = () => {
     top: 0,
     left: 0,
   } as ScrollPos);
-  const [scrolledElement, setScrolledElement] = useState<HTMLElement>(
-    document.documentElement || document.body
-  );
+
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
@@ -157,14 +155,25 @@ const ContentScriptApp: React.FC = () => {
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
     const target = event.target as CustomInputElement;
-    // log('handleDocumentScrollEvent target', logTypes.INFO, target);
-    // log('document scrollTop', logTypes.INFO, {
+    // log('aaa handleDocumentScrollEvent target', logTypes.INFO, target);
+    // log(
+    //   'aaa handleDocumentScrollEvent target.nodeName',
+    //   logTypes.INFO,
+    //   target.nodeName
+    // );
+    // log('documentScroll document scrollTop', logTypes.INFO, {
     //   top: target.scrollTop,
     //   left: target.scrollLeft,
     // });
 
-    setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
-    setScrolledElement(target);
+    if (target.nodeName === '#document') {
+      setDocumentScroll({
+        top: 0,
+        left: 0,
+      });
+    } else {
+      setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
+    }
   };
 
   useEffect(() => {
@@ -190,12 +199,7 @@ const ContentScriptApp: React.FC = () => {
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (
-        <Input
-          key={index}
-          element={input}
-          documentScroll={documentScroll}
-          scrolledElement={scrolledElement}
-        />
+        <Input key={index} element={input} documentScroll={documentScroll} />
       ))}
     </>
   );

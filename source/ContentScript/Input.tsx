@@ -22,8 +22,7 @@ type HandleClick = () => void;
 const Input: React.FC<{
   element: CustomInputElement;
   documentScroll: ScrollPos;
-  scrolledElement: HTMLElement;
-}> = ({ element, documentScroll, scrolledElement }) => {
+}> = ({ element, documentScroll }) => {
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
@@ -33,7 +32,7 @@ const Input: React.FC<{
   );
   // const [clone, setClone] = useState<HTMLDivElement>();
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
-  const elementRect = useResizeObserver(element, scrolledElement);
+  const elementRect = useResizeObserver(element, documentScroll);
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
