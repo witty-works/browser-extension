@@ -155,7 +155,8 @@ const ContentScriptApp: React.FC = () => {
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
     const target = event.target as CustomInputElement;
-    // log('aaa handleDocumentScrollEvent target', logTypes.INFO, target);
+    // log('abcd handleDocumentScrollEvent target', logTypes.INFO, target);
+
     // log(
     //   'aaa handleDocumentScrollEvent target.nodeName',
     //   logTypes.INFO,
@@ -166,10 +167,12 @@ const ContentScriptApp: React.FC = () => {
     //   left: target.scrollLeft,
     // });
 
+
     if (target.nodeName === '#document') {
+      const docElement = document.documentElement || document.body;
       setDocumentScroll({
-        top: 0,
-        left: 0,
+        top: docElement.scrollTop,
+        left: docElement.scrollLeft,
       });
     } else {
       setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });

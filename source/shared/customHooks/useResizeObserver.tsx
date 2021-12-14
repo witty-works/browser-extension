@@ -11,6 +11,11 @@ export const useResizeObserver = (
   const resizeListener = () => {
     // const customDoc = document.documentElement || document.body;
     const { width, height, top, left } = element.getBoundingClientRect();
+
+  console.log('abcd useResizeObserver top:', top);
+  console.log('abcd useResizeObserver left:', left);
+  console.log('abcd useResizeObserver documentScroll:', documentScroll.top);
+
     setRect(
       new DOMRect(
         left + documentScroll.left,
