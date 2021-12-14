@@ -223,7 +223,7 @@ const Modal: React.FC<ModalProps> = ({
               ) : null}
             </>
           </div>
-          <div className='list-links-container'>
+          <div className='modal-list-links-container'>
             {data.alert.data.alternatives.length === 0 ? (
               <a
                 className='modal-link'

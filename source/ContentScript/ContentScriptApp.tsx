@@ -158,7 +158,11 @@ const ContentScriptApp: React.FC = () => {
       ? document.documentElement || document.body
       : event.target as CustomInputElement
 
-    setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
+    log(`abcd handleDocumentScrollEvent target:`, logTypes.INFO, target);
+
+    //Ignore when scrolling the list of alternatives in the modal
+    if (!target.classList.contains('modal-list-links-container'))
+      setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
   };
 
   useEffect(() => {

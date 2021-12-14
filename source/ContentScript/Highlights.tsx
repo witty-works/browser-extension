@@ -31,6 +31,8 @@ const Highlights: React.FC<HighlightsProps> = ({
   useEffect(() => {
     const highlights: Highlight[] = [];
 
+    console.log('documentScroll = ', documentScroll)
+
     nodesWithAlerts.forEach((nodeWithAlerts) => {
       const node = nodeWithAlerts.node;
 
@@ -65,8 +67,6 @@ const Highlights: React.FC<HighlightsProps> = ({
               //   );
               // })
               .map((rect: DOMRect) => {
-                console.log('abcd rect:', rect);
-
                 return {
                   ...rect,
                   width: rect.width,
