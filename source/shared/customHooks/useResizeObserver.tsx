@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
 
-export const useResizeObserver = (element: HTMLElement): DOMRect => {
+import { ScrollPos } from '../../ContentScript/Highlights';
+
+export const useResizeObserver = (
+  element: HTMLElement,
+  documentScroll: ScrollPos
+): DOMRect => {
   const [rect, setRect] = useState<DOMRect>(new DOMRect());
 
   const resizeListener = () => {
-    const customDoc = document.documentElement || document.body;
-
     const { width, height, top, left } = element.getBoundingClientRect();
+
     setRect(
       new DOMRect(
-        left + customDoc.scrollLeft,
-        top + customDoc.scrollTop,
+        left + documentScroll.left,
+        top + documentScroll.top,
         width,
         height
       )
