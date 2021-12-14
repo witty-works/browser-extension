@@ -154,29 +154,11 @@ const ContentScriptApp: React.FC = () => {
 
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
-    const target = event.target as CustomInputElement;
-    // log('abcd handleDocumentScrollEvent target', logTypes.INFO, target);
+    const target = ((event.target as CustomInputElement).nodeName === '#document') 
+      ? document.documentElement || document.body
+      : event.target as CustomInputElement
 
-    // log(
-    //   'aaa handleDocumentScrollEvent target.nodeName',
-    //   logTypes.INFO,
-    //   target.nodeName
-    // );
-    // log('documentScroll document scrollTop', logTypes.INFO, {
-    //   top: target.scrollTop,
-    //   left: target.scrollLeft,
-    // });
-
-
-    if (target.nodeName === '#document') {
-      const docElement = document.documentElement || document.body;
-      setDocumentScroll({
-        top: docElement.scrollTop,
-        left: docElement.scrollLeft,
-      });
-    } else {
-      setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
-    }
+    setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
   };
 
   useEffect(() => {

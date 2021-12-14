@@ -27,7 +27,6 @@ const Highlights: React.FC<HighlightsProps> = ({
   nodesWithAlerts,
 }: HighlightsProps) => {
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-  // const customDoc = document.documentElement || document.body;
 
   useEffect(() => {
     const highlights: Highlight[] = [];
@@ -104,21 +103,9 @@ const Highlights: React.FC<HighlightsProps> = ({
 
           //... which can include several DOMRects
           highlight.rects.forEach((rect: DOMRect) => {
-            console.log('abcd witty documentScroll.top:', documentScroll.top);
-            console.log('abcd witty elementScroll.top:', elementScroll.top);
-            console.log('abcd witty rect.top:', rect.top);
-            console.log('abcd witty elementRect.top:', elementRect.top);
-
             const rectToRender: DOMRect = {
-              // x: rect.x,
-              // y: rect.y + rect.height,
-              // x: rect.x - elementRect.x,
-              // y: rect.y - elementRect.y + documentScroll.top + rect.height,
-              // left: rect.left - elementRect.left,
-              // top:
-              //   rect.top + documentScroll.top - elementRect.top + rect.height,
-              left: rect.left - elementRect.left,
-              top:rect.top + documentScroll.top - elementRect.top + rect.height,
+              left: rect.left + (isBodyRelativePositioned() ?  documentScroll.left : 0) - elementRect.left,
+              top:rect.top  + (isBodyRelativePositioned() ?  documentScroll.top : 0) - elementRect.top + rect.height,
               width: rect.width,
               height: 2,
             } as DOMRect;
@@ -151,11 +138,11 @@ const Highlights: React.FC<HighlightsProps> = ({
         {
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top - (isBodyRelativePositioned() ?  documentScroll.top : 0)}px`,
           left: `${elementRect.left - (isBodyRelativePositioned() ?  documentScroll.left : 0)}px`,
+          top: `${elementRect.top - (isBodyRelativePositioned() ?  documentScroll.top : 0)}px`,
           pointerEvents: 'none',
           zIndex: 999999999,
-          outline: '3px solid blue',
+          // outline: '3px solid blue',
         } as React.CSSProperties
       }
       width={elementRect.width}
