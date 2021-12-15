@@ -15,10 +15,16 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
 }: TextAreaCloneProps) => {
   const elementStyle = window.getComputedStyle(element);
 
+  console.log('TextAreaClone elementRect.top', elementRect.top);
+  console.log('TextAreaClone element.scrollTop', element.scrollTop);
+
+
   return (
     <div
       ref={(ref) => {
         if (ref !== null) {
+          ref.scrollLeft = element.scrollLeft
+          ref.scrollTop = element.scrollTop
           updateClone(ref);
         }
       }}
@@ -29,8 +35,10 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top - elementScroll.top}px`,
-          left: `${elementRect.left - elementScroll.left}px`,
+          top: `${elementRect.top}px`,
+          left: `${elementRect.left}px`,
+          // top: `${elementRect.top - elementScroll.top}px`,
+          // left: `${elementRect.left - elementScroll.left}px`,
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
@@ -42,10 +50,10 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           lineHeight: elementStyle.lineHeight,
           fontFamily: elementStyle.fontFamily,
           border: `${elementStyle.borderBottomWidth} solid black`,
-          visibility: 'hidden',
-          // outline: '5px solid red',
-          // pointerEvents: 'none',
-          // zIndex: 1,
+          // visibility: 'hidden',
+          // outline: '8px solid red',
+          pointerEvents: 'none',
+          zIndex: -1,
           // top: `${
           //   elementBoundingClientRect.top -
           //   element.scrollTop +

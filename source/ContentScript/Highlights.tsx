@@ -104,8 +104,10 @@ const Highlights: React.FC<HighlightsProps> = ({
           //... which can include several DOMRects
           highlight.rects.forEach((rect: DOMRect) => {
             const rectToRender: DOMRect = {
-              left: rect.left + (isBodyRelativePositioned() ?  documentScroll.left : 0) - elementRect.left,
-              top:rect.top  + (isBodyRelativePositioned() ?  documentScroll.top : 0) - elementRect.top + rect.height,
+              left: rect.left - elementRect.left,
+              top:rect.top + documentScroll.top - elementScroll.top - elementRect.top + rect.height,
+              // left: rect.left + (isBodyRelativePositioned() ?  documentScroll.left : 0) - elementRect.left,
+              // top:rect.top  + (isBodyRelativePositioned() ?  documentScroll.top : 0) - elementRect.top + rect.height,
               width: rect.width,
               height: 2,
             } as DOMRect;
@@ -123,7 +125,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       //TODO Provide Canvas Fallback content?
       //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
     }
-  }, [elementRect, documentScroll, elementScroll, nodesWithAlerts]);
+  }, [elementRect, /* documentScroll,*/ elementScroll,  nodesWithAlerts]);
 
   const isBodyRelativePositioned = () => 
     window.getComputedStyle(document.documentElement || document.body).position === 'relative' 
@@ -138,8 +140,10 @@ const Highlights: React.FC<HighlightsProps> = ({
         {
           position: 'absolute',
           overflow: 'auto',
-          left: `${elementRect.left - (isBodyRelativePositioned() ?  documentScroll.left : 0)}px`,
-          top: `${elementRect.top - (isBodyRelativePositioned() ?  documentScroll.top : 0)}px`,
+          left: `${elementRect.left}px`,
+          top: `${elementRect.top}px`,
+          // left: `${elementRect.left - (isBodyRelativePositioned() ?  documentScroll.left : 0)}px`,
+          // top: `${elementRect.top - (isBodyRelativePositioned() ?  documentScroll.top : 0)}px`,
           pointerEvents: 'none',
           zIndex: 999999999,
           // outline: '3px solid blue',

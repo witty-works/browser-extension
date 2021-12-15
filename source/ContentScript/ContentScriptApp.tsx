@@ -26,9 +26,11 @@ const ContentScriptApp: React.FC = () => {
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
   );
+
+  const doc = document.documentElement || document.body;
   const [documentScroll, setDocumentScroll] = useState<ScrollPos>({
-    top: 0,
-    left: 0,
+    top: doc.scrollTop,
+    left: doc.scrollLeft,
   } as ScrollPos);
 
   const log = useLog('ContentScriptApp');
@@ -155,13 +157,16 @@ const ContentScriptApp: React.FC = () => {
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
     const target = ((event.target as CustomInputElement).nodeName === '#document') 
-      ? document.documentElement || document.body
+      ? doc
       : event.target as CustomInputElement
 
     log(`abcd handleDocumentScrollEvent target:`, logTypes.INFO, target);
 
     //Ignore when scrolling the list of alternatives in the modal
-    if (!target.classList.contains('modal-list-links-container'))
+    /* !inputsRef.current.includes(target) && */ 
+    // if (!target.classList.contains('modal-list-links-container'))
+    //TODO Add modal inside <witty-code> ?
+    // if (!document.querySelector('witty-code')?.contains(target))
       setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
   };
 

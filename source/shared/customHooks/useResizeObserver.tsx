@@ -9,7 +9,12 @@ export const useResizeObserver = (
   const [rect, setRect] = useState<DOMRect>(new DOMRect());
 
   const resizeListener = () => {
+    console.log('useResizeObserver element', element);
+
     const { width, height, top, left } = element.getBoundingClientRect();
+    console.log('useResizeObserver top', top);
+    console.log('useResizeObserver documentScroll.top', documentScroll.top);
+    
 
     setRect(
       new DOMRect(
