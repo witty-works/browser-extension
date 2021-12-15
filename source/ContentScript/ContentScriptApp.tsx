@@ -166,13 +166,32 @@ const ContentScriptApp: React.FC = () => {
     /* !inputsRef.current.includes(target) && */ 
     // if (!target.classList.contains('modal-list-links-container'))
     //TODO Add modal inside <witty-code> ?
-    // if (!document.querySelector('witty-code')?.contains(target))
+
+
+    const wittyCode = document.querySelector('witty-code');
+    // console.log('wittyCode', wittyCode);
+
+    const isContained = wittyCode?.contains(target)
+
+    // console.log('isContained', isContained);
+
+    // console.log('belongs to witty tag?', document.querySelector('witty-code')?.contains(target))
+
+    if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
+      // console.log('update documentscroll!');
+      console.log(`abcd target: ${target} target.scrollTop: ${target.scrollTop}`)
       setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
+    }
+    
   };
 
   useEffect(() => {
     log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
   }, [inputs]);
+
+  useEffect(() => {
+    log(`abcd documentScroll:`, logTypes.INFO, documentScroll);
+  }, [documentScroll]);
 
   //Check if tracked inputs are still visible
   //If not, remove it from the list of inputs.

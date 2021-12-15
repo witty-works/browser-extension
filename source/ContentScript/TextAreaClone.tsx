@@ -1,16 +1,16 @@
 import React from 'react';
-import { ScrollPos } from './Highlights';
+// import { ScrollPos } from './Highlights';
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
   elementRect: DOMRect;
-  elementScroll: ScrollPos;
+  // elementScroll: ScrollPos;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
   elementRect,
-  elementScroll,
+  // elementScroll,
   updateClone,
 }: TextAreaCloneProps) => {
   const elementStyle = window.getComputedStyle(element);

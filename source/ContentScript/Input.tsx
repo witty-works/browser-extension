@@ -72,6 +72,7 @@ const Input: React.FC<{
   const handleElementScrollEvent = (event: Event) => {
     //TODO add throttle
     const target = event.target as CustomInputElement;
+    log(`abcd handleElementScrollEvent target:`, logTypes.INFO, target);
     setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
   };
 
@@ -293,7 +294,7 @@ const Input: React.FC<{
         <TextAreaClone
           element={element as HTMLTextAreaElement}
           elementRect={elementRect}
-          elementScroll={elementScroll}
+          // elementScroll={elementScroll}
           updateClone={updateCloneData}
         />
       ) : null}
