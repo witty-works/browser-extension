@@ -33,7 +33,7 @@ const Input: React.FC<{
   );
   // const [clone, setClone] = useState<HTMLDivElement>();
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
-  const elementRect = useResizeObserver(element, bodyScroll);
+  const elementRect = useResizeObserver(element);
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
