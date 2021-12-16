@@ -9,7 +9,8 @@ export type ScrollPos = {
 };
 
 interface HighlightsProps {
-  documentScroll: ScrollPos;
+  bodyScroll: ScrollPos;
+  parentScroll: ScrollPos;
   elementScroll: ScrollPos;
   elementRect: DOMRect;
   nodesWithAlerts: INodeWithAlerts[];
@@ -21,7 +22,8 @@ type Highlight = {
 };
 
 const Highlights: React.FC<HighlightsProps> = ({
-  documentScroll,
+  bodyScroll,
+  parentScroll,
   elementScroll,
   elementRect,
   nodesWithAlerts,
@@ -175,7 +177,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                   height: rect.height,
                   left: rect.left,
                   x: rect.left,
-                  top: rect.top + documentScroll.top,
+                  top: rect.top + bodyScroll.top,
                   y: rect.top,
                 };
               });
@@ -191,7 +193,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
 
     setHighlights(highlights)
-  },[nodesWithAlerts, elementScroll ]);
+  },[nodesWithAlerts, parentScroll, elementScroll ]);
 
   useEffect(() => {
     // console.log('Highlights highlights changed!', highlights);
@@ -213,7 +215,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           highlight.rects.forEach((rect: DOMRect, index:number) => {
             if(index === 0) {
               //console.log(`canvas top: ${window.getComputedStyle(canvasRef.current).top} rect.top: ${rect.top} elementRect.top: ${elementRect.top} rect.height: ${rect.height}`)
-              console.log(`abcd canvas top: ${window.getComputedStyle(canvasRef.current).top} rect.top: ${rect.top} documentScroll.top: ${documentScroll.top} elementScroll.top: ${elementScroll.top}`)
+              // console.log(`abcd canvas top: ${window.getComputedStyle(canvasRef.current).top} rect.top: ${rect.top} documentScroll.top: ${documentScroll.top} elementScroll.top: ${elementScroll.top}`)
             }
             const rectToRender: DOMRect = {
               left: rect.left - elementRect.left,

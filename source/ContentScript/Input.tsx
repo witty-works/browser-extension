@@ -21,8 +21,9 @@ type HandleClick = () => void;
 
 const Input: React.FC<{
   element: CustomInputElement;
-  documentScroll: ScrollPos;
-}> = ({ element, documentScroll }) => {
+  bodyScroll: ScrollPos;
+  parentScroll: ScrollPos;
+}> = ({ element, bodyScroll, parentScroll }) => {
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
@@ -32,7 +33,7 @@ const Input: React.FC<{
   );
   // const [clone, setClone] = useState<HTMLDivElement>();
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
-  const elementRect = useResizeObserver(element, documentScroll);
+  const elementRect = useResizeObserver(element, bodyScroll);
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
@@ -308,7 +309,8 @@ const Input: React.FC<{
       {loading ? <HighlightsLoader elementReference={element} /> : null}
       {nodesWithAlerts.length > 0 ? (
         <Highlights
-          documentScroll={documentScroll}
+          bodyScroll={bodyScroll}
+          parentScroll={parentScroll}
           elementScroll={elementScroll}
           elementRect={elementRect}
           nodesWithAlerts={nodesWithAlerts}

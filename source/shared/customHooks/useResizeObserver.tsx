@@ -4,22 +4,25 @@ import { ScrollPos } from '../../ContentScript/Highlights';
 
 export const useResizeObserver = (
   element: HTMLElement,
-  documentScroll: ScrollPos
+  bodyScroll: ScrollPos
 ): DOMRect => {
   const [rect, setRect] = useState<DOMRect>(new DOMRect());
+  const doc = document.documentElement || document.body;
 
   const resizeListener = () => {
-    console.log('useResizeObserver element', element);
+    // console.log('useResizeObserver element', element);
 
     const { width, height, top, left } = element.getBoundingClientRect();
-    console.log('useResizeObserver top', top);
-    console.log('useResizeObserver documentScroll.top', documentScroll.top);
+    // console.log('useResizeObserver top', top);
+    // console.log('useResizeObserver documentScroll.top', documentScroll.top);
     
 
     setRect(
       new DOMRect(
-        left + documentScroll.left,
-        top + documentScroll.top,
+        // left + documentScroll.left,
+        // top + documentScroll.top,
+        left + doc.scrollLeft,
+        top + doc.scrollTop,
         width,
         height
       )

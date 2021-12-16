@@ -28,9 +28,14 @@ const ContentScriptApp: React.FC = () => {
   );
 
   const doc = document.documentElement || document.body;
-  const [documentScroll, setDocumentScroll] = useState<ScrollPos>({
+  const [bodyScroll, setBodyScroll] = useState<ScrollPos>({
     top: doc.scrollTop,
     left: doc.scrollLeft,
+  } as ScrollPos);
+
+  const [parentScroll, setParentScroll] = useState<ScrollPos>({
+    top: 0,
+    left: 0,
   } as ScrollPos);
 
   const log = useLog('ContentScriptApp');
@@ -156,31 +161,30 @@ const ContentScriptApp: React.FC = () => {
 
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
-    const target = ((event.target as CustomInputElement).nodeName === '#document') 
-      ? doc
-      : event.target as CustomInputElement
+    // const target = ((event.target as CustomInputElement).nodeName === '#document') 
+    //   ? doc
+    //   : event.target as CustomInputElement
 
-    log(`abcd handleDocumentScrollEvent target:`, logTypes.INFO, target);
+    log(`abcd handleDocumentScrollEvent target:`, logTypes.INFO, event.target);
 
     //Ignore when scrolling the list of alternatives in the modal
     /* !inputsRef.current.includes(target) && */ 
     // if (!target.classList.contains('modal-list-links-container'))
     //TODO Add modal inside <witty-code> ?
 
+    // if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
+    //   // console.log('update documentscroll!');
+    //   console.log(`abcd target: ${target} target.scrollTop: ${target.scrollTop}`)
+    //   setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
+    // }
 
-    const wittyCode = document.querySelector('witty-code');
-    // console.log('wittyCode', wittyCode);
-
-    const isContained = wittyCode?.contains(target)
-
-    // console.log('isContained', isContained);
-
-    // console.log('belongs to witty tag?', document.querySelector('witty-code')?.contains(target))
-
-    if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
-      // console.log('update documentscroll!');
-      console.log(`abcd target: ${target} target.scrollTop: ${target.scrollTop}`)
-      setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
+    if((event.target as HTMLElement).nodeName === '#document') {
+      setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft })
+    } else{
+      const target = event.target as CustomInputElement
+      if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
+        setParentScroll({ top: target.scrollTop, left: target.scrollLeft });
+      }
     }
     
   };
@@ -189,9 +193,9 @@ const ContentScriptApp: React.FC = () => {
     log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
   }, [inputs]);
 
-  useEffect(() => {
-    log(`abcd documentScroll:`, logTypes.INFO, documentScroll);
-  }, [documentScroll]);
+  // useEffect(() => {
+  //   log(`abcd documentScroll:`, logTypes.INFO, documentScroll);
+  // }, [documentScroll]);
 
   //Check if tracked inputs are still visible
   //If not, remove it from the list of inputs.
@@ -212,7 +216,7 @@ const ContentScriptApp: React.FC = () => {
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (
-        <Input key={index} element={input} documentScroll={documentScroll} />
+        <Input key={index} element={input} bodyScroll={bodyScroll} parentScroll={parentScroll}/>
       ))}
     </>
   );
