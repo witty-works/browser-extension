@@ -295,7 +295,7 @@ const Input: React.FC<{
         <TextAreaClone
           element={element as HTMLTextAreaElement}
           elementRect={elementRect}
-          // elementScroll={elementScroll}
+          elementScroll={elementScroll}
           updateClone={updateCloneData}
         />
       ) : null}

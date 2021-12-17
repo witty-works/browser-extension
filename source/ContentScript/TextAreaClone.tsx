@@ -1,16 +1,16 @@
 import React from 'react';
-// import { ScrollPos } from './Highlights';
+import { ScrollPos } from './Highlights';
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
   elementRect: DOMRect;
-  // elementScroll: ScrollPos;
+  elementScroll: ScrollPos;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
   elementRect,
-  // elementScroll,
+  elementScroll,
   updateClone,
 }: TextAreaCloneProps) => {
   const elementStyle = window.getComputedStyle(element);
@@ -23,8 +23,6 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
     <div
       ref={(ref) => {
         if (ref !== null) {
-          ref.scrollLeft = element.scrollLeft
-          ref.scrollTop = element.scrollTop
           updateClone(ref);
         }
       }}
@@ -35,10 +33,10 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top}px`,
-          left: `${elementRect.left}px`,
-          // top: `${elementRect.top - elementScroll.top}px`,
-          // left: `${elementRect.left - elementScroll.left}px`,
+          // top: `${elementRect.top}px`,
+          // left: `${elementRect.left}px`,
+          top: `${elementRect.top - elementScroll.top}px`,
+          left: `${elementRect.left - elementScroll.left}px`,
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
@@ -50,7 +48,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           lineHeight: elementStyle.lineHeight,
           fontFamily: elementStyle.fontFamily,
           border: `${elementStyle.borderBottomWidth} solid black`,
-          // visibility: 'hidden',
+          visibility: 'hidden',
           // outline: '8px solid red',
           pointerEvents: 'none',
           zIndex: -1,
