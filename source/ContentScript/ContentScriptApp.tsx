@@ -19,14 +19,20 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import { ScrollPos } from './Highlights';
 
 const ContentScriptApp: React.FC = () => {
-  // const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
     {} as RequestConfig
   );
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
   );
-  const [documentScroll, setDocumentScroll] = useState<ScrollPos>({
+
+  const doc = document.documentElement || document.body;
+  const [bodyScroll, setBodyScroll] = useState<ScrollPos>({
+    top: doc.scrollTop,
+    left: doc.scrollLeft,
+  } as ScrollPos);
+
+  const [parentScroll, setParentScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
   } as ScrollPos);
@@ -106,7 +112,6 @@ const ContentScriptApp: React.FC = () => {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
           setBaseURL(changes[item].newValue);
-          // setUrlEndpointKey(changes[item].newValue);
           break;
         case StorageKeys.PRIMARY_LANGUAGE:
           setReqConfig({
@@ -154,15 +159,15 @@ const ContentScriptApp: React.FC = () => {
 
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
-    const target = ((event.target as CustomInputElement).nodeName === '#document') 
-      ? document.documentElement || document.body
-      : event.target as CustomInputElement
-
-    log(`abcd handleDocumentScrollEvent target:`, logTypes.INFO, target);
-
-    //Ignore when scrolling the list of alternatives in the modal
-    if (!target.classList.contains('modal-list-links-container'))
-      setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
+    if((event.target as HTMLElement).nodeName === '#document') {
+      setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft })
+    } else{
+      const target = event.target as CustomInputElement
+      if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
+        setParentScroll({ top: target.scrollTop, left: target.scrollLeft });
+      }
+    }
+    
   };
 
   useEffect(() => {
@@ -188,7 +193,7 @@ const ContentScriptApp: React.FC = () => {
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (
-        <Input key={index} element={input} documentScroll={documentScroll} />
+        <Input key={index} element={input} bodyScroll={bodyScroll} parentScroll={parentScroll}/>
       ))}
     </>
   );

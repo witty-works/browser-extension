@@ -1,10 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { IAlert, IAlertContentData, INodeWithAlerts } from '../shared/types';
 import { getColor } from '../shared/constants';
 import { elementExistsinDOM } from '../shared/utils';
 
+export type ScrollPos = {
+  top: number;
+  left: number;
+};
+
 interface HighlightsProps {
-  documentScroll: ScrollPos;
+  bodyScroll: ScrollPos;
+  parentScroll: ScrollPos;
   elementScroll: ScrollPos;
   elementRect: DOMRect;
   nodesWithAlerts: INodeWithAlerts[];
@@ -15,24 +21,19 @@ type Highlight = {
   data: IAlertContentData;
 };
 
-export type ScrollPos = {
-  top: number;
-  left: number;
-};
-
 const Highlights: React.FC<HighlightsProps> = ({
-  documentScroll,
+  bodyScroll,
+  parentScroll,
   elementScroll,
   elementRect,
   nodesWithAlerts,
 }: HighlightsProps) => {
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
 
+  const [highlights, setHighlights] = useState<Highlight[]>([])
+
   useEffect(() => {
     const highlights: Highlight[] = [];
-
-    console.log('documentScroll = ', documentScroll)
-
     nodesWithAlerts.forEach((nodeWithAlerts) => {
       const node = nodeWithAlerts.node;
 
@@ -53,7 +54,7 @@ const Highlights: React.FC<HighlightsProps> = ({
             const rects: DOMRect[] = Array.from(range.getClientRects())
               // .filter((rect: DOMRect) => {
               //   const rectLeft =
-              //     rect.left /* + customDoc.scrollLeft */ + documentScroll.left;
+              //     rect.left + customDoc.scrollLeft  + documentScroll.left;
               //   const rectTop =
               //     rect.top +
               //     // customDoc.scrollTop +
@@ -73,7 +74,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                   height: rect.height,
                   left: rect.left,
                   x: rect.left,
-                  top: rect.top,
+                  top: rect.top + bodyScroll.top,
                   y: rect.top,
                 };
               });
@@ -88,6 +89,10 @@ const Highlights: React.FC<HighlightsProps> = ({
       }
     });
 
+    setHighlights(highlights)
+  },[nodesWithAlerts, parentScroll, elementScroll ]);
+
+  useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
 
     if (canvas && canvas.getContext) {
@@ -104,8 +109,8 @@ const Highlights: React.FC<HighlightsProps> = ({
           //... which can include several DOMRects
           highlight.rects.forEach((rect: DOMRect) => {
             const rectToRender: DOMRect = {
-              left: rect.left + (isBodyRelativePositioned() ?  documentScroll.left : 0) - elementRect.left,
-              top:rect.top  + (isBodyRelativePositioned() ?  documentScroll.top : 0) - elementRect.top + rect.height,
+              left: rect.left - elementRect.left,
+              top:rect.top - elementRect.top + rect.height,
               width: rect.width,
               height: 2,
             } as DOMRect;
@@ -123,13 +128,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       //TODO Provide Canvas Fallback content?
       //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
     }
-  }, [elementRect, documentScroll, elementScroll, nodesWithAlerts]);
-
-  const isBodyRelativePositioned = () => 
-    window.getComputedStyle(document.documentElement || document.body).position === 'relative' 
-      ? true
-      :false;
-  
+  }, [highlights]);
 
   return (
     <canvas
@@ -138,11 +137,11 @@ const Highlights: React.FC<HighlightsProps> = ({
         {
           position: 'absolute',
           overflow: 'auto',
-          left: `${elementRect.left - (isBodyRelativePositioned() ?  documentScroll.left : 0)}px`,
-          top: `${elementRect.top - (isBodyRelativePositioned() ?  documentScroll.top : 0)}px`,
+          left: `${elementRect.left}px`,
+          top: `${elementRect.top}px`,
           pointerEvents: 'none',
           zIndex: 999999999,
-          // outline: '3px solid blue',
+          // outline: '1px solid blue',
         } as React.CSSProperties
       }
       width={elementRect.width}
