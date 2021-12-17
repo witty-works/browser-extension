@@ -47,7 +47,7 @@ const Input: React.FC<{
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
-    element.addEventListener('scroll', handleElementScrollEvent, true); //TODO true?
+    element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement);
     return () => {
       //Don't forget to remove the listeners at the end
@@ -73,7 +73,6 @@ const Input: React.FC<{
   const handleElementScrollEvent = (event: Event) => {
     //TODO add throttle
     const target = event.target as CustomInputElement;
-    log(`abcd handleElementScrollEvent target:`, logTypes.INFO, target);
     setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
   };
 

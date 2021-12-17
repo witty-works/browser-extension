@@ -19,7 +19,6 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import { ScrollPos } from './Highlights';
 
 const ContentScriptApp: React.FC = () => {
-  // const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
     {} as RequestConfig
   );
@@ -113,7 +112,6 @@ const ContentScriptApp: React.FC = () => {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
           setBaseURL(changes[item].newValue);
-          // setUrlEndpointKey(changes[item].newValue);
           break;
         case StorageKeys.PRIMARY_LANGUAGE:
           setReqConfig({
@@ -161,23 +159,6 @@ const ContentScriptApp: React.FC = () => {
 
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
-    // const target = ((event.target as CustomInputElement).nodeName === '#document') 
-    //   ? doc
-    //   : event.target as CustomInputElement
-
-    log(`abcd handleDocumentScrollEvent target:`, logTypes.INFO, event.target);
-
-    //Ignore when scrolling the list of alternatives in the modal
-    /* !inputsRef.current.includes(target) && */ 
-    // if (!target.classList.contains('modal-list-links-container'))
-    //TODO Add modal inside <witty-code> ?
-
-    // if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
-    //   // console.log('update documentscroll!');
-    //   console.log(`abcd target: ${target} target.scrollTop: ${target.scrollTop}`)
-    //   setDocumentScroll({ top: target.scrollTop, left: target.scrollLeft });
-    // }
-
     if((event.target as HTMLElement).nodeName === '#document') {
       setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft })
     } else{
@@ -192,10 +173,6 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
   }, [inputs]);
-
-  // useEffect(() => {
-  //   log(`abcd documentScroll:`, logTypes.INFO, documentScroll);
-  // }, [documentScroll]);
 
   //Check if tracked inputs are still visible
   //If not, remove it from the list of inputs.
