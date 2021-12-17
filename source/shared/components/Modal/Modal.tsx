@@ -113,14 +113,15 @@ const Modal: React.FC<ModalProps> = ({
     //This only replaces the specific occurrence. If there are other identical terms in the text
     //they will keep highlighted
 
-    const text = data.node.nodeValue;
-
-    const splitText: string[] = text?.split('') as string[];
+    const splitText = (data.node.nodeValue as string).split('') as string[];
+    
+    // In case we have to remove the term it's necessary also to delete the surrounding spaces
     splitText.splice(
-      data.alert.startOffset,
-      data.alert.endOffset - data.alert.startOffset,
+      index === -1 ? data.alert.startOffset - 1 : data.alert.startOffset,
+      index === -1 ? data.alert.endOffset - data.alert.startOffset + 1: data.alert.endOffset - data.alert.startOffset,
       index === -1 ? '' : data.alert.data.alternatives[index]
     );
+
     const textToInsert = splitText.join('');
 
     data.originalNode
@@ -223,7 +224,7 @@ const Modal: React.FC<ModalProps> = ({
               ) : null}
             </>
           </div>
-          <div className='list-links-container'>
+          <div className='modal-list-links-container'>
             {data.alert.data.alternatives.length === 0 ? (
               <a
                 className='modal-link'

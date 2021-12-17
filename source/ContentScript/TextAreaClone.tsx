@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollPos } from './Highlights';
+
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
   elementRect: DOMRect;
@@ -43,15 +44,9 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           fontFamily: elementStyle.fontFamily,
           border: `${elementStyle.borderBottomWidth} solid black`,
           visibility: 'hidden',
-          // outline: '5px solid red',
-          // pointerEvents: 'none',
-          // zIndex: 1,
-          // top: `${
-          //   elementBoundingClientRect.top -
-          //   element.scrollTop +
-          //   elementBoundingClientRect.height +
-          //   50
-          // }px`,
+          // outline: '8px solid red',
+          pointerEvents: 'none',
+          zIndex: -1,
         } as React.CSSProperties
       }
     >

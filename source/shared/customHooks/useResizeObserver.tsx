@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 
-export const useResizeObserver = (element: HTMLElement): DOMRect => {
+export const useResizeObserver = (
+  element: HTMLElement
+): DOMRect => {
   const [rect, setRect] = useState<DOMRect>(new DOMRect());
+  const doc = document.documentElement || document.body;
 
   const resizeListener = () => {
-    const customDoc = document.documentElement || document.body;
-
     const { width, height, top, left } = element.getBoundingClientRect();
+
     setRect(
       new DOMRect(
-        left + customDoc.scrollLeft,
-        top + customDoc.scrollTop,
+        left + doc.scrollLeft,
+        top + doc.scrollTop,
         width,
         height
       )

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import { CustomInputElement, RequestConfig } from '../shared/types';
@@ -16,15 +16,27 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, elementExistsinDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
+import { ScrollPos } from './Highlights';
 
 const ContentScriptApp: React.FC = () => {
-  // const [urlEndpointKey, setUrlEndpointKey] = useState<string>('');
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
     {} as RequestConfig
   );
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
   );
+
+  const doc = document.documentElement || document.body;
+  const [bodyScroll, setBodyScroll] = useState<ScrollPos>({
+    top: doc.scrollTop,
+    left: doc.scrollLeft,
+  } as ScrollPos);
+
+  const [parentScroll, setParentScroll] = useState<ScrollPos>({
+    top: 0,
+    left: 0,
+  } as ScrollPos);
+
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
@@ -84,11 +96,12 @@ const ContentScriptApp: React.FC = () => {
 
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
-
+    document.addEventListener('scroll', handleDocumentScrollEvent, true);
     return () => {
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
+      document.removeEventListener('scroll', handleDocumentScrollEvent);
     };
   }, []);
 
@@ -99,7 +112,6 @@ const ContentScriptApp: React.FC = () => {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
           setBaseURL(changes[item].newValue);
-          // setUrlEndpointKey(changes[item].newValue);
           break;
         case StorageKeys.PRIMARY_LANGUAGE:
           setReqConfig({
@@ -145,6 +157,19 @@ const ContentScriptApp: React.FC = () => {
         setInputs([...inputsRef.current, target]);
   };
 
+  const handleDocumentScrollEvent = (event: Event) => {
+    //TODO add throttle
+    if((event.target as HTMLElement).nodeName === '#document') {
+      setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft })
+    } else{
+      const target = event.target as CustomInputElement
+      if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
+        setParentScroll({ top: target.scrollTop, left: target.scrollLeft });
+      }
+    }
+    
+  };
+
   useEffect(() => {
     log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
   }, [inputs]);
@@ -168,7 +193,7 @@ const ContentScriptApp: React.FC = () => {
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (
-        <Input key={index} element={input} />
+        <Input key={index} element={input} bodyScroll={bodyScroll} parentScroll={parentScroll}/>
       ))}
     </>
   );

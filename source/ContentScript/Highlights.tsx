@@ -1,9 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { IAlert, IAlertContentData, INodeWithAlerts } from '../shared/types';
 import { getColor } from '../shared/constants';
 import { elementExistsinDOM } from '../shared/utils';
 
+export type ScrollPos = {
+  top: number;
+  left: number;
+};
+
 interface HighlightsProps {
+  bodyScroll: ScrollPos;
+  parentScroll: ScrollPos;
   elementScroll: ScrollPos;
   elementRect: DOMRect;
   nodesWithAlerts: INodeWithAlerts[];
@@ -14,22 +21,19 @@ type Highlight = {
   data: IAlertContentData;
 };
 
-export type ScrollPos = {
-  top: number;
-  left: number;
-};
-
 const Highlights: React.FC<HighlightsProps> = ({
+  bodyScroll,
+  parentScroll,
   elementScroll,
   elementRect,
   nodesWithAlerts,
 }: HighlightsProps) => {
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-  const customDoc = document.documentElement || document.body;
+
+  const [highlights, setHighlights] = useState<Highlight[]>([])
 
   useEffect(() => {
     const highlights: Highlight[] = [];
-
     nodesWithAlerts.forEach((nodeWithAlerts) => {
       const node = nodeWithAlerts.node;
 
@@ -48,27 +52,30 @@ const Highlights: React.FC<HighlightsProps> = ({
             range.setEnd(node, alert.endOffset);
 
             const rects: DOMRect[] = Array.from(range.getClientRects())
-              .filter((rect: DOMRect) => {
-                const rectTop = rect.top + customDoc.scrollTop + rect.height;
-                const rectLeft = rect.left + customDoc.scrollLeft;
-                return (
-                  rectTop > elementRect.top &&
-                  rectTop < elementRect.top + elementRect.height &&
-                  rectLeft >= elementRect.left &&
-                  rectLeft + rect.width <= elementRect.left + elementRect.width
-                );
-              })
+              // .filter((rect: DOMRect) => {
+              //   const rectLeft =
+              //     rect.left + customDoc.scrollLeft  + documentScroll.left;
+              //   const rectTop =
+              //     rect.top +
+              //     // customDoc.scrollTop +
+              //     documentScroll.top +
+              //     rect.height;
+              //   return (
+              //     rectTop > elementRect.top &&
+              //     rectTop < elementRect.top + elementRect.height &&
+              //     rectLeft >= elementRect.left &&
+              //     rectLeft + rect.width <= elementRect.left + elementRect.width
+              //   );
+              // })
               .map((rect: DOMRect) => {
                 return {
                   ...rect,
-                  bottom: rect.top + customDoc.scrollTop + rect.height,
-                  height: rect.height,
-                  left: rect.left + customDoc.scrollLeft - elementScroll.left,
-                  right: rect.left + customDoc.scrollLeft + rect.width,
-                  top: rect.top + customDoc.scrollTop - elementScroll.top,
                   width: rect.width,
-                  x: rect.left + customDoc.scrollLeft,
-                  y: rect.top + customDoc.scrollTop,
+                  height: rect.height,
+                  left: rect.left,
+                  x: rect.left,
+                  top: rect.top + bodyScroll.top,
+                  y: rect.top,
                 };
               });
 
@@ -82,6 +89,10 @@ const Highlights: React.FC<HighlightsProps> = ({
       }
     });
 
+    setHighlights(highlights)
+  },[nodesWithAlerts, parentScroll, elementScroll ]);
+
+  useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
 
     if (canvas && canvas.getContext) {
@@ -98,15 +109,15 @@ const Highlights: React.FC<HighlightsProps> = ({
           //... which can include several DOMRects
           highlight.rects.forEach((rect: DOMRect) => {
             const rectToRender: DOMRect = {
-              x: rect.x - elementRect.x,
-              y: rect.y - elementRect.y + rect.height,
+              left: rect.left - elementRect.left,
+              top:rect.top - elementRect.top + rect.height,
               width: rect.width,
               height: 2,
             } as DOMRect;
 
             context.fillRect(
-              rectToRender.x,
-              rectToRender.y,
+              rectToRender.left,
+              rectToRender.top,
               rectToRender.width,
               rectToRender.height
             );
@@ -117,7 +128,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       //TODO Provide Canvas Fallback content?
       //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
     }
-  }, [elementRect, elementScroll, nodesWithAlerts]);
+  }, [highlights]);
 
   return (
     <canvas
@@ -126,11 +137,11 @@ const Highlights: React.FC<HighlightsProps> = ({
         {
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top}px`,
           left: `${elementRect.left}px`,
+          top: `${elementRect.top}px`,
           pointerEvents: 'none',
           zIndex: 999999999,
-          // outline: '3px solid blue',
+          // outline: '1px solid blue',
         } as React.CSSProperties
       }
       width={elementRect.width}

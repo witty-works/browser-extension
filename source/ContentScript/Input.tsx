@@ -19,7 +19,11 @@ import Modal, { ModalData } from '../shared/components/Modal/Modal';
 
 type HandleClick = () => void;
 
-const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
+const Input: React.FC<{
+  element: CustomInputElement;
+  bodyScroll: ScrollPos;
+  parentScroll: ScrollPos;
+}> = ({ element, bodyScroll, parentScroll }) => {
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
@@ -43,12 +47,12 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
-    element.addEventListener('scroll', handleScrollEvent, true);
+    element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement);
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
-      element.removeEventListener('scroll', handleScrollEvent);
+      element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener('click', handleClickElement);
     };
   }, []);
@@ -66,7 +70,7 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
     else sendText(text);
   };
 
-  const handleScrollEvent = (event: Event) => {
+  const handleElementScrollEvent = (event: Event) => {
     //TODO add throttle
     const target = event.target as CustomInputElement;
     setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
@@ -304,6 +308,8 @@ const Input: React.FC<{ element: CustomInputElement }> = ({ element }) => {
       {loading ? <HighlightsLoader elementReference={element} /> : null}
       {nodesWithAlerts.length > 0 ? (
         <Highlights
+          bodyScroll={bodyScroll}
+          parentScroll={parentScroll}
           elementScroll={elementScroll}
           elementRect={elementRect}
           nodesWithAlerts={nodesWithAlerts}
