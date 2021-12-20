@@ -234,26 +234,30 @@ const Modal: React.FC<ModalProps> = ({
               >
                 {t('okUnderstood')}
               </a>
-            ) : data.alert.data.alternatives[0].localeCompare('-') === 0 ? (
-              <a
-                className='modal-link remove-text'
-                onMouseEnter={hoveredAlternativeButton}
-                onMouseLeave={resetAlternativeButton}
-                onClick={() => clickAlternative(-1)}
-              >
-                {data.alert.data.text}
-              </a>
             ) : (
               data.alert.data.alternatives.map((alternative, index) => (
-                <a
-                  className='modal-link'
-                  key={`${index}-${alternative}`}
-                  onMouseEnter={hoveredAlternativeButton}
-                  onMouseLeave={resetAlternativeButton}
-                  onClick={() => clickAlternative(index)}
-                >
-                  {alternative}
-                </a>
+                alternative.localeCompare('-') === 0 ? (
+                  <a
+                    className='modal-link remove-text'
+                    key={`${index}-remove-it`}
+                    onMouseEnter={hoveredAlternativeButton}
+                    onMouseLeave={resetAlternativeButton}
+                    onClick={() => clickAlternative(-1)}
+                  >
+                    {data.alert.data.text}
+                  </a>
+                )
+                : (
+                  <a
+                    className='modal-link'
+                    key={`${index}-${alternative}`}
+                    onMouseEnter={hoveredAlternativeButton}
+                    onMouseLeave={resetAlternativeButton}
+                    onClick={() => clickAlternative(index)}
+                  >
+                    {alternative}
+                  </a>
+                )
               ))
             )}
           </div>
