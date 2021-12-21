@@ -45,7 +45,7 @@ export const en = {
     languages: {
       en_AU: 'English (🇦🇺 Australia)',
       en_CA: 'English (🇨🇦 Canada)',
-      en_GB: 'English (🇬🇧 Great Britian)',
+      en_GB: 'English (🇬🇧 Great Britain)',
       en_NZ: 'English (🇳🇿 New Zealand)',
       en_SA: 'English (🇿🇦 South Africa)',
       en_US: 'English (🇺🇸 USA)',
