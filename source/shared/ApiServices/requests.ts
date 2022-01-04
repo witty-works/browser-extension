@@ -28,6 +28,7 @@ export const getAnalyzedTextResults = (text: string):IRequest => {
   }
 };
 
+//TODO: Remove this after PostHog integration
 export const logAction = (log: ILog) => {
   return {
     url: createUrl(BASE_URL, 'log'),
@@ -43,13 +44,38 @@ export const logAction = (log: ILog) => {
         id: appID,
         client: wittyVersion,
         config: requestConfig,
-        type:log.type,
+        type: log.type,
         context: log.context,
         start: log.start,
         end: log.end,
         details: log.details,
       })
-      : null
+        : null
     }
   }
 }
+
+//TODO
+export const postHogLog = (log: ILog): IRequest => {
+  console.log("postHogLog");
+  console.log(log);
+  return {
+    url: 'https://app.posthog.com/batch/',
+    config: {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: log.text ? JSON.stringify({
+        api_key: 'phc_o3cjCKKkO7rn3CTBUJNmehFoa6vPc3zYavfnGj7WyqK',
+        properties: {},
+        context: {}, //TODO
+        distinct_id: '1234',
+        type: 'capture', //TODO
+        event: '$event', //TODO
+        messageId: '1234',
+      }) : null
+    }
+  }
+};

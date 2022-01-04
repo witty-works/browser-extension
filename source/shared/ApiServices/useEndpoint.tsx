@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
-import { getAnalyzedTextResults, logAction } from './requests';
+import { getAnalyzedTextResults, logAction, postHogLog } from './requests';
 import { IRequest, ILog } from '../types';
 
 export const useCheckEndpoint = () => {
@@ -20,6 +20,7 @@ export const useCheckEndpoint = () => {
   return useApiResults(request, setTextToAnalyse);
 };
 
+//TODO: remove after PostHog integration
 export const useLogEndpoint = () => {
   const [log, setLog] = useState<ILog>({} as ILog);
 
@@ -30,6 +31,21 @@ export const useLogEndpoint = () => {
   }, []);
 
   const request: IRequest = useMemo(() => logAction(log), [log]);
+
+  return useApiResults(request, setLog);
+};
+
+//Integrate PostHog here
+export const usePostHogEndpoint = () => {
+  const [log, setLog] = useState<ILog>({} as ILog);
+
+  useEffect(() => {
+    return () => {
+      setLog({} as ILog);
+    };
+  }, []);
+
+  const request: IRequest = useMemo(() => postHogLog(log), [log]);
 
   return useApiResults(request, setLog);
 };
