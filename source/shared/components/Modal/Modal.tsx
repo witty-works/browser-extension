@@ -114,11 +114,13 @@ const Modal: React.FC<ModalProps> = ({
     //they will keep highlighted
 
     const splitText = (data.node.nodeValue as string).split('') as string[];
-    
+
     // In case we have to remove the term it's necessary also to delete the surrounding spaces
     splitText.splice(
       index === -1 ? data.alert.startOffset - 1 : data.alert.startOffset,
-      index === -1 ? data.alert.endOffset - data.alert.startOffset + 1: data.alert.endOffset - data.alert.startOffset,
+      index === -1
+        ? data.alert.endOffset - data.alert.startOffset + 1
+        : data.alert.endOffset - data.alert.startOffset,
       index === -1 ? '' : data.alert.data.alternatives[index]
     );
 
@@ -235,7 +237,7 @@ const Modal: React.FC<ModalProps> = ({
                 {t('okUnderstood')}
               </a>
             ) : (
-              data.alert.data.alternatives.map((alternative, index) => (
+              data.alert.data.alternatives.map((alternative, index) =>
                 alternative.localeCompare('-') === 0 ? (
                   <a
                     className='modal-link remove-text'
@@ -246,8 +248,7 @@ const Modal: React.FC<ModalProps> = ({
                   >
                     {data.alert.data.text}
                   </a>
-                )
-                : (
+                ) : (
                   <a
                     className='modal-link'
                     key={`${index}-${alternative}`}
@@ -258,7 +259,7 @@ const Modal: React.FC<ModalProps> = ({
                     {alternative}
                   </a>
                 )
-              ))
+              )
             )}
           </div>
           <hr className='modal-separator' />
