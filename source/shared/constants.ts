@@ -1,6 +1,8 @@
 //Development
 export const DEV_ENV = process.env.NODE_ENV === 'development';
 
+export const POSTHOG_API_KEY = DEV_ENV ? 'phc_o3cjCKKkO7rn3CTBUJNmehFoa6vPc3zYavfnGj7WyqK' : 'phc_tmJbApENFHLXMjwG1hHMYO4Md8qR4XAGRforELIiDwp';
+
 //Storage
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',

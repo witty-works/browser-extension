@@ -4,13 +4,14 @@ import TextAreaClone from './TextAreaClone';
 import InputTextClone from './InputTextClone';
 import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
-import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
+import { useCheckEndpoint, usePostHogEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
   IAlertContentData,
   INodeWithAlerts,
+  ILog
 } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
@@ -26,6 +27,7 @@ const Input: React.FC<{
 }> = ({ element, bodyScroll, parentScroll }) => {
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
+  const [, , , sendPostHogLog] = usePostHogEndpoint();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
 
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
@@ -149,6 +151,20 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointResponse) {
+      if (checkEndpointResponse.results.length > 0) {
+        sendPostHogLog({
+          language: checkEndpointResponse.language, 
+          type: 'check',
+          text: checkEndpointResponse.results[0].text,
+          context: checkEndpointResponse.results[0].context,
+          start: checkEndpointResponse.results[0].start,
+          end: checkEndpointResponse.results[0].end,
+          details: {
+            alternative: checkEndpointResponse.results[0].alternatives,
+          },
+        } as ILog);
+      }
+
       const alerts: IAlert[] = checkEndpointResponse.results
         .map((result: any) => ({
           //TODO specify this 'any' type on the line before

@@ -20,22 +20,6 @@ export const useCheckEndpoint = () => {
   return useApiResults(request, setTextToAnalyse);
 };
 
-//TODO: remove after PostHog integration
-// export const useLogEndpoint = () => {
-//   const [log, setLog] = useState<ILog>({} as ILog);
-
-//   useEffect(() => {
-//     return () => {
-//       setLog({} as ILog);
-//     };
-//   }, []);
-
-//   const request: IRequest = useMemo(() => logAction(log), [log]);
-
-//   return useApiResults(request, setLog);
-// };
-
-
 export const usePostHogEndpoint = () => {
   const [log, setLog] = useState<ILog>({} as ILog);
 

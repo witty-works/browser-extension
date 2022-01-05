@@ -1,5 +1,5 @@
 import { IRequest, ILog, RequestConfig } from '../types';
-import { BaseUrls } from '../constants';
+import { BaseUrls, POSTHOG_API_KEY } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 
 let BASE_URL: string = '';
@@ -42,7 +42,7 @@ export const postHogLog = (log: ILog) => {
         'Content-Type': 'application/json'
       },
       body: log.text ? JSON.stringify({
-        api_key: '', //add somewhere else + use alias
+        api_key: POSTHOG_API_KEY,
         properties: {
           lang: log.language,
           id: appID,
@@ -55,7 +55,7 @@ export const postHogLog = (log: ILog) => {
           details: log.details,
         },
         context: {}, //TODO
-        distinct_id: 'appID', //TODO
+        distinct_id: appID, 
         type: 'capture', //TODO
         event: log.type,
         messageId: '1234',
