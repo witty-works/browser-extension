@@ -4,7 +4,7 @@
     "description": "The name of the extension, displayed in the web store."
   },
   "appDesc": {
-    "message": "Inclusive writing, anywhere and real time - Witty",
+    "message": "Inclusive writing, anywhere and in real time",
     "description":"The description of the extension, displayed in the web store."
   }
 }
