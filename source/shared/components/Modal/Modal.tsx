@@ -5,7 +5,7 @@ import { browser } from 'webextension-polyfill-ts';
 
 import { IAlert, ILog } from '../../types';
 import { getColor } from '../../constants';
-import { useLogEndpoint, usePostHogEndpoint } from '../../ApiServices/useEndpoint';
+import { usePostHogEndpoint } from '../../ApiServices/useEndpoint';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
 
@@ -32,7 +32,6 @@ const Modal: React.FC<ModalProps> = ({
   addIgnoredTerm,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const [, , , sendLog] = useLogEndpoint();
   const [, , , sendPostHogLog] = usePostHogEndpoint();
   const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
   const { t, i18n } = useTranslation(namespaces.modal);
@@ -136,47 +135,6 @@ const Modal: React.FC<ModalProps> = ({
     resendText();
   };
 
-  //REMOVE AFTER POSTHOG FINSIHED
-  // const clickAlternative = (index: number) => {
-  //   //Log the clicked alternative
-  //   sendLog({
-  //     language: data.alert.data.language,
-  //     type: 'alternative',
-  //     text: data.alert.data.text,
-  //     context: data.alert.data.context,
-  //     start: data.alert.originalStartOffset,
-  //     end: data.alert.originalEndOffset,
-  //     details: {
-  //       alternative: index === -1 ? '' : data.alert.data.alternatives[index],
-  //     },
-  //   } as ILog);
-
-  //   //Replace text with the new alternative or simply remove it
-  //   //This only replaces the specific occurrence. If there are other identical terms in the text
-  //   //they will keep highlighted
-
-  //   const splitText = (data.node.nodeValue as string).split('') as string[];
-
-  //   // In case we have to remove the term it's necessary also to delete the surrounding spaces
-  //   splitText.splice(
-  //     index === -1 ? data.alert.startOffset - 1 : data.alert.startOffset,
-  //     index === -1 ? data.alert.endOffset - data.alert.startOffset + 1 : data.alert.endOffset - data.alert.startOffset,
-  //     index === -1 ? '' : data.alert.data.alternatives[index]
-  //   );
-
-  //   const textToInsert = splitText.join('');
-
-  //   data.originalNode
-  //     ? (data.originalNode.value = textToInsert)
-  //     : (data.node.nodeValue = textToInsert);
-
-  //   //Close Modal
-  //   hide();
-
-  //   //Send again all the text to recalculate highlight positions
-  //   resendText();
-  // };
-
   const clickAccept = () => {
     hide();
   };
@@ -211,7 +169,7 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickIgnoreTerm = () => {
     hide();
-    sendLog({
+    sendPostHogLog({ 
       language: data.alert.data.language,
       type: 'ignore',
       text: data.alert.data.text,
