@@ -51,12 +51,12 @@ const Input: React.FC<{
     //The turn around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
-    element.addEventListener('click', handleClickElement);
+    element.addEventListener('click', handleClickElement as EventListener);
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      element.removeEventListener('click', handleClickElement);
+      element.removeEventListener('click', handleClickElement as EventListener);
     };
   }, []);
 
@@ -84,52 +84,60 @@ const Input: React.FC<{
     setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
   };
 
-  const handleClickElement = (event: Event) => {
+  let singleClickTimeOut: ReturnType<typeof setTimeout>;
+
+  const handleClickElement = (event: MouseEvent) => {
+    if (event.detail === 1) {
+      singleClickTimeOut = setTimeout(function () {
+        if (caretPosition > -1) {
+          const nodeAlerts = nodesWithAlertsRef.current;
+
+          const oneNodeWithAlerts = nodeAlerts.find(
+            (nodeWithAlerts: INodeWithAlerts) =>
+              //TODO potentially this acces to parentNode could fail
+              isTextArea(target) || isInputText(target)
+                ? nodeWithAlerts.node.parentNode === cloneRef.current
+                : nodeWithAlerts.node.parentNode === target
+          );
+
+          if (oneNodeWithAlerts) {
+            const selectedAlert = oneNodeWithAlerts.alerts
+              .filter((alert: IAlert) => {
+                return (
+                  alert.startOffset < caretPosition &&
+                  alert.endOffset > caretPosition
+                );
+              })
+              .pop() as IAlert;
+
+            const nodeText = oneNodeWithAlerts.node;
+
+            if (selectedAlert) {
+              const range = document.createRange();
+              range.setStart(nodeText, selectedAlert.startOffset);
+              range.setEnd(nodeText, selectedAlert.endOffset);
+              const clickedRect = range.getClientRects()[0];
+
+              setModalData({
+                alert: selectedAlert,
+                position: clickedRect,
+                node: oneNodeWithAlerts.node,
+                originalNode:
+                  isTextArea(target) || isInputText(target)
+                    ? (target as HTMLTextAreaElement)
+                    : null,
+              });
+              toggleModal();
+            }
+          }
+        }
+      }, 400);
+    } else {
+      clearTimeout(singleClickTimeOut);
+    }
+
     const target = event.target as CustomInputElement;
     const caretPosition: number = getInputClickedPosition(target);
-
-    if (caretPosition > -1) {
-      const nodeAlerts = nodesWithAlertsRef.current;
-
-      const oneNodeWithAlerts = nodeAlerts.find(
-        (nodeWithAlerts: INodeWithAlerts) =>
-          //TODO potentially this acces to parentNode could fail
-          isTextArea(target) || isInputText(target)
-            ? nodeWithAlerts.node.parentNode === cloneRef.current
-            : nodeWithAlerts.node.parentNode === target
-      );
-
-      if (oneNodeWithAlerts) {
-        const selectedAlert = oneNodeWithAlerts.alerts
-          .filter((alert: IAlert) => {
-            return (
-              alert.startOffset < caretPosition &&
-              alert.endOffset > caretPosition
-            );
-          })
-          .pop() as IAlert;
-
-        const nodeText = oneNodeWithAlerts.node;
-
-        if (selectedAlert) {
-          const range = document.createRange();
-          range.setStart(nodeText, selectedAlert.startOffset);
-          range.setEnd(nodeText, selectedAlert.endOffset);
-          const clickedRect = range.getClientRects()[0];
-
-          setModalData({
-            alert: selectedAlert,
-            position: clickedRect,
-            node: oneNodeWithAlerts.node,
-            originalNode:
-              isTextArea(target) || isInputText(target)
-                ? (target as HTMLTextAreaElement)
-                : null,
-          });
-          toggleModal();
-        }
-      }
-    }
   };
 
   const getInputClickedPosition = (element: CustomInputElement): number => {
