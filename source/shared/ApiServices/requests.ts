@@ -29,13 +29,13 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
 };
 
 export const postHogLog = (log: ILog) => {
-  console.log("postHogLog", appID);
   return {
     // when self-hosting, substitute https://app.posthog.com/ for the URL of our instance.
-    url: createUrl('https://app.posthog.com/', 'batch'),
+    url: createUrl('https://app.posthog.com/', 'capture'),
     config: {
       method: 'POST',
-      mode: 'no-cors' as const, //to avoid CORS error: see https://github.com/PostHog/posthog-js-lite/blob/master/src/index.ts#L110-L111
+      //to avoid CORS error: see https://github.com/PostHog/posthog-js-lite/blob/master/src/index.ts#L110-L111
+      mode: 'no-cors' as const,
       credentials: 'omit' as const,
       headers: {
         'Accept': 'application/json',
@@ -43,9 +43,10 @@ export const postHogLog = (log: ILog) => {
       },
       body: log.text ? JSON.stringify({
         api_key: POSTHOG_API_KEY,
+        event: log.type,
         properties: {
+          distinct_id: appID,
           lang: log.language,
-          id: appID,
           client: wittyVersion,
           config: requestConfig,
           type: log.type,
@@ -53,14 +54,8 @@ export const postHogLog = (log: ILog) => {
           start: log.start,
           end: log.end,
           details: log.details,
+          text: log.text,
         },
-        context: {}, //TODO
-        distinct_id: appID, 
-        type: 'capture', //TODO
-        event: log.type,
-        messageId: '1234',
-        text: log.text,
-
       }) : null
     }
   }

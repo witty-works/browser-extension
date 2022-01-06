@@ -43,6 +43,7 @@ const Input: React.FC<{
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
+  // const [, setText, textRef] = useStateRef(""); 
   const log = useLog('Input');
 
   useEffect(() => {
@@ -62,14 +63,19 @@ const Input: React.FC<{
   const handleKeyupEvent = (event: Event) => {
     const target = event.target as CustomInputElement;
 
-    const text: string =
+    const nextText: string =
       isTextArea(target) || isInputText(target)
         ? (target as HTMLTextAreaElement | HTMLInputElement).value
         : fixLineBreaks(target.innerText);
 
+
+    // console.log('text before', textRef.current);
+    // console.log('text after', nextText);
+
+    // setText(nextText);
     //If there isn't text, there's nothing to highlight
-    if (text.length === 0) setNodesWithAlerts([]);
-    else sendText(text);
+    if (nextText.length === 0) setNodesWithAlerts([]);
+    else sendText(nextText);
   };
 
   const handleElementScrollEvent = (event: Event) => {
@@ -151,18 +157,21 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointResponse) {
+      console.log('checkEndpointResponse', checkEndpointResponse.results)
       if (checkEndpointResponse.results.length > 0) {
-        sendPostHogLog({
-          language: checkEndpointResponse.language, 
-          type: 'check',
-          text: checkEndpointResponse.results[0].text,
-          context: checkEndpointResponse.results[0].context,
-          start: checkEndpointResponse.results[0].start,
-          end: checkEndpointResponse.results[0].end,
-          details: {
-            alternative: checkEndpointResponse.results[0].alternatives,
-          },
-        } as ILog);
+        checkEndpointResponse.results.forEach((result: any) => {
+          sendPostHogLog({
+            language: checkEndpointResponse.language,
+            type: 'check',
+            text: result.text,
+            context: result.context,
+            start: result.start,
+            end: result.end,
+            details: {
+              alternative: result.alternatives,
+            },
+          } as ILog);
+        });
       }
 
       const alerts: IAlert[] = checkEndpointResponse.results

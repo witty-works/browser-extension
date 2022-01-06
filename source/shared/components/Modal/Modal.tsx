@@ -169,6 +169,8 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickIgnoreTerm = () => {
     hide();
+    
+    //Log when user chooses to ignore a term
     sendPostHogLog({ 
       language: data.alert.data.language,
       type: 'ignore',
