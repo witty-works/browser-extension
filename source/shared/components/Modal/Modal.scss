@@ -3,7 +3,7 @@
 
 #modal {
   display: flex;
-  padding: 1rem;
+  padding: 16px;
   background-color: $white;
   position: fixed;
   z-index: 999999999;
@@ -33,12 +33,12 @@
 hr.modal-separator {
   border: 1px solid $greyWhite;
   margin: 0;
-  margin-left: -1rem;
-  margin-right: -1rem;
+  margin-left: -1em;
+  margin-right: -1em;
 }
 
 .modal-row {
-  margin-bottom: 1rem;
+  margin-bottom: 1em;
 }
 
 .modal-row-title {
@@ -48,16 +48,16 @@ hr.modal-separator {
 }
 
 .modal-icon {
-  height: 1rem;
+  height: 1em;
 }
 
 .modal-category-dot {
   display: inline-block;
-  width: .5rem;
-  height: .5rem;
+  width: .5em;
+  height: .5em;
   background-color: #656565;
-  margin-right: .5rem;
-  border-radius: .5rem;
+  margin-right: .5em;
+  border-radius: .5em;
 }
 
 .modal-main-text {
@@ -90,9 +90,9 @@ a.modal-link {
     font-weight: 400 !important;
     color: #656565;
     display: block;
-    margin-left: -1rem;
-    margin-right: -1rem;
-    padding: 0.5rem 1rem;
+    margin-left: -1em;
+    margin-right: -1em;
+    padding: 0.5em 1em;
   }
 }
 
@@ -100,15 +100,15 @@ a.modal-link {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  margin-left: -1rem;
-  margin-right: -1rem;
+  margin-left: -1em;
+  margin-right: -1em;
 
   a.modal-link {
     color: #9489DB;
     font-weight: 600;
     font-size: 1.1em;
     line-height: 1.4;
-    padding: 0.5rem 1rem;
+    padding: 0.5em 1em;
 
     &.remove-text {
       text-decoration: line-through !important;
