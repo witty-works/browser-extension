@@ -97,7 +97,7 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickAlternative = (index: number) => {
     //Log the clicked alternative
-    analytics.log({
+    analytics.alternativeLog({
       type: 'alternative',
       language: data.alert.data.language,
       text: data.alert.data.text,
@@ -173,7 +173,7 @@ const Modal: React.FC<ModalProps> = ({
     hide();
     
     //Log when user chooses to ignore a term
-    analytics.log({ 
+    analytics.ignoreLog({ 
       type: 'ignore',
       language: data.alert.data.language,
       text: data.alert.data.text,

@@ -10,7 +10,6 @@ const createUrl = (base: string, path: string): string => `${base}${path}`;
 export const setBaseURL = (urlKey: string) => BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls];
 export const setRequestConfig = (reqConfig: RequestConfig) => requestConfig = reqConfig;
 export const setAppID = (id: string) => appID = id;
-
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
     url: createUrl(BASE_URL, 'check'),

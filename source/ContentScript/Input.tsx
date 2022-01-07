@@ -160,8 +160,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    analytics.log(...checkEndpointResponse.results.map((result: any) => ({
-      type: 'check',
+    analytics.checkLog(...checkEndpointResponse.results.map((result: any) => ({
       language: checkEndpointResponse.language,
       text: result.text,
       context: result.context,
