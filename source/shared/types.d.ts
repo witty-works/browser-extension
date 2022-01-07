@@ -35,12 +35,12 @@ export interface IAlertContentData {
 }
 
 export interface ILog {
+  type: string,
   text: string,
   language: string,
   id: string,
   client: string,
   config: object,
-  type: string,
   context: string,
   start: number;
   end: number;

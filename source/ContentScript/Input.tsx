@@ -4,7 +4,7 @@ import TextAreaClone from './TextAreaClone';
 import InputTextClone from './InputTextClone';
 import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
-import { useCheckEndpoint, usePostHogEndpoint } from '../shared/ApiServices/useEndpoint';
+import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
@@ -17,6 +17,7 @@ import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
+import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 type HandleClick = () => void;
 
@@ -27,7 +28,7 @@ const Input: React.FC<{
 }> = ({ element, bodyScroll, parentScroll }) => {
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
-  const [, , , sendPostHogLog] = usePostHogEndpoint();
+  const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
 
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
@@ -67,12 +68,6 @@ const Input: React.FC<{
       isTextArea(target) || isInputText(target)
         ? (target as HTMLTextAreaElement | HTMLInputElement).value
         : fixLineBreaks(target.innerText);
-
-
-    // console.log('text before', textRef.current);
-    // console.log('text after', nextText);
-
-    // setText(nextText);
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0) setNodesWithAlerts([]);
     else sendText(nextText);
@@ -164,48 +159,42 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    if (checkEndpointResponse) {
-      console.log('checkEndpointResponse', checkEndpointResponse.results)
-      if (checkEndpointResponse.results.length > 0) {
-        checkEndpointResponse.results.forEach((result: any) => {
-          sendPostHogLog({
-            language: checkEndpointResponse.language,
-            type: 'check',
-            text: result.text,
-            context: result.context,
-            start: result.start,
-            end: result.end,
-            details: {
-              alternative: result.alternatives,
-            },
-          } as ILog);
-        });
-      }
+    if (!checkEndpointResponse) return;
+    analytics.log(...checkEndpointResponse.results.map((result: any) => ({
+      type: 'check',
+      language: checkEndpointResponse.language,
+      text: result.text,
+      context: result.context,
+      start: result.start,
+      end: result.end,
+      details: {
+        alternative: result.alternatives,
+      },
+    }) as ILog));
+    
+    const alerts: IAlert[] = checkEndpointResponse.results
+      .map((result: any) => ({
+        //TODO specify this 'any' type on the line before
+        id: `${result.category}-${result.text}-${result.start}-${result.end}`,
+        startOffset: result.start,
+        endOffset: result.end,
+        data: {
+          language: checkEndpointResponse.language,
+          category: result.category,
+          subcategory: result.subcategory,
+          context: result.context,
+          text: result.text,
+          label: result.label,
+          reason: result.reason,
+          solution: result.solution,
+          alternatives: result.alternatives,
+        } as IAlertContentData,
+      }))
+      .sort((firstAlert: IAlert, secondAlert: IAlert) => {
+        return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
+      });
 
-      const alerts: IAlert[] = checkEndpointResponse.results
-        .map((result: any) => ({
-          //TODO specify this 'any' type on the line before
-          id: `${result.category}-${result.text}-${result.start}-${result.end}`,
-          startOffset: result.start,
-          endOffset: result.end,
-          data: {
-            language: checkEndpointResponse.language,
-            category: result.category,
-            subcategory: result.subcategory,
-            context: result.context,
-            text: result.text,
-            label: result.label,
-            reason: result.reason,
-            solution: result.solution,
-            alternatives: result.alternatives,
-          } as IAlertContentData,
-        }))
-        .sort((firstAlert: IAlert, secondAlert: IAlert) => {
-          return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
-        });
-
-      setAlerts([...alerts]);
-    }
+    setAlerts([...alerts]);
   }, [checkEndpointResponse]);
 
   useEffect(() => {

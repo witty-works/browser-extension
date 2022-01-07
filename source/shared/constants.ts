@@ -1,3 +1,7 @@
+import { browser } from 'webextension-polyfill-ts';
+
+export const wittyVersion = browser.runtime.getManifest().version;
+
 //Development
 export const DEV_ENV = process.env.NODE_ENV === 'development';
 

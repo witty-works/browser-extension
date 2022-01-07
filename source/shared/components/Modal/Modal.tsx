@@ -5,11 +5,11 @@ import { browser } from 'webextension-polyfill-ts';
 
 import { IAlert, ILog } from '../../types';
 import { getColor } from '../../constants';
-import { usePostHogEndpoint } from '../../ApiServices/useEndpoint';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
 
 import './Modal.scss';
+import { useAnalytics } from '../../ApiServices/useAnalytics';
 export interface ModalData {
   alert: IAlert;
   position: DOMRect;
@@ -32,7 +32,7 @@ const Modal: React.FC<ModalProps> = ({
   addIgnoredTerm,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const [, , , sendPostHogLog] = usePostHogEndpoint();
+  const analytics = useAnalytics();
   const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
   const { t, i18n } = useTranslation(namespaces.modal);
 
@@ -97,9 +97,9 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickAlternative = (index: number) => {
     //Log the clicked alternative
-    sendPostHogLog({
-      language: data.alert.data.language,
+    analytics.log({
       type: 'alternative',
+      language: data.alert.data.language,
       text: data.alert.data.text,
       context: data.alert.data.context,
       start: data.alert.originalStartOffset,
@@ -173,9 +173,9 @@ const Modal: React.FC<ModalProps> = ({
     hide();
     
     //Log when user chooses to ignore a term
-    sendPostHogLog({ 
-      language: data.alert.data.language,
+    analytics.log({ 
       type: 'ignore',
+      language: data.alert.data.language,
       text: data.alert.data.text,
       context: data.alert.data.context,
       start: data.alert.originalStartOffset,
