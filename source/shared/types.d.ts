@@ -1,8 +1,8 @@
 export interface RequestConfig {
-  german_gender_ending: string,
+  primary_language: string
   preferred_languages: string,
   preferred_variants: string,
-  primary_language: string
+  german_gender_ending: string,
 }
 
 export type CustomInputElement =
@@ -34,19 +34,31 @@ export interface IAlertContentData {
   alternatives: string[];
 }
 
-export interface ILog {
+export interface ILogRequest {
   type: string,
-  text: string,
-  language: string,
+  lang: string,
   id: string,
   client: string,
   config: object,
+  text: object,
+}
+export interface ILogResponse {
+  results: ILogResponseResult[],
+  language: string,
+}
+export interface ILogResponseResult {
+  text: string,
   context: string,
+  category: string,
+  subcategory: string,
   start: number;
   end: number;
-  details:object,
+  alternatives: string[];
+  data: IAlertContentData;
+  label: string,
+  reason: string,
+  solution: string,
 }
-
 
 export interface IRequest {
   url: string,

@@ -9,9 +9,7 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
-  IAlertContentData,
   INodeWithAlerts,
-  ILog
 } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
@@ -160,23 +158,16 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    analytics.checkLog(...checkEndpointResponse.results.map((result: any) => ({
-      language: checkEndpointResponse.language,
-      text: result.text,
-      context: result.context,
-      start: result.start,
-      end: result.end,
-      details: {
-        alternative: result.alternatives,
-      },
-    }) as ILog));
-    
+    analytics.checkLog(checkEndpointResponse, clone?.firstChild.length);
+    console.error(checkEndpointResponse.results)
+
     const alerts: IAlert[] = checkEndpointResponse.results
-      .map((result: any) => ({
-        //TODO specify this 'any' type on the line before
+      .map((result) => ({
         id: `${result.category}-${result.text}-${result.start}-${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
+        originalStartOffset: result.start, //TODO: replace with correct value
+        originalEndOffset: result.end,//TODO: replace with correct value
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -187,9 +178,9 @@ const Input: React.FC<{
           reason: result.reason,
           solution: result.solution,
           alternatives: result.alternatives,
-        } as IAlertContentData,
+        },
       }))
-      .sort((firstAlert: IAlert, secondAlert: IAlert) => {
+      .sort((firstAlert, secondAlert) => {
         return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
       });
 

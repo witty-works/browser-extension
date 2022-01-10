@@ -1,47 +1,65 @@
 import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
 import { POSTHOG_API_KEY, wittyVersion } from '../constants';
-import { ILog } from '../types';
+import { IAlert, ILogRequest, ILogResponse } from '../types';
 
 export const useAnalytics = () => {
   const ph = browserPostHog(POSTHOG_API_KEY);
+
   return {
-    async alternativeLog(...logs: ILog[]) {
+    async alternativeLog(logResponse: IAlert) {
       const { appID, requestConfig } = await import("./requests");
       ph.session.distinctId = appID;
-      for (const log of logs) {
-        ph.capture('alternative', {
-          lang: log.language,
-          client: wittyVersion,
-          config: requestConfig,
-          context: log.context,
-          start: log.start,
-          end: log.end,
-          details: log.details,
-          text: log.text,
-        });
-      }
+
+      const request: ILogRequest[] = [{
+        type: 'alternative',
+        lang: 'auto',
+        id: appID,
+        client: wittyVersion,
+        config: requestConfig,
+        text: { }, //TODO
+      }];
+
+      ph.capture('alternative', {
+        request,
+        response: logResponse
+      });
     },
-    async ignoreLog(...logs: ILog[]) {
+
+    async ignoreLog(logResponse: IAlert) {
       const { appID, requestConfig } = await import("./requests");
       ph.session.distinctId = appID;
-      for (const log of logs) {
-        ph.capture('ignore', {
-          lang: log.language,
-          client: wittyVersion,
-          config: requestConfig,
-          context: log.context,
-          start: log.start,
-          end: log.end,
-          details: log.details,
-          text: log.text,
-        });
-      }
+
+      const request: ILogRequest[] = [{
+        type: 'ignore',
+        lang: 'auto',
+        id: appID,
+        client: wittyVersion,
+        config: requestConfig,
+        text: { }, //TODO
+      }];
+
+      ph.capture('ignore', {
+        request,
+        response: logResponse
+      });
     },
-    async checkLog(...logs: ILog[]) {
-      const { appID } = await import("./requests");
+    async checkLog(logResponse: ILogResponse, inputLength: number) {
+      const { appID, requestConfig } = await import("./requests");
       ph.session.distinctId = appID;
-      console.error(appID)
-      ph.capture('check', { ...logs });
+
+      const request: ILogRequest[] = [{
+        type: 'check',
+        lang: 'auto',
+        id: appID,
+        client: wittyVersion,
+        config: requestConfig,
+        text: { "length": inputLength }, 
+      }];
+
+      ph.capture('check', {
+        request,
+        response: logResponse
+      });
     }
   }
 };
