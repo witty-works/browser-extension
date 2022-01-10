@@ -31,6 +31,10 @@ const getRandomToken = () => {
   return BigInt('0x' + bytesHex).toString(10);
 }
 
+const getBrowserId = () => {
+  return DEV_ENV ? devAppId : getRandomToken()
+}
+
 const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
   //Check if setting is already defined in the local storage
   //If not, then add it
@@ -56,11 +60,8 @@ const setSettings = () => {
       setInLocalStorage(storageKey, defaultConfigValue)
     }
   }
-
-  //Set ID to token if we are not in DEV mode
-  if (defaultConfig.APP_ID_ENABLED || DEV_ENV) {
-    setInLocalStorage(StorageKeys.APP_ID, DEV_ENV ? devAppId : getRandomToken)
-  }
+  //Set browser id 
+  setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
 }
 
 setSettings();
