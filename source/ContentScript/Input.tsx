@@ -9,7 +9,6 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
-  IAlertContentData,
   INodeWithAlerts,
 } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
@@ -157,12 +156,14 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointResponse) {
-      const alerts: IAlert[] = checkEndpointResponse.results
-        .map((result: any) => ({
+      const alerts : IAlert[] = checkEndpointResponse.results
+        .map((result) => ({
           //TODO specify this 'any' type on the line before
           id: `${result.category}-${result.text}-${result.start}-${result.end}`,
           startOffset: result.start,
           endOffset: result.end,
+          originalStartOffset: result.start,
+          originalEndOffset: result.end,
           data: {
             language: checkEndpointResponse.language,
             category: result.category,
@@ -173,12 +174,11 @@ const Input: React.FC<{
             reason: result.reason,
             solution: result.solution,
             alternatives: result.alternatives,
-          } as IAlertContentData,
+          },
         }))
-        .sort((firstAlert: IAlert, secondAlert: IAlert) => {
+        .sort((firstAlert, secondAlert) => {
           return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
         });
-
       setAlerts([...alerts]);
     }
   }, [checkEndpointResponse]);
@@ -269,7 +269,8 @@ const Input: React.FC<{
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
       log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
-      if (checkEndpointError.detail === 'Language could not be determined')
+      //TODO: @Arnau type error, does not match IEndpointResponseError
+      // if (checkEndpointError.detail === 'Language could not be determined')
         setNodesWithAlerts([]);
     }
   }, [checkEndpointError]);

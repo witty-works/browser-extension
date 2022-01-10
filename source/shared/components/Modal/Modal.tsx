@@ -3,9 +3,8 @@ import { createPortal } from 'react-dom';
 import CSS from 'csstype';
 import { browser } from 'webextension-polyfill-ts';
 
-import { IAlert, ILog } from '../../types';
+import { IAlert } from '../../types';
 import { getColor } from '../../constants';
-import { useLogEndpoint } from '../../ApiServices/useEndpoint';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
 
@@ -32,7 +31,6 @@ const Modal: React.FC<ModalProps> = ({
   addIgnoredTerm,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const [, , , sendLog] = useLogEndpoint();
   const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
   const { t, i18n } = useTranslation(namespaces.modal);
 
@@ -96,19 +94,6 @@ const Modal: React.FC<ModalProps> = ({
   });
 
   const clickAlternative = (index: number) => {
-    //Log the clicked alternative
-    sendLog({
-      language: data.alert.data.language,
-      type: 'alternative',
-      text: data.alert.data.text,
-      context: data.alert.data.context,
-      start: data.alert.originalStartOffset,
-      end: data.alert.originalEndOffset,
-      details: {
-        alternative: index === -1 ? '' : data.alert.data.alternatives[index],
-      },
-    } as ILog);
-
     //Replace text with the new alternative or simply remove it
     //This only replaces the specific occurrence. If there are other identical terms in the text
     //they will keep highlighted
@@ -171,17 +156,6 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickIgnoreTerm = () => {
     hide();
-    sendLog({
-      language: data.alert.data.language,
-      type: 'ignore',
-      text: data.alert.data.text,
-      context: data.alert.data.context,
-      start: data.alert.originalStartOffset,
-      end: data.alert.originalEndOffset,
-      details: {
-        ignore: data.alert.data.text,
-      },
-    } as ILog);
     addIgnoredTerm(data.alert.data.text);
   };
 
