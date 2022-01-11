@@ -35,53 +35,7 @@ const useApiResult = <TResponse,>(request: IRequest, sendData: any, responseSche
             return;
           }
           const responseResults: any = await response.json();
-          if (!validateResponse({
-            "results": [
-                {
-                    "text": "test",
-                    "context": "test lala ",
-                    "category": "orthography",
-                    "subcategory": "orthography",
-                    "start": 0,
-                    "end": '4',
-                    "alternatives": [
-                        "Test"
-                    ],
-                    "label": "",
-                    "reason": "Correct any spelling or grammatical errors to maximize the impact of their writing.",
-                    "solution": "This sentence does not start with an uppercase letter."
-                },
-                {
-                    "text": "lala",
-                    "context": "test lala ",
-                    "category": "orthography",
-                    "subcategory": "orthography",
-                    "start": 5,
-                    "end": 9,
-                    "alternatives": [
-                        "lava",
-                        "gala",
-                        "Lana",
-                        "Lara",
-                        "Lola",
-                        "Lila",
-                        "lama",
-                        "Bala",
-                        "Fala",
-                        "LACA",
-                        "LAMA",
-                        "Lalo",
-                        "Lama",
-                        "Layla",
-                        "la la"
-                    ],
-                    "label": "Spelling mistake",
-                    "reason": "Correct any spelling or grammatical errors to maximize the impact of their writing.",
-                    "solution": "Possible spelling mistake found."
-                }
-            ],
-            "language": "en"
-        }) && validateResponse.errors) {
+          if (!validateResponse(responseResults) && validateResponse.errors) {
             setEndpointError({
               detail: validateResponse.errors.map((error) => ({
                   loc: [error.schemaPath],
