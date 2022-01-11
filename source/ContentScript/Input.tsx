@@ -6,11 +6,7 @@ import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import {
-  CustomInputElement,
-  IAlert,
-  INodeWithAlerts,
-} from '../shared/types';
+import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
@@ -156,9 +152,16 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointResponse) {
-      const alerts : IAlert[] = checkEndpointResponse.results
+      log(
+        `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
+        logTypes.INFO,
+        checkEndpointResponse.results.length > 0
+          ? checkEndpointResponse.results
+          : 'None'
+      );
+
+      const alerts: IAlert[] = checkEndpointResponse.results
         .map((result) => ({
-          //TODO specify this 'any' type on the line before
           id: `${result.category}-${result.text}-${result.start}-${result.end}`,
           startOffset: result.start,
           endOffset: result.end,
@@ -268,10 +271,11 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
+      console.log('checkEndpointError = ', checkEndpointError);
       log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
       //TODO: @Arnau type error, does not match IEndpointResponseError
       // if (checkEndpointError.detail === 'Language could not be determined')
-        setNodesWithAlerts([]);
+      setNodesWithAlerts([]);
     }
   }, [checkEndpointError]);
 

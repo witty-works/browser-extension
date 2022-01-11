@@ -4,9 +4,18 @@ import { IEndpointResponseError, IRequest } from '../types';
 import { useLog, logTypes } from '../customHooks/useLog';
 import Ajv, { JSONSchemaType } from 'ajv';
 
-const useApiResult = <TResponse,>(request: IRequest, sendData: any, responseSchema: JSONSchemaType<TResponse>): [boolean, TResponse | null, IEndpointResponseError, any] => {
-  const validateResponse = useMemo(() => new Ajv().compile(responseSchema), [responseSchema]);
-  const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(null); //TODO update type any
+const useApiResult = <TResponse,>(
+  request: IRequest,
+  sendData: any,
+  responseSchema: JSONSchemaType<TResponse>
+): [boolean, TResponse | null, IEndpointResponseError, any] => {
+  const validateResponse = useMemo(
+    () => new Ajv().compile(responseSchema),
+    [responseSchema]
+  );
+  const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
+    null
+  );
   const [endpointError, setEndpointError] = useState<IEndpointResponseError>({
     detail: [],
   });
@@ -38,9 +47,9 @@ const useApiResult = <TResponse,>(request: IRequest, sendData: any, responseSche
           if (!validateResponse(responseResults) && validateResponse.errors) {
             setEndpointError({
               detail: validateResponse.errors.map((error) => ({
-                  loc: [error.schemaPath],
-                  msg: error.message || '',
-                  type: error.keyword
+                loc: [error.schemaPath],
+                msg: error.message || '',
+                type: error.keyword,
               })),
             });
             return;
