@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "__MSG_appName__",
   "version": "1.11.1",
   "default_locale": "en",
@@ -13,11 +13,15 @@
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
   "permissions": [
-    "storage",
+    "storage"
+  ],
+  "host_permissions": [
     "http://*/*",
     "https://*/*"
   ],
-  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "__chrome|firefox__author": "Witty Works",
   "__opera__developer": {
     "name": "Witty Works"
@@ -29,7 +33,7 @@
   },
   "__chrome__minimum_chrome_version": "49",
   "__opera__minimum_opera_version": "36",
-  "browser_action": {
+  "action": {
     "default_popup": "popup.html",
     "default_icon": {
       "16": "assets/icons/icon16.png",
@@ -66,7 +70,8 @@
       ]
     }
   ],
-  "web_accessible_resources": [
-    "assets/icons/w-logo-wire-color.svg"
-  ]
+  "web_accessible_resources": [{
+    "resources": ["assets/icons/w-logo-wire-color.svg"],
+    "matches": ["<all_urls>"]
+  }]
 }
