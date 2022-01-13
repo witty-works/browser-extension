@@ -45,11 +45,13 @@ const Input: React.FC<{
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
+    element.addEventListener("focusin", handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
+      element.removeEventListener("focusin", handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener('click', handleClickElement as EventListener);
     };
