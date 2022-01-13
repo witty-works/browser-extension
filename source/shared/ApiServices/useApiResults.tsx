@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { IEndpointResponseError, IRequest } from '../types';
 import { useLog, logTypes } from '../customHooks/useLog';
 
-const useApiResult = (request: IRequest, sendData: any) => {
+const useApiResult = (request: IRequest, sendData: any): [any, any, any, any] => {
   const [endpointResponse, setEndpointResponse] = useState<any>(null); //TODO update type any
   const [endpointError, setEndpointError] = useState<IEndpointResponseError>({
     detail: [],

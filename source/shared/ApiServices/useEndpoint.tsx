@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
-import { getAnalyzedTextResults, logAction } from './requests';
-import { IRequest, ILog } from '../types';
+import { getAnalyzedTextResults } from './requests';
+import { ILogResponse, IRequest } from '../types';
 
-export const useCheckEndpoint = () => {
+export const useCheckEndpoint = (): [boolean, ILogResponse | null, any, any] => {
   const [textToAnalyze, setTextToAnalyse] = useState<string>('');
 
   useEffect(() => {
@@ -18,18 +18,4 @@ export const useCheckEndpoint = () => {
   );
 
   return useApiResults(request, setTextToAnalyse);
-};
-
-export const useLogEndpoint = () => {
-  const [log, setLog] = useState<ILog>({} as ILog);
-
-  useEffect(() => {
-    return () => {
-      setLog({} as ILog);
-    };
-  }, []);
-
-  const request: IRequest = useMemo(() => logAction(log), [log]);
-
-  return useApiResults(request, setLog);
 };
