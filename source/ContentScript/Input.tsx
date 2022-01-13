@@ -7,7 +7,7 @@ import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
-import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
+import { isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
@@ -61,9 +61,9 @@ const Input: React.FC<{
     const nextText: string =
       isTextArea(target) || isInputText(target)
         ? (target as HTMLTextAreaElement | HTMLInputElement).value
-        : fixLineBreaks(target.innerText);
+        : (target as HTMLTextAreaElement | HTMLInputElement).value
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0) setNodesWithAlerts([]);
+    if (nextText && nextText.length === 0) setNodesWithAlerts([]);
     else sendText(nextText);
   };
 
@@ -145,8 +145,9 @@ const Input: React.FC<{
         //Temporaly ignore this error
         // @ts-ignore
         selection.modify('extend', 'backward', 'paragraph');
-        position = selection.toString().length as number;
-        if (selection.anchorNode != undefined) selection.collapseToEnd();
+
+        if (selection) position = selection.toString().length as number; 
+        if (selection.anchorNode) selection.collapseToEnd();
       }
       return position;
     }
@@ -154,7 +155,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    analytics.checkLog(checkEndpointResponse, clone?.firstChild.length);
+    analytics.checkLog(checkEndpointResponse,  clone?.firstChild ? clone?.firstChild.length : 0);
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
@@ -183,7 +184,7 @@ const Input: React.FC<{
   }, [checkEndpointResponse]);
 
   useEffect(() => {
-    if (alerts.length === 0) setNodesWithAlerts([]);
+    if (alerts && alerts.length === 0) setNodesWithAlerts([]);
     else {
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
@@ -253,7 +254,7 @@ const Input: React.FC<{
             if (node.nodeName === 'DIV' || 'BR' || 'P') textEndAbsPosition++;
           }
 
-          if (node.childNodes.length > 0) {
+          if (node.childNodes && node.childNodes.length > 0) {
             traverseNodes(node.childNodes);
           }
         }
@@ -287,7 +288,7 @@ const Input: React.FC<{
     const text: string =
       isTextArea(element) || isInputText(element)
         ? (element as HTMLTextAreaElement | HTMLInputElement).value
-        : fixLineBreaks(element.innerText);
+        : (element as HTMLTextAreaElement | HTMLInputElement).value
 
     sendText(text);
   };
@@ -315,7 +316,7 @@ const Input: React.FC<{
         />
       ) : null}
       {loading ? <HighlightsLoader elementReference={element} /> : null}
-      {nodesWithAlerts.length > 0 ? (
+      {nodesWithAlerts && nodesWithAlerts.length > 0 ? (
         <Highlights
           bodyScroll={bodyScroll}
           parentScroll={parentScroll}

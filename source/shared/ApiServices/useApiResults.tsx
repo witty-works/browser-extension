@@ -44,6 +44,7 @@ const useApiResult = <TResponse,>(
             return;
           }
           const responseResults: any = await response.json();
+          console.error(responseResults);
           if (!validateResponse(responseResults) && validateResponse.errors) {
             setEndpointError({
               detail: validateResponse.errors.map((error) => ({

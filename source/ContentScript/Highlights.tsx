@@ -31,7 +31,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
 
   const [highlights, setHighlights] = useState<Highlight[]>([])
-
+  console.error('Highlights', highlights);
   useEffect(() => {
     const highlights: Highlight[] = [];
     nodesWithAlerts.forEach((nodeWithAlerts) => {
@@ -43,13 +43,14 @@ const Highlights: React.FC<HighlightsProps> = ({
         nodeWithAlerts.alerts
           .filter(
             (alert: IAlert) =>
-              node.textContent !== null &&
+              node.textContent &&
               alert.endOffset <= node.textContent.length
           )
           .forEach((alert: IAlert) => {
             const range = document.createRange();
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
+            console.error('word', alert.data.text, 'startOffset', alert.startOffset, 'endOffset', alert.endOffset);
 
             const rects: DOMRect[] = Array.from(range.getClientRects())
               // .filter((rect: DOMRect) => {
