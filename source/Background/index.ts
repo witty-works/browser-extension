@@ -1,14 +1,15 @@
-import {browser} from 'webextension-polyfill-ts';
+import { browser } from 'webextension-polyfill-ts';
 
-import { StorageKeys } from '../shared/constants';
+import { StorageKeys, DEV_ENV } from '../shared/constants';
 import { isFunction } from '../shared/utils';
 import defaultConfig from "../witty.config.json";
 import { useLog } from '../shared/customHooks/useLog';
 
 
 const log = useLog('Background index');
+const devAppId = 'DEV_APP_ID';
 
-type DefaultConfigValue = string | boolean | string[] | (() => string);
+type DefaultConfigValue = string | boolean | string[] | (() => string);
 
 const onSave = (key: string, value: DefaultConfigValue) => {
   log(`Key *${key}* with value *${value}* saved correctly in local storage`);
@@ -30,36 +31,37 @@ const getRandomToken = () => {
   return BigInt('0x' + bytesHex).toString(10);
 }
 
-const setInLocalStorage = (key: string, value: DefaultConfigValue):void => {
+const getBrowserId = () => {
+  return DEV_ENV ? devAppId : getRandomToken()
+}
+
+const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
   //Check if setting is already defined in the local storage
   //If not, then add it
   browser.storage.local.get()
-  .then((result)=>{
-    let savedValue:DefaultConfigValue = result[key];
-    if(!savedValue){
-      let valueToSave = (isFunction(value as Function)) ? (value as Function)() : value;
-      browser.storage.local.set({ [key]: valueToSave })
-        .then(()=> onSave(key, valueToSave))
-        .catch(onError);
-    }
-  })
-  .catch(onError);
+    .then((result) => {
+      let savedValue: DefaultConfigValue = result[key];
+      if (!savedValue || savedValue == devAppId || DEV_ENV) {
+        let valueToSave = (isFunction(value as Function)) ? (value as Function)() : value;
+        browser.storage.local.set({ [key]: valueToSave })
+          .then(() => onSave(key, valueToSave))
+          .catch(onError);
+      }
+    })
+    .catch(onError);
 }
 
 
 const setSettings = () => {
-
   //Set default settings
   for (let [defaultConfigKey, defaultConfigValue] of Object.entries(defaultConfig)) {
-    if(defaultConfigKey in StorageKeys) {
+    if (defaultConfigKey in StorageKeys) {
       const storageKey = StorageKeys[defaultConfigKey as keyof typeof StorageKeys];
       setInLocalStorage(storageKey, defaultConfigValue)
     }
   }
-
-  //Set ID if we are not in DEV mode
-  if(defaultConfig.APP_ID_ENABLED) setInLocalStorage(StorageKeys.APP_ID, getRandomToken)
-
+  //Set browser id 
+  setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
 }
 
 setSettings();
