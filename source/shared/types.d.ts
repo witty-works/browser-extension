@@ -54,7 +54,6 @@ export interface ILogResponseResult {
   start: number,
   end: number,
   alternatives: string[],
-  data: IAlertContentData,
   label: string,
   reason: string,
   solution: string,

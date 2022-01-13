@@ -161,7 +161,7 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickIgnoreTerm = () => {
     hide();
-    
+
     //Log when user chooses to ignore a term
     analytics.ignoreLog(data.alert);
    
