@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 
-import { IEndpointResponseError, IRequest } from '../types';
-import { useLog, logTypes } from '../customHooks/useLog';
-import Ajv, { JSONSchemaType } from 'ajv';
+import { IEndpointResponseError, IRequest } from "../types";
+import { useLog, logTypes } from "../customHooks/useLog";
+import Ajv, { JSONSchemaType } from "ajv";
 
 const useApiResult = <TResponse,>(
   request: IRequest,
@@ -20,7 +20,7 @@ const useApiResult = <TResponse,>(
     detail: [],
   });
   const [loading, setLoading] = useState<boolean>(false);
-  const log = useLog('useApiResult');
+  const log = useLog("useApiResult");
 
   useEffect(() => {
     const ac = new AbortController();
@@ -31,11 +31,11 @@ const useApiResult = <TResponse,>(
 
       request.config = { ...request.config, signal: ac.signal };
 
-      log('Request:', logTypes.INFO, request);
+      log("Request:", logTypes.INFO, request);
 
       fetch(request.url, request.config)
         .then(async (response) => {
-          log('Response: ', logTypes.INFO, response);
+          log("Response: ", logTypes.INFO, response);
 
           setLoading(false);
 
@@ -48,7 +48,7 @@ const useApiResult = <TResponse,>(
             setEndpointError({
               detail: validateResponse.errors.map((error) => ({
                 loc: [error.schemaPath],
-                msg: error.message || '',
+                msg: error.message || "",
                 type: error.keyword,
               })),
             });
@@ -61,7 +61,7 @@ const useApiResult = <TResponse,>(
         .catch((error) => {
           // AbortError is created when a request is aborted.
           // We don't need to shown an error message in this case
-          if (error.name !== 'AbortError') {
+          if (error.name !== "AbortError") {
             log(error, logTypes.ERROR);
             // setError(error); //TODO FIX, this is not received outside
           }

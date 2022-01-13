@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
 
 import './Modal.scss';
+import { useAnalytics } from '../../ApiServices/useAnalytics';
 export interface ModalData {
   alert: IAlert;
   position: DOMRect;
@@ -31,6 +32,7 @@ const Modal: React.FC<ModalProps> = ({
   addIgnoredTerm,
 }: ModalProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
+  const analytics = useAnalytics();
   const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
   const { t, i18n } = useTranslation(namespaces.modal);
 
@@ -94,6 +96,9 @@ const Modal: React.FC<ModalProps> = ({
   });
 
   const clickAlternative = (index: number) => {
+    //Log the clicked alternative
+    analytics.alternativeLog(data.alert);
+
     //Replace text with the new alternative or simply remove it
     //This only replaces the specific occurrence. If there are other identical terms in the text
     //they will keep highlighted
@@ -156,6 +161,10 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickIgnoreTerm = () => {
     hide();
+
+    //Log when user chooses to ignore a term
+    analytics.ignoreLog(data.alert);
+   
     addIgnoredTerm(data.alert.data.text);
   };
 
