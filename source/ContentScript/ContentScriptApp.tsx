@@ -149,12 +149,20 @@ const ContentScriptApp: React.FC = () => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
-  const handleFocusinElement = (event: Event) => {
+  const handleFocusinElement = (event: Event) => { 
+    // console.log('focusin handleFocusinElement', event);
     const target = event.target as CustomInputElement;
+    
+
+    // console.log('isInputElement(target)' , isInputElement(target));
+    // console.log('inputsRef.current.includes(target)' , inputsRef.current.includes(target));
 
     if (isInputElement(target))
-      if (!inputsRef.current.includes(target))
+      if (!inputsRef.current.includes(target)) {
+        console.log('focusin')
+        console.log('target' , target);
         setInputs([...inputsRef.current, target]);
+      }
   };
 
   const handleDocumentScrollEvent = (event: Event) => {
@@ -189,7 +197,7 @@ const ContentScriptApp: React.FC = () => {
   });
 
   mutationObserver.observe(document.body, { childList: true, subtree: true });
-
+//  console.log('INPUT', inputs);
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (

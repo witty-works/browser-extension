@@ -6,9 +6,8 @@ import Ajv, { JSONSchemaType } from "ajv";
 
 const useApiResult = <TResponse,>(
   request: IRequest,
-  sendData: any,
   responseSchema: JSONSchemaType<TResponse>
-): [boolean, TResponse | null, IEndpointResponseError, any] => {
+): [boolean, TResponse | null, IEndpointResponseError] => {
   const validateResponse = useMemo(
     () => new Ajv().compile(responseSchema),
     [responseSchema]
@@ -76,7 +75,7 @@ const useApiResult = <TResponse,>(
     };
   }, [request.config.body]);
 
-  return [loading, endpointResponse, endpointError, sendData];
+  return [loading, endpointResponse, endpointError];
 };
 
 export default useApiResult;

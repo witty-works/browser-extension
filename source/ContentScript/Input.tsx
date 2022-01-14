@@ -41,38 +41,57 @@ const Input: React.FC<{
   // const [, setText, textRef] = useStateRef(""); 
   const log = useLog('Input');
 
+  // console.log('element INPUT', element);
+
   useEffect(() => {
+    console.log('[] effect')
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
+    handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
-    element.addEventListener("focusin", handleKeyupEvent);
+    element.addEventListener('focus', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
     return () => {
+      console.log('[] effect cleanup')
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
-      element.removeEventListener("focusin", handleKeyupEvent);
+      element.removeEventListener('focus', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener('click', handleClickElement as EventListener);
     };
   }, []);
 
-  const handleKeyupEvent = (event: Event) => {
-    const target = event.target as CustomInputElement;
+  // useEffect(() => {
+  //   console.log('[element] effect')
+  //   element.addEventListener("focus", handleKeyupEvent);
+	// 	return () => {
+  //     console.log('[element] effect cleanup')
+  //     element.removeEventListener("focus", handleKeyupEvent);
+  //   }
+  // }, [element]) ;
+
+
+  const handleKeyupEvent = () => {
+    console.log('keyup')
+    // console.warn('event', event);
+    // console.log('target handleKeyupEvent', event.target);
 
     const nextText: string =
-      isTextArea(target) || isInputText(target)
-        ? (target as HTMLTextAreaElement | HTMLInputElement).value
-        : fixLineBreaks(target.innerText);
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : fixLineBreaks(element.innerText);
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0) setNodesWithAlerts([]);
-    else sendText(nextText);
+    else {
+      console.log('nextText', nextText);
+      sendText(nextText);
+    }
   };
 
-  const handleElementScrollEvent = (event: Event) => {
+  const handleElementScrollEvent = () => {
     //TODO add throttle
-    const target = event.target as CustomInputElement;
-    setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
+    setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   };
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
@@ -190,6 +209,8 @@ const Input: React.FC<{
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
+      // console.log('filteredAlerts', filteredAlerts);
+      // console.log('element', element);
 
       if (isTextArea(element) || isInputText(element))
         setNodesWithAlerts([
