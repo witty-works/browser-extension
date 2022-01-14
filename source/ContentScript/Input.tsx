@@ -38,13 +38,9 @@ const Input: React.FC<{
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-  // const [, setText, textRef] = useStateRef(""); 
   const log = useLog('Input');
 
-  // console.log('element INPUT', element);
-
   useEffect(() => {
-    console.log('[] effect')
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
@@ -53,7 +49,6 @@ const Input: React.FC<{
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
     return () => {
-      console.log('[] effect cleanup')
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focus', handleKeyupEvent);
@@ -62,31 +57,15 @@ const Input: React.FC<{
     };
   }, []);
 
-  // useEffect(() => {
-  //   console.log('[element] effect')
-  //   element.addEventListener("focus", handleKeyupEvent);
-	// 	return () => {
-  //     console.log('[element] effect cleanup')
-  //     element.removeEventListener("focus", handleKeyupEvent);
-  //   }
-  // }, [element]) ;
-
-
   const handleKeyupEvent = () => {
-    console.log('keyup')
-    // console.warn('event', event);
-    // console.log('target handleKeyupEvent', event.target);
-
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
         : fixLineBreaks(element.innerText);
+
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0) setNodesWithAlerts([]);
-    else {
-      console.log('nextText', nextText);
-      sendText(nextText);
-    }
+    else sendText(nextText);
   };
 
   const handleElementScrollEvent = () => {
@@ -175,7 +154,10 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    analytics.checkLog(checkEndpointResponse, clone?.firstChild ? clone?.firstChild.length : 0);
+    analytics.checkLog(
+      checkEndpointResponse,
+      clone?.firstChild ? clone?.firstChild.length : 0
+    );
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
@@ -183,7 +165,7 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         originalStartOffset: result.start, //TODO: replace with correct value
-        originalEndOffset: result.end,//TODO: replace with correct value
+        originalEndOffset: result.end, //TODO: replace with correct value
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -209,8 +191,6 @@ const Input: React.FC<{
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
-      // console.log('filteredAlerts', filteredAlerts);
-      // console.log('element', element);
 
       if (isTextArea(element) || isInputText(element))
         setNodesWithAlerts([

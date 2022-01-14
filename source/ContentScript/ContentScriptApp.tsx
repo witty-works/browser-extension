@@ -149,33 +149,27 @@ const ContentScriptApp: React.FC = () => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
-  const handleFocusinElement = (event: Event) => { 
-    // console.log('focusin handleFocusinElement', event);
+  const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
-    
-
-    // console.log('isInputElement(target)' , isInputElement(target));
-    // console.log('inputsRef.current.includes(target)' , inputsRef.current.includes(target));
 
     if (isInputElement(target))
-      if (!inputsRef.current.includes(target)) {
-        console.log('focusin')
-        console.log('target' , target);
+      if (!inputsRef.current.includes(target))
         setInputs([...inputsRef.current, target]);
-      }
   };
 
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
-    if((event.target as HTMLElement).nodeName === '#document') {
-      setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft })
-    } else{
-      const target = event.target as CustomInputElement
-      if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
+    if ((event.target as HTMLElement).nodeName === '#document') {
+      setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft });
+    } else {
+      const target = event.target as CustomInputElement;
+      if (
+        !document.querySelector('witty-code')?.contains(target) &&
+        !inputsRef.current.includes(target)
+      ) {
         setParentScroll({ top: target.scrollTop, left: target.scrollLeft });
       }
     }
-    
   };
 
   useEffect(() => {
@@ -197,11 +191,16 @@ const ContentScriptApp: React.FC = () => {
   });
 
   mutationObserver.observe(document.body, { childList: true, subtree: true });
-//  console.log('INPUT', inputs);
+
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (
-        <Input key={index} element={input} bodyScroll={bodyScroll} parentScroll={parentScroll}/>
+        <Input
+          key={index}
+          element={input}
+          bodyScroll={bodyScroll}
+          parentScroll={parentScroll}
+        />
       ))}
     </>
   );

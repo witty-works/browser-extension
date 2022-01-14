@@ -112,10 +112,6 @@ export const useCheckEndpoint = () => {
     };
   }, []);
 
-  // const request: IRequest = useMemo(
-  //   () => getAnalyzedTextResults(textToAnalyze),
-  //   [textToAnalyze]
-  // );
   const request: IRequest = getAnalyzedTextResults(textToAnalyze);
 
   const [a, checkResponse, c] = useApiResults<ICheckResponse>(
