@@ -35,12 +35,24 @@ export interface IAlertContentData {
 }
 
 export interface ILogRequest {
-  type: string,
-  lang: string,
-  id: string,
-  client: string,
-  config: object,
-  text: object,
+  request__type: string,
+  request__lang: string,
+  request__id: string,
+  request__client: string,
+  request__config__primary_language: string,
+  request__config__preferred_languages: string,
+  request__config__preferred_variants: string,
+  request__config__german_gender_ending: string,
+}
+export interface IAlternativeLogRequest extends ILogRequest {
+  request__replaced: string,
+  request__alternative: string,
+}
+export interface IIgnoreLogRequest extends ILogRequest {
+  request__ignored: string,
+}
+export interface ICheckLogRequest extends ILogRequest {
+  request__text: object,
 }
 export interface ILogResponse {
   results: ILogResponseResult[],
