@@ -149,26 +149,27 @@ const ContentScriptApp: React.FC = () => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
-  const handleFocusinElement = (event: Event) => { 
+  const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
-  
+
     if (isInputElement(target))
-      if (!inputsRef.current.includes(target)) {
+      if (!inputsRef.current.includes(target))
         setInputs([...inputsRef.current, target]);
-      }
   };
 
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
-    if((event.target as HTMLElement).nodeName === '#document') {
-      setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft })
-    } else{
-      const target = event.target as CustomInputElement
-      if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
+    if ((event.target as HTMLElement).nodeName === '#document') {
+      setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft });
+    } else {
+      const target = event.target as CustomInputElement;
+      if (
+        !document.querySelector('witty-code')?.contains(target) &&
+        !inputsRef.current.includes(target)
+      ) {
         setParentScroll({ top: target.scrollTop, left: target.scrollLeft });
       }
     }
-    
   };
 
   useEffect(() => {
@@ -193,7 +194,12 @@ const ContentScriptApp: React.FC = () => {
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (
-        <Input key={index} element={input} bodyScroll={bodyScroll} parentScroll={parentScroll}/>
+        <Input
+          key={index}
+          element={input}
+          bodyScroll={bodyScroll}
+          parentScroll={parentScroll}
+        />
       ))}
     </>
   );

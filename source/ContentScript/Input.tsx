@@ -38,7 +38,6 @@ const Input: React.FC<{
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-  // const [, setText, textRef] = useStateRef(""); 
   const log = useLog('Input');
 
   useEffect(() => {
@@ -63,10 +62,11 @@ const Input: React.FC<{
       isTextArea(element) || isInputText(element)
         ? element.value
         : fixLineBreaks(element.innerText);
+
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0) setNodesWithAlerts([]);
-    else {
-    setTextToCheck(nextText);
+    else { 
+      setTextToCheck(nextText); 
     }
   };
 
@@ -114,9 +114,7 @@ const Input: React.FC<{
                 position: clickedRect,
                 node: oneNodeWithAlerts.node,
                 originalNode:
-                  isTextArea(target) || isInputText(target)
-                    ? (target as HTMLTextAreaElement)
-                    : null,
+                  isTextArea(target) || isInputText(target) ? target : null,
               });
               toggleModal();
             }
@@ -133,8 +131,7 @@ const Input: React.FC<{
 
   const getInputClickedPosition = (element: CustomInputElement): number => {
     if (isTextArea(element) || isInputText(element)) {
-      return (element as HTMLTextAreaElement | HTMLInputElement)
-        .selectionStart as number;
+      return element.selectionStart as number;
     } else {
       const selection: Selection | null = document.getSelection();
       let position: number = -1;
@@ -156,7 +153,10 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    analytics.checkLog(checkEndpointResponse, clone?.firstChild ? clone?.firstChild.length : 0);
+    analytics.checkLog(
+      checkEndpointResponse,
+      clone?.firstChild ? clone?.firstChild.length : 0
+    );
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
@@ -164,7 +164,7 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         originalStartOffset: result.start, //TODO: replace with correct value
-        originalEndOffset: result.end,//TODO: replace with correct value
+        originalEndOffset: result.end, //TODO: replace with correct value
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -286,7 +286,7 @@ const Input: React.FC<{
   const resendText = () => {
     const text: string =
       isTextArea(element) || isInputText(element)
-        ? (element as HTMLTextAreaElement | HTMLInputElement).value
+        ? element.value
         : fixLineBreaks(element.innerText);
 
     setTextToCheck(text);
@@ -301,7 +301,7 @@ const Input: React.FC<{
     <div className='canvas-container'>
       {isTextArea(element) ? (
         <TextAreaClone
-          element={element as HTMLTextAreaElement}
+          element={element}
           elementRect={elementRect}
           elementScroll={elementScroll}
           updateClone={updateCloneData}
@@ -309,7 +309,7 @@ const Input: React.FC<{
       ) : null}
       {isInputText(element) ? (
         <InputTextClone
-          element={element as HTMLInputElement}
+          element={element}
           elementRect={elementRect}
           updateClone={updateCloneData}
         />

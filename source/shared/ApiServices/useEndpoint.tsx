@@ -122,6 +122,6 @@ export const useCheckEndpoint = () => {
     request,
     checkResponseSchema
   );
-  
+
   return [loading, checkResponse, errorResponse, setTextToAnalyse] as const;
 };
