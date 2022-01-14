@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
 import { getAnalyzedTextResults } from './requests';
 import { IRequest } from '../types';
@@ -112,16 +112,16 @@ export const useCheckEndpoint = () => {
     };
   }, []);
 
-  // const request: IRequest = useMemo(
-  //   () => getAnalyzedTextResults(textToAnalyze),
-  //   [textToAnalyze]
-  // );
-  const request: IRequest = getAnalyzedTextResults(textToAnalyze);
+  const request: IRequest = useMemo(() => {
+      return getAnalyzedTextResults(textToAnalyze)
+    },
+    [textToAnalyze]
+  );
 
-  const [a, checkResponse, c] = useApiResults<ICheckResponse>(
+  const [loading, checkResponse, errorResponse] = useApiResults<ICheckResponse>(
     request,
     checkResponseSchema
   );
-
-  return [a, checkResponse, c, setTextToAnalyse] as const;
+  
+  return [loading, checkResponse, errorResponse, setTextToAnalyse] as const;
 };

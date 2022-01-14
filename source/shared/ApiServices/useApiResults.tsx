@@ -12,13 +12,13 @@ const useApiResult = <TResponse,>(
     () => new Ajv().compile(responseSchema),
     [responseSchema]
   );
+  const [loading, setLoading] = useState<boolean>(false);
   const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
     null
   );
   const [endpointError, setEndpointError] = useState<IEndpointResponseError>({
     detail: [],
   });
-  const [loading, setLoading] = useState<boolean>(false);
   const log = useLog("useApiResult");
 
   useEffect(() => {
@@ -73,7 +73,7 @@ const useApiResult = <TResponse,>(
     return () => {
       ac.abort(); // Abort fetch on unmount
     };
-  }, [request.config.body]);
+  }, [request]);
 
   return [loading, endpointResponse, endpointError];
 };

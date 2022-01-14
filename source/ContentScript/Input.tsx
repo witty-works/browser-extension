@@ -20,7 +20,7 @@ const Input: React.FC<{
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [loading, checkEndpointResponse, checkEndpointError, sendText] =
+  const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
@@ -41,10 +41,7 @@ const Input: React.FC<{
   // const [, setText, textRef] = useStateRef(""); 
   const log = useLog('Input');
 
-  // console.log('element INPUT', element);
-
   useEffect(() => {
-    console.log('[] effect')
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
@@ -53,7 +50,6 @@ const Input: React.FC<{
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
     return () => {
-      console.log('[] effect cleanup')
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focus', handleKeyupEvent);
@@ -62,21 +58,7 @@ const Input: React.FC<{
     };
   }, []);
 
-  // useEffect(() => {
-  //   console.log('[element] effect')
-  //   element.addEventListener("focus", handleKeyupEvent);
-	// 	return () => {
-  //     console.log('[element] effect cleanup')
-  //     element.removeEventListener("focus", handleKeyupEvent);
-  //   }
-  // }, [element]) ;
-
-
   const handleKeyupEvent = () => {
-    console.log('keyup')
-    // console.warn('event', event);
-    // console.log('target handleKeyupEvent', event.target);
-
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
@@ -84,8 +66,7 @@ const Input: React.FC<{
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0) setNodesWithAlerts([]);
     else {
-      console.log('nextText', nextText);
-      sendText(nextText);
+    setTextToCheck(nextText);
     }
   };
 
@@ -209,9 +190,6 @@ const Input: React.FC<{
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
-      // console.log('filteredAlerts', filteredAlerts);
-      // console.log('element', element);
-
       if (isTextArea(element) || isInputText(element))
         setNodesWithAlerts([
           {
@@ -290,7 +268,6 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
-      console.log('checkEndpointError = ', checkEndpointError);
       log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
       //TODO: @Arnau type error, does not match IEndpointResponseError
       // if (checkEndpointError.detail === 'Language could not be determined')
@@ -312,7 +289,7 @@ const Input: React.FC<{
         ? (element as HTMLTextAreaElement | HTMLInputElement).value
         : fixLineBreaks(element.innerText);
 
-    sendText(text);
+    setTextToCheck(text);
   };
 
   const addIgnoredTerm = (term: string): void => {
