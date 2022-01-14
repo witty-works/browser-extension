@@ -6,16 +6,12 @@ import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import {
-  CustomInputElement,
-  IAlert,
-  IAlertContentData,
-  INodeWithAlerts,
-} from '../shared/types';
+import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
+import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 type HandleClick = () => void;
 
@@ -26,6 +22,7 @@ const Input: React.FC<{
 }> = ({ element, bodyScroll, parentScroll }) => {
   const [loading, checkEndpointResponse, checkEndpointError, sendText] =
     useCheckEndpoint();
+  const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
 
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
@@ -41,6 +38,7 @@ const Input: React.FC<{
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
+  // const [, setText, textRef] = useStateRef(""); 
   const log = useLog('Input');
 
   useEffect(() => {
@@ -60,14 +58,13 @@ const Input: React.FC<{
   const handleKeyupEvent = (event: Event) => {
     const target = event.target as CustomInputElement;
 
-    const text: string =
+    const nextText: string =
       isTextArea(target) || isInputText(target)
         ? (target as HTMLTextAreaElement | HTMLInputElement).value
         : fixLineBreaks(target.innerText);
-
     //If there isn't text, there's nothing to highlight
-    if (text.length === 0) setNodesWithAlerts([]);
-    else sendText(text);
+    if (nextText.length === 0) setNodesWithAlerts([]);
+    else sendText(nextText);
   };
 
   const handleElementScrollEvent = (event: Event) => {
@@ -156,31 +153,33 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    if (checkEndpointResponse) {
-      const alerts: IAlert[] = checkEndpointResponse.results
-        .map((result: any) => ({
-          //TODO specify this 'any' type on the line before
-          id: `${result.category}-${result.text}-${result.start}-${result.end}`,
-          startOffset: result.start,
-          endOffset: result.end,
-          data: {
-            language: checkEndpointResponse.language,
-            category: result.category,
-            subcategory: result.subcategory,
-            context: result.context,
-            text: result.text,
-            label: result.label,
-            reason: result.reason,
-            solution: result.solution,
-            alternatives: result.alternatives,
-          } as IAlertContentData,
-        }))
-        .sort((firstAlert: IAlert, secondAlert: IAlert) => {
-          return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
-        });
+    if (!checkEndpointResponse) return;
+    analytics.checkLog(checkEndpointResponse, clone?.firstChild ? clone?.firstChild.length : 0);
 
-      setAlerts([...alerts]);
-    }
+    const alerts: IAlert[] = checkEndpointResponse.results
+      .map((result) => ({
+        id: `${result.category}-${result.text}-${result.start}-${result.end}`,
+        startOffset: result.start,
+        endOffset: result.end,
+        originalStartOffset: result.start, //TODO: replace with correct value
+        originalEndOffset: result.end,//TODO: replace with correct value
+        data: {
+          language: checkEndpointResponse.language,
+          category: result.category,
+          subcategory: result.subcategory,
+          context: result.context,
+          text: result.text,
+          label: result.label,
+          reason: result.reason,
+          solution: result.solution,
+          alternatives: result.alternatives,
+        },
+      }))
+      .sort((firstAlert, secondAlert) => {
+        return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
+      });
+
+    setAlerts([...alerts]);
   }, [checkEndpointResponse]);
 
   useEffect(() => {
@@ -268,9 +267,11 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
+      console.log('checkEndpointError = ', checkEndpointError);
       log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
-      if (checkEndpointError.detail === 'Language could not be determined')
-        setNodesWithAlerts([]);
+      //TODO: @Arnau type error, does not match IEndpointResponseError
+      // if (checkEndpointError.detail === 'Language could not be determined')
+      setNodesWithAlerts([]);
     }
   }, [checkEndpointError]);
 
