@@ -14,7 +14,7 @@ export interface ModalData {
   alert: IAlert;
   position: DOMRect;
   node: HTMLElement;
-  originalNode: HTMLTextAreaElement | null;
+  originalNode: HTMLTextAreaElement | HTMLInputElement | null;
 }
 interface ModalProps {
   isOpen: boolean;
@@ -164,7 +164,7 @@ const Modal: React.FC<ModalProps> = ({
 
     //Log when user chooses to ignore a term
     analytics.ignoreLog(data.alert);
-   
+
     addIgnoredTerm(data.alert.data.text);
   };
 
