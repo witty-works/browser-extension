@@ -63,7 +63,7 @@ export const useAnalytics = () => {
         request__config__preferred_languages: requestConfig.preferred_languages,
         request__config__preferred_variants: requestConfig.preferred_variants,
         request__config__german_gender_ending: requestConfig.german_gender_ending,
-        request__text: { "length": inputLength }, 
+        request__text__length: inputLength, 
       };
 
       ph.capture('check', {

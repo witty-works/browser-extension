@@ -52,7 +52,7 @@ export interface IIgnoreLogRequest extends ILogRequest {
   request__ignored: string,
 }
 export interface ICheckLogRequest extends ILogRequest {
-  request__text: object,
+  request__text__length: number,
 }
 export interface ILogResponse {
   results: ILogResponseResult[],
