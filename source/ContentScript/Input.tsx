@@ -156,7 +156,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    analytics.checkLog(checkEndpointResponse, clone?.firstChild.length);
+    analytics.checkLog(checkEndpointResponse, clone?.firstChild ? clone?.firstChild.length : 0);
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
