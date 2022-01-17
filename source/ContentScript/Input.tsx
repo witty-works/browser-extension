@@ -45,17 +45,24 @@ const Input: React.FC<{
     //The turn around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
-    element.addEventListener('focus', handleKeyupEvent);
+    element.addEventListener('focusin', handleKeyupEvent);
+    element.addEventListener('focusout', handleFousoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
-      element.removeEventListener('focus', handleKeyupEvent);
+      element.removeEventListener('focusin', handleKeyupEvent);
+      element.removeEventListener('focusout', handleFousoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener('click', handleClickElement as EventListener);
     };
   }, []);
+
+  const handleFousoutEvent = () => {
+    setTextToCheck('');
+    setAlerts([]);
+  };
 
   const handleKeyupEvent = () => {
     const nextText: string =
@@ -65,8 +72,8 @@ const Input: React.FC<{
 
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0) setNodesWithAlerts([]);
-    else { 
-      setTextToCheck(nextText); 
+    else {
+      setTextToCheck(nextText);
     }
   };
 
