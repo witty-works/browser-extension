@@ -9,6 +9,7 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
+import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -38,8 +39,25 @@ const Input: React.FC<{
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-  // const [, setText, textRef] = useStateRef(""); 
+  // const [, setText, textRef] = useStateRef("");
   const log = useLog('Input');
+
+  //Check if element has no text and remove any existing highlight if it's the case.
+  //This is done for cases like LinkedIn, where when user sent a message all the highlights remained
+  useMutationObserver(
+    element,
+    (mutationRecords: MutationRecord[]) => {
+      if (
+        mutationRecords.length > 0 &&
+        (mutationRecords[0].target as HTMLElement).innerText.trim().length === 0
+      )
+        setNodesWithAlerts([]);
+    },
+    {
+      childList: true,
+      subtree: true,
+    }
+  );
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
@@ -154,7 +172,10 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    analytics.checkLog(checkEndpointResponse, clone?.firstChild ? clone?.firstChild.length : 0);
+    analytics.checkLog(
+      checkEndpointResponse,
+      clone?.firstChild ? clone?.firstChild.length : 0
+    );
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
@@ -162,7 +183,7 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         originalStartOffset: result.start, //TODO: replace with correct value
-        originalEndOffset: result.end,//TODO: replace with correct value
+        originalEndOffset: result.end, //TODO: replace with correct value
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
