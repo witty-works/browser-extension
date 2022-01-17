@@ -15,7 +15,7 @@ const isInputText = (element: CustomInputElement): element is HTMLInputElement =
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
 const isInputElement = (element: CustomInputElement) =>
     isTextArea(element) ||
-    isInputText(element) ||
+    // isInputText(element) ||      Temporaly disabled as it could capture passwords
     element.isContentEditable
 
 const convertHTMLToText = (str: string = ''):string => {

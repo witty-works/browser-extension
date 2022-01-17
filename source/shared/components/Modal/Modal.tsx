@@ -97,7 +97,7 @@ const Modal: React.FC<ModalProps> = ({
 
   const clickAlternative = (index: number) => {
     //Log the clicked alternative
-    analytics.alternativeLog(data.alert);
+    analytics.alternativeLog(data.alert, data.alert.data.alternatives[index]);
 
     //Replace text with the new alternative or simply remove it
     //This only replaces the specific occurrence. If there are other identical terms in the text
