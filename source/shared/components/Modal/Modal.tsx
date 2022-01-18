@@ -4,7 +4,6 @@ import CSS from 'csstype';
 import { browser } from 'webextension-polyfill-ts';
 
 import { IAlert } from '../../types';
-import { getColor } from '../../constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
 
@@ -14,7 +13,7 @@ export interface ModalData {
   alert: IAlert;
   position: DOMRect;
   node: HTMLElement;
-  originalNode: HTMLTextAreaElement | null;
+  originalNode: HTMLTextAreaElement | HTMLInputElement | null;
 }
 interface ModalProps {
   isOpen: boolean;
@@ -47,10 +46,10 @@ const Modal: React.FC<ModalProps> = ({
   const modalLeftPos =
     modalWidth < window.innerWidth - data.position.left
       ? data.position.left -
-        parseFloat(getComputedStyle(document.documentElement).fontSize)
+      parseFloat(getComputedStyle(document.documentElement).fontSize)
       : data.position.left -
-        (modalWidth - data.position.width) +
-        parseFloat(getComputedStyle(document.documentElement).fontSize);
+      (modalWidth - data.position.width) +
+      parseFloat(getComputedStyle(document.documentElement).fontSize);
 
   //Positions the modal dinamically
   const minHeight = window.innerHeight < 920 ? window.innerHeight * 0.33 : 200;
@@ -65,10 +64,6 @@ const Modal: React.FC<ModalProps> = ({
     // height: `${window.innerHeight * 0.33}px`,
     minHeight: `${minHeight}px`,
     maxHeight: `${maxHeight}px`,
-  };
-
-  const CategoryDotStyling: CSS.Properties = {
-    backgroundColor: `${getColor(data.alert.data.category)}`,
   };
 
   useEffect(() => {
@@ -131,40 +126,14 @@ const Modal: React.FC<ModalProps> = ({
     hide();
   };
 
-  const hoveredAlternativeButton = (event: React.MouseEvent) => {
-    const currentTarget = event.currentTarget as HTMLElement;
-
-    currentTarget.style.backgroundColor = `#9489DB`;
-    currentTarget.style.color = `#ffffff`;
-  };
-
-  const resetAlternativeButton = (event: React.MouseEvent) => {
-    const currentTarget = event.currentTarget as HTMLElement;
-
-    currentTarget.style.backgroundColor = `transparent`;
-    currentTarget.style.color = `#9489DB`;
-  };
-
   const toggleText = () => {
     setIsToggleOpen(!isToggleOpen);
   };
 
-  const hoveredIgnoreButton = (event: React.MouseEvent) => {
-    const currentTarget = event.currentTarget as HTMLElement;
-    currentTarget.style.backgroundColor = `#f3f3f3`;
-  };
-
-  const resetIgnoreButton = (event: React.MouseEvent) => {
-    const currentTarget = event.currentTarget as HTMLElement;
-    currentTarget.style.backgroundColor = `transparent`;
-  };
-
   const clickIgnoreTerm = () => {
     hide();
-
     //Log when user chooses to ignore a term
     analytics.ignoreLog(data.alert);
-   
     addIgnoredTerm(data.alert.data.text);
   };
 
@@ -182,82 +151,53 @@ const Modal: React.FC<ModalProps> = ({
       >
         <div id='modal-container'>
           <div className='modal-row'>
-            <span
-              className='modal-category-dot'
-              style={CategoryDotStyling}
-            ></span>
-            <span className='modal-main-text'>{data.alert.data.solution}</span>
-          </div>
-          <div className='modal-row'>
-            <>
-              <div className='modal-row-title'>
-                {data.alert.data.alternatives.length === 0
-                  ? null
-                  : t('insteadTry')}
-                {isToggleOpen ? (
-                  <a onClick={toggleText} className='modal-expand-link'>
-                    {t('understood')}
-                  </a>
-                ) : (
-                  <a onClick={toggleText} className='modal-expand-link'>
-                    {t('whyQuestionMark')}
-                  </a>
-                )}
-              </div>
-              {isToggleOpen ? (
-                <div className='modal-sub-text'>{data.alert.data.reason}</div>
-              ) : null}
-            </>
-          </div>
-          <div className='modal-list-links-container'>
-            {data.alert.data.alternatives.length === 0 ? (
-              <a
-                className='modal-link'
-                onMouseEnter={hoveredAlternativeButton}
-                onMouseLeave={resetAlternativeButton}
-                onClick={clickAccept}
-              >
-                {t('okUnderstood')}
-              </a>
-            ) : (
-              data.alert.data.alternatives.map((alternative, index) =>
-                alternative.localeCompare('-') === 0 ? (
-                  <a
-                    className='modal-link remove-text'
-                    key={`${index}-remove-it`}
-                    onMouseEnter={hoveredAlternativeButton}
-                    onMouseLeave={resetAlternativeButton}
-                    onClick={() => clickAlternative(-1)}
-                  >
-                    {data.alert.data.text}
-                  </a>
-                ) : (
-                  <a
-                    className='modal-link'
-                    key={`${index}-${alternative}`}
-                    onMouseEnter={hoveredAlternativeButton}
-                    onMouseLeave={resetAlternativeButton}
-                    onClick={() => clickAlternative(index)}
-                  >
-                    {alternative}
-                  </a>
-                )
-              )
-            )}
+            <div className='modal-row-title'>
+              {/* TODO: change this to nice category name */}
+              {data.alert.data.category}
+            </div>
           </div>
           <hr className='modal-separator' />
           <div className='modal-row'>
-            <a
-              className='modal-link modal-sub-link'
-              onMouseEnter={hoveredIgnoreButton}
-              onMouseLeave={resetIgnoreButton}
-              onClick={() => clickIgnoreTerm()}
-            >
-              Ø Ignore this term
+            {data.alert.data.alternatives.length === 0 ? null : t('insteadTry')}
+            <div className='modal-list-links-container'>
+              {data.alert.data.alternatives.length === 0 ? (
+                <a className='modal-link' onClick={clickAccept}>
+                  {t('okUnderstood')}
+                </a>
+              ) : (
+                data.alert.data.alternatives.slice(0, 5).map((alternative, index) =>
+                  alternative.localeCompare('-') === 0 ? (
+                    <a
+                      className='modal-link remove-text'
+                      key={`${index}-remove-it`}
+                      onClick={() => clickAlternative(-1)}
+                    >
+                      {data.alert.data.text}
+                    </a>
+                  ) : (
+                    <a
+                      className='modal-link'
+                      key={`${index}-${alternative}`}
+                      onClick={() => clickAlternative(index)}
+                    >
+                      {alternative}
+                    </a>
+                  )
+                )
+              )}
+            </div>
+            <a className='modal-row-ignore' onClick={() => clickIgnoreTerm()}>
+              {t('ignoreTerm')}
             </a>
-            <hr className='modal-separator' />
           </div>
-          <div>
+          <hr className='modal-separator' />
+          <div className='modal-row'>
+            <a onClick={toggleText} className='modal-expand-link'>
+              {t('howToImprove')}
+            </a>
+            {isToggleOpen && <div className='modal-sub-text'>{data.alert.data.reason}</div>}
+          </div>
+          <div className='modal-row'>
             <img
               className='modal-icon'
               alt='Witty Works Logo' //TODO translation
@@ -266,6 +206,8 @@ const Modal: React.FC<ModalProps> = ({
                 '../../../assets/icons/w-logo-wire-color.svg'
               )}
             />
+            {/* Settings icon here  */}
+
           </div>
         </div>
       </div>

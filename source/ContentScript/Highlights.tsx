@@ -105,14 +105,21 @@ const Highlights: React.FC<HighlightsProps> = ({
         //Draw a rectangle for each highlight...
         highlights.forEach((highlight) => {
           context.fillStyle = `${getColor(highlight.data.category)}`;
+          context.arc(100, 75, 50, 0, 2)
+          context.globalAlpha = 0.5;
+          context.fill();
 
+          //set background color of the highlight
+
+
+            
           //... which can include several DOMRects
           highlight.rects.forEach((rect: DOMRect) => {
             const rectToRender: DOMRect = {
               left: rect.left - elementRect.left,
-              top:rect.top - elementRect.top + rect.height,
+              top: rect.top - elementRect.top,
               width: rect.width,
-              height: 2,
+              height: rect.height,
             } as DOMRect;
 
             context.fillRect(
@@ -141,6 +148,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           top: `${elementRect.top}px`,
           pointerEvents: 'none',
           zIndex: 999999999,
+          // borderRadius: '4px',
           // outline: '1px solid blue',
         } as React.CSSProperties
       }
@@ -151,3 +159,4 @@ const Highlights: React.FC<HighlightsProps> = ({
 };
 
 export default Highlights;
+

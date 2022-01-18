@@ -3,12 +3,14 @@
 
 #modal {
   display: flex;
-  padding: 16px;
+  padding-left: 16px;
+  padding-right: 16px;
   background-color: $white;
   position: fixed;
   z-index: 999999999;
   box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
   border-radius: 5px;
+  color: black;
 }
 
 #backdrop {
@@ -23,11 +25,11 @@
 #modal-container {
   display: flex;
   flex-direction: column;
-  height:auto;
+  height: auto;
   width: 100%;
   font-family: $lato !important;
-  font-size: 16px;
   line-height: 1.2;
+  font-size: 16px;
 }
 
 hr.modal-separator {
@@ -38,13 +40,17 @@ hr.modal-separator {
 }
 
 .modal-row {
+  margin-top: 1em;
   margin-bottom: 1em;
 }
 
 .modal-row-title {
   font-family: $ibarra !important;
-  font-size: .9em;
-  color: #656565;
+  font-size: 1.3em;
+}
+
+.modal-row-ignore {
+  color: red; 
 }
 
 .modal-icon {
@@ -66,7 +72,6 @@ hr.modal-separator {
 
 .modal-sub-text {
   font-family: $ibarra !important;
-  font-size: .9em;
   margin-top: 4px;
   color: #656565;
 }
@@ -78,9 +83,9 @@ hr.modal-separator {
   cursor: pointer;
   color: #656565;
   margin-left: 3px;
-  &:hover {
-    color:inherit;
-  }
+  // &:hover {
+  //   color:inherit;
+  // }
 }
 
 a.modal-link {
@@ -97,7 +102,6 @@ a.modal-link {
 }
 
 .modal-list-links-container {
-  overflow: auto;
   display: flex;
   flex-direction: column;
   margin-left: -1em;
@@ -105,8 +109,7 @@ a.modal-link {
 
   a.modal-link {
     color: #9489DB;
-    font-weight: 600;
-    font-size: 1.1em;
+    background-color: #656565;
     line-height: 1.4;
     padding: 0.5em 1em;
 
