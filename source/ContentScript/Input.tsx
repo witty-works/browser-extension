@@ -169,8 +169,6 @@ const Input: React.FC<{
         id: `${result.category}-${result.text}-${result.start}-${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
-        originalStartOffset: result.start, //TODO: replace with correct value
-        originalEndOffset: result.end, //TODO: replace with correct value
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -202,8 +200,6 @@ const Input: React.FC<{
             node: clone?.firstChild,
             alerts: filteredAlerts.map((alert: IAlert) => ({
               ...alert,
-              originalStartOffset: alert.startOffset,
-              originalEndOffset: alert.endOffset,
             })),
           },
         ]);
@@ -243,8 +239,6 @@ const Input: React.FC<{
                   ...alert,
                   startOffset: alert.startOffset - textStartingAbsPosition,
                   endOffset: alert.endOffset - textStartingAbsPosition,
-                  originalStartOffset: alert.startOffset,
-                  originalEndOffset: alert.endOffset,
                 };
 
                 return newAlert;
