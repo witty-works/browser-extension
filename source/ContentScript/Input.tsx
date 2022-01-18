@@ -46,20 +46,20 @@ const Input: React.FC<{
     handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
-    element.addEventListener('focusout', handleFousoutEvent);
+    element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
-      element.removeEventListener('focusout', handleFousoutEvent);
+      element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener('click', handleClickElement as EventListener);
     };
   }, []);
 
-  const handleFousoutEvent = () => {
+  const handleFocusoutEvent = () => {
     setTextToCheck('');
     setAlerts([]);
   };
