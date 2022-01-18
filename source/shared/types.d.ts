@@ -18,8 +18,6 @@ export interface IAlert {
   id: string,
   startOffset: number,
   endOffset: number,
-  originalStartOffset: number,
-  originalEndOffset: number,
   data: IAlertContentData,
 }
 export interface IAlertContentData {
