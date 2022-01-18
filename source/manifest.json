@@ -67,6 +67,9 @@
     }
   ],
   "web_accessible_resources": [
-    "assets/icons/w-logo-wire-color.svg"
+    "assets/icons/w-logo-wire-color.svg",
+    "assets/icons/modal/ignore.svg",
+    "assets/icons/modal/more.svg",
+    "assets/icons/modal/settings.svg"
   ]
 }

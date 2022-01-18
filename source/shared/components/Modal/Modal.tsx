@@ -9,6 +9,12 @@ import { namespaces } from '../../../i18n/i18n.constants';
 
 import './Modal.scss';
 import { useAnalytics } from '../../ApiServices/useAnalytics';
+
+// const ignoreIcon = require('../../../assets/icons/modal/ignore.svg') as string;
+
+// import IgnoreIcon from '../../../assets/icons/modal/ignore.svg';
+// import MoreIcon from '../../../assets/icons/modal/more.svg';
+// import SettingsIcon from '../../../assets/icons/modal/settings.svg';
 export interface ModalData {
   alert: IAlert;
   position: DOMRect;
@@ -187,11 +193,25 @@ const Modal: React.FC<ModalProps> = ({
               )}
             </div>
             <a className='modal-row-ignore' onClick={() => clickIgnoreTerm()}>
+              <img
+                className='modal-icon'
+                alt='Ignore Alternatives'
+                height='100%'
+                src={browser.runtime.getURL(
+                  '../../../assets/icons/modal/ignore.svg'
+                )} />
               {t('ignoreTerm')}
             </a>
           </div>
           <hr className='modal-separator' />
           <div className='modal-row'>
+            <img
+              className='modal-icon'
+              alt='How To Improve' 
+              height='100%'
+              src={browser.runtime.getURL(
+                '../../../assets/icons/modal/more.svg'
+              )} />
             <a onClick={toggleText} className='modal-expand-link'>
               {t('howToImprove')}
             </a>
@@ -206,8 +226,13 @@ const Modal: React.FC<ModalProps> = ({
                 '../../../assets/icons/w-logo-wire-color.svg'
               )}
             />
-            {/* Settings icon here  */}
-
+            <img
+              className='modal-icon'
+              alt='Settings' //TODO translation
+              height='100%'
+              src={browser.runtime.getURL(
+                '../../../assets/icons/modal/settings.svg'
+              )} />
           </div>
         </div>
       </div>
