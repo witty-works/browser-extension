@@ -9,7 +9,7 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
-import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
+// import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -42,36 +42,37 @@ const Input: React.FC<{
   // const [, setText, textRef] = useStateRef("");
   const log = useLog('Input');
 
-  //Check if element has no text and remove any existing highlight if it's the case.
-  //This is done for cases like LinkedIn, where when user sent a message all the highlights remained
-  useMutationObserver(
-    element,
-    (mutationRecords: MutationRecord[]) => {
-      if (
-        mutationRecords.length > 0 &&
-        (mutationRecords[0].target as HTMLElement).innerText.trim().length === 0
-      )
-        setNodesWithAlerts([]);
-    },
-    {
-      childList: true,
-      subtree: true,
-    }
-  );
-
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
+
+    //If a parent form exists, we will monitor the submision.
+    //This will allow us remove remaining highlights when text disappear
+    const parentForm: HTMLFormElement | null = isTextArea(element)
+      ? (element as HTMLTextAreaElement).form
+      : element.closest('form');
+
+    if (parentForm)
+      parentForm.addEventListener('submit', handleSubmitFormEvent);
+
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener('click', handleClickElement as EventListener);
+      if (parentForm)
+        parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
+
+  const handleSubmitFormEvent = () => {
+    //It's assumed that when user sends info through a form, text will disappear.
+    //Therefore highlights also need to be removed
+    setNodesWithAlerts([]);
+  };
 
   const handleKeyupEvent = (event: Event) => {
     const target = event.target as CustomInputElement;
