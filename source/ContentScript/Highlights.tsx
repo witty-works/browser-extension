@@ -146,7 +146,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           top: `${elementRect.top}px`,
           pointerEvents: 'none',
           zIndex: 999999999,
-          // borderRadius: '4px',
           // outline: '1px solid blue',
         } as React.CSSProperties
       }
