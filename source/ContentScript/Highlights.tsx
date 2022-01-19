@@ -105,7 +105,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         //Draw a rectangle for each highlight...
         highlights.forEach((highlight) => {
           context.fillStyle = `${getColor(highlight.data.category)}`;
-          context.arc(100, 75, 50, 0, 2)
+          // context.arc(100, 75, 50, 0, 2)
           context.globalAlpha = 0.5;
           context.fill();
 

@@ -9,12 +9,6 @@ import { namespaces } from '../../../i18n/i18n.constants';
 
 import './Modal.scss';
 import { useAnalytics } from '../../ApiServices/useAnalytics';
-
-// const ignoreIcon = require('../../../assets/icons/modal/ignore.svg') as string;
-
-// import IgnoreIcon from '../../../assets/icons/modal/ignore.svg';
-// import MoreIcon from '../../../assets/icons/modal/more.svg';
-// import SettingsIcon from '../../../assets/icons/modal/settings.svg';
 export interface ModalData {
   alert: IAlert;
   position: DOMRect;
@@ -58,18 +52,10 @@ const Modal: React.FC<ModalProps> = ({
       parseFloat(getComputedStyle(document.documentElement).fontSize);
 
   //Positions the modal dinamically
-  const minHeight = window.innerHeight < 920 ? window.innerHeight * 0.33 : 200;
-  const maxHeight =
-    (window.innerHeight < 920
-      ? window.innerHeight * 0.5
-      : window.innerHeight * 0.33) + (isToggleOpen ? 100 : 0);
   const ModalStyling: CSS.Properties = {
-    top: `${data.position.top + data.position.height + 3}px`, //TODO convert this 3
+    top: `${data.position.top + data.position.height + 10}px`, //TODO convert this
     left: `${modalLeftPos}px`,
     width: `${modalWidth}px`,
-    // height: `${window.innerHeight * 0.33}px`,
-    minHeight: `${minHeight}px`,
-    maxHeight: `${maxHeight}px`,
   };
 
   useEffect(() => {
@@ -128,10 +114,6 @@ const Modal: React.FC<ModalProps> = ({
     resendText();
   };
 
-  const clickAccept = () => {
-    hide();
-  };
-
   const toggleText = () => {
     setIsToggleOpen(!isToggleOpen);
   };
@@ -157,82 +139,70 @@ const Modal: React.FC<ModalProps> = ({
       >
         <div id='modal-container'>
           <div className='modal-row'>
+            {/* TODO: change this to understandable label when available from backend */}
             <div className='modal-row-title'>
-              {/* TODO: change this to nice category name */}
-              {data.alert.data.category}
+              {data.alert.data.label !== '' ? data.alert.data.label : data.alert.data.category}
             </div>
           </div>
+
           <hr className='modal-separator' />
-          <div className='modal-row'>
-            {data.alert.data.alternatives.length === 0 ? null : t('insteadTry')}
-            <div className='modal-list-links-container'>
-              {data.alert.data.alternatives.length === 0 ? (
-                <a className='modal-link' onClick={clickAccept}>
-                  {t('okUnderstood')}
-                </a>
-              ) : (
-                data.alert.data.alternatives.slice(0, 5).map((alternative, index) =>
-                  alternative.localeCompare('-') === 0 ? (
-                    <a
-                      className='modal-link remove-text'
-                      key={`${index}-remove-it`}
-                      onClick={() => clickAlternative(-1)}
-                    >
-                      {data.alert.data.text}
-                    </a>
-                  ) : (
-                    <a
-                      className='modal-link'
-                      key={`${index}-${alternative}`}
-                      onClick={() => clickAlternative(index)}
-                    >
-                      {alternative}
-                    </a>
-                  )
+
+          {data.alert.data.alternatives.filter(word =>  word != ' ').length > 0 && (<div className='modal-row'>
+            <div className='modal-row-title-alternative'>
+              {t('insteadTry')}
+            </div>
+            <div className='modal-row-alternatives-container'>
+              {data.alert.data.alternatives.slice(0, 5).map((alternative, index) =>
+                alternative.localeCompare('-') === 0 ? (
+                  <div className='modal-link remove-text' key={`${index}-remove-it`} onClick={() => clickAlternative(-1)}>
+                    {data.alert.data.text}
+                  </div>
+                ) : (
+                  <div className='modal-link' key={`${index}-${alternative}`} onClick={() => clickAlternative(index)}>
+                    {alternative}
+                  </div>
                 )
               )}
             </div>
-            <a className='modal-row-ignore' onClick={() => clickIgnoreTerm()}>
+            <div className='modal-row-ignore' onClick={() => clickIgnoreTerm()}>
               <img
                 className='modal-icon'
                 alt='Ignore Alternatives'
-                height='100%'
-                src={browser.runtime.getURL(
-                  '../../../assets/icons/modal/ignore.svg'
-                )} />
+                src={browser.runtime.getURL('../../../assets/icons/modal/ignore.svg')}
+              />
               {t('ignoreTerm')}
-            </a>
-          </div>
+            </div>
+          </div>)}
+
           <hr className='modal-separator' />
+
           <div className='modal-row'>
-            <img
-              className='modal-icon'
-              alt='How To Improve' 
-              height='100%'
-              src={browser.runtime.getURL(
-                '../../../assets/icons/modal/more.svg'
-              )} />
-            <a onClick={toggleText} className='modal-expand-link'>
+            <div className='modal-row-more-title' onClick={() => toggleText()}>
+              <img
+                className='modal-icon'
+                alt='How To Improve'
+                src={browser.runtime.getURL('../../../assets/icons/modal/more.svg')}
+              />
               {t('howToImprove')}
-            </a>
-            {isToggleOpen && <div className='modal-sub-text'>{data.alert.data.reason}</div>}
+            </div>
+            {isToggleOpen && <div className='modal-row-more-text'>{data.alert.data.reason}</div>}
           </div>
+
+          <hr className='modal-separator' />
+
           <div className='modal-row'>
             <img
-              className='modal-icon'
+              className='modal-icon-large'
               alt='Witty Works Logo' //TODO translation
-              height='100%'
-              src={browser.runtime.getURL(
-                '../../../assets/icons/w-logo-wire-color.svg'
-              )}
+              src={browser.runtime.getURL('../../../assets/icons/w-logo-wire-color.svg')}
             />
+            <a className='modal-row-url' href='https://www.witty.works/'>Witty.Works</a>
+            {/* TODO: when settings page available, add link here */}
             <img
-              className='modal-icon'
-              alt='Settings' //TODO translation
-              height='100%'
-              src={browser.runtime.getURL(
-                '../../../assets/icons/modal/settings.svg'
-              )} />
+              className='modal-icon-large modal-icon-float-right'
+              alt='Settings'
+              src={browser.runtime.getURL('../../../assets/icons/modal/settings.svg')}
+            />
           </div>
         </div>
       </div>
