@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { IAlert, IAlertContentData, INodeWithAlerts } from '../shared/types';
-import { getColor } from '../shared/constants';
+import { getColor, getHoverColor } from '../shared/constants';
 import { elementExistsinDOM } from '../shared/utils';
 
 export type ScrollPos = {
@@ -95,21 +95,22 @@ const Highlights: React.FC<HighlightsProps> = ({
   useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
 
-    if (canvas && canvas.getContext) {
-      const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+    const element = document.querySelector('textarea') ? document.querySelector('textarea') as HTMLTextAreaElement : document.querySelector('div') as HTMLInputElement;
 
+    if (canvas && canvas.getContext && element) {
+      const style = getComputedStyle(element)
+      let color = style.color;
+      let font = style.fontFamily;
+      let fontSize = style.fontSize;
+
+      const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
       if (context) {
+
         //Clear the whole canvas first
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         //Draw a rectangle for each highlight...
         highlights.forEach((highlight) => {
-          // TODO: add fill behind text
-          // context.globalCompositeOperation = 'destination-over';
-          context.globalAlpha = 0.2;
-          context.fillStyle = `${getColor(highlight.data.category)}`;
-
-          //... which can include several DOMRects
           highlight.rects.forEach((rect: DOMRect) => {
             let x = rect.left - elementRect.left;
             let y = rect.top - elementRect.top;
@@ -118,14 +119,37 @@ const Highlights: React.FC<HighlightsProps> = ({
             let radius = 4;
 
             //Needed in order to draw the rounded corners
-            context.beginPath();
-            context.moveTo(x + radius, y);
-            context.arcTo(x + width, y, x + width, y + height, radius);
-            context.arcTo(x + width, y + height, x, y + height, radius);
-            context.arcTo(x, y + height, x, y, radius);
-            context.arcTo(x, y, x + width, y, radius);
-            context.closePath();
-            context.fill();
+            const roundedHighlight = new Path2D();
+            roundedHighlight.moveTo(x + radius, y);
+            roundedHighlight.arcTo(x + width, y, x + width, y + height, radius);
+            roundedHighlight.arcTo(x + width, y + height, x, y + height, radius);
+            roundedHighlight.arcTo(x, y + height, x, y, radius);
+            roundedHighlight.arcTo(x, y, x + width, y, radius);
+
+            context.fillStyle = `${getColor(highlight.data.category)}`;
+            context.fill(roundedHighlight)
+            context.font = fontSize + ' ' + font;
+            context.fillStyle = color;
+            context.textBaseline = "bottom";
+            context.fillText(highlight.data.text, x, y + height);
+
+            canvas.addEventListener('mousemove', function (e) {
+              if (context.isPointInPath(roundedHighlight, e.offsetX, e.offsetY)) {
+                context.fillStyle = `${getHoverColor(highlight.data.category)}`;
+                context.fill(roundedHighlight)
+                context.font = fontSize + ' ' + font;
+                context.fillStyle = color;
+                context.textBaseline = "bottom";
+                context.fillText(highlight.data.text, x, y + height);
+              } else {
+                context.fillStyle = `${getColor(highlight.data.category)}`;
+                context.fill(roundedHighlight)
+                context.font = fontSize + ' ' + font;
+                context.fillStyle = color;
+                context.textBaseline = "bottom";
+                context.fillText(highlight.data.text, x, y + height);
+              }
+            });
           });
         });
       }
@@ -133,6 +157,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       //TODO Provide Canvas Fallback content?
       //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
     }
+
   }, [highlights]);
 
   return (
@@ -144,8 +169,8 @@ const Highlights: React.FC<HighlightsProps> = ({
           overflow: 'auto',
           left: `${elementRect.left}px`,
           top: `${elementRect.top}px`,
-          pointerEvents: 'none',
-          zIndex: 999999999,
+          // pointerEvents: 'none', //this needs to be commented out for the mousemove event to work
+          zIndex: 99999,
           // outline: '1px solid blue',
         } as React.CSSProperties
       }
@@ -156,4 +181,3 @@ const Highlights: React.FC<HighlightsProps> = ({
 };
 
 export default Highlights;
-
