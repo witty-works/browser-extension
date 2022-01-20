@@ -90,7 +90,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
 
     setHighlights(highlights)
-  },[nodesWithAlerts, parentScroll, elementScroll ]);
+  }, [nodesWithAlerts, parentScroll, elementScroll]);
 
   useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
@@ -104,23 +104,28 @@ const Highlights: React.FC<HighlightsProps> = ({
 
         //Draw a rectangle for each highlight...
         highlights.forEach((highlight) => {
+          // TODO: add fill behind text
+          // context.globalCompositeOperation = 'destination-over';
+          context.globalAlpha = 0.2;
           context.fillStyle = `${getColor(highlight.data.category)}`;
 
           //... which can include several DOMRects
           highlight.rects.forEach((rect: DOMRect) => {
-            const rectToRender: DOMRect = {
-              left: rect.left - elementRect.left,
-              top:rect.top - elementRect.top + rect.height,
-              width: rect.width,
-              height: 2,
-            } as DOMRect;
+            let x = rect.left - elementRect.left;
+            let y = rect.top - elementRect.top;
+            let width = rect.width;
+            let height = rect.height;
+            let radius = 4;
 
-            context.fillRect(
-              rectToRender.left,
-              rectToRender.top,
-              rectToRender.width,
-              rectToRender.height
-            );
+            //Needed in order to draw the rounded corners
+            context.beginPath();
+            context.moveTo(x + radius, y);
+            context.arcTo(x + width, y, x + width, y + height, radius);
+            context.arcTo(x + width, y + height, x, y + height, radius);
+            context.arcTo(x, y + height, x, y, radius);
+            context.arcTo(x, y, x + width, y, radius);
+            context.closePath();
+            context.fill();
           });
         });
       }
@@ -151,3 +156,4 @@ const Highlights: React.FC<HighlightsProps> = ({
 };
 
 export default Highlights;
+
