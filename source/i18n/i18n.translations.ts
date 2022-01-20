@@ -25,9 +25,9 @@ export const de = {
     needHelpQuestionMark: 'Brauchen Sie Hilfe?'
   },
   [namespaces.modal]: {
-    insteadTry: 'Versuchen Sie stattdessen eine von diesen...', //TODO 
-    howToImprove: 'Wie kann ich das verbessern?', //TODO
-    ignoreTerm: 'Begriff ignorieren', //TODO
+    insteadTry: 'Versuchen Sie stattdessen ...',  
+    howToImprove: 'Wie Sie es selbst verbessern',
+    ignoreTerm: 'Diesen Begriff ignorieren',
     whyQuestionMark: 'Warum?',
     understood: 'Verstanden',
     okUnderstood: 'Ok, Verstanden!',

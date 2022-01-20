@@ -147,7 +147,7 @@ const Modal: React.FC<ModalProps> = ({
 
           <hr className='modal-separator' />
 
-          {data.alert.data.alternatives.filter(word =>  word != ' ').length > 0 && (<div className='modal-row'>
+          {data.alert.data.alternatives.filter(word => word != ' ').length > 0 && (<div className='modal-row'>
             <div className='modal-row-title-alternative'>
               {t('insteadTry')}
             </div>
@@ -185,7 +185,7 @@ const Modal: React.FC<ModalProps> = ({
               />
               {t('howToImprove')}
             </div>
-            {isToggleOpen && <div className='modal-row-more-text'>{data.alert.data.reason}</div>}
+            {isToggleOpen && <div className='modal-row-more-text'>{data.alert.data.solution + ' ' + data.alert.data.reason}</div>}
           </div>
 
           <hr className='modal-separator' />
@@ -198,11 +198,11 @@ const Modal: React.FC<ModalProps> = ({
             />
             <a className='modal-row-url' href='https://www.witty.works/'>Witty.Works</a>
             {/* TODO: when settings page available, add link here */}
-            <img
+            {/* <img
               className='modal-icon-large modal-icon-float-right'
               alt='Settings'
               src={browser.runtime.getURL('../../../assets/icons/modal/settings.svg')}
-            />
+            /> */}
           </div>
         </div>
       </div>
