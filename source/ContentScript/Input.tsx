@@ -47,7 +47,6 @@ const Input: React.FC<{
     handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
-    element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
 
@@ -64,7 +63,6 @@ const Input: React.FC<{
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
-      element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener('click', handleClickElement as EventListener);
       if (parentForm)
@@ -77,9 +75,6 @@ const Input: React.FC<{
     //Therefore highlights also need to be removed
     setNodesWithAlerts([]);
   };
-
-  const handleKeyupEvent = (event: Event) => {
-    const target = event.target as CustomInputElement;
 
   const handleKeyupEvent = () => {
     const nextText: string =
