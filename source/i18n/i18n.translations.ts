@@ -25,7 +25,9 @@ export const de = {
     needHelpQuestionMark: 'Brauchen Sie Hilfe?'
   },
   [namespaces.modal]: {
-    insteadTry: 'Stattdessen könnten Sie versuchen...',
+    insteadTry: 'Versuchen Sie stattdessen ...',  
+    howToImprove: 'Wie Sie es selbst verbessern',
+    ignoreTerm: 'Diesen Begriff ignorieren',
     whyQuestionMark: 'Warum?',
     understood: 'Verstanden',
     okUnderstood: 'Ok, Verstanden!',
@@ -57,7 +59,9 @@ export const en = {
     needHelpQuestionMark: 'Need Help?'
   },
   [namespaces.modal]: {
-    insteadTry: 'Instead, you could try...',
+    insteadTry: 'Try one of these instead...',
+    howToImprove: 'How to improve it yourself',
+    ignoreTerm: 'Ignore this term',
     whyQuestionMark: 'Why?',
     understood: 'Understood',
     okUnderstood: 'Ok, Understood!',
