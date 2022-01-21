@@ -20,7 +20,7 @@ const Input: React.FC<{
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [loading, checkEndpointResponse, checkEndpointError, sendText] =
+  const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
@@ -44,7 +44,9 @@ const Input: React.FC<{
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
+    handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
+    element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
 
@@ -60,6 +62,7 @@ const Input: React.FC<{
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
+      element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener('click', handleClickElement as EventListener);
       if (parentForm)
@@ -73,22 +76,22 @@ const Input: React.FC<{
     setNodesWithAlerts([]);
   };
 
-  const handleKeyupEvent = (event: Event) => {
-    const target = event.target as CustomInputElement;
-
+  const handleKeyupEvent = () => {
     const nextText: string =
-      isTextArea(target) || isInputText(target)
-        ? (target as HTMLTextAreaElement | HTMLInputElement).value
-        : fixLineBreaks(target.innerText);
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : fixLineBreaks(element.innerText);
+
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0) setNodesWithAlerts([]);
-    else sendText(nextText);
+    else {
+      setTextToCheck(nextText);
+    }
   };
 
-  const handleElementScrollEvent = (event: Event) => {
+  const handleElementScrollEvent = () => {
     //TODO add throttle
-    const target = event.target as CustomInputElement;
-    setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
+    setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   };
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
@@ -131,7 +134,7 @@ const Input: React.FC<{
                 node: oneNodeWithAlerts.node,
                 originalNode:
                   isTextArea(target) || isInputText(target)
-                    ? (target as HTMLTextAreaElement)
+                    ? target
                     : null,
               });
               toggleModal();
@@ -149,8 +152,7 @@ const Input: React.FC<{
 
   const getInputClickedPosition = (element: CustomInputElement): number => {
     if (isTextArea(element) || isInputText(element)) {
-      return (element as HTMLTextAreaElement | HTMLInputElement)
-        .selectionStart as number;
+      return element.selectionStart as number;
     } else {
       const selection: Selection | null = document.getSelection();
       let position: number = -1;
@@ -207,7 +209,6 @@ const Input: React.FC<{
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
-
       if (isTextArea(element) || isInputText(element))
         setNodesWithAlerts([
           {
@@ -282,7 +283,6 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
-      console.log('checkEndpointError = ', checkEndpointError);
       log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
       //TODO: @Arnau type error, does not match IEndpointResponseError
       // if (checkEndpointError.detail === 'Language could not be determined')
@@ -301,10 +301,10 @@ const Input: React.FC<{
   const resendText = () => {
     const text: string =
       isTextArea(element) || isInputText(element)
-        ? (element as HTMLTextAreaElement | HTMLInputElement).value
+        ? element.value
         : fixLineBreaks(element.innerText);
 
-    sendText(text);
+    setTextToCheck(text);
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -316,7 +316,7 @@ const Input: React.FC<{
     <div className='canvas-container'>
       {isTextArea(element) ? (
         <TextAreaClone
-          element={element as HTMLTextAreaElement}
+          element={element}
           elementRect={elementRect}
           elementScroll={elementScroll}
           updateClone={updateCloneData}
@@ -324,7 +324,7 @@ const Input: React.FC<{
       ) : null}
       {isInputText(element) ? (
         <InputTextClone
-          element={element as HTMLInputElement}
+          element={element}
           elementRect={elementRect}
           updateClone={updateCloneData}
         />

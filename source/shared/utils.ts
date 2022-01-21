@@ -6,10 +6,10 @@ const isObjectEmpty = (obj: object) =>
 const isFunction = (functionToCheck: Function) =>
   functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
-const isTextArea = (element: CustomInputElement) =>
+const isTextArea = (element: CustomInputElement): element is HTMLTextAreaElement =>
     element instanceof HTMLTextAreaElement
 
-const isInputText = (element: CustomInputElement) =>
+const isInputText = (element: CustomInputElement): element is HTMLInputElement =>
     element instanceof HTMLInputElement && element.type === 'text'
 
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable

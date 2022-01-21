@@ -6,20 +6,19 @@ import Ajv, { JSONSchemaType } from "ajv";
 
 const useApiResult = <TResponse,>(
   request: IRequest,
-  sendData: any,
   responseSchema: JSONSchemaType<TResponse>
-): [boolean, TResponse | null, IEndpointResponseError, any] => {
+): [boolean, TResponse | null, IEndpointResponseError] => {
   const validateResponse = useMemo(
     () => new Ajv().compile(responseSchema),
     [responseSchema]
   );
+  const [loading, setLoading] = useState<boolean>(false);
   const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
     null
   );
   const [endpointError, setEndpointError] = useState<IEndpointResponseError>({
     detail: [],
   });
-  const [loading, setLoading] = useState<boolean>(false);
   const log = useLog("useApiResult");
 
   useEffect(() => {
@@ -74,9 +73,9 @@ const useApiResult = <TResponse,>(
     return () => {
       ac.abort(); // Abort fetch on unmount
     };
-  }, [request.config.body]);
+  }, [request]);
 
-  return [loading, endpointResponse, endpointError, sendData];
+  return [loading, endpointResponse, endpointError];
 };
 
 export default useApiResult;

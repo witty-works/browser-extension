@@ -34,13 +34,12 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   useEffect(() => {
     const highlights: Highlight[] = [];
-    nodesWithAlerts.forEach((nodeWithAlerts) => {
-      const node = nodeWithAlerts.node;
+    nodesWithAlerts.forEach(({ node, alerts }) => {
 
       //quick fix to avoid error: check if node exists in the DOM
       //but also filter alerts that have a bigger endOffset than the length of the text
       if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
-        nodeWithAlerts.alerts
+        alerts
           .filter(
             (alert: IAlert) =>
               node.textContent !== null &&
