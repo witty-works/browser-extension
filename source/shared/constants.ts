@@ -27,190 +27,182 @@ export enum BaseUrls {
 
 export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(BaseUrls)[0] as keyof typeof BaseUrls;
 
-
-//COLORS
-export enum ColorsHover {
-  //inclusive
-  inclusive = '#C9DF7F',
-  d_and_i = '#C9DF7F',
-  communal = '#C9DF7F',
-
-  //style
-  style = '#FFF7A4',
-  abbreviation = '#FFF7A4',
-  passive_voice = '#FFF7A4',
-  filler = '#FFF7A4',
-  formality = '#FFF7A4',
-  misgendering_institutions = '#FFF7A4',
-  americanism = '#FFF7A4',
-  corporate_rules = '#FFF7A4',
-  verbose = '#FFF7A4',
-  salary_vague = '#FFF7A4',
-  gen_z = '#FFF7A4',
-  gen_boomer = '#FFF7A4',
-  hollow = '#FFF7A4',
-  exaggerating = '#FFF7A4',
-
-  //Unconcious bias 
-  unconscious_bias = "#F8D29F",
-  male_stereotype = '#F8D29F',
-  gendered_denominations_ending = '#F8D29F',
-  hidden_image = '#F8D29F',
-  leadership = '#F8D29F',
-  female_stereotype = '#F8D29F',
-  titles = '#F8D29F',
-  function = '#F8D29F',
-
-  //Gendered
-  gendered = '#F8D29F',
-  binary_pronouns = '#F8D29F',
-  classism = "#F8D29F",
-  sexual_orientation = "#F8D29F",
-  migration = "#F8D29F",
-  culture = "#F8D29F",
-  age_old = "#F8D29F",
-  technical_frameworks = "#F8D29F",
-  age = "#F8D29F",
-  mental_impairment = "#F8D29F",
-  mobility_impairment = "#F8D29F",
-  visual_impairment = "#F8D29F",
-  intellectual_impairment = "#F8D29F",
-  medical_condition = "#F8D29F",
-  hearing_speech_impairment = "#F8D29F",
-  ability = "#F8D29F",
-  belief = "#F8D29F",
-  racist_source = "#F8D29F",
-  gender_identity = "#F8D29F",
-  pressure = "#F8D29F",
-  age_young = "#F8D29F",
-  age_in_jobs = "#F8D29F",
-  ethnicity = "#F8D29F",
-  education = "#F8D29F",
-
-  //Grammar
-  orthography = '#F8BEBB',
-
-  //Openly Discriminating, 
-  openly_discriminating = '#F8BEBB',
-  ableism = '#F8BEBB',
-  xenophobia = '#F8BEBB',
-  anti_semitism = '#F8BEBB',
-  anti_muslim = '#F8BEBB',
-  racism = '#F8BEBB',
-  homophobia = '#F8BEBB',
-  sexism = '#F8BEBB',
-  transphobia = '#F8BEBB',
-  overload = '#F8BEBB',
-  workload = '#F8BEBB',
-  job_requirements = '#F8BEBB',
-  agentic = '#F8BEBB',
-
-  default = '#F8D29F',
-
-  //colors
-  red = '#F06464',
-  magenta = '#F277D0',
-  purple = '#9489DB',
-  blue  ='#55B8E9',
-  cyan = '#37D1E5',
-  green = '#5ACFB9',
-}
-
 export enum Colors {
-  //inclusive
-  inclusive = '#D3E4AC',
-  d_and_i = '#D3E4AC',
-  communal = '#D3E4AC',
-
-  //style
-  style = '#FFFFD3',
-  abbreviation = '#FFFFD3',
-  passive_voice = '#FFFFD3',
-  filler = '#FFFFD3',
-  formality = '#FFFFD3',
-  misgendering_institutions = '#FFFFD3',
-  americanism = '#FFFFD3',
-  corporate_rules = '#FFFFD3',
-  verbose = '#FFFFD3',
-  salary_vague = '#FFFFD3',
-  gen_z = '#FFFFD3',
-  gen_boomer = '#FFFFD3',
-  hollow = '#FFFFD3',
-  exaggerating = '#FFFFD3',
-
-  //Unconcious bias 
-  unconscious_bias = "#F8E7CB",
-  male_stereotype = '#F8E7CB',
-  gendered_denominations_ending = '#F8E7CB',
-  hidden_image = '#F8E7CB',
-  leadership = '#F8E7CB',
-  female_stereotype = '#F8E7CB',
-  titles = '#F8E7CB',
-  function = '#F8E7CB',
-
-  //Gendered
-  gendered = '#F8E7CB',
-  binary_pronouns = '#F8E7CB',
-  classism = "#F8E7CB",
-  sexual_orientation = "#F8E7CB",
-  migration = "#F8E7CB",
-  culture = "#F8E7CB",
-  age_old = "#F8E7CB",
-  technical_frameworks = "#F8E7CB",
-  age = "#F8E7CB",
-  mental_impairment = "#F8E7CB",
-  mobility_impairment = "#F8E7CB",
-  visual_impairment = "#F8E7CB",
-  intellectual_impairment = "#F8E7CB",
-  medical_condition = "#F8E7CB",
-  hearing_speech_impairment = "#F8E7CB",
-  ability = "#F8E7CB",
-  belief = "#F8E7CB",
-  racist_source = "#F8E7CB",
-  gender_identity = "#F8E7CB",
-  pressure = "#F8E7CB",
-  age_young = "#F8E7CB",
-  age_in_jobs = "#F8E7CB",
-  ethnicity = "#F8E7CB",
-  education = "#F8E7CB",
-
-  //Grammar
-  orthography = '#F7D4D4',
-
-  //Openly Discriminating, 
-  openly_discriminating = '#F7D4D4',
-  ableism = '#F7D4D4',
-  xenophobia = '#F7D4D4',
-  anti_semitism = '#F7D4D4',
-  anti_muslim = '#F7D4D4',
-  racism = '#F7D4D4',
-  homophobia = '#F7D4D4',
-  sexism = '#F7D4D4',
-  transphobia = '#F7D4D4',
-  overload = '#F7D4D4',
-  workload = '#F7D4D4',
-  job_requirements = '#F7D4D4',
-  agentic = '#F7D4D4',
-
-  default = '#F8E7CB',
-
-  //colors
   red = '#F06464',
   magenta = '#F277D0',
   purple = '#9489DB',
   blue  ='#55B8E9',
   cyan = '#37D1E5',
-  green = '#5ACFB9',
+  green = '#5ACFB9'
 }
-export const getColor = (color:string):string => (color in Colors) ? (<any>Colors)[color]:Colors.default;
-
-export const getHoverColor = (color:string):string => (color in ColorsHover) ? (<any>ColorsHover)[color]:ColorsHover.default;
-
-const adjustColor = (color:string, amount: number) => {
-  return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+interface IHighlightColors {
+  default: string;
+  highlight: string;
+  hover: string;
 }
 
-export const getDarkerColor = (color: string) => adjustColor(getColor(color),-80);
+const inclusive: IHighlightColors = {
+  default: '#BCD485',
+  highlight: '#D3E4AC',
+  hover: '#C9DF7F',
+}
+const style: IHighlightColors = {
+  default: '#F6EC6B',
+  highlight: '#FFFFD3',
+  hover: '#FFF7A4',
+}
+const unconsciousBiasAndGendered: IHighlightColors = {
+  default: '#EB9F46',
+  highlight: '#F8E7CB',
+  hover: '#F8D29F',
+}
+const openlyDiscriminatingAndGrammar: IHighlightColors = {
+  default: '#E6635A',
+  highlight: '#F7D4D4',
+  hover: '#F8BEBB',
+}
+
+export enum Category {
+  inclusive = 'inclusive',
+  d_and_i = 'd_and_i',
+  communal = 'communal',
+
+  style = 'style',
+  abbreviation = 'abbreviation',
+  passive_voice = 'passive_voice',
+  filler = 'filler',
+  formality = 'formality',
+  misgendering_institutions = 'misgendering_institutions',
+  americanism = 'americanism',
+  corporate_rules = 'corporate_rules',
+  verbose = 'verbose',
+  salary_vague = 'salary_vague',
+  gen_z = 'gen_z',
+  gen_boomer = 'gen_boomer',
+  hollow = 'hollow',
+  exaggerating = 'exaggerating',
+
+  unconscious_bias = 'unconscious_bias',
+  male_stereotype = 'male_stereotype',
+  gendered_denominations_ending = 'gendered_denominations_ending',
+  hidden_image = 'hidden_image',
+  leadership = 'leadership',
+  female_stereotype ='female_stereotype',
+  titles = 'titles',
+  function = 'function',
+  gendered = 'gendered',
+  binary_pronouns = 'binary_pronouns',
+  classism = 'classism',
+  sexual_orientation = 'sexual_orientation',
+  migration = 'migration',
+  culture = 'culture',
+  age_old = 'age_old',
+  technical_frameworks = 'technical_frameworks',
+  age = 'age',
+  mental_impairment = 'mental_impairment',
+  mobility_impairment = 'mobility_impairment',
+  visual_impairment = 'visual_impairment',
+  intellectual_impairment = 'intellectual_impairment',
+  medical_condition = 'medical_condition',
+  hearing_speech_impairment = 'hearing_speech_impairment',
+  ability = 'ability',
+  belief = 'belief',
+  racist_source = 'racist_source',
+  gender_identity = 'gender_identity',
+  pressure = 'pressure',
+  age_young = 'age_young',
+  age_in_jobs = 'age_in_jobs',
+  ethnicity = 'ethnicity',
+  education ='education',
+
+  orthography = 'orthography',
+  openly_discriminating ='openly_discriminating',
+  ableism = 'ableism',
+  xenophobia = 'xenophobia',
+  anti_semitism = 'anti_semitism',
+  anti_muslim = 'anti_muslim',
+  racism = 'racism',
+  homophobia = 'homophobia',
+  sexism = 'sexism',
+  transphobia = 'transphobia',
+  overload = 'overload',
+  workload = 'workload',
+  job_requirements = 'job_requirements',
+  agentic = 'agentic',
+}
+
+const categoryColors: Record<Category, IHighlightColors> = {
+  [Category.inclusive]: inclusive,
+  [Category.d_and_i]: inclusive,
+  [Category.communal]: inclusive,
+
+  [Category.style]: style,
+  [Category.abbreviation]: style,
+  [Category.passive_voice]: style,
+  [Category.filler]: style,
+  [Category.formality]: style,
+  [Category.misgendering_institutions]: style,
+  [Category.americanism]: style,
+  [Category.corporate_rules]: style,
+  [Category.verbose]: style,
+  [Category.salary_vague]: style,
+  [Category.gen_z]: style,
+  [Category.gen_boomer]: style,
+  [Category.hollow]: style,
+  [Category.exaggerating]: style,
+
+  [Category.unconscious_bias]: unconsciousBiasAndGendered,
+  [Category.male_stereotype]: unconsciousBiasAndGendered,
+  [Category.gendered_denominations_ending]: unconsciousBiasAndGendered,
+  [Category.hidden_image]: unconsciousBiasAndGendered,
+  [Category.leadership]: unconsciousBiasAndGendered,
+  [Category.female_stereotype]: unconsciousBiasAndGendered,
+  [Category.titles]: unconsciousBiasAndGendered,
+  [Category.function]: unconsciousBiasAndGendered,
+  [Category.gendered]: unconsciousBiasAndGendered,
+  [Category.binary_pronouns]: unconsciousBiasAndGendered,
+  [Category.classism]: unconsciousBiasAndGendered,
+  [Category.sexual_orientation]: unconsciousBiasAndGendered,
+  [Category.migration]: unconsciousBiasAndGendered,
+  [Category.culture]: unconsciousBiasAndGendered,
+  [Category.age_old]: unconsciousBiasAndGendered,
+  [Category.technical_frameworks]: unconsciousBiasAndGendered,
+  [Category.age]: unconsciousBiasAndGendered,
+  [Category.mental_impairment]: unconsciousBiasAndGendered,
+  [Category.mobility_impairment]: unconsciousBiasAndGendered,
+  [Category.visual_impairment]: unconsciousBiasAndGendered,
+  [Category.intellectual_impairment]: unconsciousBiasAndGendered,
+  [Category.medical_condition]: unconsciousBiasAndGendered,
+  [Category.hearing_speech_impairment]: unconsciousBiasAndGendered,
+  [Category.ability]: unconsciousBiasAndGendered,
+  [Category.belief]: unconsciousBiasAndGendered,
+  [Category.racist_source]: unconsciousBiasAndGendered,
+  [Category.gender_identity]: unconsciousBiasAndGendered,
+  [Category.pressure]: unconsciousBiasAndGendered,
+  [Category.age_young]: unconsciousBiasAndGendered,
+  [Category.age_in_jobs]: unconsciousBiasAndGendered,
+  [Category.ethnicity]: unconsciousBiasAndGendered,
+  [Category.education]: unconsciousBiasAndGendered,
+
+  [Category.orthography]: openlyDiscriminatingAndGrammar,
+  [Category.openly_discriminating]: openlyDiscriminatingAndGrammar,
+  [Category.ableism]: openlyDiscriminatingAndGrammar,
+  [Category.xenophobia]: openlyDiscriminatingAndGrammar,
+  [Category.anti_semitism]: openlyDiscriminatingAndGrammar,
+  [Category.anti_muslim]: openlyDiscriminatingAndGrammar,
+  [Category.racism]: openlyDiscriminatingAndGrammar,
+  [Category.homophobia]: openlyDiscriminatingAndGrammar,
+  [Category.sexism]: openlyDiscriminatingAndGrammar,
+  [Category.transphobia]: openlyDiscriminatingAndGrammar,
+  [Category.overload]: openlyDiscriminatingAndGrammar,
+  [Category.workload]: openlyDiscriminatingAndGrammar,
+  [Category.job_requirements]: openlyDiscriminatingAndGrammar,
+  [Category.agentic]: openlyDiscriminatingAndGrammar
+}
+
+export const getColor = (category: string): IHighlightColors => {
+  return category in Category ? categoryColors[category as Category] : unconsciousBiasAndGendered;
+}
 
 //German Gender Endings
 export enum GermanGenderEndings {

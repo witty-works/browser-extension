@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { IAlert, IAlertContentData, INodeWithAlerts } from '../shared/types';
-import { getColor, getHoverColor } from '../shared/constants';
+import { getColor } from '../shared/constants';
 import { elementExistsinDOM } from '../shared/utils';
 
 export type ScrollPos = {
@@ -126,7 +126,7 @@ const Highlights: React.FC<HighlightsProps> = ({
             roundedHighlight.arcTo(x, y + height, x, y, radius);
             roundedHighlight.arcTo(x, y, x + width, y, radius);
 
-            context.fillStyle = `${getColor(highlight.data.category)}`;
+            context.fillStyle = `${getColor(highlight.data.category).highlight}`;
             context.fill(roundedHighlight)
             context.font = fontSize + ' ' + font;
             context.fillStyle = color;
@@ -135,14 +135,14 @@ const Highlights: React.FC<HighlightsProps> = ({
 
             canvas.addEventListener('mousemove', function (e) {
               if (context.isPointInPath(roundedHighlight, e.offsetX, e.offsetY)) {
-                context.fillStyle = `${getHoverColor(highlight.data.category)}`;
+                context.fillStyle = `${getColor(highlight.data.category).hover}`;
                 context.fill(roundedHighlight)
                 context.font = fontSize + ' ' + font;
                 context.fillStyle = color;
                 context.textBaseline = "bottom";
                 context.fillText(highlight.data.text, x, y + height);
               } else {
-                context.fillStyle = `${getColor(highlight.data.category)}`;
+                context.fillStyle = `${getColor(highlight.data.category).highlight}`;
                 context.fill(roundedHighlight)
                 context.font = fontSize + ' ' + font;
                 context.fillStyle = color;
