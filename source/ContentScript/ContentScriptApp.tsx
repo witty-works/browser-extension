@@ -170,7 +170,7 @@ const ContentScriptApp: React.FC = () => {
   };
 
   useEffect(() => {
-    log(`Analyzed inputs:`, logTypes.INFO, inputs && inputs.length > 0 ? inputs : 'None');
+    log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
   }, [inputs]);
 
   //Check if tracked inputs are still visible
