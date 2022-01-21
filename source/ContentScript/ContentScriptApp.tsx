@@ -58,9 +58,9 @@ const ContentScriptApp: React.FC = () => {
         const reqConfig: RequestConfig = {
           german_gender_ending:
             GermanGenderEndings[
-              result[
-                StorageKeys.GERMAN_GENDER_ENDING
-              ] as keyof typeof GermanGenderEndings
+            result[
+            StorageKeys.GERMAN_GENDER_ENDING
+            ] as keyof typeof GermanGenderEndings
             ],
           preferred_languages: result[StorageKeys.PREFERRED_LANGUAGES]
             .map((lang: string) => lang.split('-')[0])
@@ -133,7 +133,7 @@ const ContentScriptApp: React.FC = () => {
             ...reqConfigRef.current,
             german_gender_ending:
               GermanGenderEndings[
-                changes[item].newValue as keyof typeof GermanGenderEndings
+              changes[item].newValue as keyof typeof GermanGenderEndings
               ],
           });
           break;
@@ -159,15 +159,14 @@ const ContentScriptApp: React.FC = () => {
 
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
-    if((event.target as HTMLElement).nodeName === '#document') {
+    if ((event.target as HTMLElement).nodeName === '#document') {
       setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft })
-    } else{
+    } else {
       const target = event.target as CustomInputElement
-      if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)){
+      if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)) {
         setParentScroll({ top: target.scrollTop, left: target.scrollLeft });
       }
     }
-    
   };
 
   useEffect(() => {
@@ -189,11 +188,10 @@ const ContentScriptApp: React.FC = () => {
   });
 
   mutationObserver.observe(document.body, { childList: true, subtree: true });
-
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (
-        <Input key={index} element={input} bodyScroll={bodyScroll} parentScroll={parentScroll}/>
+        <Input key={index} element={input} bodyScroll={bodyScroll} parentScroll={parentScroll} />
       ))}
     </>
   );

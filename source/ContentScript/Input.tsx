@@ -7,7 +7,7 @@ import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
-import { isTextArea, isInputText } from '../shared/utils';
+import { isTextArea, isInputText, fixLineBreaks } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
@@ -20,7 +20,7 @@ const Input: React.FC<{
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [loading, checkEndpointResponse, checkEndpointError, sendText] =
+  const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
@@ -38,39 +38,60 @@ const Input: React.FC<{
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-  // const [, setText, textRef] = useStateRef(""); 
+  // const [, setText, textRef] = useStateRef("");
   const log = useLog('Input');
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
+    handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
+    element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
+
+    //If a parent form exists, we will monitor the submision.
+    //This will allow us remove remaining highlights when text disappear
+    const parentForm: HTMLFormElement | null = isTextArea(element)
+      ? (element as HTMLTextAreaElement).form
+      : element.closest('form');
+
+    if (parentForm)
+      parentForm.addEventListener('submit', handleSubmitFormEvent);
+
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
+      element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener('click', handleClickElement as EventListener);
+      if (parentForm)
+        parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
 
-  const handleKeyupEvent = (event: Event) => {
-    const target = event.target as CustomInputElement;
-
-    const nextText: string =
-      isTextArea(target) || isInputText(target)
-        ? (target as HTMLTextAreaElement | HTMLInputElement).value
-        : (target as HTMLTextAreaElement | HTMLInputElement).value
-    //If there isn't text, there's nothing to highlight
-    if (nextText && nextText.length === 0) setNodesWithAlerts([]);
-    else sendText(nextText);
+  const handleSubmitFormEvent = () => {
+    //It's assumed that when user sends info through a form, text will disappear.
+    //Therefore highlights also need to be removed
+    setNodesWithAlerts([]);
   };
 
-  const handleElementScrollEvent = (event: Event) => {
+  const handleKeyupEvent = () => {
+    const nextText: string =
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : fixLineBreaks(element.innerText);
+
+    //If there isn't text, there's nothing to highlight
+    if (nextText.length === 0) setNodesWithAlerts([]);
+    else {
+      setTextToCheck(nextText);
+    }
+  };
+
+  const handleElementScrollEvent = () => {
     //TODO add throttle
-    const target = event.target as CustomInputElement;
-    setElementScroll({ top: target.scrollTop, left: target.scrollLeft });
+    setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   };
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
@@ -113,7 +134,7 @@ const Input: React.FC<{
                 node: oneNodeWithAlerts.node,
                 originalNode:
                   isTextArea(target) || isInputText(target)
-                    ? (target as HTMLTextAreaElement)
+                    ? target
                     : null,
               });
               toggleModal();
@@ -131,8 +152,7 @@ const Input: React.FC<{
 
   const getInputClickedPosition = (element: CustomInputElement): number => {
     if (isTextArea(element) || isInputText(element)) {
-      return (element as HTMLTextAreaElement | HTMLInputElement)
-        .selectionStart as number;
+      return element.selectionStart as number;
     } else {
       const selection: Selection | null = document.getSelection();
       let position: number = -1;
@@ -155,15 +175,16 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    analytics.checkLog(checkEndpointResponse,  clone?.firstChild ? clone?.firstChild.length : 0);
+    analytics.checkLog(
+      checkEndpointResponse,
+      clone?.firstChild ? clone?.firstChild.length : 0
+    );
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
         id: `${result.category}-${result.text}-${result.start}-${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
-        originalStartOffset: result.start, //TODO: replace with correct value
-        originalEndOffset: result.end,//TODO: replace with correct value
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -189,15 +210,12 @@ const Input: React.FC<{
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
-
       if (isTextArea(element) || isInputText(element))
         setNodesWithAlerts([
           {
             node: clone?.firstChild,
             alerts: filteredAlerts.map((alert: IAlert) => ({
               ...alert,
-              originalStartOffset: alert.startOffset,
-              originalEndOffset: alert.endOffset,
             })),
           },
         ]);
@@ -237,8 +255,6 @@ const Input: React.FC<{
                   ...alert,
                   startOffset: alert.startOffset - textStartingAbsPosition,
                   endOffset: alert.endOffset - textStartingAbsPosition,
-                  originalStartOffset: alert.startOffset,
-                  originalEndOffset: alert.endOffset,
                 };
 
                 return newAlert;
@@ -268,7 +284,6 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
-      console.log('checkEndpointError = ', checkEndpointError);
       log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
       //TODO: @Arnau type error, does not match IEndpointResponseError
       // if (checkEndpointError.detail === 'Language could not be determined')
@@ -287,10 +302,10 @@ const Input: React.FC<{
   const resendText = () => {
     const text: string =
       isTextArea(element) || isInputText(element)
-        ? (element as HTMLTextAreaElement | HTMLInputElement).value
-        : (element as HTMLTextAreaElement | HTMLInputElement).value
+        ? element.value
+        : fixLineBreaks(element.innerText);
 
-    sendText(text);
+    setTextToCheck(text);
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -302,7 +317,7 @@ const Input: React.FC<{
     <div className='canvas-container'>
       {isTextArea(element) ? (
         <TextAreaClone
-          element={element as HTMLTextAreaElement}
+          element={element}
           elementRect={elementRect}
           elementScroll={elementScroll}
           updateClone={updateCloneData}
@@ -310,7 +325,7 @@ const Input: React.FC<{
       ) : null}
       {isInputText(element) ? (
         <InputTextClone
-          element={element as HTMLInputElement}
+          element={element}
           elementRect={elementRect}
           updateClone={updateCloneData}
         />
