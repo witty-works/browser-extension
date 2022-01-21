@@ -5,6 +5,13 @@ import { isFunction } from '../shared/utils';
 import defaultConfig from "../witty.config.json";
 import { useLog } from '../shared/customHooks/useLog';
 
+browser.runtime.onInstalled.addListener(function (details: { reason: string; }) {
+  if (details.reason === "install" || details.reason === "update") {
+    browser.tabs.create({
+      url: "http://www.witty.works/welcome"
+    });
+  }
+});
 
 const log = useLog('Background index');
 const devAppId = 'DEV_APP_ID';
