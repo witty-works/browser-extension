@@ -83,10 +83,9 @@ const Input: React.FC<{
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0) setNodesWithAlerts([]);
-    else {
-      setTextToCheck(nextText);
-    }
+    nextText.length === 0 || !nextText.match(/^[a-z0-9]/i)
+      ? setNodesWithAlerts([])
+      : setTextToCheck(nextText);
   };
 
   const handleElementScrollEvent = () => {
@@ -133,9 +132,7 @@ const Input: React.FC<{
                 position: clickedRect,
                 node: oneNodeWithAlerts.node,
                 originalNode:
-                  isTextArea(target) || isInputText(target)
-                    ? target
-                    : null,
+                  isTextArea(target) || isInputText(target) ? target : null,
               });
               toggleModal();
             }
