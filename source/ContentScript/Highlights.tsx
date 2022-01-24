@@ -29,8 +29,13 @@ const Highlights: React.FC<HighlightsProps> = ({
   nodesWithAlerts,
 }: HighlightsProps) => {
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-
   const [highlights, setHighlights] = useState<Highlight[]>([])
+
+  function drawHighlight(context: CanvasRenderingContext2D, roundedHighlight: any, color: string, x: number, y: number, width: number, height: number) {
+    context.clearRect(x - 1, y - 1, width + 2, height + 2); // clear the previous rectangle (hover)
+    context.fillStyle = color;
+    context.fill(roundedHighlight)
+  }
 
   useEffect(() => {
     const highlights: Highlight[] = [];
@@ -94,22 +99,13 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
-
-    const element = document.querySelector('textarea') ? document.querySelector('textarea') as HTMLTextAreaElement : document.querySelector('div') as HTMLInputElement;
-
-    if (canvas && canvas.getContext && element) {
-      const style = getComputedStyle(element)
-      let color = style.color;
-      let font = style.fontFamily;
-      let fontSize = style.fontSize;
-
+    if (canvas && canvas.getContext) {
       const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
-      if (context) {
 
-        //Clear the whole canvas first
+      if (context) {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        //Draw a rectangle for each highlight...
+        //Draw a rectangle for each highlight
         highlights.forEach((highlight) => {
           highlight.rects.forEach((rect: DOMRect) => {
             let x = rect.left - elementRect.left;
@@ -118,7 +114,7 @@ const Highlights: React.FC<HighlightsProps> = ({
             let height = rect.height;
             let radius = 4;
 
-            //Needed in order to draw the rounded corners
+            //making the highlight shape with rounded corners
             const roundedHighlight = new Path2D();
             roundedHighlight.moveTo(x + radius, y);
             roundedHighlight.arcTo(x + width, y, x + width, y + height, radius);
@@ -126,30 +122,16 @@ const Highlights: React.FC<HighlightsProps> = ({
             roundedHighlight.arcTo(x, y + height, x, y, radius);
             roundedHighlight.arcTo(x, y, x + width, y, radius);
 
-            context.fillStyle = `${getColor(highlight.data.category).highlight}`;
-            context.fill(roundedHighlight)
-            context.font = fontSize + ' ' + font;
-            context.fillStyle = color;
-            context.textBaseline = "bottom";
-            context.fillText(highlight.data.text, x, y + height);
+            drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).highlight}`, x, y, width, height);
 
-            canvas.addEventListener('mousemove', function (e) {
-              if (context.isPointInPath(roundedHighlight, e.offsetX, e.offsetY)) {
-                context.fillStyle = `${getColor(highlight.data.category).hover}`;
-                context.fill(roundedHighlight)
-                context.font = fontSize + ' ' + font;
-                context.fillStyle = color;
-                context.textBaseline = "bottom";
-                context.fillText(highlight.data.text, x, y + height);
-              } else {
-                context.fillStyle = `${getColor(highlight.data.category).highlight}`;
-                context.fill(roundedHighlight)
-                context.font = fontSize + ' ' + font;
-                context.fillStyle = color;
-                context.textBaseline = "bottom";
-                context.fillText(highlight.data.text, x, y + height);
-              }
-            });
+            //hover effect
+            // canvas.addEventListener('mousemove', function (e) {
+            //   if (context.isPointInPath(roundedHighlight, e.offsetX, e.offsetY)) {
+            //     drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).hover}`, x, y, width, height);
+            //   } else {
+            //     drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).highlight}`, x, y, width, height);
+            //   }
+            // });
           });
         });
       }
@@ -157,26 +139,23 @@ const Highlights: React.FC<HighlightsProps> = ({
       //TODO Provide Canvas Fallback content?
       //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
     }
-
   }, [highlights]);
 
   return (
     <canvas
       ref={canvasRef}
-      style={
-        {
-          position: 'absolute',
-          overflow: 'auto',
-          left: `${elementRect.left}px`,
-          top: `${elementRect.top}px`,
-          // pointerEvents: 'none', //this needs to be commented out for the mousemove event to work
-          zIndex: 99999,
-          // outline: '1px solid blue',
-        } as React.CSSProperties
-      }
+      style={{
+        position: 'absolute',
+        overflow: 'auto',
+        left: `${elementRect.left}px`,
+        top: `${elementRect.top}px`,
+        pointerEvents: 'none',
+        zIndex: 9999998,
+      } as React.CSSProperties}
       width={elementRect.width}
       height={elementRect.height}
-    ></canvas>
+    >
+    </canvas>
   );
 };
 
