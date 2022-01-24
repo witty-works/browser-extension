@@ -279,11 +279,11 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
-      log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
-      //TODO: @Arnau type error, does not match IEndpointResponseError
-      // if (checkEndpointError.detail === 'Language could not be determined')
-      setNodesWithAlerts([]);
+    if (checkEndpointError) {
+      log(
+        `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
+        logTypes.ERROR
+      );
     }
   }, [checkEndpointError]);
 

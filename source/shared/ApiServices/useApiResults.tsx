@@ -1,13 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from 'react';
 
-import { IEndpointResponseError, IRequest } from "../types";
-import { useLog, logTypes } from "../customHooks/useLog";
-import Ajv, { JSONSchemaType } from "ajv";
+import { IEndpointResponseError, IRequest } from '../types';
+import { useLog, logTypes } from '../customHooks/useLog';
+import Ajv, { JSONSchemaType } from 'ajv';
 
 const useApiResult = <TResponse,>(
   request: IRequest,
   responseSchema: JSONSchemaType<TResponse>
-): [boolean, TResponse | null, IEndpointResponseError] => {
+): [boolean, TResponse | null, IEndpointResponseError | null] => {
   const validateResponse = useMemo(
     () => new Ajv().compile(responseSchema),
     [responseSchema]
@@ -16,10 +16,9 @@ const useApiResult = <TResponse,>(
   const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
     null
   );
-  const [endpointError, setEndpointError] = useState<IEndpointResponseError>({
-    detail: [],
-  });
-  const log = useLog("useApiResult");
+  const [endpointError, setEndpointError] =
+    useState<IEndpointResponseError | null>(null);
+  const log = useLog('useApiResult');
 
   useEffect(() => {
     const ac = new AbortController();
@@ -30,39 +29,39 @@ const useApiResult = <TResponse,>(
 
       request.config = { ...request.config, signal: ac.signal };
 
-      log("Request:", logTypes.INFO, request);
+      log('Request:', logTypes.INFO, request);
 
       fetch(request.url, request.config)
         .then(async (response) => {
-          log("Response: ", logTypes.INFO, response);
+          log('Response: ', logTypes.INFO, response);
 
           setLoading(false);
 
           if (!response.ok) {
-            setEndpointError(await response.json());
+            const error = await response.json();
+            setEndpointError({
+              status: response.status,
+              message: error.details,
+            });
             return;
           }
           const responseResults: any = await response.json();
           if (!validateResponse(responseResults) && validateResponse.errors) {
-            setEndpointError({
-              detail: validateResponse.errors.map((error) => ({
-                loc: [error.schemaPath],
-                msg: error.message || "",
-                type: error.keyword,
-              })),
-            });
+            log(
+              `JSON Schema Error: ${validateResponse.errors.join(', ')}`,
+              logTypes.ERROR
+            );
             return;
           }
 
           setEndpointResponse(responseResults);
-          setEndpointError({ detail: [] });
+          setEndpointError(null);
         })
         .catch((error) => {
           // AbortError is created when a request is aborted.
           // We don't need to shown an error message in this case
-          if (error.name !== "AbortError") {
+          if (error.name !== 'AbortError') {
             log(error, logTypes.ERROR);
-            // setError(error); //TODO FIX, this is not received outside
           }
         })
         .finally(() => {
