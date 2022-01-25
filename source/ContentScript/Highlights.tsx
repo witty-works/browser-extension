@@ -191,6 +191,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         left: `${elementRect.left}px`,
         top: `${elementRect.top}px`,
         pointerEvents: 'none',
+        zIndex: 999999999,
       } as React.CSSProperties}
       width={elementRect.width}
       height={elementRect.height}
