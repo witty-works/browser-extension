@@ -71,7 +71,7 @@ export interface ICheckLogRequest extends ILogRequest {
   request__text__length: number;
 }
 
-export type ILogResponse = ICheckResponseResult;
+export type ILogResponse = ICheckResponse;
 
 export interface IRequest {
   url: string;
