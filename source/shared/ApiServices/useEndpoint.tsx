@@ -112,16 +112,16 @@ export const useCheckEndpoint = () => {
     };
   }, []);
 
-  const request: IRequest = useMemo(
-    () => getAnalyzedTextResults(textToAnalyze),
+  const request: IRequest = useMemo(() => {
+      return getAnalyzedTextResults(textToAnalyze)
+    },
     [textToAnalyze]
   );
 
-  const [a, checkResponse, c, d] = useApiResults<ICheckResponse>(
+  const [loading, checkResponse, errorResponse] = useApiResults<ICheckResponse>(
     request,
-    setTextToAnalyse,
     checkResponseSchema
   );
 
-  return [a, checkResponse, c, d] as const;
+  return [loading, checkResponse, errorResponse, setTextToAnalyse] as const;
 };
