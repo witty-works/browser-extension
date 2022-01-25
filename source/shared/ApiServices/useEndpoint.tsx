@@ -1,23 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
 import { getAnalyzedTextResults } from './requests';
-import { IRequest } from '../types';
+import { IRequest, ICheckResponse, ICheckResponseResult } from '../types';
 import { JSONSchemaType } from 'ajv';
 
 export const useCheckEndpoint = () => {
-  interface ICheckResponseResult {
-    text: string;
-    context: string;
-    category: string;
-    subcategory: string;
-    start: number;
-    end: number;
-    alternatives: string[];
-    label: string;
-    reason: string;
-    solution: string;
-  }
-
   const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
     title: 'checkResponseResult',
     type: 'object',
@@ -81,11 +68,6 @@ export const useCheckEndpoint = () => {
     ],
   };
 
-  interface ICheckResponse {
-    results: ICheckResponseResult[];
-    language: string;
-  }
-
   const checkResponseSchema: JSONSchemaType<ICheckResponse> = {
     title: 'checkResponse',
     description: 'response from the /check NLP API endpoint',
@@ -113,10 +95,8 @@ export const useCheckEndpoint = () => {
   }, []);
 
   const request: IRequest = useMemo(() => {
-      return getAnalyzedTextResults(textToAnalyze)
-    },
-    [textToAnalyze]
-  );
+    return getAnalyzedTextResults(textToAnalyze);
+  }, [textToAnalyze]);
 
   const [loading, checkResponse, errorResponse] = useApiResults<ICheckResponse>(
     request,

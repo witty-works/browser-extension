@@ -21,15 +21,33 @@ export interface IAlert {
   data: IAlertContentData;
 }
 export interface IAlertContentData {
-  language: string;
+  text: string;
+  context: string;
   category: string;
   subcategory: string;
-  context: string;
-  text: string;
+  alternatives: string[];
   label: string;
   reason: string;
   solution: string;
+  language: string;
+}
+
+export interface ICheckResponse {
+  results: ICheckResponseResult[];
+  language: string;
+}
+
+export interface ICheckResponseResult {
+  text: string;
+  context: string;
+  category: string;
+  subcategory: string;
+  start: number;
+  end: number;
   alternatives: string[];
+  label: string;
+  reason: string;
+  solution: string;
 }
 
 export interface ILogRequest {
@@ -52,39 +70,12 @@ export interface IIgnoreLogRequest extends ILogRequest {
 export interface ICheckLogRequest extends ILogRequest {
   request__text__length: number;
 }
-export interface ILogResponse {
-  //TODO used?
-  results: ILogResponseResult[];
-  language: string;
-}
-export interface ILogResponseResult {
-  //TODO used?
-  text: string;
-  context: string;
-  category: string;
-  subcategory: string;
-  start: number;
-  end: number;
-  alternatives: string[];
-  label: string;
-  reason: string;
-  solution: string;
-}
+
+export type ILogResponse = ICheckResponseResult;
 
 export interface IRequest {
   url: string;
   config: RequestInit;
-}
-
-export interface IEndpointResult {
-  // TODO this is not used!!!
-  start: number;
-  end: number;
-  category: string;
-  text: string;
-  label: string;
-  reason: string;
-  solution: string;
 }
 
 export interface IEndpointResponseError {
