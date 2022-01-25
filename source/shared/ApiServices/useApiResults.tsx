@@ -41,7 +41,7 @@ const useApiResult = <TResponse,>(
             const error = await response.json();
             setEndpointError({
               status: response.status,
-              message: error.details,
+              message: error.details[0].msg,
             });
             return;
           }
@@ -57,11 +57,11 @@ const useApiResult = <TResponse,>(
           setEndpointResponse(responseResults);
           setEndpointError(null);
         })
-        .catch((error) => {
+        .catch((error: Error) => {
           // AbortError is created when a request is aborted.
           // We don't need to shown an error message in this case
           if (error.name !== 'AbortError') {
-            log(error, logTypes.ERROR);
+            log(error.message, logTypes.ERROR);
           }
         })
         .finally(() => {
