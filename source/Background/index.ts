@@ -5,17 +5,17 @@ import { isFunction } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
 
-<<<<<<< HEAD
-browser.runtime.onInstalled.addListener(function (details: { reason: string; }) {
-  if (details.reason === "install" || details.reason === "update") {
+browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
+
+browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
+  console.log('details.reason', details.reason);
+  if (details.reason === 'install' || details.reason === 'update') {
     browser.tabs.create({
-      url: "http://www.witty.works/welcome"
+      url: 'http://www.witty.works/welcome',
     });
   }
 });
 
-=======
->>>>>>> cc42786c70b8f6a3624ce6d90023552a11fc4e56
 const log = useLog('Background index');
 const devAppId = 'DEV_APP_ID';
 
