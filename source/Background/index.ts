@@ -2,9 +2,10 @@ import { browser } from 'webextension-polyfill-ts';
 
 import { StorageKeys, DEV_ENV } from '../shared/constants';
 import { isFunction } from '../shared/utils';
-import defaultConfig from "../witty.config.json";
+import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
 
+<<<<<<< HEAD
 browser.runtime.onInstalled.addListener(function (details: { reason: string; }) {
   if (details.reason === "install" || details.reason === "update") {
     browser.tabs.create({
@@ -13,6 +14,8 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string; }) 
   }
 });
 
+=======
+>>>>>>> cc42786c70b8f6a3624ce6d90023552a11fc4e56
 const log = useLog('Background index');
 const devAppId = 'DEV_APP_ID';
 
@@ -27,48 +30,57 @@ const onError = (error: string) => {
 };
 
 const getRandomToken = () => {
-  const bytes = new Uint8Array(32);  //256 bits token
+  const bytes = new Uint8Array(32); //256 bits token
 
   window.crypto.getRandomValues(bytes);
 
   // convert byte array to hexademical representation
-  const bytesHex = bytes.reduce((item, acc) => item + (`00${acc.toString(16)}`).slice(-2), '');
+  const bytesHex = bytes.reduce(
+    (item, acc) => item + `00${acc.toString(16)}`.slice(-2),
+    ''
+  );
 
   // convert hexademical value to a decimal string
   return BigInt('0x' + bytesHex).toString(10);
-}
+};
 
 const getBrowserId = () => {
-  return DEV_ENV ? devAppId : getRandomToken()
-}
+  return DEV_ENV ? devAppId : getRandomToken();
+};
 
 const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
   //Check if setting is already defined in the local storage
   //If not, then add it
-  browser.storage.local.get()
+  browser.storage.local
+    .get()
     .then((result) => {
       let savedValue: DefaultConfigValue = result[key];
       if (!savedValue || savedValue == devAppId || DEV_ENV) {
-        let valueToSave = (isFunction(value as Function)) ? (value as Function)() : value;
-        browser.storage.local.set({ [key]: valueToSave })
+        let valueToSave = isFunction(value as Function)
+          ? (value as Function)()
+          : value;
+        browser.storage.local
+          .set({ [key]: valueToSave })
           .then(() => onSave(key, valueToSave))
           .catch(onError);
       }
     })
     .catch(onError);
-}
-
+};
 
 const setSettings = () => {
   //Set default settings
-  for (let [defaultConfigKey, defaultConfigValue] of Object.entries(defaultConfig)) {
+  for (let [defaultConfigKey, defaultConfigValue] of Object.entries(
+    defaultConfig
+  )) {
     if (defaultConfigKey in StorageKeys) {
-      const storageKey = StorageKeys[defaultConfigKey as keyof typeof StorageKeys];
-      setInLocalStorage(storageKey, defaultConfigValue)
+      const storageKey =
+        StorageKeys[defaultConfigKey as keyof typeof StorageKeys];
+      setInLocalStorage(storageKey, defaultConfigValue);
     }
   }
-  //Set browser id 
+  //Set browser id
   setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
-}
+};
 
 setSettings();

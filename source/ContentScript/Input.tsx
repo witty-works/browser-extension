@@ -133,9 +133,7 @@ const Input: React.FC<{
                 position: clickedRect,
                 node: oneNodeWithAlerts.node,
                 originalNode:
-                  isTextArea(target) || isInputText(target)
-                    ? target
-                    : null,
+                  isTextArea(target) || isInputText(target) ? target : null,
               });
               toggleModal();
             }
@@ -177,6 +175,14 @@ const Input: React.FC<{
     analytics.checkLog(
       checkEndpointResponse,
       clone?.firstChild ? clone?.firstChild.length : 0
+    );
+
+    log(
+      `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
+      logTypes.INFO,
+      checkEndpointResponse.results.length > 0
+        ? checkEndpointResponse.results
+        : 'None'
     );
 
     const alerts: IAlert[] = checkEndpointResponse.results
@@ -268,7 +274,6 @@ const Input: React.FC<{
           if (node.previousSibling !== null) {
             if (node.nodeName === 'DIV' || 'BR' || 'P') textEndAbsPosition++;
           }
-
           if (node.childNodes.length > 0) {
             traverseNodes(node.childNodes);
           }
