@@ -53,10 +53,12 @@ export interface ICheckLogRequest extends ILogRequest {
   request__text__length: number;
 }
 export interface ILogResponse {
+  //TODO used?
   results: ILogResponseResult[];
   language: string;
 }
 export interface ILogResponseResult {
+  //TODO used?
   text: string;
   context: string;
   category: string;
@@ -75,6 +77,7 @@ export interface IRequest {
 }
 
 export interface IEndpointResult {
+  // TODO this is not used!!!
   start: number;
   end: number;
   category: string;
@@ -83,7 +86,13 @@ export interface IEndpointResult {
   reason: string;
   solution: string;
 }
+
 export interface IEndpointResponseError {
+  loc: string[];
+  msg: string;
+  type: string;
+}
+export interface IEndpointError {
   status: number;
   message: string;
 }
