@@ -176,6 +176,14 @@ const Input: React.FC<{
       clone?.firstChild ? clone?.firstChild.length : 0
     );
 
+    log(
+      `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
+      logTypes.INFO,
+      checkEndpointResponse.results.length > 0
+        ? checkEndpointResponse.results
+        : 'None'
+    );
+
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
         id: `${result.category}-${result.text}-${result.start}-${result.end}`,
@@ -265,7 +273,6 @@ const Input: React.FC<{
           if (node.previousSibling !== null) {
             if (node.nodeName === 'DIV' || 'BR' || 'P') textEndAbsPosition++;
           }
-
           if (node.childNodes.length > 0) {
             traverseNodes(node.childNodes);
           }
