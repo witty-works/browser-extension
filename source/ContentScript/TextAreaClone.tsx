@@ -46,7 +46,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           visibility: 'hidden',
           // outline: '8px solid red',
           pointerEvents: 'none',
-          zIndex: 9999999,
+          // zIndex: 9999999,
         } as React.CSSProperties
       }
     >

@@ -43,23 +43,23 @@ interface IHighlightColors {
 
 const inclusive: IHighlightColors = {
   default: '#BCD485',
-  highlight: '#D3E4AC',
-  hover: '#C9DF7F',
+  highlight: '#B0D044', //#D3E4AC
+  hover: '#95B52D', //#C9DF7F
 }
 const style: IHighlightColors = {
   default: '#F6EC6B',
-  highlight: '#FFFFD3',
-  hover: '#FFF7A4',
+  highlight: '#FFF04A', //#FFFFD3
+  hover: '#FFEB0E', //#FFF7A4
 }
 const unconsciousBiasAndGendered: IHighlightColors = {
   default: '#EB9F46',
-  highlight: '#F8E7CB',
-  hover: '#F8D29F',
+  highlight: '#F2AB4F', //#F8E7CB
+  hover: '#EE9119', //#F8D29F
 }
 const openlyDiscriminatingAndGrammar: IHighlightColors = {
   default: '#E6635A',
-  highlight: '#F7D4D4',
-  hover: '#F8BEBB',
+  highlight: '#EC524A', //#F7D4D4
+  hover: '#E02218', //#F8BEBB
 }
 
 export enum Category {

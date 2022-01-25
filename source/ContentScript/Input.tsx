@@ -42,9 +42,6 @@ const Input: React.FC<{
   const log = useLog('Input');
 
   useEffect(() => {
-    //to make highlight appear behind text
-    element.style.zIndex = '9999999';
-
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
