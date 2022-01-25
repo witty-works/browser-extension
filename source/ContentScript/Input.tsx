@@ -83,7 +83,7 @@ const Input: React.FC<{
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    nextText.length === 0 || !nextText.match(/^[a-z0-9]/i)
+    nextText.length === 0 || !nextText.match(/[a-z0-9]/i)
       ? setNodesWithAlerts([])
       : setTextToCheck(nextText);
   };
