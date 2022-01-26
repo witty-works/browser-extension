@@ -26,6 +26,14 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "test": "jest"
   },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverage": true,
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/__tests__/"
+    ]
+  },
   "dependencies": {
     "@babel/runtime": "^7.14.0",
     "@types/resize-observer-browser": "^0.1.6",

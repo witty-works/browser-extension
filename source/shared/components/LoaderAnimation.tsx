@@ -7,7 +7,7 @@ export interface LoaderAnimationProps {
 }
 
 const LoaderAnimation: React.FC<LoaderAnimationProps> = ({
-  color = 'purple',
+  color = '#BCD485',
   radius = 16,
   label = 'loading',
 }: LoaderAnimationProps) => (

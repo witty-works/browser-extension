@@ -6,10 +6,10 @@ const isObjectEmpty = (obj: object) =>
 const isFunction = (functionToCheck: Function) =>
   functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
-const isTextArea = (element: CustomInputElement) =>
+const isTextArea = (element: CustomInputElement): element is HTMLTextAreaElement =>
     element instanceof HTMLTextAreaElement
 
-const isInputText = (element: CustomInputElement) =>
+const isInputText = (element: CustomInputElement): element is HTMLInputElement =>
     element instanceof HTMLInputElement && element.type === 'text'
 
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
@@ -80,8 +80,14 @@ const fixLineBreaks = (str: string = ''):string => {
   //Element's innerHTML does not provide the correct spacing when there are line-breaks.
   //(e.g. <div><br></div> provides two spaces when transformed to string)
   //So we need a specific fix for that
-  value = value.replace(/(\n+)/g, ($1) => new Array(Math.ceil($1.length/2)).fill('\n',0).join(''));
 
+  const trippleNewLinesWhiteList = ['www.linkedin.com', 'app.holaspirit.com'];
+
+  if (trippleNewLinesWhiteList.includes(window.location.hostname)){
+    value = value.replace(/(\n+)/g, ($1) => new Array(Math.ceil($1.length/3)).fill('\n', 0).join(''));
+  } else {
+    value = value.replace(/(\n+)/g, ($1) => new Array(Math.ceil($1.length/2)).fill('\n', 0).join(''));
+  }
 
   // Expose string.
   return value;
