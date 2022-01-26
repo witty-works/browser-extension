@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 import TextAreaClone from './TextAreaClone';
 import InputTextClone from './InputTextClone';
 import Highlights, { ScrollPos } from './Highlights';
@@ -12,6 +11,8 @@ import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+// import { throttle } from 'lodash';
+
 
 type HandleClick = () => void;
 
@@ -85,7 +86,7 @@ const Input: React.FC<{
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0) setNodesWithAlerts([]);
     else {
-      setTextToCheck(nextText);
+      // throttle((nextText) => setTextToCheck(nextText), 0);
     }
   };
 
