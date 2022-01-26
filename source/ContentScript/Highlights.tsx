@@ -7,8 +7,8 @@ export type ScrollPos = {
   top: number;
   left: number;
 };
-
 interface HighlightsProps {
+  // element: HTMLElement;
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
   elementScroll: ScrollPos;
@@ -19,18 +19,38 @@ interface HighlightsProps {
 type Highlight = {
   rects: DOMRect[];
   data: IAlertContentData;
+  startOffset: number,
+  endOffset: number,
+  node: HTMLElement;
 };
 
 const Highlights: React.FC<HighlightsProps> = ({
+  // element,
   bodyScroll,
   parentScroll,
   elementScroll,
   elementRect,
   nodesWithAlerts,
 }: HighlightsProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
 
+  const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([])
+
+  function drawHighlight(context: CanvasRenderingContext2D, roundedHighlight: any, color: string, x: number, y: number, width: number, height: number) {
+    context.clearRect(x - 1, y - 1, width + 2, height + 2); // clear the previous rectangle (hover)
+    context.fillStyle = color;
+    context.fill(roundedHighlight)
+  }
+
+  // function redrawText(context: CanvasRenderingContext2D, element: HTMLElement, highlight: Highlight, x: number, y: number, height: number) {
+  //   const style = window.getComputedStyle(element);
+  //   context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
+  //   context.fillStyle = style.color;
+  //   context.textBaseline = "bottom";
+
+  //   context.fillText(highlight.data.text, x, y + height - 1);
+  // }
+
   useEffect(() => {
     const highlights: Highlight[] = [];
     nodesWithAlerts.forEach(({ node, alerts }) => {
@@ -49,21 +69,6 @@ const Highlights: React.FC<HighlightsProps> = ({
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
             const rects: DOMRect[] = Array.from(range.getClientRects())
-              // .filter((rect: DOMRect) => {
-              //   const rectLeft =
-              //     rect.left + customDoc.scrollLeft  + documentScroll.left;
-              //   const rectTop =
-              //     rect.top +
-              //     // customDoc.scrollTop +
-              //     documentScroll.top +
-              //     rect.height;
-              //   return (
-              //     rectTop > elementRect.top &&
-              //     rectTop < elementRect.top + elementRect.height &&
-              //     rectLeft >= elementRect.left &&
-              //     rectLeft + rect.width <= elementRect.left + elementRect.width
-              //   );
-              // })
               .map((rect: DOMRect) => {
                 return {
                   ...rect,
@@ -79,34 +84,38 @@ const Highlights: React.FC<HighlightsProps> = ({
             const newHighlight: Highlight = {
               rects,
               data: alert.data,
+              startOffset: alert.startOffset,
+              endOffset: alert.endOffset,
+              node: node,
             };
 
             highlights.push(newHighlight);
           });
       }
     });
-
     setHighlights(highlights)
   }, [nodesWithAlerts, parentScroll, elementScroll]);
 
+
   useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
+    if (canvas) {
+      //makes the ratio correct, needed to make text clear
+      // let ratio = window.devicePixelRatio;
+      // canvas.width = elementRect.width * ratio;
+      // canvas.height = elementRect.height * ratio;
+      // canvas.style.width = elementRect.width + "px";
+      // canvas.style.height = elementRect.height + "px";
 
-    if (canvas && canvas.getContext) {
+
       const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
-
       if (context) {
-        //Clear the whole canvas first
+        // context.scale(ratio, ratio)
         context.clearRect(0, 0, canvas.width, canvas.height);
+        context.globalAlpha = 0.3;
 
-        //Draw a rectangle for each highlight...
+        //Draw a rectangle for each highlight
         highlights.forEach((highlight) => {
-          // TODO: add fill behind text
-          // context.globalCompositeOperation = 'destination-over';
-          context.globalAlpha = 0.2;
-          context.fillStyle = `${getColor(highlight.data.category)}`;
-
-          //... which can include several DOMRects
           highlight.rects.forEach((rect: DOMRect) => {
             let x = rect.left - elementRect.left;
             let y = rect.top - elementRect.top;
@@ -114,15 +123,54 @@ const Highlights: React.FC<HighlightsProps> = ({
             let height = rect.height;
             let radius = 4;
 
-            //Needed in order to draw the rounded corners
-            context.beginPath();
-            context.moveTo(x + radius, y);
-            context.arcTo(x + width, y, x + width, y + height, radius);
-            context.arcTo(x + width, y + height, x, y + height, radius);
-            context.arcTo(x, y + height, x, y, radius);
-            context.arcTo(x, y, x + width, y, radius);
-            context.closePath();
-            context.fill();
+            //making the highlight shape with rounded corners
+            const roundedHighlight = new Path2D();
+            roundedHighlight.moveTo(x + radius, y);
+            roundedHighlight.arcTo(x + width, y, x + width, y + height, radius);
+            roundedHighlight.arcTo(x + width, y + height, x, y + height, radius);
+            roundedHighlight.arcTo(x, y + height, x, y, radius);
+            roundedHighlight.arcTo(x, y, x + width, y, radius);
+
+            drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).highlight}`, x, y, width, height);
+            // redrawText(context, element, highlight, x, y, height);
+
+            //hover highlight
+            // canvas.addEventListener('mousemove', function (e) {
+            //   console.log('mouse')
+            //   //TODO: make sure old locations of highligh is removed 
+            //   if (context.isPointInPath(roundedHighlight, e.offsetX * ratio, e.offsetY * ratio)) {
+            //     drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).hover}`, x, y, width, height);
+            //     redrawText(context, element, highlight, x, y, height);
+            //   } else {
+            //     drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).highlight}`, x, y, width, height);
+            //     redrawText(context, element, highlight, x, y, height);
+            //   }
+            // });
+
+            //click highlight
+            // canvas.addEventListener('click', function (event) {
+            //   //TODO: also open for double click 
+            //   if (context.isPointInPath(roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
+            //     console.log('click on highlight')
+            //     setModalData({
+            //       alert: highlight,
+            //       position: highlight.rects[0],
+            //       node: highlight.node,
+            //       originalNode: null
+            //     });
+            //     setIsOpen(!isOpen);
+            //     //remove highlight if no longer necessary
+            //     // redrawText(context, element, highlight, x, y, height);
+            //   }
+            //   else {
+            //     canvas.style.pointerEvents = 'none';
+            //     console.log('click outside highlight')
+            //     element.focus();
+            //     setTimeout(() => {
+            //       canvas.style.pointerEvents = 'auto';
+            //     }, 1000);
+            //   }
+            // });
           });
         });
       }
@@ -135,22 +183,19 @@ const Highlights: React.FC<HighlightsProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      style={
-        {
-          position: 'absolute',
-          overflow: 'auto',
-          left: `${elementRect.left}px`,
-          top: `${elementRect.top}px`,
-          pointerEvents: 'none',
-          zIndex: 999999999,
-          // outline: '1px solid blue',
-        } as React.CSSProperties
-      }
+      style={{
+        position: 'absolute',
+        overflow: 'auto',
+        left: `${elementRect.left}px`,
+        top: `${elementRect.top}px`,
+        pointerEvents: 'none',
+        zIndex: 999999999,
+      } as React.CSSProperties}
       width={elementRect.width}
       height={elementRect.height}
-    ></canvas>
+    >
+    </canvas>
   );
 };
 
 export default Highlights;
-
