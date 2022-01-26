@@ -1,13 +1,19 @@
 import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
 import { POSTHOG_API_KEY, wittyVersion } from '../constants';
-import { IAlert, ILogResponse, ICheckLogRequest, IIgnoreLogRequest, IAlternativeLogRequest } from '../types';
+import {
+  IAlert,
+  ILogResponse,
+  ICheckLogRequest,
+  IIgnoreLogRequest,
+  IAlternativeLogRequest,
+} from '../types';
 
 export const useAnalytics = () => {
   const ph = browserPostHog(POSTHOG_API_KEY);
 
   return {
     async alternativeLog(logResponse: IAlert, alternative: string) {
-      const { appID, requestConfig } = await import("./requests");
+      const { appID, requestConfig } = await import('./requests');
       ph.session.distinctId = appID;
 
       const request: IAlternativeLogRequest = {
@@ -18,19 +24,20 @@ export const useAnalytics = () => {
         request__config__primary_language: requestConfig.primary_language,
         request__config__preferred_languages: requestConfig.preferred_languages,
         request__config__preferred_variants: requestConfig.preferred_variants,
-        request__config__german_gender_ending: requestConfig.german_gender_ending,
+        request__config__german_gender_ending:
+          requestConfig.german_gender_ending,
         request__replaced: logResponse.data.text,
         request__alternative: alternative,
       };
 
       ph.capture('alternative', {
         ...request,
-        response: logResponse
+        response: logResponse,
       });
     },
 
     async ignoreLog(logResponse: IAlert) {
-      const { appID, requestConfig } = await import("./requests");
+      const { appID, requestConfig } = await import('./requests');
       ph.session.distinctId = appID;
 
       const request: IIgnoreLogRequest = {
@@ -41,17 +48,18 @@ export const useAnalytics = () => {
         request__config__primary_language: requestConfig.primary_language,
         request__config__preferred_languages: requestConfig.preferred_languages,
         request__config__preferred_variants: requestConfig.preferred_variants,
-        request__config__german_gender_ending: requestConfig.german_gender_ending,
+        request__config__german_gender_ending:
+          requestConfig.german_gender_ending,
         request__ignored: logResponse.data.text,
       };
 
       ph.capture('ignore', {
         ...request,
-        response: logResponse
+        response: logResponse,
       });
     },
     async checkLog(logResponse: ILogResponse, inputLength: number) {
-      const { appID, requestConfig } = await import("./requests");
+      const { appID, requestConfig } = await import('./requests');
       ph.session.distinctId = appID;
 
       const request: ICheckLogRequest = {
@@ -62,14 +70,15 @@ export const useAnalytics = () => {
         request__config__primary_language: requestConfig.primary_language,
         request__config__preferred_languages: requestConfig.preferred_languages,
         request__config__preferred_variants: requestConfig.preferred_variants,
-        request__config__german_gender_ending: requestConfig.german_gender_ending,
-        request__text__length: inputLength, 
+        request__config__german_gender_ending:
+          requestConfig.german_gender_ending,
+        request__text__length: inputLength,
       };
 
       ph.capture('check', {
         ...request,
-        response: logResponse
+        response: logResponse,
       });
-    }
-  }
+    },
+  };
 };
