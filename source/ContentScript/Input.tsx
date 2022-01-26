@@ -11,7 +11,7 @@ import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
-// import { throttle } from 'lodash';
+import { throttle } from 'lodash';
 
 
 type HandleClick = () => void;
@@ -46,9 +46,9 @@ const Input: React.FC<{
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
-    element.addEventListener('keyup', handleKeyupEvent);
+    element.addEventListener('keyup', throttle(handleKeyupEvent, 1000));
     element.addEventListener('focusin', handleKeyupEvent);
-    element.addEventListener('scroll', handleElementScrollEvent, true);
+    element.addEventListener('scroll', throttle(handleElementScrollEvent, 500), true);
     element.addEventListener('click', handleClickElement as EventListener);
 
     //If a parent form exists, we will monitor the submision.
@@ -86,12 +86,11 @@ const Input: React.FC<{
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0) setNodesWithAlerts([]);
     else {
-      // throttle((nextText) => setTextToCheck(nextText), 0);
+      setTextToCheck(nextText)
     }
   };
 
   const handleElementScrollEvent = () => {
-    //TODO add throttle
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   };
 
