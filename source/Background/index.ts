@@ -8,10 +8,14 @@ import { useLog } from '../shared/customHooks/useLog';
 browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
-  console.log('details.reason', details.reason);
-  if (details.reason === 'install' || details.reason === 'update') {
+  if (details.reason === 'install') {
     browser.tabs.create({
       url: 'http://www.witty.works/welcome',
+    });
+  }
+  if (details.reason === 'update') {
+    browser.tabs.create({
+      url: 'https://www.witty.works/update',
     });
   }
 });
