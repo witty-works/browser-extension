@@ -46,9 +46,9 @@ const Input: React.FC<{
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The turn around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
-    element.addEventListener('keyup', throttle(handleKeyupEvent, 1000));
+    element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
-    element.addEventListener('scroll', throttle(handleElementScrollEvent, 500), true);
+    element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleClickElement as EventListener);
 
     //If a parent form exists, we will monitor the submision.
@@ -77,7 +77,7 @@ const Input: React.FC<{
     setNodesWithAlerts([]);
   };
 
-  const handleKeyupEvent = () => {
+  const handleKeyupEvent = throttle(() => {
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
@@ -88,11 +88,11 @@ const Input: React.FC<{
     else {
       setTextToCheck(nextText)
     }
-  };
+  }, 1000);
 
-  const handleElementScrollEvent = () => {
+  const handleElementScrollEvent = throttle(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
-  };
+  }, 500);
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
