@@ -7,19 +7,29 @@ export let requestConfig: RequestConfig = {} as RequestConfig;
 
 const createUrl = (base: string, path: string): string => `${base}${path}`;
 
-export const setBaseURL = (urlKey: string) => BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls];
-export const setRequestConfig = (reqConfig: RequestConfig) => requestConfig = reqConfig;
-export const setAppID = (id: string) => appID = id;
+export const setBaseURL = (urlKey: string) =>
+  (BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls]);
+export const setRequestConfig = (reqConfig: RequestConfig) =>
+  (requestConfig = reqConfig);
+export const setAppID = (id: string) => (appID = id);
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
     url: createUrl(BASE_URL, 'check'),
     config: {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
-      body: text ? JSON.stringify({ text: text, lang: 'auto', id: appID, client: wittyVersion, config: requestConfig }) : null
-    }
-  }
+      body: text
+        ? JSON.stringify({
+            text: text,
+            lang: 'auto',
+            id: appID,
+            client: wittyVersion,
+            config: requestConfig,
+          })
+        : null,
+    },
+  };
 };

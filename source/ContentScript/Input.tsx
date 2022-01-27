@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 import TextAreaClone from './TextAreaClone';
 import InputTextClone from './InputTextClone';
 import Highlights, { ScrollPos } from './Highlights';
@@ -12,6 +11,8 @@ import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+import { throttle } from 'lodash';
+
 
 type HandleClick = () => void;
 
@@ -76,22 +77,22 @@ const Input: React.FC<{
     setNodesWithAlerts([]);
   };
 
-  const handleKeyupEvent = () => {
+  const handleKeyupEvent = throttle(() => {
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    nextText.length === 0 || !nextText.match(/[a-z0-9]/i)
-      ? setNodesWithAlerts([])
-      : setTextToCheck(nextText);
-  };
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
+    else {
+      setTextToCheck(nextText)
+    }
+  }, 1000);
 
-  const handleElementScrollEvent = () => {
-    //TODO add throttle
+  const handleElementScrollEvent = throttle(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
-  };
+  }, 500);
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
