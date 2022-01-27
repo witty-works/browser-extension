@@ -1,6 +1,5 @@
 import React from 'react';
-import { ScrollPos } from './Highlights';
-
+import { ScrollPos } from './Input';
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
   elementRect: DOMRect;

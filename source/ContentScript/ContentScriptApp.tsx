@@ -16,7 +16,7 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, elementExistsinDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import { ScrollPos } from './Highlights';
+import { ScrollPos } from './Input';
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
