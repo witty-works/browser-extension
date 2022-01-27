@@ -84,7 +84,7 @@ const Input: React.FC<{
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0) setNodesWithAlerts([]);
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
     else {
       setTextToCheck(nextText)
     }
@@ -287,11 +287,11 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    if (checkEndpointError.detail && checkEndpointError.detail.length > 0) {
-      log(`API Error: ${checkEndpointError.detail}`, logTypes.ERROR);
-      //TODO: @Arnau type error, does not match IEndpointResponseError
-      // if (checkEndpointError.detail === 'Language could not be determined')
-      setNodesWithAlerts([]);
+    if (checkEndpointError) {
+      log(
+        `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
+        logTypes.ERROR
+      );
     }
   }, [checkEndpointError]);
 
