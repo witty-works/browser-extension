@@ -3,23 +3,18 @@ import { createPortal } from 'react-dom';
 import CSS from 'csstype';
 import { browser } from 'webextension-polyfill-ts';
 
-import { IAlert } from '../../types';
+import { ModalData } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
 
 import './Modal.scss';
 import { useAnalytics } from '../../ApiServices/useAnalytics';
-export interface ModalData {
-  alert: IAlert;
-  position: DOMRect;
-  node: HTMLElement;
-  originalNode: HTMLTextAreaElement | HTMLInputElement | null;
-}
+
 interface ModalProps {
   isOpen: boolean;
   data: ModalData;
   hide: () => void;
-  resendText: () => void;
+  resendText: (term: string) => void;
   addIgnoredTerm: (term: string) => void;
 }
 
@@ -53,7 +48,7 @@ const Modal: React.FC<ModalProps> = ({
 
   //Positions the modal dinamically
   const ModalStyling: CSS.Properties = {
-    top: `${data.position.top + data.position.height + 10}px`, //TODO convert this
+    top: `${data.position.y + data.position.height + 10}px`, //TODO convert this
     left: `${modalLeftPos}px`,
     width: `${modalWidth}px`,
   };
@@ -76,9 +71,9 @@ const Modal: React.FC<ModalProps> = ({
   useEffect(() => {
     if (ref.current !== null && ref.current.style && ref.current.clientHeight) {
       ref.current.style.top =
-        data.position.top < window.innerHeight / 2
-          ? `${data.position.top + data.position.height + 3}px`
-          : `${data.position.top - ref.current.clientHeight}px`;
+        data.position.y < window.innerHeight / 2
+          ? `${data.position.y + data.position.height + 3}px`
+          : `${data.position.y - ref.current.clientHeight}px`;
     }
   });
 
@@ -89,8 +84,7 @@ const Modal: React.FC<ModalProps> = ({
     //Replace text with the new alternative or simply remove it
     //This only replaces the specific occurrence. If there are other identical terms in the text
     //they will keep highlighted
-
-    const splitText = (data.node.nodeValue as string).split('') as string[];
+    const splitText = data.node.innerHTML.split('');
 
     // In case we have to remove the term it's necessary also to delete the surrounding spaces
     splitText.splice(
@@ -102,16 +96,17 @@ const Modal: React.FC<ModalProps> = ({
     );
 
     const textToInsert = splitText.join('');
+    console.log('textToInsert', textToInsert);
 
-    data.originalNode
-      ? (data.originalNode.value = textToInsert)
-      : (data.node.nodeValue = textToInsert);
+    data.node.innerHTML = textToInsert;
+
+    console.log('data.node.innerHTML', data.node.innerHTML);
 
     //Close Modal
     hide();
 
     //Send again all the text to recalculate highlight positions
-    resendText();
+    resendText(textToInsert);
   };
 
   const toggleText = () => {

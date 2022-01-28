@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CustomInputElement, RequestConfig } from '../shared/types';
+import { CustomInputElement, RequestConfig, ScrollPos } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
@@ -16,7 +16,6 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, elementExistsinDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import { ScrollPos } from './Input';
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(

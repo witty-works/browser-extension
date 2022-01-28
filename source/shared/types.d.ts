@@ -5,6 +5,26 @@ export interface RequestConfig {
   german_gender_ending: string;
 }
 
+export interface ScrollPos {
+  top: number;
+  left: number;
+}
+export interface Highlight {
+  id: string;
+  rects: DOMRect[];
+  data: IAlertContentData;
+  startOffset: number;
+  endOffset: number;
+  node: HTMLElement;
+}
+
+export interface ModalData {
+  alert: IAlert;
+  position: DOMRect;
+  node: HTMLElement;
+  originalNode: HTMLTextAreaElement | HTMLInputElement | null;
+}
+
 export type CustomInputElement =
   | HTMLTextAreaElement
   | HTMLInputElement

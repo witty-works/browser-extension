@@ -1,33 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 import TextAreaClone from './TextAreaClone';
-import InputTextClone from './InputTextClone';
+// import InputTextClone from './InputTextClone';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import { CustomInputElement, IAlert, IAlertContentData, INodeWithAlerts } from '../shared/types';
+import { CustomInputElement, IAlert, Highlight, INodeWithAlerts, ModalData, ScrollPos } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText, elementExistsinDOM } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
-import Modal, { ModalData } from '../shared/components/Modal/Modal';
+import Modal from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { getColor } from '../shared/constants';
 
-type HandleClick = () => void;
+function drawHighlight(context: CanvasRenderingContext2D, roundedHighlight: any, color: string, x: number, y: number, width: number, height: number) {
+  context.clearRect(x - 1, y - 1, width + 2, height + 2); // clear the previous rectangle
+  context.fillStyle = color;
+  context.fill(roundedHighlight)
+}
 
-export type ScrollPos = {
-  top: number;
-  left: number;
-};
-
-type Highlight = {
-  id: string;
-  rects: DOMRect[];
-  data: IAlertContentData;
-  startOffset: number,
-  endOffset: number,
-  node: HTMLElement;
-};
+function redrawText(context: CanvasRenderingContext2D, element: HTMLElement, highlight: Highlight, x: number, y: number, height: number) {
+  const style = window.getComputedStyle(element);
+  context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
+  context.fillStyle = style.color;
+  context.textBaseline = "bottom";
+  context.fillText(highlight.data.text, x, y + height - 1);
+}
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -47,22 +45,6 @@ const Input: React.FC<{
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
   const log = useLog('Input');
-
-  function drawHighlight(context: CanvasRenderingContext2D, roundedHighlight: any, color: string, x: number, y: number, width: number, height: number) {
-    console.log('DRAWING')
-    context.clearRect(x - 1, y - 1, width + 2, height + 2); // clear the previous rectangle (hover)
-    context.fillStyle = color;
-    context.fill(roundedHighlight)
-  }
-
-  function redrawText(context: CanvasRenderingContext2D, element: HTMLElement, highlight: Highlight, x: number, y: number, height: number) {
-    const style = window.getComputedStyle(element);
-    context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
-    context.fillStyle = style.color;
-    context.textBaseline = "bottom";
-
-    context.fillText(highlight.data.text, x, y + height - 1);
-  }
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
@@ -114,82 +96,6 @@ const Input: React.FC<{
     setNodesWithAlerts([]);
   };
 
-  // let singleClickTimeOut: ReturnType<typeof setTimeout>;
-
-  // const handleClickElement = (event: MouseEvent) => {
-  //   if (event.detail === 1) {
-  //     singleClickTimeOut = setTimeout(function () {
-  //       if (caretPosition > -1) {
-  //         const nodeAlerts = nodesWithAlertsRef.current;
-
-  //         const oneNodeWithAlerts = nodeAlerts.find(
-  //           (nodeWithAlerts: INodeWithAlerts) =>
-  //             //TODO potentially this acces to parentNode could fail
-  //             isTextArea(target) || isInputText(target)
-  //               ? nodeWithAlerts.node.parentNode === cloneRef.current
-  //               : nodeWithAlerts.node.parentNode === target
-  //         );
-
-  //         if (oneNodeWithAlerts) {
-  //           const selectedAlert = oneNodeWithAlerts.alerts
-  //             .filter((alert: IAlert) => {
-  //               return (
-  //                 alert.startOffset < caretPosition &&
-  //                 alert.endOffset > caretPosition
-  //               );
-  //             })
-  //             .pop() as IAlert;
-
-  //           const nodeText = oneNodeWithAlerts.node;
-
-  //           if (selectedAlert) {
-  //             const range = document.createRange();
-  //             range.setStart(nodeText, selectedAlert.startOffset);
-  //             range.setEnd(nodeText, selectedAlert.endOffset);
-  //             const clickedRect = range.getClientRects()[0];
-
-  //             setModalData({
-  //               alert: selectedAlert,
-  //               position: clickedRect,
-  //               node: oneNodeWithAlerts.node,
-  //               originalNode:
-  //                 isTextArea(target) || isInputText(target) ? target : null,
-  //             });
-  //             toggleModal();
-  //           }
-  //         }
-  //       }
-  //     }, 400);
-  //   } else {
-  //     clearTimeout(singleClickTimeOut);
-  //   }
-
-  //   const target = event.target as CustomInputElement;
-  //   const caretPosition: number = getInputClickedPosition(target);
-  // };
-
-  // const getInputClickedPosition = (element: CustomInputElement): number => {
-  //   if (isTextArea(element) || isInputText(element)) {
-  //     return element.selectionStart as number;
-  //   } else {
-  //     const selection: Selection | null = document.getSelection();
-  //     let position: number = -1;
-
-  //     if (selection !== null && selection.type === 'Caret') {
-  //       //Modify is a non-standard feature, although currently is supported by all browsers except IE
-  //       //https://developer.mozilla.org/en-US/docs/Web/API/Selection/modify
-  //       //TODO In order to remove error from typescript we can augment the interface
-  //       //https://github.com/Microsoft/TypeScript/issues/12296
-  //       //Temporaly ignore this error
-  //       // @ts-ignore
-  //       selection.modify('extend', 'backward', 'paragraph');
-  //       position = selection.toString().length as number;
-  //       if (selection.anchorNode != undefined) selection.collapseToEnd();
-  //     }
-  //     return position;
-  //   }
-  // };
-
   useEffect(() => {
     if (!checkEndpointResponse) return;
     analytics.checkLog(
@@ -230,15 +136,17 @@ const Input: React.FC<{
   }, [checkEndpointResponse]);
 
   useEffect(() => {
+    console.log('ignored terms', ignoredTerms);
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
+      console.log('clone', clone);
       if (isTextArea(element) || isInputText(element)) {
         setNodesWithAlerts([
           {
-            node: clone, //was clone?.firstChild, chack if this had any consequences
+            node: clone,
             alerts: filteredAlerts.map((alert: IAlert) => ({
               ...alert,
             })),
@@ -250,7 +158,7 @@ const Input: React.FC<{
         setNodesWithAlerts(nodesWithAlertsTemp);
       }
     }
-  }, [alerts]);
+  }, [alerts, ignoredTerms, clone]);
 
   const getNodesWithRecalculatedAlerts = (
     nodes: NodeListOf<ChildNode>,
@@ -300,24 +208,22 @@ const Input: React.FC<{
         }
       }
     };
-
     traverseNodes(nodes);
-
     return nodesWithAlertsTemp;
   };
 
   useEffect(() => {
-    if (checkEndpointError) {
+    if (checkEndpointError)
       log(
         `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
         logTypes.ERROR
       );
-    }
   }, [checkEndpointError]);
 
   useEffect(() => {
+    console.log('nodes with alerts updated', nodesWithAlerts);
+    let newHighlights: Highlight[] = [];
     if (nodesWithAlerts.length > 0) {
-      const highlights: Highlight[] = [];
       nodesWithAlerts.forEach(({ node, alerts }) => {
         //quick fix to avoid error: check if node exists in the DOM
         //but also filter alerts that have a bigger endOffset than the length of the text
@@ -346,23 +252,23 @@ const Input: React.FC<{
                 });
 
               const newHighlight: Highlight = {
-                id: '123',//TODO
+                id: alert.id,
                 rects,
                 data: alert.data,
                 startOffset: alert.startOffset,
                 endOffset: alert.endOffset,
                 node: node,
               };
-
-              highlights.push(newHighlight);
+              newHighlights.push(newHighlight);
             });
+          setHighlights(newHighlights);
         }
       });
-      setHighlights(highlights)
     }
   }, [nodesWithAlerts, parentScroll, elementScroll]);
 
   useEffect(() => {
+    console.error('recieved new highlights', highlights);
     const canvas: HTMLCanvasElement = canvasRef.current;
     if (canvas) {
       //makes the ratio correct, needed to make text clear
@@ -371,13 +277,13 @@ const Input: React.FC<{
       canvas.height = elementRect.height * ratio;
       canvas.style.width = elementRect.width + "px";
       canvas.style.height = elementRect.height + "px";
-
       const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
       if (context) {
         context.scale(ratio, ratio)
         context.clearRect(0, 0, canvas.width, canvas.height);
+        console.log('CLEAR')
 
-        //Draw a rectangle for each highlight
+        //draw a rectangle for each highlight
         highlights.forEach((highlight) => {
           highlight.rects.forEach((rect: DOMRect) => {
             let x = rect.left - elementRect.left;
@@ -387,20 +293,20 @@ const Input: React.FC<{
             let radius = 4;
 
             //making the highlight shape with rounded corners
+            context.beginPath();
             const roundedHighlight = new Path2D();
             roundedHighlight.moveTo(x + radius, y);
             roundedHighlight.arcTo(x + width, y, x + width, y + height, radius);
             roundedHighlight.arcTo(x + width, y + height, x, y + height, radius);
             roundedHighlight.arcTo(x, y + height, x, y, radius);
             roundedHighlight.arcTo(x, y, x + width, y, radius);
+            context.closePath();
 
             drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).highlight}`, x, y, width, height);
             redrawText(context, element, highlight, x, y, height);
 
             //hover highlight
             canvas.addEventListener('mousemove', function (e) {
-              console.log('mouse')
-              //TODO: make sure old locations of highligh is removed 
               if (context.isPointInPath(roundedHighlight, e.offsetX * ratio, e.offsetY * ratio)) {
                 drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).hover}`, x, y, width, height);
                 redrawText(context, element, highlight, x, y, height);
@@ -413,7 +319,6 @@ const Input: React.FC<{
             //click highlight
             canvas.addEventListener('click', function (event) {
               //TODO: also open for double click 
-              console.log('click outside highlight')
               if (context.isPointInPath(roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
                 console.log('click on highlight')
                 setModalData({
@@ -445,59 +350,43 @@ const Input: React.FC<{
   }, [highlights]);
 
   const updateCloneData = (clone: HTMLDivElement) => {
+    // element = clone;
     setClone(clone);
+    console.log('updateCloneData', clone);
   };
 
-  const toggleModal: HandleClick = () => {
+  const toggleModal = (): void => {
     setIsOpen(!isOpen);
   };
 
-  const resendText = () => {
-    const text: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : fixLineBreaks(element.innerText);
-
+  const resendText = (text: string): void => {
     setTextToCheck(text);
   };
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
-    setAlerts([...alerts]);
   };
 
   return (
     <div className='canvas-container'>
-      {isTextArea(element) ? (
+      {loading && <HighlightsLoader elementReference={element} />}
+      {isTextArea(element) && (
         <TextAreaClone
           element={element}
           elementRect={elementRect}
           elementScroll={elementScroll}
           updateClone={updateCloneData}
         />
-      ) : null}
-      {isInputText(element) ? (
+      )}
+      {/* no longer in use? */}
+      {/* {isInputText(element) && (
         <InputTextClone
           element={element}
           elementRect={elementRect}
           updateClone={updateCloneData}
         />
-      ) : null}
-      {loading ? <HighlightsLoader elementReference={element} /> : null}
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: 'absolute',
-          overflow: 'auto',
-          left: `${elementRect.left}px`,
-          top: `${elementRect.top}px`,
-          // zIndex: 999999999,
-        } as React.CSSProperties}
-        width={elementRect.width}
-        height={elementRect.height}
-      >
-      </canvas>
-      {modalData.alert ? (
+      )} */}
+      {modalData.alert && (
         <Modal
           isOpen={isOpen}
           data={modalData}
@@ -505,7 +394,19 @@ const Input: React.FC<{
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
         />
-      ) : null}
+      )}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'absolute',
+          overflow: 'auto',
+          left: `${elementRect.left}px`,
+          top: `${elementRect.top}px`,
+        } as React.CSSProperties}
+        width={elementRect.width}
+        height={elementRect.height}
+      >
+      </canvas>
     </div>
   );
 };
