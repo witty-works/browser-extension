@@ -12,6 +12,7 @@ import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { getColor } from '../shared/constants';
+import { throttle } from 'lodash';
 
 function drawHighlight(context: CanvasRenderingContext2D, roundedHighlight: any, color: string, x: number, y: number, width: number, height: number) {
   context.clearRect(x - 1, y - 1, width + 2, height + 2); // clear the previous rectangle
@@ -73,22 +74,22 @@ const Input: React.FC<{
     };
   }, []);
 
-  const handleKeyupEvent = () => {
+  const handleKeyupEvent = throttle(() => {
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    nextText.length === 0 || !nextText.match(/[a-z0-9]/i)
-      ? setNodesWithAlerts([])
-      : setTextToCheck(nextText);
-  };
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
+    else {
+      setTextToCheck(nextText)
+    }
+  }, 1000);
 
-  const handleElementScrollEvent = () => {
-    //TODO add throttle
+  const handleElementScrollEvent = throttle(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
-  };
+  }, 500);
 
   const handleSubmitFormEvent = () => {
     //It's assumed that when user sends info through a form, text will disappear.
