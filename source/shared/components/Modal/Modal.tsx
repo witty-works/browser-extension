@@ -14,7 +14,7 @@ interface ModalProps {
   isOpen: boolean;
   data: ModalData;
   hide: () => void;
-  resendText: (term: string) => void;
+  resendText: () => void;
   addIgnoredTerm: (term: string) => void;
 }
 
@@ -48,7 +48,7 @@ const Modal: React.FC<ModalProps> = ({
 
   //Positions the modal dinamically
   const ModalStyling: CSS.Properties = {
-    top: `${data.position.y + data.position.height + 10}px`, //TODO convert this
+    top: `${data.position.top + data.position.height + 10}px`, //TODO convert this
     left: `${modalLeftPos}px`,
     width: `${modalWidth}px`,
   };
@@ -71,9 +71,9 @@ const Modal: React.FC<ModalProps> = ({
   useEffect(() => {
     if (ref.current !== null && ref.current.style && ref.current.clientHeight) {
       ref.current.style.top =
-        data.position.y < window.innerHeight / 2
-          ? `${data.position.y + data.position.height + 3}px`
-          : `${data.position.y - ref.current.clientHeight}px`;
+        data.position.top < window.innerHeight / 2
+          ? `${data.position.top + data.position.height + 3}px`
+          : `${data.position.top - ref.current.clientHeight}px`;
     }
   });
 
@@ -84,7 +84,8 @@ const Modal: React.FC<ModalProps> = ({
     //Replace text with the new alternative or simply remove it
     //This only replaces the specific occurrence. If there are other identical terms in the text
     //they will keep highlighted
-    const splitText = data.node.innerHTML.split('');
+
+    const splitText = (data.node.nodeValue as string).split('') as string[];
 
     // In case we have to remove the term it's necessary also to delete the surrounding spaces
     splitText.splice(
@@ -96,17 +97,16 @@ const Modal: React.FC<ModalProps> = ({
     );
 
     const textToInsert = splitText.join('');
-    console.log('textToInsert', textToInsert);
 
-    data.node.innerHTML = textToInsert;
-
-    console.log('data.node.innerHTML', data.node.innerHTML);
+    data.originalNode
+      ? (data.originalNode.value = textToInsert)
+      : (data.node.nodeValue = textToInsert);
 
     //Close Modal
     hide();
 
     //Send again all the text to recalculate highlight positions
-    resendText(textToInsert);
+    resendText();
   };
 
   const toggleText = () => {

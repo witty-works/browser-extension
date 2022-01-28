@@ -15,13 +15,13 @@ export interface Highlight {
   data: IAlertContentData;
   startOffset: number;
   endOffset: number;
-  node: HTMLElement;
+  node: Node;
 }
 
 export interface ModalData {
   alert: IAlert;
   position: DOMRect;
-  node: HTMLElement;
+  node: Node;
   originalNode: HTMLTextAreaElement | HTMLInputElement | null;
 }
 
@@ -31,7 +31,7 @@ export type CustomInputElement =
   | HTMLDivElement;
 
 export interface INodeWithAlerts {
-  node: HTMLElement;
+  node: Node;
   alerts: IAlert[];
 }
 export interface IAlert {

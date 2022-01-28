@@ -31,9 +31,10 @@ const Input: React.FC<{
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
+  const [target, setTarget] = useState<CustomInputElement>({} as CustomInputElement);
 
-  const [nodesWithAlerts, setNodesWithAlerts] = useStateRef<INodeWithAlerts[]>([]); //nodesWithAlertsRef
-  const [clone, setClone] = useStateRef({} as HTMLDivElement); //cloneRef
+  const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef<INodeWithAlerts[]>([]);
+  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
 
   const log = useLog('Input');
 
@@ -44,6 +45,7 @@ const Input: React.FC<{
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
+    element.addEventListener('click', handleClickElement as EventListener);
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
@@ -59,6 +61,8 @@ const Input: React.FC<{
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
+      element.removeEventListener('click', handleClickElement as EventListener);
+
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
@@ -96,7 +100,12 @@ const Input: React.FC<{
     setIsOpen(!isOpen);
   };
 
-  const resendText = (text: string): void => {
+  const resendText = () => {
+    const text: string =
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : fixLineBreaks(element.innerText);
+
     setTextToCheck(text);
   };
 
@@ -152,9 +161,13 @@ const Input: React.FC<{
       });
       console.log('clone', clone);
       if (isTextArea(element) || isInputText(element)) {
+        if (!clone.firstChild) {
+          console.log('no clone');
+          return;
+        }
         setNodesWithAlerts([
           {
-            node: clone,
+            node: clone.firstChild,
             alerts: filteredAlerts.map((alert: IAlert) => ({
               ...alert,
             })),
@@ -233,19 +246,22 @@ const Input: React.FC<{
     let newHighlights: Highlight[] = [];
     if (nodesWithAlerts.length > 0) {
       nodesWithAlerts.forEach(({ node, alerts }) => {
+
         //quick fix to avoid error: check if node exists in the DOM
         //but also filter alerts that have a bigger endOffset than the length of the text
         if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
+          console.log('node', node);
+          console.log('alerts', alerts);
           alerts
             .filter(
               (alert: IAlert) =>
-                node.firstChild && node.firstChild.textContent &&
-                alert.endOffset <= node.firstChild.textContent.length
+                node && node.textContent &&
+                alert.endOffset <= node.textContent.length
             )
             .forEach((alert: IAlert) => {
               const range = document.createRange();
-              if (node.firstChild) range.setStart(node.firstChild, alert.startOffset);
-              if (node.firstChild) range.setEnd(node.firstChild, alert.endOffset);
+              if (node) range.setStart(node, alert.startOffset);
+              if (node) range.setEnd(node, alert.endOffset);
               const rects: DOMRect[] = Array.from(range.getClientRects())
                 .map((rect: DOMRect) => {
                   return {
@@ -267,6 +283,7 @@ const Input: React.FC<{
                 endOffset: alert.endOffset,
                 node: node,
               };
+              console.log('new highlight', newHighlight);
               newHighlights.push(newHighlight);
             });
           setHighlights(newHighlights);
@@ -274,6 +291,11 @@ const Input: React.FC<{
       });
     }
   }, [nodesWithAlerts, parentScroll, elementScroll]);
+
+  const handleClickElement = (event: MouseEvent) => {
+    setTarget(event.target as CustomInputElement);
+  };
+
 
   useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
@@ -316,18 +338,51 @@ const Input: React.FC<{
             //click highlight
             canvas.addEventListener('click', function (event) {
               if (context.isPointInPath(roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
-                //makes double clicks also open the modal
-                setTimeout(() => {
-                  setModalData({
-                    alert: highlight,
-                    position: highlight.rects[0],
-                    node: highlight.node,
-                    originalNode: null
-                  });
-                  setIsOpen(!isOpen);
-                }, 500);
-              }
-              else {
+                const nodeAlerts = nodesWithAlertsRef.current;
+
+                const oneNodeWithAlerts = nodeAlerts.find((nodeWithAlerts: INodeWithAlerts) =>
+                  //TODO potentially this acces to parentNode could fail
+                  isTextArea(target) || isInputText(target)
+                    ? nodeWithAlerts.node.parentNode === cloneRef.current
+                    : nodeWithAlerts.node.parentNode === target
+                );
+
+                console.log('oneNodeWithAlerts', oneNodeWithAlerts);
+                console.log(highlight)
+                if (oneNodeWithAlerts) {
+                  const selectedAlert = oneNodeWithAlerts.alerts
+                    .filter((alert: IAlert) => {
+                      return (
+                        alert.startOffset <= highlight.startOffset &&
+                        alert.endOffset >= highlight.endOffset
+                      );
+                    })
+                    .pop() as IAlert;
+
+                  const nodeText = oneNodeWithAlerts.node;
+                  console.log('selectedAlert', selectedAlert);
+
+                  if (selectedAlert) {
+                    const range = document.createRange();
+                    range.setStart(nodeText, selectedAlert.startOffset);
+                    range.setEnd(nodeText, selectedAlert.endOffset);
+                    const clickedRect = range.getClientRects()[0];
+
+                    //allows user to double click 
+                    setTimeout(() => {
+                      setModalData({
+                        alert: selectedAlert,
+                        position: clickedRect,
+                        node: oneNodeWithAlerts.node,
+                        originalNode:
+                          isTextArea(target) || isInputText(target) ? target : null,
+                      });
+                      toggleModal();
+                    }, 500);
+
+                  }
+                }
+              } else {
                 //allows user to type again
                 canvas.style.pointerEvents = 'none';
                 element.focus();
@@ -336,6 +391,7 @@ const Input: React.FC<{
                 }, 1000);
               }
             })
+
           });
         });
       }

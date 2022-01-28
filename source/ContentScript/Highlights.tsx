@@ -1,6 +1,5 @@
 import { Highlight } from "../shared/types";
 
-
 export function drawHighlight(context: CanvasRenderingContext2D, roundedHighlight: Path2D, color: string, rect: DOMRect, elementRect: DOMRect) {
     let x = rect.left - elementRect.left;
     let y = rect.top - elementRect.top;
@@ -26,7 +25,13 @@ export function redrawText(context: CanvasRenderingContext2D, element: HTMLEleme
 
     const style = window.getComputedStyle(element);
     context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
-    context.fillStyle = style.color;
+
+    let color = style.color;
+    //adjusts font color for dark mode
+    // if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    //     color = '#000000';
+    // }
+    context.fillStyle = color;
     context.textBaseline = "bottom";
-    context.fillText(highlight.data.text, x, y + 1);
+    context.fillText(highlight.data.text, x, y);
 }

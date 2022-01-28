@@ -30,11 +30,9 @@ export const useAnalytics = () => {
         request__alternative: alternative,
       };
 
-      //TEMP
-      const { id, startOffset, endOffset, data } = logResponse
       ph.capture('alternative', {
         ...request,
-        response: { id, startOffset, endOffset, data },
+        response: logResponse,
       });
     },
 
@@ -56,10 +54,9 @@ export const useAnalytics = () => {
       };
 
       //TEMP
-      const { id, startOffset, endOffset, data } = logResponse
       ph.capture('ignore', {
         ...request,
-        response: { id, startOffset, endOffset, data },
+        response: logResponse,
       });
     },
     async checkLog(logResponse: ILogResponse, inputLength: number) {
