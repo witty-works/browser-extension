@@ -13,20 +13,7 @@ import Modal from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { getColor } from '../shared/constants';
 import { throttle } from 'lodash';
-
-function drawHighlight(context: CanvasRenderingContext2D, roundedHighlight: any, color: string, x: number, y: number, width: number, height: number) {
-  context.clearRect(x - 1, y - 1, width + 2, height + 2); // clear the previous rectangle
-  context.fillStyle = color;
-  context.fill(roundedHighlight)
-}
-
-function redrawText(context: CanvasRenderingContext2D, element: HTMLElement, highlight: Highlight, x: number, y: number, height: number) {
-  const style = window.getComputedStyle(element);
-  context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
-  context.fillStyle = style.color;
-  context.textBaseline = "bottom";
-  context.fillText(highlight.data.text, x, y + height - 1);
-}
+import { drawHighlight, redrawText } from './Highlights';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -35,21 +22,24 @@ const Input: React.FC<{
 }> = ({ element, bodyScroll, parentScroll }) => {
   const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpoint();
   const analytics = useAnalytics();
-  const [alerts, setAlerts] = useState<IAlert[]>([]);
-  const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-  const [highlights, setHighlights] = useState<Highlight[]>([])
-  const [nodesWithAlerts, setNodesWithAlerts] = useStateRef<INodeWithAlerts[]>([]); //nodesWithAlertsRef
-  const [clone, setClone] = useStateRef({} as HTMLDivElement); //cloneRef
   const elementRect = useResizeObserver(element);
+  const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
+
+  const [alerts, setAlerts] = useState<IAlert[]>([]);
+  const [highlights, setHighlights] = useState<Highlight[]>([])
   const [elementScroll, setElementScroll] = useState<ScrollPos>({ top: 0, left: 0 } as ScrollPos);
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
+
+  const [nodesWithAlerts, setNodesWithAlerts] = useStateRef<INodeWithAlerts[]>([]); //nodesWithAlertsRef
+  const [clone, setClone] = useStateRef({} as HTMLDivElement); //cloneRef
+
   const log = useLog('Input');
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
-    //The turn around (at least for the moment) is to use 'keyup'
+    //The work around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
@@ -58,7 +48,7 @@ const Input: React.FC<{
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
     const parentForm: HTMLFormElement | null = isTextArea(element)
-      ? (element as HTMLTextAreaElement).form
+      ? element.form
       : element.closest('form');
 
     if (parentForm)
@@ -95,6 +85,23 @@ const Input: React.FC<{
     //It's assumed that when user sends info through a form, text will disappear.
     //Therefore highlights also need to be removed
     setNodesWithAlerts([]);
+  };
+
+  const updateCloneData = (clone: HTMLDivElement) => {
+    setClone(clone);
+    // console.log('updateCloneData', clone);
+  };
+
+  const toggleModal = (): void => {
+    setIsOpen(!isOpen);
+  };
+
+  const resendText = (text: string): void => {
+    setTextToCheck(text);
+  };
+
+  const addIgnoredTerm = (term: string): void => {
+    setIgnoredTerms([...ignoredTerms, term]);
   };
 
   useEffect(() => {
@@ -269,78 +276,66 @@ const Input: React.FC<{
   }, [nodesWithAlerts, parentScroll, elementScroll]);
 
   useEffect(() => {
-    console.error('recieved new highlights', highlights);
     const canvas: HTMLCanvasElement = canvasRef.current;
     if (canvas) {
-      //makes the ratio correct, needed to make text clear
+      //makes the canvas ratio correct, needed to make text clear
       let ratio = window.devicePixelRatio;
       canvas.width = elementRect.width * ratio;
       canvas.height = elementRect.height * ratio;
       canvas.style.width = elementRect.width + "px";
       canvas.style.height = elementRect.height + "px";
       const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+
       if (context) {
         context.scale(ratio, ratio)
         context.clearRect(0, 0, canvas.width, canvas.height);
         console.log('CLEAR')
 
-        //draw a rectangle for each highlight
+        console.error('recieved new highlights', highlights);
+
         highlights.forEach((highlight) => {
           highlight.rects.forEach((rect: DOMRect) => {
-            let x = rect.left - elementRect.left;
-            let y = rect.top - elementRect.top;
-            let width = rect.width;
-            let height = rect.height;
-            let radius = 4;
-
-            //making the highlight shape with rounded corners
-            context.beginPath();
+            const highlightColor = `${getColor(highlight.data.category).highlight}`;
+            const hoverColor = `${getColor(highlight.data.category).hover}`;
             const roundedHighlight = new Path2D();
-            roundedHighlight.moveTo(x + radius, y);
-            roundedHighlight.arcTo(x + width, y, x + width, y + height, radius);
-            roundedHighlight.arcTo(x + width, y + height, x, y + height, radius);
-            roundedHighlight.arcTo(x, y + height, x, y, radius);
-            roundedHighlight.arcTo(x, y, x + width, y, radius);
-            context.closePath();
 
-            drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).highlight}`, x, y, width, height);
-            redrawText(context, element, highlight, x, y, height);
+            drawHighlight(context, roundedHighlight, highlightColor, rect, elementRect);
+            redrawText(context, element, highlight, rect, elementRect);
 
             //hover highlight
             canvas.addEventListener('mousemove', function (e) {
               if (context.isPointInPath(roundedHighlight, e.offsetX * ratio, e.offsetY * ratio)) {
-                drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).hover}`, x, y, width, height);
-                redrawText(context, element, highlight, x, y, height);
+                drawHighlight(context, roundedHighlight, hoverColor, rect, elementRect);
+                redrawText(context, element, highlight, rect, elementRect);
               } else {
-                drawHighlight(context, roundedHighlight, `${getColor(highlight.data.category).highlight}`, x, y, width, height);
-                redrawText(context, element, highlight, x, y, height);
+                drawHighlight(context, roundedHighlight, highlightColor, rect, elementRect);
+                redrawText(context, element, highlight, rect, elementRect);
               }
             });
 
             //click highlight
             canvas.addEventListener('click', function (event) {
-              //TODO: also open for double click 
               if (context.isPointInPath(roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
-                console.log('click on highlight')
-                setModalData({
-                  alert: highlight,
-                  position: highlight.rects[0],
-                  node: highlight.node,
-                  originalNode: null
-                });
-                setIsOpen(!isOpen);
-                //remove highlight if no longer necessary
-                // redrawText(context, element, highlight, x, y, height);
+                //makes double clicks also open the modal
+                setTimeout(() => {
+                  setModalData({
+                    alert: highlight,
+                    position: highlight.rects[0],
+                    node: highlight.node,
+                    originalNode: null
+                  });
+                  setIsOpen(!isOpen);
+                }, 500);
               }
               else {
+                //allows user to type again
                 canvas.style.pointerEvents = 'none';
-                console.log('click outside highlight')
                 element.focus();
                 setTimeout(() => {
                   canvas.style.pointerEvents = 'auto';
                 }, 1000);
               }
-            });
+            })
           });
         });
       }
@@ -349,24 +344,6 @@ const Input: React.FC<{
       //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
     }
   }, [highlights]);
-
-  const updateCloneData = (clone: HTMLDivElement) => {
-    // element = clone;
-    setClone(clone);
-    console.log('updateCloneData', clone);
-  };
-
-  const toggleModal = (): void => {
-    setIsOpen(!isOpen);
-  };
-
-  const resendText = (text: string): void => {
-    setTextToCheck(text);
-  };
-
-  const addIgnoredTerm = (term: string): void => {
-    setIgnoredTerms([...ignoredTerms, term]);
-  };
 
   return (
     <div className='canvas-container'>
@@ -379,14 +356,6 @@ const Input: React.FC<{
           updateClone={updateCloneData}
         />
       )}
-      {/* no longer in use? */}
-      {/* {isInputText(element) && (
-        <InputTextClone
-          element={element}
-          elementRect={elementRect}
-          updateClone={updateCloneData}
-        />
-      )} */}
       {modalData.alert && (
         <Modal
           isOpen={isOpen}
