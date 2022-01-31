@@ -12,7 +12,7 @@ import { useStateRef } from '../shared/customHooks/useStateRef';
 import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { throttle } from 'lodash';
-
+import Popup from './Popup';
 
 type HandleClick = () => void;
 
@@ -84,9 +84,10 @@ const Input: React.FC<{
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
+      setNodesWithAlerts([]);
     else {
-      setTextToCheck(nextText)
+      setTextToCheck(nextText);
     }
   }, 1000);
 
@@ -331,7 +332,7 @@ const Input: React.FC<{
           nodesWithAlerts={nodesWithAlerts}
         />
       ) : null}
-      {modalData.alert ? (
+      {/* {modalData.alert ? (
         <Modal
           isOpen={isOpen}
           data={modalData}
@@ -339,6 +340,9 @@ const Input: React.FC<{
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
         />
+      ) : null} */}
+      {modalData.alert ? (
+        <Popup element={element} isOpen={isOpen} data={modalData} />
       ) : null}
     </div>
   );
