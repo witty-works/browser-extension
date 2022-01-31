@@ -1,0 +1,112 @@
+@import '../../styles/variables';
+@import '../../styles/fonts';
+
+#ww-highlight-popover {
+  display: 'flex';
+  background-color: #ffffff;
+  color: #1a1a1a;
+  z-index: 999999999;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
+  border-radius: 5px;
+  font-family: $lato !important;
+}
+
+#ww-highlight-popover-content {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  width: 100%;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+}
+
+.ww-highlight-popover-row {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.ww-highlight-popover-row-title {
+  font-family: $ibarra !important;
+  font-weight: 400;
+  font-size: 20px;
+}
+
+.ww-highlight-popover-separator {
+  border: 1px solid $greyWhite;
+  margin: 0;
+  margin-left: -1em;
+  margin-right: -1em;
+}
+
+// Alternatives section
+.ww-highlight-popover-row-title-alternative {
+  margin-bottom: 0.5em;
+}
+
+.ww-highlight-popover-row-alternatives-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.ww-highlight-popover-link {
+  font-weight: bold;
+  color: #5acfb9;
+  background: rgba(90, 207, 185, 0.1);
+  display: table;
+  margin: 5px auto 5px 0px;
+  padding: 2px;
+  cursor: pointer;
+
+  &.remove-text {
+    text-decoration: line-through !important;
+  }
+}
+
+// Ignore section
+.ww-highlight-popover-row-ignore {
+  color: #e6635a;
+  font-weight: bold;
+  margin-top: 0.5em;
+  cursor: pointer;
+}
+
+//Icons
+.ww-highlight-popover-icon {
+  height: 0.8em;
+  margin-right: 0.5em;
+}
+
+.ww-highlight-popover-icon-large {
+  height: 1em;
+  margin-right: 0.5em;
+}
+.ww-highlight-popover-icon-float-right {
+  float: right;
+  margin-top: 0.2em;
+  margin-right: 0em;
+}
+
+// More info section
+.ww-highlight-popover-row-more-title {
+  font-weight: bold;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.ww-highlight-popover-row-more-text {
+  color: #656565;
+  margin-left: 1em;
+}
+
+//Settings section
+.ww-highlight-popover-row-url {
+  color: #656565;
+
+  &:hover {
+    color: #656565;
+    text-decoration: none;
+  }
+}

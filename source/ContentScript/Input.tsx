@@ -9,10 +9,11 @@ import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
-import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { throttle } from 'lodash';
-import Popup from './Popup';
+import HighlightPopover, {
+  PopoverData,
+} from './HighlightPopover/HighlightPopover';
 
 type HandleClick = () => void;
 
@@ -36,7 +37,9 @@ const Input: React.FC<{
     top: 0,
     left: 0,
   } as ScrollPos);
-  const [modalData, setModalData] = useState<ModalData>({} as ModalData);
+  const [popoverData, setPopoverData] = useState<PopoverData>(
+    {} as PopoverData
+  );
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
   // const [, setText, textRef] = useStateRef("");
@@ -132,7 +135,7 @@ const Input: React.FC<{
               range.setEnd(nodeText, selectedAlert.endOffset);
               const clickedRect = range.getClientRects()[0];
 
-              setModalData({
+              setPopoverData({
                 alert: selectedAlert,
                 position: clickedRect,
                 node: oneNodeWithAlerts.node,
@@ -335,17 +338,14 @@ const Input: React.FC<{
           nodesWithAlerts={nodesWithAlerts}
         />
       ) : null}
-      {/* {modalData.alert ? (
-        <Modal
-          isOpen={isOpen}
-          data={modalData}
+      {popoverData.alert && isOpen ? (
+        <HighlightPopover
+          element={element}
+          data={popoverData}
           hide={toggleModal}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
         />
-      ) : null} */}
-      {modalData.alert && isOpen ? (
-        <Popup element={element} data={modalData} hide={toggleModal} />
       ) : null}
     </div>
   );

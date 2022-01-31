@@ -1,10 +1,10 @@
-import { namespaces } from "./i18n.constants";
+import { namespaces } from './i18n.constants';
 
 export const de = {
   [namespaces.common]: {
     buttons: {
-      ok: "Akzeptieren",
-      cancel: "Abbrechen",
+      ok: 'Akzeptieren',
+      cancel: 'Abbrechen',
     },
     languages: {
       en_US: 'Englisch (🇺🇸 USA)',
@@ -15,17 +15,17 @@ export const de = {
     },
   },
   [namespaces.pages.popup]: {
-    settings: "Einstellungen",
+    settings: 'Einstellungen',
     enableWitty: 'Witty aktivieren',
     primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Gewünschte Sprache',
     germanGenderEnding: 'Inklusive Geschlechter-Nennung',
-    developmentSettings: "Entwicklungs-Einstellungen",
+    developmentSettings: 'Entwicklungs-Einstellungen',
     apiEndpoint: 'API Endpunkt',
-    needHelpQuestionMark: 'Brauchen Sie Hilfe?'
+    needHelpQuestionMark: 'Brauchen Sie Hilfe?',
   },
-  [namespaces.modal]: {
-    insteadTry: 'Versuchen Sie stattdessen ...',  
+  [namespaces.popover]: {
+    insteadTry: 'Versuchen Sie stattdessen ...',
     howToImprove: 'Wie Sie es selbst verbessern',
     ignoreTerm: 'Diesen Begriff ignorieren',
     whyQuestionMark: 'Warum?',
@@ -37,8 +37,8 @@ export const de = {
 export const en = {
   [namespaces.common]: {
     buttons: {
-      ok: "Ok",
-      cancel: "Cancel",
+      ok: 'Ok',
+      cancel: 'Cancel',
     },
     languages: {
       en_GB: 'English (🇬🇧 Great Britain)',
@@ -49,16 +49,16 @@ export const en = {
     },
   },
   [namespaces.pages.popup]: {
-    settings: "Settings",
+    settings: 'Settings',
     enableWitty: 'Enable Witty',
     primaryLanguage: 'Primary Language',
     preferredLanguage: 'Preferred Language',
     germanGenderEnding: 'German Gender Ending',
-    developmentSettings: "Development Settings",
+    developmentSettings: 'Development Settings',
     apiEndpoint: 'API Endpoint',
-    needHelpQuestionMark: 'Need Help?'
+    needHelpQuestionMark: 'Need Help?',
   },
-  [namespaces.modal]: {
+  [namespaces.popover]: {
     insteadTry: 'Try one of these instead...',
     howToImprove: 'How to improve it yourself',
     ignoreTerm: 'Ignore this term',
