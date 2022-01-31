@@ -49,7 +49,7 @@ const Input: React.FC<{
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
-    element.addEventListener('click', handleClickElement as EventListener);
+    element.addEventListener('click', handleElementClickEvent as EventListener);
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
@@ -65,7 +65,10 @@ const Input: React.FC<{
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      element.removeEventListener('click', handleClickElement as EventListener);
+      element.removeEventListener(
+        'click',
+        handleElementClickEvent as EventListener
+      );
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
@@ -97,7 +100,7 @@ const Input: React.FC<{
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
-  const handleClickElement = (event: MouseEvent) => {
+  const handleElementClickEvent = (event: MouseEvent) => {
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
         if (caretPosition > -1) {
@@ -341,8 +344,8 @@ const Input: React.FC<{
           addIgnoredTerm={addIgnoredTerm}
         />
       ) : null} */}
-      {modalData.alert ? (
-        <Popup element={element} isOpen={isOpen} data={modalData} />
+      {modalData.alert && isOpen ? (
+        <Popup element={element} data={modalData} hide={toggleModal} />
       ) : null}
     </div>
   );

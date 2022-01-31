@@ -14,11 +14,11 @@ export interface ModalData {
 
 interface PopupProps {
   element: CustomInputElement;
-  isOpen: boolean;
   data: ModalData;
+  hide: () => void;
 }
 
-const Popup: React.FC<PopupProps> = ({ element, isOpen, data }: PopupProps) => {
+const Popup: React.FC<PopupProps> = ({ element, data, hide }: PopupProps) => {
   const doc = document.documentElement || document.body;
 
   const elementCords = (dat: ModalData) => ({
@@ -37,7 +37,7 @@ const Popup: React.FC<PopupProps> = ({ element, isOpen, data }: PopupProps) => {
     },
   });
 
-  const { x, y, reference, floating, strategy } = useFloating({
+  const { x, y, reference, floating, strategy, refs } = useFloating({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
@@ -45,20 +45,21 @@ const Popup: React.FC<PopupProps> = ({ element, isOpen, data }: PopupProps) => {
   useEffect(() => reference(element), [reference]);
 
   useEffect(() => {
-    console.log('data: ', data);
-  }, [data]);
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [refs.floating.current]);
 
-  // useEffect(() => {
-  //   if (!refs.reference.current) {
-  //     return;
-  //   }
-
-  //   refs.reference.current.addEventListener('click', update);
-
-  //   return () => {
-  //     refs.reference.current.removeEventListener('click', update);
-  //   };
-  // }, [refs.reference, update]);
+  const handleClickOutside = (event: Event) => {
+    if (
+      refs.floating.current &&
+      !refs.floating.current.contains(event.target as HTMLElement)
+    ) {
+      console.log('You clicked outside of me!');
+      hide();
+    }
+  };
 
   const PopupStyling: CSS.Properties = {
     display: 'block',
@@ -72,11 +73,11 @@ const Popup: React.FC<PopupProps> = ({ element, isOpen, data }: PopupProps) => {
     height: '300px',
   };
 
-  return isOpen ? (
+  return (
     <div id='popup' ref={floating} style={PopupStyling}>
       This is the popup
     </div>
-  ) : null;
+  );
 };
 
 export default Popup;
