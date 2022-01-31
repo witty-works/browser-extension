@@ -79,7 +79,7 @@ const Input: React.FC<{
     else {
       setTextToCheck(nextText)
     }
-  }, 1000);
+  }, 3000);
 
   const handleElementScrollEvent = throttle(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
