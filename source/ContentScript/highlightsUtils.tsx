@@ -1,92 +1,110 @@
-import { IAlert, INodeWithAlerts } from "../shared/types";
 import { isInputText, isTextArea } from "../shared/utils";
 
 const ratio = window.devicePixelRatio;
 
 export const drawHighlight = (params: any, color: string) => {
-
-    let x = params.rect.left - params.elementRect.left;
-    let y = params.rect.top - params.elementRect.top;
-    let width = params.rect.width;
-    let height = params.rect.height;
+    const { roundedHighlight, context, rect, elementRect } = params;
+    //the +/- is to add some padding to the highlight
+    let x = rect.left - elementRect.left - 1.5;
+    let y = rect.top - elementRect.top + 1;
+    let width = rect.width + 3;
+    let height = rect.height - 1;
     let radius = 4;
 
-    params.context.clearRect(x - 1, y - 1, width + 2, height + 2); // clear the previous rectangle (hover)
-    params.roundedHighlight.moveTo(x + radius, y);
-    params.roundedHighlight.arcTo(x + width, y, x + width, y + height, radius);
-    params.roundedHighlight.arcTo(x + width, y + height, x, y + height, radius);
-    params.roundedHighlight.arcTo(x, y + height, x, y, radius);
-    params.roundedHighlight.arcTo(x, y, x + width, y, radius);
-    params.roundedHighlight.closePath();
+    // context.clearRect(x - 1, y - 1, width + 2, height + 2); // clear the previous rectangle (hover)
+    roundedHighlight.moveTo(x + radius, y);
+    roundedHighlight.arcTo(x + width, y, x + width, y + height, radius);
+    roundedHighlight.arcTo(x + width, y + height, x, y + height, radius);
+    roundedHighlight.arcTo(x, y + height, x, y, radius);
+    roundedHighlight.arcTo(x, y, x + width, y, radius);
+    roundedHighlight.closePath();
 
-    params.context.fillStyle = color;
-    params.context.fill(params.roundedHighlight)
+    context.fillStyle = color;
+    context.fill(roundedHighlight)
 };
 
 export const redrawText = (params: any) => {
-
-    let x = params.rect.left - params.elementRect.left;
-    let y = params.rect.top - params.elementRect.top + params.rect.height;
-
-    const style = window.getComputedStyle(params.element);
-    params.context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
-
+    const { element, context, highlight, rect, elementRect } = params;
+    const style = window.getComputedStyle(element);
+    let x = rect.left - elementRect.left;
+    let y = rect.top - elementRect.top + rect.height;
+    context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
     let color = style.color;
 
     //adjusts font color when text is light, so that it is readable
-    if (isLight(color)) {
+    if (textIsLight(color)) {
         color = 'black';
+    } else {
+        //makes text color 100% opaque, as it looks better that transparent text
+        color = makeTextOpaque(color);
     }
-    params.context.fillStyle = color;
-    params.context.textBaseline = "bottom";
-    params.context.fillText(params.highlight.data.text, x, y);
+
+    context.fillStyle = color;
+    context.textBaseline = "bottom";
+    context.fillText(highlight.data.text, x, y);
 };
 
 
 export const handleCanvasClick = (event: MouseEvent, params: any) => {
-    if (params.context.isPointInPath(params.roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
-        const nodeAlerts = params.nodesWithAlertsRef.current;
-
-        const oneNodeWithAlerts = nodeAlerts.find((nodeWithAlerts: INodeWithAlerts) =>
-            isTextArea(params.target) || isInputText(params.target)
-                ? nodeWithAlerts.node.parentNode === params.cloneRef.current
-                : nodeWithAlerts.node.parentNode === params.target
-        );
-        if (!oneNodeWithAlerts) return;
-
-        const selectedAlert = oneNodeWithAlerts.alerts
-            .filter((alert: IAlert) => {
-                return (
-                    alert.startOffset <= params.highlight.startOffset &&
-                    alert.endOffset >= params.highlight.endOffset
-                );
-            })
-            .pop() as IAlert;
-        const nodeText = oneNodeWithAlerts.node;
-        if (!selectedAlert) return;
-
-        const range = document.createRange();
-        range.setStart(nodeText, selectedAlert.startOffset);
-        range.setEnd(nodeText, selectedAlert.endOffset);
-
-        return {
-            alert: selectedAlert,
-            position: range.getClientRects()[0],
-            node: oneNodeWithAlerts.node,
-            originalNode: isTextArea(params.target) || isInputText(params.target) ? params.target : null,
-        };
-    } else {
+    const { target, context, roundedHighlight, highlight, canvas } = params;
+    if (!context.isPointInPath(roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
         //allows user to type again
-        params.canvas.style.pointerEvents = 'none';
-        params.element.focus();
+        canvas.style.pointerEvents = 'none';
+        canvas.focus();
         setTimeout(() => {
-            params.canvas.style.pointerEvents = 'auto';
+            canvas.style.pointerEvents = 'auto';
         }, 1000);
         return;
     }
+    const nodeText = highlight.node;
+    if (!highlight) return;
+    const range = document.createRange();
+    range.setStart(nodeText, highlight.startOffset);
+    range.setEnd(nodeText, highlight.endOffset);
+
+    return {
+        alert: highlight,
+        position: range.getClientRects()[0],
+        node: highlight.node,
+        originalNode: isTextArea(target) || isInputText(target) ? target : null,
+    };
 };
 
-const isLight = (color: any) => {
+// export const handleCanvasMouseMove = (event: MouseEvent, params: any) => {
+//     const { highlightColor, context, hoverColor, roundedHighlight } = params;
+//     const ratio = window.devicePixelRatio;
+
+//     if (context.isPointInPath(roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
+//         drawHighlight(params, hoverColor);
+//         redrawText(params);
+//     } else {
+//         drawHighlight(params, highlightColor);
+//         redrawText(params);
+//     }
+// };
+
+const makeTextOpaque = (color: any) => {
+    //if rgb:
+    if (color.indexOf('rgb') !== -1) {
+        const rgb = color.match(/\d+/g);
+        const r = parseInt(rgb[0]);
+        const g = parseInt(rgb[1]);
+        const b = parseInt(rgb[2]);
+        const a = 1;
+        return `rgba(${r},${g},${b},${a})`;
+
+    } else {
+        //if hex:
+        const hex = color.match(/\w+/g);
+        const r = parseInt(hex[0], 16);
+        const g = parseInt(hex[1], 16);
+        const b = parseInt(hex[2], 16);
+        const a = 1;
+        return `rgba(${r},${g},${b},${a})`;
+    }
+};
+
+const textIsLight = (color: any) => {
     let r: any;
     let g: any;
     let b: any;
@@ -95,7 +113,6 @@ const isLight = (color: any) => {
     // Check the format of the color, HEX or RGB
     if (color.match(/^rgb/)) {
         color = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/);
-
         r = color[1];
         g = color[2];
         b = color[3];
@@ -103,7 +120,6 @@ const isLight = (color: any) => {
     else {
         // If hex --> Convert it to RGB: http://gist.github.com/983661
         color = +("0x" + color.slice(1).replace(color.length < 5 && /./g, '$&$&'));
-
         r = color >> 16;
         g = color >> 8 & 255;
         b = color & 255;
@@ -115,10 +131,5 @@ const isLight = (color: any) => {
         0.114 * (b * b)
     );
     // Using the HSP value, determine whether the color is light or dark
-    if (hsp > 127.5) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    return hsp > 127.5 ? true : false;
 }

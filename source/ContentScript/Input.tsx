@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-
+import React, { useState, useEffect, useRef } from 'react';
 import TextAreaClone from './TextAreaClone';
-// import InputTextClone from './InputTextClone';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -33,8 +31,8 @@ const Input: React.FC<{
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
   const [target, setTarget] = useState<CustomInputElement>({} as CustomInputElement);
 
-  const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef<INodeWithAlerts[]>([]);
-  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
+  const [nodesWithAlerts, setNodesWithAlerts] = useStateRef([] as INodeWithAlerts[]);
+  const [clone, setClone] = useStateRef({} as HTMLDivElement);
 
   const log = useLog('Input');
 
@@ -45,7 +43,6 @@ const Input: React.FC<{
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
-    element.addEventListener('click', handleClickElement as EventListener);
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
@@ -61,7 +58,6 @@ const Input: React.FC<{
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      element.removeEventListener('click', handleClickElement as EventListener);
 
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
@@ -78,6 +74,7 @@ const Input: React.FC<{
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
     else {
       setTextToCheck(nextText)
+      setTarget(element);
     }
   }, 3000);
 
@@ -110,10 +107,6 @@ const Input: React.FC<{
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
-  };
-
-  const handleClickElement = (event: MouseEvent) => {
-    setTarget(event.target as CustomInputElement);
   };
 
   useEffect(() => {
@@ -156,16 +149,13 @@ const Input: React.FC<{
   }, [checkEndpointResponse]);
 
   useEffect(() => {
-    console.log('ignored terms', ignoredTerms);
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
-      console.log('clone', clone);
       if (isTextArea(element) || isInputText(element)) {
         if (!clone.firstChild) {
-          console.log('no clone');
           return;
         }
         setNodesWithAlerts([
@@ -246,16 +236,12 @@ const Input: React.FC<{
 
 
   useEffect(() => {
-    console.log('nodes with alerts updated', nodesWithAlerts);
     let newHighlights: Highlight[] = [];
     if (nodesWithAlerts.length > 0) {
       nodesWithAlerts.forEach(({ node, alerts }) => {
-
         //quick fix to avoid error: check if node exists in the DOM
         //but also filter alerts that have a bigger endOffset than the length of the text
         if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
-          console.log('node', node);
-          console.log('alerts', alerts);
           alerts
             .filter(
               (alert: IAlert) =>
@@ -295,18 +281,6 @@ const Input: React.FC<{
     }
   }, [nodesWithAlerts, parentScroll, elementScroll]);
 
-  const handleCanvasMouseMove = useCallback((event: MouseEvent, params: any) => {
-    const ratio = window.devicePixelRatio;
-
-    if (params.context.isPointInPath(params.roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
-      drawHighlight(params, params.hoverColor);
-      redrawText(params);
-    } else {
-      drawHighlight(params, params.highlightColor);
-      redrawText(params);
-    }
-  }, [highlights]);
-
   useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
     if (!canvas) return;
@@ -321,7 +295,6 @@ const Input: React.FC<{
     if (!context) return;
     context.scale(ratio, ratio)
     context.clearRect(0, 0, canvas.width, canvas.height);
-    console.error('recieved new highlights', highlights);
 
     highlights.forEach((highlight) => {
       highlight.rects.forEach((rect: DOMRect) => {
@@ -340,48 +313,26 @@ const Input: React.FC<{
           elementRect,
           target,
           canvas,
-          nodesWithAlertsRef,
-          cloneRef,
         };
-
-        console.log('params', params);
-        if (!params.roundedHighlight == undefined) return
 
         drawHighlight(params, highlightColor);
         redrawText(params);
 
-        canvas.addEventListener('mousemove', function (event: MouseEvent) {
-          handleCanvasMouseMove(event, params);
-        });
+        //TODO: figure out better way to how to add hover effect
+        // canvas.addEventListener('mousemove', function (event: MouseEvent) {
+        //   handleCanvasMouseMove(event, params);
+        // });
 
         canvas.addEventListener('click', function (event: MouseEvent) {
           const newModalData = handleCanvasClick(event, params);
-          //allows user to double click 
-          if (newModalData) {
+          //timeout allows user to double click 
+          if (newModalData && newModalData.position && newModalData.alert && newModalData.node) {
             setTimeout(() => {
               setModalData(newModalData);
               toggleModal();
             }, 500);
           }
         });
-
-        //remove event listeners
-        return () => {
-          canvas.removeEventListener('mousemove', function (event: MouseEvent) {
-            handleCanvasMouseMove(event, params);
-          });
-
-          // canvas.removeEventListener('click', function (event: MouseEvent) {
-          //   const newModalData = handleCanvasClick(event, params);
-          //   //allows user to double click 
-          //   if (newModalData) {
-          //     setTimeout(() => {
-          //       setModalData(newModalData);
-          //       toggleModal();
-          //     }, 500);
-          //   }
-          // });
-        }
       });
     });
   }, [highlights]);
