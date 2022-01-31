@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import TextAreaClone from './TextAreaClone';
 // import InputTextClone from './InputTextClone';
@@ -13,7 +13,7 @@ import Modal from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { getColor } from '../shared/constants';
 import { throttle } from 'lodash';
-import { drawHighlight, redrawText } from './Highlights';
+import { drawHighlight, handleCanvasClick, redrawText } from './highlightsUtils';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -91,9 +91,8 @@ const Input: React.FC<{
     setNodesWithAlerts([]);
   };
 
-  const updateCloneData = (clone: HTMLDivElement) => {
-    setClone(clone);
-    // console.log('updateCloneData', clone);
+  const updateCloneData = (newClone: HTMLDivElement) => {
+    setClone(newClone);
   };
 
   const toggleModal = (): void => {
@@ -111,6 +110,10 @@ const Input: React.FC<{
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
+  };
+
+  const handleClickElement = (event: MouseEvent) => {
+    setTarget(event.target as CustomInputElement);
   };
 
   useEffect(() => {
@@ -241,6 +244,7 @@ const Input: React.FC<{
       );
   }, [checkEndpointError]);
 
+
   useEffect(() => {
     console.log('nodes with alerts updated', nodesWithAlerts);
     let newHighlights: Highlight[] = [];
@@ -283,7 +287,6 @@ const Input: React.FC<{
                 endOffset: alert.endOffset,
                 node: node,
               };
-              console.log('new highlight', newHighlight);
               newHighlights.push(newHighlight);
             });
           setHighlights(newHighlights);
@@ -292,113 +295,95 @@ const Input: React.FC<{
     }
   }, [nodesWithAlerts, parentScroll, elementScroll]);
 
-  const handleClickElement = (event: MouseEvent) => {
-    setTarget(event.target as CustomInputElement);
-  };
+  const handleCanvasMouseMove = useCallback((event: MouseEvent, params: any) => {
+    const ratio = window.devicePixelRatio;
 
+    if (params.context.isPointInPath(params.roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
+      drawHighlight(params, params.hoverColor);
+      redrawText(params);
+    } else {
+      drawHighlight(params, params.highlightColor);
+      redrawText(params);
+    }
+  }, [highlights]);
 
   useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
-    if (canvas) {
-      //makes the canvas ratio correct, needed to make text clear
-      let ratio = window.devicePixelRatio;
-      canvas.width = elementRect.width * ratio;
-      canvas.height = elementRect.height * ratio;
-      canvas.style.width = elementRect.width + "px";
-      canvas.style.height = elementRect.height + "px";
-      const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+    if (!canvas) return;
+    //makes the canvas ratio correct, needed to make text clear
+    const ratio = window.devicePixelRatio;
+    canvas.width = elementRect.width * ratio;
+    canvas.height = elementRect.height * ratio;
+    canvas.style.width = elementRect.width + "px";
+    canvas.style.height = elementRect.height + "px";
+    const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
 
-      if (context) {
-        context.scale(ratio, ratio)
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        console.log('CLEAR')
+    if (!context) return;
+    context.scale(ratio, ratio)
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    console.error('recieved new highlights', highlights);
 
-        console.error('recieved new highlights', highlights);
+    highlights.forEach((highlight) => {
+      highlight.rects.forEach((rect: DOMRect) => {
+        const highlightColor = `${getColor(highlight.data.category).highlight}`;
+        const hoverColor = `${getColor(highlight.data.category).hover}`;
+        const roundedHighlight = new Path2D();
 
-        highlights.forEach((highlight) => {
-          highlight.rects.forEach((rect: DOMRect) => {
-            const highlightColor = `${getColor(highlight.data.category).highlight}`;
-            const hoverColor = `${getColor(highlight.data.category).hover}`;
-            const roundedHighlight = new Path2D();
+        const params = {
+          context,
+          element,
+          roundedHighlight,
+          highlight,
+          highlightColor,
+          hoverColor,
+          rect,
+          elementRect,
+          target,
+          canvas,
+          nodesWithAlertsRef,
+          cloneRef,
+        };
 
-            drawHighlight(context, roundedHighlight, highlightColor, rect, elementRect);
-            redrawText(context, element, highlight, rect, elementRect);
+        console.log('params', params);
+        if (!params.roundedHighlight == undefined) return
 
-            //hover highlight
-            canvas.addEventListener('mousemove', function (e) {
-              if (context.isPointInPath(roundedHighlight, e.offsetX * ratio, e.offsetY * ratio)) {
-                drawHighlight(context, roundedHighlight, hoverColor, rect, elementRect);
-                redrawText(context, element, highlight, rect, elementRect);
-              } else {
-                drawHighlight(context, roundedHighlight, highlightColor, rect, elementRect);
-                redrawText(context, element, highlight, rect, elementRect);
-              }
-            });
+        drawHighlight(params, highlightColor);
+        redrawText(params);
 
-            //click highlight
-            canvas.addEventListener('click', function (event) {
-              if (context.isPointInPath(roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
-                const nodeAlerts = nodesWithAlertsRef.current;
-
-                const oneNodeWithAlerts = nodeAlerts.find((nodeWithAlerts: INodeWithAlerts) =>
-                  //TODO potentially this acces to parentNode could fail
-                  isTextArea(target) || isInputText(target)
-                    ? nodeWithAlerts.node.parentNode === cloneRef.current
-                    : nodeWithAlerts.node.parentNode === target
-                );
-
-                console.log('oneNodeWithAlerts', oneNodeWithAlerts);
-                console.log(highlight)
-                if (oneNodeWithAlerts) {
-                  const selectedAlert = oneNodeWithAlerts.alerts
-                    .filter((alert: IAlert) => {
-                      return (
-                        alert.startOffset <= highlight.startOffset &&
-                        alert.endOffset >= highlight.endOffset
-                      );
-                    })
-                    .pop() as IAlert;
-
-                  const nodeText = oneNodeWithAlerts.node;
-                  console.log('selectedAlert', selectedAlert);
-
-                  if (selectedAlert) {
-                    const range = document.createRange();
-                    range.setStart(nodeText, selectedAlert.startOffset);
-                    range.setEnd(nodeText, selectedAlert.endOffset);
-                    const clickedRect = range.getClientRects()[0];
-
-                    //allows user to double click 
-                    setTimeout(() => {
-                      setModalData({
-                        alert: selectedAlert,
-                        position: clickedRect,
-                        node: oneNodeWithAlerts.node,
-                        originalNode:
-                          isTextArea(target) || isInputText(target) ? target : null,
-                      });
-                      toggleModal();
-                    }, 500);
-
-                  }
-                }
-              } else {
-                //allows user to type again
-                canvas.style.pointerEvents = 'none';
-                element.focus();
-                setTimeout(() => {
-                  canvas.style.pointerEvents = 'auto';
-                }, 1000);
-              }
-            })
-
-          });
+        canvas.addEventListener('mousemove', function (event: MouseEvent) {
+          handleCanvasMouseMove(event, params);
         });
-      }
-    } else {
-      //TODO Provide Canvas Fallback content?
-      //https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_usage
-    }
+
+        canvas.addEventListener('click', function (event: MouseEvent) {
+          const newModalData = handleCanvasClick(event, params);
+          //allows user to double click 
+          if (newModalData) {
+            setTimeout(() => {
+              setModalData(newModalData);
+              toggleModal();
+            }, 500);
+          }
+        });
+
+        //remove event listeners
+        return () => {
+          canvas.removeEventListener('mousemove', function (event: MouseEvent) {
+            handleCanvasMouseMove(event, params);
+          });
+
+          // canvas.removeEventListener('click', function (event: MouseEvent) {
+          //   const newModalData = handleCanvasClick(event, params);
+          //   //allows user to double click 
+          //   if (newModalData) {
+          //     setTimeout(() => {
+          //       setModalData(newModalData);
+          //       toggleModal();
+          //     }, 500);
+          //   }
+          // });
+        }
+      });
+    });
   }, [highlights]);
 
   return (
@@ -428,6 +413,7 @@ const Input: React.FC<{
           overflow: 'auto',
           left: `${elementRect.left}px`,
           top: `${elementRect.top}px`,
+          zIndex: 99999999,
         } as React.CSSProperties}
         width={elementRect.width}
         height={elementRect.height}
