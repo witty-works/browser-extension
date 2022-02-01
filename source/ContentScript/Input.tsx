@@ -284,6 +284,7 @@ const Input: React.FC<{
   useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current;
     if (!canvas) return;
+
     //makes the canvas ratio correct, needed to make text clear
     const ratio = window.devicePixelRatio;
     canvas.width = elementRect.width * ratio;
@@ -291,17 +292,15 @@ const Input: React.FC<{
     canvas.style.width = elementRect.width + "px";
     canvas.style.height = elementRect.height + "px";
     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
-
     if (!context) return;
+
     context.scale(ratio, ratio)
     context.clearRect(0, 0, canvas.width, canvas.height);
-
     highlights.forEach((highlight) => {
       highlight.rects.forEach((rect: DOMRect) => {
         const highlightColor = `${getColor(highlight.data.category).highlight}`;
         const hoverColor = `${getColor(highlight.data.category).hover}`;
         const roundedHighlight = new Path2D();
-
         const params = {
           context,
           element,
