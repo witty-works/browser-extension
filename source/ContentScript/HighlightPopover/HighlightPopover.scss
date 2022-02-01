@@ -4,7 +4,7 @@
 #ww-highlight-popover {
   display: 'flex';
   background-color: #ffffff;
-  color: #1a1a1a;
+  color: $black;
   z-index: 999999999;
   padding-left: 16px;
   padding-right: 16px;
@@ -35,10 +35,12 @@
 }
 
 .ww-highlight-popover-separator {
-  border: 1px solid $greyWhite;
   margin: 0;
   margin-left: -1em;
   margin-right: -1em;
+  background-color: $whiteGray;
+  border: 0;
+  height: 1px;
 }
 
 // Alternatives section
@@ -51,26 +53,44 @@
   flex-direction: column;
 }
 
-.ww-highlight-popover-link {
+.ww-highlight-popover-alternative-btn {
   font-weight: bold;
-  color: #5acfb9;
-  background: rgba(90, 207, 185, 0.1);
+  color: $green;
+  background: rgba($green, 0.1);
   display: table;
-  margin: 5px auto 5px 0px;
-  padding: 2px;
+  margin: 4px auto 4px 0px;
+  padding: 2px 8px;
   cursor: pointer;
 
   &.remove-text {
     text-decoration: line-through !important;
   }
+
+  &:hover {
+    background: rgba($green, 0.2);
+    color: $black;
+  }
 }
 
 // Ignore section
-.ww-highlight-popover-row-ignore {
-  color: #e6635a;
+.ww-highlight-popover-row-ignore-container {
+  display: flex;
+  flex-direction: column;
+}
+
+// .ww-highlight-popover-row-ignore
+.ww-highlight-popover-ignore-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: $errorRed;
   font-weight: bold;
   margin-top: 0.5em;
   cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 //Icons
@@ -91,22 +111,36 @@
 
 // More info section
 .ww-highlight-popover-row-more-title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   font-weight: bold;
-  color: #1a1a1a;
+  color: $black;
   cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .ww-highlight-popover-row-more-text {
-  color: #656565;
+  color: $darkGray;
   margin-left: 1em;
 }
 
 //Settings section
-.ww-highlight-popover-row-url {
-  color: #656565;
+.ww-highlight-popover-home-link-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.ww-highlight-popover-home-link {
+  color: $darkGray;
+  font-size: 16px;
 
   &:hover {
-    color: #656565;
-    text-decoration: none;
+    color: $darkGray;
+    text-decoration: underline;
   }
 }

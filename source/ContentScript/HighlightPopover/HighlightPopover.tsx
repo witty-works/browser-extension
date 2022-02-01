@@ -150,50 +150,54 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
         {data.alert.data.alternatives.filter((word) => word != ' ').length >
           0 && (
-          <div className='ww-highlight-popover-row'>
-            <div className='ww-highlight-popover-row-title-alternative'>
-              {t('insteadTry')}
-            </div>
-            <div className='ww-highlight-popover-row-alternatives-container'>
-              {data.alert.data.alternatives
-                .slice(0, 5)
-                .map((alternative, index) =>
-                  alternative.localeCompare('-') === 0 ? (
-                    <div
-                      className='ww-highlight-popover-link remove-text'
-                      key={`${index}-remove-it`}
-                      onClick={() => clickAlternative(-1)}
-                    >
-                      {data.alert.data.text}
-                    </div>
-                  ) : (
-                    <div
-                      className='ww-highlight-popover-link'
-                      key={`${index}-${alternative}`}
-                      onClick={() => clickAlternative(index)}
-                    >
-                      {alternative}
-                    </div>
-                  )
-                )}
-            </div>
-            <div
-              className='ww-highlight-popover-row-ignore'
-              onClick={() => clickIgnoreTerm()}
-            >
-              <img
-                className='ww-highlight-popover-icon'
-                alt='Ignore Alternatives'
-                src={browser.runtime.getURL(
-                  '../../../assets/icons/popover/ignore.svg'
-                )}
-              />
-              {t('ignoreTerm')}
-            </div>
-          </div>
-        )}
+          <>
+            <div className='ww-highlight-popover-row'>
+              <div className='ww-highlight-popover-row-title-alternative'>
+                {t('insteadTry')}
+              </div>
+              <div className='ww-highlight-popover-row-alternatives-container'>
+                {data.alert.data.alternatives
+                  .slice(0, 5)
+                  .map((alternative, index) =>
+                    alternative.localeCompare('-') === 0 ? (
+                      <div
+                        className='ww-highlight-popover-alternative-btn remove-text'
+                        key={`${index}-remove-it`}
+                        onClick={() => clickAlternative(-1)}
+                      >
+                        {data.alert.data.text}
+                      </div>
+                    ) : (
+                      <div
+                        className='ww-highlight-popover-alternative-btn'
+                        key={`${index}-${alternative}`}
+                        onClick={() => clickAlternative(index)}
+                      >
+                        {alternative}
+                      </div>
+                    )
+                  )}
+              </div>
+              <div className='ww-highlight-popover-row-ignore-container'>
+                <div
+                  className='ww-highlight-popover-ignore-btn'
+                  onClick={() => clickIgnoreTerm()}
+                >
+                  <img
+                    className='ww-highlight-popover-icon'
+                    alt='Ignore Alternatives'
+                    src={browser.runtime.getURL(
+                      '../../../assets/icons/popover/ignore.svg'
+                    )}
+                  />
 
-        <hr className='ww-highlight-popover-separator' />
+                  {t('ignoreTerm')}
+                </div>
+              </div>
+            </div>
+            <hr className='ww-highlight-popover-separator' />
+          </>
+        )}
 
         <div className='ww-highlight-popover-row'>
           <div
@@ -211,7 +215,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
           {isToggleOpen && (
             <div className='ww-highlight-popover-row-more-text'>
-              {data.alert.data.solution + ' ' + data.alert.data.reason}
+              {data.alert.data.solution}
+              <br />
+              {data.alert.data.reason}
             </div>
           )}
         </div>
@@ -219,25 +225,27 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         <hr className='ww-highlight-popover-separator' />
 
         <div className='ww-highlight-popover-row'>
-          <img
-            className='ww-highlight-popover-icon-large'
-            alt='Witty Works Logo' //TODO translation
-            src={browser.runtime.getURL(
-              '../../../assets/icons/w-logo-wire-color.svg'
-            )}
-          />
-          <a
-            className='ww-highlight-popover-row-url'
-            href='https://www.witty.works/'
-          >
-            Witty.Works
-          </a>
-          {/* TODO: when settings page available, add link here */}
-          {/* <img
+          <div className='ww-highlight-popover-home-link-container'>
+            <img
+              className='ww-highlight-popover-icon-large'
+              alt='Witty Works Logo' //TODO translation
+              src={browser.runtime.getURL(
+                '../../../assets/icons/w-logo-wire-color.svg'
+              )}
+            />
+            <a
+              className='ww-highlight-popover-home-link'
+              href='https://www.witty.works/'
+            >
+              witty.works
+            </a>
+            {/* TODO: when settings page available, add link here */}
+            {/* <img
               className='ww-highlight-popover-icon-large ww-highlight-popover-icon-float-right'
               alt='Settings'
               src={browser.runtime.getURL('../../../assets/icons/popover/settings.svg')}
             /> */}
+          </div>
         </div>
       </div>
     </div>
