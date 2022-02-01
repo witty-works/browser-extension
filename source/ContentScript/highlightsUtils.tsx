@@ -37,7 +37,7 @@ export const redrawText = (params: any) => {
 
 
 export const handleCanvasClick = (event: MouseEvent, params: any) => {
-    const { target, context, roundedHighlight, highlight, canvas } = params;
+    const { element, context, roundedHighlight, highlight, canvas } = params;
     const ratio = window.devicePixelRatio;
     if (!context.isPointInPath(roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
         //allows user to type again
@@ -57,7 +57,7 @@ export const handleCanvasClick = (event: MouseEvent, params: any) => {
         alert: highlight,
         position: range.getClientRects()[0],
         node: highlight.node,
-        originalNode: isTextArea(target) || isInputText(target) ? target : null,
+        originalNode: isTextArea(element) || isInputText(element) ? element : null,
     };
 };
 

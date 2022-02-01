@@ -29,7 +29,6 @@ const Input: React.FC<{
   const [modalData, setModalData] = useState<ModalData>({} as ModalData);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-  const [target, setTarget] = useState<CustomInputElement>({} as CustomInputElement);
 
   const [nodesWithAlerts, setNodesWithAlerts] = useStateRef([] as INodeWithAlerts[]);
   const [clone, setClone] = useStateRef({} as HTMLDivElement);
@@ -74,7 +73,6 @@ const Input: React.FC<{
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
     else {
       setTextToCheck(nextText)
-      setTarget(element);
     }
   }, 3000);
 
@@ -310,7 +308,6 @@ const Input: React.FC<{
           hoverColor,
           rect,
           elementRect,
-          target,
           canvas,
         };
 

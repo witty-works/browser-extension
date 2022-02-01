@@ -53,7 +53,6 @@ export const useAnalytics = () => {
         request__ignored: logResponse.data.text,
       };
 
-      //TEMP
       ph.capture('ignore', {
         ...request,
         response: logResponse,
