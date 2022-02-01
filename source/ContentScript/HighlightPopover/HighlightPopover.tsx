@@ -60,7 +60,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     },
   });
 
-  const { x, y, reference, floating, strategy, refs } = useFloating({
+  const { x, y, reference, floating, strategy, refs, update } = useFloating({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
@@ -145,6 +145,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const toggleText = () => {
     setIsToggleOpen(!isToggleOpen);
   };
+
+  // When toggle opens or closes, popover size change,
+  // therefore the positioning needs to be updated
+  useEffect(() => {
+    update();
+  }, [isToggleOpen]);
 
   return (
     <div id='ww-highlight-popover' ref={floating} style={PopoverStyling}>
