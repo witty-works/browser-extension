@@ -11,7 +11,7 @@ import Modal from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { getColor } from '../shared/constants';
 import { throttle } from 'lodash';
-import { drawHighlight, handleCanvasClick, redrawText } from './highlightsUtils';
+import { drawLine, handleCanvasClick, drawHighlight } from './highlightsUtils';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -21,7 +21,7 @@ const Input: React.FC<{
   const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpoint();
   const analytics = useAnalytics();
   const elementRect = useResizeObserver(element);
-  const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [highlights, setHighlights] = useState<Highlight[]>([])
@@ -280,7 +280,7 @@ const Input: React.FC<{
   }, [nodesWithAlerts, parentScroll, elementScroll]);
 
   useEffect(() => {
-    const canvas: HTMLCanvasElement = canvasRef.current;
+    const canvas = canvasRef.current;
     if (!canvas) return;
 
     //makes the canvas ratio correct, needed to make text clear
@@ -294,43 +294,43 @@ const Input: React.FC<{
 
     context.scale(ratio, ratio)
     context.clearRect(0, 0, canvas.width, canvas.height);
-    highlights.forEach((highlight) => {
-      highlight.rects.forEach((rect: DOMRect) => {
-        const highlightColor = `${getColor(highlight.data.category).highlight}`;
-        const hoverColor = `${getColor(highlight.data.category).hover}`;
-        const roundedHighlight = new Path2D();
-        const params = {
-          context,
-          element,
-          roundedHighlight,
-          highlight,
-          highlightColor,
-          hoverColor,
-          rect,
-          elementRect,
-          canvas,
-        };
+    const canvasClickListeners: Array<(e: MouseEvent) => void> = highlights.map((highlight) => {
+      const [rect] = highlight.rects;
+      const hoverColor = `${getColor(highlight.data.category).hover}`;
+      const highlightColor = `${getColor(highlight.data.category).highlight}`;
+      const roundedHighlight = new Path2D();
+      const params = {
+        context,
+        element,
+        roundedHighlight,
+        highlight,
+        hoverColor,
+        highlightColor,
+        rect,
+        elementRect,
+        canvas,
+      };
 
-        drawHighlight(params, highlightColor);
-        redrawText(params);
+      drawHighlight(params, 'transparent'); //the clickable container
+      drawLine(params, hoverColor);
 
-        //TODO: figure out better way to how to add hover effect
-        // canvas.addEventListener('mousemove', function (event: MouseEvent) {
-        //   handleCanvasMouseMove(event, params);
-        // });
-
-        canvas.addEventListener('click', function (event: MouseEvent) {
-          const newModalData = handleCanvasClick(event, params);
+      return function (event: MouseEvent) {
+        const newModalData = handleCanvasClick(event, params);
+        if (newModalData && newModalData.alert && newModalData.position && newModalData.node) {
           //timeout allows user to double click 
-          if (newModalData && newModalData.position && newModalData.alert && newModalData.node) {
-            setTimeout(() => {
-              setModalData(newModalData);
-              toggleModal();
-            }, 500);
-          }
-        });
-      });
+          setTimeout(() => {
+            setModalData(newModalData);
+            toggleModal();
+          }, 500);
+        }
+      }
     });
+    canvasClickListeners.forEach((listener) => canvas.addEventListener('click', listener));
+
+    return () => {
+      canvasClickListeners.forEach((listener) => canvas.removeEventListener('click', listener));
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    };
   }, [highlights]);
 
   return (
