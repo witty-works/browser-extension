@@ -12,11 +12,7 @@
   "description": "__MSG_appDesc__",
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
-  "permissions": [
-    "storage",
-    "http://*/*",
-    "https://*/*"
-  ],
+  "permissions": ["storage", "http://*/*", "https://*/*"],
   "content_security_policy": "script-src 'self'; object-src 'self'",
   "__chrome|firefox__author": "Witty Works",
   "__opera__developer": {
@@ -47,29 +43,20 @@
     "__chrome__chrome_style": false
   },
   "background": {
-    "scripts": [
-      "js/background.bundle.js"
-    ],
+    "scripts": ["js/background.bundle.js"],
     "__chrome|opera__persistent": false
   },
   "content_scripts": [
     {
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
-      "js": [
-        "js/contentScript.bundle.js"
-      ],
-      "css": [
-        "css/contentScript.css"
-      ]
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["js/contentScript.bundle.js"],
+      "css": ["css/contentScript.css"]
     }
   ],
   "web_accessible_resources": [
     "assets/icons/w-logo-wire-color.svg",
-    "assets/icons/modal/ignore.svg",
-    "assets/icons/modal/more.svg",
-    "assets/icons/modal/settings.svg"
+    "assets/icons/popover/ignore.svg",
+    "assets/icons/popover/more.svg",
+    "assets/icons/popover/settings.svg"
   ]
 }

@@ -1,7 +1,6 @@
-@import "../styles/fonts";
-@import "../styles/reset";
-@import "../styles/variables";
-
+@import '../styles/fonts';
+@import '../styles/reset';
+@import '../styles/variables';
 
 body {
   font-family: $lato;
@@ -16,7 +15,7 @@ a {
   min-width: 300px;
   display: flex;
   flex-direction: column;
-  justify-content:space-around;
+  justify-content: space-around;
 }
 
 header {
@@ -27,7 +26,7 @@ section {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  justify-content:space-around;
+  justify-content: space-around;
 
   > div:not(:last-child) {
     margin-bottom: 0.8rem;
@@ -40,12 +39,11 @@ section {
 }
 
 hr {
-  border: 1px solid $greyWhite;
+  border: 1px solid $whiteGray;
   margin: 0;
 }
 
-footer{
+footer {
   padding: 1rem;
-  background-color: $greyWhite;
+  background-color: $whiteGray;
 }
-

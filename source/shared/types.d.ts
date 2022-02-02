@@ -18,13 +18,6 @@ export interface Highlight {
   node: Node;
 }
 
-export interface ModalData {
-  alert: IAlert;
-  position: DOMRect;
-  node: Node;
-  originalNode: HTMLTextAreaElement | HTMLInputElement | null;
-}
-
 export type CustomInputElement =
   | HTMLTextAreaElement
   | HTMLInputElement

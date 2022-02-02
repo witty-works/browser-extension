@@ -3,15 +3,18 @@ import TextAreaClone from './TextAreaClone';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import { CustomInputElement, IAlert, Highlight, INodeWithAlerts, ModalData, ScrollPos } from '../shared/types';
+import { CustomInputElement, IAlert, Highlight, INodeWithAlerts, ScrollPos } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText, elementExistsinDOM } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
-import Modal from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { getColor } from '../shared/constants';
 import { throttle } from 'lodash';
 import { drawLine, handleCanvasClick, drawHighlight } from './highlightsUtils';
+import HighlightPopover, {
+  PopoverData,
+} from './HighlightPopover/HighlightPopover';
+import InputTextClone from './InputTextClone';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -25,8 +28,13 @@ const Input: React.FC<{
 
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [highlights, setHighlights] = useState<Highlight[]>([])
-  const [elementScroll, setElementScroll] = useState<ScrollPos>({ top: 0, left: 0 } as ScrollPos);
-  const [modalData, setModalData] = useState<ModalData>({} as ModalData);
+  const [elementScroll, setElementScroll] = useState<ScrollPos>({
+    top: 0,
+    left: 0,
+  } as ScrollPos);
+  const [popoverData, setPopoverData] = useState<PopoverData>(
+    {} as PopoverData
+  );
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
@@ -57,7 +65,6 @@ const Input: React.FC<{
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
@@ -70,9 +77,10 @@ const Input: React.FC<{
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
+      setNodesWithAlerts([]);
     else {
-      setTextToCheck(nextText)
+      setTextToCheck(nextText);
     }
   }, 3000);
 
@@ -314,11 +322,11 @@ const Input: React.FC<{
       drawLine(params, hoverColor);
 
       return function (event: MouseEvent) {
-        const newModalData = handleCanvasClick(event, params);
-        if (newModalData && newModalData.alert && newModalData.position && newModalData.node) {
+        const newPopoverData = handleCanvasClick(event, params);
+        if (newPopoverData && newPopoverData.alert && newPopoverData.position && newPopoverData.node) {
           //timeout allows user to double click 
           setTimeout(() => {
-            setModalData(newModalData);
+            setPopoverData(newPopoverData);
             toggleModal();
           }, 500);
         }
@@ -343,10 +351,18 @@ const Input: React.FC<{
           updateClone={updateCloneData}
         />
       )}
-      {modalData.alert && (
-        <Modal
-          isOpen={isOpen}
-          data={modalData}
+      {isInputText(element) && (
+        <InputTextClone
+          element={element}
+          elementRect={elementRect}
+          updateClone={updateCloneData}
+        />
+      )}
+      {loading && <HighlightsLoader elementReference={element} />}
+      {popoverData.alert && isOpen && (
+        <HighlightPopover
+          element={element}
+          data={popoverData}
           hide={toggleModal}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
