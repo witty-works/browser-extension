@@ -10,11 +10,12 @@ import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { getColor } from '../shared/constants';
 import { throttle } from 'lodash';
-import { drawLine, handleCanvasClick, drawHighlight } from './highlightsUtils';
+import { drawLine, handleCanvasClick, drawHighlight, drawIcon } from './highlightsUtils';
 import HighlightPopover, {
   PopoverData,
 } from './HighlightPopover/HighlightPopover';
 import InputTextClone from './InputTextClone';
+const activeWittyIcon = require('../assets/icons/canvas/witty-active.svg') as string;
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -47,6 +48,7 @@ const Input: React.FC<{
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
+    console.log(element)
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
@@ -301,6 +303,15 @@ const Input: React.FC<{
 
     context.scale(ratio, ratio)
     context.clearRect(0, 0, canvas.width, canvas.height);
+    const iconDimensions = {
+      dx: canvas.width / 2.1,
+      dy: canvas.height / 2.2,
+      sWidth: 51,
+      sHeight: 45,
+    }
+
+    drawIcon(context, activeWittyIcon, iconDimensions);
+
     const canvasClickListeners: Array<(e: MouseEvent) => void> = highlights.map((highlight) => {
       const [rect] = highlight.rects;
       const hoverColor = `${getColor(highlight.data.category).hover}`;

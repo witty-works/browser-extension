@@ -1,4 +1,5 @@
-import { isInputText, isTextArea, makeTextOpaque, textIsLight } from "../shared/utils";
+import { IconDimensions } from '../shared/types';
+import { isInputText, isTextArea, makeTextOpaque, textIsLight } from '../shared/utils';
 
 export const drawLine = (params: any, color: string) => {
     const { context, rect, elementRect } = params;
@@ -12,6 +13,19 @@ export const drawLine = (params: any, color: string) => {
     context.strokeStyle = color;
     context.stroke();
 };
+
+export const drawIcon = (context: CanvasRenderingContext2D, icon: any, iconDimensions: IconDimensions) => {
+    console.log('drawIcon');
+    const DOMURL = window.URL || window.webkitURL || window;
+    const img1 = new Image();
+    const svg = new Blob([icon], { type: 'image/svg+xml' });
+    const url = DOMURL.createObjectURL(svg);
+    img1.onload = function () {
+        context!.drawImage(img1, iconDimensions.dx, iconDimensions.dy, iconDimensions.sWidth, iconDimensions.sHeight);
+        DOMURL.revokeObjectURL(url);
+    }
+    img1.src = url;
+}
 
 export const drawHighlight = (params: any, color: string) => {
     const { roundedHighlight, context, rect, elementRect } = params;

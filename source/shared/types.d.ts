@@ -5,6 +5,20 @@ export interface RequestConfig {
   german_gender_ending: string;
 }
 
+export interface CanvasPosition {
+  width: number;
+  height: number;
+  top: number;
+  left: number;
+}
+
+export interface IconDimensions {
+  dx: number;
+  dy: number;
+  sWidth: number;
+  sHeight: number;
+}
+
 export interface ScrollPos {
   top: number;
   left: number;

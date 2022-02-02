@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CustomInputElement, RequestConfig, ScrollPos } from '../shared/types';
+import { CanvasPosition, CustomInputElement, RequestConfig, ScrollPos } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
@@ -16,6 +16,9 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, elementExistsinDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
+import { drawIcon } from './highlightsUtils';
+
+const passiveWittyIcon = require('../assets/icons/canvas/witty-passive.svg') as string;
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
@@ -35,6 +38,15 @@ const ContentScriptApp: React.FC = () => {
     top: 0,
     left: 0,
   } as ScrollPos);
+
+  const [canvasPosition, setCanvasPosition] = useState<CanvasPosition>({
+    width: 0,
+    height: 0,
+    top: 0,
+    left: 0,
+  } as CanvasPosition);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const log = useLog('ContentScriptApp');
 
@@ -96,13 +108,18 @@ const ContentScriptApp: React.FC = () => {
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);
+    document.addEventListener('mouseover', handleMouseOver, true);
+    document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('scroll', handleDocumentScrollEvent);
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseout', handleMouseOut);
     };
   }, []);
+
 
   const storageChange = (changes: any) => {
     let changedItems = Object.keys(changes);
@@ -156,6 +173,53 @@ const ContentScriptApp: React.FC = () => {
         setInputs([...inputsRef.current, target]);
   };
 
+
+  const handleMouseOver = (event: MouseEvent) => {
+    const target = event.target as CustomInputElement;
+    if (!isInputElement(target)) return;
+    const { width, height, top, left } = target.getBoundingClientRect();
+    setCanvasPosition({
+      top: doc.scrollTop + top,
+      left: doc.scrollLeft + left,
+      width: width,
+      height: height,
+    });
+  }
+
+  const handleMouseOut = (event: MouseEvent) => {
+    const target = event.target as CustomInputElement;
+    if (!isInputElement(target)) return;
+    setCanvasPosition({
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+    });
+  }
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ratio = window.devicePixelRatio;
+    canvas.width = canvasPosition.width * ratio;
+    canvas.height = canvasPosition.height * ratio;
+    canvas.style.width = canvasPosition.width + "px";
+    canvas.style.height = canvasPosition.height + "px";
+    canvas.style.pointerEvents = 'none';
+    const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+    if (!context) return;
+
+    context.scale(ratio, ratio)
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    const iconDimensions = {
+      dx: canvas.width / 2,
+      dy: canvas.height / 2,
+      sWidth: 25,
+      sHeight: 21,
+    }
+    drawIcon(context, passiveWittyIcon, iconDimensions);
+  }, [canvasPosition]);
+
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
     if ((event.target as HTMLElement).nodeName === '#document') {
@@ -189,6 +253,17 @@ const ContentScriptApp: React.FC = () => {
   mutationObserver.observe(document.body, { childList: true, subtree: true });
   return (
     <>
+      <canvas ref={canvasRef}
+        style={{
+          position: 'absolute',
+          overflow: 'auto',
+          left: `${canvasPosition.left}px`,
+          top: `${canvasPosition.top}px`,
+          zIndex: 99999999,
+        } as React.CSSProperties}
+        width={canvasPosition.width}
+        height={canvasPosition.height}
+      />
       {inputs.map((input: CustomInputElement, index: number) => (
         <Input key={index} element={input} bodyScroll={bodyScroll} parentScroll={parentScroll} />
       ))}
