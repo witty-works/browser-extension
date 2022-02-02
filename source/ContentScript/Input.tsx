@@ -9,10 +9,11 @@ import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
-import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { throttle } from 'lodash';
-
+import HighlightPopover, {
+  PopoverData,
+} from './HighlightPopover/HighlightPopover';
 
 type HandleClick = () => void;
 
@@ -36,7 +37,9 @@ const Input: React.FC<{
     top: 0,
     left: 0,
   } as ScrollPos);
-  const [modalData, setModalData] = useState<ModalData>({} as ModalData);
+  const [popoverData, setPopoverData] = useState<PopoverData>(
+    {} as PopoverData
+  );
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
   // const [, setText, textRef] = useStateRef("");
@@ -49,7 +52,7 @@ const Input: React.FC<{
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
-    element.addEventListener('click', handleClickElement as EventListener);
+    element.addEventListener('click', handleElementClickEvent as EventListener);
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
@@ -65,7 +68,10 @@ const Input: React.FC<{
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      element.removeEventListener('click', handleClickElement as EventListener);
+      element.removeEventListener(
+        'click',
+        handleElementClickEvent as EventListener
+      );
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
@@ -84,9 +90,10 @@ const Input: React.FC<{
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
+      setNodesWithAlerts([]);
     else {
-      setTextToCheck(nextText)
+      setTextToCheck(nextText);
     }
   }, 3000);
 
@@ -96,7 +103,7 @@ const Input: React.FC<{
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
-  const handleClickElement = (event: MouseEvent) => {
+  const handleElementClickEvent = (event: MouseEvent) => {
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
         if (caretPosition > -1) {
@@ -128,7 +135,7 @@ const Input: React.FC<{
               range.setEnd(nodeText, selectedAlert.endOffset);
               const clickedRect = range.getClientRects()[0];
 
-              setModalData({
+              setPopoverData({
                 alert: selectedAlert,
                 position: clickedRect,
                 node: oneNodeWithAlerts.node,
@@ -331,10 +338,10 @@ const Input: React.FC<{
           nodesWithAlerts={nodesWithAlerts}
         />
       ) : null}
-      {modalData.alert ? (
-        <Modal
-          isOpen={isOpen}
-          data={modalData}
+      {popoverData.alert && isOpen ? (
+        <HighlightPopover
+          element={element}
+          data={popoverData}
           hide={toggleModal}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
