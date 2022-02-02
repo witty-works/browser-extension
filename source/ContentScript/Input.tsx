@@ -235,48 +235,47 @@ const Input: React.FC<{
 
   useEffect(() => {
     let newHighlights: Highlight[] = [];
-    if (nodesWithAlerts.length > 0) {
-      nodesWithAlerts.forEach(({ node, alerts }) => {
-        //quick fix to avoid error: check if node exists in the DOM
-        //but also filter alerts that have a bigger endOffset than the length of the text
-        if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
-          alerts
-            .filter(
-              (alert: IAlert) =>
-                node && node.textContent &&
-                alert.endOffset <= node.textContent.length
-            )
-            .forEach((alert: IAlert) => {
-              const range = document.createRange();
-              if (node) range.setStart(node, alert.startOffset);
-              if (node) range.setEnd(node, alert.endOffset);
-              const rects: DOMRect[] = Array.from(range.getClientRects())
-                .map((rect: DOMRect) => {
-                  return {
-                    ...rect,
-                    width: rect.width,
-                    height: rect.height,
-                    left: rect.left,
-                    x: rect.left,
-                    top: rect.top + bodyScroll.top,
-                    y: rect.top,
-                  };
-                });
+    if (nodesWithAlerts.length === 0) setHighlights([]);
+    nodesWithAlerts.forEach(({ node, alerts }) => {
+      //quick fix to avoid error: check if node exists in the DOM
+      //but also filter alerts that have a bigger endOffset than the length of the text
+      if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
+        alerts
+          .filter(
+            (alert: IAlert) =>
+              node && node.textContent &&
+              alert.endOffset <= node.textContent.length
+          )
+          .forEach((alert: IAlert) => {
+            const range = document.createRange();
+            if (node) range.setStart(node, alert.startOffset);
+            if (node) range.setEnd(node, alert.endOffset);
+            const rects: DOMRect[] = Array.from(range.getClientRects())
+              .map((rect: DOMRect) => {
+                return {
+                  ...rect,
+                  width: rect.width,
+                  height: rect.height,
+                  left: rect.left,
+                  x: rect.left,
+                  top: rect.top + bodyScroll.top,
+                  y: rect.top,
+                };
+              });
 
-              const newHighlight: Highlight = {
-                id: alert.id,
-                rects,
-                data: alert.data,
-                startOffset: alert.startOffset,
-                endOffset: alert.endOffset,
-                node: node,
-              };
-              newHighlights.push(newHighlight);
-            });
-          setHighlights(newHighlights);
-        }
-      });
-    }
+            const newHighlight: Highlight = {
+              id: alert.id,
+              rects,
+              data: alert.data,
+              startOffset: alert.startOffset,
+              endOffset: alert.endOffset,
+              node: node,
+            };
+            newHighlights.push(newHighlight);
+          });
+        setHighlights(newHighlights);
+      }
+    });
   }, [nodesWithAlerts, parentScroll, elementScroll]);
 
   useEffect(() => {

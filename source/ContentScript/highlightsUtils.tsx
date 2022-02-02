@@ -17,11 +17,12 @@ export const drawHighlight = (params: any, color: string) => {
     const { roundedHighlight, context, rect, elementRect } = params;
     //the +/- is to add some padding to the highlight
     let x = rect.left - elementRect.left - 1.5;
-    let y = rect.top - elementRect.top + 1.5;
+    let y = rect.top - elementRect.top + 1;
     let width = rect.width + 3;
     let height = rect.height - 1;
     let radius = 4;
 
+    context.clearRect(x - 1, y, width + 2, height + 2); // clear the previous rectangle
     roundedHighlight.moveTo(x + radius, y);
     roundedHighlight.arcTo(x + width, y, x + width, y + height, radius);
     roundedHighlight.arcTo(x + width, y + height, x, y + height, radius);
@@ -50,7 +51,7 @@ export const handleCanvasClick = (event: MouseEvent, params: any) => {
     const { element, context, roundedHighlight, highlight, canvas, highlightColor, hoverColor } = params;
     const ratio = window.devicePixelRatio;
     if (!context.isPointInPath(roundedHighlight, event.offsetX * ratio, event.offsetY * ratio)) {
-        clearHighlight(params);
+        drawHighlight(params, 'transparent');
         drawLine(params, hoverColor);
 
         //allows user to type again
@@ -76,13 +77,3 @@ export const handleCanvasClick = (event: MouseEvent, params: any) => {
         originalNode: isTextArea(element) || isInputText(element) ? element : null,
     };
 };
-
-const clearHighlight = (params: any) => {
-    const { context, rect, elementRect } = params;
-    let x = rect.left - elementRect.left - 1.5;
-    let y = rect.top - elementRect.top + 1;
-    let width = rect.width + 3;
-    let height = rect.height - 1;
-
-    context.clearRect(x - 1, y, width + 2, height + 2); // clear the previous rectangle
-}
