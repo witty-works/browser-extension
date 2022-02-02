@@ -1,25 +1,29 @@
 import { CustomInputElement } from './types';
 
 const isObjectEmpty = (obj: object) =>
-   obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype;
+  obj &&
+  Object.keys(obj).length === 0 &&
+  Object.getPrototypeOf(obj) === Object.prototype;
 
 const isFunction = (functionToCheck: Function) =>
   functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
-const isTextArea = (element: CustomInputElement): element is HTMLTextAreaElement =>
-    element instanceof HTMLTextAreaElement
+const isTextArea = (
+  element: CustomInputElement
+): element is HTMLTextAreaElement => element instanceof HTMLTextAreaElement;
 
-const isInputText = (element: CustomInputElement): element is HTMLInputElement =>
-    element instanceof HTMLInputElement && element.type === 'text'
+const isInputText = (
+  element: CustomInputElement
+): element is HTMLInputElement =>
+  element instanceof HTMLInputElement && element.type === 'text';
 
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
 const isInputElement = (element: CustomInputElement) =>
-    isTextArea(element) ||
-    // isInputText(element) ||      Temporaly disabled as it could capture passwords
-    element.isContentEditable
+  isTextArea(element) ||
+  // isInputText(element) ||      Temporaly disabled as it could capture passwords
+  element.isContentEditable;
 
-const convertHTMLToText = (str: string = ''):string => {
-
+const convertHTMLToText = (str: string = ''): string => {
   // Ensure string.
   let value: string = String(str);
   // console.log('convertHTMLToText value 0',value);
@@ -27,7 +31,6 @@ const convertHTMLToText = (str: string = ''):string => {
   //remove all html attributes
   // value = value.replace(/<([a-z][a-z0-9]*)[^>]*?(\/?)>/gsi, '');
   // console.log('convertHTMLToText value 1',value);
-
 
   // Convert encoding.
   value = value.replace(/&nbsp;/gi, ' ');
@@ -67,13 +70,11 @@ const convertHTMLToText = (str: string = ''):string => {
 
   // console.log('convertHTMLToText value FINAL',value);
 
-
   // Expose string.
   return value;
-}
+};
 
-const fixLineBreaks = (str: string = ''):string => {
-
+const fixLineBreaks = (str: string = ''): string => {
   // Ensure string.
   let value: string = String(str);
 
@@ -83,31 +84,88 @@ const fixLineBreaks = (str: string = ''):string => {
 
   const trippleNewLinesWhiteList = ['www.linkedin.com', 'app.holaspirit.com'];
 
-  if (trippleNewLinesWhiteList.includes(window.location.hostname)){
-    value = value.replace(/(\n+)/g, ($1) => new Array(Math.ceil($1.length/3)).fill('\n', 0).join(''));
+  if (trippleNewLinesWhiteList.includes(window.location.hostname)) {
+    value = value.replace(/(\n+)/g, ($1) =>
+      new Array(Math.ceil($1.length / 3)).fill('\n', 0).join('')
+    );
   } else {
-    value = value.replace(/(\n+)/g, ($1) => new Array(Math.ceil($1.length/2)).fill('\n', 0).join(''));
+    value = value.replace(/(\n+)/g, ($1) =>
+      new Array(Math.ceil($1.length / 2)).fill('\n', 0).join('')
+    );
   }
 
   // Expose string.
   return value;
-}
+};
 
-const convertTextToHTML = (str: string = ''):string => {
+const convertTextToHTML = (str: string = ''): string => {
   // Ensure string.
   let value: string = String(str);
 
   // Convert to string with HTML tags
-  const newValue:string = value.split('\n')
-    .reduce((acc:string, item: string, index: number) => (index === 0)
-      ? item
-      : (item === '' ? `${acc}<div><br></div>` : `${acc}<div>${item}</div>`)
-    ,'');
+  const newValue: string = value
+    .split('\n')
+    .reduce(
+      (acc: string, item: string, index: number) =>
+        index === 0
+          ? item
+          : item === ''
+          ? `${acc}<div><br></div>`
+          : `${acc}<div>${item}</div>`,
+      ''
+    );
 
   return newValue;
-}
+};
 
-const elementExistsinDOM = (element: HTMLElement):boolean =>  document.body.contains(element);
+const nodeExistsInDOM = (node: Node): boolean => document.body.contains(node);
+
+const makeTextOpaque = (color: any) => {
+  //if rgb:
+  if (color.indexOf('rgb') !== -1) {
+    const rgb = color.match(/\d+/g);
+    const r = parseInt(rgb[0]);
+    const g = parseInt(rgb[1]);
+    const b = parseInt(rgb[2]);
+    const a = 1;
+    return `rgba(${r},${g},${b},${a})`;
+  } else {
+    //if hex:
+    const hex = color.match(/\w+/g);
+    const r = parseInt(hex[0], 16);
+    const g = parseInt(hex[1], 16);
+    const b = parseInt(hex[2], 16);
+    const a = 1;
+    return `rgba(${r},${g},${b},${a})`;
+  }
+};
+
+const textIsLight = (color: any) => {
+  let r: any;
+  let g: any;
+  let b: any;
+  let hsp: number;
+
+  // Check the format of the color, HEX or RGB
+  if (color.match(/^rgb/)) {
+    color = color.match(
+      /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/
+    );
+    r = color[1];
+    g = color[2];
+    b = color[3];
+  } else {
+    // If hex --> Convert it to RGB: http://gist.github.com/983661
+    color = +('0x' + color.slice(1).replace(color.length < 5 && /./g, '$&$&'));
+    r = color >> 16;
+    g = (color >> 8) & 255;
+    b = color & 255;
+  }
+  // HSP (Highly Sensitive Poo) equation from http://alienryderflex.com/hsp.html
+  hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
+  // Using the HSP value, determine whether the color is light or dark
+  return hsp > 127.5 ? true : false;
+};
 
 export {
   isObjectEmpty,
@@ -118,5 +176,7 @@ export {
   convertHTMLToText,
   convertTextToHTML,
   fixLineBreaks,
-  elementExistsinDOM
-}
+  nodeExistsInDOM as elementExistsinDOM,
+  makeTextOpaque,
+  textIsLight,
+};

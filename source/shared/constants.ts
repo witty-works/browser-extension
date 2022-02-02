@@ -5,7 +5,9 @@ export const wittyVersion = browser.runtime.getManifest().version;
 //Development
 export const DEV_ENV = process.env.NODE_ENV === 'development';
 
-export const POSTHOG_API_KEY = DEV_ENV ? 'phc_o3cjCKKkO7rn3CTBUJNmehFoa6vPc3zYavfnGj7WyqK' : 'phc_tmJbApENFHLXMjwG1hHMYO4Md8qR4XAGRforELIiDwp';
+export const POSTHOG_API_KEY = DEV_ENV
+  ? 'phc_o3cjCKKkO7rn3CTBUJNmehFoa6vPc3zYavfnGj7WyqK'
+  : 'phc_tmJbApENFHLXMjwG1hHMYO4Md8qR4XAGRforELIiDwp';
 
 //Storage
 export enum StorageKeys {
@@ -14,7 +16,7 @@ export enum StorageKeys {
   APP_ENABLED = 'enabled',
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',
-  GERMAN_GENDER_ENDING = 'germanGenderEnding'
+  GERMAN_GENDER_ENDING = 'germanGenderEnding',
 }
 
 //API endpoints
@@ -25,15 +27,17 @@ export enum BaseUrls {
   WITTY_LOCAL = 'http://127.0.0.1:8000/',
 }
 
-export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(BaseUrls)[0] as keyof typeof BaseUrls;
+export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(
+  BaseUrls
+)[0] as keyof typeof BaseUrls;
 
 export enum Colors {
   red = '#F06464',
   magenta = '#F277D0',
   purple = '#9489DB',
-  blue  ='#55B8E9',
+  blue = '#55B8E9',
   cyan = '#37D1E5',
-  green = '#5ACFB9'
+  green = '#5ACFB9',
 }
 interface IHighlightColors {
   default: string;
@@ -43,24 +47,24 @@ interface IHighlightColors {
 
 const inclusive: IHighlightColors = {
   default: '#BCD485',
-  highlight: '#B0D044', //#D3E4AC
-  hover: '#95B52D', //#C9DF7F
-}
+  highlight: '#D3E4AC',
+  hover: '#C9DF7F',
+};
 const style: IHighlightColors = {
   default: '#F6EC6B',
-  highlight: '#FFF04A', //#FFFFD3
-  hover: '#FFEB0E', //#FFF7A4
-}
+  highlight: '#FFFFD3',
+  hover: '#FFF7A4',
+};
 const unconsciousBiasAndGendered: IHighlightColors = {
   default: '#EB9F46',
-  highlight: '#F2AB4F', //#F8E7CB
-  hover: '#EE9119', //#F8D29F
-}
+  highlight: '#F8E7CB',
+  hover: '#F8D29F',
+};
 const openlyDiscriminatingAndGrammar: IHighlightColors = {
   default: '#E6635A',
-  highlight: '#EC524A', //#F7D4D4
-  hover: '#E02218', //#F8BEBB
-}
+  highlight: '#F7D4D4',
+  hover: '#F8BEBB',
+};
 
 export enum Category {
   inclusive = 'inclusive',
@@ -87,7 +91,7 @@ export enum Category {
   gendered_denominations_ending = 'gendered_denominations_ending',
   hidden_image = 'hidden_image',
   leadership = 'leadership',
-  female_stereotype ='female_stereotype',
+  female_stereotype = 'female_stereotype',
   titles = 'titles',
   function = 'function',
   gendered = 'gendered',
@@ -113,10 +117,10 @@ export enum Category {
   age_young = 'age_young',
   age_in_jobs = 'age_in_jobs',
   ethnicity = 'ethnicity',
-  education ='education',
+  education = 'education',
 
   orthography = 'orthography',
-  openly_discriminating ='openly_discriminating',
+  openly_discriminating = 'openly_discriminating',
   ableism = 'ableism',
   xenophobia = 'xenophobia',
   anti_semitism = 'anti_semitism',
@@ -197,12 +201,14 @@ const categoryColors: Record<Category, IHighlightColors> = {
   [Category.overload]: openlyDiscriminatingAndGrammar,
   [Category.workload]: openlyDiscriminatingAndGrammar,
   [Category.job_requirements]: openlyDiscriminatingAndGrammar,
-  [Category.agentic]: openlyDiscriminatingAndGrammar
-}
+  [Category.agentic]: openlyDiscriminatingAndGrammar,
+};
 
 export const getColor = (category: string): IHighlightColors => {
-  return category in Category ? categoryColors[category as Category] : unconsciousBiasAndGendered;
-}
+  return category in Category
+    ? categoryColors[category as Category]
+    : unconsciousBiasAndGendered;
+};
 
 //German Gender Endings
 export enum GermanGenderEndings {

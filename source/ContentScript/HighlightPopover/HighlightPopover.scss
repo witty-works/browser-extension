@@ -1,0 +1,146 @@
+@import '../../styles/variables';
+@import '../../styles/fonts';
+
+#wittyworks-popover {
+  display: 'flex';
+  background-color: $white;
+  color: $black;
+  z-index: 999999999;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
+  border-radius: 5px;
+  font-family: $lato !important;
+}
+
+#wittyworks-popover-content {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  width: 100%;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+}
+
+.wittyworks-popover-row {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.wittyworks-popover-row-title {
+  font-family: $ibarra !important;
+  font-weight: 400;
+  font-size: 20px;
+}
+
+.wittyworks-popover-separator {
+  margin: 0;
+  margin-left: -1em;
+  margin-right: -1em;
+  background-color: $whiteGray;
+  border: 0;
+  height: 1px;
+}
+
+// Alternatives section
+.wittyworks-popover-row-title-alternative {
+  margin-bottom: 0.5em;
+}
+
+.wittyworks-popover-row-alternatives-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.wittyworks-popover-alternative-btn {
+  font-weight: bold;
+  color: $green;
+  background: rgba($green, 0.1);
+  display: table;
+  margin: 4px auto 4px 0px;
+  padding: 2px 8px;
+  cursor: pointer;
+
+  &.remove-text {
+    text-decoration: line-through !important;
+  }
+
+  &:hover {
+    background: rgba($green, 0.2);
+    color: $black;
+  }
+}
+
+// Ignore section
+.wittyworks-popover-row-ignore-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.wittyworks-popover-ignore-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: $errorRed;
+  font-weight: bold;
+  margin-top: 0.5em;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+//Icons
+.wittyworks-popover-icon {
+  height: 0.8em;
+  margin-right: 0.5em;
+}
+
+.wittyworks-popover-icon-large {
+  height: 1em;
+  margin-right: 0.5em;
+}
+.wittyworks-popover-icon-float-right {
+  float: right;
+  margin-top: 0.2em;
+  margin-right: 0em;
+}
+
+// More info section
+.wittyworks-popover-row-more-title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-weight: bold;
+  color: $black;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.wittyworks-popover-row-more-text {
+  color: $darkGray;
+  margin-left: 1em;
+}
+
+//Settings section
+.wittyworks-popover-home-link-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.wittyworks-popover-home-link {
+  color: $darkGray;
+  font-size: 16px;
+  font-weight: normal;
+
+  &:hover {
+    color: $darkGray;
+    text-decoration: underline;
+  }
+}

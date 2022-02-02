@@ -1,60 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import TextAreaClone from './TextAreaClone';
-import InputTextClone from './InputTextClone';
-import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
-import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
+import { CustomInputElement, IAlert, Highlight, INodeWithAlerts, ScrollPos } from '../shared/types';
+import { fixLineBreaks, isTextArea, isInputText, elementExistsinDOM } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
-import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+import { getColor } from '../shared/constants';
 import { throttle } from 'lodash';
-
-
-type HandleClick = () => void;
+import { drawLine, handleCanvasClick, drawHighlight } from './highlightsUtils';
+import HighlightPopover, {
+  PopoverData,
+} from './HighlightPopover/HighlightPopover';
+import InputTextClone from './InputTextClone';
 
 const Input: React.FC<{
   element: CustomInputElement;
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] =
-    useCheckEndpoint();
+  const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpoint();
   const analytics = useAnalytics();
-  const [alerts, setAlerts] = useState<IAlert[]>([]);
-
-  const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
-    [] as INodeWithAlerts[]
-  );
-  // const [clone, setClone] = useState<HTMLDivElement>();
-  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const elementRect = useResizeObserver(element);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [alerts, setAlerts] = useState<IAlert[]>([]);
+  const [highlights, setHighlights] = useState<Highlight[]>([])
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
   } as ScrollPos);
-  const [modalData, setModalData] = useState<ModalData>({} as ModalData);
+  const [popoverData, setPopoverData] = useState<PopoverData>(
+    {} as PopoverData
+  );
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-  // const [, setText, textRef] = useStateRef("");
+
+  const [nodesWithAlerts, setNodesWithAlerts] = useStateRef([] as INodeWithAlerts[]);
+  const [clone, setClone] = useStateRef({} as HTMLDivElement);
+
   const log = useLog('Input');
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
-    //The turn around (at least for the moment) is to use 'keyup'
+    //The work around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
-    element.addEventListener('click', handleClickElement as EventListener);
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
     const parentForm: HTMLFormElement | null = isTextArea(element)
-      ? (element as HTMLTextAreaElement).form
+      ? element.form
       : element.closest('form');
 
     if (parentForm)
@@ -65,17 +65,10 @@ const Input: React.FC<{
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      element.removeEventListener('click', handleClickElement as EventListener);
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
-
-  const handleSubmitFormEvent = () => {
-    //It's assumed that when user sends info through a form, text will disappear.
-    //Therefore highlights also need to be removed
-    setNodesWithAlerts([]);
-  };
 
   const handleKeyupEvent = throttle(() => {
     const nextText: string =
@@ -84,9 +77,10 @@ const Input: React.FC<{
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
+      setNodesWithAlerts([]);
     else {
-      setTextToCheck(nextText)
+      setTextToCheck(nextText);
     }
   }, 3000);
 
@@ -94,74 +88,38 @@ const Input: React.FC<{
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   }, 500);
 
-  let singleClickTimeOut: ReturnType<typeof setTimeout>;
-
-  const handleClickElement = (event: MouseEvent) => {
-    if (event.detail === 1) {
-      singleClickTimeOut = setTimeout(function () {
-        if (caretPosition > -1) {
-          const nodeAlerts = nodesWithAlertsRef.current;
-
-          const oneNodeWithAlerts = nodeAlerts.find(
-            (nodeWithAlerts: INodeWithAlerts) =>
-              //TODO potentially this acces to parentNode could fail
-              isTextArea(target) || isInputText(target)
-                ? nodeWithAlerts.node.parentNode === cloneRef.current
-                : nodeWithAlerts.node.parentNode === target
-          );
-
-          if (oneNodeWithAlerts) {
-            const selectedAlert = oneNodeWithAlerts.alerts
-              .filter((alert: IAlert) => {
-                return (
-                  alert.startOffset < caretPosition &&
-                  alert.endOffset > caretPosition
-                );
-              })
-              .pop() as IAlert;
-
-            const nodeText = oneNodeWithAlerts.node;
-
-            if (selectedAlert) {
-              const range = document.createRange();
-              range.setStart(nodeText, selectedAlert.startOffset);
-              range.setEnd(nodeText, selectedAlert.endOffset);
-              const clickedRect = range.getClientRects()[0];
-
-              setModalData({
-                alert: selectedAlert,
-                position: clickedRect,
-                node: oneNodeWithAlerts.node,
-                originalNode:
-                  isTextArea(target) || isInputText(target) ? target : null,
-              });
-              toggleModal();
-            }
-          }
-        }
-      }, 400);
-    } else {
-      clearTimeout(singleClickTimeOut);
-    }
-
-    const target = event.target as CustomInputElement;
-    const caretPosition: number = getInputClickedPosition(target);
+  const handleSubmitFormEvent = () => {
+    //It's assumed that when user sends info through a form, text will disappear.
+    //Therefore highlights also need to be removed
+    setNodesWithAlerts([]);
   };
 
-  const getInputClickedPosition = (element: CustomInputElement): number => {
-    if (isTextArea(element) || isInputText(element)) {
-      return element.selectionStart as number;
-    } else {
-      const selection: Selection | null = document.getSelection();
-      return selection ? selection.anchorOffset : -1;
-    }
+  const updateCloneData = (newClone: HTMLDivElement) => {
+    setClone(newClone);
+  };
+
+  const toggleModal = (): void => {
+    setIsOpen(!isOpen);
+  };
+
+  const resendText = () => {
+    const text: string =
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : fixLineBreaks(element.innerText);
+
+    setTextToCheck(text);
+  };
+
+  const addIgnoredTerm = (term: string): void => {
+    setIgnoredTerms([...ignoredTerms, term]);
   };
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
     analytics.checkLog(
       checkEndpointResponse,
-      clone?.firstChild ? clone?.firstChild.length : 0
+      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
     );
 
     log(
@@ -202,22 +160,25 @@ const Input: React.FC<{
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
-      if (isTextArea(element) || isInputText(element))
+      if (isTextArea(element) || isInputText(element)) {
+        if (!clone.firstChild) {
+          return;
+        }
         setNodesWithAlerts([
           {
-            node: clone?.firstChild,
+            node: clone.firstChild,
             alerts: filteredAlerts.map((alert: IAlert) => ({
               ...alert,
             })),
           },
         ]);
-      else {
+      } else {
         const nodesWithAlertsTemp: INodeWithAlerts[] =
           getNodesWithRecalculatedAlerts(element.childNodes, filteredAlerts);
         setNodesWithAlerts(nodesWithAlertsTemp);
       }
     }
-  }, [alerts]);
+  }, [alerts, ignoredTerms, clone]);
 
   const getNodesWithRecalculatedAlerts = (
     nodes: NodeListOf<ChildNode>,
@@ -267,79 +228,159 @@ const Input: React.FC<{
         }
       }
     };
-
     traverseNodes(nodes);
-
     return nodesWithAlertsTemp;
   };
 
   useEffect(() => {
-    if (checkEndpointError) {
+    if (checkEndpointError)
       log(
         `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
         logTypes.ERROR
       );
-    }
   }, [checkEndpointError]);
 
-  const updateCloneData = (clone: HTMLDivElement) => {
-    setClone(clone);
-  };
 
-  const toggleModal: HandleClick = () => {
-    setIsOpen(!isOpen);
-  };
+  useEffect(() => {
+    let newHighlights: Highlight[] = [];
+    if (nodesWithAlerts.length === 0) setHighlights([]);
+    nodesWithAlerts.forEach(({ node, alerts }) => {
+      //quick fix to avoid error: check if node exists in the DOM
+      //but also filter alerts that have a bigger endOffset than the length of the text
+      if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
+        alerts
+          .filter(
+            (alert: IAlert) =>
+              node && node.textContent &&
+              alert.endOffset <= node.textContent.length
+          )
+          .forEach((alert: IAlert) => {
+            const range = document.createRange();
+            if (node) range.setStart(node, alert.startOffset);
+            if (node) range.setEnd(node, alert.endOffset);
+            const rects: DOMRect[] = Array.from(range.getClientRects())
+              .map((rect: DOMRect) => {
+                return {
+                  ...rect,
+                  width: rect.width,
+                  height: rect.height,
+                  left: rect.left,
+                  x: rect.left,
+                  top: rect.top + bodyScroll.top,
+                  y: rect.top,
+                };
+              });
 
-  const resendText = () => {
-    const text: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : fixLineBreaks(element.innerText);
+            const newHighlight: Highlight = {
+              id: alert.id,
+              rects,
+              data: alert.data,
+              startOffset: alert.startOffset,
+              endOffset: alert.endOffset,
+              node: node,
+            };
+            newHighlights.push(newHighlight);
+          });
+        setHighlights(newHighlights);
+      }
+    });
+  }, [nodesWithAlerts, parentScroll, elementScroll]);
 
-    setTextToCheck(text);
-  };
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  const addIgnoredTerm = (term: string): void => {
-    setIgnoredTerms([...ignoredTerms, term]);
-    setAlerts([...alerts]);
-  };
+    //makes the canvas ratio correct, needed to make text clear
+    const ratio = window.devicePixelRatio;
+    canvas.width = elementRect.width * ratio;
+    canvas.height = elementRect.height * ratio;
+    canvas.style.width = elementRect.width + "px";
+    canvas.style.height = elementRect.height + "px";
+    const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+    if (!context) return;
+
+    context.scale(ratio, ratio)
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    const canvasClickListeners: Array<(e: MouseEvent) => void> = highlights.map((highlight) => {
+      const [rect] = highlight.rects;
+      const hoverColor = `${getColor(highlight.data.category).hover}`;
+      const highlightColor = `${getColor(highlight.data.category).highlight}`;
+      const roundedHighlight = new Path2D();
+      const params = {
+        context,
+        element,
+        roundedHighlight,
+        highlight,
+        hoverColor,
+        highlightColor,
+        rect,
+        elementRect,
+        canvas,
+      };
+
+      drawHighlight(params, 'transparent'); //the clickable container
+      drawLine(params, hoverColor);
+
+      return function (event: MouseEvent) {
+        const newPopoverData = handleCanvasClick(event, params);
+        if (newPopoverData && newPopoverData.alert && newPopoverData.position && newPopoverData.node) {
+          //timeout allows user to double click 
+          setTimeout(() => {
+            setPopoverData(newPopoverData);
+            toggleModal();
+          }, 500);
+        }
+      }
+    });
+    canvasClickListeners.forEach((listener) => canvas.addEventListener('click', listener));
+
+    return () => {
+      canvasClickListeners.forEach((listener) => canvas.removeEventListener('click', listener));
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    };
+  }, [highlights]);
 
   return (
     <div className='canvas-container'>
-      {isTextArea(element) ? (
+      {loading && <HighlightsLoader elementReference={element} />}
+      {isTextArea(element) && (
         <TextAreaClone
           element={element}
           elementRect={elementRect}
           elementScroll={elementScroll}
           updateClone={updateCloneData}
         />
-      ) : null}
-      {isInputText(element) ? (
+      )}
+      {isInputText(element) && (
         <InputTextClone
           element={element}
           elementRect={elementRect}
           updateClone={updateCloneData}
         />
-      ) : null}
-      {loading ? <HighlightsLoader elementReference={element} /> : null}
-      {nodesWithAlerts.length > 0 ? (
-        <Highlights
-          bodyScroll={bodyScroll}
-          parentScroll={parentScroll}
-          elementScroll={elementScroll}
-          elementRect={elementRect}
-          nodesWithAlerts={nodesWithAlerts}
-        />
-      ) : null}
-      {modalData.alert ? (
-        <Modal
-          isOpen={isOpen}
-          data={modalData}
+      )}
+      {loading && <HighlightsLoader elementReference={element} />}
+      {popoverData.alert && isOpen && (
+        <HighlightPopover
+          element={element}
+          data={popoverData}
           hide={toggleModal}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
         />
-      ) : null}
+      )}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'absolute',
+          overflow: 'auto',
+          left: `${elementRect.left}px`,
+          top: `${elementRect.top}px`,
+          zIndex: 99999999,
+        } as React.CSSProperties}
+        width={elementRect.width}
+        height={elementRect.height}
+      >
+      </canvas>
     </div>
   );
 };
