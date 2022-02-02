@@ -1,7 +1,7 @@
 @import '../../styles/variables';
 @import '../../styles/fonts';
 
-#ww-highlight-popover {
+#wittyworks-popover {
   display: 'flex';
   background-color: $white;
   color: $black;
@@ -13,7 +13,7 @@
   font-family: $lato !important;
 }
 
-#ww-highlight-popover-content {
+#wittyworks-popover-content {
   display: flex;
   flex-direction: column;
   height: auto;
@@ -23,18 +23,18 @@
   font-style: normal;
 }
 
-.ww-highlight-popover-row {
+.wittyworks-popover-row {
   margin-top: 1em;
   margin-bottom: 1em;
 }
 
-.ww-highlight-popover-row-title {
+.wittyworks-popover-row-title {
   font-family: $ibarra !important;
   font-weight: 400;
   font-size: 20px;
 }
 
-.ww-highlight-popover-separator {
+.wittyworks-popover-separator {
   margin: 0;
   margin-left: -1em;
   margin-right: -1em;
@@ -44,16 +44,16 @@
 }
 
 // Alternatives section
-.ww-highlight-popover-row-title-alternative {
+.wittyworks-popover-row-title-alternative {
   margin-bottom: 0.5em;
 }
 
-.ww-highlight-popover-row-alternatives-container {
+.wittyworks-popover-row-alternatives-container {
   display: flex;
   flex-direction: column;
 }
 
-.ww-highlight-popover-alternative-btn {
+.wittyworks-popover-alternative-btn {
   font-weight: bold;
   color: $green;
   background: rgba($green, 0.1);
@@ -73,13 +73,12 @@
 }
 
 // Ignore section
-.ww-highlight-popover-row-ignore-container {
+.wittyworks-popover-row-ignore-container {
   display: flex;
   flex-direction: column;
 }
 
-// .ww-highlight-popover-row-ignore
-.ww-highlight-popover-ignore-btn {
+.wittyworks-popover-ignore-btn {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -94,23 +93,23 @@
 }
 
 //Icons
-.ww-highlight-popover-icon {
+.wittyworks-popover-icon {
   height: 0.8em;
   margin-right: 0.5em;
 }
 
-.ww-highlight-popover-icon-large {
+.wittyworks-popover-icon-large {
   height: 1em;
   margin-right: 0.5em;
 }
-.ww-highlight-popover-icon-float-right {
+.wittyworks-popover-icon-float-right {
   float: right;
   margin-top: 0.2em;
   margin-right: 0em;
 }
 
 // More info section
-.ww-highlight-popover-row-more-title {
+.wittyworks-popover-row-more-title {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -123,19 +122,19 @@
   }
 }
 
-.ww-highlight-popover-row-more-text {
+.wittyworks-popover-row-more-text {
   color: $darkGray;
   margin-left: 1em;
 }
 
 //Settings section
-.ww-highlight-popover-home-link-container {
+.wittyworks-popover-home-link-container {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-.ww-highlight-popover-home-link {
+.wittyworks-popover-home-link {
   color: $darkGray;
   font-size: 16px;
   font-weight: normal;

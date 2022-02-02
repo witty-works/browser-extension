@@ -153,33 +153,33 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   }, [isToggleOpen]);
 
   return (
-    <div id='ww-highlight-popover' ref={floating} style={PopoverStyling}>
-      <div id='ww-highlight-popover-content'>
-        <div className='ww-highlight-popover-row'>
+    <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
+      <div id='wittyworks-popover-content'>
+        <div className='wittyworks-popover-row'>
           {/* TODO: change this to understandable label when available from backend */}
-          <div className='ww-highlight-popover-row-title'>
+          <div className='wittyworks-popover-row-title'>
             {data.alert.data.label !== ''
               ? data.alert.data.label
               : data.alert.data.category}
           </div>
         </div>
 
-        <hr className='ww-highlight-popover-separator' />
+        <hr className='wittyworks-popover-separator' />
 
         {data.alert.data.alternatives.filter((word) => word != ' ').length >
           0 && (
           <>
-            <div className='ww-highlight-popover-row'>
-              <div className='ww-highlight-popover-row-title-alternative'>
+            <div className='wittyworks-popover-row'>
+              <div className='wittyworks-popover-row-title-alternative'>
                 {t('insteadTry')}
               </div>
-              <div className='ww-highlight-popover-row-alternatives-container'>
+              <div className='wittyworks-popover-row-alternatives-container'>
                 {data.alert.data.alternatives
                   .slice(0, 5)
                   .map((alternative, index) =>
                     alternative.localeCompare('-') === 0 ? (
                       <div
-                        className='ww-highlight-popover-alternative-btn remove-text'
+                        className='wittyworks-popover-alternative-btn remove-text'
                         key={`${index}-remove-it`}
                         onClick={() => clickAlternative(-1)}
                       >
@@ -187,7 +187,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       </div>
                     ) : (
                       <div
-                        className='ww-highlight-popover-alternative-btn'
+                        className='wittyworks-popover-alternative-btn'
                         key={`${index}-${alternative}`}
                         onClick={() => clickAlternative(index)}
                       >
@@ -196,13 +196,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     )
                   )}
               </div>
-              <div className='ww-highlight-popover-row-ignore-container'>
+              <div className='wittyworks-popover-row-ignore-container'>
                 <div
-                  className='ww-highlight-popover-ignore-btn'
+                  className='wittyworks-popover-ignore-btn'
                   onClick={() => clickIgnoreTerm()}
                 >
                   <img
-                    className='ww-highlight-popover-icon'
+                    className='wittyworks-popover-icon'
                     alt='Ignore Alternatives'
                     src={browser.runtime.getURL(
                       '../../../assets/icons/popover/ignore.svg'
@@ -213,17 +213,17 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 </div>
               </div>
             </div>
-            <hr className='ww-highlight-popover-separator' />
+            <hr className='wittyworks-popover-separator' />
           </>
         )}
 
-        <div className='ww-highlight-popover-row'>
+        <div className='wittyworks-popover-row'>
           <div
-            className='ww-highlight-popover-row-more-title'
+            className='wittyworks-popover-row-more-title'
             onClick={() => toggleText()}
           >
             <img
-              className='ww-highlight-popover-icon'
+              className='wittyworks-popover-icon'
               alt='How To Improve'
               src={browser.runtime.getURL(
                 '../../../assets/icons/popover/more.svg'
@@ -232,7 +232,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             {t('howToImprove')}
           </div>
           {isToggleOpen && (
-            <div className='ww-highlight-popover-row-more-text'>
+            <div className='wittyworks-popover-row-more-text'>
               {data.alert.data.solution}
               <br />
               {data.alert.data.reason}
@@ -240,26 +240,26 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           )}
         </div>
 
-        <hr className='ww-highlight-popover-separator' />
+        <hr className='wittyworks-popover-separator' />
 
-        <div className='ww-highlight-popover-row'>
-          <div className='ww-highlight-popover-home-link-container'>
+        <div className='wittyworks-popover-row'>
+          <div className='wittyworks-popover-home-link-container'>
             <img
-              className='ww-highlight-popover-icon-large'
+              className='wittyworks-popover-icon-large'
               alt='Witty Works Logo' //TODO translation
               src={browser.runtime.getURL(
                 '../../../assets/icons/w-logo-wire-color.svg'
               )}
             />
             <a
-              className='ww-highlight-popover-home-link'
+              className='wittyworks-popover-home-link'
               href='https://www.witty.works/'
             >
               witty.works
             </a>
             {/* TODO: when settings page available, add link here */}
             {/* <img
-              className='ww-highlight-popover-icon-large ww-highlight-popover-icon-float-right'
+              className='wittyworks-popover-icon-large wittyworks-popover-icon-float-right'
               alt='Settings'
               src={browser.runtime.getURL('../../../assets/icons/popover/settings.svg')}
             /> */}
