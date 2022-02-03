@@ -181,6 +181,7 @@ const ContentScriptApp: React.FC = () => {
   const handleMouseOver = (event: MouseEvent) => {
     const target = event.target as CustomInputElement;
     if (!isInputElement(target)) return;
+    if (target.tagName === 'P') return;
     if (inputsRef.current.length > 0) return;
     const { width, height, top, left } = target.getBoundingClientRect();
     setCanvasPosition({
@@ -205,28 +206,11 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ratio = window.devicePixelRatio;
-    canvas.width = canvasPosition.width * ratio;
-    canvas.height = canvasPosition.height * ratio;
-    canvas.style.width = canvasPosition.width + 'px';
-    canvas.style.height = canvasPosition.height + 'px';
     canvas.style.pointerEvents = 'none';
     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
     if (!context) return;
-
-    context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
-
-    const iconDimensions = {
-      dx: canvasPosition.width - canvasPosition.width / 6,
-      dy:
-        canvasPosition.height > 60
-          ? canvasPosition.height - canvasPosition.height / 5
-          : 0,
-      sWidth: 25,
-      sHeight: 21,
-    };
-    drawIcon(context, passiveWittyIcon, iconDimensions);
+    drawIcon(context, passiveWittyIcon, canvasPosition as DOMRect, 'passive');
   }, [canvasPosition]);
 
   const handleDocumentScrollEvent = (event: Event) => {

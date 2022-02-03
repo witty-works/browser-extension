@@ -93,13 +93,7 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
-
-    const iconDimensions = {
-      dx: canvas.width / 2.1,
-      dy: canvas.height / 2.2,
-      sWidth: 51,
-      sHeight: 45,
-    };
+    drawIcon(context, activeWittyIcon, elementRect, 'active');
 
     highlights.forEach((highlight) => {
       const [rect] = highlight.rects;
@@ -129,7 +123,6 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawLine(params, hoverColor);
       }
     });
-    drawIcon(context, activeWittyIcon, iconDimensions);
   }, [highlights, selectedAlert]);
 
   return (

@@ -1,4 +1,3 @@
-import { IconDimensions } from '../shared/types';
 import { textIsLight } from '../shared/utils';
 import chroma from 'chroma-js';
 
@@ -18,23 +17,26 @@ export const drawLine = (params: any, color: string) => {
 export const drawIcon = (
   context: CanvasRenderingContext2D,
   icon: any,
-  iconDimensions: IconDimensions
+  elementRect: DOMRect,
+  iconType: string
 ) => {
-  //TEMP FIX
-  if (iconDimensions.dx == 0 || iconDimensions.dy == 0) return;
-  console.log('iconDimensions', iconDimensions);
+  if (elementRect.width === 0 || elementRect.height === 0) return; //change to small
   const DOMURL = window.URL || window.webkitURL || window;
   const img1 = new Image();
   const svg = new Blob([icon], { type: 'image/svg+xml' });
   const url = DOMURL.createObjectURL(svg);
+
+  let dx = elementRect.width - elementRect.width / 10;
+  let dy = elementRect.height - elementRect.height / 6 - 15;
+
+  //TEMP FIX: because elementRect is different for the two cases for some reason
+  if (iconType === 'active') {
+    dx = elementRect.width - elementRect.width / 7.5;
+    dy = elementRect.height - elementRect.height / 6 - 27.5;
+  }
+
   img1.onload = function () {
-    context!.drawImage(
-      img1,
-      iconDimensions.dx,
-      iconDimensions.dy,
-      iconDimensions.sWidth,
-      iconDimensions.sHeight
-    );
+    context!.drawImage(img1, dx, dy, 51, 45);
     DOMURL.revokeObjectURL(url);
   };
   img1.src = url;
