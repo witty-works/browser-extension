@@ -28,15 +28,19 @@ export const drawIcon = (
 
   let dx = elementRect.width - elementRect.width / 10;
   let dy = elementRect.height - elementRect.height / 6 - 15;
+  let width = 51;
+  let height = 45;
 
   //TEMP FIX: because elementRect is different for the two cases for some reason
   if (iconType === 'active') {
-    dx = elementRect.width - elementRect.width / 7.5;
-    dy = elementRect.height - elementRect.height / 6 - 27.5;
+    dx = elementRect.width - elementRect.width / 9.5;
+    dy = elementRect.height - elementRect.height / 6 - 15;
+    width = 31.5;
+    height = 21;
   }
 
   img1.onload = function () {
-    context!.drawImage(img1, dx, dy, 51, 45);
+    context!.drawImage(img1, dx, dy, width, height);
     DOMURL.revokeObjectURL(url);
   };
   img1.src = url;
