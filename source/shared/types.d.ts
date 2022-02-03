@@ -5,13 +5,26 @@ export interface RequestConfig {
   german_gender_ending: string;
 }
 
+export interface ScrollPos {
+  top: number;
+  left: number;
+}
+export interface Highlight {
+  rects: DOMRect[];
+  id: string;
+  data: IAlertContentData;
+  startOffset: number;
+  endOffset: number;
+  node: Node;
+}
+
 export type CustomInputElement =
   | HTMLTextAreaElement
   | HTMLInputElement
   | HTMLDivElement;
 
 export interface INodeWithAlerts {
-  node: HTMLElement;
+  node: Node;
   alerts: IAlert[];
 }
 export interface IAlert {

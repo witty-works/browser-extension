@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CustomInputElement, RequestConfig } from '../shared/types';
+import { CustomInputElement, RequestConfig, ScrollPos } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
@@ -14,9 +14,8 @@ import {
   setRequestConfig,
   setAppID,
 } from '../shared/ApiServices/requests';
-import { isInputElement, elementExistsinDOM } from '../shared/utils';
+import { isInputElement, nodeExistsInDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import { ScrollPos } from './Highlights';
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
@@ -58,9 +57,9 @@ const ContentScriptApp: React.FC = () => {
         const reqConfig: RequestConfig = {
           german_gender_ending:
             GermanGenderEndings[
-            result[
-            StorageKeys.GERMAN_GENDER_ENDING
-            ] as keyof typeof GermanGenderEndings
+              result[
+                StorageKeys.GERMAN_GENDER_ENDING
+              ] as keyof typeof GermanGenderEndings
             ],
           preferred_languages: result[StorageKeys.PREFERRED_LANGUAGES]
             .map((lang: string) => lang.split('-')[0])
@@ -133,7 +132,7 @@ const ContentScriptApp: React.FC = () => {
             ...reqConfigRef.current,
             german_gender_ending:
               GermanGenderEndings[
-              changes[item].newValue as keyof typeof GermanGenderEndings
+                changes[item].newValue as keyof typeof GermanGenderEndings
               ],
           });
           break;
@@ -160,10 +159,13 @@ const ContentScriptApp: React.FC = () => {
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
     if ((event.target as HTMLElement).nodeName === '#document') {
-      setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft })
+      setBodyScroll({ top: doc.scrollTop, left: doc.scrollLeft });
     } else {
-      const target = event.target as CustomInputElement
-      if (!document.querySelector('witty-code')?.contains(target) && !inputsRef.current.includes(target)) {
+      const target = event.target as CustomInputElement;
+      if (
+        !document.querySelector('witty-code')?.contains(target) &&
+        !inputsRef.current.includes(target)
+      ) {
         setParentScroll({ top: target.scrollTop, left: target.scrollLeft });
       }
     }
@@ -178,7 +180,7 @@ const ContentScriptApp: React.FC = () => {
   //That way the highlights are also removed
   const mutationObserver = new MutationObserver(() => {
     inputsRef.current.forEach((input: CustomInputElement) => {
-      if (!elementExistsinDOM(input))
+      if (!nodeExistsInDOM(input))
         setInputs([
           ...inputsRef.current.filter(
             (filterInput: CustomInputElement) => filterInput !== input
@@ -191,7 +193,12 @@ const ContentScriptApp: React.FC = () => {
   return (
     <>
       {inputs.map((input: CustomInputElement, index: number) => (
-        <Input key={index} element={input} bodyScroll={bodyScroll} parentScroll={parentScroll} />
+        <Input
+          key={index}
+          element={input}
+          bodyScroll={bodyScroll}
+          parentScroll={parentScroll}
+        />
       ))}
     </>
   );

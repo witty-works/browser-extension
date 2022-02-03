@@ -14,7 +14,7 @@ import './HighlightPopover.scss';
 export interface PopoverData {
   alert: IAlert;
   position: DOMRect;
-  node: HTMLElement;
+  node: Node;
   originalNode: HTMLTextAreaElement | HTMLInputElement | null;
 }
 
