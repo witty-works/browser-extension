@@ -120,26 +120,6 @@ const convertTextToHTML = (str: string = ''): string => {
 
 const nodeExistsInDOM = (node: Node): boolean => document.body.contains(node);
 
-const makeTextOpaque = (color: any) => {
-  //if rgb:
-  if (color.indexOf('rgb') !== -1) {
-    const rgb = color.match(/\d+/g);
-    const r = parseInt(rgb[0]);
-    const g = parseInt(rgb[1]);
-    const b = parseInt(rgb[2]);
-    const a = 1;
-    return `rgba(${r},${g},${b},${a})`;
-  } else {
-    //if hex:
-    const hex = color.match(/\w+/g);
-    const r = parseInt(hex[0], 16);
-    const g = parseInt(hex[1], 16);
-    const b = parseInt(hex[2], 16);
-    const a = 1;
-    return `rgba(${r},${g},${b},${a})`;
-  }
-};
-
 const textIsLight = (color: any) => {
   let r: any;
   let g: any;
@@ -177,6 +157,5 @@ export {
   convertTextToHTML,
   fixLineBreaks,
   nodeExistsInDOM as elementExistsinDOM,
-  makeTextOpaque,
   textIsLight,
 };

@@ -1,4 +1,5 @@
-import { makeTextOpaque, textIsLight } from '../shared/utils';
+import { textIsLight } from '../shared/utils';
+import chroma from 'chroma-js';
 
 export const drawLine = (params: any, color: string) => {
   const { context, rect, elementRect } = params;
@@ -42,7 +43,7 @@ export const redrawText = (params: any) => {
   const style = window.getComputedStyle(element);
   const color = textIsLight(style.color)
     ? 'black'
-    : makeTextOpaque(style.color);
+    : chroma(style.color).set('lch.c', '*2');
 
   context.font =
     style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;

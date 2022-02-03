@@ -109,8 +109,8 @@ const Highlights: React.FC<HighlightsProps> = ({
 
       if (highlight.id === selectedAlert?.id) {
         drawHighlight(params, highlightColor);
-        redrawText(params);
         drawLine(params, hoverColor);
+        redrawText(params);
       } else {
         drawHighlight(params, 'transparent');
         drawLine(params, hoverColor);
