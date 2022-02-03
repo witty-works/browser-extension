@@ -180,9 +180,12 @@ const ContentScriptApp: React.FC = () => {
 
   const handleMouseOver = (event: MouseEvent) => {
     const target = event.target as CustomInputElement;
-    if (!isInputElement(target)) return;
-    if (target.tagName === 'P') return;
-    if (inputsRef.current.length > 0) return;
+    if (
+      !isInputElement(target) ||
+      target.tagName === 'P' ||
+      inputsRef.current.length > 0
+    )
+      return;
     const { width, height, top, left } = target.getBoundingClientRect();
     setCanvasPosition({
       top: doc.scrollTop + top,
@@ -206,7 +209,6 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.style.pointerEvents = 'none';
     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
     if (!context) return;
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -258,6 +260,7 @@ const ContentScriptApp: React.FC = () => {
             left: `${canvasPosition.left}px`,
             top: `${canvasPosition.top}px`,
             zIndex: 99999999,
+            pointerEvents: 'none',
           } as React.CSSProperties
         }
         width={canvasPosition.width}

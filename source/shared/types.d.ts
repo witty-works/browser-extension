@@ -11,14 +11,6 @@ export interface CanvasPosition {
   top: number;
   left: number;
 }
-
-export interface IconDimensions {
-  dx: number;
-  dy: number;
-  sWidth: number;
-  sHeight: number;
-}
-
 export interface ScrollPos {
   top: number;
   left: number;
