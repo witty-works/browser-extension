@@ -71,8 +71,7 @@ export const redrawText = (params: any) => {
     ? 'black'
     : chroma(style.color).set('lch.c', '*2');
 
-  context.font =
-    style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
+  context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
   context.fillStyle = color;
   context.textBaseline = 'bottom';
   context.fillText(highlight.data.text, x, y);

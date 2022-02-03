@@ -337,7 +337,6 @@ const Input: React.FC<{
           updateClone={updateCloneData}
         />
       )}
-      {loading && <HighlightsLoader elementReference={element} />}
       {popoverData.alert && isPopoverOpen && (
         <HighlightPopover
           element={element}
