@@ -1,7 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CanvasPosition, CustomInputElement, RequestConfig, ScrollPos } from '../shared/types';
+import {
+  CanvasPosition,
+  CustomInputElement,
+  RequestConfig,
+  ScrollPos,
+} from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
@@ -18,7 +23,8 @@ import { isInputElement, nodeExistsInDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import { drawIcon } from './highlightsUtils';
 
-const passiveWittyIcon = require('../assets/icons/canvas/witty-passive.svg') as string;
+const passiveWittyIcon =
+  require('../assets/icons/canvas/witty-passive.svg') as string;
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
@@ -120,7 +126,6 @@ const ContentScriptApp: React.FC = () => {
     };
   }, []);
 
-
   const storageChange = (changes: any) => {
     let changedItems = Object.keys(changes);
 
@@ -173,10 +178,10 @@ const ContentScriptApp: React.FC = () => {
         setInputs([...inputsRef.current, target]);
   };
 
-
   const handleMouseOver = (event: MouseEvent) => {
     const target = event.target as CustomInputElement;
     if (!isInputElement(target)) return;
+    if (inputsRef.current.length > 0) return;
     const { width, height, top, left } = target.getBoundingClientRect();
     setCanvasPosition({
       top: doc.scrollTop + top,
@@ -184,7 +189,7 @@ const ContentScriptApp: React.FC = () => {
       width: width,
       height: height,
     });
-  }
+  };
 
   const handleMouseOut = (event: MouseEvent) => {
     const target = event.target as CustomInputElement;
@@ -195,7 +200,7 @@ const ContentScriptApp: React.FC = () => {
       width: 0,
       height: 0,
     });
-  }
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -203,20 +208,24 @@ const ContentScriptApp: React.FC = () => {
     const ratio = window.devicePixelRatio;
     canvas.width = canvasPosition.width * ratio;
     canvas.height = canvasPosition.height * ratio;
-    canvas.style.width = canvasPosition.width + "px";
-    canvas.style.height = canvasPosition.height + "px";
+    canvas.style.width = canvasPosition.width + 'px';
+    canvas.style.height = canvasPosition.height + 'px';
     canvas.style.pointerEvents = 'none';
     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
     if (!context) return;
 
-    context.scale(ratio, ratio)
+    context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
+
     const iconDimensions = {
-      dx: canvas.width / 2,
-      dy: canvas.height / 2,
+      dx: canvasPosition.width - canvasPosition.width / 6,
+      dy:
+        canvasPosition.height > 60
+          ? canvasPosition.height - canvasPosition.height / 5
+          : 0,
       sWidth: 25,
       sHeight: 21,
-    }
+    };
     drawIcon(context, passiveWittyIcon, iconDimensions);
   }, [canvasPosition]);
 
@@ -256,14 +265,17 @@ const ContentScriptApp: React.FC = () => {
   mutationObserver.observe(document.body, { childList: true, subtree: true });
   return (
     <>
-      <canvas ref={canvasRef}
-        style={{
-          position: 'absolute',
-          overflow: 'auto',
-          left: `${canvasPosition.left}px`,
-          top: `${canvasPosition.top}px`,
-          zIndex: 99999999,
-        } as React.CSSProperties}
+      <canvas
+        ref={canvasRef}
+        style={
+          {
+            position: 'absolute',
+            overflow: 'auto',
+            left: `${canvasPosition.left}px`,
+            top: `${canvasPosition.top}px`,
+            zIndex: 99999999,
+          } as React.CSSProperties
+        }
         width={canvasPosition.width}
         height={canvasPosition.height}
       />

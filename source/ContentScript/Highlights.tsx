@@ -2,7 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Highlight, IAlert, INodeWithAlerts, ScrollPos } from '../shared/types';
 import { getColor } from '../shared/constants';
 import { nodeExistsInDOM } from '../shared/utils';
-import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
+import {
+  drawHighlight,
+  drawIcon,
+  drawLine,
+  redrawText,
+} from './highlightsUtils';
+const activeWittyIcon =
+  require('../assets/icons/canvas/witty-active.svg') as string;
 
 interface HighlightsProps {
   bodyScroll: ScrollPos;
@@ -88,6 +95,13 @@ const Highlights: React.FC<HighlightsProps> = ({
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    const iconDimensions = {
+      dx: canvas.width / 2.1,
+      dy: canvas.height / 2.2,
+      sWidth: 51,
+      sHeight: 45,
+    };
+
     highlights.forEach((highlight) => {
       const [rect] = highlight.rects;
       const hoverColor = `${getColor(highlight.data.category).hover}`;
@@ -116,6 +130,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawLine(params, hoverColor);
       }
     });
+    drawIcon(context, activeWittyIcon, iconDimensions);
   }, [highlights, selectedAlert]);
 
   return (

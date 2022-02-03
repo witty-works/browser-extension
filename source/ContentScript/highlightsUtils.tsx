@@ -20,7 +20,9 @@ export const drawIcon = (
   icon: any,
   iconDimensions: IconDimensions
 ) => {
-  console.log('drawIcon');
+  //TEMP FIX
+  if (iconDimensions.dx == 0 || iconDimensions.dy == 0) return;
+  console.log('iconDimensions', iconDimensions);
   const DOMURL = window.URL || window.webkitURL || window;
   const img1 = new Image();
   const svg = new Blob([icon], { type: 'image/svg+xml' });
