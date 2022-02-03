@@ -174,8 +174,15 @@ const ContentScriptApp: React.FC = () => {
     const target = event.target as CustomInputElement;
 
     if (isInputElement(target))
-      if (!inputsRef.current.includes(target))
+      if (!inputsRef.current.includes(target)) {
+        setCanvasPosition({
+          top: 0,
+          left: 0,
+          width: 0,
+          height: 0,
+        });
         setInputs([...inputsRef.current, target]);
+      }
   };
 
   const handleMouseOver = (event: MouseEvent) => {
