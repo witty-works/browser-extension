@@ -60,7 +60,6 @@ const Highlights: React.FC<HighlightsProps> = ({
               rects,
               id: alert.id,
               data: alert.data,
-              popOverIsOpen: alert.popOverIsOpen,
               startOffset: alert.startOffset,
               endOffset: alert.endOffset,
               node: node,

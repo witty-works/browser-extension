@@ -13,7 +13,6 @@ export interface Highlight {
   rects: DOMRect[];
   id: string;
   data: IAlertContentData;
-  popOverIsOpen: boolean;
   startOffset: number;
   endOffset: number;
   node: Node;
@@ -32,7 +31,6 @@ export interface IAlert {
   id: string;
   startOffset: number;
   endOffset: number;
-  popOverIsOpen: boolean;
   data: IAlertContentData;
 }
 export interface IAlertContentData {
