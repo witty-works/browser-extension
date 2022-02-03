@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Highlight, IAlert, INodeWithAlerts, ScrollPos } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { elementExistsinDOM } from '../shared/utils';
+import { nodeExistsInDOM } from '../shared/utils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
 
 interface HighlightsProps {
@@ -32,7 +32,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     nodesWithAlerts.forEach(({ node, alerts }) => {
       //quick fix to avoid error: check if node exists in the DOM
       //but also filter alerts that have a bigger endOffset than the length of the text
-      if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
+      if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts
           .filter(
             (alert: IAlert) =>

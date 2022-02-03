@@ -156,6 +156,6 @@ export {
   convertHTMLToText,
   convertTextToHTML,
   fixLineBreaks,
-  nodeExistsInDOM as elementExistsinDOM,
+  nodeExistsInDOM,
   textIsLight,
 };
