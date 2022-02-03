@@ -1,34 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import TextAreaClone from './TextAreaClone';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import { CustomInputElement, IAlert, Highlight, INodeWithAlerts, ScrollPos } from '../shared/types';
-import { fixLineBreaks, isTextArea, isInputText, elementExistsinDOM } from '../shared/utils';
+import {
+  CustomInputElement,
+  IAlert,
+  INodeWithAlerts,
+  ScrollPos,
+} from '../shared/types';
+import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
-import { getColor } from '../shared/constants';
 import { throttle } from 'lodash';
-import { drawLine, handleCanvasClick, drawHighlight, drawIcon } from './highlightsUtils';
 import HighlightPopover, {
   PopoverData,
 } from './HighlightPopover/HighlightPopover';
 import InputTextClone from './InputTextClone';
-const activeWittyIcon = require('../assets/icons/canvas/witty-active.svg') as string;
+import Highlights from './Highlights';
 
 const Input: React.FC<{
   element: CustomInputElement;
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpoint();
+  const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] =
+    useCheckEndpoint();
   const analytics = useAnalytics();
   const elementRect = useResizeObserver(element);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [alerts, setAlerts] = useState<IAlert[]>([]);
-  const [highlights, setHighlights] = useState<Highlight[]>([])
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
@@ -36,11 +38,14 @@ const Input: React.FC<{
   const [popoverData, setPopoverData] = useState<PopoverData>(
     {} as PopoverData
   );
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
-  const [nodesWithAlerts, setNodesWithAlerts] = useStateRef([] as INodeWithAlerts[]);
-  const [clone, setClone] = useStateRef({} as HTMLDivElement);
+  const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
+    [] as INodeWithAlerts[]
+  );
+  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
+  const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
 
   const log = useLog('Input');
 
@@ -48,10 +53,11 @@ const Input: React.FC<{
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
-    console.log(element)
+    console.log(element);
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
+    element.addEventListener('click', handleElementClickEvent as EventListener);
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
@@ -67,6 +73,10 @@ const Input: React.FC<{
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
+      element.removeEventListener(
+        'click',
+        handleElementClickEvent as EventListener
+      );
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
@@ -100,8 +110,9 @@ const Input: React.FC<{
     setClone(newClone);
   };
 
-  const toggleModal = (): void => {
-    setIsOpen(!isOpen);
+  const togglePopover = (): void => {
+    setIsPopoverOpen(!isPopoverOpen);
+    if (isPopoverOpen) setSelectedAlert(null);
   };
 
   const resendText = () => {
@@ -115,6 +126,71 @@ const Input: React.FC<{
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
+  };
+
+  let singleClickTimeOut: ReturnType<typeof setTimeout>;
+
+  const handleElementClickEvent = (event: MouseEvent) => {
+    if (event.detail === 1) {
+      singleClickTimeOut = setTimeout(function () {
+        if (caretPosition > -1) {
+          const nodeAlerts = nodesWithAlertsRef.current;
+
+          const oneNodeWithAlerts = nodeAlerts.find(
+            (nodeWithAlerts: INodeWithAlerts) =>
+              //TODO potentially this acces to parentNode could fail
+              isTextArea(target) || isInputText(target)
+                ? nodeWithAlerts.node.parentNode === cloneRef.current
+                : nodeWithAlerts.node.parentNode === target
+          );
+
+          if (oneNodeWithAlerts) {
+            const selectedAlert = oneNodeWithAlerts.alerts
+              .filter((alert: IAlert) => {
+                return (
+                  alert.startOffset < caretPosition &&
+                  alert.endOffset > caretPosition
+                );
+              })
+              .pop() as IAlert;
+
+            const nodeText = oneNodeWithAlerts.node;
+
+            if (selectedAlert) {
+              const range = document.createRange();
+              range.setStart(nodeText, selectedAlert.startOffset);
+              range.setEnd(nodeText, selectedAlert.endOffset);
+              const clickedRect = range.getClientRects()[0];
+
+              setPopoverData({
+                alert: selectedAlert,
+                position: clickedRect,
+                node: oneNodeWithAlerts.node,
+                originalNode:
+                  isTextArea(target) || isInputText(target) ? target : null,
+              });
+
+              setSelectedAlert(selectedAlert);
+              togglePopover();
+            }
+          }
+        }
+      }, 400);
+    } else {
+      clearTimeout(singleClickTimeOut);
+    }
+
+    const target = event.target as CustomInputElement;
+    const caretPosition: number = getInputClickedPosition(target);
+  };
+
+  const getInputClickedPosition = (element: CustomInputElement): number => {
+    if (isTextArea(element) || isInputText(element)) {
+      return element.selectionStart as number;
+    } else {
+      const selection: Selection | null = document.getSelection();
+      return selection ? selection.anchorOffset : -1;
+    }
   };
 
   useEffect(() => {
@@ -137,6 +213,7 @@ const Input: React.FC<{
         id: `${result.category}-${result.text}-${result.start}-${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
+        popOverIsOpen: false,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -242,115 +319,6 @@ const Input: React.FC<{
       );
   }, [checkEndpointError]);
 
-
-  useEffect(() => {
-    let newHighlights: Highlight[] = [];
-    if (nodesWithAlerts.length === 0) setHighlights([]);
-    nodesWithAlerts.forEach(({ node, alerts }) => {
-      //quick fix to avoid error: check if node exists in the DOM
-      //but also filter alerts that have a bigger endOffset than the length of the text
-      if (typeof node !== 'undefined' && elementExistsinDOM(node)) {
-        alerts
-          .filter(
-            (alert: IAlert) =>
-              node && node.textContent &&
-              alert.endOffset <= node.textContent.length
-          )
-          .forEach((alert: IAlert) => {
-            const range = document.createRange();
-            if (node) range.setStart(node, alert.startOffset);
-            if (node) range.setEnd(node, alert.endOffset);
-            const rects: DOMRect[] = Array.from(range.getClientRects())
-              .map((rect: DOMRect) => {
-                return {
-                  ...rect,
-                  width: rect.width,
-                  height: rect.height,
-                  left: rect.left,
-                  x: rect.left,
-                  top: rect.top + bodyScroll.top,
-                  y: rect.top,
-                };
-              });
-
-            const newHighlight: Highlight = {
-              id: alert.id,
-              rects,
-              data: alert.data,
-              startOffset: alert.startOffset,
-              endOffset: alert.endOffset,
-              node: node,
-            };
-            newHighlights.push(newHighlight);
-          });
-        setHighlights(newHighlights);
-      }
-    });
-  }, [nodesWithAlerts, parentScroll, elementScroll]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    //makes the canvas ratio correct, needed to make text clear
-    const ratio = window.devicePixelRatio;
-    canvas.width = elementRect.width * ratio;
-    canvas.height = elementRect.height * ratio;
-    canvas.style.width = elementRect.width + "px";
-    canvas.style.height = elementRect.height + "px";
-    const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
-    if (!context) return;
-
-    context.scale(ratio, ratio)
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    const iconDimensions = {
-      dx: canvas.width / 2.1,
-      dy: canvas.height / 2.2,
-      sWidth: 51,
-      sHeight: 45,
-    }
-
-    drawIcon(context, activeWittyIcon, iconDimensions);
-
-    const canvasClickListeners: Array<(e: MouseEvent) => void> = highlights.map((highlight) => {
-      const [rect] = highlight.rects;
-      const hoverColor = `${getColor(highlight.data.category).hover}`;
-      const highlightColor = `${getColor(highlight.data.category).highlight}`;
-      const roundedHighlight = new Path2D();
-      const params = {
-        context,
-        element,
-        roundedHighlight,
-        highlight,
-        hoverColor,
-        highlightColor,
-        rect,
-        elementRect,
-        canvas,
-      };
-
-      drawHighlight(params, 'transparent'); //the clickable container
-      drawLine(params, hoverColor);
-
-      return function (event: MouseEvent) {
-        const newPopoverData = handleCanvasClick(event, params);
-        if (newPopoverData && newPopoverData.alert && newPopoverData.position && newPopoverData.node) {
-          //timeout allows user to double click 
-          setTimeout(() => {
-            setPopoverData(newPopoverData);
-            toggleModal();
-          }, 500);
-        }
-      }
-    });
-    canvasClickListeners.forEach((listener) => canvas.addEventListener('click', listener));
-
-    return () => {
-      canvasClickListeners.forEach((listener) => canvas.removeEventListener('click', listener));
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    };
-  }, [highlights]);
-
   return (
     <div className='canvas-container'>
       {loading && <HighlightsLoader elementReference={element} />}
@@ -370,28 +338,24 @@ const Input: React.FC<{
         />
       )}
       {loading && <HighlightsLoader elementReference={element} />}
-      {popoverData.alert && isOpen && (
+      {popoverData.alert && isPopoverOpen && (
         <HighlightPopover
           element={element}
           data={popoverData}
-          hide={toggleModal}
+          hide={togglePopover}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
         />
       )}
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: 'absolute',
-          overflow: 'auto',
-          left: `${elementRect.left}px`,
-          top: `${elementRect.top}px`,
-          zIndex: 99999999,
-        } as React.CSSProperties}
-        width={elementRect.width}
-        height={elementRect.height}
-      >
-      </canvas>
+      <Highlights
+        bodyScroll={bodyScroll}
+        parentScroll={parentScroll}
+        elementScroll={elementScroll}
+        elementRect={elementRect}
+        nodesWithAlerts={nodesWithAlerts}
+        element={element}
+        selectedAlert={selectedAlert}
+      />
     </div>
   );
 };
