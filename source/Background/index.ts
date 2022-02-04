@@ -1,14 +1,50 @@
 import { browser } from 'webextension-polyfill-ts';
 
-import { StorageKeys, DEV_ENV } from '../shared/constants';
+import {
+  StorageKeys,
+  DEV_ENV,
+  POSTHOG_API_KEY,
+  wittyVersion,
+} from '../shared/constants';
 import { isFunction } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
-import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
 
-const analytics = useAnalytics();
+//TODO: figure out of 'ChunkLoadError: Loading chunk 0 failed.' issue and add to useAnalytics
+const extensionStatusLog = (status: string, appID: string) => {
+  const ph = browserPostHog(POSTHOG_API_KEY);
+
+  ph.session.distinctId = appID;
+  ph.capture(status, {
+    request__id: appID,
+    request__client: wittyVersion,
+  });
+};
+
+if (!DEV_ENV) {
+  browser.runtime.onInstalled.addListener(function (details: {
+    reason: string;
+  }) {
+    browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
+
+    if (details.reason === 'install') {
+      extensionStatusLog('install', getBrowserId());
+      browser.tabs.create({
+        url: 'http://www.witty.works/welcome',
+      });
+    }
+    if (details.reason === 'update') {
+      extensionStatusLog('update', getBrowserId());
+      browser.tabs.create({
+        url: 'https://www.witty.works/update',
+      });
+    }
+  });
+}
 
 const log = useLog('Background index');
+
 const devAppId = 'DEV_APP_ID';
 
 type DefaultConfigValue = string | boolean | string[] | (() => string);
@@ -39,24 +75,6 @@ const getRandomToken = () => {
 const getBrowserId = () => {
   return DEV_ENV ? devAppId : getRandomToken();
 };
-// if (!DEV_ENV) {
-
-browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
-  browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
-
-  if (details.reason === 'install') {
-    analytics.extensionStatusLog('install', getBrowserId());
-    browser.tabs.create({
-      url: 'http://www.witty.works/welcome',
-    });
-  }
-  if (details.reason === 'update') {
-    analytics.extensionStatusLog('update', getBrowserId());
-    browser.tabs.create({
-      url: 'https://www.witty.works/update',
-    });
-  }
-});
 
 const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
   //Check if setting is already defined in the local storage
