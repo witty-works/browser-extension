@@ -81,10 +81,8 @@ export const useAnalytics = () => {
       });
     },
 
-    async extensionStatusLog(status: string) {
-      const { appID } = await import('./requests');
+    async extensionStatusLog(status: string, appID: string) {
       ph.session.distinctId = appID;
-
       ph.capture(status, {
         request__id: appID,
         request__client: wittyVersion,
