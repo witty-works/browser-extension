@@ -219,7 +219,7 @@ const ContentScriptApp: React.FC = () => {
     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
     if (!context) return;
     context.clearRect(0, 0, canvas.width, canvas.height);
-    drawIcon(context, passiveWittyIcon, canvasPosition as DOMRect, 'passive');
+    drawIcon(context, passiveWittyIcon, canvasPosition as DOMRect);
   }, [canvasPosition]);
 
   const handleDocumentScrollEvent = (event: Event) => {

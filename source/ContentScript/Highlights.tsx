@@ -93,7 +93,7 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
-    drawIcon(context, activeWittyIcon, elementRect, 'active');
+    drawIcon(context, activeWittyIcon, elementRect);
 
     highlights.forEach((highlight) => {
       const [rect] = highlight.rects;

@@ -17,8 +17,7 @@ export const drawLine = (params: any, color: string) => {
 export const drawIcon = (
   context: CanvasRenderingContext2D,
   icon: any,
-  elementRect: DOMRect,
-  iconType: string
+  elementRect: DOMRect
 ) => {
   if (elementRect.width === 0 || elementRect.height === 0) return; //change to small
   const DOMURL = window.URL || window.webkitURL || window;
@@ -26,21 +25,14 @@ export const drawIcon = (
   const svg = new Blob([icon], { type: 'image/svg+xml' });
   const url = DOMURL.createObjectURL(svg);
 
-  let dx = elementRect.width - elementRect.width / 10;
-  let dy = elementRect.height - elementRect.height / 6 - 15;
-  let width = 51;
-  let height = 45;
-
-  //TEMP FIX: because elementRect is different for the two cases for some reason
-  if (iconType === 'active') {
-    dx = elementRect.width - elementRect.width / 9.5;
-    dy = elementRect.height - elementRect.height / 6 - 15;
-    width = 31.5;
-    height = 21;
-  }
-
   img1.onload = function () {
-    context!.drawImage(img1, dx, dy, width, height);
+    context!.drawImage(
+      img1,
+      elementRect.width - elementRect.width / 10,
+      elementRect.height - elementRect.height / 6 - 15,
+      25,
+      21
+    );
     DOMURL.revokeObjectURL(url);
   };
   img1.src = url;
