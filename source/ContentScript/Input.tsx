@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import TextAreaClone from './TextAreaClone';
-import InputTextClone from './InputTextClone';
-import Highlights, { ScrollPos } from './Highlights';
 import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import { CustomInputElement, IAlert, INodeWithAlerts } from '../shared/types';
+import {
+  CustomInputElement,
+  IAlert,
+  INodeWithAlerts,
+  ScrollPos,
+} from '../shared/types';
 import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
-import Modal, { ModalData } from '../shared/components/Modal/Modal';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { throttle } from 'lodash';
-
-
-type HandleClick = () => void;
+import HighlightPopover, {
+  PopoverData,
+} from './HighlightPopover/HighlightPopover';
+import InputTextClone from './InputTextClone';
+import Highlights from './Highlights';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -24,37 +28,40 @@ const Input: React.FC<{
   const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
-  const [alerts, setAlerts] = useState<IAlert[]>([]);
-
-  const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
-    [] as INodeWithAlerts[]
-  );
-  // const [clone, setClone] = useState<HTMLDivElement>();
-  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const elementRect = useResizeObserver(element);
+
+  const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
   } as ScrollPos);
-  const [modalData, setModalData] = useState<ModalData>({} as ModalData);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [popoverData, setPopoverData] = useState<PopoverData>(
+    {} as PopoverData
+  );
+  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-  // const [, setText, textRef] = useStateRef("");
+
+  const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
+    [] as INodeWithAlerts[]
+  );
+  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
+  const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
+
   const log = useLog('Input');
 
   useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
-    //The turn around (at least for the moment) is to use 'keyup'
+    //The work around (at least for the moment) is to use 'keyup'
     handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
-    element.addEventListener('click', handleClickElement as EventListener);
+    element.addEventListener('click', handleElementClickEvent as EventListener);
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
     const parentForm: HTMLFormElement | null = isTextArea(element)
-      ? (element as HTMLTextAreaElement).form
+      ? element.form
       : element.closest('form');
 
     if (parentForm)
@@ -65,17 +72,14 @@ const Input: React.FC<{
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      element.removeEventListener('click', handleClickElement as EventListener);
+      element.removeEventListener(
+        'click',
+        handleElementClickEvent as EventListener
+      );
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
-
-  const handleSubmitFormEvent = () => {
-    //It's assumed that when user sends info through a form, text will disappear.
-    //Therefore highlights also need to be removed
-    setNodesWithAlerts([]);
-  };
 
   const handleKeyupEvent = throttle(() => {
     const nextText: string =
@@ -84,19 +88,48 @@ const Input: React.FC<{
         : fixLineBreaks(element.innerText);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) setNodesWithAlerts([]);
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
+      setNodesWithAlerts([]);
     else {
-      setTextToCheck(nextText)
+      setTextToCheck(nextText);
     }
-  }, 1000);
+  }, 3000);
 
   const handleElementScrollEvent = throttle(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   }, 500);
 
+  const handleSubmitFormEvent = () => {
+    //It's assumed that when user sends info through a form, text will disappear.
+    //Therefore highlights also need to be removed
+    setNodesWithAlerts([]);
+  };
+
+  const updateCloneData = (newClone: HTMLDivElement) => {
+    setClone(newClone);
+  };
+
+  const togglePopover = (): void => {
+    setIsPopoverOpen(!isPopoverOpen);
+    if (isPopoverOpen) setSelectedAlert(null);
+  };
+
+  const resendText = () => {
+    const text: string =
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : fixLineBreaks(element.innerText);
+
+    setTextToCheck(text);
+  };
+
+  const addIgnoredTerm = (term: string): void => {
+    setIgnoredTerms([...ignoredTerms, term]);
+  };
+
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
-  const handleClickElement = (event: MouseEvent) => {
+  const handleElementClickEvent = (event: MouseEvent) => {
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
         if (caretPosition > -1) {
@@ -128,14 +161,16 @@ const Input: React.FC<{
               range.setEnd(nodeText, selectedAlert.endOffset);
               const clickedRect = range.getClientRects()[0];
 
-              setModalData({
+              setPopoverData({
                 alert: selectedAlert,
                 position: clickedRect,
                 node: oneNodeWithAlerts.node,
                 originalNode:
                   isTextArea(target) || isInputText(target) ? target : null,
               });
-              toggleModal();
+
+              setSelectedAlert(selectedAlert);
+              togglePopover();
             }
           }
         }
@@ -161,7 +196,7 @@ const Input: React.FC<{
     if (!checkEndpointResponse) return;
     analytics.checkLog(
       checkEndpointResponse,
-      clone?.firstChild ? clone?.firstChild.length : 0
+      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
     );
 
     log(
@@ -177,6 +212,7 @@ const Input: React.FC<{
         id: `${result.category}-${result.text}-${result.start}-${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
+        popOverIsOpen: false,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -202,22 +238,25 @@ const Input: React.FC<{
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
-      if (isTextArea(element) || isInputText(element))
+      if (isTextArea(element) || isInputText(element)) {
+        if (!clone.firstChild) {
+          return;
+        }
         setNodesWithAlerts([
           {
-            node: clone?.firstChild,
+            node: clone.firstChild,
             alerts: filteredAlerts.map((alert: IAlert) => ({
               ...alert,
             })),
           },
         ]);
-      else {
+      } else {
         const nodesWithAlertsTemp: INodeWithAlerts[] =
           getNodesWithRecalculatedAlerts(element.childNodes, filteredAlerts);
         setNodesWithAlerts(nodesWithAlertsTemp);
       }
     }
-  }, [alerts]);
+  }, [alerts, ignoredTerms, clone]);
 
   const getNodesWithRecalculatedAlerts = (
     nodes: NodeListOf<ChildNode>,
@@ -267,79 +306,54 @@ const Input: React.FC<{
         }
       }
     };
-
     traverseNodes(nodes);
-
     return nodesWithAlertsTemp;
   };
 
   useEffect(() => {
-    if (checkEndpointError) {
+    if (checkEndpointError)
       log(
         `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
         logTypes.ERROR
       );
-    }
   }, [checkEndpointError]);
-
-  const updateCloneData = (clone: HTMLDivElement) => {
-    setClone(clone);
-  };
-
-  const toggleModal: HandleClick = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const resendText = () => {
-    const text: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : fixLineBreaks(element.innerText);
-
-    setTextToCheck(text);
-  };
-
-  const addIgnoredTerm = (term: string): void => {
-    setIgnoredTerms([...ignoredTerms, term]);
-    setAlerts([...alerts]);
-  };
 
   return (
     <div className='canvas-container'>
-      {isTextArea(element) ? (
+      {loading && <HighlightsLoader elementReference={element} />}
+      {isTextArea(element) && (
         <TextAreaClone
           element={element}
           elementRect={elementRect}
           elementScroll={elementScroll}
           updateClone={updateCloneData}
         />
-      ) : null}
-      {isInputText(element) ? (
+      )}
+      {isInputText(element) && (
         <InputTextClone
           element={element}
           elementRect={elementRect}
           updateClone={updateCloneData}
         />
-      ) : null}
-      {loading ? <HighlightsLoader elementReference={element} /> : null}
-      {nodesWithAlerts.length > 0 ? (
-        <Highlights
-          bodyScroll={bodyScroll}
-          parentScroll={parentScroll}
-          elementScroll={elementScroll}
-          elementRect={elementRect}
-          nodesWithAlerts={nodesWithAlerts}
-        />
-      ) : null}
-      {modalData.alert ? (
-        <Modal
-          isOpen={isOpen}
-          data={modalData}
-          hide={toggleModal}
+      )}
+      {popoverData.alert && isPopoverOpen && (
+        <HighlightPopover
+          element={element}
+          data={popoverData}
+          hide={togglePopover}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
         />
-      ) : null}
+      )}
+      <Highlights
+        bodyScroll={bodyScroll}
+        parentScroll={parentScroll}
+        elementScroll={elementScroll}
+        elementRect={elementRect}
+        nodesWithAlerts={nodesWithAlerts}
+        element={element}
+        selectedAlert={selectedAlert}
+      />
     </div>
   );
 };
