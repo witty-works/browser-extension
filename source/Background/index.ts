@@ -9,20 +9,23 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 const analytics = useAnalytics();
 
 if (!DEV_ENV) {
-  browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
-  //uninstallLog();
+  browser.runtime
+    .setUninstallURL('https://www.witty.works/goodbye')
+    .then(function () {
+      analytics.extensionStatusLog('uninstall');
+    });
 
   browser.runtime.onInstalled.addListener(function (details: {
     reason: string;
   }) {
     if (details.reason === 'install') {
-      analytics.installLog();
+      analytics.extensionStatusLog('install');
       browser.tabs.create({
         url: 'http://www.witty.works/welcome',
       });
     }
     if (details.reason === 'update') {
-      analytics.updateLog();
+      analytics.extensionStatusLog('update');
       browser.tabs.create({
         url: 'https://www.witty.works/update',
       });
@@ -58,9 +61,7 @@ const getRandomToken = () => {
   return BigInt('0x' + bytesHex).toString(10);
 };
 
-const getBrowserId = () => {
-  return DEV_ENV ? devAppId : getRandomToken();
-};
+const browserId: string = DEV_ENV ? devAppId : getRandomToken();
 
 const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
   //Check if setting is already defined in the local storage
@@ -94,7 +95,7 @@ const setSettings = () => {
     }
   }
   //Set browser id
-  setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
+  setInLocalStorage(StorageKeys.APP_ID, browserId);
 };
 
 setSettings();
