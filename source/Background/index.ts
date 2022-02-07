@@ -1,26 +1,12 @@
 import { browser } from 'webextension-polyfill-ts';
 
-import {
-  StorageKeys,
-  DEV_ENV,
-  POSTHOG_API_KEY,
-  wittyVersion,
-} from '../shared/constants';
+import { StorageKeys, DEV_ENV } from '../shared/constants';
 import { isFunction } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
-import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
+import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
-//TODO: figure out of 'ChunkLoadError: Loading chunk 0 failed.' issue and add to useAnalytics
-const extensionStatusLog = (status: string, appID: string) => {
-  const ph = browserPostHog(POSTHOG_API_KEY);
-
-  ph.session.distinctId = appID;
-  ph.capture(status, {
-    request__id: appID,
-    request__client: wittyVersion,
-  });
-};
+const analytics = useAnalytics();
 
 if (!DEV_ENV) {
   browser.runtime.onInstalled.addListener(function (details: {
@@ -29,13 +15,13 @@ if (!DEV_ENV) {
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
 
     if (details.reason === 'install') {
-      extensionStatusLog('install', getBrowserId());
+      analytics.extensionStatusLog('install');
       browser.tabs.create({
         url: 'http://www.witty.works/welcome',
       });
     }
     if (details.reason === 'update') {
-      extensionStatusLog('update', getBrowserId());
+      analytics.extensionStatusLog('update');
       browser.tabs.create({
         url: 'https://www.witty.works/update',
       });
