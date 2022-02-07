@@ -4,19 +4,24 @@ import { StorageKeys, DEV_ENV } from '../shared/constants';
 import { isFunction } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
+import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+
+const analytics = useAnalytics();
 
 if (!DEV_ENV) {
-  browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
-
   browser.runtime.onInstalled.addListener(function (details: {
     reason: string;
   }) {
+    browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
+
     if (details.reason === 'install') {
+      analytics.extensionStatusLog('install', getBrowserId());
       browser.tabs.create({
         url: 'http://www.witty.works/welcome',
       });
     }
     if (details.reason === 'update') {
+      analytics.extensionStatusLog('update', getBrowserId());
       browser.tabs.create({
         url: 'https://www.witty.works/update',
       });
@@ -25,6 +30,7 @@ if (!DEV_ENV) {
 }
 
 const log = useLog('Background index');
+
 const devAppId = 'DEV_APP_ID';
 
 type DefaultConfigValue = string | boolean | string[] | (() => string);
