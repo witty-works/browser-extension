@@ -78,7 +78,7 @@ export const useAnalytics = () => {
         response: logResponse,
       });
     },
-    async extensionStatusLog(status: string) {
+    async extensionStatusLog(status: string, appID: string) {
       ph.session.distinctId = appID;
       ph.capture(status, {
         request__id: appID,

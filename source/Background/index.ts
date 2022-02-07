@@ -15,13 +15,13 @@ if (!DEV_ENV) {
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
 
     if (details.reason === 'install') {
-      analytics.extensionStatusLog('install');
+      analytics.extensionStatusLog('install', getBrowserId());
       browser.tabs.create({
         url: 'http://www.witty.works/welcome',
       });
     }
     if (details.reason === 'update') {
-      analytics.extensionStatusLog('update');
+      analytics.extensionStatusLog('update', getBrowserId());
       browser.tabs.create({
         url: 'https://www.witty.works/update',
       });
