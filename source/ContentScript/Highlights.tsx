@@ -2,14 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Highlight, IAlert, INodeWithAlerts, ScrollPos } from '../shared/types';
 import { getColor } from '../shared/constants';
 import { nodeExistsInDOM } from '../shared/utils';
-import {
-  drawHighlight,
-  drawIcon,
-  drawLine,
-  redrawText,
-} from './highlightsUtils';
-const activeWittyIcon =
-  require('../assets/icons/canvas/witty-active.svg') as string;
+import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
 
 interface HighlightsProps {
   bodyScroll: ScrollPos;
@@ -93,7 +86,6 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
-    drawIcon(context, activeWittyIcon, elementRect);
 
     highlights.forEach((highlight) => {
       const [rect] = highlight.rects;

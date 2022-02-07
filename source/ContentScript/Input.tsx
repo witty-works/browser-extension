@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import TextAreaClone from './TextAreaClone';
-import HighlightsLoader from './HighlightsLoader';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
@@ -19,13 +18,14 @@ import HighlightPopover, {
 } from './HighlightPopover/HighlightPopover';
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
+import WittySupportIcon from './WittySupportsIcon';
 
 const Input: React.FC<{
   element: CustomInputElement;
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [loading, checkEndpointResponse, checkEndpointError, setTextToCheck] =
+  const [, checkEndpointResponse, checkEndpointError, setTextToCheck] = //TODO: add back loading
     useCheckEndpoint();
   const analytics = useAnalytics();
   const elementRect = useResizeObserver(element);
@@ -320,7 +320,8 @@ const Input: React.FC<{
 
   return (
     <div className='canvas-container'>
-      {loading && <HighlightsLoader elementReference={element} />}
+      {/* TODO: use loading state for animation */}
+      <WittySupportIcon elementReference={element} active={true} />
       {isTextArea(element) && (
         <TextAreaClone
           element={element}

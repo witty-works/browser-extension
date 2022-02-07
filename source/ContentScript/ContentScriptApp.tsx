@@ -1,12 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import {
-  CanvasPosition,
-  CustomInputElement,
-  RequestConfig,
-  ScrollPos,
-} from '../shared/types';
+import { CustomInputElement, RequestConfig, ScrollPos } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
@@ -21,10 +16,7 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, nodeExistsInDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import { drawIcon } from './highlightsUtils';
-
-const passiveWittyIcon =
-  require('../assets/icons/canvas/witty-passive.svg') as string;
+import WittySupportIcon from './WittySupportsIcon';
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
@@ -45,14 +37,9 @@ const ContentScriptApp: React.FC = () => {
     left: 0,
   } as ScrollPos);
 
-  const [canvasPosition, setCanvasPosition] = useState<CanvasPosition>({
-    width: 0,
-    height: 0,
-    top: 0,
-    left: 0,
-  } as CanvasPosition);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [hoveredElement, setHoveredElement] = useState(
+    [] as CustomInputElement[]
+  );
 
   const log = useLog('ContentScriptApp');
 
@@ -175,12 +162,7 @@ const ContentScriptApp: React.FC = () => {
 
     if (isInputElement(target))
       if (!inputsRef.current.includes(target)) {
-        setCanvasPosition({
-          top: 0,
-          left: 0,
-          width: 0,
-          height: 0,
-        });
+        setHoveredElement([]);
         setInputs([...inputsRef.current, target]);
       }
   };
@@ -193,34 +175,14 @@ const ContentScriptApp: React.FC = () => {
       inputsRef.current.length > 0
     )
       return;
-    const { width, height, top, left } = target.getBoundingClientRect();
-    setCanvasPosition({
-      top: doc.scrollTop + top,
-      left: doc.scrollLeft + left,
-      width: width,
-      height: height,
-    });
+    setHoveredElement([target]);
   };
 
   const handleMouseOut = (event: MouseEvent) => {
     const target = event.target as CustomInputElement;
     if (!isInputElement(target)) return;
-    setCanvasPosition({
-      top: 0,
-      left: 0,
-      width: 0,
-      height: 0,
-    });
+    setHoveredElement([]);
   };
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
-    if (!context) return;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    drawIcon(context, passiveWittyIcon, canvasPosition as DOMRect);
-  }, [canvasPosition]);
 
   const handleDocumentScrollEvent = (event: Event) => {
     //TODO add throttle
@@ -258,21 +220,9 @@ const ContentScriptApp: React.FC = () => {
   mutationObserver.observe(document.body, { childList: true, subtree: true });
   return (
     <>
-      <canvas
-        ref={canvasRef}
-        style={
-          {
-            position: 'absolute',
-            overflow: 'auto',
-            left: `${canvasPosition.left}px`,
-            top: `${canvasPosition.top}px`,
-            zIndex: 99999999,
-            pointerEvents: 'none',
-          } as React.CSSProperties
-        }
-        width={canvasPosition.width}
-        height={canvasPosition.height}
-      />
+      {hoveredElement.length > 0 && (
+        <WittySupportIcon active={false} elementReference={hoveredElement[0]} />
+      )}
       {inputs.map((input: CustomInputElement, index: number) => (
         <Input
           key={index}

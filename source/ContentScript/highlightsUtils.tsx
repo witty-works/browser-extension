@@ -14,30 +14,6 @@ export const drawLine = (params: any, color: string) => {
   context.stroke();
 };
 
-export const drawIcon = (
-  context: CanvasRenderingContext2D,
-  icon: any,
-  elementRect: DOMRect
-) => {
-  if (elementRect.width === 0 || elementRect.height === 0) return; //change to small
-  const DOMURL = window.URL || window.webkitURL || window;
-  const img1 = new Image();
-  const svg = new Blob([icon], { type: 'image/svg+xml' });
-  const url = DOMURL.createObjectURL(svg);
-
-  img1.onload = function () {
-    context!.drawImage(
-      img1,
-      elementRect.width - elementRect.width / 10,
-      elementRect.height - elementRect.height / 6 - 15,
-      25,
-      21
-    );
-    DOMURL.revokeObjectURL(url);
-  };
-  img1.src = url;
-};
-
 export const drawHighlight = (params: any, color: string) => {
   const { roundedHighlight, context, rect, elementRect } = params;
   //the +/- is to add some padding to the highlight
