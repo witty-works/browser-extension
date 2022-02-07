@@ -111,7 +111,10 @@ const Input: React.FC<{
 
   const togglePopover = (): void => {
     setIsPopoverOpen(!isPopoverOpen);
-    if (isPopoverOpen) setSelectedAlert(null);
+    if (isPopoverOpen) {
+      analytics.popoverToggleLog(popoverData.alert);
+      setSelectedAlert(null);
+    }
   };
 
   const resendText = () => {
