@@ -46,7 +46,8 @@ const Input: React.FC<{
   );
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
-
+  const [wittySupportIcon, setWittySupportIcon] = useState<boolean>(true);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
   const log = useLog('Input');
 
   useEffect(() => {
@@ -55,6 +56,9 @@ const Input: React.FC<{
     handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleKeyupEvent);
+    element.addEventListener('focusout', handleFocusoutEvent);
+    element.addEventListener('mouseover', handleMouseoverEvent);
+    element.addEventListener('mouseout', handleMouseoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleElementClickEvent as EventListener);
 
@@ -71,6 +75,9 @@ const Input: React.FC<{
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleKeyupEvent);
+      element.removeEventListener('focusout', handleFocusoutEvent);
+      element.removeEventListener('mouseover', handleMouseoverEvent);
+      element.removeEventListener('mouseout', handleMouseoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener(
         'click',
@@ -81,7 +88,24 @@ const Input: React.FC<{
     };
   }, []);
 
+  const handleMouseoverEvent = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseoutEvent = () => {
+    setIsHovered(false);
+  };
+
+  const handleFocusoutEvent = () => {
+    const nextText: string =
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : element.innerText;
+    if (nextText.length == 0) setWittySupportIcon(false);
+  };
+
   const handleKeyupEvent = throttle(() => {
+    setWittySupportIcon(true);
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
@@ -321,7 +345,13 @@ const Input: React.FC<{
   return (
     <div className='canvas-container'>
       {/* TODO: use loading state for animation */}
-      <WittySupportIcon elementReference={element} active={true} />
+      {wittySupportIcon ? (
+        <WittySupportIcon elementReference={element} active={true} />
+      ) : (
+        isHovered && (
+          <WittySupportIcon elementReference={element} active={false} />
+        )
+      )}
       {isTextArea(element) && (
         <TextAreaClone
           element={element}
