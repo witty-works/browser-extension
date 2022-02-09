@@ -77,15 +77,14 @@ const convertHTMLToText = (str: string = ''): string => {
 
 const fixLineBreaks = (element: CustomInputElement): string => {
   let value: string = '';
-
   if (element.nodeName === 'DIV' && element.childNodes.length === 1) {
     element = element.firstChild as HTMLInputElement;
   }
-
   for (const child of element.children) {
-    if (findElement(child, 'IMG')) {
+    const imgElement = findElement(child, 'IMG');
+    if (imgElement && child.textContent === '\uFEFF') {
       value += child.textContent + '\n\n\n';
-    } else if (child.textContent === '\uFEFF') {
+    } else if (imgElement || child.textContent === '\uFEFF') {
       value += child.textContent + '\n\n';
     } else {
       value += child.textContent + '\n';
