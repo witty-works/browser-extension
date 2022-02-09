@@ -13,14 +13,19 @@ const WittySupportIcon: React.FC<WittySupportsIconProps> = ({
   elementReference,
 }: WittySupportsIconProps) => {
   const elementsReferenceRect = elementReference.getBoundingClientRect();
+  const iconPadding: number = 8;
 
   return (
     <img
       style={{
         zIndex: 9999999, //needed for linkedin
         position: 'fixed',
-        top: `${elementsReferenceRect.bottom - 30}px`,
-        left: `${elementsReferenceRect.right - 35}px`,
+        bottom: `${
+          window.innerHeight - elementsReferenceRect.bottom + iconPadding
+        }px`,
+        right: `${
+          window.innerWidth - elementsReferenceRect.right + iconPadding
+        }px`,
       }}
       src={
         active
