@@ -75,28 +75,30 @@ const convertHTMLToText = (str: string = ''): string => {
   return value;
 };
 
-const fixLineBreaks = (str: string = ''): string => {
-  // Ensure string.
-  let value: string = String(str);
-
-  //Element's innerHTML does not provide the correct spacing when there are line-breaks.
-  //(e.g. <div><br></div> provides two spaces when transformed to string)
-  //So we need a specific fix for that
-
-  const trippleNewLinesWhiteList = ['www.linkedin.com', 'app.holaspirit.com'];
-
-  if (trippleNewLinesWhiteList.includes(window.location.hostname)) {
-    value = value.replace(/(\n+)/g, ($1) =>
-      new Array(Math.ceil($1.length / 3)).fill('\n', 0).join('')
-    );
-  } else {
-    value = value.replace(/(\n+)/g, ($1) =>
-      new Array(Math.ceil($1.length / 2)).fill('\n', 0).join('')
-    );
+const fixLineBreaks = (element: CustomInputElement): string => {
+  let value: string = '';
+  for (const child of element.children) {
+    if (findImgElement(child)) {
+      value += child.textContent + '\n\n\n';
+    } else if (child.textContent === '\uFEFF') {
+      value += child.textContent + '\n\n';
+    } else {
+      value += child.textContent + '\n';
+    }
   }
-
-  // Expose string.
   return value;
+};
+
+const findImgElement = (node: Node): boolean => {
+  if (node.nodeName === 'IMG') {
+    return true;
+  }
+  for (const child of node.childNodes) {
+    if (findImgElement(child)) {
+      return true;
+    }
+  }
+  return false;
 };
 
 const convertTextToHTML = (str: string = ''): string => {
