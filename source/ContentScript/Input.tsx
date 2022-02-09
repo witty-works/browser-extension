@@ -101,7 +101,7 @@ const Input: React.FC<{
       isTextArea(element) || isInputText(element)
         ? element.value
         : element.innerText;
-    if (nextText.length == 0) setWittySupportIcon(false);
+    if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
   };
 
   const handleKeyupEvent = throttle(() => {
