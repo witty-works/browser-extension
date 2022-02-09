@@ -80,7 +80,7 @@ const fixLineBreaks = (element: CustomInputElement): string => {
   if (element.nodeName === 'DIV' && element.childNodes.length === 1) {
     element = element.firstChild as HTMLInputElement;
   }
-  for (const child of element.children) {
+  for (const child of element.childNodes) {
     const imgElement = findElement(child, 'IMG');
     if (imgElement && child.textContent === '\uFEFF') {
       value += child.textContent + '\n\n\n';
