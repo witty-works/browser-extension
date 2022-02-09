@@ -6,6 +6,7 @@ import {
   ICheckLogRequest,
   IIgnoreLogRequest,
   IAlternativeLogRequest,
+  ILogRequest,
 } from '../types';
 import { appID, requestConfig } from './requests';
 
@@ -74,6 +75,26 @@ export const useAnalytics = () => {
       };
 
       ph.capture('check', {
+        ...request,
+        response: logResponse,
+      });
+    },
+    async popoverToggleLog(logResponse: IAlert) {
+      ph.session.distinctId = appID;
+
+      const request: ILogRequest = {
+        request__type: 'popver_open',
+        request__lang: 'auto',
+        request__id: appID,
+        request__client: wittyVersion,
+        request__config__primary_language: requestConfig.primary_language,
+        request__config__preferred_languages: requestConfig.preferred_languages,
+        request__config__preferred_variants: requestConfig.preferred_variants,
+        request__config__german_gender_ending:
+          requestConfig.german_gender_ending,
+      };
+
+      ph.capture('popver_open', {
         ...request,
         response: logResponse,
       });
