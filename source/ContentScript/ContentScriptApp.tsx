@@ -16,6 +16,7 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, nodeExistsInDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
+import WittySupportIcon from './WittySupportsIcon';
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
@@ -35,6 +36,9 @@ const ContentScriptApp: React.FC = () => {
     top: 0,
     left: 0,
   } as ScrollPos);
+
+  const [hoveredElement, setHoveredElement] =
+    useState<CustomInputElement | null>(null);
 
   const log = useLog('ContentScriptApp');
 
@@ -96,11 +100,15 @@ const ContentScriptApp: React.FC = () => {
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);
+    document.addEventListener('mouseover', handleMouseOver, true);
+    document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('scroll', handleDocumentScrollEvent);
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseout', handleMouseOut);
     };
   }, []);
 
@@ -152,8 +160,27 @@ const ContentScriptApp: React.FC = () => {
     const target = event.target as CustomInputElement;
 
     if (isInputElement(target))
-      if (!inputsRef.current.includes(target))
+      if (!inputsRef.current.includes(target)) {
+        setHoveredElement(null);
         setInputs([...inputsRef.current, target]);
+      }
+  };
+
+  const handleMouseOver = (event: MouseEvent) => {
+    const target = event.target as CustomInputElement;
+    if (
+      !isInputElement(target) ||
+      target.tagName === 'P' ||
+      inputsRef.current.length > 0
+    )
+      return;
+    setHoveredElement(target);
+  };
+
+  const handleMouseOut = (event: MouseEvent) => {
+    const target = event.target as CustomInputElement;
+    if (!isInputElement(target)) return;
+    setHoveredElement(null);
   };
 
   const handleDocumentScrollEvent = (event: Event) => {
@@ -192,6 +219,9 @@ const ContentScriptApp: React.FC = () => {
   mutationObserver.observe(document.body, { childList: true, subtree: true });
   return (
     <>
+      {hoveredElement && (
+        <WittySupportIcon active={false} elementReference={hoveredElement} />
+      )}
       {inputs.map((input: CustomInputElement, index: number) => (
         <Input
           key={index}

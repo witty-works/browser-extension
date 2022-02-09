@@ -6,14 +6,15 @@ import {
   ICheckLogRequest,
   IIgnoreLogRequest,
   IAlternativeLogRequest,
+  ILogRequest,
 } from '../types';
+import { appID, requestConfig } from './requests';
 
 export const useAnalytics = () => {
   const ph = browserPostHog(POSTHOG_API_KEY);
 
   return {
     async alternativeLog(logResponse: IAlert, alternative: string) {
-      const { appID, requestConfig } = await import('./requests');
       ph.session.distinctId = appID;
 
       const request: IAlternativeLogRequest = {
@@ -37,7 +38,6 @@ export const useAnalytics = () => {
     },
 
     async ignoreLog(logResponse: IAlert) {
-      const { appID, requestConfig } = await import('./requests');
       ph.session.distinctId = appID;
 
       const request: IIgnoreLogRequest = {
@@ -59,7 +59,6 @@ export const useAnalytics = () => {
       });
     },
     async checkLog(logResponse: ILogResponse, inputLength: number) {
-      const { appID, requestConfig } = await import('./requests');
       ph.session.distinctId = appID;
 
       const request: ICheckLogRequest = {
@@ -78,6 +77,33 @@ export const useAnalytics = () => {
       ph.capture('check', {
         ...request,
         response: logResponse,
+      });
+    },
+    async popoverToggleLog(logResponse: IAlert) {
+      ph.session.distinctId = appID;
+
+      const request: ILogRequest = {
+        request__type: 'popver_open',
+        request__lang: 'auto',
+        request__id: appID,
+        request__client: wittyVersion,
+        request__config__primary_language: requestConfig.primary_language,
+        request__config__preferred_languages: requestConfig.preferred_languages,
+        request__config__preferred_variants: requestConfig.preferred_variants,
+        request__config__german_gender_ending:
+          requestConfig.german_gender_ending,
+      };
+
+      ph.capture('popver_open', {
+        ...request,
+        response: logResponse,
+      });
+    },
+    async extensionStatusLog(status: string, appID: string) {
+      ph.session.distinctId = appID;
+      ph.capture(status, {
+        request__id: appID,
+        request__client: wittyVersion,
       });
     },
   };
