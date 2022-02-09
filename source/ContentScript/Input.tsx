@@ -85,7 +85,7 @@ const Input: React.FC<{
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
-        : fixLineBreaks(element.innerText);
+        : fixLineBreaks(element);
 
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
@@ -121,7 +121,7 @@ const Input: React.FC<{
     const text: string =
       isTextArea(element) || isInputText(element)
         ? element.value
-        : fixLineBreaks(element.innerText);
+        : fixLineBreaks(element);
 
     setTextToCheck(text);
   };
