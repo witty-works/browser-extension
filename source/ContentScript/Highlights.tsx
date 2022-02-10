@@ -27,6 +27,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
   useEffect(() => {
+    console.log('HIGHlLIGHTS UPDATED');
     const highlights: Highlight[] = [];
     if (nodesWithAlerts.length === 0) setHighlights([]);
     nodesWithAlerts.forEach(({ node, alerts }) => {
@@ -70,7 +71,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       }
     });
     setHighlights(highlights);
-  }, [nodesWithAlerts, parentScroll, elementScroll]);
+  }, [nodesWithAlerts, parentScroll, elementScroll, elementRect]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
