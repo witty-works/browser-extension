@@ -25,6 +25,7 @@ const Highlights: React.FC<HighlightsProps> = ({
 }: HighlightsProps) => {
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [positionFixed, setPositionFixed] = useState<boolean>(false);
 
   useEffect(() => {
     const highlights: Highlight[] = [];
@@ -115,6 +116,15 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawLine(params, hoverColor);
       }
     });
+
+    if (element.parentElement) {
+      const parentPosition = window.getComputedStyle(
+        element.parentElement
+      ).position;
+      parentPosition === 'relative'
+        ? setPositionFixed(true)
+        : setPositionFixed(false);
+    }
   }, [highlights, selectedAlert]);
 
   return (
@@ -122,10 +132,10 @@ const Highlights: React.FC<HighlightsProps> = ({
       ref={canvasRef}
       style={
         {
-          position: 'absolute',
+          position: positionFixed ? 'fixed' : 'absolute',
           overflow: 'auto',
-          left: `${elementRect.left}px`,
           top: `${elementRect.top}px`,
+          left: `${elementRect.left}px`,
           zIndex: 99999999,
           pointerEvents: 'none',
         } as React.CSSProperties
