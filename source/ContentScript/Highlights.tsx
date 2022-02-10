@@ -126,15 +126,12 @@ const Highlights: React.FC<HighlightsProps> = ({
           overflow: 'auto',
           left: `${elementRect.left}px`,
           top: `${elementRect.top}px`,
-          //Resize the canvas blanks its content if width/height is not defined in CSS
-          //https://stackoverflow.com/questions/3543358/resizing-a-html-canvas-blanks-its-contents
-          width: `${elementRect.width}px`,
-          height: `${elementRect.height}px`,
           zIndex: 99999999,
           pointerEvents: 'none',
-          outline: '3px solid blue',
         } as React.CSSProperties
       }
+      width={elementRect.width}
+      height={elementRect.height}
     ></canvas>
   );
 };
