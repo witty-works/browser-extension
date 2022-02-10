@@ -115,7 +115,7 @@ const Input: React.FC<{
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
       setNodesWithAlerts([]);
     else {
-      setTextToCheck(nextText);
+      setTextToCheck({ text: nextText, id: Math.random() });
     }
   }, 3000);
 
@@ -147,7 +147,7 @@ const Input: React.FC<{
         ? element.value
         : fixLineBreaks(element);
 
-    setTextToCheck(text);
+    setTextToCheck({ text: text, id: Math.random() });
   };
 
   const addIgnoredTerm = (term: string): void => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
 import { getAnalyzedTextResults } from './requests';
 import { IRequest, ICheckResponse, ICheckResponseResult } from '../types';
@@ -85,17 +85,17 @@ export const useCheckEndpoint = () => {
     },
     required: ['results', 'language'],
   };
-
-  const [textToAnalyze, setTextToAnalyse] = useState<string>('');
-
-  useEffect(() => {
-    return () => {
-      setTextToAnalyse('');
-    };
-  }, []);
+  interface ITextToAnalyze {
+    text: string;
+    id: number;
+  }
+  const [textToAnalyze, setTextToAnalyse] = useState<ITextToAnalyze>({
+    text: '',
+    id: 0,
+  });
 
   const request: IRequest = useMemo(() => {
-    return getAnalyzedTextResults(textToAnalyze);
+    return getAnalyzedTextResults(textToAnalyze.text);
   }, [textToAnalyze]);
 
   const [loading, checkResponse, errorResponse] = useApiResults<ICheckResponse>(
