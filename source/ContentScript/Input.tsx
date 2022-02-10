@@ -104,7 +104,7 @@ const Input: React.FC<{
     if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
   };
 
-  const handleKeyupEvent = throttle(() => {
+  const handleKeyupEvent = () => {
     setWittySupportIcon(true);
     const nextText: string =
       isTextArea(element) || isInputText(element)
@@ -115,8 +115,12 @@ const Input: React.FC<{
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
       setNodesWithAlerts([]);
     else {
-      setTextToCheck(nextText);
+      throtteledSetTextToCheck(nextText);
     }
+  };
+
+  const throtteledSetTextToCheck = throttle((nextText: string) => {
+    setTextToCheck(nextText);
   }, 3000);
 
   const handleElementScrollEvent = throttle(() => {
