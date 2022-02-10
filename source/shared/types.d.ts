@@ -4,7 +4,6 @@ export interface RequestConfig {
   preferred_variants: string;
   german_gender_ending: string;
 }
-
 export interface ScrollPos {
   top: number;
   left: number;

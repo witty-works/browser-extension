@@ -16,6 +16,7 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, nodeExistsInDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
+import WittySupportIcon from './WittySupportsIcon';
 
 interface Iinput {
   element: CustomInputElement;
@@ -38,6 +39,9 @@ const ContentScriptApp: React.FC = () => {
     top: 0,
     left: 0,
   } as ScrollPos);
+
+  const [hoveredElement, setHoveredElement] =
+    useState<CustomInputElement | null>(null);
 
   const log = useLog('ContentScriptApp');
 
@@ -100,12 +104,16 @@ const ContentScriptApp: React.FC = () => {
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);
     window.addEventListener('resize', handleWindowResize);
+    document.addEventListener('mouseover', handleMouseOver, true);
+    document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('scroll', handleDocumentScrollEvent);
       window.removeEventListener('resize', handleWindowResize);
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseout', handleMouseOut);
     };
   }, []);
 
@@ -167,6 +175,27 @@ const ContentScriptApp: React.FC = () => {
               target.getBoundingClientRect().top,
           },
         ]);
+    // if (!inputsRef.current.includes(target)) {
+    //   setHoveredElement(null);
+    //   setInputs([...inputsRef.current, target]);
+    // }
+  };
+
+  const handleMouseOver = (event: MouseEvent) => {
+    const target = event.target as CustomInputElement;
+    if (
+      !isInputElement(target) ||
+      target.tagName === 'P' ||
+      inputsRef.current.length > 0
+    )
+      return;
+    setHoveredElement(target);
+  };
+
+  const handleMouseOut = (event: MouseEvent) => {
+    const target = event.target as CustomInputElement;
+    if (!isInputElement(target)) return;
+    setHoveredElement(null);
   };
 
   const handleDocumentScrollEvent = (event: Event) => {
@@ -218,6 +247,9 @@ const ContentScriptApp: React.FC = () => {
 
   return (
     <>
+      {hoveredElement && (
+        <WittySupportIcon active={false} elementReference={hoveredElement} />
+      )}
       {inputs.map((input: Iinput) => (
         <Input
           //Inputs need to be updated when they are resized, which is done on the window resize listener.
