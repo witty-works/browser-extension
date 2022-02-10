@@ -27,7 +27,6 @@ const Highlights: React.FC<HighlightsProps> = ({
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
   useEffect(() => {
-    console.log('HIGHlLIGHTS UPDATED');
     const highlights: Highlight[] = [];
     if (nodesWithAlerts.length === 0) setHighlights([]);
     nodesWithAlerts.forEach(({ node, alerts }) => {
