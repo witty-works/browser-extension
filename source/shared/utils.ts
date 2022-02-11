@@ -76,23 +76,18 @@ const convertHTMLToText = (str: string = ''): string => {
 };
 
 const fixLineBreaks = (element: CustomInputElement): string => {
-  // disables spellcheck of contenteditable elements
-  element.setAttribute('spellcheck', 'false');
-
-  // gmail: remove all spans inside element but keep text
-  // if (window.location.hostname == 'mail.google.com') {
-  //   const spans = element.querySelectorAll('span');
-  //   for (const span of spans) {
-  //     span.innerText = span.innerText.trim();
-  //     span.outerHTML = span.innerText;
-  //   }
-  // }
-
-  console.log('AFTER element', element);
-  let value: string = '';
-  if (element.nodeName === 'DIV' && element.childNodes.length === 1) {
+  // gmail: remove all spans inside element but keep text. This prevents displacement of text when spellcheck is active.
+  if (window.location.hostname == 'mail.google.com') {
+    const spans = element.querySelectorAll('span');
+    for (const span of spans) {
+      span.innerText = span.innerText.trim();
+      span.outerHTML = span.innerText;
+    }
+  } else if (element.nodeName === 'DIV' && element.childNodes.length === 1) {
     element = element.firstChild as HTMLInputElement;
   }
+
+  let value: string = '';
   for (const child of element.childNodes) {
     const imgElement = findElement(child, 'IMG');
     if (imgElement && child.textContent === '\uFEFF') {

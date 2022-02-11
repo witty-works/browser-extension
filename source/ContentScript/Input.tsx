@@ -105,6 +105,7 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = throttle(() => {
+    element.setAttribute('spellcheck', 'false');
     setWittySupportIcon(true);
     const nextText: string =
       isTextArea(element) || isInputText(element)
