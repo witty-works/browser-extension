@@ -76,6 +76,19 @@ const convertHTMLToText = (str: string = ''): string => {
 };
 
 const fixLineBreaks = (element: CustomInputElement): string => {
+  // disables spellcheck of contenteditable elements
+  element.setAttribute('spellcheck', 'false');
+
+  // gmail: remove all spans inside element but keep text
+  // if (window.location.hostname == 'mail.google.com') {
+  //   const spans = element.querySelectorAll('span');
+  //   for (const span of spans) {
+  //     span.innerText = span.innerText.trim();
+  //     span.outerHTML = span.innerText;
+  //   }
+  // }
+
+  console.log('AFTER element', element);
   let value: string = '';
   if (element.nodeName === 'DIV' && element.childNodes.length === 1) {
     element = element.firstChild as HTMLInputElement;
