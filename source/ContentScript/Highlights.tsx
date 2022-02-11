@@ -70,7 +70,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       }
     });
     setHighlights(highlights);
-  }, [nodesWithAlerts, parentScroll, elementScroll]);
+  }, [nodesWithAlerts, parentScroll, elementScroll, elementRect]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
