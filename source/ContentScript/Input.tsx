@@ -12,7 +12,7 @@ import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
-import { throttle } from 'lodash';
+import { debounce } from 'lodash';
 import HighlightPopover, {
   PopoverData,
 } from './HighlightPopover/HighlightPopover';
@@ -119,11 +119,11 @@ const Input: React.FC<{
     }
   };
 
-  const throtteledSetTextToCheck = throttle((nextText: string) => {
+  const throtteledSetTextToCheck = debounce((nextText: string) => {
     setTextToCheck(nextText);
   }, 3000);
 
-  const handleElementScrollEvent = throttle(() => {
+  const handleElementScrollEvent = debounce(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   }, 500);
 
