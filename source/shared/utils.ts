@@ -77,7 +77,11 @@ const convertHTMLToText = (str: string = ''): string => {
 
 const fixLineBreaks = (element: CustomInputElement): string => {
   let value: string = '';
-  if (element.nodeName === 'DIV' && element.childNodes.length === 1) {
+  if (
+    window.location.hostname !== 'mail.google.com' &&
+    element.nodeName === 'DIV' &&
+    element.childNodes.length === 1
+  ) {
     element = element.firstChild as HTMLInputElement;
   }
   for (const child of element.childNodes) {
