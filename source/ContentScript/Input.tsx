@@ -115,11 +115,11 @@ const Input: React.FC<{
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
       setNodesWithAlerts([]);
     else {
-      throtteledSetTextToCheck(nextText);
+      debouncedSetTextToCheck(nextText);
     }
   };
 
-  const throtteledSetTextToCheck = debounce((nextText: string) => {
+  const debouncedSetTextToCheck = debounce((nextText: string) => {
     setTextToCheck(nextText);
   }, 3000);
 
