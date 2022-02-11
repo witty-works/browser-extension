@@ -12,7 +12,7 @@ import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
-import { throttle } from 'lodash';
+import { debounce } from 'lodash';
 import HighlightPopover, {
   PopoverData,
 } from './HighlightPopover/HighlightPopover';
@@ -104,7 +104,7 @@ const Input: React.FC<{
     if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
   };
 
-  const handleKeyupEvent = throttle(() => {
+  const handleKeyupEvent = () => {
     element.setAttribute('spellcheck', 'false');
     setWittySupportIcon(true);
     const nextText: string =
@@ -113,14 +113,19 @@ const Input: React.FC<{
         : fixLineBreaks(element);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
       setNodesWithAlerts([]);
-    else {
-      setTextToCheck(nextText);
+      setTextToCheck('');
+    } else {
+      debouncedSetTextToCheck(nextText);
     }
+  };
+
+  const debouncedSetTextToCheck = debounce((nextText: string) => {
+    setTextToCheck(nextText);
   }, 3000);
 
-  const handleElementScrollEvent = throttle(() => {
+  const handleElementScrollEvent = debounce(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   }, 500);
 
