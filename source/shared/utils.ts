@@ -76,14 +76,11 @@ const convertHTMLToText = (str: string = ''): string => {
 };
 
 const fixLineBreaks = (element: CustomInputElement): string => {
-  // gmail: remove all spans inside element but keep text. This prevents displacement of text when spellcheck is active.
-  if (window.location.hostname == 'mail.google.com') {
-    const spans = element.querySelectorAll('span');
-    for (const span of spans) {
-      span.innerText = span.innerText.trim();
-      span.outerHTML = span.innerText;
-    }
-  } else if (element.nodeName === 'DIV' && element.childNodes.length === 1) {
+  if (
+    window.location.hostname !== 'mail.google.com' &&
+    element.nodeName === 'DIV' &&
+    element.childNodes.length === 1
+  ) {
     element = element.firstChild as HTMLInputElement;
   }
 
