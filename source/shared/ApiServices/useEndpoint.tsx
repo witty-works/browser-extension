@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
 import { getAnalyzedTextResults } from './requests';
-import { IRequest, ICheckResponse, ICheckResponseResult } from '../types';
+import { ICheckResponse, ICheckResponseResult, IRequest } from '../types';
 import { JSONSchemaType } from 'ajv';
 
 export const useCheckEndpoint = () => {
@@ -87,12 +87,6 @@ export const useCheckEndpoint = () => {
   };
 
   const [textToAnalyze, setTextToAnalyse] = useState<string>('');
-
-  useEffect(() => {
-    return () => {
-      setTextToAnalyse('');
-    };
-  }, []);
 
   const request: IRequest = useMemo(() => {
     return getAnalyzedTextResults(textToAnalyze);

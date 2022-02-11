@@ -112,9 +112,10 @@ const Input: React.FC<{
         : fixLineBreaks(element);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
       setNodesWithAlerts([]);
-    else {
+      setTextToCheck('');
+    } else {
       debouncedSetTextToCheck(nextText);
     }
   };
