@@ -17,6 +17,7 @@ import {
 import { isInputElement, nodeExistsInDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import WittySupportIcon from './WittySupportsIcon';
+import { debounce } from 'lodash';
 
 interface Iinput {
   element: CustomInputElement;
@@ -213,7 +214,7 @@ const ContentScriptApp: React.FC = () => {
     }
   };
 
-  const handleWindowResize = () => {
+  const handleWindowResize = debounce(() => {
     const newInputs = inputsRef.current.map((input: Iinput) => {
       return {
         element: input.element,
@@ -223,7 +224,7 @@ const ContentScriptApp: React.FC = () => {
       };
     });
     setInputs(newInputs);
-  };
+  }, 1000);
 
   useEffect(() => {
     log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
