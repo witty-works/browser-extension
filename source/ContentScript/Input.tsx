@@ -12,7 +12,7 @@ import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
-import { throttle } from 'lodash';
+import { debounce } from 'lodash';
 import HighlightPopover, {
   PopoverData,
 } from './HighlightPopover/HighlightPopover';
@@ -104,7 +104,7 @@ const Input: React.FC<{
     if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
   };
 
-  const handleKeyupEvent = throttle(() => {
+  const handleKeyupEvent = () => {
     setWittySupportIcon(true);
     const nextText: string =
       isTextArea(element) || isInputText(element)
@@ -116,11 +116,15 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      setTextToCheck(nextText);
+      debouncedSetTextToCheck(nextText);
     }
+  };
+
+  const debouncedSetTextToCheck = debounce((nextText: string) => {
+    setTextToCheck(nextText);
   }, 3000);
 
-  const handleElementScrollEvent = throttle(() => {
+  const handleElementScrollEvent = debounce(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   }, 500);
 
