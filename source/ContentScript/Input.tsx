@@ -112,10 +112,11 @@ const Input: React.FC<{
         : fixLineBreaks(element);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i))
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
       setNodesWithAlerts([]);
-    else {
-      setTextToCheck({ text: nextText, id: Math.random() });
+      setTextToCheck('');
+    } else {
+      setTextToCheck(nextText);
     }
   }, 3000);
 
@@ -147,7 +148,7 @@ const Input: React.FC<{
         ? element.value
         : fixLineBreaks(element);
 
-    setTextToCheck({ text: text, id: Math.random() });
+    setTextToCheck(text);
   };
 
   const addIgnoredTerm = (term: string): void => {
