@@ -20,12 +20,6 @@ if (!DEV_ENV) {
         url: 'http://www.witty.works/welcome',
       });
     }
-    if (details.reason === 'update') {
-      analytics.extensionStatusLog('update', getBrowserId());
-      browser.tabs.create({
-        url: 'https://www.witty.works/update',
-      });
-    }
   });
 }
 
