@@ -84,9 +84,31 @@ const fixLineBreaks = (element: CustomInputElement): string => {
   ) {
     element = element.firstChild as HTMLInputElement;
   }
+
+  // console.log('AFTER', element.innerHTML);
+
   for (const child of element.childNodes) {
+    console.log('child', child);
     const imgElement = findElement(child, 'IMG');
-    if (imgElement && child.textContent === '\uFEFF') {
+    const spanElement = findElement(child, 'SPAN');
+    if (child.nodeName == 'SPAN') {
+      //first case gmail
+      if (value.endsWith('\n')) {
+        value = value.slice(0, -1);
+      }
+      value += child.textContent + '\n';
+    } else if (spanElement) {
+      //second case gmail
+      for (const grandChild of child.childNodes) {
+        if (grandChild.nodeName == 'SPAN') {
+          console.log('grandChild SPAN', grandChild);
+          value += grandChild.textContent + '\n';
+        } else {
+          value += grandChild.textContent;
+          console.log('grandChild NOT SPAN', grandChild);
+        }
+      }
+    } else if (imgElement && child.textContent === '\uFEFF') {
       value += child.textContent + '\n\n\n';
     } else if (imgElement || child.textContent === '\uFEFF') {
       value += child.textContent + '\n\n';
