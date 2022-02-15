@@ -247,7 +247,7 @@ const ContentScriptApp: React.FC = () => {
 
   return (
     <>
-      {hoveredElement && (
+      {hoveredElement && inputs.length == 0 && (
         <WittySupportIcon active={false} elementReference={hoveredElement} />
       )}
       {inputs.map((input: Iinput) => (
