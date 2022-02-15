@@ -22,9 +22,6 @@ if (!DEV_ENV) {
     }
     if (details.reason === 'update') {
       analytics.extensionStatusLog('update', getBrowserId());
-      browser.tabs.create({
-        url: 'https://www.witty.works/update',
-      });
     }
   });
 }
