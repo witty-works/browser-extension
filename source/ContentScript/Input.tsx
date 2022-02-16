@@ -106,10 +106,14 @@ const Input: React.FC<{
 
   const handleKeyupEvent = (event?: Event) => {
     setWittySupportIcon(true);
+
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
-        : fixLineBreaks(element);
+        : element.innerText
+            .split('\n')
+            .filter((text: string) => text !== '')
+            .join('\n'); //fixLineBreaks(element);
 
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
@@ -272,27 +276,127 @@ const Input: React.FC<{
       const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
         return !ignoredTerms.includes(alert.data.text);
       });
+
+      let nodesWithAlertsTemp: INodeWithAlerts[] = [];
+
       if (isTextArea(element) || isInputText(element)) {
         if (!clone.firstChild) {
           return;
         }
-        setNodesWithAlerts([
-          {
-            node: clone.firstChild,
-            alerts: filteredAlerts.map((alert: IAlert) => ({
-              ...alert,
-            })),
-          },
-        ]);
+        nodesWithAlertsTemp.push({
+          node: clone.firstChild,
+          alerts: filteredAlerts.map((alert: IAlert) => ({
+            ...alert,
+          })),
+        });
       } else {
-        const nodesWithAlertsTemp: INodeWithAlerts[] =
-          getNodesWithRecalculatedAlerts(element.childNodes, filteredAlerts);
-        setNodesWithAlerts(nodesWithAlertsTemp);
+        // const nodesWithAlertsTemp: INodeWithAlerts[] =
+        //   getNodesWithRecalculatedAlerts(element.childNodes, filteredAlerts);
+
+        nodesWithAlertsTemp =
+          getNodesWithRecalculatedPositionAlerts(filteredAlerts);
       }
+      console.log('nodesWithAlertsTemp FINAL', nodesWithAlertsTemp);
+
+      setNodesWithAlerts(nodesWithAlertsTemp);
+      // setNodesWithAlerts([]);
     }
   }, [alerts, ignoredTerms, clone]);
 
-  const getNodesWithRecalculatedAlerts = (
+  const getNodesWithRecalculatedPositionAlerts = (
+    alerts: IAlert[]
+  ): INodeWithAlerts[] => {
+    console.log('alerts', alerts);
+
+    const nodesWithAlertsTemp: INodeWithAlerts[] = [];
+
+    let textStartingAbsPosition: number = 0;
+    let textEndAbsPosition: number = 0;
+
+    const elementEvaluation: XPathResult = document.evaluate(
+      './/*[text()]',
+      element,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    );
+
+    for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
+      const node = elementEvaluation.snapshotItem(index) as Node;
+      console.log('node', node);
+
+      const textNode = node.firstChild as Node;
+      console.log('textNode', textNode);
+
+      console.log('textNode.nodeValue', textNode.nodeValue);
+
+      if (textNode.nodeValue) {
+        textStartingAbsPosition = textEndAbsPosition;
+        console.log('textStartingAbsPosition', textStartingAbsPosition);
+
+        const nodeValueLength: number = textNode.nodeValue.length as number;
+        console.log('nodeValueLength', nodeValueLength);
+
+        textEndAbsPosition = textStartingAbsPosition + nodeValueLength + 1;
+        console.log('textEndAbsPosition', textEndAbsPosition);
+
+        const alertsTemp: IAlert[] = alerts
+          .filter((alert: IAlert) => {
+            console.log(alert.data.text);
+
+            const compi =
+              textNode.nodeValue &&
+              textNode.nodeValue.includes(alert.data.text);
+            console.log('compi', compi);
+
+            return compi;
+          })
+          .filter((alert: IAlert) => {
+            console.log(alert.data.text);
+            console.log(
+              'alert.startOffset >= textStartingAbsPosition',
+              alert.startOffset,
+              textStartingAbsPosition
+            );
+            console.log(
+              'alert.endOffset <= textEndAbsPosition',
+              alert.endOffset,
+              textEndAbsPosition
+            );
+            return (
+              alert.startOffset >= textStartingAbsPosition &&
+              alert.endOffset <= textEndAbsPosition
+            );
+          })
+          .map((alert: IAlert) => {
+            console.log('alert', alert);
+
+            const newAlert: IAlert = {
+              ...alert,
+              startOffset: alert.startOffset - textStartingAbsPosition,
+              endOffset: alert.endOffset - textStartingAbsPosition,
+            };
+
+            return newAlert;
+          });
+
+        console.log('alertsTemp', alertsTemp);
+
+        if (alertsTemp.length > 0) {
+          nodesWithAlertsTemp.push({
+            node: textNode,
+            alerts: alertsTemp,
+          });
+        }
+      }
+    }
+
+    console.log('nodesWithAlertsTemp', nodesWithAlertsTemp);
+
+    return nodesWithAlertsTemp;
+  };
+
+  /* const getNodesWithRecalculatedAlerts = (
     nodes: NodeListOf<ChildNode>,
     alerts: IAlert[]
   ) => {
@@ -342,7 +446,7 @@ const Input: React.FC<{
     };
     traverseNodes(nodes);
     return nodesWithAlertsTemp;
-  };
+  }; */
 
   useEffect(() => {
     if (checkEndpointError)
