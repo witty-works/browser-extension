@@ -16,17 +16,7 @@ if (!DEV_ENV) {
 
     if (details.reason === 'install') {
       //Set default settings
-      for (let [defaultConfigKey, defaultConfigValue] of Object.entries(
-        defaultConfig
-      )) {
-        if (defaultConfigKey in StorageKeys) {
-          const storageKey =
-            StorageKeys[defaultConfigKey as keyof typeof StorageKeys];
-          setInLocalStorage(storageKey, defaultConfigValue);
-        }
-      }
-      //Set browser id
-      setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
+      setSettings();
 
       //Log install event to posthog
       analytics.extensionStatusLog('install', getBrowserId());
@@ -37,13 +27,6 @@ if (!DEV_ENV) {
       });
     }
     if (details.reason === 'update') {
-      browser.storage.local.get(StorageKeys.APP_ENABLED).then((result) => {
-        browser.tabs.create({
-          url:
-            'http://www.witty.works/welcome/' + result[StorageKeys.APP_ENABLED],
-        });
-      });
-
       //Log update event to posthog
       analytics.extensionStatusLog('update', getBrowserId());
     }
@@ -101,4 +84,19 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
       }
     })
     .catch(onError);
+};
+
+const setSettings = () => {
+  //Set default settings
+  for (let [defaultConfigKey, defaultConfigValue] of Object.entries(
+    defaultConfig
+  )) {
+    if (defaultConfigKey in StorageKeys) {
+      const storageKey =
+        StorageKeys[defaultConfigKey as keyof typeof StorageKeys];
+      setInLocalStorage(storageKey, defaultConfigValue);
+    }
+  }
+  //Set browser id
+  setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
 };
