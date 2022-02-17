@@ -22,8 +22,7 @@ const Popup: React.FC = () => {
     browser.storage.local
       .get(StorageKeys.APP_ENABLED)
       .then((result) => {
-        if (result[StorageKeys.APP_ENABLED])
-          setEnabled(result[StorageKeys.APP_ENABLED]);
+        setEnabled(result[StorageKeys.APP_ENABLED]);
       })
       .catch(onError);
   }, []);
