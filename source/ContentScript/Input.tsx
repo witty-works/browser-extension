@@ -8,7 +8,7 @@ import {
   INodeWithAlerts,
   ScrollPos,
 } from '../shared/types';
-import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
+import { /* fixLineBreaks,  */ isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -115,11 +115,15 @@ const Input: React.FC<{
             .filter((text: string) => text !== '')
             .join('\n'); //fixLineBreaks(element);
 
+    console.log('nextText', nextText);
+
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
+      console.log('we have text that needs to be send');
+
       event && event.type == 'focusin'
         ? setTextToCheck(nextText)
         : debouncedSetTextToCheck(nextText);
@@ -153,12 +157,11 @@ const Input: React.FC<{
   };
 
   const resendText = () => {
-    const text: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : fixLineBreaks(element);
-
-    setTextToCheck(text);
+    // const text: string =
+    //   isTextArea(element) || isInputText(element)
+    //     ? element.value
+    //     : fixLineBreaks(element);
+    // setTextToCheck(text);
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -247,7 +250,7 @@ const Input: React.FC<{
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
-        id: `${result.category}-${result.text}-${result.start}-${result.end}`,
+        id: `${result.text}-${result.category}`,
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
@@ -314,6 +317,7 @@ const Input: React.FC<{
     let textEndAbsPosition: number = 0;
 
     const elementEvaluation: XPathResult = document.evaluate(
+      // './/*[child::text() and not(child::span or div)]',
       './/*[text()]',
       element,
       null,
@@ -321,16 +325,27 @@ const Input: React.FC<{
       null
     );
 
+    // for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
+    //   const node = elementEvaluation.snapshotItem(index) as Node;
+    //   console.log('node', node);
+    // }
+
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
       console.log('node', node);
 
-      const textNode = node.firstChild as Node;
+      const textNode = Array.from(node.childNodes).find(
+        (node: Node) => node.nodeName === '#text'
+      ); //node.firstChild as Node;
       console.log('textNode', textNode);
 
-      console.log('textNode.nodeValue', textNode.nodeValue);
+      // !nextText.match(/[a-z0-9]/i)
+      // const text: string = textNode.nodeValue as string;
+      // console.log('text', text.trim());
 
-      if (textNode.nodeValue) {
+      if (textNode && textNode.nodeValue) {
+        console.log('textNode.nodeValue', textNode.nodeValue);
+
         textStartingAbsPosition = textEndAbsPosition;
         console.log('textStartingAbsPosition', textStartingAbsPosition);
 
@@ -342,12 +357,12 @@ const Input: React.FC<{
 
         const alertsTemp: IAlert[] = alerts
           .filter((alert: IAlert) => {
-            console.log(alert.data.text);
+            // console.log('alert.data.text', alert.data.text);
 
             const compi =
               textNode.nodeValue &&
               textNode.nodeValue.includes(alert.data.text);
-            console.log('compi', compi);
+            // console.log('compi', compi);
 
             return compi;
           })
@@ -369,7 +384,7 @@ const Input: React.FC<{
             );
           })
           .map((alert: IAlert) => {
-            console.log('alert', alert);
+            // console.log('alert', alert);
 
             const newAlert: IAlert = {
               ...alert,
@@ -380,7 +395,7 @@ const Input: React.FC<{
             return newAlert;
           });
 
-        console.log('alertsTemp', alertsTemp);
+        // console.log('alertsTemp', alertsTemp);
 
         if (alertsTemp.length > 0) {
           nodesWithAlertsTemp.push({
