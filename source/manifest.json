@@ -28,9 +28,9 @@
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "assets/icons/icon16.png",
-      "32": "assets/icons/icon32.png",
-      "48": "assets/icons/icon48.png"
+      "16": "assets/icons/icon16_disabled.png",
+      "32": "assets/icons/icon32_disabled.png",
+      "48": "assets/icons/icon48_disabled.png"
     },
     "default_title": "Witty",
     "__chrome|opera__chrome_style": false,
