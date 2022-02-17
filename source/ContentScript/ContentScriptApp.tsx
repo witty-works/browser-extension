@@ -25,7 +25,6 @@ const ContentScriptApp: React.FC = () => {
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
   );
-
   const doc = document.documentElement || document.body;
   const [bodyScroll, setBodyScroll] = useState<ScrollPos>({
     top: doc.scrollTop,
@@ -159,11 +158,10 @@ const ContentScriptApp: React.FC = () => {
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
 
-    if (isInputElement(target))
-      if (!inputsRef.current.includes(target)) {
-        setHoveredElement(null);
-        setInputs([...inputsRef.current, target]);
-      }
+    if (isInputElement(target) && !inputsRef.current.includes(target)) {
+      setHoveredElement(null);
+      setInputs([...inputsRef.current, target]);
+    }
   };
 
   const handleMouseOver = (event: MouseEvent) => {
@@ -197,7 +195,6 @@ const ContentScriptApp: React.FC = () => {
       }
     }
   };
-
   useEffect(() => {
     log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
   }, [inputs]);
@@ -217,9 +214,10 @@ const ContentScriptApp: React.FC = () => {
   });
 
   mutationObserver.observe(document.body, { childList: true, subtree: true });
+
   return (
     <>
-      {hoveredElement && (
+      {hoveredElement && inputs.length == 0 && (
         <WittySupportIcon active={false} elementReference={hoveredElement} />
       )}
       {inputs.map((input: CustomInputElement, index: number) => (
