@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export const useResizeObserver = (
-  element: HTMLElement
-): DOMRect => {
+export const useResizeObserver = (element: HTMLElement): DOMRect => {
   const [rect, setRect] = useState<DOMRect>(new DOMRect());
   const doc = document.documentElement || document.body;
 
@@ -10,22 +8,15 @@ export const useResizeObserver = (
     const { width, height, top, left } = element.getBoundingClientRect();
 
     setRect(
-      new DOMRect(
-        left + doc.scrollLeft,
-        top + doc.scrollTop,
-        width,
-        height
-      )
+      new DOMRect(left + doc.scrollLeft, top + doc.scrollTop, width, height)
     );
   };
 
-  const [resizeObserver] = useState(new ResizeObserver(resizeListener));
-
   useEffect(() => {
-    resizeObserver.disconnect();
-    resizeObserver.observe(element);
+    const resizeObserver = new ResizeObserver(resizeListener);
+    resizeObserver.observe(doc);
     return () => {
-      resizeObserver.disconnect();
+      resizeObserver.unobserve(doc);
     };
   }, [element]);
 
