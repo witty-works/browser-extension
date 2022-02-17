@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import CSS from 'csstype';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 import { browser } from 'webextension-polyfill-ts';
@@ -37,7 +37,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
-  const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -60,7 +59,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     },
   });
 
-  const { x, y, reference, floating, strategy, refs, update } = useFloating({
+  const { x, y, reference, floating, strategy, refs } = useFloating({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
@@ -144,16 +143,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     analytics.ignoreLog(data.alert);
     addIgnoredTerm(data.alert.data.text);
   };
-
-  const toggleText = () => {
-    setIsToggleOpen(!isToggleOpen);
-  };
-
-  // When toggle opens or closes, popover size change,
-  // therefore the positioning needs to be updated
-  useEffect(() => {
-    update();
-  }, [isToggleOpen]);
 
   return (
     <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
