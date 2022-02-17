@@ -178,7 +178,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         key={`${index}-${alternative}`}
                         onClick={() => clickAlternative(index)}
                       >
-                        {alternative.text}
+                        {alternative.context
+                          ? `${alternative.text} (${alternative.context})`
+                          : alternative.text}
                       </div>
                     )
                   )}
