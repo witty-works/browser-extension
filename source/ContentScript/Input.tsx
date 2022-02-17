@@ -25,7 +25,7 @@ const Input: React.FC<{
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [, checkEndpointResponse, checkEndpointError, setTextToCheck] = //TODO: add back loading
+  const [, checkEndpointResponse, checkEndpointError, setTextToCheck] = 
     useCheckEndpoint();
   const analytics = useAnalytics();
   const elementRect = useResizeObserver(element);
@@ -48,6 +48,7 @@ const Input: React.FC<{
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   const [wittySupportIcon, setWittySupportIcon] = useState<boolean>(true);
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const log = useLog('Input');
 
   useEffect(() => {
@@ -105,6 +106,7 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = (event?: Event) => {
+    setIsLoading(true);
     setWittySupportIcon(true);
     const nextText: string =
       isTextArea(element) || isInputText(element)
@@ -228,6 +230,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
+    setIsLoading(false);
     analytics.checkLog(
       checkEndpointResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
@@ -352,16 +355,22 @@ const Input: React.FC<{
       );
   }, [checkEndpointError]);
 
+
+    console.log(isLoading)
+
   return (
     <div className='canvas-container'>
-      {/* TODO: use loading state for animation */}
       {wittySupportIcon ? (
-        <WittySupportIcon elementReference={element} active={true} />
+        <WittySupportIcon elementReference={element} iconType={'active'} />
       ) : (
+      
         isHovered && (
-          <WittySupportIcon elementReference={element} active={false} />
+          <WittySupportIcon elementReference={element} iconType={'passive'} />
         )
       )}
+      {isLoading && (
+          <WittySupportIcon elementReference={element} iconType={'loading'} />
+        )}
       {isTextArea(element) && (
         <TextAreaClone
           element={element}

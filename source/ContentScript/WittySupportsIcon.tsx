@@ -4,12 +4,12 @@ import { browser } from 'webextension-polyfill-ts';
 import { CustomInputElement } from '../shared/types';
 
 interface WittySupportsIconProps {
-  active: boolean;
+  iconType: string;
   elementReference: CustomInputElement;
 }
 
 const WittySupportIcon: React.FC<WittySupportsIconProps> = ({
-  active,
+  iconType,
   elementReference,
 }: WittySupportsIconProps) => {
   const elementsReferenceRect = elementReference.getBoundingClientRect();
@@ -27,15 +27,7 @@ const WittySupportIcon: React.FC<WittySupportsIconProps> = ({
           window.innerWidth - elementsReferenceRect.right + iconPadding
         }px`,
       }}
-      src={
-        active
-          ? browser.runtime.getURL(
-              '../../../assets/icons/canvas/witty-active.svg'
-            )
-          : browser.runtime.getURL(
-              '../../../assets/icons/canvas/witty-passive.svg'
-            )
-      }
+      src={browser.runtime.getURL(`../../../assets/icons/wittyStateIndicator/witty-${iconType}.svg`)}
     />
   );
 };

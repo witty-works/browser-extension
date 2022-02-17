@@ -52,7 +52,8 @@
     "assets/icons/popover/ignore.svg",
     "assets/icons/popover/more.svg",
     "assets/icons/popover/settings.svg",
-    "assets/icons/canvas/witty-active.svg",
-    "assets/icons/canvas/witty-passive.svg"
+    "assets/icons/wittyStateIndicator/witty-active.svg",
+    "assets/icons/wittyStateIndicator/witty-passive.svg",
+    "assets/icons/wittyStateIndicator/witty-loading.svg"
   ]
 }
