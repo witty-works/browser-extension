@@ -3,8 +3,7 @@ import CSS from 'csstype';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CustomInputElement } from '../../shared/types';
-import { IAlert } from '../../shared/types';
+import { CustomInputElement, IAlert } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
@@ -195,7 +194,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       '../../../assets/icons/popover/ignore.svg'
                     )}
                   />
-
                   {t('ignoreTerm')}
                 </div>
               </div>
@@ -203,13 +201,31 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <hr className='wittyworks-popover-separator' />
           </>
         )}
-
-        <hr className='wittyworks-popover-separator' />
+        {data.alert.data.explanation.url && (
+          <>
+            <div className='wittyworks-popover-row'>
+              <a
+                className='wittyworks-popover-row-more-title'
+                href={data.alert.data.explanation.url}
+              >
+                <img
+                  className='wittyworks-popover-icon'
+                  alt='How To Improve'
+                  src={browser.runtime.getURL(
+                    '../../../assets/icons/popover/more.svg'
+                  )}
+                />
+                {t('learnMore')}
+              </a>
+            </div>
+            <hr className='wittyworks-popover-separator' />
+          </>
+        )}
         <div className='wittyworks-popover-row'>
           <div className='wittyworks-popover-home-link-container'>
             <img
               className='wittyworks-popover-icon-large'
-              alt='Witty Works Logo' //TODO translation
+              alt='Witty Works Logo'
               src={browser.runtime.getURL(
                 '../../../assets/icons/w-logo-wire-color.svg'
               )}

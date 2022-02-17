@@ -26,7 +26,7 @@ export const de = {
   },
   [namespaces.popover]: {
     insteadTry: 'Versuchen Sie stattdessen ...',
-    howToImprove: 'Wie Sie es selbst verbessern',
+    learnMore: 'Learn about this bias GERMAN',
     ignoreTerm: 'Diesen Begriff ignorieren',
     whyQuestionMark: 'Warum?',
     understood: 'Verstanden',
@@ -60,7 +60,7 @@ export const en = {
   },
   [namespaces.popover]: {
     insteadTry: 'Try one of these instead...',
-    howToImprove: 'How to improve it yourself',
+    learnMore: 'Learn about this bias',
     ignoreTerm: 'Ignore this term',
     whyQuestionMark: 'Why?',
     understood: 'Understood',
