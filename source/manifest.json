@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_appName__",
-  "version": "1.16.2",
+  "version": "1.16.3",
   "default_locale": "en",
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -28,19 +28,13 @@
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "assets/icons/icon16.png",
-      "32": "assets/icons/icon32.png",
-      "48": "assets/icons/icon48.png"
+      "16": "assets/icons/icon16_disabled.png",
+      "32": "assets/icons/icon32_disabled.png",
+      "48": "assets/icons/icon48_disabled.png"
     },
     "default_title": "Witty",
     "__chrome|opera__chrome_style": false,
     "__firefox__browser_style": false
-  },
-  "__chrome|opera__options_page": "options.html",
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true,
-    "__chrome__chrome_style": false
   },
   "background": {
     "scripts": ["js/background.bundle.js"],

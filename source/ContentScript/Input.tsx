@@ -104,7 +104,7 @@ const Input: React.FC<{
     if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
   };
 
-  const handleKeyupEvent = () => {
+  const handleKeyupEvent = (event?: Event) => {
     setWittySupportIcon(true);
     const nextText: string =
       isTextArea(element) || isInputText(element)
@@ -116,7 +116,9 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      debouncedSetTextToCheck(nextText);
+      event && event.type == 'focusin'
+        ? setTextToCheck(nextText)
+        : debouncedSetTextToCheck(nextText);
     }
   };
 

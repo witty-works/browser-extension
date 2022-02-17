@@ -8,26 +8,47 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 const analytics = useAnalytics();
 
-if (!DEV_ENV) {
-  browser.runtime.onInstalled.addListener(function (details: {
-    reason: string;
-  }) {
-    browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
+// if (!DEV_ENV) {
+browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
+  browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
 
-    if (details.reason === 'install') {
-      analytics.extensionStatusLog('install', getBrowserId());
-      browser.tabs.create({
-        url: 'http://www.witty.works/welcome',
-      });
-    }
-    if (details.reason === 'update') {
-      analytics.extensionStatusLog('update', getBrowserId());
-      browser.tabs.create({
-        url: 'https://www.witty.works/update',
-      });
-    }
-  });
-}
+  if (details.reason === 'install') {
+    //Set default settings
+    setSettings();
+
+    //Log install event to posthog
+    analytics.extensionStatusLog('install', getBrowserId());
+
+    //Open the welcome page
+    browser.tabs.create({
+      url: 'http://www.witty.works/welcome',
+    });
+  }
+  if (details.reason === 'update') {
+    //Update icon
+    browser.storage.local.get(StorageKeys.APP_ENABLED).then((result) => {
+      result[StorageKeys.APP_ENABLED]
+        ? browser.browserAction.setIcon({
+            path: {
+              '16': 'assets/icons/icon16.png',
+              '32': 'assets/icons/icon32.png',
+              '48': 'assets/icons/icon48.png',
+            },
+          })
+        : browser.browserAction.setIcon({
+            path: {
+              '16': 'assets/icons/icon16_disabled.png',
+              '32': 'assets/icons/icon32_disabled.png',
+              '48': 'assets/icons/icon48_disabled.png',
+            },
+          });
+    });
+
+    //Log update event to posthog
+    analytics.extensionStatusLog('update', getBrowserId());
+  }
+});
+// }
 
 const log = useLog('Background index');
 
@@ -96,5 +117,3 @@ const setSettings = () => {
   //Set browser id
   setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
 };
-
-setSettings();
