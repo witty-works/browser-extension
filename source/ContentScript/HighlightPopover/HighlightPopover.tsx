@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import CSS from 'csstype';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 import { browser } from 'webextension-polyfill-ts';
@@ -37,7 +37,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
-  const [isToggleOpen, setIsToggleOpen] = useState<boolean>(false);
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -60,7 +59,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     },
   });
 
-  const { x, y, reference, floating, strategy, refs, update } = useFloating({
+  const { x, y, reference, floating, strategy, refs } = useFloating({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
@@ -105,7 +104,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const clickAlternative = (index: number) => {
     //Log the clicked alternative
-    analytics.alternativeLog(data.alert, data.alert.data.alternatives[index]);
+    analytics.alternativeLog(
+      data.alert,
+      data.alert.data.alternatives[index].text
+    );
 
     //Replace text with the new alternative or simply remove it
     //This only replaces the specific occurrence. If there are other identical terms in the text
@@ -119,7 +121,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       index === -1
         ? data.alert.endOffset - data.alert.startOffset + 1
         : data.alert.endOffset - data.alert.startOffset,
-      index === -1 ? '' : data.alert.data.alternatives[index]
+      index === -1 ? '' : data.alert.data.alternatives[index].text
     );
 
     const textToInsert = splitText.join('');
@@ -142,32 +144,17 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     addIgnoredTerm(data.alert.data.text);
   };
 
-  const toggleText = () => {
-    setIsToggleOpen(!isToggleOpen);
-  };
-
-  // When toggle opens or closes, popover size change,
-  // therefore the positioning needs to be updated
-  useEffect(() => {
-    update();
-  }, [isToggleOpen]);
-
   return (
     <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
       <div id='wittyworks-popover-content'>
         <div className='wittyworks-popover-row'>
-          {/* TODO: change this to understandable label when available from backend */}
           <div className='wittyworks-popover-row-title'>
-            {data.alert.data.label !== ''
-              ? data.alert.data.label
-              : data.alert.data.category}
+            {data.alert.data.explanation.text}
           </div>
         </div>
-
         <hr className='wittyworks-popover-separator' />
-
-        {data.alert.data.alternatives.filter((word) => word != ' ').length >
-          0 && (
+        {data.alert.data.alternatives.filter((word) => word.text != ' ')
+          .length > 0 && (
           <>
             <div className='wittyworks-popover-row'>
               <div className='wittyworks-popover-row-title-alternative'>
@@ -177,7 +164,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 {data.alert.data.alternatives
                   .slice(0, 5)
                   .map((alternative, index) =>
-                    alternative.localeCompare('-') === 0 ? (
+                    alternative.text.localeCompare('-') === 0 ? (
                       <div
                         className='wittyworks-popover-alternative-btn remove-text'
                         key={`${index}-remove-it`}
@@ -191,7 +178,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         key={`${index}-${alternative}`}
                         onClick={() => clickAlternative(index)}
                       >
-                        {alternative}
+                        {alternative.text}
                       </div>
                     )
                   )}
@@ -217,31 +204,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </>
         )}
 
-        <div className='wittyworks-popover-row'>
-          <div
-            className='wittyworks-popover-row-more-title'
-            onClick={() => toggleText()}
-          >
-            <img
-              className='wittyworks-popover-icon'
-              alt='How To Improve'
-              src={browser.runtime.getURL(
-                '../../../assets/icons/popover/more.svg'
-              )}
-            />
-            {t('howToImprove')}
-          </div>
-          {isToggleOpen && (
-            <div className='wittyworks-popover-row-more-text'>
-              {data.alert.data.solution}
-              <br />
-              {data.alert.data.reason}
-            </div>
-          )}
-        </div>
-
         <hr className='wittyworks-popover-separator' />
-
         <div className='wittyworks-popover-row'>
           <div className='wittyworks-popover-home-link-container'>
             <img
