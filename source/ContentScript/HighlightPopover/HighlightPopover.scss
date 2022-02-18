@@ -29,8 +29,7 @@
 }
 
 .wittyworks-popover-row-title {
-  font-family: $ibarra !important;
-  font-weight: 400;
+  font-weight: 700;
   font-size: 20px;
 }
 
@@ -96,6 +95,12 @@
 .wittyworks-popover-icon {
   height: 0.8em;
   margin-right: 0.5em;
+  margin-left: 0.5em;
+}
+
+.wittyworks-popover-explanation-icon {
+  margin-right: 0.5em;
+  margin-left: 0.5em;
 }
 
 .wittyworks-popover-icon-large {
@@ -109,22 +114,23 @@
 }
 
 // More info section
-.wittyworks-popover-row-more-title {
+.wittyworks-popover-row-explanation {
   display: flex;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+.wittyworks-popover-row-explanation-title {
+  display: flex;
+  font-weight: 400;
   flex-direction: row;
   align-items: center;
-  font-weight: bold;
-  color: $black;
+  color: #656565;
   cursor: pointer;
 
   &:hover {
     text-decoration: underline;
+    color: #656565;
   }
-}
-
-.wittyworks-popover-row-more-text {
-  color: $darkGray;
-  margin-left: 1em;
 }
 
 //Settings section

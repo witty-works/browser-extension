@@ -9,6 +9,7 @@ import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 
 import './HighlightPopover.scss';
+import { getColor } from '../../shared/constants';
 
 export interface PopoverData {
   alert: IAlert;
@@ -142,15 +143,42 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     analytics.ignoreLog(data.alert);
     addIgnoredTerm(data.alert.data.text);
   };
-
   return (
     <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
       <div id='wittyworks-popover-content'>
-        <div className='wittyworks-popover-row'>
-          <div className='wittyworks-popover-row-title'>
+        <div
+          className='wittyworks-popover-row-explanation'
+          style={{
+            backgroundColor: getColor(data.alert.data.category).highlight,
+            borderRadius: '4px',
+            padding: '8px 8px 12px',
+          }}
+        >
+          <div className='wittyworks-popover-explanation-icon'>
+            {data.alert.data.explanation.icon}
+          </div>
+          <div>
             {data.alert.data.explanation.text}
+            {data.alert.data.explanation.url && (
+              <a
+                className='wittyworks-popover-row-explanation-title'
+                href={data.alert.data.explanation.url}
+              >
+                {data.alert.data.gravity
+                  ? t('learnMoreNegative')
+                  : t('learnMorePositive')}
+                <img
+                  className='wittyworks-popover-icon'
+                  alt='How To Improve'
+                  src={browser.runtime.getURL(
+                    '../../../assets/icons/popover/arrow.svg'
+                  )}
+                />
+              </a>
+            )}
           </div>
         </div>
+
         <hr className='wittyworks-popover-separator' />
         {data.alert.data.alternatives.filter((word) => word.text != ' ')
           .length > 0 && (
@@ -197,26 +225,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   {t('ignoreTerm')}
                 </div>
               </div>
-            </div>
-            <hr className='wittyworks-popover-separator' />
-          </>
-        )}
-        {data.alert.data.explanation.url && (
-          <>
-            <div className='wittyworks-popover-row'>
-              <a
-                className='wittyworks-popover-row-more-title'
-                href={data.alert.data.explanation.url}
-              >
-                <img
-                  className='wittyworks-popover-icon'
-                  alt='How To Improve'
-                  src={browser.runtime.getURL(
-                    '../../../assets/icons/popover/more.svg'
-                  )}
-                />
-                {t('learnMore')}
-              </a>
             </div>
             <hr className='wittyworks-popover-separator' />
           </>
