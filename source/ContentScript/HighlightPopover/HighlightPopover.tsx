@@ -157,9 +157,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           .length > 0 && (
           <>
             <div className='wittyworks-popover-row'>
-              <div className='wittyworks-popover-row-title-alternative'>
-                {t('insteadTry')}
-              </div>
+              {t('insteadTry')}
               <div className='wittyworks-popover-row-alternatives-container'>
                 {data.alert.data.alternatives
                   .slice(0, 5)
@@ -173,14 +171,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         {data.alert.data.text}
                       </div>
                     ) : (
-                      <div
-                        className='wittyworks-popover-alternative-btn'
-                        key={`${index}-${alternative}`}
-                        onClick={() => clickAlternative(index)}
-                      >
-                        {alternative.context
-                          ? `${alternative.text} (${alternative.context})`
-                          : alternative.text}
+                      <div className='wittyworks-popover-alternative-btn-container'>
+                        <div
+                          className='wittyworks-popover-alternative-btn'
+                          key={`${index}-${alternative}`}
+                          onClick={() => clickAlternative(index)}
+                        >
+                          {alternative.text}
+                        </div>
+                        {alternative.context && (
+                          <div className='wittyworks-popover-alternative-context'>
+                            {alternative.context}
+                          </div>
+                        )}
                       </div>
                     )
                   )}
