@@ -313,46 +313,84 @@ const Input: React.FC<{
 
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
 
+    const nextText: string =
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : element.innerText
+            .split('\n')
+            .filter((text: string) => text !== '')
+            .join('\n');
+
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = 0;
 
     const elementEvaluation: XPathResult = document.evaluate(
+      //'.//*[text()]',
       // './/*[child::text() and not(child::span or div)]',
-      './/*[text()]',
+      './/text()',
+      // './/*[text()]',
       element,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
     );
 
+    // const nodes: Node[] = [];
+
     // for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
     //   const node = elementEvaluation.snapshotItem(index) as Node;
     //   console.log('node', node);
+    //   console.log('node parentElement', node.parentElement);
+    //   /* console.log('node.childNodes', node.childNodes);
+    //   if (node.childNodes.length > 1) {
+    //     node.childNodes.forEach((node: Node) => {
+    //       if (node.nodeName !== '#text' && node.nodeValue !== '') {
+    //         nodes.push(node);
+    //       }
+    //     });
+    //   } */
+    //   nodes.push(node);
     // }
+
+    // console.log('nodes', nodes);
 
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
       console.log('node', node);
 
-      const textNode = Array.from(node.childNodes).find(
-        (node: Node) => node.nodeName === '#text'
-      ); //node.firstChild as Node;
-      console.log('textNode', textNode);
+      // const textNode = Array.from(node.childNodes).find(
+      //   (node: Node) => node.nodeName === '#text'
+      // ); //node.firstChild as Node;
+      // console.log('textNode', textNode);
 
       // !nextText.match(/[a-z0-9]/i)
       // const text: string = textNode.nodeValue as string;
       // console.log('text', text.trim());
 
-      if (textNode && textNode.nodeValue) {
-        console.log('textNode.nodeValue', textNode.nodeValue);
+      if (node && node.nodeValue) {
+        console.log('node.nodeValue', node.nodeValue);
 
         textStartingAbsPosition = textEndAbsPosition;
         console.log('textStartingAbsPosition', textStartingAbsPosition);
 
-        const nodeValueLength: number = textNode.nodeValue.length as number;
+        const nodeValueLength: number = node.nodeValue.length as number;
         console.log('nodeValueLength', nodeValueLength);
 
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength + 1;
+        const afterChar: string = nextText.slice(
+          textStartingAbsPosition + nodeValueLength,
+          textStartingAbsPosition + nodeValueLength + 1
+        );
+
+        console.log('after char', afterChar);
+
+        if (afterChar.match(/\s/i)) {
+          console.log('has a space after the word');
+          textEndAbsPosition = textStartingAbsPosition + nodeValueLength + 1;
+        } else {
+          console.log('NO space after the word');
+          textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+        }
+
         console.log('textEndAbsPosition', textEndAbsPosition);
 
         const alertsTemp: IAlert[] = alerts
@@ -360,8 +398,7 @@ const Input: React.FC<{
             // console.log('alert.data.text', alert.data.text);
 
             const compi =
-              textNode.nodeValue &&
-              textNode.nodeValue.includes(alert.data.text);
+              node.nodeValue && node.nodeValue.includes(alert.data.text);
             // console.log('compi', compi);
 
             return compi;
@@ -399,7 +436,7 @@ const Input: React.FC<{
 
         if (alertsTemp.length > 0) {
           nodesWithAlertsTemp.push({
-            node: textNode,
+            node: node,
             alerts: alertsTemp,
           });
         }
