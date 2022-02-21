@@ -110,23 +110,23 @@ const Input: React.FC<{
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
-        : element.innerText
-            .split('\n')
-            .filter((text: string) => text !== '')
-            .join('\n'); //fixLineBreaks(element);
+        : element.innerText.replaceAll(/\n+/g, '\n');
 
     console.log('nextText', nextText);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
+    if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
       console.log('we have text that needs to be send');
 
+      // Always create a new string, to force change the state of setTextToCheck
+      const newNextText: string = new String(nextText) as string;
+
       event && event.type == 'focusin'
-        ? setTextToCheck(nextText)
-        : debouncedSetTextToCheck(nextText);
+        ? setTextToCheck(newNextText)
+        : debouncedSetTextToCheck(newNextText);
     }
   };
 
@@ -316,10 +316,7 @@ const Input: React.FC<{
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
-        : element.innerText
-            .split('\n')
-            .filter((text: string) => text !== '')
-            .join('\n');
+        : element.innerText.replaceAll(/\n+/g, '\n');
 
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = 0;
@@ -358,17 +355,8 @@ const Input: React.FC<{
       const node = elementEvaluation.snapshotItem(index) as Node;
       console.log('node', node);
 
-      // const textNode = Array.from(node.childNodes).find(
-      //   (node: Node) => node.nodeName === '#text'
-      // ); //node.firstChild as Node;
-      // console.log('textNode', textNode);
-
-      // !nextText.match(/[a-z0-9]/i)
-      // const text: string = textNode.nodeValue as string;
-      // console.log('text', text.trim());
-
-      if (node && node.nodeValue) {
-        console.log('node.nodeValue', node.nodeValue);
+      if (node.nodeValue && node.nodeValue.match(/[a-zA-Z0-9.:;,?!]/i)) {
+        console.log('we have some relevant text:', node.nodeValue);
 
         textStartingAbsPosition = textEndAbsPosition;
         console.log('textStartingAbsPosition', textStartingAbsPosition);
@@ -383,7 +371,8 @@ const Input: React.FC<{
 
         console.log('after char', afterChar);
 
-        if (afterChar.match(/\s/i)) {
+        //&nbsp;
+        if (afterChar.match(/\s|(&nbsp;)/gi)) {
           console.log('has a space after the word');
           textEndAbsPosition = textStartingAbsPosition + nodeValueLength + 1;
         } else {
