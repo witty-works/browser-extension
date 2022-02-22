@@ -107,10 +107,14 @@ const Input: React.FC<{
   const handleKeyupEvent = (event?: Event) => {
     setWittySupportIcon(true);
 
+    console.log('element text', element.innerHTML);
+
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
-        : element.innerText.replaceAll(/\n+/g, '\n');
+        : element.innerText.replaceAll(/\n{2,}/g, '\n');
+    // .replaceAll(/\u00A0(?:\n+)/g, '')
+    // .trim();
 
     console.log('nextText', nextText);
 
@@ -316,7 +320,9 @@ const Input: React.FC<{
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
-        : element.innerText.replaceAll(/\n+/g, '\n');
+        : element.innerText.replaceAll(/\n{2,}/g, '\n');
+    // .replaceAll(/\u00A0(?:\n+)/g, '')
+    // .trim();
 
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = 0;
@@ -353,10 +359,13 @@ const Input: React.FC<{
 
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
-      console.log('node', node);
+      console.log('> node', node);
 
-      if (node.nodeValue && node.nodeValue.match(/[a-zA-Z0-9.:;,?!]/i)) {
-        console.log('we have some relevant text:', node.nodeValue);
+      if (
+        node.nodeValue &&
+        node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
+      ) {
+        console.log('> we have some relevant text:', node.nodeValue);
 
         textStartingAbsPosition = textEndAbsPosition;
         console.log('textStartingAbsPosition', textStartingAbsPosition);
@@ -372,7 +381,8 @@ const Input: React.FC<{
         console.log('after char', afterChar);
 
         //&nbsp;
-        if (afterChar.match(/\s|(&nbsp;)/gi)) {
+        if (afterChar.match(/\s/gi)) {
+          // if (afterChar.match(/\s|(&nbsp;)/gi)) {
           console.log('has a space after the word');
           textEndAbsPosition = textStartingAbsPosition + nodeValueLength + 1;
         } else {
@@ -384,16 +394,16 @@ const Input: React.FC<{
 
         const alertsTemp: IAlert[] = alerts
           .filter((alert: IAlert) => {
-            // console.log('alert.data.text', alert.data.text);
+            console.log('compi alert.data.text', alert.data.text);
 
             const compi =
               node.nodeValue && node.nodeValue.includes(alert.data.text);
-            // console.log('compi', compi);
+            console.log('compi', compi);
 
             return compi;
           })
           .filter((alert: IAlert) => {
-            console.log(alert.data.text);
+            console.log('alert data text', alert.data.text);
             console.log(
               'alert.startOffset >= textStartingAbsPosition',
               alert.startOffset,
