@@ -69,10 +69,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleClickOutside);
+    document.addEventListener('input', handleClickOutside);
     return () => {
       document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleClickOutside);
+      document.removeEventListener('input', handleClickOutside);
     };
   }, [refs.floating.current]);
 
