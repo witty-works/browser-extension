@@ -175,23 +175,67 @@ const Input: React.FC<{
   const handleElementClickEvent = (event: MouseEvent) => {
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
-        if (caretPosition > -1) {
+        const target = event.target as CustomInputElement;
+        // const caretPosition: number = getInputClickedPosition(target);
+
+        //get caretPosition
+        let caretData: { position: number | null; element: Node | null } = {
+          position: -1,
+          element: null,
+        };
+        /* if (isTextArea(element) || isInputText(element)) {
+          return element.selectionStart as number;
+        } else {
+          const selection: Selection | null = document.getSelection();
+          console.log('CLICK selection', selection);
+
+          return selection ? selection.anchorOffset : -1;
+        } */
+
+        if (isTextArea(element) || isInputText(element)) {
+          caretData = {
+            position: element.selectionStart,
+            element: cloneRef.current,
+          };
+        } else {
+          const selection: Selection = document.getSelection() as Selection;
+          console.log('CLICK selection', selection);
+          caretData = {
+            position: selection.anchorOffset,
+            element: selection.anchorNode,
+          };
+        }
+
+        console.log('CLICK caretData', caretData);
+
+        if (
+          caretData.element &&
+          caretData.position &&
+          caretData.position > -1
+        ) {
           const nodeAlerts = nodesWithAlertsRef.current;
 
+          console.log('CLICK target', target);
+
           const oneNodeWithAlerts = nodeAlerts.find(
-            (nodeWithAlerts: INodeWithAlerts) =>
+            (nodeWithAlerts: INodeWithAlerts) => {
+              console.log('CLICK nodeWithAlerts', nodeWithAlerts);
+
               //TODO potentially this acces to parentNode could fail
-              isTextArea(target) || isInputText(target)
-                ? nodeWithAlerts.node.parentNode === cloneRef.current
-                : nodeWithAlerts.node.parentNode === target
+              return isTextArea(target) || isInputText(target)
+                ? nodeWithAlerts.node.parentNode === caretData.element
+                : nodeWithAlerts.node === caretData.element;
+            }
           );
+
+          console.log('CLICK oneNodeWithAlerts', oneNodeWithAlerts);
 
           if (oneNodeWithAlerts) {
             const selectedAlert = oneNodeWithAlerts.alerts
               .filter((alert: IAlert) => {
                 return (
-                  alert.startOffset < caretPosition &&
-                  alert.endOffset > caretPosition
+                  alert.startOffset < (caretData.position as number) &&
+                  alert.endOffset > (caretData.position as number)
                 );
               })
               .pop() as IAlert;
@@ -221,19 +265,18 @@ const Input: React.FC<{
     } else {
       clearTimeout(singleClickTimeOut);
     }
-
-    const target = event.target as CustomInputElement;
-    const caretPosition: number = getInputClickedPosition(target);
   };
 
-  const getInputClickedPosition = (element: CustomInputElement): number => {
-    if (isTextArea(element) || isInputText(element)) {
-      return element.selectionStart as number;
-    } else {
-      const selection: Selection | null = document.getSelection();
-      return selection ? selection.anchorOffset : -1;
-    }
-  };
+  // const getInputClickedPosition = (element: CustomInputElement): number => {
+  //   if (isTextArea(element) || isInputText(element)) {
+  //     return element.selectionStart as number;
+  //   } else {
+  //     const selection: Selection | null = document.getSelection();
+  //     console.log('CLICK selection', selection);
+
+  //     return selection ? selection.anchorOffset : -1;
+  //   }
+  // };
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
