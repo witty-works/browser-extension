@@ -112,9 +112,7 @@ const Input: React.FC<{
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
-        : element.innerText.replaceAll(/\n{2,}/g, '\n');
-    // .replaceAll(/\u00A0(?:\n+)/g, '')
-    // .trim();
+        : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
 
     console.log('nextText', nextText);
 
@@ -320,9 +318,7 @@ const Input: React.FC<{
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
-        : element.innerText.replaceAll(/\n{2,}/g, '\n');
-    // .replaceAll(/\u00A0(?:\n+)/g, '')
-    // .trim();
+        : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
 
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = 0;
@@ -394,11 +390,11 @@ const Input: React.FC<{
 
         const alertsTemp: IAlert[] = alerts
           .filter((alert: IAlert) => {
-            console.log('compi alert.data.text', alert.data.text);
+            // console.log('compi alert.data.text', alert.data.text);
 
             const compi =
               node.nodeValue && node.nodeValue.includes(alert.data.text);
-            console.log('compi', compi);
+            // console.log('compi', compi);
 
             return compi;
           })
