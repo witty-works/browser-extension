@@ -34,17 +34,11 @@ const Highlights: React.FC<HighlightsProps> = ({
       //quick fix to avoid error: check if node exists in the DOM
       //but also filter alerts that have a bigger endOffset than the length of the text
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
-        console.log('HL node', node);
-        console.log('HL node.textContent', node.textContent);
-
         alerts
-          .filter((alert: IAlert) => {
-            console.log('HLalert.endOffset', alert.endOffset);
-
-            return (
+          .filter(
+            (alert: IAlert) =>
               node.textContent && alert.endOffset <= node.textContent.length
-            );
-          })
+          )
           .forEach((alert: IAlert) => {
             const range = document.createRange();
             range.setStart(node, alert.startOffset);
@@ -63,8 +57,6 @@ const Highlights: React.FC<HighlightsProps> = ({
               }
             );
 
-            console.log('HL rects', rects);
-
             const newHighlight: Highlight = {
               rects,
               id: alert.id,
@@ -78,8 +70,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           });
       }
     });
-
-    console.log('HL highlights', highlights);
 
     setHighlights(highlights);
   }, [nodesWithAlerts, parentScroll, elementScroll, elementRect]);

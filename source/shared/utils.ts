@@ -131,6 +131,11 @@ const convertTextToHTML = (str: string = ''): string => {
 
 const nodeExistsInDOM = (node: Node): boolean => document.body.contains(node);
 
+const elementIsVisible = (element: Element): boolean => {
+  const rect: DOMRect = element.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0 ? true : false;
+};
+
 const textIsLight = (color: any) => {
   const [r, g, b] = chroma(color).rgb();
   // HSP (Highly Sensitive Poo) equation from http://alienryderflex.com/hsp.html
@@ -149,5 +154,6 @@ export {
   convertTextToHTML,
   fixLineBreaks,
   nodeExistsInDOM,
+  elementIsVisible,
   textIsLight,
 };
