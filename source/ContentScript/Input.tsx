@@ -97,22 +97,14 @@ const Input: React.FC<{
   };
 
   const handleFocusoutEvent = () => {
-    const nextText: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : element.innerText;
+    const nextText: string = getInputText(element);
     if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
   };
 
   const handleKeyupEvent = (event?: Event) => {
     setWittySupportIcon(true);
 
-    console.log('element text', element.innerHTML);
-
-    const nextText: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
+    const nextText: string = getInputText(element);
 
     console.log('nextText', nextText);
 
@@ -159,12 +151,14 @@ const Input: React.FC<{
   };
 
   const resendText = () => {
-    // const text: string =
-    //   isTextArea(element) || isInputText(element)
-    //     ? element.value
-    //     : fixLineBreaks(element);
-    // setTextToCheck(text);
+    const text: string = getInputText(element);
+    setTextToCheck(text);
   };
+
+  const getInputText = (element: CustomInputElement) =>
+    isTextArea(element) || isInputText(element)
+      ? element.value
+      : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
@@ -358,10 +352,7 @@ const Input: React.FC<{
 
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
 
-    const nextText: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
+    const nextText: string = getInputText(element);
 
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = 0;
