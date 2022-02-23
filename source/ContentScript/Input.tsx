@@ -313,64 +313,31 @@ const Input: React.FC<{
 
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
-      console.log('> node', node);
 
       if (
         node.nodeValue &&
         node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
       ) {
-        console.log('> we have some relevant text:', node.nodeValue);
-
         textStartingAbsPosition = textEndAbsPosition;
-        console.log('textStartingAbsPosition', textStartingAbsPosition);
 
-        const nodeValueLength: number = node.nodeValue.length as number;
-        console.log('nodeValueLength', nodeValueLength);
+        const nodeValueLength: number = node.nodeValue.length;
 
-        const afterChar: string = nextText.slice(
-          textStartingAbsPosition + nodeValueLength,
-          textStartingAbsPosition + nodeValueLength + 1
-        );
-
-        console.log('after char', afterChar);
-
-        if (afterChar.match(/\s/gi)) {
-          console.log('has a space after the word');
-          textEndAbsPosition = textStartingAbsPosition + nodeValueLength + 1;
-        } else {
-          console.log('NO space after the word');
-          textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
-        }
-
-        console.log('textEndAbsPosition', textEndAbsPosition);
+        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+        // Check if there is a whitespace char after the node's content
+        // If so, we +1 to the end position
+        if (nextText.charAt(textEndAbsPosition).match(/\s/gi))
+          textEndAbsPosition += 1;
 
         const alertsTemp: IAlert[] = alerts
-          .filter((alert: IAlert) => {
-            // console.log('compi alert.data.text', alert.data.text);
-
-            const compi =
-              node.nodeValue && node.nodeValue.includes(alert.data.text);
-            // console.log('compi', compi);
-
-            return compi;
-          })
-          .filter((alert: IAlert) => {
-            console.log('alert data text', alert.data.text);
-            console.log(
-              'alert.startOffset >= textStartingAbsPosition',
-              alert.startOffset,
-              textStartingAbsPosition
-            );
-            console.log(
-              'alert.endOffset <= textEndAbsPosition',
-              alert.endOffset,
-              textEndAbsPosition
-            );
-            return (
+          .filter(
+            (alert: IAlert) =>
+              node.nodeValue && node.nodeValue.includes(alert.data.text)
+          )
+          .filter(
+            (alert: IAlert) =>
               alert.startOffset >= textStartingAbsPosition &&
               alert.endOffset <= textEndAbsPosition
-            );
-          })
+          )
           .map((alert: IAlert) => {
             return {
               ...alert,
@@ -379,71 +346,16 @@ const Input: React.FC<{
             };
           });
 
-        if (alertsTemp.length > 0) {
+        if (alertsTemp.length > 0)
           nodesWithAlertsTemp.push({
             node: node,
             alerts: alertsTemp,
           });
-        }
       }
     }
 
-    console.log('nodesWithAlertsTemp', nodesWithAlertsTemp);
-
     return nodesWithAlertsTemp;
   };
-
-  /* const getNodesWithRecalculatedAlerts = (
-    nodes: NodeListOf<ChildNode>,
-    alerts: IAlert[]
-  ) => {
-    const nodesWithAlertsTemp: INodeWithAlerts[] = [];
-    let textStartingAbsPosition: number = 0;
-    let textEndAbsPosition: number = 0;
-
-    const traverseNodes = (nodes: NodeListOf<ChildNode>) => {
-      for (let node of nodes) {
-        textStartingAbsPosition = textEndAbsPosition;
-
-        if (node.nodeName === '#text') {
-          if (node.nodeValue) {
-            const nodeValueLength = node.nodeValue.length;
-            textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
-
-            const alertsTemp: IAlert[] = alerts
-              .filter(
-                (alert: IAlert) =>
-                  alert.startOffset >= textStartingAbsPosition &&
-                  alert.endOffset <= textEndAbsPosition
-              )
-              .map((alert: IAlert) => {
-                const newAlert: IAlert = {
-                  ...alert,
-                  startOffset: alert.startOffset - textStartingAbsPosition,
-                  endOffset: alert.endOffset - textStartingAbsPosition,
-                };
-
-                return newAlert;
-              });
-
-            nodesWithAlertsTemp.push({
-              node: node as HTMLElement,
-              alerts: alertsTemp,
-            });
-          }
-        } else {
-          if (node.previousSibling !== null) {
-            if (node.nodeName === 'DIV' || 'BR' || 'P') textEndAbsPosition++;
-          }
-          if (node.childNodes.length > 0) {
-            traverseNodes(node.childNodes);
-          }
-        }
-      }
-    };
-    traverseNodes(nodes);
-    return nodesWithAlertsTemp;
-  }; */
 
   useEffect(() => {
     if (checkEndpointError)
