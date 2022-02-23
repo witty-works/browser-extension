@@ -44,7 +44,9 @@ const Input: React.FC<{
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
-  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
+  const [clone, setClone, cloneRef] = useStateRef<HTMLDivElement>(
+    {} as HTMLDivElement
+  );
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   const [wittySupportIcon, setWittySupportIcon] = useState<boolean>(true);
   const [isHovered, setIsHovered] = useState<boolean>(false);
@@ -106,15 +108,11 @@ const Input: React.FC<{
 
     const nextText: string = getInputText(element);
 
-    console.log('nextText', nextText);
-
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      console.log('we have text that needs to be send');
-
       // Always create a new string, to force change the state of setTextToCheck
       const newNextText: string = new String(nextText) as string;
 
@@ -167,77 +165,45 @@ const Input: React.FC<{
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
+    // If user clicks on an element only once...
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
         const target = event.target as CustomInputElement;
-        // const caretPosition: number = getInputClickedPosition(target);
 
-        //get caretPosition
-        let caretData: { position: number | null; element: Node | null } = {
-          position: -1,
-          element: null,
-        };
-        /* if (isTextArea(element) || isInputText(element)) {
-          return element.selectionStart as number;
-        } else {
-          const selection: Selection | null = document.getSelection();
-          console.log('CLICK selection', selection);
+        // Get caret data
+        let caret: { position: number | null; element: Node | null } =
+          isTextArea(element) || isInputText(element)
+            ? {
+                position: element.selectionStart,
+                element: cloneRef.current,
+              }
+            : {
+                position: (document.getSelection() as Selection).anchorOffset,
+                element: (document.getSelection() as Selection).anchorNode,
+              };
 
-          return selection ? selection.anchorOffset : -1;
-        } */
-
-        if (isTextArea(element) || isInputText(element)) {
-          caretData = {
-            position: element.selectionStart,
-            element: cloneRef.current,
-          };
-        } else {
-          const selection: Selection = document.getSelection() as Selection;
-          console.log('CLICK selection', selection);
-          caretData = {
-            position: selection.anchorOffset,
-            element: selection.anchorNode,
-          };
-        }
-
-        console.log('CLICK caretData', caretData);
-
-        if (
-          caretData.element &&
-          caretData.position &&
-          caretData.position > -1
-        ) {
-          const nodeAlerts = nodesWithAlertsRef.current;
-
-          console.log('CLICK target', target);
-
-          const oneNodeWithAlerts = nodeAlerts.find(
-            (nodeWithAlerts: INodeWithAlerts) => {
-              console.log('CLICK nodeWithAlerts', nodeWithAlerts);
-
-              //TODO potentially this acces to parentNode could fail
-              return isTextArea(target) || isInputText(target)
-                ? nodeWithAlerts.node.parentNode === caretData.element
-                : nodeWithAlerts.node === caretData.element;
-            }
+        if (caret.element && caret.position && caret.position > -1) {
+          // Find out if the clicked element has alerts
+          const oneNodeWithAlerts = nodesWithAlertsRef.current.find(
+            (nodeWithAlerts: INodeWithAlerts) =>
+              isTextArea(target) || isInputText(target)
+                ? nodeWithAlerts.node.parentNode === caret.element
+                : nodeWithAlerts.node === caret.element
           );
 
-          console.log('CLICK oneNodeWithAlerts', oneNodeWithAlerts);
-
           if (oneNodeWithAlerts) {
+            // If so, then find out if an alert that has been clicked
             const selectedAlert = oneNodeWithAlerts.alerts
-              .filter((alert: IAlert) => {
-                return (
-                  alert.startOffset < (caretData.position as number) &&
-                  alert.endOffset > (caretData.position as number)
-                );
-              })
+              .filter(
+                (alert: IAlert) =>
+                  alert.startOffset < (caret.position as number) &&
+                  alert.endOffset > (caret.position as number)
+              )
               .pop() as IAlert;
-
-            const nodeText = oneNodeWithAlerts.node;
 
             if (selectedAlert) {
               const range = document.createRange();
+              const nodeText = oneNodeWithAlerts.node;
               range.setStart(nodeText, selectedAlert.startOffset);
               range.setEnd(nodeText, selectedAlert.endOffset);
               const clickedRect = range.getClientRects()[0];
@@ -260,17 +226,6 @@ const Input: React.FC<{
       clearTimeout(singleClickTimeOut);
     }
   };
-
-  // const getInputClickedPosition = (element: CustomInputElement): number => {
-  //   if (isTextArea(element) || isInputText(element)) {
-  //     return element.selectionStart as number;
-  //   } else {
-  //     const selection: Selection | null = document.getSelection();
-  //     console.log('CLICK selection', selection);
-
-  //     return selection ? selection.anchorOffset : -1;
-  //   }
-  // };
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
@@ -315,41 +270,29 @@ const Input: React.FC<{
   useEffect(() => {
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
-      const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
-        return !ignoredTerms.includes(alert.data.text);
-      });
-
-      let nodesWithAlertsTemp: INodeWithAlerts[] = [];
-
-      if (isTextArea(element) || isInputText(element)) {
-        if (!clone.firstChild) {
-          return;
+      const alertsWithoutIgnoredTerms: IAlert[] = alerts.filter(
+        (alert: IAlert) => {
+          return !ignoredTerms.includes(alert.data.text);
         }
-        nodesWithAlertsTemp.push({
-          node: clone.firstChild,
-          alerts: filteredAlerts.map((alert: IAlert) => ({
-            ...alert,
-          })),
-        });
-      } else {
-        // const nodesWithAlertsTemp: INodeWithAlerts[] =
-        //   getNodesWithRecalculatedAlerts(element.childNodes, filteredAlerts);
+      );
 
-        nodesWithAlertsTemp =
-          getNodesWithRecalculatedPositionAlerts(filteredAlerts);
-      }
-      console.log('nodesWithAlertsTemp FINAL', nodesWithAlertsTemp);
+      const nodesWithAlertsTemp: INodeWithAlerts[] =
+        isTextArea(element) || isInputText(element)
+          ? [
+              {
+                node: clone.firstChild as Node,
+                alerts: alertsWithoutIgnoredTerms,
+              },
+            ]
+          : getNodesWithRecalculatedPositionAlerts(alertsWithoutIgnoredTerms);
 
       setNodesWithAlerts(nodesWithAlertsTemp);
-      // setNodesWithAlerts([]);
     }
   }, [alerts, ignoredTerms, clone]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[]
   ): INodeWithAlerts[] => {
-    console.log('alerts', alerts);
-
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
 
     const nextText: string = getInputText(element);
@@ -367,25 +310,6 @@ const Input: React.FC<{
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
     );
-
-    // const nodes: Node[] = [];
-
-    // for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
-    //   const node = elementEvaluation.snapshotItem(index) as Node;
-    //   console.log('node', node);
-    //   console.log('node parentElement', node.parentElement);
-    //   /* console.log('node.childNodes', node.childNodes);
-    //   if (node.childNodes.length > 1) {
-    //     node.childNodes.forEach((node: Node) => {
-    //       if (node.nodeName !== '#text' && node.nodeValue !== '') {
-    //         nodes.push(node);
-    //       }
-    //     });
-    //   } */
-    //   nodes.push(node);
-    // }
-
-    // console.log('nodes', nodes);
 
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
@@ -410,9 +334,7 @@ const Input: React.FC<{
 
         console.log('after char', afterChar);
 
-        //&nbsp;
         if (afterChar.match(/\s/gi)) {
-          // if (afterChar.match(/\s|(&nbsp;)/gi)) {
           console.log('has a space after the word');
           textEndAbsPosition = textStartingAbsPosition + nodeValueLength + 1;
         } else {
@@ -450,18 +372,12 @@ const Input: React.FC<{
             );
           })
           .map((alert: IAlert) => {
-            // console.log('alert', alert);
-
-            const newAlert: IAlert = {
+            return {
               ...alert,
               startOffset: alert.startOffset - textStartingAbsPosition,
               endOffset: alert.endOffset - textStartingAbsPosition,
             };
-
-            return newAlert;
           });
-
-        // console.log('alertsTemp', alertsTemp);
 
         if (alertsTemp.length > 0) {
           nodesWithAlertsTemp.push({
