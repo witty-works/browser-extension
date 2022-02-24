@@ -117,15 +117,30 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
   }, [highlights, selectedAlert]);
 
+  const setPositionStyling = () => {
+    let parentPosition = window.getComputedStyle(
+      element.parentElement as HTMLElement
+    ).position;
+    return {
+      position: parentPosition === 'relative' ? 'fixed' : 'absolute',
+      top:
+        parentPosition == 'relative'
+          ? `${element.getBoundingClientRect().top}px`
+          : `${elementRect.top}px`,
+      left:
+        parentPosition == 'relative'
+          ? `${element.getBoundingClientRect().left}px`
+          : `${elementRect.left}px`,
+    };
+  };
+
   return (
     <canvas
       ref={canvasRef}
       style={
         {
-          position: 'absolute',
+          ...setPositionStyling(),
           overflow: 'auto',
-          left: `${elementRect.left}px`,
-          top: `${elementRect.top}px`,
           zIndex: 99999999,
           pointerEvents: 'none',
         } as React.CSSProperties

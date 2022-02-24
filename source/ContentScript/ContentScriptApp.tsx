@@ -18,17 +18,13 @@ import { isInputElement, nodeExistsInDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from './StateIndicatorIcons/IconController';
 
-interface Iinput {
-  element: CustomInputElement;
-  id: number;
-}
-
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
     {} as RequestConfig
   );
-  const [inputs, setInputs, inputsRef] = useStateRef<Iinput[]>([]);
-
+  const [inputs, setInputs, inputsRef] = useStateRef(
+    [] as CustomInputElement[]
+  );
   const doc = document.documentElement || document.body;
   const [bodyScroll, setBodyScroll] = useState<ScrollPos>({
     top: doc.scrollTop,
@@ -103,7 +99,6 @@ const ContentScriptApp: React.FC = () => {
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);
-    window.addEventListener('resize', handleWindowResize);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
@@ -111,7 +106,6 @@ const ContentScriptApp: React.FC = () => {
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('scroll', handleDocumentScrollEvent);
-      window.removeEventListener('resize', handleWindowResize);
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
     };
@@ -164,21 +158,10 @@ const ContentScriptApp: React.FC = () => {
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
 
-    if (isInputElement(target))
-      if (!inputsRef.current.some((input: Iinput) => input.element === target))
-        setInputs([
-          ...inputsRef.current,
-          {
-            element: target,
-            id:
-              target.getBoundingClientRect().left +
-              target.getBoundingClientRect().top,
-          },
-        ]);
-    // if (!inputsRef.current.includes(target)) {
-    //   setHoveredElement(null);
-    //   setInputs([...inputsRef.current, target]);
-    // }
+    if (isInputElement(target) && !inputsRef.current.includes(target)) {
+      setHoveredElement(null);
+      setInputs([...inputsRef.current, target]);
+    }
   };
 
   const handleMouseOver = (event: MouseEvent) => {
@@ -206,25 +189,12 @@ const ContentScriptApp: React.FC = () => {
       const target = event.target as CustomInputElement;
       if (
         !document.querySelector('witty-code')?.contains(target) &&
-        !!inputsRef.current.some((input: Iinput) => input.element === target)
+        !inputsRef.current.includes(target)
       ) {
         setParentScroll({ top: target.scrollTop, left: target.scrollLeft });
       }
     }
   };
-
-  const handleWindowResize = () => {
-    const newInputs = inputsRef.current.map((input: Iinput) => {
-      return {
-        element: input.element,
-        id:
-          input.element.getBoundingClientRect().left +
-          input.element.getBoundingClientRect().top,
-      };
-    });
-    setInputs(newInputs);
-  };
-
   useEffect(() => {
     log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
   }, [inputs]);
@@ -233,11 +203,11 @@ const ContentScriptApp: React.FC = () => {
   //If not, remove it from the list of inputs.
   //That way the highlights are also removed
   const mutationObserver = new MutationObserver(() => {
-    inputsRef.current.forEach((input: Iinput) => {
-      if (!nodeExistsInDOM(input.element))
+    inputsRef.current.forEach((input: CustomInputElement) => {
+      if (!nodeExistsInDOM(input))
         setInputs([
           ...inputsRef.current.filter(
-            (filterInput: Iinput) => filterInput.element !== input.element
+            (filterInput: CustomInputElement) => filterInput !== input
           ),
         ]);
     });
@@ -254,13 +224,10 @@ const ContentScriptApp: React.FC = () => {
           isHovered={true}
         />
       )}
-      {inputs.map((input: Iinput) => (
+      {inputs.map((input: CustomInputElement, index: number) => (
         <Input
-          //Inputs need to be updated when they are resized, which is done on the window resize listener.
-          //By binding the key to a calculation of the input position properties, we assure that react re-renders
-          //the inputs when their positions change.
-          key={input.id}
-          element={input.element}
+          key={index}
+          element={input}
           bodyScroll={bodyScroll}
           parentScroll={parentScroll}
         />
