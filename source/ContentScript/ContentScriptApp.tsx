@@ -16,7 +16,7 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, nodeExistsInDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import StateIndicatorIcon from './StateIndicatorIcons/IconController';
+import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(

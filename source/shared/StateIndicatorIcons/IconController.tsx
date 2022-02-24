@@ -1,5 +1,5 @@
 import React from 'react';
-import { CustomInputElement } from '../../shared/types';
+import { CustomInputElement } from '../types';
 
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
@@ -33,9 +33,7 @@ const IconController: React.FC<IconControllerProps> = ({
     >
       {iconType == 'loading' && <LoadingIcon />}
       {iconType == 'active' && <ActiveIcon />}
-      {iconType != 'loading' && iconType != 'active' && isHovered && (
-        <PassiveIcon />
-      )}
+      {iconType == 'passive' && isHovered && <PassiveIcon />}
     </div>
   );
 };

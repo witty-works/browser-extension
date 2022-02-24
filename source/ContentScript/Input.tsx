@@ -18,7 +18,7 @@ import HighlightPopover, {
 } from './HighlightPopover/HighlightPopover';
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
-import StateIndicatorIcon from './StateIndicatorIcons/IconController';
+import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 
 const Input: React.FC<{
   element: CustomInputElement;

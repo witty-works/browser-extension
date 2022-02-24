@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { animated, useTransition } from 'react-spring';
 
 import LoadingIconFrameOne from '../../assets/icons/wittyStateIndicator/loadingFrames/frame_1.svg';
@@ -22,17 +22,24 @@ const LoadingIcon: React.FC = () => {
     <LoadingIconFrameEight />,
   ];
 
-  const [reset, setReset] = useState(0);
+  const [loop, setLoop] = useState(true);
+  const [mounted, setMounted] = useState(true);
+
+  useEffect(() => {
+    return () => {
+      setMounted(false);
+    };
+  }, []);
 
   const transition = useTransition(framesCollection, {
-    loop: reset % 2 === 0,
+    loop: loop,
     from: { opacity: 0 },
     enter: { opacity: 1 },
     trail: 100,
     config: {
       duration: 1500,
     },
-    onRest: () => setReset(reset + 1),
+    onRest: () => mounted && setLoop(!loop),
   });
 
   const fragment = transition((style, frame) => (
