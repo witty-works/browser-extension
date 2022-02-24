@@ -16,7 +16,7 @@ import {
 } from '../shared/ApiServices/requests';
 import { isInputElement, nodeExistsInDOM } from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-import WittySupportIcon from './WittySupportsIcon';
+import StateIndicatorIcon from './StateIndicatorIcons/IconController';
 
 interface Iinput {
   element: CustomInputElement;
@@ -248,7 +248,11 @@ const ContentScriptApp: React.FC = () => {
   return (
     <>
       {hoveredElement && inputs.length == 0 && (
-        <WittySupportIcon iconType={'passive'} elementReference={hoveredElement} />
+        <StateIndicatorIcon
+          iconType={'passive'}
+          elementReference={hoveredElement}
+          isHovered={true}
+        />
       )}
       {inputs.map((input: Iinput) => (
         <Input
