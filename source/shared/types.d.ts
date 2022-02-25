@@ -41,6 +41,7 @@ export interface IAlertContentData {
   label: string;
   explanation: IExplanation;
   language: string;
+  gravity: number;
 }
 
 export interface ICheckResponse {
@@ -58,6 +59,7 @@ export interface ICheckResponseResult {
   alternatives: IAlternatives[];
   explanation: IExplanation;
   label: string;
+  gravity: number;
 }
 
 export interface IAlternatives {

@@ -84,6 +84,10 @@ export const useCheckEndpoint = () => {
         },
         required: ['text'],
       },
+      gravity: {
+        description: 'the gravity of the problematic word',
+        type: 'number',
+      },
     },
     required: [
       'text',
