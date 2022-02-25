@@ -37,9 +37,10 @@ export interface IAlertContentData {
   context: string;
   category: string;
   subcategory: string;
-  alternatives: IAlternatives[];
+  alternatives: string[];
   label: string;
-  explanation: IExplanation;
+  reason: string;
+  solution: string;
   language: string;
 }
 
@@ -55,23 +56,12 @@ export interface ICheckResponseResult {
   subcategory: string;
   start: number;
   end: number;
-  alternatives: IAlternatives[];
-  explanation: IExplanation;
+  alternatives: string[];
   label: string;
+  reason: string;
+  solution: string;
 }
 
-export interface IAlternatives {
-  text: string;
-  remove: boolean;
-  inspiration: string;
-  context: string;
-}
-
-export interface IExplanation {
-  text: string;
-  icon: string;
-  url: string;
-}
 export interface ILogRequest {
   request__type: string;
   request__lang: string;

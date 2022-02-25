@@ -38,51 +38,20 @@ export const useCheckEndpoint = () => {
           'the list of alternative words to replace the problematic word',
         type: 'array',
         items: {
-          title: 'alternative',
-          type: 'object',
-          properties: {
-            text: {
-              description: 'the alternative word',
-              type: 'string',
-            },
-            remove: {
-              description: 'whether the alternative word should be removed',
-              type: 'boolean',
-            },
-            inspiration: {
-              description: 'the inspiration of the alternative word',
-              type: 'string',
-            },
-            context: {
-              description: 'the context of the alternative word',
-              type: 'string',
-            },
-          },
-          required: ['text'],
+          type: 'string',
         },
       },
       label: {
         description: 'the label of the problematic word',
         type: 'string',
       },
-      explanation: {
-        description: 'the explanation of the problematic word',
-        type: 'object',
-        properties: {
-          text: {
-            description: 'the explanation text',
-            type: 'string',
-          },
-          icon: {
-            description: 'the icon for the explanation',
-            type: 'string',
-          },
-          url: {
-            description: 'the url to the explanation',
-            type: 'string',
-          },
-        },
-        required: ['text'],
+      reason: {
+        description: 'the reason why the word is problematic',
+        type: 'string',
+      },
+      solution: {
+        description: 'How the problematic word can be eliminated',
+        type: 'string',
       },
     },
     required: [
@@ -94,7 +63,8 @@ export const useCheckEndpoint = () => {
       'end',
       'alternatives',
       'label',
-      'explanation',
+      'reason',
+      'solution',
     ],
   };
 
