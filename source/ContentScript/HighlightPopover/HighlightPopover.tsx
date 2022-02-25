@@ -81,6 +81,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       refs.floating.current &&
       !refs.floating.current.contains(event.target as HTMLElement)
     ) {
+      analytics.closePopoverLog(data.alert);
       hide();
     }
   };
