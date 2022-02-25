@@ -44,22 +44,31 @@
 }
 
 // Alternatives section
-.wittyworks-popover-row-title-alternative {
-  margin-bottom: 0.5em;
-}
-
 .wittyworks-popover-row-alternatives-container {
   display: flex;
   flex-direction: column;
 }
+.wittyworks-popover-alternative-btn-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.wittyworks-popover-alternative-context {
+  color: #cdcfd0;
+  font-style: italic;
+  font-weight: 400;
+  padding: 2px 8px;
+  margin: 4px 0px 4px 0px;
+}
 
 .wittyworks-popover-alternative-btn {
   font-weight: bold;
-  color: $green;
-  background: rgba($green, 0.1);
+  color: #365e3b;
+  background-color: #f1fff3;
   display: table;
-  margin: 4px auto 4px 0px;
+  margin: 4px 0px 4px 0px;
   padding: 2px 8px;
+  border-radius: 2px;
   cursor: pointer;
 
   &.remove-text {
@@ -67,8 +76,7 @@
   }
 
   &:hover {
-    background: rgba($green, 0.2);
-    color: $black;
+    background-color: #5fca7d4d;
   }
 }
 
@@ -76,20 +84,24 @@
 .wittyworks-popover-row-ignore-container {
   display: flex;
   flex-direction: column;
+  filter: invert(38%) sepia(2%) saturate(0%) hue-rotate(73deg) brightness(100%)
+    contrast(89%);
+  color: #656565;
+
+  &:hover {
+    filter: invert(39%) sepia(86%) saturate(747%) hue-rotate(323deg)
+      brightness(109%) contrast(80%);
+    color: $errorRed;
+  }
 }
 
 .wittyworks-popover-ignore-btn {
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: $errorRed;
   font-weight: bold;
   margin-top: 0.5em;
   cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 //Icons
@@ -141,6 +153,5 @@
 
   &:hover {
     color: $darkGray;
-    text-decoration: underline;
   }
 }
