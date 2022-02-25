@@ -2,7 +2,7 @@
 
 ## Requirements to start
 
-- [Node.js](https://nodejs.org) v14.16 (later versions can have problems with some packages, for example node-sass)
+- [Node.js](https://nodejs.org)
 - [Yarn](https://yarnpkg.com) v1 or v2 installed
 
 # Get the code
@@ -19,9 +19,9 @@ Run `yarn install` to install dependencies.
 
 From inside the directory, start the development server depending on the browser you are using
 
-  - Chrome: `yarn run dev:chrome`
-  - Firefox: `yarn run dev:firefox`
-  - Opera: `yarn run dev:opera`
+- Chrome: `yarn run dev:chrome`
+- Firefox: `yarn run dev:firefox`
+- Opera: `yarn run dev:opera`
 
 This will run in the background, watching for changes and rebuilding the project automatically.
 
@@ -44,21 +44,20 @@ Either you run the Development or Production scripts, it is build inside `extens
 
 ### Chrome
 
-  - Go to the browser address bar and type `chrome://extensions`
-  - Check the `Developer Mode` button to enable it.
-  - Click on the `Load Unpacked Extension…` button.
-  - Select your extension’s extracted directory.
+- Go to the browser address bar and type `chrome://extensions`
+- Check the `Developer Mode` button to enable it.
+- Click on the `Load Unpacked Extension…` button.
+- Select your extension’s extracted directory.
 
 ### Firefox
 
-  - Load the Add-on via `about:debugging` as temporary Add-on.
-  - Choose the `manifest.json` file in the extracted directory
+- Load the Add-on via `about:debugging` as temporary Add-on.
+- Choose the `manifest.json` file in the extracted directory
 
 ### Opera
 
-  - Load the extension via `opera:extensions`
-  - Check the `Developer Mode` and load as unpacked from extension’s extracted directory.
-
+- Load the extension via `opera:extensions`
+- Check the `Developer Mode` and load as unpacked from extension’s extracted directory.
 
 ## Generating browser specific manifest.json
 
@@ -113,4 +112,3 @@ From inside the directory just run `yarn run test`
 ## License
 
 This is a fork of [Web Extension Browser](https://github.com/abhijithvijayan/web-extension-starter/) by [Abhijith Vijayan](https://abhijithvijayan.in) under MIT license.
-
