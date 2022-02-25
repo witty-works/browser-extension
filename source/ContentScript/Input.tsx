@@ -261,6 +261,7 @@ const Input: React.FC<{
           label: result.label,
           explanation: result.explanation,
           alternatives: result.alternatives,
+          gravity: result.gravity,
         },
       }))
       .sort((firstAlert, secondAlert) => {

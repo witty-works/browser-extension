@@ -3,14 +3,14 @@ import CSS from 'csstype';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CustomInputElement } from '../../shared/types';
-import { IAlert } from '../../shared/types';
+import { CustomInputElement, IAlert } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import CloseButton from '../../assets/icons/popover/close.svg';
 
 import './HighlightPopover.scss';
+import { getColor } from '../../shared/constants';
 
 export interface PopoverData {
   alert: IAlert;
@@ -168,9 +168,37 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         </div>
         <hr className='wittyworks-popover-separator' />
         <div className='wittyworks-popover-row'>
-          {/* TODO: change this to understandable label when available from backend */}
-          <div className='wittyworks-popover-row-title'>
-            {data.alert.data.explanation.text}
+          <div
+            className='wittyworks-popover-row-explanation'
+            style={{
+              backgroundColor: getColor(data.alert.data.category).highlight,
+              borderRadius: '4px',
+              padding: '8px 8px 12px',
+            }}
+          >
+            <div className='wittyworks-popover-explanation-icon'>
+              {data.alert.data.explanation.icon}
+            </div>
+            <div>
+              {data.alert.data.explanation.text}
+              {data.alert.data.explanation.url && (
+                <a
+                  className='wittyworks-popover-row-explanation-title'
+                  href={data.alert.data.explanation.url}
+                >
+                  {data.alert.data.gravity
+                    ? t('learnMoreNegative')
+                    : t('learnMorePositive')}
+                  <img
+                    className='wittyworks-popover-icon'
+                    alt='How To Improve'
+                    src={browser.runtime.getURL(
+                      '../../../assets/icons/popover/arrow.svg'
+                    )}
+                  />
+                </a>
+              )}
+            </div>
           </div>
         </div>
 
