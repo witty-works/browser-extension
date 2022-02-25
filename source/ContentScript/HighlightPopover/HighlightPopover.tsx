@@ -3,13 +3,13 @@ import CSS from 'csstype';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CustomInputElement, IAlert } from '../../shared/types';
+import { CustomInputElement } from '../../shared/types';
+import { IAlert } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 
 import './HighlightPopover.scss';
-import { getColor } from '../../shared/constants';
 
 export interface PopoverData {
   alert: IAlert;
@@ -145,42 +145,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     analytics.ignoreLog(data.alert);
     addIgnoredTerm(data.alert.data.text);
   };
+
   return (
     <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
       <div id='wittyworks-popover-content'>
-        <div
-          className='wittyworks-popover-row-explanation'
-          style={{
-            backgroundColor: getColor(data.alert.data.category).highlight,
-            borderRadius: '4px',
-            padding: '8px 8px 12px',
-          }}
-        >
-          <div className='wittyworks-popover-explanation-icon'>
-            {data.alert.data.explanation.icon}
-          </div>
-          <div>
+        <div className='wittyworks-popover-row'>
+          <div className='wittyworks-popover-row-title'>
             {data.alert.data.explanation.text}
-            {data.alert.data.explanation.url && (
-              <a
-                className='wittyworks-popover-row-explanation-title'
-                href={data.alert.data.explanation.url}
-              >
-                {data.alert.data.gravity
-                  ? t('learnMoreNegative')
-                  : t('learnMorePositive')}
-                <img
-                  className='wittyworks-popover-icon'
-                  alt='How To Improve'
-                  src={browser.runtime.getURL(
-                    '../../../assets/icons/popover/arrow.svg'
-                  )}
-                />
-              </a>
-            )}
           </div>
         </div>
-
         <hr className='wittyworks-popover-separator' />
         {data.alert.data.alternatives.filter((word) => word.text != ' ')
           .length > 0 && (
@@ -224,6 +197,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       '../../../assets/icons/popover/ignore.svg'
                     )}
                   />
+
                   {t('ignoreTerm')}
                 </div>
               </div>
@@ -231,11 +205,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <hr className='wittyworks-popover-separator' />
           </>
         )}
+
+        <hr className='wittyworks-popover-separator' />
         <div className='wittyworks-popover-row'>
           <div className='wittyworks-popover-home-link-container'>
             <img
               className='wittyworks-popover-icon-large'
-              alt='Witty Works Logo'
+              alt='Witty Works Logo' //TODO translation
               src={browser.runtime.getURL(
                 '../../../assets/icons/w-logo-wire-color.svg'
               )}
