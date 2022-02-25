@@ -92,10 +92,10 @@ export const useCheckEndpoint = () => {
     return getAnalyzedTextResults(textToAnalyze);
   }, [textToAnalyze]);
 
-  const [loading, checkResponse, errorResponse] = useApiResults<ICheckResponse>(
+  const [checkResponse, errorResponse] = useApiResults<ICheckResponse>(
     request,
     checkResponseSchema
   );
 
-  return [loading, checkResponse, errorResponse, setTextToAnalyse] as const;
+  return [checkResponse, errorResponse, setTextToAnalyse] as const;
 };

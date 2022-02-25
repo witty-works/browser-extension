@@ -18,14 +18,14 @@ import HighlightPopover, {
 } from './HighlightPopover/HighlightPopover';
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
-import WittySupportIcon from './WittySupportsIcon';
+import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 
 const Input: React.FC<{
   element: CustomInputElement;
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [, checkEndpointResponse, checkEndpointError, setTextToCheck] = //TODO: add back loading
+  const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
   const elementRect = useResizeObserver(element);
@@ -46,7 +46,7 @@ const Input: React.FC<{
   );
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
-  const [wittySupportIcon, setWittySupportIcon] = useState<boolean>(true);
+  const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const log = useLog('Input');
 
@@ -89,11 +89,11 @@ const Input: React.FC<{
   }, []);
 
   const handleMouseoverEvent = () => {
-    setIsHovered(true);
+    if (activeIconRef.current == 'passive') setIsHovered(true);
   };
 
   const handleMouseoutEvent = () => {
-    setIsHovered(false);
+    if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
   const handleFocusoutEvent = () => {
@@ -101,11 +101,10 @@ const Input: React.FC<{
       isTextArea(element) || isInputText(element)
         ? element.value
         : element.innerText;
-    if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
+    if (nextText == '\n' || nextText.length == 0) setActiveIcon('passive');
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    setWittySupportIcon(true);
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
@@ -113,12 +112,17 @@ const Input: React.FC<{
 
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
+      setActiveIcon('active');
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      event && event.type == 'focusin'
-        ? setTextToCheck(nextText)
-        : debouncedSetTextToCheck(nextText);
+      if (event && event.type == 'focusin') {
+        setTextToCheck(nextText);
+        setActiveIcon('active');
+      } else {
+        debouncedSetTextToCheck(nextText);
+        setActiveIcon('loading');
+      }
     }
   };
 
@@ -228,6 +232,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
+    setActiveIcon('active');
     analytics.checkLog(
       checkEndpointResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
@@ -354,14 +359,11 @@ const Input: React.FC<{
 
   return (
     <div className='canvas-container'>
-      {/* TODO: use loading state for animation */}
-      {wittySupportIcon ? (
-        <WittySupportIcon elementReference={element} active={true} />
-      ) : (
-        isHovered && (
-          <WittySupportIcon elementReference={element} active={false} />
-        )
-      )}
+      <StateIndicatorIcon
+        elementReference={element}
+        iconType={activeIcon}
+        isHovered={isHovered}
+      />
       {isTextArea(element) && (
         <TextAreaClone
           element={element}
