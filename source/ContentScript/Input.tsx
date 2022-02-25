@@ -46,7 +46,7 @@ const Input: React.FC<{
   );
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
-  const [activeIcon, setActiveIcon] = useState<string>('active');
+  const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const log = useLog('Input');
 
@@ -89,11 +89,11 @@ const Input: React.FC<{
   }, []);
 
   const handleMouseoverEvent = () => {
-    setIsHovered(true);
+    if (activeIconRef.current == 'passive') setIsHovered(true);
   };
 
   const handleMouseoutEvent = () => {
-    setIsHovered(false);
+    if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
   const handleFocusoutEvent = () => {
