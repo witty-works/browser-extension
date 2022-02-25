@@ -116,10 +116,13 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      setActiveIcon('loading');
-      event && event.type == 'focusin'
-        ? setTextToCheck(nextText)
-        : debouncedSetTextToCheck(nextText);
+      if (event && event.type == 'focusin') {
+        setTextToCheck(nextText);
+        setActiveIcon('active');
+      } else {
+        debouncedSetTextToCheck(nextText);
+        setActiveIcon('loading');
+      }
     }
   };
 
