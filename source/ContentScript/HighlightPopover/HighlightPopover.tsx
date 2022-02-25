@@ -8,6 +8,7 @@ import { IAlert } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import CloseButton from '../../assets/icons/popover/close.svg';
 
 import './HighlightPopover.scss';
 
@@ -157,6 +158,24 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   return (
     <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
       <div id='wittyworks-popover-content'>
+        <CloseButton />
+
+        <div className='wittyworks-popover-row'>
+          <div className='wittyworks-popover-home-link-container'>
+            <img
+              className='wittyworks-popover-icon-large'
+              alt='Witty Works Logo' //TODO translation
+              src={browser.runtime.getURL(
+                '../../../assets/icons/w-logo-wire-color.svg'
+              )}
+            />
+            <a
+              className='wittyworks-popover-home-link'
+              href='https://www.witty.works/'
+            ></a>
+          </div>
+        </div>
+        <hr className='wittyworks-popover-separator' />
         <div className='wittyworks-popover-row'>
           {/* TODO: change this to understandable label when available from backend */}
           <div className='wittyworks-popover-row-title'>
@@ -240,32 +259,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               {data.alert.data.reason}
             </div>
           )}
-        </div>
-
-        <hr className='wittyworks-popover-separator' />
-
-        <div className='wittyworks-popover-row'>
-          <div className='wittyworks-popover-home-link-container'>
-            <img
-              className='wittyworks-popover-icon-large'
-              alt='Witty Works Logo' //TODO translation
-              src={browser.runtime.getURL(
-                '../../../assets/icons/w-logo-wire-color.svg'
-              )}
-            />
-            <a
-              className='wittyworks-popover-home-link'
-              href='https://www.witty.works/'
-            >
-              witty.works
-            </a>
-            {/* TODO: when settings page available, add link here */}
-            {/* <img
-              className='wittyworks-popover-icon-large wittyworks-popover-icon-float-right'
-              alt='Settings'
-              src={browser.runtime.getURL('../../../assets/icons/popover/settings.svg')}
-            /> */}
-          </div>
         </div>
       </div>
     </div>
