@@ -259,8 +259,7 @@ const Input: React.FC<{
           context: result.context,
           text: result.text,
           label: result.label,
-          reason: result.reason,
-          solution: result.solution,
+          explanation: result.explanation,
           alternatives: result.alternatives,
         },
       }))
