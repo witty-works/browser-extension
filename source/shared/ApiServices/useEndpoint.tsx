@@ -58,7 +58,7 @@ export const useCheckEndpoint = () => {
               type: 'string',
             },
           },
-          required: ['text'],
+          required: [],
         },
       },
       label: {

@@ -53,16 +53,16 @@
 
   &:hover {
     .wittyworks-popover-alternative-btn {
-      background-color: #5fca7d4d;
+      background-color: $opaqueGreen;
     }
     .wittyworks-popover-alternative-context {
-      color: #365e3b;
+      color: $green;
     }
   }
 }
 
 .wittyworks-popover-alternative-context {
-  color: #cdcfd0;
+  color: $lightGray;
   font-style: italic;
   font-weight: 400;
   padding: 2px 8px;
@@ -71,8 +71,8 @@
 
 .wittyworks-popover-alternative-btn {
   font-weight: bold;
-  color: #365e3b;
-  background-color: #f1fff3;
+  color: $green;
+  background-color: $lightGreen;
   display: table;
   margin: 4px 0px 4px 0px;
   padding: 2px 8px;
@@ -90,7 +90,7 @@
   flex-direction: column;
   filter: invert(38%) sepia(2%) saturate(0%) hue-rotate(73deg) brightness(100%)
     contrast(89%);
-  color: #656565;
+  color: $darkGray;
 
   &:hover {
     filter: invert(39%) sepia(86%) saturate(747%) hue-rotate(323deg)
@@ -116,7 +116,7 @@
 
 .wittyworks-popover-icon-float-right {
   cursor: pointer;
-  float: right;
+  margin-left: auto;
 }
 
 // More info section
@@ -130,16 +130,15 @@
   font-weight: 400;
   flex-direction: row;
   align-items: center;
-  color: #656565;
+  color: $darkGray;
   cursor: pointer;
 
   &:hover {
-    color: #656565;
+    color: $darkGray;
   }
 }
 
 //Navigation
 .wittyworks-popover-row-navigation {
-  width: 100%;
-  float: left;
+  display: flex;
 }

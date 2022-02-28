@@ -115,7 +115,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     //Log the clicked alternative
     analytics.alternativeLog(
       data.alert,
-      data.alert.data.alternatives[index].text
+      index == -1
+        ? data.alert.data.text
+        : data.alert.data.alternatives[index].text
     );
     //Replace text with the new alternative or simply remove it
     //This only replaces the specific occurrence. If there are other identical terms in the text
@@ -221,7 +223,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 {data.alert.data.alternatives
                   .slice(0, 5)
                   .map((alternative, index) =>
-                    alternative.text.localeCompare('-') === 0 ? ( //Is this outdated with the new API version?
+                    alternative.remove ? (
                       <div
                         className='wittyworks-popover-alternative-btn remove-text'
                         key={`${index}-remove-it`}
@@ -230,10 +232,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         {data.alert.data.text}
                       </div>
                     ) : (
-                      <div className='wittyworks-popover-alternative-btn-container'>
+                      <div
+                        className='wittyworks-popover-alternative-btn-container'
+                        key={`${index}-${alternative}-container`}
+                      >
                         <div
                           className='wittyworks-popover-alternative-btn'
-                          key={`${index}-${alternative}`}
                           onClick={() => clickAlternative(index)}
                         >
                           {alternative.text}
