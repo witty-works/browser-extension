@@ -196,11 +196,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <div className='wittyworks-popover-emoji'>
               {data.alert.data.explanation.icon}
             </div>
-            <div>
+            <div className='wittyworks-popover-row-explanation-text'>
               {data.alert.data.explanation.text}
               {data.alert.data.explanation.url && (
                 <a
-                  className='wittyworks-popover-row-explanation-title'
+                  className='wittyworks-popover-row-explanation-url'
                   href={data.alert.data.explanation.url}
                 >
                   {data.alert.data.gravity

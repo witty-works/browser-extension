@@ -115,7 +115,8 @@
   margin-left: 0.5em;
 }
 .wittyworks-popover-emoji {
-  margin-right: 0.5em;
+  margin-right: 1em;
+  margin-left: 0.5em;
 }
 
 .wittyworks-popover-icon-float-right {
@@ -128,14 +129,25 @@
   display: flex;
   margin-top: 0.2em;
   margin-bottom: 0.2em;
+  cursor: pointer;
 }
-.wittyworks-popover-row-explanation-title {
+
+.wittyworks-popover-row-explanation-text {
+  max-width: 12.31em;
+  font-weight: 700;
+  line-height: 108.5%;
+}
+
+.wittyworks-popover-row-explanation-url {
   display: flex;
   font-weight: 400;
   flex-direction: row;
   align-items: center;
   color: $darkGray;
   cursor: pointer;
+  line-height: 63%;
+  margin-top: 0.5em;
+  white-space: nowrap;
 
   &:hover {
     color: $darkGray;
