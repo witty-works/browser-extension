@@ -37,28 +37,6 @@ export const useAnalytics = () => {
       });
     },
 
-    async ignoreLog(logResponse: IAlert) {
-      ph.session.distinctId = appID;
-
-      const request: IIgnoreLogRequest = {
-        request__type: 'ignore',
-        request__lang: 'auto',
-        request__id: appID,
-        request__client: wittyVersion,
-        request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
-        request__config__preferred_variants: requestConfig.preferred_variants,
-        request__config__german_gender_ending:
-          requestConfig.german_gender_ending,
-        request__ignored: logResponse.data.text,
-      };
-
-      ph.capture('ignore', {
-        ...request,
-        response: logResponse,
-      });
-    },
-
     async checkLog(logResponse: ILogResponse, inputLength: number) {
       ph.session.distinctId = appID;
 
@@ -81,11 +59,11 @@ export const useAnalytics = () => {
       });
     },
 
-    async popoverToggleLog(logResponse: IAlert) {
+    async ignoreLog(logResponse: IAlert) {
       ph.session.distinctId = appID;
 
-      const request: ILogRequest = {
-        request__type: 'popver_open',
+      const request: IIgnoreLogRequest = {
+        request__type: 'ignore',
         request__lang: 'auto',
         request__id: appID,
         request__client: wittyVersion,
@@ -94,9 +72,10 @@ export const useAnalytics = () => {
         request__config__preferred_variants: requestConfig.preferred_variants,
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
+        request__ignored: logResponse.data.text,
       };
 
-      ph.capture('popver_open', {
+      ph.capture('ignore', {
         ...request,
         response: logResponse,
       });
@@ -110,11 +89,11 @@ export const useAnalytics = () => {
       });
     },
 
-    async closePopoverLog(logResponse: IAlert) {
+    async popoverLogs(logResponse: IAlert, logType: string) {
       ph.session.distinctId = appID;
 
       const request: ILogRequest = {
-        request__type: 'popover_closed',
+        request__type: logType,
         request__lang: 'auto',
         request__id: appID,
         request__client: wittyVersion,
@@ -124,7 +103,8 @@ export const useAnalytics = () => {
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
       };
-      ph.capture('popover_closed', {
+
+      ph.capture(logType, {
         ...request,
         response: logResponse,
       });

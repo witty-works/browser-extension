@@ -88,7 +88,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       refs.floating.current &&
       !refs.floating.current.contains(event.target as HTMLElement)
     ) {
-      analytics.closePopoverLog(data.alert);
+      analytics.popoverLogs(data.alert, 'popover_close');
       hide();
     }
   };
@@ -169,6 +169,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 className='wittyworks-popover-icon'
                 onClick={() => {
                   hide();
+                  analytics.popoverLogs(data.alert, 'popover_close');
                 }}
               />
             </div>
