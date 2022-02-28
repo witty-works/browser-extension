@@ -50,6 +50,15 @@
 .wittyworks-popover-alternative-btn-container {
   display: flex;
   flex-direction: row;
+
+  &:hover {
+    .wittyworks-popover-alternative-btn {
+      background-color: #5fca7d4d;
+    }
+    .wittyworks-popover-alternative-context {
+      color: #365e3b;
+    }
+  }
 }
 
 .wittyworks-popover-alternative-context {
@@ -72,10 +81,6 @@
 
   &.remove-text {
     text-decoration: line-through !important;
-  }
-
-  &:hover {
-    background-color: #5fca7d4d;
   }
 }
 
@@ -110,6 +115,7 @@
 }
 
 .wittyworks-popover-icon-float-right {
+  cursor: pointer;
   float: right;
 }
 
@@ -128,7 +134,6 @@
   cursor: pointer;
 
   &:hover {
-    text-decoration: underline;
     color: #656565;
   }
 }

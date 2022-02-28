@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import CSS from 'csstype';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
@@ -41,6 +41,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
+  const [backgroundColor, setBackgroundColor] = useState<string>(
+    getColor(data.alert.data.category).highlight
+  );
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -174,9 +177,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='wittyworks-popover-row-explanation'
             style={{
-              backgroundColor: getColor(data.alert.data.category).highlight,
+              backgroundColor: backgroundColor,
               borderRadius: '4px',
               padding: '8px 8px 12px',
+            }}
+            onMouseEnter={() => {
+              setBackgroundColor(getColor(data.alert.data.category).hover);
+            }}
+            onMouseLeave={() => {
+              setBackgroundColor(getColor(data.alert.data.category).highlight);
             }}
           >
             <div className='wittyworks-popover-icon'>
