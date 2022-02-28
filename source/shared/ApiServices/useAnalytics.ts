@@ -113,7 +113,7 @@ export const useAnalytics = () => {
     async closePopoverLog(logResponse: IAlert) {
       ph.session.distinctId = appID;
 
-      const request: IIgnoreLogRequest = {
+      const request: ILogRequest = {
         request__type: 'popover_closed',
         request__lang: 'auto',
         request__id: appID,
@@ -123,7 +123,6 @@ export const useAnalytics = () => {
         request__config__preferred_variants: requestConfig.preferred_variants,
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
-        request__ignored: logResponse.data.text,
       };
       ph.capture('popover_closed', {
         ...request,
