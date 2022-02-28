@@ -190,7 +190,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               setBackgroundColor(getColor(data.alert.data.category).highlight);
             }}
           >
-            <div className='wittyworks-popover-icon'>
+            <div className='wittyworks-popover-emoji'>
               {data.alert.data.explanation.icon}
             </div>
             <div>

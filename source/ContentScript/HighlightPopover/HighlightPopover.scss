@@ -11,6 +11,7 @@
   box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
   border-radius: 5px;
   font-family: $lato !important;
+  width: 17.75em;
 }
 
 #wittyworks-popover-content {
@@ -112,6 +113,9 @@
 .wittyworks-popover-icon {
   margin-right: 0.5em;
   margin-left: 0.5em;
+}
+.wittyworks-popover-emoji {
+  margin-right: 0.5em;
 }
 
 .wittyworks-popover-icon-float-right {
