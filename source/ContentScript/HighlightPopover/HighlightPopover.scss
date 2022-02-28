@@ -6,8 +6,7 @@
   background-color: $white;
   color: $black;
   z-index: 999999999;
-  padding-left: 16px;
-  padding-right: 16px;
+  padding: 0.6em;
   box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
   border-radius: 5px;
   font-family: $lato !important;
@@ -45,7 +44,9 @@
 
 // Alternatives section
 .wittyworks-popover-row-title-alternative {
-  margin-bottom: 0.5em;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 140%;
 }
 
 .wittyworks-popover-alternative-btn-container {
@@ -71,7 +72,7 @@
 }
 
 .wittyworks-popover-alternative-btn {
-  font-weight: bold;
+  font-weight: 500;
   color: $green;
   background-color: $lightGreen;
   display: table;
@@ -104,7 +105,8 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  font-weight: bold;
+  font-weight: 500;
+  font-size: 16px;
   margin-top: 0.5em;
   cursor: pointer;
 }
@@ -148,6 +150,7 @@
   line-height: 63%;
   margin-top: 0.5em;
   white-space: nowrap;
+  text-decoration: none;
 
   &:hover {
     color: $darkGray;

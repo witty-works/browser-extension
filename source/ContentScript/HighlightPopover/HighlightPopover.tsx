@@ -213,11 +213,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
         </div>
 
-        <hr className='wittyworks-popover-separator' />
-
         {data.alert.data.alternatives.filter((word) => word.text != ' ')
           .length > 0 && (
           <>
+            <hr className='wittyworks-popover-separator' />
             <div className='wittyworks-popover-row'>
               <div className='wittyworks-popover-row-title-alternative'>
                 {t('insteadTry')}
