@@ -14,7 +14,7 @@ export const setRequestConfig = (reqConfig: RequestConfig) =>
 export const setAppID = (id: string) => (appID = id);
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
-    url: createUrl(BASE_URL, 'check'),
+    url: createUrl(BASE_URL, 'v1.1/check'),
     config: {
       method: 'POST',
       headers: {
