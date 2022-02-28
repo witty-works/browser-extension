@@ -26,7 +26,8 @@ export const de = {
   },
   [namespaces.popover]: {
     insteadTry: 'Versuchen Sie stattdessen ...',
-    howToImprove: 'Wie Sie es selbst verbessern',
+    learnMorePositive: 'Warum ist es gut?',
+    learnMoreNegative: 'Was ist das Problem hier?',
     ignoreTerm: 'Diesen Begriff ignorieren',
     whyQuestionMark: 'Warum?',
     understood: 'Verstanden',
@@ -60,7 +61,8 @@ export const en = {
   },
   [namespaces.popover]: {
     insteadTry: 'Try one of these instead...',
-    howToImprove: 'How to improve it yourself',
+    learnMorePositive: 'Why is this good?',
+    learnMoreNegative: "What's the problem here?",
     ignoreTerm: 'Ignore this term',
     whyQuestionMark: 'Why?',
     understood: 'Understood',

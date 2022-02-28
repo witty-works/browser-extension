@@ -9,7 +9,7 @@ export const drawLine = (params: any, color: string) => {
   context.beginPath();
   context.moveTo(x, y + rect.height);
   context.lineTo(x + rect.width, y + rect.height);
-  context.lineWidth = 3;
+  context.lineWidth = 2;
   context.strokeStyle = color;
   context.stroke();
 };

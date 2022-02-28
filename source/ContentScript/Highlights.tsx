@@ -89,8 +89,8 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     highlights.forEach((highlight) => {
       const [rect] = highlight.rects;
-      const hoverColor = `${getColor(highlight.data.category).hover}`;
-      const highlightColor = `${getColor(highlight.data.category).highlight}`;
+      const hoverColor = `${getColor(highlight.data.category).default}`;
+      const highlightColor = `${getColor(highlight.data.category).hover}`;
       const roundedHighlight = new Path2D();
       const params = {
         context,
