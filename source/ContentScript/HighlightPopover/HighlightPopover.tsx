@@ -11,6 +11,8 @@ import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
 import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
+import NextIcon from '../../assets/icons/popover/next.svg';
+import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
@@ -164,6 +166,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               <WittyLogo className='wittyworks-popover-icon' />
             </a>
             <div className='wittyworks-popover-icon-float-right'>
+              <PreviousIcon />
+              <NextIcon />
               <CloseIcon
                 className='wittyworks-popover-icon'
                 onClick={() => {
