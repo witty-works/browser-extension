@@ -9,7 +9,7 @@ import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
-import ArrowIcon from '../../assets/icons/popover/arrow.svg';
+import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 
 import './HighlightPopover.scss';
@@ -44,6 +44,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [backgroundColor, setBackgroundColor] = useState<string>(
     getColor(data.alert.data.category).highlight
   );
+  const [playArrowAnimation, setPlayArrowAnimation] = useState<boolean>(false);
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -185,9 +186,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             }}
             onMouseEnter={() => {
               setBackgroundColor(getColor(data.alert.data.category).hover);
+              setPlayArrowAnimation(true);
             }}
             onMouseLeave={() => {
               setBackgroundColor(getColor(data.alert.data.category).highlight);
+              setPlayArrowAnimation(false);
             }}
           >
             <div className='wittyworks-popover-emoji'>
@@ -203,7 +206,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
-                  <ArrowIcon className='wittyworks-popover-icon' />
+                  <ArrowIcon play={playArrowAnimation} />
                 </a>
               )}
             </div>
