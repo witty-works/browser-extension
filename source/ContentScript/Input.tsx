@@ -46,8 +46,17 @@ const Input: React.FC<{
   );
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
+  const [selectedAlertIndex, setSelectedAlertIndex] = useState<number | null>(
+    null
+  );
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [filteredData, setFilteredData] = useState<IAlert[]>([]);
+
+  console.log('filtereddata', filteredData);
+  console.log('selectedAlertIndex', selectedAlertIndex);
+  console.log('popoverData', popoverData);
+
   const log = useLog('Input');
 
   useEffect(() => {
@@ -165,6 +174,16 @@ const Input: React.FC<{
     setIgnoredTerms([...ignoredTerms, term]);
   };
 
+  const updatePopover = (direction: string): void => {
+    if (!selectedAlertIndex || !filteredData) return;
+
+    if (direction == 'previous' && selectedAlertIndex - 1 >= 0)
+      setSelectedAlertIndex(selectedAlertIndex - 1);
+
+    if (direction == 'next' && selectedAlertIndex + 1 < filteredData.length)
+      setSelectedAlertIndex(selectedAlertIndex + 1);
+  };
+
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
@@ -202,7 +221,7 @@ const Input: React.FC<{
               setPopoverData({
                 alert: selectedAlert,
                 position: clickedRect,
-                node: oneNodeWithAlerts.node,
+                node: nodeText,
                 originalNode:
                   isTextArea(target) || isInputText(target) ? target : null,
               });
@@ -229,6 +248,39 @@ const Input: React.FC<{
       return selection ? selection.anchorOffset : -1;
     }
   };
+
+  useEffect(() => {
+    if (!popoverData.alert || !filteredData) return;
+
+    setSelectedAlertIndex(
+      filteredData.findIndex((item) => item.id === popoverData.alert.id)
+    );
+  }, [popoverData, filteredData]);
+
+  useEffect(() => {
+    if (
+      !selectedAlertIndex ||
+      !nodesWithAlertsRef.current[0] ||
+      !filteredData[selectedAlertIndex]
+    )
+      return;
+
+    const newSelectedAlert = filteredData[selectedAlertIndex];
+    const nodeText = nodesWithAlertsRef.current[0].node;
+
+    const range = document.createRange();
+    range.setStart(nodeText, newSelectedAlert.startOffset);
+    range.setEnd(nodeText, newSelectedAlert.endOffset);
+    const clickedRect = range.getClientRects()[0];
+
+    setPopoverData({
+      alert: newSelectedAlert,
+      position: clickedRect,
+      node: nodeText,
+      originalNode: null,
+    });
+    setSelectedAlert(newSelectedAlert);
+  }, [selectedAlertIndex]);
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
@@ -289,6 +341,22 @@ const Input: React.FC<{
             })),
           },
         ]);
+        const sortedData = nodesWithAlertsRef.current[0].alerts.sort((a, b) => {
+          return a.startOffset - b.startOffset;
+        });
+
+        setFilteredData(
+          sortedData.filter((item) => {
+            if (
+              sortedData.find(
+                (i) => i.startOffset === item.startOffset && i.id !== item.id
+              )
+            ) {
+              return item.data.gravity === 1;
+            }
+            return true;
+          })
+        );
       } else {
         const nodesWithAlertsTemp: INodeWithAlerts[] =
           getNodesWithRecalculatedAlerts(element.childNodes, filteredAlerts);
@@ -386,6 +454,9 @@ const Input: React.FC<{
           hide={togglePopover}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
+          updatePopover={updatePopover}
+          selectedAlertIndex={selectedAlertIndex}
+          totalAlerts={filteredData.length}
         />
       )}
       <Highlights

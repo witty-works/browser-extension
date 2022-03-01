@@ -30,6 +30,9 @@ interface PopoverProps {
   hide: () => void;
   resendText: () => void;
   addIgnoredTerm: (term: string) => void;
+  updatePopover: (direction: string) => void;
+  selectedAlertIndex: number | null;
+  totalAlerts: number;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -38,6 +41,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   hide,
   resendText,
   addIgnoredTerm,
+  updatePopover,
+  selectedAlertIndex,
+  totalAlerts,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
 
@@ -165,9 +171,20 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <a href='https://www.witty.works/'>
               <WittyLogo className='wittyworks-popover-icon' />
             </a>
+            {selectedAlertIndex && (
+              <div className='wittyworks-popover-counter'>{`${
+                selectedAlertIndex + 1
+              } of ${totalAlerts}`}</div>
+            )}
             <div className='wittyworks-popover-icon-float-right'>
-              <PreviousIcon />
-              <NextIcon />
+              <PreviousIcon
+                className='wittyworks-popover-icon'
+                onClick={() => updatePopover('previous')}
+              />
+              <NextIcon
+                className='wittyworks-popover-icon'
+                onClick={() => updatePopover('next')}
+              />
               <CloseIcon
                 className='wittyworks-popover-icon'
                 onClick={() => {
