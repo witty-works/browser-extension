@@ -265,7 +265,7 @@ const Input: React.FC<{
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
-        id: `${result.text}-${result.category}`,
+        id: `${result.text}-${result.category}-${result.start}${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
