@@ -18,14 +18,14 @@ import HighlightPopover, {
 } from './HighlightPopover/HighlightPopover';
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
-import WittySupportIcon from './WittySupportsIcon';
+import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 
 const Input: React.FC<{
   element: CustomInputElement;
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [, checkEndpointResponse, checkEndpointError, setTextToCheck] = //TODO: add back loading
+  const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
   const elementRect = useResizeObserver(element);
@@ -55,7 +55,7 @@ const Input: React.FC<{
     {} as HTMLDivElement
   );
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
-  const [wittySupportIcon, setWittySupportIcon] = useState<boolean>(true);
+  const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const log = useLog('Input');
 
@@ -112,14 +112,15 @@ const Input: React.FC<{
   }, [elementRect, elementOffsetParentRect]);
 
   const handleMouseoverEvent = () => {
-    setIsHovered(true);
+    if (activeIconRef.current == 'passive') setIsHovered(true);
   };
 
   const handleMouseoutEvent = () => {
-    setIsHovered(false);
+    if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
   const handleFocusoutEvent = () => {
+<<<<<<< HEAD
     const nextText: string = getInputText(element);
     if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
   };
@@ -140,6 +141,34 @@ const Input: React.FC<{
       event && event.type == 'focusin'
         ? setTextToCheck(newNextText)
         : debouncedSetTextToCheck(newNextText);
+=======
+    const nextText: string =
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : element.innerText;
+    if (nextText == '\n' || nextText.length == 0) setActiveIcon('passive');
+  };
+
+  const handleKeyupEvent = (event?: Event) => {
+    const nextText: string =
+      isTextArea(element) || isInputText(element)
+        ? element.value
+        : fixLineBreaks(element);
+
+    //If there isn't text, there's nothing to highlight
+    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
+      setActiveIcon('active');
+      setNodesWithAlerts([]);
+      setTextToCheck('');
+    } else {
+      if (event && event.type == 'focusin') {
+        setTextToCheck(nextText);
+        setActiveIcon('active');
+      } else {
+        debouncedSetTextToCheck(nextText);
+        setActiveIcon('loading');
+      }
+>>>>>>> dev
     }
   };
 
@@ -250,6 +279,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
+    setActiveIcon('active');
     analytics.checkLog(
       checkEndpointResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
@@ -276,9 +306,9 @@ const Input: React.FC<{
           context: result.context,
           text: result.text,
           label: result.label,
-          reason: result.reason,
-          solution: result.solution,
+          explanation: result.explanation,
           alternatives: result.alternatives,
+          gravity: result.gravity,
         },
       }))
       .sort((firstAlert, secondAlert) => {
@@ -388,14 +418,11 @@ const Input: React.FC<{
 
   return (
     <div className='canvas-container'>
-      {/* TODO: use loading state for animation */}
-      {wittySupportIcon ? (
-        <WittySupportIcon elementReference={observedElement} active={true} />
-      ) : (
-        isHovered && (
-          <WittySupportIcon elementReference={observedElement} active={false} />
-        )
-      )}
+      <StateIndicatorIcon
+        elementReference={element}
+        iconType={activeIcon}
+        isHovered={isHovered}
+      />
       {isTextArea(element) && (
         <TextAreaClone
           element={element}
