@@ -120,43 +120,15 @@ const Input: React.FC<{
   };
 
   const handleFocusoutEvent = () => {
-<<<<<<< HEAD
     const nextText: string = getInputText(element);
-    if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
-  };
-
-  const handleKeyupEvent = (event?: Event) => {
-    setWittySupportIcon(true);
-
-    const nextText: string = getInputText(element);
-
-    //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
-      setNodesWithAlerts([]);
-      setTextToCheck('');
-    } else {
-      // Always create a new string, to force change the state of setTextToCheck
-      const newNextText: string = new String(nextText) as string;
-
-      event && event.type == 'focusin'
-        ? setTextToCheck(newNextText)
-        : debouncedSetTextToCheck(newNextText);
-=======
-    const nextText: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : element.innerText;
     if (nextText == '\n' || nextText.length == 0) setActiveIcon('passive');
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    const nextText: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : fixLineBreaks(element);
+    const nextText: string = getInputText(element);
 
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
+    if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setNodesWithAlerts([]);
       setTextToCheck('');
@@ -168,7 +140,6 @@ const Input: React.FC<{
         debouncedSetTextToCheck(nextText);
         setActiveIcon('loading');
       }
->>>>>>> dev
     }
   };
 
