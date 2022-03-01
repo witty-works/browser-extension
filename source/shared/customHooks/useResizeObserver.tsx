@@ -12,11 +12,14 @@ export const useResizeObserver = (element: HTMLElement): DOMRect => {
     );
   };
 
+  const [resizeObserver] = useState(new ResizeObserver(resizeListener));
+
   useEffect(() => {
-    const resizeObserver = new ResizeObserver(resizeListener);
-    resizeObserver.observe(doc);
+    resizeObserver.disconnect();
+    resizeObserver.observe(element);
+
     return () => {
-      resizeObserver.unobserve(doc);
+      resizeObserver.disconnect();
     };
   }, [element]);
 

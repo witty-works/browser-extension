@@ -29,8 +29,15 @@ const Input: React.FC<{
     useCheckEndpoint();
   const analytics = useAnalytics();
   const elementRect = useResizeObserver(element);
+  const elementOffsetParentRect = useResizeObserver(
+    element.offsetParent as HTMLElement
+  );
 
   const [alerts, setAlerts] = useState<IAlert[]>([]);
+  const [observedElement, setObservedElement] = useState<HTMLElement>(element);
+  const [observedElementRect, setObservedElementRect] = useState<DOMRect>(
+    element.getBoundingClientRect()
+  );
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
@@ -89,6 +96,20 @@ const Input: React.FC<{
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
+
+  useEffect(() => {
+    const ele: { element: HTMLElement; rect: DOMRect } =
+      elementOffsetParentRect.width < elementRect.width ||
+      elementOffsetParentRect.height < elementRect.height
+        ? {
+            element: element.offsetParent as HTMLElement,
+            rect: elementOffsetParentRect,
+          }
+        : { element: element, rect: elementRect };
+
+    setObservedElement(ele.element);
+    setObservedElementRect(ele.rect);
+  }, [elementRect, elementOffsetParentRect]);
 
   const handleMouseoverEvent = () => {
     setIsHovered(true);
@@ -325,7 +346,7 @@ const Input: React.FC<{
         textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
         // Check if there is a whitespace char after the node's content
         // If so, we +1 to the end position
-        if (nextText.charAt(textEndAbsPosition).match(/\s/gi))
+        if (nextText.charAt(textEndAbsPosition).match(/\n/gi))
           textEndAbsPosition += 1;
 
         const alertsTemp: IAlert[] = alerts
@@ -369,10 +390,10 @@ const Input: React.FC<{
     <div className='canvas-container'>
       {/* TODO: use loading state for animation */}
       {wittySupportIcon ? (
-        <WittySupportIcon elementReference={element} active={true} />
+        <WittySupportIcon elementReference={observedElement} active={true} />
       ) : (
         isHovered && (
-          <WittySupportIcon elementReference={element} active={false} />
+          <WittySupportIcon elementReference={observedElement} active={false} />
         )
       )}
       {isTextArea(element) && (
@@ -403,9 +424,9 @@ const Input: React.FC<{
         bodyScroll={bodyScroll}
         parentScroll={parentScroll}
         elementScroll={elementScroll}
-        elementRect={elementRect}
+        elementRect={observedElementRect}
         nodesWithAlerts={nodesWithAlerts}
-        element={element}
+        element={observedElement}
         selectedAlert={selectedAlert}
       />
     </div>

@@ -1,11 +1,11 @@
 import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { CustomInputElement } from '../shared/types';
+// import { CustomInputElement } from '../shared/types';
 
 interface WittySupportsIconProps {
   active: boolean;
-  elementReference: CustomInputElement;
+  elementReference: HTMLElement;
 }
 
 const WittySupportIcon: React.FC<WittySupportsIconProps> = ({
