@@ -17,6 +17,7 @@ export const useResizeObserver = (element: HTMLElement): DOMRect => {
   useEffect(() => {
     resizeObserver.disconnect();
     resizeObserver.observe(element);
+    resizeObserver.observe(doc);
 
     return () => {
       resizeObserver.disconnect();
