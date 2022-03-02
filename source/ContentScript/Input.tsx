@@ -8,7 +8,7 @@ import {
   INodeWithAlerts,
   ScrollPos,
 } from '../shared/types';
-import { /* fixLineBreaks,  */ isTextArea, isInputText } from '../shared/utils';
+import { isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -28,8 +28,8 @@ const Input: React.FC<{
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
-  const elementRect = useResizeObserver(element);
-  const elementOffsetParentRect = useResizeObserver(
+  let elementRect = useResizeObserver(element);
+  let elementOffsetParentRect = useResizeObserver(
     element.offsetParent as HTMLElement
   );
 
@@ -57,14 +57,27 @@ const Input: React.FC<{
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  // const [activeElement, setActiveElement] = useState<Element | null>(null);
   const log = useLog('Input');
 
   useEffect(() => {
+    // handleKeyupEvent();
+
+    //Check if this input has the focus, if so we can call the api to analyze the text
+    if (
+      document.hasFocus() &&
+      element === document.activeElement &&
+      document.querySelector('.canvas-container canvas')
+    ) {
+      console.log('canvas does not exist, lets draw highlights');
+      const nextText: string = getInputText(element);
+      handleTextAndIcon(nextText);
+    }
+
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
-    handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
-    element.addEventListener('focusin', handleKeyupEvent);
+    // element.addEventListener('focusin', handleFocusinEvent);
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
@@ -83,7 +96,7 @@ const Input: React.FC<{
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
-      element.removeEventListener('focusin', handleKeyupEvent);
+      // element.removeEventListener('focusin', handleFocusinEvent);
       element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('mouseover', handleMouseoverEvent);
       element.removeEventListener('mouseout', handleMouseoutEvent);
@@ -119,6 +132,22 @@ const Input: React.FC<{
     if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
+  // const handleFocusinEvent = (event: Event) => {
+  //   console.log('focusin! target', event.target);
+  //   handleKeyupEvent(event);
+  // };
+
+  // useEffect(() => {
+  //   console.log('activeElement', activeElement);
+
+  //   if (activeElement && element === activeElement) {
+  //     const nextText: string = getInputText(
+  //       activeElement as CustomInputElement
+  //     );
+  //     handleTextAndIcon(nextText);
+  //   }
+  // }, [activeElement]);
+
   const handleFocusoutEvent = () => {
     const nextText: string = getInputText(element);
     if (nextText == '\n' || nextText.length == 0) setActiveIcon('passive');
@@ -127,18 +156,22 @@ const Input: React.FC<{
   const handleKeyupEvent = (event?: Event) => {
     const nextText: string = getInputText(element);
 
+    handleTextAndIcon(nextText, event);
+  };
+
+  const handleTextAndIcon = (text: string, event?: Event) => {
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
+    if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      if (event && event.type == 'focusin') {
-        setTextToCheck(nextText);
-        setActiveIcon('active');
-      } else {
-        debouncedSetTextToCheck(nextText);
+      if (event && event.type == 'keyup') {
+        debouncedSetTextToCheck(text);
         setActiveIcon('loading');
+      } else {
+        setTextToCheck(text);
+        setActiveIcon('active');
       }
     }
   };

@@ -9,20 +9,22 @@ const isObjectEmpty = (obj: object) =>
 const isFunction = (functionToCheck: Function) =>
   functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
-const isTextArea = (
-  element: CustomInputElement
-): element is HTMLTextAreaElement => element instanceof HTMLTextAreaElement;
+const isTextArea = (element: Element): element is HTMLTextAreaElement =>
+  element instanceof HTMLTextAreaElement;
 
-const isInputText = (
-  element: CustomInputElement
-): element is HTMLInputElement =>
+const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
 
+const isHTMLElementContentEditable = (
+  element: Element
+): element is HTMLElement =>
+  element instanceof HTMLElement && element.isContentEditable;
+
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
-const isInputElement = (element: CustomInputElement) =>
+const isInputElement = (element: Element) =>
   isTextArea(element) ||
   // isInputText(element) ||      Temporaly disabled as it could capture passwords
-  element.isContentEditable;
+  isHTMLElementContentEditable(element);
 
 const convertHTMLToText = (str: string = ''): string => {
   // Ensure string.
