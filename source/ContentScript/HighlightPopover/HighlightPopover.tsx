@@ -262,7 +262,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   {t('ignoreTerm')}
                 </div>
               </div>
-              <IgnoreIcon style={{ fill: 'blue' }} />
             </div>
           </>
         )}
