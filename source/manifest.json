@@ -46,11 +46,5 @@
       "js": ["js/contentScript.bundle.js"],
       "css": ["css/contentScript.css"]
     }
-  ],
-  "web_accessible_resources": [
-    "assets/icons/w-logo-wire-color.svg",
-    "assets/icons/popover/ignore.svg",
-    "assets/icons/popover/arrow.svg",
-    "assets/icons/popover/settings.svg"
   ]
 }
