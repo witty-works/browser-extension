@@ -16,7 +16,6 @@ import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
-
 export interface PopoverData {
   alert: IAlert;
   position: DOMRect;
@@ -31,7 +30,7 @@ interface PopoverProps {
   resendText: () => void;
   addIgnoredTerm: (term: string) => void;
   updatePopover: (direction: string) => void;
-  selectedAlertIndex: number | null;
+  selectedAlertIndex: number;
   totalAlerts: number;
 }
 
@@ -49,9 +48,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
-  const [backgroundColor, setBackgroundColor] = useState<string>(
-    getColor(data.alert.data.category).highlight
-  );
+  const [backgroundColor, setBackgroundColor] = useState<string>('');
   const [playArrowAnimation, setPlayArrowAnimation] = useState<boolean>(false);
 
   useEffect(() => {
@@ -81,6 +78,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   });
 
   useEffect(() => reference(element), [reference]);
+
+  useEffect(() => {
+    setBackgroundColor(getColor(data.alert.data.category).highlight);
+  }, [data.alert.data.category]);
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
@@ -171,22 +172,35 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <a href='https://www.witty.works/'>
               <WittyLogo className='wittyworks-popover-icon' />
             </a>
-            {selectedAlertIndex && (
+            {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
               <div className='wittyworks-popover-counter'>{`${
                 selectedAlertIndex + 1
               } of ${totalAlerts}`}</div>
             )}
             <div className='wittyworks-popover-icon-float-right'>
               <PreviousIcon
-                className='wittyworks-popover-icon'
+                className='wittyworks-popover-navigation-icon'
+                style={{
+                  //TODO: find out how to change svg color with fill istead of filter
+                  filter:
+                    selectedAlertIndex == 0
+                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
+                      : '',
+                }}
                 onClick={() => updatePopover('previous')}
               />
               <NextIcon
-                className='wittyworks-popover-icon'
+                className='wittyworks-popover-navigation-icon'
+                style={{
+                  filter:
+                    selectedAlertIndex + 1 == totalAlerts
+                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
+                      : '',
+                }}
                 onClick={() => updatePopover('next')}
               />
               <CloseIcon
-                className='wittyworks-popover-icon'
+                className='wittyworks-popover-close-icon'
                 onClick={() => {
                   hide();
                 }}
