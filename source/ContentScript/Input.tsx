@@ -44,6 +44,8 @@ const Input: React.FC<{
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
+  const [currentNode, setCurrentNode] = useState<number>(0);
+
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
@@ -169,7 +171,8 @@ const Input: React.FC<{
   };
 
   const updatePopover = (direction: string): void => {
-    if (selectedAlertIndex < 0 || !nodesWithAlertsRef.current[0]) return;
+    if (selectedAlertIndex < 0 || !nodesWithAlertsRef.current[currentNode])
+      return;
 
     if (direction == 'previous' && selectedAlertIndex - 1 >= 0) {
       setSelectedAlertIndex(selectedAlertIndex - 1);
@@ -177,7 +180,8 @@ const Input: React.FC<{
 
     if (
       direction == 'next' &&
-      selectedAlertIndex + 1 < nodesWithAlertsRef.current[0].alerts.length
+      selectedAlertIndex + 1 <
+        nodesWithAlertsRef.current[currentNode].alerts.length
     ) {
       setSelectedAlertIndex(selectedAlertIndex + 1);
     }
@@ -210,6 +214,13 @@ const Input: React.FC<{
               .pop() as IAlert;
 
             const nodeText = oneNodeWithAlerts.node;
+
+            const nodeIndex = nodesWithAlertsRef.current.findIndex(
+              (nodeWithAlerts: INodeWithAlerts) =>
+                nodeWithAlerts.node === nodeText
+            );
+
+            setCurrentNode(nodeIndex);
 
             if (selectedAlert) {
               const range = document.createRange();
@@ -250,8 +261,8 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    if (!popoverData.alert || !nodesWithAlertsRef.current[0]) return;
-    const filteredData = nodesWithAlertsRef.current[0].alerts;
+    if (!popoverData.alert || !nodesWithAlertsRef.current[currentNode]) return;
+    const filteredData = nodesWithAlertsRef.current[currentNode].alerts;
 
     setSelectedAlertIndex(
       filteredData.findIndex((item) => item.id === popoverData.alert.id)
@@ -259,11 +270,28 @@ const Input: React.FC<{
   }, [popoverData, nodesWithAlertsRef]);
 
   useEffect(() => {
-    if (!nodesWithAlertsRef.current[0] || !target) return;
+    if (!nodesWithAlertsRef.current[currentNode] || !target) return;
+
+    if (nodesWithAlertsRef.current.length > 0) {
+      const allAlerts = nodesWithAlertsRef.current.reduce(
+        (acc: IAlert[], nodeWithAlerts: INodeWithAlerts) => {
+          return acc.concat(
+            nodeWithAlerts.alerts.filter((alert: IAlert) => {
+              return !acc.find((item) => item.id === alert.id);
+            })
+          );
+        },
+        []
+      );
+      nodesWithAlertsRef.current[currentNode].alerts = allAlerts;
+    }
 
     const newSelectedAlert =
-      nodesWithAlertsRef.current[0].alerts[selectedAlertIndex];
-    const nodeText = nodesWithAlertsRef.current[0].node;
+      nodesWithAlertsRef.current[currentNode].alerts[selectedAlertIndex];
+
+    if (!newSelectedAlert) return;
+
+    const nodeText = nodesWithAlertsRef.current[currentNode].node;
 
     const range = document.createRange();
     range.setStart(nodeText, newSelectedAlert.startOffset);
@@ -464,7 +492,7 @@ const Input: React.FC<{
           addIgnoredTerm={addIgnoredTerm}
           updatePopover={updatePopover}
           selectedAlertIndex={selectedAlertIndex}
-          totalAlerts={nodesWithAlertsRef.current[0].alerts.length}
+          totalAlerts={nodesWithAlertsRef.current[currentNode].alerts.length}
         />
       )}
       <Highlights
