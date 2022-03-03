@@ -11,10 +11,11 @@ import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
 import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
+import NextIcon from '../../assets/icons/popover/next.svg';
+import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
-
 export interface PopoverData {
   alert: IAlert;
   position: DOMRect;
@@ -28,6 +29,9 @@ interface PopoverProps {
   hide: () => void;
   resendText: () => void;
   addIgnoredTerm: (term: string) => void;
+  updatePopover: (direction: string) => void;
+  selectedAlertIndex: number;
+  totalAlerts: number;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -36,15 +40,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   hide,
   resendText,
   addIgnoredTerm,
+  updatePopover,
+  selectedAlertIndex,
+  totalAlerts,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
 
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
-  const [backgroundColor, setBackgroundColor] = useState<string>(
-    getColor(data.alert.data.category).highlight
-  );
-  const [playArrowAnimation, setPlayArrowAnimation] = useState<boolean>(false);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -164,9 +168,39 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <a href='https://www.witty.works/'>
               <WittyLogo className='wittyworks-popover-icon' />
             </a>
+            {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
+              <div className='wittyworks-popover-counter'>{`${
+                selectedAlertIndex + 1
+              } of ${totalAlerts}`}</div>
+            )}
             <div className='wittyworks-popover-icon-float-right'>
+              <PreviousIcon
+                className='wittyworks-popover-navigation-icon'
+                style={{
+                  filter:
+                    selectedAlertIndex == 0
+                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
+                      : '',
+                  cursor: selectedAlertIndex == 0 ? 'default' : 'pointer',
+                }}
+                onClick={() => updatePopover('previous')}
+              />
+              <NextIcon
+                className='wittyworks-popover-navigation-icon'
+                style={{
+                  filter:
+                    selectedAlertIndex + 1 == totalAlerts
+                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
+                      : '',
+                  cursor:
+                    selectedAlertIndex + 1 == totalAlerts
+                      ? 'default'
+                      : 'pointer',
+                }}
+                onClick={() => updatePopover('next')}
+              />
               <CloseIcon
-                className='wittyworks-popover-icon'
+                className='wittyworks-popover-close-icon'
                 onClick={() => {
                   hide();
                   analytics.popoverLogs(data.alert, 'popover_close');
@@ -182,17 +216,17 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='wittyworks-popover-row-explanation'
             style={{
-              backgroundColor: backgroundColor,
+              backgroundColor: isHovered
+                ? getColor(data.alert.data.category).hover
+                : getColor(data.alert.data.category).highlight,
               borderRadius: '4px',
               padding: '8px 8px 12px',
             }}
             onMouseEnter={() => {
-              setBackgroundColor(getColor(data.alert.data.category).hover);
-              setPlayArrowAnimation(true);
+              setIsHovered(true);
             }}
             onMouseLeave={() => {
-              setBackgroundColor(getColor(data.alert.data.category).highlight);
-              setPlayArrowAnimation(false);
+              setIsHovered(false);
             }}
           >
             <div className='wittyworks-popover-emoji'>
@@ -211,7 +245,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
-                  <ArrowIcon play={playArrowAnimation} />
+                  <ArrowIcon play={isHovered} />
                 </a>
               )}
             </div>
