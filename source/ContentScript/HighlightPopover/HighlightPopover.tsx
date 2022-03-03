@@ -241,6 +241,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     analytics.popoverLogs(data.alert, 'learning_bites');
                   }}
                   href={data.alert.data.explanation.url}
+                  target='_blank'
                 >
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
