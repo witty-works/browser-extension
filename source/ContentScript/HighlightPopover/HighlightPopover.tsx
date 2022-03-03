@@ -236,6 +236,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               {data.alert.data.explanation.url && (
                 <a
                   className='wittyworks-popover-row-explanation-url'
+                  onClick={() => {
+                    analytics.popoverLogs(data.alert, 'learning_bites');
+                  }}
                   href={data.alert.data.explanation.url}
                 >
                   {data.alert.data.gravity
