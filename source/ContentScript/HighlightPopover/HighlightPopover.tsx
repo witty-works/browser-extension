@@ -126,25 +126,34 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         : data.alert.data.alternatives[index].text
     );
     //Replace text with the new alternative or simply remove it
-    //This only replaces the specific occurrence. If there are other identical terms in the text
-    //they will keep highlighted
+    //This only replaces the specific occurrence.
+    //If there are other identical terms in the text they will keep highlighted
 
-    const splitText = (data.node.nodeValue as string).split('') as string[];
+    const text: string | null = data.node.nodeValue as string;
 
-    // In case we have to remove the term it's necessary also to delete the surrounding spaces
-    splitText.splice(
-      index === -1 ? data.alert.startOffset - 1 : data.alert.startOffset,
-      index === -1
-        ? data.alert.endOffset - data.alert.startOffset + 1
-        : data.alert.endOffset - data.alert.startOffset,
-      index === -1 ? '' : data.alert.data.alternatives[index].text
+    const termToBeReplaced: string = text.slice(
+      data.alert.startOffset,
+      data.alert.endOffset
     );
 
-    const textToInsert = splitText.join('');
+    const regex: RegExp = new RegExp(
+      index === -1
+        ? data.alert.startOffset === 0
+          ? `${termToBeReplaced}[ ,]+`
+          : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}[ ,]+`
+        : data.alert.startOffset === 0
+        ? `${termToBeReplaced}`
+        : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}`
+    );
+
+    const replacingTerm: string =
+      index === -1 ? '' : data.alert.data.alternatives[index].text;
+
+    const newTextToInsert = text.replace(regex, replacingTerm);
 
     data.originalNode
-      ? (data.originalNode.value = textToInsert)
-      : (data.node.nodeValue = textToInsert);
+      ? (data.originalNode.value = newTextToInsert)
+      : (data.node.nodeValue = newTextToInsert);
 
     //Close Popover
     hide();
