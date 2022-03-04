@@ -46,10 +46,10 @@ const Input: React.FC<{
   );
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
-  const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
+  // const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
-  const [target, setTarget] = useState<CustomInputElement | null>(null);
+  // const [target, setTarget] = useState<CustomInputElement | null>(null);
 
   const log = useLog('Input');
 
@@ -168,20 +168,20 @@ const Input: React.FC<{
     setIgnoredTerms([...ignoredTerms, term]);
   };
 
-  const updatePopover = (direction: string): void => {
-    if (selectedAlertIndex < 0 || !nodesWithAlertsRef.current[0]) return;
+  // const updatePopover = (direction: string): void => {
+  //   if (selectedAlertIndex < 0 || !nodesWithAlertsRef.current[0]) return;
 
-    if (direction == 'previous' && selectedAlertIndex - 1 >= 0) {
-      setSelectedAlertIndex(selectedAlertIndex - 1);
-    }
+  //   if (direction == 'previous' && selectedAlertIndex - 1 >= 0) {
+  //     setSelectedAlertIndex(selectedAlertIndex - 1);
+  //   }
 
-    if (
-      direction == 'next' &&
-      selectedAlertIndex + 1 < nodesWithAlertsRef.current[0].alerts.length
-    ) {
-      setSelectedAlertIndex(selectedAlertIndex + 1);
-    }
-  };
+  //   if (
+  //     direction == 'next' &&
+  //     selectedAlertIndex + 1 < nodesWithAlertsRef.current[0].alerts.length
+  //   ) {
+  //     setSelectedAlertIndex(selectedAlertIndex + 1);
+  //   }
+  // };
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
@@ -237,7 +237,7 @@ const Input: React.FC<{
 
     const target = event.target as CustomInputElement;
     const caretPosition: number = getInputClickedPosition(target);
-    setTarget(target);
+    // setTarget(target);
   };
 
   const getInputClickedPosition = (element: CustomInputElement): number => {
@@ -249,35 +249,35 @@ const Input: React.FC<{
     }
   };
 
-  useEffect(() => {
-    if (!popoverData.alert || !nodesWithAlertsRef.current[0]) return;
-    const filteredData = nodesWithAlertsRef.current[0].alerts;
+  // useEffect(() => {
+  //   if (!popoverData.alert || !nodesWithAlertsRef.current[0]) return;
+  //   const filteredData = nodesWithAlertsRef.current[0].alerts;
 
-    setSelectedAlertIndex(
-      filteredData.findIndex((item) => item.id === popoverData.alert.id)
-    );
-  }, [popoverData, nodesWithAlertsRef]);
+  //   setSelectedAlertIndex(
+  //     filteredData.findIndex((item) => item.id === popoverData.alert.id)
+  //   );
+  // }, [popoverData, nodesWithAlertsRef]);
 
-  useEffect(() => {
-    if (!nodesWithAlertsRef.current[0] || !target) return;
+  // useEffect(() => {
+  //   if (!nodesWithAlertsRef.current[0] || !target) return;
 
-    const newSelectedAlert =
-      nodesWithAlertsRef.current[0].alerts[selectedAlertIndex];
-    const nodeText = nodesWithAlertsRef.current[0].node;
+  //   const newSelectedAlert =
+  //     nodesWithAlertsRef.current[0].alerts[selectedAlertIndex];
+  //   const nodeText = nodesWithAlertsRef.current[0].node;
 
-    const range = document.createRange();
-    range.setStart(nodeText, newSelectedAlert.startOffset);
-    range.setEnd(nodeText, newSelectedAlert.endOffset);
-    const clickedRect = range.getClientRects()[0];
+  //   const range = document.createRange();
+  //   range.setStart(nodeText, newSelectedAlert.startOffset);
+  //   range.setEnd(nodeText, newSelectedAlert.endOffset);
+  //   const clickedRect = range.getClientRects()[0];
 
-    setPopoverData({
-      alert: newSelectedAlert,
-      position: clickedRect,
-      node: nodeText,
-      originalNode: isTextArea(target) || isInputText(target) ? target : null,
-    });
-    setSelectedAlert(newSelectedAlert);
-  }, [selectedAlertIndex]);
+  //   setPopoverData({
+  //     alert: newSelectedAlert,
+  //     position: clickedRect,
+  //     node: nodeText,
+  //     originalNode: isTextArea(target) || isInputText(target) ? target : null,
+  //   });
+  //   setSelectedAlert(newSelectedAlert);
+  // }, [selectedAlertIndex]);
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
@@ -462,9 +462,9 @@ const Input: React.FC<{
           hide={togglePopover}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
-          updatePopover={updatePopover}
-          selectedAlertIndex={selectedAlertIndex}
-          totalAlerts={nodesWithAlertsRef.current[0].alerts.length}
+          // updatePopover={updatePopover}
+          // selectedAlertIndex={selectedAlertIndex}
+          // totalAlerts={nodesWithAlertsRef.current[0].alerts.length}
         />
       )}
       <Highlights
