@@ -217,8 +217,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             className='wittyworks-popover-row-explanation'
             style={{
               backgroundColor: isHovered
-                ? getColor(data.alert.data.category).hover
-                : getColor(data.alert.data.category).highlight,
+                ? getColor(data.alert.data.gravity).hover
+                : getColor(data.alert.data.gravity).highlight,
               borderRadius: '4px',
               padding: '8px 8px 12px',
             }}

@@ -1,12 +1,13 @@
 import { textIsLight } from '../shared/utils';
 import chroma from 'chroma-js';
 
-export const drawLine = (params: any, color: string) => {
+export const drawLine = (params: any, color: string, dashedLine: boolean) => {
   const { context, rect, elementRect } = params;
   let x = rect.left - elementRect.left;
   let y = rect.top - elementRect.top;
 
   context.beginPath();
+  dashedLine && context.setLineDash([5, 5]);
   context.moveTo(x, y + rect.height);
   context.lineTo(x + rect.width, y + rect.height);
   context.lineWidth = 2;
