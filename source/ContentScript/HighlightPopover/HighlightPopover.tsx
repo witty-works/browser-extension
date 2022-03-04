@@ -129,7 +129,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     //This only replaces the specific occurrence.
     //If there are other identical terms in the text they will keep highlighted
 
-    const text: string | null = data.node.nodeValue as string;
+    const text: string = data.node.nodeValue as string;
 
     const termToBeReplaced: string = text.slice(
       data.alert.startOffset,
