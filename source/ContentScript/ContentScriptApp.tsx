@@ -96,6 +96,7 @@ const ContentScriptApp: React.FC = () => {
     // newTextarea.rows = 25;
     // if (section) section.appendChild(newTextarea);
 
+    document.body.spellcheck = false;
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);

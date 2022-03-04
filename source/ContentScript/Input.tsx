@@ -108,7 +108,6 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    element.setAttribute('spellcheck', 'false');
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
