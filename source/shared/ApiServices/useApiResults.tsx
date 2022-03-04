@@ -7,12 +7,11 @@ import Ajv, { JSONSchemaType } from 'ajv';
 const useApiResult = <TResponse,>(
   request: IRequest,
   responseSchema: JSONSchemaType<TResponse>
-): [boolean, TResponse | null, IEndpointError | null] => {
+): [TResponse | null, IEndpointError | null] => {
   const validateResponse = useMemo(
     () => new Ajv().compile(responseSchema),
     [responseSchema]
   );
-  const [loading, setLoading] = useState<boolean>(false);
   const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
     null
   );
@@ -26,8 +25,6 @@ const useApiResult = <TResponse,>(
 
     //Avoid endpoint calls if body is null
     if (request.config.body) {
-      setLoading(true);
-
       request.config = { ...request.config, signal: ac.signal };
 
       log('Request:', logTypes.INFO, request);
@@ -35,8 +32,6 @@ const useApiResult = <TResponse,>(
       fetch(request.url, request.config)
         .then(async (response) => {
           log('Response: ', logTypes.INFO, response);
-
-          setLoading(false);
 
           if (!response.ok) {
             const error: { detail: IEndpointResponseError[] } =
@@ -68,9 +63,6 @@ const useApiResult = <TResponse,>(
           if (error.name !== 'AbortError') {
             log(error.message, logTypes.ERROR);
           }
-        })
-        .finally(() => {
-          setLoading(false);
         });
     }
 
@@ -79,7 +71,7 @@ const useApiResult = <TResponse,>(
     };
   }, [request]);
 
-  return [loading, endpointResponse, endpointError];
+  return [endpointResponse, endpointError];
 };
 
 export default useApiResult;

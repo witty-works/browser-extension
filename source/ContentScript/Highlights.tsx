@@ -89,8 +89,8 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     highlights.forEach((highlight) => {
       const [rect] = highlight.rects;
-      const hoverColor = `${getColor(highlight.data.category).hover}`;
-      const highlightColor = `${getColor(highlight.data.category).highlight}`;
+      const hoverColor = `${getColor(highlight.data.category).default}`;
+      const highlightColor = `${getColor(highlight.data.category).hover}`;
       const roundedHighlight = new Path2D();
       const params = {
         context,
@@ -117,15 +117,30 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
   }, [highlights, selectedAlert]);
 
+  const setPositionStyling = () => {
+    let parentPosition = window.getComputedStyle(
+      element.parentElement as HTMLElement
+    ).position;
+    return {
+      position: parentPosition === 'relative' ? 'fixed' : 'absolute',
+      top:
+        parentPosition == 'relative'
+          ? `${element.getBoundingClientRect().top}px`
+          : `${elementRect.top}px`,
+      left:
+        parentPosition == 'relative'
+          ? `${element.getBoundingClientRect().left}px`
+          : `${elementRect.left}px`,
+    };
+  };
+
   return (
     <canvas
       ref={canvasRef}
       style={
         {
-          position: 'absolute',
+          ...setPositionStyling(),
           overflow: 'auto',
-          left: `${elementRect.left}px`,
-          top: `${elementRect.top}px`,
           zIndex: 99999999,
           pointerEvents: 'none',
         } as React.CSSProperties

@@ -76,6 +76,7 @@ const convertHTMLToText = (str: string = ''): string => {
 };
 
 const fixLineBreaks = (element: CustomInputElement): string => {
+  let value: string = '';
   if (
     window.location.hostname !== 'mail.google.com' &&
     element.nodeName === 'DIV' &&
@@ -84,7 +85,6 @@ const fixLineBreaks = (element: CustomInputElement): string => {
     element = element.firstChild as HTMLInputElement;
   }
 
-  let value: string = '';
   for (const child of element.childNodes) {
     const imgElement = findElement(child, 'IMG');
     if (imgElement && child.textContent === '\uFEFF') {
