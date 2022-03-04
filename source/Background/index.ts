@@ -8,9 +8,9 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 const analytics = useAnalytics();
 
-// if (!DEV_ENV) {
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
-  browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
+  if (!DEV_ENV)
+    browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
 
   if (details.reason === 'install') {
     //Set default settings
@@ -20,9 +20,11 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     analytics.extensionStatusLog('install', getBrowserId());
 
     //Open the welcome page
-    browser.tabs.create({
-      url: 'http://www.witty.works/welcome',
-    });
+    if (!DEV_ENV) {
+      browser.tabs.create({
+        url: 'http://www.witty.works/welcome',
+      });
+    }
   }
   if (details.reason === 'update') {
     //Update icon
@@ -48,7 +50,6 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     analytics.extensionStatusLog('update', getBrowserId());
   }
 });
-// }
 
 const log = useLog('Background index');
 

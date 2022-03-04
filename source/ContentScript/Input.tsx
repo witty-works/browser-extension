@@ -18,14 +18,14 @@ import HighlightPopover, {
 } from './HighlightPopover/HighlightPopover';
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
-import WittySupportIcon from './WittySupportsIcon';
+import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 
 const Input: React.FC<{
   element: CustomInputElement;
   bodyScroll: ScrollPos;
   parentScroll: ScrollPos;
 }> = ({ element, bodyScroll, parentScroll }) => {
-  const [, checkEndpointResponse, checkEndpointError, setTextToCheck] = //TODO: add back loading
+  const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
   const elementRect = useResizeObserver(element);
@@ -46,8 +46,11 @@ const Input: React.FC<{
   );
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
-  const [wittySupportIcon, setWittySupportIcon] = useState<boolean>(true);
+  // const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
+  const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  // const [target, setTarget] = useState<CustomInputElement | null>(null);
+
   const log = useLog('Input');
 
   useEffect(() => {
@@ -89,11 +92,11 @@ const Input: React.FC<{
   }, []);
 
   const handleMouseoverEvent = () => {
-    setIsHovered(true);
+    if (activeIconRef.current == 'passive') setIsHovered(true);
   };
 
   const handleMouseoutEvent = () => {
-    setIsHovered(false);
+    if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
   const handleFocusoutEvent = () => {
@@ -101,11 +104,10 @@ const Input: React.FC<{
       isTextArea(element) || isInputText(element)
         ? element.value
         : element.innerText;
-    if (nextText == '\n' || nextText.length == 0) setWittySupportIcon(false);
+    if (nextText == '\n' || nextText.length == 0) setActiveIcon('passive');
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    setWittySupportIcon(true);
     const nextText: string =
       isTextArea(element) || isInputText(element)
         ? element.value
@@ -113,12 +115,17 @@ const Input: React.FC<{
 
     //If there isn't text, there's nothing to highlight
     if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
+      setActiveIcon('active');
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      event && event.type == 'focusin'
-        ? setTextToCheck(nextText)
-        : debouncedSetTextToCheck(nextText);
+      if (event && event.type == 'focusin') {
+        setTextToCheck(nextText);
+        setActiveIcon('active');
+      } else {
+        debouncedSetTextToCheck(nextText);
+        setActiveIcon('loading');
+      }
     }
   };
 
@@ -143,7 +150,7 @@ const Input: React.FC<{
   const togglePopover = (): void => {
     setIsPopoverOpen(!isPopoverOpen);
     if (isPopoverOpen) {
-      analytics.popoverToggleLog(popoverData.alert);
+      analytics.popoverLogs(popoverData.alert, 'popover_open');
       setSelectedAlert(null);
     }
   };
@@ -160,6 +167,21 @@ const Input: React.FC<{
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
   };
+
+  // const updatePopover = (direction: string): void => {
+  //   if (selectedAlertIndex < 0 || !nodesWithAlertsRef.current[0]) return;
+
+  //   if (direction == 'previous' && selectedAlertIndex - 1 >= 0) {
+  //     setSelectedAlertIndex(selectedAlertIndex - 1);
+  //   }
+
+  //   if (
+  //     direction == 'next' &&
+  //     selectedAlertIndex + 1 < nodesWithAlertsRef.current[0].alerts.length
+  //   ) {
+  //     setSelectedAlertIndex(selectedAlertIndex + 1);
+  //   }
+  // };
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
@@ -198,7 +220,7 @@ const Input: React.FC<{
               setPopoverData({
                 alert: selectedAlert,
                 position: clickedRect,
-                node: oneNodeWithAlerts.node,
+                node: nodeText,
                 originalNode:
                   isTextArea(target) || isInputText(target) ? target : null,
               });
@@ -215,6 +237,7 @@ const Input: React.FC<{
 
     const target = event.target as CustomInputElement;
     const caretPosition: number = getInputClickedPosition(target);
+    // setTarget(target);
   };
 
   const getInputClickedPosition = (element: CustomInputElement): number => {
@@ -226,8 +249,39 @@ const Input: React.FC<{
     }
   };
 
+  // useEffect(() => {
+  //   if (!popoverData.alert || !nodesWithAlertsRef.current[0]) return;
+  //   const filteredData = nodesWithAlertsRef.current[0].alerts;
+
+  //   setSelectedAlertIndex(
+  //     filteredData.findIndex((item) => item.id === popoverData.alert.id)
+  //   );
+  // }, [popoverData, nodesWithAlertsRef]);
+
+  // useEffect(() => {
+  //   if (!nodesWithAlertsRef.current[0] || !target) return;
+
+  //   const newSelectedAlert =
+  //     nodesWithAlertsRef.current[0].alerts[selectedAlertIndex];
+  //   const nodeText = nodesWithAlertsRef.current[0].node;
+
+  //   const range = document.createRange();
+  //   range.setStart(nodeText, newSelectedAlert.startOffset);
+  //   range.setEnd(nodeText, newSelectedAlert.endOffset);
+  //   const clickedRect = range.getClientRects()[0];
+
+  //   setPopoverData({
+  //     alert: newSelectedAlert,
+  //     position: clickedRect,
+  //     node: nodeText,
+  //     originalNode: isTextArea(target) || isInputText(target) ? target : null,
+  //   });
+  //   setSelectedAlert(newSelectedAlert);
+  // }, [selectedAlertIndex]);
+
   useEffect(() => {
     if (!checkEndpointResponse) return;
+    setActiveIcon('active');
     analytics.checkLog(
       checkEndpointResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
@@ -254,9 +308,9 @@ const Input: React.FC<{
           context: result.context,
           text: result.text,
           label: result.label,
-          reason: result.reason,
-          solution: result.solution,
+          explanation: result.explanation,
           alternatives: result.alternatives,
+          gravity: result.gravity,
         },
       }))
       .sort((firstAlert, secondAlert) => {
@@ -269,9 +323,36 @@ const Input: React.FC<{
   useEffect(() => {
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
-      const filteredAlerts: IAlert[] = alerts.filter((alert: IAlert) => {
-        return !ignoredTerms.includes(alert.data.text);
-      });
+      let processedAlerts = [...alerts];
+      processedAlerts = processedAlerts.filter(
+        (alert) => !ignoredTerms.includes(alert.data.text)
+      );
+
+      function whereMinGravity(alert0: IAlert, ...alerts: IAlert[]): IAlert {
+        return [alert0, ...alerts]
+          .filter(Boolean)
+          .reduce((minAlert, currentAlert) =>
+            (minAlert.data.gravity || Infinity) <
+            (currentAlert.data.gravity || Infinity)
+              ? minAlert
+              : currentAlert
+          );
+      }
+      const minAlertsMap = processedAlerts.reduce(
+        (groups, alert) => ({
+          ...groups,
+          [alert.startOffset]: whereMinGravity(
+            alert,
+            groups[alert.startOffset]
+          ),
+        }),
+        {} as Record<number, IAlert>
+      );
+      processedAlerts = Object.values(minAlertsMap);
+      processedAlerts = processedAlerts.sort(
+        (a, b) => a.startOffset - b.startOffset
+      );
+
       if (isTextArea(element) || isInputText(element)) {
         if (!clone.firstChild) {
           return;
@@ -279,14 +360,14 @@ const Input: React.FC<{
         setNodesWithAlerts([
           {
             node: clone.firstChild,
-            alerts: filteredAlerts.map((alert: IAlert) => ({
+            alerts: processedAlerts.map((alert: IAlert) => ({
               ...alert,
             })),
           },
         ]);
       } else {
         const nodesWithAlertsTemp: INodeWithAlerts[] =
-          getNodesWithRecalculatedAlerts(element.childNodes, filteredAlerts);
+          getNodesWithRecalculatedAlerts(element.childNodes, processedAlerts);
         setNodesWithAlerts(nodesWithAlertsTemp);
       }
     }
@@ -354,14 +435,11 @@ const Input: React.FC<{
 
   return (
     <div className='canvas-container'>
-      {/* TODO: use loading state for animation */}
-      {wittySupportIcon ? (
-        <WittySupportIcon elementReference={element} active={true} />
-      ) : (
-        isHovered && (
-          <WittySupportIcon elementReference={element} active={false} />
-        )
-      )}
+      <StateIndicatorIcon
+        elementReference={element}
+        iconType={activeIcon}
+        isHovered={isHovered}
+      />
       {isTextArea(element) && (
         <TextAreaClone
           element={element}
@@ -384,6 +462,9 @@ const Input: React.FC<{
           hide={togglePopover}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
+          // updatePopover={updatePopover}
+          // selectedAlertIndex={selectedAlertIndex}
+          // totalAlerts={nodesWithAlertsRef.current[0].alerts.length}
         />
       )}
       <Highlights
