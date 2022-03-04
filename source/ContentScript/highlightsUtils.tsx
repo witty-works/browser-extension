@@ -7,10 +7,11 @@ export const drawLine = (params: any, color: string, dashedLine: boolean) => {
   let y = rect.top - elementRect.top;
 
   context.beginPath();
-  dashedLine && context.setLineDash([5, 5]);
+  dashedLine ? context.setLineDash([0, 4]) : context.setLineDash([0, 0]);
+  context.lineCap = 'round';
   context.moveTo(x, y + rect.height);
   context.lineTo(x + rect.width, y + rect.height);
-  context.lineWidth = 2;
+  dashedLine ? (context.lineWidth = 3) : (context.lineWidth = 2);
   context.strokeStyle = color;
   context.stroke();
 };
