@@ -14,7 +14,7 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import './styles.scss';
 
 const Popup: React.FC = () => {
-  const [enabled, setEnabled] = useState<boolean>();
+  const [enabled, setEnabled] = useState<boolean>(true);
   const { t } = useTranslation(namespaces.pages.popup);
   const log = useLog('Popup');
 
