@@ -11,10 +11,11 @@ import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
 import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
+// import NextIcon from '../../assets/icons/popover/next.svg';
+// import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
-
 export interface PopoverData {
   alert: IAlert;
   position: DOMRect;
@@ -28,6 +29,9 @@ interface PopoverProps {
   hide: () => void;
   resendText: () => void;
   addIgnoredTerm: (term: string) => void;
+  // updatePopover: (direction: string) => void;
+  // selectedAlertIndex: number;
+  // totalAlerts: number;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -36,15 +40,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   hide,
   resendText,
   addIgnoredTerm,
-}: PopoverProps) => {
+}: // updatePopover,
+// selectedAlertIndex,
+// totalAlerts,
+PopoverProps) => {
   const doc = document.documentElement || document.body;
 
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
-  const [backgroundColor, setBackgroundColor] = useState<string>(
-    getColor(data.alert.data.category).highlight
-  );
-  const [playArrowAnimation, setPlayArrowAnimation] = useState<boolean>(false);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -88,6 +92,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       refs.floating.current &&
       !refs.floating.current.contains(event.target as HTMLElement)
     ) {
+      analytics.popoverLogs(data.alert, 'popover_close');
       hide();
     }
   };
@@ -121,25 +126,34 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         : data.alert.data.alternatives[index].text
     );
     //Replace text with the new alternative or simply remove it
-    //This only replaces the specific occurrence. If there are other identical terms in the text
-    //they will keep highlighted
+    //This only replaces the specific occurrence.
+    //If there are other identical terms in the text they will keep highlighted
 
-    const splitText = (data.node.nodeValue as string).split('') as string[];
+    const text: string = data.node.nodeValue as string;
 
-    // In case we have to remove the term it's necessary also to delete the surrounding spaces
-    splitText.splice(
-      index === -1 ? data.alert.startOffset - 1 : data.alert.startOffset,
-      index === -1
-        ? data.alert.endOffset - data.alert.startOffset + 1
-        : data.alert.endOffset - data.alert.startOffset,
-      index === -1 ? '' : data.alert.data.alternatives[index].text
+    const termToBeReplaced: string = text.slice(
+      data.alert.startOffset,
+      data.alert.endOffset
     );
 
-    const textToInsert = splitText.join('');
+    const regex: RegExp = new RegExp(
+      index === -1
+        ? data.alert.startOffset === 0
+          ? `${termToBeReplaced}[ ,]+`
+          : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}[ ,]+`
+        : data.alert.startOffset === 0
+        ? `${termToBeReplaced}`
+        : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}`
+    );
+
+    const replacingTerm: string =
+      index === -1 ? '' : data.alert.data.alternatives[index].text;
+
+    const newTextToInsert = text.replace(regex, replacingTerm);
 
     data.originalNode
-      ? (data.originalNode.value = textToInsert)
-      : (data.node.nodeValue = textToInsert);
+      ? (data.originalNode.value = newTextToInsert)
+      : (data.node.nodeValue = newTextToInsert);
 
     //Close Popover
     hide();
@@ -163,11 +177,42 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <a href='https://www.witty.works/'>
               <WittyLogo className='wittyworks-popover-icon' />
             </a>
+            {/* {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
+              <div className='wittyworks-popover-counter'>{`${
+                selectedAlertIndex + 1
+              } of ${totalAlerts}`}</div>
+            )} */}
             <div className='wittyworks-popover-icon-float-right'>
+              {/* <PreviousIcon
+                className='wittyworks-popover-navigation-icon'
+                style={{
+                  filter:
+                    selectedAlertIndex == 0
+                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
+                      : '',
+                  cursor: selectedAlertIndex == 0 ? 'default' : 'pointer',
+                }}
+                onClick={() => updatePopover('previous')}
+              />
+              <NextIcon
+                className='wittyworks-popover-navigation-icon'
+                style={{
+                  filter:
+                    selectedAlertIndex + 1 == totalAlerts
+                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
+                      : '',
+                  cursor:
+                    selectedAlertIndex + 1 == totalAlerts
+                      ? 'default'
+                      : 'pointer',
+                }}
+                onClick={() => updatePopover('next')}
+              /> */}
               <CloseIcon
-                className='wittyworks-popover-icon'
+                className='wittyworks-popover-close-icon'
                 onClick={() => {
                   hide();
+                  analytics.popoverLogs(data.alert, 'popover_close');
                 }}
               />
             </div>
@@ -180,17 +225,17 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='wittyworks-popover-row-explanation'
             style={{
-              backgroundColor: backgroundColor,
+              backgroundColor: isHovered
+                ? getColor(data.alert.data.category).hover
+                : getColor(data.alert.data.category).highlight,
               borderRadius: '4px',
               padding: '8px 8px 12px',
             }}
             onMouseEnter={() => {
-              setBackgroundColor(getColor(data.alert.data.category).hover);
-              setPlayArrowAnimation(true);
+              setIsHovered(true);
             }}
             onMouseLeave={() => {
-              setBackgroundColor(getColor(data.alert.data.category).highlight);
-              setPlayArrowAnimation(false);
+              setIsHovered(false);
             }}
           >
             <div className='wittyworks-popover-emoji'>
@@ -201,12 +246,16 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               {data.alert.data.explanation.url && (
                 <a
                   className='wittyworks-popover-row-explanation-url'
+                  onClick={() => {
+                    analytics.popoverLogs(data.alert, 'learning_bites');
+                  }}
                   href={data.alert.data.explanation.url}
+                  target='_blank'
                 >
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
-                  <ArrowIcon play={playArrowAnimation} />
+                  <ArrowIcon play={isHovered} />
                 </a>
               )}
             </div>
