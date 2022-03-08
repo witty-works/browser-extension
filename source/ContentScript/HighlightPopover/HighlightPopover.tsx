@@ -11,8 +11,8 @@ import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
 import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
-import NextIcon from '../../assets/icons/popover/next.svg';
-import PreviousIcon from '../../assets/icons/popover/previous.svg';
+// import NextIcon from '../../assets/icons/popover/next.svg';
+// import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
@@ -29,7 +29,7 @@ interface PopoverProps {
   hide: () => void;
   resendText: () => void;
   addIgnoredTerm: (term: string) => void;
-  updatePopover: (direction: string) => void;
+  // updatePopover: (direction: string) => void;
   selectedAlertIndex: number;
   totalAlerts: number;
 }
@@ -40,7 +40,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   hide,
   resendText,
   addIgnoredTerm,
-  updatePopover,
+  // updatePopover,
   selectedAlertIndex,
   totalAlerts,
 }: PopoverProps) => {
@@ -183,7 +183,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               } of ${totalAlerts}`}</div>
             )}
             <div className='wittyworks-popover-icon-float-right'>
-              <PreviousIcon
+              {/* <PreviousIcon
                 className='wittyworks-popover-navigation-icon'
                 style={{
                   filter:
@@ -193,8 +193,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   cursor: selectedAlertIndex == 0 ? 'default' : 'pointer',
                 }}
                 onClick={() => updatePopover('previous')}
-              />
-              <NextIcon
+              /> */}
+              {/* <NextIcon
                 className='wittyworks-popover-navigation-icon'
                 style={{
                   filter:
@@ -207,7 +207,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       : 'pointer',
                 }}
                 onClick={() => updatePopover('next')}
-              />
+              /> */}
               <CloseIcon
                 className='wittyworks-popover-close-icon'
                 onClick={() => {

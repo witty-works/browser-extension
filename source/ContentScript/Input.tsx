@@ -193,37 +193,37 @@ const Input: React.FC<{
     setIgnoredTerms([...ignoredTerms, term]);
   };
 
-  const updatePopover = (direction: string): void => {
-    if (selectedNodeIndex < 0 || selectedAlertIndex < 0) return;
+  // const updatePopover = (direction: string): void => {
+  //   if (selectedNodeIndex < 0 || selectedAlertIndex < 0) return;
 
-    if (direction == 'previous') {
-      const isFirstNodeSelected = selectedNodeIndex == 0;
-      const isFirstAlertSelected = selectedAlertIndex == 0;
-      if (isFirstNodeSelected && isFirstAlertSelected) return;
-      else if (isFirstAlertSelected) {
-        setSelectedNodeIndex(selectedNodeIndex - 1);
-        setSelectedAlertIndex(
-          nodesWithAlertsRef.current[selectedNodeIndex - 1].alerts.length - 1
-        );
-      } else {
-        setSelectedAlertIndex(selectedAlertIndex - 1);
-      }
-    }
+  //   if (direction == 'previous') {
+  //     const isFirstNodeSelected = selectedNodeIndex == 0;
+  //     const isFirstAlertSelected = selectedAlertIndex == 0;
+  //     if (isFirstNodeSelected && isFirstAlertSelected) return;
+  //     else if (isFirstAlertSelected) {
+  //       setSelectedNodeIndex(selectedNodeIndex - 1);
+  //       setSelectedAlertIndex(
+  //         nodesWithAlertsRef.current[selectedNodeIndex - 1].alerts.length - 1
+  //       );
+  //     } else {
+  //       setSelectedAlertIndex(selectedAlertIndex - 1);
+  //     }
+  //   }
 
-    if (direction == 'next') {
-      const isLastNodeSelected =
-        selectedNodeIndex === nodesWithAlertsRef.current.length - 1;
-      const isLastAlertSelected =
-        selectedAlertIndex === selectedNode.alerts.length - 1;
-      if (isLastNodeSelected && isLastAlertSelected) return;
-      else if (isLastAlertSelected) {
-        setSelectedNodeIndex(selectedNodeIndex + 1);
-        setSelectedAlertIndex(0);
-      } else {
-        setSelectedAlertIndex(selectedAlertIndex + 1);
-      }
-    }
-  };
+  //   if (direction == 'next') {
+  //     const isLastNodeSelected =
+  //       selectedNodeIndex === nodesWithAlertsRef.current.length - 1;
+  //     const isLastAlertSelected =
+  //       selectedAlertIndex === selectedNode.alerts.length - 1;
+  //     if (isLastNodeSelected && isLastAlertSelected) return;
+  //     else if (isLastAlertSelected) {
+  //       setSelectedNodeIndex(selectedNodeIndex + 1);
+  //       setSelectedAlertIndex(0);
+  //     } else {
+  //       setSelectedAlertIndex(selectedAlertIndex + 1);
+  //     }
+  //   }
+  // };
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
@@ -449,7 +449,7 @@ const Input: React.FC<{
           hide={closePopover}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
-          updatePopover={updatePopover}
+          // updatePopover={updatePopover}
           selectedAlertIndex={virtualAlertIndex}
           totalAlerts={totalAlerts}
         />
