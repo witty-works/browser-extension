@@ -156,8 +156,9 @@ const Input: React.FC<{
     }
   };
 
-  const debouncedSetTextToCheck = debounce((nextText: string) => {
-    setTextToCheck(nextText);
+  const debouncedSetTextToCheck = debounce((text: string) => {
+    //In this case always create a new string to force change the state of setTextToCheck
+    setTextToCheck(new String(text) as string);
   }, 3000);
 
   const handleElementScrollEvent = debounce(() => {
