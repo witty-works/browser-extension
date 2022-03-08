@@ -101,7 +101,7 @@ const Popup: React.FC = () => {
         </>
       ) : null}
       <footer>
-        <a href='https://www.witty.works/help' target='_blank'>
+        <a href='https://www.witty.works/onboarding' target='_blank'>
           {t('needHelpQuestionMark')}
         </a>
       </footer>
