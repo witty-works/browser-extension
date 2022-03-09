@@ -63,12 +63,6 @@ const Input: React.FC<{
     range.setEnd(selectedNode.node, selectedAlert.endOffset);
   }
   const [popoverData, setPopoverData] = useState<PopoverData | null>(null);
-
-  //BEFORE MERGE
-  // const [clone, setClone, cloneRef] = useStateRef<HTMLDivElement>(
-  //   {} as HTMLDivElement
-  // );
-  // const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
@@ -139,6 +133,8 @@ const Input: React.FC<{
       )
     );
   }, [selectedAlert]);
+
+  useEffect(() => {
     const ele: { element: HTMLElement; rect: DOMRect } =
       elementOffsetParentRect.width < elementRect.width ||
       elementOffsetParentRect.height < elementRect.height
@@ -288,79 +284,23 @@ const Input: React.FC<{
         if (nextAlertIndex === -1) return;
         setSelectedNodeIndex(nextNodeIndex);
         setSelectedAlertIndex(nextAlertIndex);
-
-        //BEFORE MERGE
-        // const target = event.target as CustomInputElement;
-
-        // // Get caret data
-        // let caret: { position: number | null; element: Node | null } =
-        //   isTextArea(element) || isInputText(element)
-        //     ? {
-        //         position: element.selectionStart,
-        //         element: cloneRef.current,
-        //       }
-        //     : {
-        //         position: (document.getSelection() as Selection).anchorOffset,
-        //         element: (document.getSelection() as Selection).anchorNode,
-        //       };
-
-        // if (caret.element && caret.position && caret.position > -1) {
-        //   // Find out if the clicked element has alerts
-        //   const oneNodeWithAlerts = nodesWithAlertsRef.current.find(
-        //     (nodeWithAlerts: INodeWithAlerts) =>
-        //       isTextArea(target) || isInputText(target)
-        //         ? nodeWithAlerts.node.parentNode === caret.element
-        //         : nodeWithAlerts.node === caret.element
-        //   );
-
-        //   if (oneNodeWithAlerts) {
-        //     // If so, then find out if an alert that has been clicked
-        //     const selectedAlert = oneNodeWithAlerts.alerts
-        //       .filter(
-        //         (alert: IAlert) =>
-        //           alert.startOffset < (caret.position as number) &&
-        //           alert.endOffset > (caret.position as number)
-        //       )
-        //       .pop() as IAlert;
-
-        //     if (selectedAlert) {
-        //       const range = document.createRange();
-        //       const nodeText = oneNodeWithAlerts.node;
-        //       range.setStart(nodeText, selectedAlert.startOffset);
-        //       range.setEnd(nodeText, selectedAlert.endOffset);
-        //       const clickedRect = range.getClientRects()[0];
-
-        //       setPopoverData({
-        //         alert: selectedAlert,
-        //         position: clickedRect,
-        //         node: nodeText,
-        //         originalNode:
-        //           isTextArea(target) || isInputText(target) ? target : null,
-        //       });
-
-        //       setSelectedAlert(selectedAlert);
-        //       togglePopover();
-        //     }
-        //   }
-        // }
       }, 400);
     } else {
       clearTimeout(singleClickTimeOut);
     }
 
     const target = event.target as CustomInputElement;
-    // const caretPosition: number = getInputClickedPosition(target);
+    const caretPosition: number = getInputClickedPosition(target);
     setTarget(target);
   };
 
-  // BEFORE MERGE
-  // const getInputClickedPosition = (element: CustomInputElement): number => {
-  //   if (isTextArea(element) || isInputText(element)) {
-  //     return element.selectionStart as number;
-  //   } else {
-  //     const selection: Selection | null = document.getSelection();
-  //     return selection ? selection.anchorOffset : -1;
-  //   }
+  const getInputClickedPosition = (element: CustomInputElement): number => {
+    if (isTextArea(element) || isInputText(element)) {
+      return element.selectionStart as number;
+    } else {
+      const selection: Selection | null = document.getSelection();
+      return selection ? selection.anchorOffset : -1;
+    }
   };
 
   useEffect(() => {
