@@ -10,11 +10,12 @@ import GermanGenderEndSelector from './GermanGenderEndSelector';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
+import defaultConfig from '../witty.config.json';
 
 import './styles.scss';
 
 const Popup: React.FC = () => {
-  const [enabled, setEnabled] = useState<boolean>(true);
+  const [enabled, setEnabled] = useState<boolean>(defaultConfig.APP_ENABLED);
   const { t } = useTranslation(namespaces.pages.popup);
   const log = useLog('Popup');
 
