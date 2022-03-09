@@ -89,8 +89,9 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     highlights.forEach((highlight) => {
       const [rect] = highlight.rects;
-      const hoverColor = `${getColor(highlight.data.category).default}`;
-      const highlightColor = `${getColor(highlight.data.category).hover}`;
+      const hoverColor = `${getColor(highlight.data.gravity).default}`;
+      const highlightColor = `${getColor(highlight.data.gravity).hover}`;
+      const dashedLine = highlight.data.category == 'orthography';
       const roundedHighlight = new Path2D();
       const params = {
         context,
@@ -104,15 +105,15 @@ const Highlights: React.FC<HighlightsProps> = ({
         element,
       };
 
-      drawLine(params, hoverColor);
+      drawLine(params, hoverColor, dashedLine);
 
       if (highlight.id === selectedAlert?.id) {
         drawHighlight(params, highlightColor);
-        drawLine(params, hoverColor);
+        drawLine(params, hoverColor, dashedLine);
         redrawText(params);
       } else {
         drawHighlight(params, 'transparent');
-        drawLine(params, hoverColor);
+        drawLine(params, hoverColor, dashedLine);
       }
     });
   }, [highlights, selectedAlert]);
