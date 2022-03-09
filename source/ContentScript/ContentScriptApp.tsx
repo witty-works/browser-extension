@@ -99,8 +99,7 @@ const ContentScriptApp: React.FC = () => {
     // newTextarea.cols = 25;
     // newTextarea.rows = 25;
     // if (section) section.appendChild(newTextarea);
-
-    document.body.spellcheck = false;
+    document.body.spellcheck = false; //needed for linkedin, could be removed when we fix focusin issue
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);
