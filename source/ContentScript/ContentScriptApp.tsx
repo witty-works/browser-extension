@@ -156,7 +156,6 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleFocusinElement = (event: Event) => {
-    console.log('focusin', event);
     const target = event.target as CustomInputElement;
 
     if (isInputElement(target) && !inputsRef.current.includes(target)) {
