@@ -55,27 +55,16 @@ const Input: React.FC<{
     range.setStart(selectedNode.node, selectedAlert.startOffset);
     range.setEnd(selectedNode.node, selectedAlert.endOffset);
   }
-  const clickedRect = range.getClientRects()[0];
-  const popoverData: PopoverData | null = selectedNode &&
-    selectedAlert &&
-    target && {
-      alert: selectedAlert,
-      position: clickedRect,
-      node: selectedNode.node,
-      originalNode: isTextArea(target) || isInputText(target) ? target : null,
-    };
+  const [popoverData, setPopoverData] = useState<PopoverData | null>(null);
 
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [totalAlerts, setTotalAlerts] = useState<number>(0);
 
   let virtualAlertIndex = selectedAlertIndex;
   for (let i = 0; i < selectedNodeIndex; i++) {
     virtualAlertIndex += nodesWithAlertsRef.current[i].alerts.length;
   }
-  const totalAlerts = nodesWithAlertsRef.current.reduce(
-    (total, node) => total + node.alerts.length,
-    0
-  );
 
   const log = useLog('Input');
 
@@ -116,6 +105,27 @@ const Input: React.FC<{
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
+
+  useEffect(() => {
+    const clickedRect = range.getClientRects()[0];
+
+    selectedNode && selectedAlert && target
+      ? setPopoverData({
+          alert: selectedAlert,
+          position: clickedRect,
+          node: selectedNode.node,
+          originalNode:
+            isTextArea(target) || isInputText(target) ? target : null,
+        })
+      : setPopoverData(null);
+
+    setTotalAlerts(
+      nodesWithAlertsRef.current.reduce(
+        (total, node) => total + node.alerts.length,
+        0
+      )
+    );
+  }, [selectedAlert]);
 
   const handleMouseoverEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(true);
