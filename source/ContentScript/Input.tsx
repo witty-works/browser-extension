@@ -134,6 +134,7 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = (event?: Event) => {
+    element.spellcheck = false;
     const nextText: string = getInputText(element);
 
     handleTextAndIcon(nextText, event);
