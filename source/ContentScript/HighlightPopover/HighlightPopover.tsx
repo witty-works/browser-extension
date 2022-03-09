@@ -11,8 +11,8 @@ import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
 import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
-import NextIcon from '../../assets/icons/popover/next.svg';
-import PreviousIcon from '../../assets/icons/popover/previous.svg';
+// import NextIcon from '../../assets/icons/popover/next.svg';
+// import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
@@ -29,9 +29,9 @@ interface PopoverProps {
   hide: () => void;
   resendText: () => void;
   addIgnoredTerm: (term: string) => void;
-  updatePopover: (direction: string) => void;
-  selectedAlertIndex: number;
-  totalAlerts: number;
+  // updatePopover: (direction: string) => void;
+  // selectedAlertIndex: number;
+  // totalAlerts: number;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -40,10 +40,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   hide,
   resendText,
   addIgnoredTerm,
-  updatePopover,
-  selectedAlertIndex,
-  totalAlerts,
-}: PopoverProps) => {
+}: // updatePopover,
+// selectedAlertIndex,
+// totalAlerts,
+PopoverProps) => {
   const doc = document.documentElement || document.body;
 
   const analytics = useAnalytics();
@@ -126,25 +126,34 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         : data.alert.data.alternatives[index].text
     );
     //Replace text with the new alternative or simply remove it
-    //This only replaces the specific occurrence. If there are other identical terms in the text
-    //they will keep highlighted
+    //This only replaces the specific occurrence.
+    //If there are other identical terms in the text they will keep highlighted
 
-    const splitText = (data.node.nodeValue as string).split('') as string[];
+    const text: string = data.node.nodeValue as string;
 
-    // In case we have to remove the term it's necessary also to delete the surrounding spaces
-    splitText.splice(
-      index === -1 ? data.alert.startOffset - 1 : data.alert.startOffset,
-      index === -1
-        ? data.alert.endOffset - data.alert.startOffset + 1
-        : data.alert.endOffset - data.alert.startOffset,
-      index === -1 ? '' : data.alert.data.alternatives[index].text
+    const termToBeReplaced: string = text.slice(
+      data.alert.startOffset,
+      data.alert.endOffset
     );
 
-    const textToInsert = splitText.join('');
+    const regex: RegExp = new RegExp(
+      index === -1
+        ? data.alert.startOffset === 0
+          ? `${termToBeReplaced}[ ,]+`
+          : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}[ ,]+`
+        : data.alert.startOffset === 0
+        ? `${termToBeReplaced}`
+        : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}`
+    );
+
+    const replacingTerm: string =
+      index === -1 ? '' : data.alert.data.alternatives[index].text;
+
+    const newTextToInsert = text.replace(regex, replacingTerm);
 
     data.originalNode
-      ? (data.originalNode.value = textToInsert)
-      : (data.node.nodeValue = textToInsert);
+      ? (data.originalNode.value = newTextToInsert)
+      : (data.node.nodeValue = newTextToInsert);
 
     //Close Popover
     hide();
@@ -168,13 +177,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <a href='https://www.witty.works/'>
               <WittyLogo className='wittyworks-popover-icon' />
             </a>
-            {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
+            {/* {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
               <div className='wittyworks-popover-counter'>{`${
                 selectedAlertIndex + 1
               } of ${totalAlerts}`}</div>
-            )}
+            )} */}
             <div className='wittyworks-popover-icon-float-right'>
-              <PreviousIcon
+              {/* <PreviousIcon
                 className='wittyworks-popover-navigation-icon'
                 style={{
                   filter:
@@ -198,7 +207,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       : 'pointer',
                 }}
                 onClick={() => updatePopover('next')}
-              />
+              /> */}
               <CloseIcon
                 className='wittyworks-popover-close-icon'
                 onClick={() => {
@@ -217,8 +226,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             className='wittyworks-popover-row-explanation'
             style={{
               backgroundColor: isHovered
-                ? getColor(data.alert.data.category).hover
-                : getColor(data.alert.data.category).highlight,
+                ? getColor(data.alert.data.gravity).hover
+                : getColor(data.alert.data.gravity).highlight,
               borderRadius: '4px',
               padding: '8px 8px 12px',
             }}
