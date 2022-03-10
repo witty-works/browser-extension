@@ -14,7 +14,11 @@ import {
   setRequestConfig,
   setAppID,
 } from '../shared/ApiServices/requests';
-import { isInputElement, nodeExistsInDOM } from '../shared/utils';
+import {
+  isInputElement,
+  nodeExistsInDOM,
+  elementIsVisible,
+} from '../shared/utils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 
@@ -95,7 +99,7 @@ const ContentScriptApp: React.FC = () => {
     // newTextarea.cols = 25;
     // newTextarea.rows = 25;
     // if (section) section.appendChild(newTextarea);
-
+    document.body.spellcheck = false; //needed for linkedin, could be removed when we fix focusin issue
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);
@@ -199,12 +203,11 @@ const ContentScriptApp: React.FC = () => {
     log(`Analyzed inputs:`, logTypes.INFO, inputs.length > 0 ? inputs : 'None');
   }, [inputs]);
 
-  //Check if tracked inputs are still visible
-  //If not, remove it from the list of inputs.
-  //That way the highlights are also removed
+  // Check if tracked inputs exists or are still visible
+  // If not, remove them from the list of inputs. This way the highlights are also removed
   const mutationObserver = new MutationObserver(() => {
     inputsRef.current.forEach((input: CustomInputElement) => {
-      if (!nodeExistsInDOM(input))
+      if (!nodeExistsInDOM(input) || !elementIsVisible(input))
         setInputs([
           ...inputsRef.current.filter(
             (filterInput: CustomInputElement) => filterInput !== input

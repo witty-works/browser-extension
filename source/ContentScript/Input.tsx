@@ -8,7 +8,7 @@ import {
   INodeWithAlerts,
   ScrollPos,
 } from '../shared/types';
-import { fixLineBreaks, isTextArea, isInputText } from '../shared/utils';
+import { isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -28,9 +28,16 @@ const Input: React.FC<{
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
-  const elementRect = useResizeObserver(element);
+  let elementRect = useResizeObserver(element);
+  let elementOffsetParentRect = useResizeObserver(
+    element.offsetParent as HTMLElement
+  );
 
   const [alerts, setAlerts] = useState<IAlert[]>([]);
+  const [observedElement, setObservedElement] = useState<HTMLElement>(element);
+  const [observedElementRect, setObservedElementRect] = useState<DOMRect>(
+    element.getBoundingClientRect()
+  );
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
@@ -44,7 +51,9 @@ const Input: React.FC<{
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
-  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
+  const [clone, setClone, cloneRef] = useStateRef<HTMLDivElement>(
+    {} as HTMLDivElement
+  );
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   // const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
@@ -54,11 +63,12 @@ const Input: React.FC<{
   const log = useLog('Input');
 
   useEffect(() => {
+    handleKeyupEvent();
+
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
-    handleKeyupEvent();
     element.addEventListener('keyup', handleKeyupEvent);
-    element.addEventListener('focusin', handleKeyupEvent);
+    element.addEventListener('focusin', handleFocusinEvent);
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
@@ -77,7 +87,7 @@ const Input: React.FC<{
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
-      element.removeEventListener('focusin', handleKeyupEvent);
+      element.removeEventListener('focusin', handleFocusinEvent);
       element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('mouseover', handleMouseoverEvent);
       element.removeEventListener('mouseout', handleMouseoutEvent);
@@ -91,6 +101,20 @@ const Input: React.FC<{
     };
   }, []);
 
+  useEffect(() => {
+    const ele: { element: HTMLElement; rect: DOMRect } =
+      elementOffsetParentRect.width < elementRect.width ||
+      elementOffsetParentRect.height < elementRect.height
+        ? {
+            element: element.offsetParent as HTMLElement,
+            rect: elementOffsetParentRect,
+          }
+        : { element: element, rect: elementRect };
+
+    setObservedElement(ele.element);
+    setObservedElementRect(ele.rect);
+  }, [elementRect, elementOffsetParentRect]);
+
   const handleMouseoverEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(true);
   };
@@ -99,38 +123,43 @@ const Input: React.FC<{
     if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
+  const handleFocusinEvent = (event: Event) => {
+    const nextText: string = getInputText(element);
+    handleTextAndIcon(nextText, event);
+  };
+
   const handleFocusoutEvent = () => {
-    const nextText: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : element.innerText;
+    const nextText: string = getInputText(element);
     if (nextText == '\n' || nextText.length == 0) setActiveIcon('passive');
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    const nextText: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : fixLineBreaks(element);
+    element.spellcheck = false;
+    const nextText: string = getInputText(element);
 
+    handleTextAndIcon(nextText, event);
+  };
+
+  const handleTextAndIcon = (text: string, event?: Event) => {
     //If there isn't text, there's nothing to highlight
-    if (nextText.length === 0 || !nextText.match(/[a-z0-9]/i)) {
+    if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      if (event && event.type == 'focusin') {
-        setTextToCheck(nextText);
-        setActiveIcon('active');
-      } else {
-        debouncedSetTextToCheck(nextText);
+      if (event && event.type == 'keyup') {
+        debouncedSetTextToCheck(text);
         setActiveIcon('loading');
+      } else {
+        setTextToCheck(text);
+        setActiveIcon('active');
       }
     }
   };
 
-  const debouncedSetTextToCheck = debounce((nextText: string) => {
-    setTextToCheck(nextText);
+  const debouncedSetTextToCheck = debounce((text: string) => {
+    //In this case always create a new string to force change the state of setTextToCheck
+    setTextToCheck(new String(text) as string);
   }, 3000);
 
   const handleElementScrollEvent = debounce(() => {
@@ -156,13 +185,14 @@ const Input: React.FC<{
   };
 
   const resendText = () => {
-    const text: string =
-      isTextArea(element) || isInputText(element)
-        ? element.value
-        : fixLineBreaks(element);
-
+    const text: string = getInputText(element);
     setTextToCheck(text);
   };
+
+  const getInputText = (element: CustomInputElement) =>
+    isTextArea(element) || isInputText(element)
+      ? element.value
+      : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
@@ -186,33 +216,45 @@ const Input: React.FC<{
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
+    // If user clicks on an element only once...
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
-        if (caretPosition > -1) {
-          const nodeAlerts = nodesWithAlertsRef.current;
+        const target = event.target as CustomInputElement;
 
-          const oneNodeWithAlerts = nodeAlerts.find(
+        // Get caret data
+        let caret: { position: number | null; element: Node | null } =
+          isTextArea(element) || isInputText(element)
+            ? {
+                position: element.selectionStart,
+                element: cloneRef.current,
+              }
+            : {
+                position: (document.getSelection() as Selection).anchorOffset,
+                element: (document.getSelection() as Selection).anchorNode,
+              };
+
+        if (caret.element && caret.position && caret.position > -1) {
+          // Find out if the clicked element has alerts
+          const oneNodeWithAlerts = nodesWithAlertsRef.current.find(
             (nodeWithAlerts: INodeWithAlerts) =>
-              //TODO potentially this acces to parentNode could fail
               isTextArea(target) || isInputText(target)
-                ? nodeWithAlerts.node.parentNode === cloneRef.current
-                : nodeWithAlerts.node.parentNode === target
+                ? nodeWithAlerts.node.parentNode === caret.element
+                : nodeWithAlerts.node === caret.element
           );
 
           if (oneNodeWithAlerts) {
+            // If so, then find out if an alert that has been clicked
             const selectedAlert = oneNodeWithAlerts.alerts
-              .filter((alert: IAlert) => {
-                return (
-                  alert.startOffset < caretPosition &&
-                  alert.endOffset > caretPosition
-                );
-              })
+              .filter(
+                (alert: IAlert) =>
+                  alert.startOffset < (caret.position as number) &&
+                  alert.endOffset > (caret.position as number)
+              )
               .pop() as IAlert;
-
-            const nodeText = oneNodeWithAlerts.node;
 
             if (selectedAlert) {
               const range = document.createRange();
+              const nodeText = oneNodeWithAlerts.node;
               range.setStart(nodeText, selectedAlert.startOffset);
               range.setEnd(nodeText, selectedAlert.endOffset);
               const clickedRect = range.getClientRects()[0];
@@ -233,19 +275,6 @@ const Input: React.FC<{
       }, 400);
     } else {
       clearTimeout(singleClickTimeOut);
-    }
-
-    const target = event.target as CustomInputElement;
-    const caretPosition: number = getInputClickedPosition(target);
-    // setTarget(target);
-  };
-
-  const getInputClickedPosition = (element: CustomInputElement): number => {
-    if (isTextArea(element) || isInputText(element)) {
-      return element.selectionStart as number;
-    } else {
-      const selection: Selection | null = document.getSelection();
-      return selection ? selection.anchorOffset : -1;
     }
   };
 
@@ -297,7 +326,7 @@ const Input: React.FC<{
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
-        id: `${result.category}-${result.text}-${result.start}-${result.end}`,
+        id: `${result.text}-${result.category}-${result.start}${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
@@ -323,12 +352,11 @@ const Input: React.FC<{
   useEffect(() => {
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
-      let processedAlerts = [...alerts];
-      processedAlerts = processedAlerts.filter(
-        (alert) => !ignoredTerms.includes(alert.data.text)
+      const alertsWithoutIgnoredTerms: IAlert[] = alerts.filter(
+        (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
       );
 
-      function whereMinGravity(alert0: IAlert, ...alerts: IAlert[]): IAlert {
+      const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
         return [alert0, ...alerts]
           .filter(Boolean)
           .reduce((minAlert, currentAlert) =>
@@ -337,91 +365,97 @@ const Input: React.FC<{
               ? minAlert
               : currentAlert
           );
-      }
-      const minAlertsMap = processedAlerts.reduce(
-        (groups, alert) => ({
-          ...groups,
-          [alert.startOffset]: whereMinGravity(
-            alert,
-            groups[alert.startOffset]
-          ),
-        }),
-        {} as Record<number, IAlert>
-      );
-      processedAlerts = Object.values(minAlertsMap);
-      processedAlerts = processedAlerts.sort(
-        (a, b) => a.startOffset - b.startOffset
-      );
+      };
 
-      if (isTextArea(element) || isInputText(element)) {
-        if (!clone.firstChild) {
-          return;
-        }
-        setNodesWithAlerts([
-          {
-            node: clone.firstChild,
-            alerts: processedAlerts.map((alert: IAlert) => ({
-              ...alert,
-            })),
-          },
-        ]);
-      } else {
-        const nodesWithAlertsTemp: INodeWithAlerts[] =
-          getNodesWithRecalculatedAlerts(element.childNodes, processedAlerts);
-        setNodesWithAlerts(nodesWithAlertsTemp);
-      }
+      //Reduces the array to show only the alerts with a lower gravity (lower gravity === worst)
+      const alertsWithoutIgnoredTermsGravityReduced = Object.values(
+        alertsWithoutIgnoredTerms.reduce(
+          (groups, alert) => ({
+            ...groups,
+            [alert.startOffset]: whereMinGravity(
+              alert,
+              groups[alert.startOffset]
+            ),
+          }),
+          {} as Record<number, IAlert>
+        )
+      ).sort((a, b) => a.startOffset - b.startOffset);
+
+      const nodesWithAlertsTemp: INodeWithAlerts[] =
+        isTextArea(element) || isInputText(element)
+          ? [
+              {
+                node: clone.firstChild as Node,
+                alerts: alertsWithoutIgnoredTermsGravityReduced,
+              },
+            ]
+          : getNodesWithRecalculatedPositionAlerts(alertsWithoutIgnoredTerms);
+
+      setNodesWithAlerts(nodesWithAlertsTemp);
     }
   }, [alerts, ignoredTerms, clone]);
 
-  const getNodesWithRecalculatedAlerts = (
-    nodes: NodeListOf<ChildNode>,
+  const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[]
-  ) => {
+  ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
+
+    const nextText: string = getInputText(element);
+
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = 0;
 
-    const traverseNodes = (nodes: NodeListOf<ChildNode>) => {
-      for (let node of nodes) {
+    const elementEvaluation: XPathResult = document.evaluate(
+      './/text()',
+      element,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    );
+
+    for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
+      const node = elementEvaluation.snapshotItem(index) as Node;
+
+      if (
+        node.nodeValue &&
+        node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
+      ) {
         textStartingAbsPosition = textEndAbsPosition;
 
-        if (node.nodeName === '#text') {
-          if (node.nodeValue) {
-            const nodeValueLength = node.nodeValue.length;
-            textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+        const nodeValueLength: number = node.nodeValue.length;
 
-            const alertsTemp: IAlert[] = alerts
-              .filter(
-                (alert: IAlert) =>
-                  alert.startOffset >= textStartingAbsPosition &&
-                  alert.endOffset <= textEndAbsPosition
-              )
-              .map((alert: IAlert) => {
-                const newAlert: IAlert = {
-                  ...alert,
-                  startOffset: alert.startOffset - textStartingAbsPosition,
-                  endOffset: alert.endOffset - textStartingAbsPosition,
-                };
+        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+        // Check if there is a whitespace char after the node's content
+        // If so, we +1 to the end position
+        if (nextText.charAt(textEndAbsPosition).match(/\n/gi))
+          textEndAbsPosition += 1;
 
-                return newAlert;
-              });
+        const alertsTemp: IAlert[] = alerts
+          .filter(
+            (alert: IAlert) =>
+              node.nodeValue && node.nodeValue.includes(alert.data.text)
+          )
+          .filter(
+            (alert: IAlert) =>
+              alert.startOffset >= textStartingAbsPosition &&
+              alert.endOffset <= textEndAbsPosition
+          )
+          .map((alert: IAlert) => {
+            return {
+              ...alert,
+              startOffset: alert.startOffset - textStartingAbsPosition,
+              endOffset: alert.endOffset - textStartingAbsPosition,
+            };
+          });
 
-            nodesWithAlertsTemp.push({
-              node: node as HTMLElement,
-              alerts: alertsTemp,
-            });
-          }
-        } else {
-          if (node.previousSibling !== null) {
-            if (node.nodeName === 'DIV' || 'BR' || 'P') textEndAbsPosition++;
-          }
-          if (node.childNodes.length > 0) {
-            traverseNodes(node.childNodes);
-          }
-        }
+        if (alertsTemp.length > 0)
+          nodesWithAlertsTemp.push({
+            node: node,
+            alerts: alertsTemp,
+          });
       }
-    };
-    traverseNodes(nodes);
+    }
+
     return nodesWithAlertsTemp;
   };
 
@@ -471,9 +505,9 @@ const Input: React.FC<{
         bodyScroll={bodyScroll}
         parentScroll={parentScroll}
         elementScroll={elementScroll}
-        elementRect={elementRect}
+        elementRect={observedElementRect}
         nodesWithAlerts={nodesWithAlerts}
-        element={element}
+        element={observedElement}
         selectedAlert={selectedAlert}
       />
     </div>

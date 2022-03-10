@@ -29,6 +29,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts.length === 0) setHighlights([]);
+
     nodesWithAlerts.forEach(({ node, alerts }) => {
       //quick fix to avoid error: check if node exists in the DOM
       //but also filter alerts that have a bigger endOffset than the length of the text
@@ -69,6 +70,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           });
       }
     });
+
     setHighlights(highlights);
   }, [nodesWithAlerts, parentScroll, elementScroll, elementRect]);
 
@@ -89,8 +91,9 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     highlights.forEach((highlight) => {
       const [rect] = highlight.rects;
-      const hoverColor = `${getColor(highlight.data.category).default}`;
-      const highlightColor = `${getColor(highlight.data.category).hover}`;
+      const hoverColor = `${getColor(highlight.data.gravity).default}`;
+      const highlightColor = `${getColor(highlight.data.gravity).hover}`;
+      const dashedLine = highlight.data.category == 'orthography';
       const roundedHighlight = new Path2D();
       const params = {
         context,
@@ -104,49 +107,34 @@ const Highlights: React.FC<HighlightsProps> = ({
         element,
       };
 
-      drawLine(params, hoverColor);
+      drawLine(params, hoverColor, dashedLine);
 
-      if (highlight.id === selectedAlert?.id) {
+      if (selectedAlert && selectedAlert.id === highlight.id) {
         drawHighlight(params, highlightColor);
-        drawLine(params, hoverColor);
+        drawLine(params, hoverColor, dashedLine);
         redrawText(params);
       } else {
         drawHighlight(params, 'transparent');
-        drawLine(params, hoverColor);
+        drawLine(params, hoverColor, dashedLine);
       }
     });
   }, [highlights, selectedAlert]);
-
-  const setPositionStyling = () => {
-    let parentPosition = window.getComputedStyle(
-      element.parentElement as HTMLElement
-    ).position;
-    return {
-      position: parentPosition === 'relative' ? 'fixed' : 'absolute',
-      top:
-        parentPosition == 'relative'
-          ? `${element.getBoundingClientRect().top}px`
-          : `${elementRect.top}px`,
-      left:
-        parentPosition == 'relative'
-          ? `${element.getBoundingClientRect().left}px`
-          : `${elementRect.left}px`,
-    };
-  };
 
   return (
     <canvas
       ref={canvasRef}
       style={
         {
-          ...setPositionStyling(),
+          position: 'absolute',
+          top: `${elementRect.top}px`,
+          left: `${elementRect.left}px`,
+          width: `${elementRect.width}px`,
+          height: `${elementRect.height}px`,
           overflow: 'auto',
           zIndex: 99999999,
           pointerEvents: 'none',
         } as React.CSSProperties
       }
-      width={elementRect.width}
-      height={elementRect.height}
     ></canvas>
   );
 };

@@ -16,6 +16,15 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     //Set default settings
     setSettings();
 
+    //Set icon to active
+    browser.browserAction.setIcon({
+      path: {
+        '16': 'assets/icons/icon16.png',
+        '32': 'assets/icons/icon32.png',
+        '48': 'assets/icons/icon48.png',
+      },
+    });
+
     //Log install event to posthog
     analytics.extensionStatusLog('install', getBrowserId());
 
