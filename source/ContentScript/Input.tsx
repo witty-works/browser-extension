@@ -47,30 +47,33 @@ const Input: React.FC<{
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
-
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
-  const [selectedNodeIndex, setSelectedNodeIndex] = useState<number>(-1);
-  const selectedNode: INodeWithAlerts | null =
-    nodesWithAlertsRef.current[selectedNodeIndex || 0] || null;
-  const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
-  const selectedAlert: IAlert | null =
-    (selectedNode?.alerts || [])[selectedAlertIndex || 0] || null;
 
-  const [target, setTarget] = useState<CustomInputElement | null>(null);
-  const range = document.createRange();
-  if (selectedNode && selectedAlert) {
-    range.setStart(selectedNode.node, selectedAlert.startOffset);
-    range.setEnd(selectedNode.node, selectedAlert.endOffset);
-  }
+  // const [selectedNodeIndex, setSelectedNodeIndex] = useState<number>(-1);
+  // const selectedNode: INodeWithAlerts | null =
+  //   nodesWithAlertsRef.current[selectedNodeIndex || 0] || null;
+  // const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
+  // const selectedAlert: IAlert | null =
+  //   (selectedNode?.alerts || [])[selectedAlertIndex || 0] || null;
+
+  // const [target, setTarget] = useState<CustomInputElement | null>(null);
+  // const range = document.createRange();
+  // if (selectedNode && selectedAlert) {
+  //   range.setStart(selectedNode.node, selectedAlert.startOffset);
+  //   range.setEnd(selectedNode.node, selectedAlert.endOffset);
+  // }
+  const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
+  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
   const [popoverData, setPopoverData] = useState<PopoverData | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [virtualAlertIndex, setVirtualAlertIndex] = useState<number>(0);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
 
-  let virtualAlertIndex = selectedAlertIndex;
-  for (let i = 0; i < selectedNodeIndex; i++) {
-    virtualAlertIndex += nodesWithAlertsRef.current[i].alerts.length;
-  }
+  // let virtualAlertIndex = selectedAlertIndex;
+  // for (let i = 0; i < selectedNodeIndex; i++) {
+  //   virtualAlertIndex += nodesWithAlertsRef.current[i].alerts.length;
+  // }
 
   const log = useLog('Input');
 
@@ -113,26 +116,26 @@ const Input: React.FC<{
     };
   }, []);
 
-  useEffect(() => {
-    const clickedRect = range.getClientRects()[0];
+  // useEffect(() => {
+  //   const clickedRect = range.getClientRects()[0];
 
-    selectedNode && selectedAlert && target
-      ? setPopoverData({
-          alert: selectedAlert,
-          position: clickedRect,
-          node: selectedNode.node,
-          originalNode:
-            isTextArea(target) || isInputText(target) ? target : null,
-        })
-      : setPopoverData(null);
+  //   selectedNode && selectedAlert && target
+  //     ? setPopoverData({
+  //         alert: selectedAlert,
+  //         position: clickedRect,
+  //         node: selectedNode.node,
+  //         originalNode:
+  //           isTextArea(target) || isInputText(target) ? target : null,
+  //       })
+  //     : setPopoverData(null);
 
-    setTotalAlerts(
-      nodesWithAlertsRef.current.reduce(
-        (total, node) => total + node.alerts.length,
-        0
-      )
-    );
-  }, [selectedAlert]);
+  //   setTotalAlerts(
+  //     nodesWithAlertsRef.current.reduce(
+  //       (total, node) => total + node.alerts.length,
+  //       0
+  //     )
+  //   );
+  // }, [selectedAlert]);
 
   useEffect(() => {
     const ele: { element: HTMLElement; rect: DOMRect } =
@@ -208,12 +211,20 @@ const Input: React.FC<{
     setClone(newClone);
   };
 
-  const closePopover = (): void => {
-    if (!popoverData) return;
-    analytics.popoverLogs(popoverData.alert, 'popover_open');
-    setSelectedNodeIndex(-1);
-    setSelectedAlertIndex(-1);
+  const togglePopover = (): void => {
+    setIsPopoverOpen(!isPopoverOpen);
+    if (isPopoverOpen) {
+      if (popoverData) analytics.popoverLogs(popoverData.alert, 'popover_open');
+      setSelectedAlert(null);
+    }
   };
+
+  // const closePopover = (): void => {
+  //   if (!popoverData) return;
+  //   analytics.popoverLogs(popoverData.alert, 'popover_open');
+  //   setSelectedNodeIndex(-1);
+  //   setSelectedAlertIndex(-1);
+  // };
 
   const resendText = () => {
     const text: string = getInputText(element);
@@ -267,41 +278,126 @@ const Input: React.FC<{
     // If user clicks on an element only once...
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
-        if (caretPosition < 0) return;
-        const nextNodeIndex = nodesWithAlertsRef.current.findIndex(
-          (nodeWithAlerts: INodeWithAlerts) =>
-            //TODO potentially this acces to parentNode could fail
-            isTextArea(target) || isInputText(target)
-              ? nodeWithAlerts.node.parentNode === cloneRef.current
-              : nodeWithAlerts.node.parentNode === target
-        );
-        const nextNode = nodesWithAlertsRef.current[nextNodeIndex];
-        if (!nextNode) return;
-        const nextAlertIndex = nextNode.alerts.findIndex(
-          (alert: IAlert) =>
-            alert.startOffset < caretPosition && alert.endOffset > caretPosition
-        );
-        if (nextAlertIndex === -1) return;
-        setSelectedNodeIndex(nextNodeIndex);
-        setSelectedAlertIndex(nextAlertIndex);
+        const target = event.target as CustomInputElement;
+
+        // Get caret data
+        let caret: { position: number | null; element: Node | null } =
+          isTextArea(element) || isInputText(element)
+            ? {
+                position: element.selectionStart,
+                element: cloneRef.current,
+              }
+            : {
+                position: (document.getSelection() as Selection).anchorOffset,
+                element: (document.getSelection() as Selection).anchorNode,
+              };
+
+        if (caret.element && caret.position && caret.position > -1) {
+          // Find out if the clicked element has alerts
+          const oneNodeWithAlertsIndex: number =
+            nodesWithAlertsRef.current.findIndex(
+              (nodeWithAlerts: INodeWithAlerts) =>
+                isTextArea(target) || isInputText(target)
+                  ? nodeWithAlerts.node.parentNode === caret.element
+                  : nodeWithAlerts.node === caret.element
+            );
+          const oneNodeWithAlerts =
+            nodesWithAlertsRef.current[oneNodeWithAlertsIndex];
+
+          if (oneNodeWithAlerts) {
+            // If so, then find out if an alert that has been clicked
+            const selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
+              (alert: IAlert) =>
+                alert.startOffset < (caret.position as number) &&
+                alert.endOffset > (caret.position as number)
+            );
+
+            if (selectedAlertIndex > -1) {
+              const selectedAlert =
+                oneNodeWithAlerts.alerts[selectedAlertIndex];
+
+              const range = document.createRange();
+              const nodeText = oneNodeWithAlerts.node;
+              range.setStart(nodeText, selectedAlert.startOffset);
+              range.setEnd(nodeText, selectedAlert.endOffset);
+              const clickedRect = range.getClientRects()[0];
+
+              setPopoverData({
+                alert: selectedAlert,
+                position: clickedRect,
+                node: nodeText,
+                originalNode:
+                  isTextArea(target) || isInputText(target) ? target : null,
+              });
+
+              // let virtualAlertIndex = selectedAlertIndex;
+              // for (let i = 0; i < selectedNodeIndex; i++) {
+              //   virtualAlertIndex +=
+              //     nodesWithAlertsRef.current[i].alerts.length;
+              // }
+
+              const alertIndex = nodesWithAlertsRef.current
+                .slice(0, oneNodeWithAlertsIndex + 1)
+                .reduce(
+                  (acc, node, index, array) =>
+                    index === array.length - 1
+                      ? acc + selectedAlertIndex + 1
+                      : acc + node.alerts.length,
+                  0
+                );
+
+              setVirtualAlertIndex(alertIndex);
+
+              setSelectedAlert(selectedAlert);
+              togglePopover();
+            }
+          }
+        }
       }, 400);
     } else {
       clearTimeout(singleClickTimeOut);
     }
-
-    const target = event.target as CustomInputElement;
-    const caretPosition: number = getInputClickedPosition(target);
-    setTarget(target);
   };
 
-  const getInputClickedPosition = (element: CustomInputElement): number => {
-    if (isTextArea(element) || isInputText(element)) {
-      return element.selectionStart as number;
-    } else {
-      const selection: Selection | null = document.getSelection();
-      return selection ? selection.anchorOffset : -1;
-    }
-  };
+  // const handleElementClickEvent = (event: MouseEvent) => {
+  //   // If user clicks on an element only once...
+  //   if (event.detail === 1) {
+  //     singleClickTimeOut = setTimeout(function () {
+  //       if (caretPosition < 0) return;
+  //       const nextNodeIndex = nodesWithAlertsRef.current.findIndex(
+  //         (nodeWithAlerts: INodeWithAlerts) =>
+  //           //TODO potentially this acces to parentNode could fail
+  //           isTextArea(target) || isInputText(target)
+  //             ? nodeWithAlerts.node.parentNode === cloneRef.current
+  //             : nodeWithAlerts.node.parentNode === target
+  //       );
+  //       const nextNode = nodesWithAlertsRef.current[nextNodeIndex];
+  //       if (!nextNode) return;
+  //       const nextAlertIndex = nextNode.alerts.findIndex(
+  //         (alert: IAlert) =>
+  //           alert.startOffset < caretPosition && alert.endOffset > caretPosition
+  //       );
+  //       if (nextAlertIndex === -1) return;
+  //       setSelectedNodeIndex(nextNodeIndex);
+  //       setSelectedAlertIndex(nextAlertIndex);
+  //     }, 400);
+  //   } else {
+  //     clearTimeout(singleClickTimeOut);
+  //   }
+
+  //   const target = event.target as CustomInputElement;
+  //   const caretPosition: number = getInputClickedPosition(target);
+  //   setTarget(target);
+  // };
+
+  // const getInputClickedPosition = (element: CustomInputElement): number => {
+  //   if (isTextArea(element) || isInputText(element)) {
+  //     return element.selectionStart as number;
+  //   } else {
+  //     const selection: Selection | null = document.getSelection();
+  //     return selection ? selection.anchorOffset : -1;
+  //   }
+  // };
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
@@ -384,7 +480,16 @@ const Input: React.FC<{
                 alerts: alertsWithoutIgnoredTermsGravityReduced,
               },
             ]
-          : getNodesWithRecalculatedPositionAlerts(alertsWithoutIgnoredTerms);
+          : getNodesWithRecalculatedPositionAlerts(
+              alertsWithoutIgnoredTermsGravityReduced
+            );
+
+      //Set the total alerts
+      const totalAlerts: number = nodesWithAlertsTemp.reduce(
+        (total, node) => total + node.alerts.length,
+        0
+      );
+      setTotalAlerts(totalAlerts);
 
       setNodesWithAlerts(nodesWithAlertsTemp);
     }
@@ -484,14 +589,17 @@ const Input: React.FC<{
           updateClone={updateCloneData}
         />
       )}
-      {popoverData && (
+      {popoverData && isPopoverOpen && (
         <HighlightPopover
           element={element}
           data={popoverData}
-          hide={closePopover}
+          hide={togglePopover}
+          // hide={closePopover}
           resendText={resendText}
           addIgnoredTerm={addIgnoredTerm}
           // updatePopover={updatePopover}
+          // selectedAlertIndex={0}
+          // totalAlerts={99}
           selectedAlertIndex={virtualAlertIndex}
           totalAlerts={totalAlerts}
         />
