@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Highlight, IAlert, INodeWithAlerts, ScrollPos } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { nodeExistsInDOM } from '../shared/utils';
+// import { nodeExistsInDOM } from '../shared/utils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
 
 interface HighlightsProps {
@@ -33,12 +33,12 @@ const Highlights: React.FC<HighlightsProps> = ({
     nodesWithAlerts.forEach(({ node, alerts }) => {
       //quick fix to avoid error: check if node exists in the DOM
       //but also filter alerts that have a bigger endOffset than the length of the text
-      if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
+      if (typeof node !== 'undefined' /*  && nodeExistsInDOM(node) */) {
         alerts
-          .filter(
-            (alert: IAlert) =>
-              node.textContent && alert.endOffset <= node.textContent.length
-          )
+          // .filter(
+          //   (alert: IAlert) =>
+          //     node.textContent && alert.endOffset <= node.textContent.length
+          // )
           .forEach((alert: IAlert) => {
             const range = document.createRange();
             range.setStart(node, alert.startOffset);
@@ -121,21 +121,24 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [highlights, selectedAlert]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={
-        {
-          position: 'absolute',
-          top: `${elementRect.top}px`,
-          left: `${elementRect.left}px`,
-          width: `${elementRect.width}px`,
-          height: `${elementRect.height}px`,
-          overflow: 'auto',
-          zIndex: 99999999,
-          pointerEvents: 'none',
-        } as React.CSSProperties
-      }
-    ></canvas>
+    <>
+      <button onClick={methodDoesNotExist}>Break the world</button>;
+      <canvas
+        ref={canvasRef}
+        style={
+          {
+            position: 'absolute',
+            top: `${elementRect.top}px`,
+            left: `${elementRect.left}px`,
+            width: `${elementRect.width}px`,
+            height: `${elementRect.height}px`,
+            overflow: 'auto',
+            zIndex: 99999999,
+            pointerEvents: 'none',
+          } as React.CSSProperties
+        }
+      ></canvas>
+    </>
   );
 };
 

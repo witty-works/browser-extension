@@ -1,5 +1,7 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
+import * as Sentry from '@sentry/react';
+import { BrowserTracing } from '@sentry/tracing';
 import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys } from '../shared/constants';
 import ContentScriptApp from './ContentScriptApp';
@@ -75,5 +77,15 @@ const storageChange = (changes: any) => {
 };
 
 browser.storage.onChanged.addListener(storageChange);
+
+Sentry.init({
+  dsn: 'https://41a158eff71044a3ad021f381e0f0349@o512991.ingest.sentry.io/6223342',
+  integrations: [new BrowserTracing()],
+
+  // TODO
+  // We recommend adjusting this value in production, or using tracesSampler
+  // for finer control
+  tracesSampleRate: 1.0,
+});
 
 export {};

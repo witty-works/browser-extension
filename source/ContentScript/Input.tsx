@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 import defaultConfig from '../witty.config.json';
+import * as Sentry from '@sentry/react';
+
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -645,6 +647,13 @@ const Input: React.FC<{
     }
   }, [checkEndpointError]);
 
+  const FallbackComponent = () => {
+    console.log('Sentry Fallback component error!');
+    return <div>An error has occurred</div>;
+  };
+
+  const myFallback = <FallbackComponent />;
+
   return (
     <div className='canvas-container'>
       <StateIndicatorIcon
@@ -677,15 +686,19 @@ const Input: React.FC<{
           movePopoverNextOrPrev={movePopoverNextOrPrev}
         />
       )}
-      <Highlights
-        bodyScroll={bodyScroll}
-        parentScroll={parentScroll}
-        elementScroll={elementScroll}
-        elementRect={observedElementRect}
-        nodesWithAlerts={nodesWithAlerts}
-        element={observedElement}
-        selectedAlert={selectedAlert}
-      />
+      {nodesWithAlerts.length > 0 && (
+        <Sentry.ErrorBoundary fallback={myFallback}>
+          <Highlights
+            bodyScroll={bodyScroll}
+            parentScroll={parentScroll}
+            elementScroll={elementScroll}
+            elementRect={observedElementRect}
+            nodesWithAlerts={nodesWithAlerts}
+            element={observedElement}
+            selectedAlert={selectedAlert}
+          />
+        </Sentry.ErrorBoundary>
+      )}
     </div>
   );
 };
