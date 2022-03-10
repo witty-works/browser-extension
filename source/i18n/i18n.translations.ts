@@ -26,6 +26,7 @@ export const de = {
   },
   [namespaces.popover]: {
     insteadTry: 'Versuchen Sie stattdessen ...',
+    alertOftotal: 'von',
     learnMorePositive: 'Warum ist es gut?',
     learnMoreNegative: 'Was ist das Problem hier?',
     ignoreTerm: 'Diesen Begriff ignorieren',
@@ -61,6 +62,7 @@ export const en = {
   },
   [namespaces.popover]: {
     insteadTry: 'Try one of these instead...',
+    alertOftotal: 'of',
     learnMorePositive: 'Why is this good?',
     learnMoreNegative: "What's the problem here?",
     ignoreTerm: 'Ignore this term',

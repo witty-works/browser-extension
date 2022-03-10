@@ -180,7 +180,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
               <div className='wittyworks-popover-counter'>{`${
                 selectedAlertIndex + 1
-              } of ${totalAlerts}`}</div>
+              }
+                ${t('alertOftotal')} ${totalAlerts}`}</div>
             )}
             <div className='wittyworks-popover-icon-float-right'>
               {/* <PreviousIcon
