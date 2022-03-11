@@ -232,7 +232,9 @@ const Input: React.FC<{
   const hidePopover = () => {
     if (popoverData) {
       setPopoverData(null);
-      analytics.popoverLogs(popoverData.alert, 'popover_open'); //TODO this only logs when the popover closes!
+      analytics.popoverLogs(popoverData.alert, 'popover_open'); //TODO this only logs when the popover closes! also, the popover_close is logged in HighlightPopover.tsx handleClickOutside
+      setSelectedNodeWithAlertsIndex(-1);
+      setSelectedAlertIndex(-1);
     }
   };
 
