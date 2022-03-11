@@ -261,7 +261,7 @@ const Input: React.FC<{
         const target = event.target as CustomInputElement;
 
         // Get caret data
-        let caret: { position: number | null; element: Node | null } =
+        const caret: { position: number | null; element: Node | null } =
           isTextArea(element) || isInputText(element)
             ? {
                 position: element.selectionStart,

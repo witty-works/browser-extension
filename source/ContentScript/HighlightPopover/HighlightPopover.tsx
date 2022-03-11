@@ -80,18 +80,34 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
-    document.addEventListener('input', handleClickOutside);
+    document.addEventListener('input', handleClickOutside as EventListener);
     return () => {
       document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('input', handleClickOutside);
+      document.removeEventListener(
+        'input',
+        handleClickOutside as EventListener
+      );
     };
   }, [refs.floating.current]);
 
-  const handleClickOutside = (event: Event) => {
-    if (
+  const handleClickOutside = (event: MouseEvent) => {
+    console.log('data pos', data.position);
+
+    const hasClickedOutsidePopOver: boolean | null =
       refs.floating.current &&
-      !refs.floating.current.contains(event.target as HTMLElement)
-    ) {
+      !refs.floating.current.contains(event.target as HTMLElement);
+
+    const doc = document.documentElement || document.body;
+    const posX = event.pageX + doc.scrollLeft;
+    const posY = event.pageY - doc.scrollTop;
+
+    const hasClickedThisHighlight: boolean =
+      posX >= data.position.x &&
+      posX <= data.position.x + data.position.width &&
+      posY >= data.position.y &&
+      posY <= data.position.y + data.position.height;
+
+    if (hasClickedOutsidePopOver && !hasClickedThisHighlight) {
       analytics.popoverLogs(data.alert, 'popover_close');
       hide();
     }
