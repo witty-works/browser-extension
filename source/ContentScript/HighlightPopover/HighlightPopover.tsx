@@ -11,12 +11,14 @@ import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
 import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
-// import NextIcon from '../../assets/icons/popover/next.svg';
-// import PreviousIcon from '../../assets/icons/popover/previous.svg';
+import NextIcon from '../../assets/icons/popover/next.svg';
+import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 export interface PopoverData {
+  index: number;
+  totalAlerts: number;
   alert: IAlert;
   position: DOMRect;
   node: Node;
@@ -29,9 +31,9 @@ interface PopoverProps {
   hide: () => void;
   resendText: () => void;
   addIgnoredTerm: (term: string) => void;
-  // updatePopover: (direction: string) => void;
-  selectedAlertIndex: number;
-  totalAlerts: number;
+  updatePopover: (direction: string) => void;
+  // selectedAlertIndex: number;
+  // totalAlerts: number;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -40,9 +42,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   hide,
   resendText,
   addIgnoredTerm,
-  // updatePopover,
-  selectedAlertIndex,
-  totalAlerts,
+  updatePopover,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
 
@@ -174,39 +174,51 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       <div id='wittyworks-popover-content'>
         <div className='wittyworks-popover-row'>
           <div className='wittyworks-popover-row-navigation'>
-            <a href='https://www.witty.works/'>
+            <a href='https://www.witty.works/' target='_blank'>
               <WittyLogo className='wittyworks-popover-icon' />
             </a>
-            {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
+            {/* {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
               <div className='wittyworks-popover-counter'>{`${selectedAlertIndex}
                 ${t('alertOftotal')} ${totalAlerts}`}</div>
-            )}
+            )} */}
+            <div className='wittyworks-popover-counter'>{`${data.index}
+                ${t('alertOftotal')} ${data.totalAlerts}`}</div>
             <div className='wittyworks-popover-icon-float-right'>
-              {/* <PreviousIcon
-                className='wittyworks-popover-navigation-icon'
-                style={{
-                  filter:
-                    selectedAlertIndex == 0
-                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
-                      : '',
-                  cursor: selectedAlertIndex == 0 ? 'default' : 'pointer',
-                }}
-                onClick={() => updatePopover('previous')}
-              /> */}
-              {/* <NextIcon
-                className='wittyworks-popover-navigation-icon'
-                style={{
-                  filter:
-                    selectedAlertIndex + 1 == totalAlerts
-                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
-                      : '',
-                  cursor:
-                    selectedAlertIndex + 1 == totalAlerts
-                      ? 'default'
-                      : 'pointer',
-                }}
-                onClick={() => updatePopover('next')}
-              /> */}
+              {data.index === 1 ? (
+                <PreviousIcon
+                  className='wittyworks-popover-navigation-icon'
+                  style={{
+                    filter:
+                      'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)',
+                  }}
+                />
+              ) : (
+                <PreviousIcon
+                  className='wittyworks-popover-navigation-icon'
+                  style={{
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => updatePopover('previous')}
+                />
+              )}
+              {data.index === data.totalAlerts ? (
+                <NextIcon
+                  className='wittyworks-popover-navigation-icon'
+                  style={{
+                    filter:
+                      'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)',
+                  }}
+                />
+              ) : (
+                <NextIcon
+                  className='wittyworks-popover-navigation-icon'
+                  style={{
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => updatePopover('next')}
+                />
+              )}
+
               <CloseIcon
                 className='wittyworks-popover-close-icon'
                 onClick={() => {
