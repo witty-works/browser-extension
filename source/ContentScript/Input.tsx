@@ -63,8 +63,8 @@ const Input: React.FC<{
   //   range.setEnd(selectedNode.node, selectedAlert.endOffset);
   // }
   const [selectedNodeWithAlertsIndex, setSelectedNodeWithAlertsIndex] =
-    useState<number>(0);
-  const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(0);
+    useState<number>(-1);
+  const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   // const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
   const [popoverData, setPopoverData] = useState<PopoverData | null>(null);
@@ -360,7 +360,11 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    if (nodesWithAlertsRef.current.length > 0) {
+    if (
+      nodesWithAlertsRef.current.length > 0 &&
+      selectedNodeWithAlertsIndex > -1 &&
+      selectedAlertIndex > -1
+    ) {
       const oneNodeWithAlerts =
         nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
 
