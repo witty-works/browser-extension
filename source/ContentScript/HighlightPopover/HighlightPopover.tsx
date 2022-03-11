@@ -51,6 +51,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
   useEffect(() => {
+    console.log('log popoveropen');
+    analytics.popoverLogs(data.alert, 'popover_open');
+  }, [data]);
+
+  useEffect(() => {
     //Dynamically sets the language depending on the text language
     i18n.changeLanguage(data.alert.data.language);
   }, [data.alert.data.language]);
@@ -91,8 +96,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   }, [refs.floating.current]);
 
   const handleClickOutside = (event: MouseEvent) => {
-    console.log('data pos', data.position);
-
     const hasClickedOutsidePopOver: boolean | null =
       refs.floating.current &&
       !refs.floating.current.contains(event.target as HTMLElement);
@@ -171,7 +174,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       ? (data.originalNode.value = newTextToInsert)
       : (data.node.nodeValue = newTextToInsert);
 
-    //Close Popover
     hide();
 
     //Send again all the text to recalculate highlight positions
@@ -179,10 +181,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   const clickIgnoreTerm = () => {
-    hide();
     //Log when user chooses to ignore a term
     analytics.ignoreLog(data.alert);
     addIgnoredTerm(data.alert.data.text);
+    hide();
   };
 
   return (
@@ -238,8 +240,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               <CloseIcon
                 className='wittyworks-popover-close-icon'
                 onClick={() => {
-                  hide();
                   analytics.popoverLogs(data.alert, 'popover_close');
+                  hide();
                 }}
               />
             </div>

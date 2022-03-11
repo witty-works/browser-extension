@@ -214,25 +214,9 @@ const Input: React.FC<{
     setClone(newClone);
   };
 
-  // const togglePopover = (): void => {
-  //   setIsPopoverOpen(!isPopoverOpen);
-  //   if (isPopoverOpen) {
-  //     if (popoverData) analytics.popoverLogs(popoverData.alert, 'popover_open');
-  //     setSelectedAlert(null);
-  //   }
-  // };
-
-  // const closePopover = (): void => {
-  //   if (!popoverData) return;
-  //   analytics.popoverLogs(popoverData.alert, 'popover_open');
-  //   setSelectedNodeIndex(-1);
-  //   setSelectedAlertIndex(-1);
-  // };
-
   const hidePopover = () => {
     if (popoverData) {
       setPopoverData(null);
-      analytics.popoverLogs(popoverData.alert, 'popover_open'); //TODO this only logs when the popover closes! also, the popover_close is logged in HighlightPopover.tsx handleClickOutside
       setSelectedNodeWithAlertsIndex(-1);
       setSelectedAlertIndex(-1);
     }
