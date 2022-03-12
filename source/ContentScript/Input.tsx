@@ -364,7 +364,8 @@ const Input: React.FC<{
       range.setEnd(nodeText, selectedAlert.endOffset);
       const clickedRect = range.getClientRects()[0];
 
-      const target = nodeText.parentNode as Element;
+      // const target = nodeText.parentNode as Element;
+      // console.log('ttt target', target);
 
       const currentAlertIndex = nodesWithAlertsRef.current
         .slice(0, selectedNodeWithAlertsIndex + 1)
@@ -382,7 +383,8 @@ const Input: React.FC<{
         alert: selectedAlert,
         position: clickedRect,
         node: nodeText,
-        originalNode: isTextArea(target) || isInputText(target) ? target : null,
+        originalNode:
+          isTextArea(element) || isInputText(element) ? element : null,
       });
     }
   }, [selectedNodeWithAlertsIndex, selectedAlertIndex]);

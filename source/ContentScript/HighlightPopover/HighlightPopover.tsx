@@ -170,6 +170,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
     const newTextToInsert = text.replace(regex, replacingTerm);
 
+    console.log(' data.originalNode', data.originalNode);
+
     data.originalNode
       ? (data.originalNode.value = newTextToInsert)
       : (data.node.nodeValue = newTextToInsert);
