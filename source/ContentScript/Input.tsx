@@ -223,6 +223,7 @@ const Input: React.FC<{
   };
 
   const resendText = () => {
+    setNodesWithAlerts([]);
     const text: string = getInputText(element);
     setTextToCheck(text);
   };
