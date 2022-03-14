@@ -149,55 +149,49 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
       <div id='wittyworks-popover-content'>
         <div className='wittyworks-popover-row'>
-          <div className='wittyworks-popover-row-navigation'>
-            <a href='https://www.witty.works/' target='_blank'>
-              <WittyLogo className='wittyworks-popover-icon' />
-            </a>
-            <div className='wittyworks-popover-counter'>{`${data.index}
+          <div className='wittyworks-popover-nav'>
+            <div className='wittyworks-popover-nav-www-logo'>
+              <a href='https://www.witty.works/' target='_blank'>
+                <WittyLogo className='wittyworks-popover-icon' />
+              </a>
+            </div>
+            <div className='wittyworks-popover-nav-counter'>{`${data.index}
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
-            <div className='wittyworks-popover-icon-float-right'>
+            <div className='wittyworks-popover-nav-buttons'>
               {data.index === 1 ? (
-                <PreviousIcon
-                  className='wittyworks-popover-navigation-icon'
-                  style={{
-                    filter:
-                      'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)',
-                  }}
-                />
+                <div className='wittyworks-popover-nav-btn disabled'>
+                  <PreviousIcon />
+                </div>
               ) : (
-                <PreviousIcon
-                  className='wittyworks-popover-navigation-icon'
-                  style={{
-                    cursor: 'pointer',
-                  }}
+                <div
+                  className='wittyworks-popover-nav-btn'
                   onClick={() => updatePopover('previous')}
-                />
+                >
+                  <PreviousIcon />
+                </div>
               )}
               {data.index === data.totalAlerts ? (
-                <NextIcon
-                  className='wittyworks-popover-navigation-icon'
-                  style={{
-                    filter:
-                      'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)',
-                  }}
-                />
+                <div className='wittyworks-popover-nav-btn disabled'>
+                  <NextIcon />
+                </div>
               ) : (
-                <NextIcon
-                  className='wittyworks-popover-navigation-icon'
-                  style={{
-                    cursor: 'pointer',
-                  }}
+                <div
+                  className='wittyworks-popover-nav-btn'
                   onClick={() => updatePopover('next')}
-                />
+                >
+                  <NextIcon />
+                </div>
               )}
 
-              <CloseIcon
-                className='wittyworks-popover-close-icon'
+              <div
+                className='wittyworks-popover-nav-btn'
                 onClick={() => {
                   analytics.popoverLogs(data.alert, 'popover_close');
                   hide();
                 }}
-              />
+              >
+                <CloseIcon />
+              </div>
             </div>
           </div>
         </div>
