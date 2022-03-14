@@ -30,19 +30,16 @@ interface PopoverProps {
   hide: () => void;
   updateTextWithAlternative: (alternative: string) => void;
   addIgnoredTerm: (term: string) => void;
-  updatePopover: (direction: string) => void; //TODO needed?
-  // selectedAlertIndex: number;
-  // totalAlerts: number;
+  movePopoverNextOrPrev: (direction: string) => void;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
   element,
   data,
   hide,
-  // resendText,
   updateTextWithAlternative,
   addIgnoredTerm,
-  updatePopover,
+  movePopoverNextOrPrev: updatePopover,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
 
@@ -156,10 +153,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <a href='https://www.witty.works/' target='_blank'>
               <WittyLogo className='wittyworks-popover-icon' />
             </a>
-            {/* {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
-              <div className='wittyworks-popover-counter'>{`${selectedAlertIndex}
-                ${t('alertOftotal')} ${totalAlerts}`}</div>
-            )} */}
             <div className='wittyworks-popover-counter'>{`${data.index}
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
             <div className='wittyworks-popover-icon-float-right'>
@@ -269,7 +262,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         className='wittyworks-popover-alternative-btn remove-text'
                         key={`${index}-remove-it`}
                         onClick={() => clickAlternative('')}
-                        // onClick={() => clickAlternative(-1)}
                       >
                         {data.alert.data.text}
                       </div>
@@ -285,7 +277,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                               data.alert.data.alternatives[index].text
                             )
                           }
-                          // onClick={() => clickAlternative(index)}
                         >
                           {alternative.text}
                         </div>
