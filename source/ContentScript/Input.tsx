@@ -247,8 +247,8 @@ const Input: React.FC<{
             const selectedAlert = oneNodeWithAlerts.alerts
               .filter(
                 (alert: IAlert) =>
-                  alert.startOffset < (caret.position as number) &&
-                  alert.endOffset > (caret.position as number)
+                  alert.startOffset <= (caret.position as number) &&
+                  alert.endOffset >= (caret.position as number)
               )
               .pop() as IAlert;
 
