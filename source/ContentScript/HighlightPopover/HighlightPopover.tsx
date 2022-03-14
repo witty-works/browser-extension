@@ -22,16 +22,15 @@ export interface PopoverData {
   alert: IAlert;
   position: DOMRect;
   node: Node;
-  originalNode: HTMLTextAreaElement | HTMLInputElement | null;
 }
 
 interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
   hide: () => void;
-  resendText: () => void;
+  updateTextWithAlternative: (alternative: string) => void;
   addIgnoredTerm: (term: string) => void;
-  updatePopover: (direction: string) => void;
+  updatePopover: (direction: string) => void; //TODO needed?
   // selectedAlertIndex: number;
   // totalAlerts: number;
 }
@@ -40,7 +39,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   element,
   data,
   hide,
-  resendText,
+  // resendText,
+  updateTextWithAlternative,
   addIgnoredTerm,
   updatePopover,
 }: PopoverProps) => {
@@ -51,7 +51,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log('log popoveropen');
     analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
 
@@ -136,50 +135,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     left: `${x}px`,
   };
 
-  const clickAlternative = (index: number) => {
+  const clickAlternative = (alternative: string) => {
     //Log the clicked alternative
-    analytics.alternativeLog(
-      data.alert,
-      index == -1
-        ? data.alert.data.text
-        : data.alert.data.alternatives[index].text
-    );
-    //Replace text with the new alternative or simply remove it
-    //This only replaces the specific occurrence.
-    //If there are other identical terms in the text they will keep highlighted
-
-    const text: string = data.node.nodeValue as string;
-
-    const termToBeReplaced: string = text.slice(
-      data.alert.startOffset,
-      data.alert.endOffset
-    );
-
-    const regex: RegExp = new RegExp(
-      index === -1
-        ? data.alert.startOffset === 0
-          ? `${termToBeReplaced}[ ,]+`
-          : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}[ ,]+`
-        : data.alert.startOffset === 0
-        ? `${termToBeReplaced}`
-        : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}`
-    );
-
-    const replacingTerm: string =
-      index === -1 ? '' : data.alert.data.alternatives[index].text;
-
-    const newTextToInsert = text.replace(regex, replacingTerm);
-
-    console.log(' data.originalNode', data.originalNode);
-
-    data.originalNode
-      ? (data.originalNode.value = newTextToInsert)
-      : (data.node.nodeValue = newTextToInsert);
-
-    hide();
-
-    //Send again all the text to recalculate highlight positions
-    resendText();
+    analytics.alternativeLog(data.alert, alternative);
+    updateTextWithAlternative(alternative);
   };
 
   const clickIgnoreTerm = () => {
@@ -309,7 +268,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       <div
                         className='wittyworks-popover-alternative-btn remove-text'
                         key={`${index}-remove-it`}
-                        onClick={() => clickAlternative(-1)}
+                        onClick={() => clickAlternative('')}
+                        // onClick={() => clickAlternative(-1)}
                       >
                         {data.alert.data.text}
                       </div>
@@ -320,7 +280,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       >
                         <div
                           className='wittyworks-popover-alternative-btn'
-                          onClick={() => clickAlternative(index)}
+                          onClick={() =>
+                            clickAlternative(
+                              data.alert.data.alternatives[index].text
+                            )
+                          }
+                          // onClick={() => clickAlternative(index)}
                         >
                           {alternative.text}
                         </div>

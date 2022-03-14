@@ -223,11 +223,11 @@ const Input: React.FC<{
     }
   };
 
-  const resendText = () => {
-    setNodesWithAlerts([]); //When text is resent, first remove the highlights for a cleaner effect
-    const text: string = getInputText(element);
-    setTextToCheck(text);
-  };
+  // const resendText = () => {
+  //   setNodesWithAlerts([]);
+  //   const text: string = getInputText(element);
+  //   setTextToCheck(text);
+  // };
 
   const getInputText = (element: CustomInputElement) =>
     isTextArea(element) || isInputText(element)
@@ -366,8 +366,7 @@ const Input: React.FC<{
       range.setEnd(nodeText, selectedAlert.endOffset);
       const clickedRect = range.getClientRects()[0];
 
-      // const target = nodeText.parentNode as Element;
-      // console.log('ttt target', target);
+      //const target = nodeText.parentNode as Element;
 
       const currentAlertIndex = nodesWithAlertsRef.current
         .slice(0, selectedNodeWithAlertsIndex + 1)
@@ -385,8 +384,8 @@ const Input: React.FC<{
         alert: selectedAlert,
         position: clickedRect,
         node: nodeText,
-        originalNode:
-          isTextArea(element) || isInputText(element) ? element : null,
+        // originalNode:
+        //   isTextArea(element) || isInputText(element) ? element : null,
       });
     }
   }, [selectedNodeWithAlertsIndex, selectedAlertIndex]);
@@ -625,6 +624,52 @@ const Input: React.FC<{
     return nodesWithAlertsTemp;
   };
 
+  const updateTextWithAlternative = (alternative: string) => {
+    console.log('updateTextWithAlternative alternative', alternative);
+
+    //popoverData
+    const node = popoverData?.node as Node;
+    const nodeText: string = node.nodeValue as string;
+    console.log('updateTextWithAlternative text', nodeText);
+
+    const alert = selectedAlert as IAlert;
+    console.log('updateTextWithAlternative alert', alert);
+
+    const termToBeReplaced: string = nodeText.slice(
+      alert.startOffset,
+      alert.endOffset
+    );
+
+    console.log('updateTextWithAlternative termToBeReplaced', termToBeReplaced);
+
+    const regex: RegExp = new RegExp(
+      alternative === ''
+        ? alert.startOffset === 0
+          ? `${termToBeReplaced}[ ,]+`
+          : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}[ ,]+`
+        : alert.startOffset === 0
+        ? `${termToBeReplaced}`
+        : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}`
+    );
+
+    const newTextToInsert = nodeText.replace(regex, alternative);
+
+    console.log('updateTextWithAlternative termToBeReplaced', newTextToInsert);
+
+    // data.originalNode
+    //   ? (data.originalNode.value = newTextToInsert)
+    //   : (data.node.nodeValue = newTextToInsert);
+    isTextArea(element) || isInputText(element)
+      ? (element.value = newTextToInsert)
+      : (node.nodeValue = newTextToInsert);
+
+    setNodesWithAlerts([]);
+    const newText: string = getInputText(element);
+    setTextToCheck(newText);
+
+    hidePopover();
+  };
+
   useEffect(() => {
     if (checkEndpointError)
       log(
@@ -661,7 +706,7 @@ const Input: React.FC<{
           data={popoverData}
           hide={hidePopover}
           // hide={closePopover}
-          resendText={resendText}
+          updateTextWithAlternative={updateTextWithAlternative}
           addIgnoredTerm={addIgnoredTerm}
           updatePopover={updatePopover}
           // selectedAlertIndex={0}
