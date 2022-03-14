@@ -217,13 +217,14 @@ const Input: React.FC<{
   const hidePopover = () => {
     if (popoverData) {
       setPopoverData(null);
+      setSelectedAlert(null);
       setSelectedNodeWithAlertsIndex(-1);
       setSelectedAlertIndex(-1);
     }
   };
 
   const resendText = () => {
-    setNodesWithAlerts([]);
+    setNodesWithAlerts([]); //When text is resent, first remove the highlights for a cleaner effect
     const text: string = getInputText(element);
     setTextToCheck(text);
   };
