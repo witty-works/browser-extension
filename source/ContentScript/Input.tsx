@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -10,6 +10,7 @@ import {
 } from '../shared/types';
 import { isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
+import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { debounce } from 'lodash';
@@ -56,6 +57,27 @@ const Input: React.FC<{
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
+  const [elementXPathResult, setElementXPathResult] = useState<XPathResult>();
+
+  const onElementMutation = useCallback(
+    (mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+          const elementEvaluation: XPathResult = document.evaluate(
+            './/text()',
+            element,
+            null,
+            XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+            null
+          );
+          setElementXPathResult(elementEvaluation);
+        }
+      }
+    },
+    [element]
+  );
+
+  useMutationObserver(element, onElementMutation);
 
   const log = useLog('Input');
 
@@ -388,7 +410,8 @@ const Input: React.FC<{
               },
             ]
           : getNodesWithRecalculatedPositionAlerts(
-              alertsWithoutIgnoredTermsGravityReduced
+              alertsWithoutIgnoredTermsGravityReduced,
+              elementXPathResult
             );
 
       //Set the total alerts
@@ -400,70 +423,74 @@ const Input: React.FC<{
 
       setNodesWithAlerts(nodesWithAlertsTemp);
     }
-  }, [alerts, ignoredTerms]);
+  }, [alerts, ignoredTerms, elementXPathResult]);
 
   const getNodesWithRecalculatedPositionAlerts = (
-    alerts: IAlert[]
+    alerts: IAlert[],
+    elementEvaluation: XPathResult | undefined
   ): INodeWithAlerts[] => {
-    const nodesWithAlertsTemp: INodeWithAlerts[] = [];
+    if (typeof elementEvaluation === 'undefined') return [];
+    else {
+      const nodesWithAlertsTemp: INodeWithAlerts[] = [];
 
-    const nextText: string = getInputText(element);
+      const nextText: string = getInputText(element);
 
-    let textStartingAbsPosition: number = 0;
-    let textEndAbsPosition: number = 0;
+      let textStartingAbsPosition: number = 0;
+      let textEndAbsPosition: number = 0;
 
-    const elementEvaluation: XPathResult = document.evaluate(
-      './/text()',
-      element,
-      null,
-      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-      null
-    );
+      // const elementEvaluation: XPathResult = document.evaluate(
+      //   './/text()',
+      //   element,
+      //   null,
+      //   XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      //   null
+      // );
 
-    for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
-      const node = elementEvaluation.snapshotItem(index) as Node;
+      for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
+        const node = elementEvaluation.snapshotItem(index) as Node;
 
-      if (
-        node.nodeValue &&
-        node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
-      ) {
-        textStartingAbsPosition = textEndAbsPosition;
+        if (
+          node.nodeValue &&
+          node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
+        ) {
+          textStartingAbsPosition = textEndAbsPosition;
 
-        const nodeValueLength: number = node.nodeValue.length;
+          const nodeValueLength: number = node.nodeValue.length;
 
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
-        // Check if there is a whitespace char after the node's content
-        // If so, we +1 to the end position
-        if (nextText.charAt(textEndAbsPosition).match(/\n/gi))
-          textEndAbsPosition += 1;
+          textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+          // Check if there is a whitespace char after the node's content
+          // If so, we +1 to the end position
+          if (nextText.charAt(textEndAbsPosition).match(/\n/gi))
+            textEndAbsPosition += 1;
 
-        const alertsTemp: IAlert[] = alerts
-          .filter(
-            (alert: IAlert) =>
-              node.nodeValue && node.nodeValue.includes(alert.data.text)
-          )
-          .filter(
-            (alert: IAlert) =>
-              alert.startOffset >= textStartingAbsPosition &&
-              alert.endOffset <= textEndAbsPosition
-          )
-          .map((alert: IAlert) => {
-            return {
-              ...alert,
-              startOffset: alert.startOffset - textStartingAbsPosition,
-              endOffset: alert.endOffset - textStartingAbsPosition,
-            };
-          });
+          const alertsTemp: IAlert[] = alerts
+            .filter(
+              (alert: IAlert) =>
+                node.nodeValue && node.nodeValue.includes(alert.data.text)
+            )
+            .filter(
+              (alert: IAlert) =>
+                alert.startOffset >= textStartingAbsPosition &&
+                alert.endOffset <= textEndAbsPosition
+            )
+            .map((alert: IAlert) => {
+              return {
+                ...alert,
+                startOffset: alert.startOffset - textStartingAbsPosition,
+                endOffset: alert.endOffset - textStartingAbsPosition,
+              };
+            });
 
-        if (alertsTemp.length > 0)
-          nodesWithAlertsTemp.push({
-            node: node,
-            alerts: alertsTemp,
-          });
+          if (alertsTemp.length > 0)
+            nodesWithAlertsTemp.push({
+              node: node,
+              alerts: alertsTemp,
+            });
+        }
       }
-    }
 
-    return nodesWithAlertsTemp;
+      return nodesWithAlertsTemp;
+    }
   };
 
   const updateTextWithAlternative = (alternative: string) => {
