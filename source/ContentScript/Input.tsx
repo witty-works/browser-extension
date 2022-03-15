@@ -60,7 +60,7 @@ const Input: React.FC<{
   const [elementXPathResult, setElementXPathResult] = useState<XPathResult>();
 
   const onElementMutation = useCallback(
-    (mutationsList) => {
+    (mutationsList: MutationRecord[]) => {
       for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
           const elementEvaluation: XPathResult = document.evaluate(

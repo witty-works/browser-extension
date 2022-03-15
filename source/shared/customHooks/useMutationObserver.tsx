@@ -6,7 +6,7 @@ const DEFAULT_OPTIONS = {
 
 export const useMutationObserver = (
   targetElement: HTMLElement,
-  callback: ([]) => void,
+  callback: (mutationsList: MutationRecord[]) => void,
   options = DEFAULT_OPTIONS
 ) => {
   const [observer, setObserver] = useState<MutationObserver>();
