@@ -25,14 +25,12 @@ export const de = {
     needHelpQuestionMark: 'Brauchen Sie Hilfe?',
   },
   [namespaces.popover]: {
-    insteadTry: 'Versuchen Sie stattdessen ...',
-    alertOftotal: 'von',
-    learnMorePositive: 'Warum ist es gut?',
-    learnMoreNegative: 'Was ist das Problem hier?',
-    ignoreTerm: 'Diesen Begriff ignorieren',
+    insteadTry: "Wie wär's mit ...",
+    learnMorePositive: 'Warum?',
+    learnMoreNegative: 'Warum?',
+    ignoreTerm: 'Ignorieren',
     whyQuestionMark: 'Warum?',
-    understood: 'Verstanden',
-    okUnderstood: 'Ok, Verstanden!',
+    alertOftotal: 'von',
   },
 };
 
@@ -61,13 +59,11 @@ export const en = {
     needHelpQuestionMark: 'Need Help?',
   },
   [namespaces.popover]: {
-    insteadTry: 'Try one of these instead...',
-    alertOftotal: 'of',
-    learnMorePositive: 'Why is this good?',
-    learnMoreNegative: "What's the problem here?",
-    ignoreTerm: 'Ignore this term',
+    insteadTry: 'Try instead ...',
+    learnMorePositive: 'Why?',
+    learnMoreNegative: 'Why?',
+    ignoreTerm: 'Ignore',
     whyQuestionMark: 'Why?',
-    understood: 'Understood',
-    okUnderstood: 'Ok, Understood!',
+    alertOftotal: 'of',
   },
 };
