@@ -107,9 +107,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       posY <= data.position.y + data.position.height;
 
     if (hasClickedOutsidePopOver && !hasClickedThisHighlight) {
-      analytics.popoverLogs(data.alert, 'popover_close');
-      hide();
+      hidePopover();
     }
+  };
+
+  const hidePopover = () => {
+    analytics.popoverLogs(data.alert, 'popover_close');
+    hide();
   };
 
   // Dynamically define the max width of the popover, so it does not grow
@@ -186,8 +190,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               <div
                 className='wittyworks-popover-nav-btn'
                 onClick={() => {
-                  analytics.popoverLogs(data.alert, 'popover_close');
-                  hide();
+                  hidePopover();
                 }}
               >
                 <CloseIcon />
