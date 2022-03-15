@@ -504,8 +504,8 @@ const Input: React.FC<{
     const regex: RegExp = new RegExp(
       alternative === ''
         ? alert.startOffset === 0
-          ? `${termToBeReplaced}[ ,]+`
-          : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}[ ,]+`
+          ? `${termToBeReplaced}[ ,]?`
+          : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}[ ,]?`
         : alert.startOffset === 0
         ? `${termToBeReplaced}`
         : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}`
