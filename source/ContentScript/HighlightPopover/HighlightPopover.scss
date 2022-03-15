@@ -10,7 +10,8 @@
   box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
   border-radius: 5px;
   font-family: $lato !important;
-  min-width: 17.75em;
+  min-width: 17em;
+  max-width: 20em;
 }
 
 #wittyworks-popover-content {
@@ -107,26 +108,32 @@
   font-size: 16px;
   margin-top: 0.5em;
   cursor: pointer;
-}
 
-//Icons
-.wittyworks-popover-emoji {
-  margin-right: 1em;
-  margin-left: 0.5em;
+  :first-child {
+    flex-basis: 7%;
+    flex-shrink: 0;
+  }
 }
 
 // More info section
 .wittyworks-popover-row-explanation {
   display: flex;
+  flex-direction: row;
+  border-radius: 4px;
+  padding: 0.75em;
   margin-top: 0.2em;
   margin-bottom: 0.2em;
   cursor: pointer;
 }
 
+.wittyworks-popover-row-explanation-emoji {
+  flex-basis: 12%;
+  flex-shrink: 0;
+}
+
 .wittyworks-popover-row-explanation-text {
-  max-width: 12.31em;
   font-weight: 700;
-  line-height: 108.5%;
+  line-height: 110%;
 }
 
 .wittyworks-popover-row-explanation-url {
