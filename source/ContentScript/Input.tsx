@@ -63,14 +63,7 @@ const Input: React.FC<{
     (mutationsList: MutationRecord[]) => {
       for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
-          const elementEvaluation: XPathResult = document.evaluate(
-            './/text()',
-            element,
-            null,
-            XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-            null
-          );
-          setElementXPathResult(elementEvaluation);
+          docTextEvaluation(element);
         }
       }
     },
@@ -119,6 +112,10 @@ const Input: React.FC<{
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
+
+  useEffect(() => {
+    docTextEvaluation(element);
+  }, [element]);
 
   useEffect(() => {
     const ele: { element: HTMLElement; rect: DOMRect } =
@@ -189,6 +186,18 @@ const Input: React.FC<{
     //It's assumed that when user sends info through a form, text will disappear.
     //Therefore highlights also need to be removed
     setNodesWithAlerts([]);
+  };
+
+  const docTextEvaluation = (element: HTMLElement) => {
+    //Find the text nodes inside element
+    const elementEvaluation: XPathResult = document.evaluate(
+      './/text()',
+      element,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    );
+    setElementXPathResult(elementEvaluation);
   };
 
   const updateCloneData = (newClone: HTMLDivElement) => {
@@ -412,7 +421,7 @@ const Input: React.FC<{
             ]
           : getNodesWithRecalculatedPositionAlerts(
               alertsWithoutIgnoredTermsGravityReduced,
-              elementXPathResult
+              elementXPathResult as XPathResult
             );
 
       //Set the total alerts
@@ -428,70 +437,59 @@ const Input: React.FC<{
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
-    elementEvaluation: XPathResult | undefined
+    elementEvaluation: XPathResult
   ): INodeWithAlerts[] => {
-    if (typeof elementEvaluation === 'undefined') return [];
-    else {
-      const nodesWithAlertsTemp: INodeWithAlerts[] = [];
+    const nodesWithAlertsTemp: INodeWithAlerts[] = [];
 
-      const nextText: string = getInputText(element);
+    const nextText: string = getInputText(element);
 
-      let textStartingAbsPosition: number = 0;
-      let textEndAbsPosition: number = 0;
+    let textStartingAbsPosition: number = 0;
+    let textEndAbsPosition: number = 0;
 
-      // const elementEvaluation: XPathResult = document.evaluate(
-      //   './/text()',
-      //   element,
-      //   null,
-      //   XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-      //   null
-      // );
+    for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
+      const node = elementEvaluation.snapshotItem(index) as Node;
 
-      for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
-        const node = elementEvaluation.snapshotItem(index) as Node;
+      if (
+        node.nodeValue &&
+        node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
+      ) {
+        textStartingAbsPosition = textEndAbsPosition;
 
-        if (
-          node.nodeValue &&
-          node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
-        ) {
-          textStartingAbsPosition = textEndAbsPosition;
+        const nodeValueLength: number = node.nodeValue.length;
 
-          const nodeValueLength: number = node.nodeValue.length;
+        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+        // Check if there is a whitespace char after the node's content
+        // If so, we +1 to the end position
+        if (nextText.charAt(textEndAbsPosition).match(/\n/gi))
+          textEndAbsPosition += 1;
 
-          textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
-          // Check if there is a whitespace char after the node's content
-          // If so, we +1 to the end position
-          if (nextText.charAt(textEndAbsPosition).match(/\n/gi))
-            textEndAbsPosition += 1;
+        const alertsTemp: IAlert[] = alerts
+          .filter(
+            (alert: IAlert) =>
+              node.nodeValue && node.nodeValue.includes(alert.data.text)
+          )
+          .filter(
+            (alert: IAlert) =>
+              alert.startOffset >= textStartingAbsPosition &&
+              alert.endOffset <= textEndAbsPosition
+          )
+          .map((alert: IAlert) => {
+            return {
+              ...alert,
+              startOffset: alert.startOffset - textStartingAbsPosition,
+              endOffset: alert.endOffset - textStartingAbsPosition,
+            };
+          });
 
-          const alertsTemp: IAlert[] = alerts
-            .filter(
-              (alert: IAlert) =>
-                node.nodeValue && node.nodeValue.includes(alert.data.text)
-            )
-            .filter(
-              (alert: IAlert) =>
-                alert.startOffset >= textStartingAbsPosition &&
-                alert.endOffset <= textEndAbsPosition
-            )
-            .map((alert: IAlert) => {
-              return {
-                ...alert,
-                startOffset: alert.startOffset - textStartingAbsPosition,
-                endOffset: alert.endOffset - textStartingAbsPosition,
-              };
-            });
-
-          if (alertsTemp.length > 0)
-            nodesWithAlertsTemp.push({
-              node: node,
-              alerts: alertsTemp,
-            });
-        }
+        if (alertsTemp.length > 0)
+          nodesWithAlertsTemp.push({
+            node: node,
+            alerts: alertsTemp,
+          });
       }
-
-      return nodesWithAlertsTemp;
     }
+
+    return nodesWithAlertsTemp;
   };
 
   const updateTextWithAlternative = (alternative: string) => {
