@@ -259,9 +259,13 @@ const Input: React.FC<{
           if (oneNodeWithAlerts) {
             // If so, then find out if an alert that has been clicked
             const selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
-              (alert: IAlert) =>
-                alert.startOffset <= (caret.position as number) &&
-                alert.endOffset >= (caret.position as number)
+              (alert: IAlert) => {
+                const caretPos = caret.position as number;
+                //If alert is a one character word, take in consideration clicking the position before or after the char
+                return alert.data.text.length === 1
+                  ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
+                  : alert.startOffset < caretPos && alert.endOffset > caretPos;
+              }
             );
 
             if (selectedAlertIndex > -1)
