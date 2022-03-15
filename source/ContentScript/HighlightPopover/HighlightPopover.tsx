@@ -11,44 +11,45 @@ import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
 import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
-// import NextIcon from '../../assets/icons/popover/next.svg';
-// import PreviousIcon from '../../assets/icons/popover/previous.svg';
+import NextIcon from '../../assets/icons/popover/next.svg';
+import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 export interface PopoverData {
+  index: number;
+  totalAlerts: number;
   alert: IAlert;
   position: DOMRect;
   node: Node;
-  originalNode: HTMLTextAreaElement | HTMLInputElement | null;
 }
 
 interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
   hide: () => void;
-  resendText: () => void;
+  updateTextWithAlternative: (alternative: string) => void;
   addIgnoredTerm: (term: string) => void;
-  // updatePopover: (direction: string) => void;
-  // selectedAlertIndex: number;
-  // totalAlerts: number;
+  movePopoverNextOrPrev: (direction: string) => void;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
   element,
   data,
   hide,
-  resendText,
+  updateTextWithAlternative,
   addIgnoredTerm,
-}: // updatePopover,
-// selectedAlertIndex,
-// totalAlerts,
-PopoverProps) => {
+  movePopoverNextOrPrev: updatePopover,
+}: PopoverProps) => {
   const doc = document.documentElement || document.body;
 
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
   const [isHovered, setIsHovered] = useState<boolean>(false);
+
+  useEffect(() => {
+    analytics.popoverLogs(data.alert, 'popover_open');
+  }, [data]);
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -80,21 +81,39 @@ PopoverProps) => {
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
-    document.addEventListener('input', handleClickOutside);
+    document.addEventListener('input', handleClickOutside as EventListener);
     return () => {
       document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('input', handleClickOutside);
+      document.removeEventListener(
+        'input',
+        handleClickOutside as EventListener
+      );
     };
   }, [refs.floating.current]);
 
-  const handleClickOutside = (event: Event) => {
-    if (
+  const handleClickOutside = (event: MouseEvent) => {
+    const hasClickedOutsidePopOver: boolean | null =
       refs.floating.current &&
-      !refs.floating.current.contains(event.target as HTMLElement)
-    ) {
-      analytics.popoverLogs(data.alert, 'popover_close');
-      hide();
+      !refs.floating.current.contains(event.target as HTMLElement);
+
+    const doc = document.documentElement || document.body;
+    const posX = event.pageX + doc.scrollLeft;
+    const posY = event.pageY - doc.scrollTop;
+
+    const hasClickedThisHighlight: boolean =
+      posX >= data.position.x &&
+      posX <= data.position.x + data.position.width &&
+      posY >= data.position.y &&
+      posY <= data.position.y + data.position.height;
+
+    if (hasClickedOutsidePopOver && !hasClickedThisHighlight) {
+      hidePopover();
     }
+  };
+
+  const hidePopover = () => {
+    analytics.popoverLogs(data.alert, 'popover_close');
+    hide();
   };
 
   // Dynamically define the max width of the popover, so it does not grow
@@ -117,104 +136,65 @@ PopoverProps) => {
     left: `${x}px`,
   };
 
-  const clickAlternative = (index: number) => {
+  const clickAlternative = (alternative: string) => {
     //Log the clicked alternative
-    analytics.alternativeLog(
-      data.alert,
-      index == -1
-        ? data.alert.data.text
-        : data.alert.data.alternatives[index].text
-    );
-    //Replace text with the new alternative or simply remove it
-    //This only replaces the specific occurrence.
-    //If there are other identical terms in the text they will keep highlighted
-
-    const text: string = data.node.nodeValue as string;
-
-    const termToBeReplaced: string = text.slice(
-      data.alert.startOffset,
-      data.alert.endOffset
-    );
-
-    const regex: RegExp = new RegExp(
-      index === -1
-        ? data.alert.startOffset === 0
-          ? `${termToBeReplaced}[ ,]+`
-          : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}[ ,]+`
-        : data.alert.startOffset === 0
-        ? `${termToBeReplaced}`
-        : `(?<=(.|\n){${data.alert.startOffset}})${termToBeReplaced}`
-    );
-
-    const replacingTerm: string =
-      index === -1 ? '' : data.alert.data.alternatives[index].text;
-
-    const newTextToInsert = text.replace(regex, replacingTerm);
-
-    data.originalNode
-      ? (data.originalNode.value = newTextToInsert)
-      : (data.node.nodeValue = newTextToInsert);
-
-    //Close Popover
-    hide();
-
-    //Send again all the text to recalculate highlight positions
-    resendText();
+    analytics.alternativeLog(data.alert, alternative);
+    updateTextWithAlternative(alternative);
   };
 
   const clickIgnoreTerm = () => {
-    hide();
     //Log when user chooses to ignore a term
     analytics.ignoreLog(data.alert);
     addIgnoredTerm(data.alert.data.text);
+    hide();
   };
 
   return (
     <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
       <div id='wittyworks-popover-content'>
         <div className='wittyworks-popover-row'>
-          <div className='wittyworks-popover-row-navigation'>
-            <a href='https://www.witty.works/'>
-              <WittyLogo className='wittyworks-popover-icon' />
-            </a>
-            {/* {selectedAlertIndex >= 0 && totalAlerts >= 0 && (
-              <div className='wittyworks-popover-counter'>{`${
-                selectedAlertIndex + 1
-              } of ${totalAlerts}`}</div>
-            )} */}
-            <div className='wittyworks-popover-icon-float-right'>
-              {/* <PreviousIcon
-                className='wittyworks-popover-navigation-icon'
-                style={{
-                  filter:
-                    selectedAlertIndex == 0
-                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
-                      : '',
-                  cursor: selectedAlertIndex == 0 ? 'default' : 'pointer',
-                }}
-                onClick={() => updatePopover('previous')}
-              />
-              <NextIcon
-                className='wittyworks-popover-navigation-icon'
-                style={{
-                  filter:
-                    selectedAlertIndex + 1 == totalAlerts
-                      ? 'invert(79%) sepia(6%) saturate(62%) hue-rotate(155deg) brightness(109%) contrast(85%)'
-                      : '',
-                  cursor:
-                    selectedAlertIndex + 1 == totalAlerts
-                      ? 'default'
-                      : 'pointer',
-                }}
-                onClick={() => updatePopover('next')}
-              /> */}
-              <CloseIcon
-                className='wittyworks-popover-close-icon'
+          <div className='wittyworks-popover-nav'>
+            <div className='wittyworks-popover-nav-www-logo'>
+              <a href='https://www.witty.works/' target='_blank'>
+                <WittyLogo className='wittyworks-popover-icon' />
+              </a>
+            </div>
+            <div className='wittyworks-popover-nav-counter'>{`${data.index}
+                ${t('alertOftotal')} ${data.totalAlerts}`}</div>
+            <div className='wittyworks-popover-nav-buttons'>
+              {data.index === 1 ? (
+                <div className='wittyworks-popover-nav-btn disabled'>
+                  <PreviousIcon />
+                </div>
+              ) : (
+                <div
+                  className='wittyworks-popover-nav-btn'
+                  onClick={() => updatePopover('previous')}
+                >
+                  <PreviousIcon />
+                </div>
+              )}
+              {data.index === data.totalAlerts ? (
+                <div className='wittyworks-popover-nav-btn disabled'>
+                  <NextIcon />
+                </div>
+              ) : (
+                <div
+                  className='wittyworks-popover-nav-btn'
+                  onClick={() => updatePopover('next')}
+                >
+                  <NextIcon />
+                </div>
+              )}
+
+              <div
+                className='wittyworks-popover-nav-btn'
                 onClick={() => {
-                  hide();
-                  analytics.popoverLogs(data.alert, 'popover_close');
+                  hidePopover();
                 }}
-              />
+              >
+                <CloseIcon />
+              </div>
             </div>
           </div>
         </div>
@@ -278,7 +258,7 @@ PopoverProps) => {
                       <div
                         className='wittyworks-popover-alternative-btn remove-text'
                         key={`${index}-remove-it`}
-                        onClick={() => clickAlternative(-1)}
+                        onClick={() => clickAlternative('')}
                       >
                         {data.alert.data.text}
                       </div>
@@ -289,7 +269,11 @@ PopoverProps) => {
                       >
                         <div
                           className='wittyworks-popover-alternative-btn'
-                          onClick={() => clickAlternative(index)}
+                          onClick={() =>
+                            clickAlternative(
+                              data.alert.data.alternatives[index].text
+                            )
+                          }
                         >
                           {alternative.text}
                         </div>

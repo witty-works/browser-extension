@@ -25,11 +25,12 @@ export const de = {
     needHelpQuestionMark: 'Brauchen Sie Hilfe?',
   },
   [namespaces.popover]: {
-    insteadTry: 'Wie wär\'s mit ...',
+    insteadTry: "Wie wär's mit ...",
     learnMorePositive: 'Warum?',
     learnMoreNegative: 'Warum?',
     ignoreTerm: 'Ignorieren',
     whyQuestionMark: 'Warum?',
+    alertOftotal: 'von',
   },
 };
 
@@ -60,8 +61,9 @@ export const en = {
   [namespaces.popover]: {
     insteadTry: 'Try instead ...',
     learnMorePositive: 'Why?',
-    learnMoreNegative: "Why?",
+    learnMoreNegative: 'Why?',
     ignoreTerm: 'Ignore',
     whyQuestionMark: 'Why?',
+    alertOftotal: 'of',
   },
 };

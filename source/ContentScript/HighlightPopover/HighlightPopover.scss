@@ -110,29 +110,9 @@
 }
 
 //Icons
-.wittyworks-popover-icon {
-  margin-right: 0.5em;
-  margin-left: 0.5em;
-}
-
-.wittyworks-popover-navigation-icon {
-  margin-right: 1em;
-  margin-left: 1em;
-}
-
-.wittyworks-popover-close-icon {
-  margin-right: 0.5em;
-  margin-left: 1em;
-}
-
 .wittyworks-popover-emoji {
   margin-right: 1em;
   margin-left: 0.5em;
-}
-
-.wittyworks-popover-icon-float-right {
-  cursor: pointer;
-  margin-left: auto;
 }
 
 // More info section
@@ -167,14 +147,38 @@
 }
 
 //Navigation
-.wittyworks-popover-row-navigation {
+.wittyworks-popover-nav {
   display: flex;
   align-items: center;
+  margin-right: 0.3em;
+  margin-left: 0.3em;
 }
 
-.wittyworks-popover-counter {
+.wittyworks-popover-nav-www-logo {
+  flex-grow: 1;
+}
+
+.wittyworks-popover-nav-counter {
+  flex-grow: 12;
   font-size: 16px;
   line-height: 139.69%;
   color: $darkGray;
-  margin-left: 0.5em;
+}
+
+.wittyworks-popover-nav-buttons {
+  flex-grow: 4;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  .wittyworks-popover-nav-btn {
+    padding: 0 0.5em;
+    cursor: pointer;
+    &.disabled {
+      cursor: default;
+      svg {
+        stroke: $lightGray;
+      }
+    }
+  }
 }
