@@ -1,5 +1,4 @@
 import React from 'react';
-import { CustomInputElement } from '../types';
 
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
