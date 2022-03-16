@@ -38,11 +38,11 @@ export const drawHighlight = (params: any, color: string) => {
 };
 
 export const redrawText = (params: any) => {
-  const { element, context, highlight, rect, elementRect } = params;
+  const { context, highlight, rect, elementRect } = params;
   let x = rect.left - elementRect.left;
   let y = rect.top - elementRect.top + rect.height;
 
-  const style = window.getComputedStyle(element);
+  const style = window.getComputedStyle(highlight.node.parentElement);
   const color = textIsLight(style.color)
     ? 'black'
     : chroma(style.color).set('lch.c', '*2');
