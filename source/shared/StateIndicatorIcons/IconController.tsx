@@ -7,7 +7,7 @@ import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.sv
 
 interface IconControllerProps {
   iconType: string;
-  elementReference: CustomInputElement;
+  elementReference: HTMLElement;
   isHovered: boolean;
 }
 

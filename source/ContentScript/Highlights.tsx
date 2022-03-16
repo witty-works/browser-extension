@@ -27,6 +27,8 @@ const Highlights: React.FC<HighlightsProps> = ({
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
   useEffect(() => {
+    // console.log('Highlights elementRect', elementRect);
+
     const highlights: Highlight[] = [];
     if (nodesWithAlerts.length === 0) setHighlights([]);
 
@@ -133,6 +135,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           overflow: 'auto',
           zIndex: 99999999,
           pointerEvents: 'none',
+          outline: '2px solid blue',
         } as React.CSSProperties
       }
     ></canvas>

@@ -29,10 +29,28 @@ const Input: React.FC<{
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const analytics = useAnalytics();
+
   let elementRect = useResizeObserver(element);
-  let elementOffsetParentRect = useResizeObserver(
-    element.offsetParent as HTMLElement
-  );
+
+  /* const intersectingParent: HTMLElement | null | undefined =
+    element.offsetParent?.closest('div[style*="height"]');
+  console.log('Input intersectingParent', intersectingParent);
+  const parent: HTMLElement = intersectingParent
+    ? intersectingParent
+    : (element.offsetParent as HTMLElement);
+  console.log('Input parent', parent); */
+
+  const relevantParent: HTMLElement = (
+    element.offsetParent
+      ? element.offsetParent.closest('div[style*="height"]')
+        ? element.offsetParent.closest('div[style*="height"]')
+        : element.offsetParent
+      : element
+  ) as HTMLElement;
+
+  console.log('Input relevantParent', relevantParent);
+
+  let elementOffsetParentRect = useResizeObserver(relevantParent);
 
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [observedElement, setObservedElement] = useState<HTMLElement>(element);
@@ -114,18 +132,25 @@ const Input: React.FC<{
   }, []);
 
   useEffect(() => {
+    console.log('Input element', element);
+    element.style.boxSizing = 'border-box';
+    element.style.border = '2px solid red';
     docTextEvaluation(element);
   }, [element]);
 
   useEffect(() => {
+    console.log('Input element.offsetParent', element.offsetParent);
+
     const ele: { element: HTMLElement; rect: DOMRect } =
       elementOffsetParentRect.width < elementRect.width ||
       elementOffsetParentRect.height < elementRect.height
         ? {
-            element: element.offsetParent as HTMLElement,
+            element: relevantParent,
             rect: elementOffsetParentRect,
           }
         : { element: element, rect: elementRect };
+
+    // console.log('Input ele', ele);
 
     setObservedElement(ele.element);
     setObservedElementRect(ele.rect);
@@ -538,7 +563,7 @@ const Input: React.FC<{
   return (
     <div className='canvas-container'>
       <StateIndicatorIcon
-        elementReference={element}
+        elementReference={observedElement}
         iconType={activeIcon}
         isHovered={isHovered}
       />
