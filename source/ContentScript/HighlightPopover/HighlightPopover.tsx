@@ -156,7 +156,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div className='wittyworks-popover-nav'>
             <div className='wittyworks-popover-nav-www-logo'>
               <a href='https://www.witty.works/' target='_blank'>
-                <WittyLogo className='wittyworks-popover-icon' />
+                <WittyLogo />
               </a>
             </div>
             <div className='wittyworks-popover-nav-counter'>{`${data.index}
@@ -208,8 +208,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               backgroundColor: isHovered
                 ? getColor(data.alert.data.gravity).hover
                 : getColor(data.alert.data.gravity).highlight,
-              borderRadius: '4px',
-              padding: '8px 8px 12px',
             }}
             onMouseEnter={() => {
               setIsHovered(true);
@@ -218,7 +216,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               setIsHovered(false);
             }}
           >
-            <div className='wittyworks-popover-emoji'>
+            <div className='wittyworks-popover-row-explanation-emoji'>
               {data.alert.data.explanation.icon}
             </div>
             <div className='wittyworks-popover-row-explanation-text'>
@@ -291,8 +289,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   className='wittyworks-popover-ignore-btn'
                   onClick={() => clickIgnoreTerm()}
                 >
-                  <IgnoreIcon className='wittyworks-popover-icon' />
-                  {t('ignoreTerm')}
+                  <IgnoreIcon />
+                  <span>{t('ignoreTerm')}</span>
                 </div>
               </div>
             </div>
