@@ -73,6 +73,7 @@ const ContentScriptApp: React.FC = () => {
             .join(','),
           preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES].join(','),
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
+          disabled_categories: result[StorageKeys.DISABLED_CATEGORIES],
         };
         setReqConfig(reqConfig);
       })
@@ -145,6 +146,12 @@ const ContentScriptApp: React.FC = () => {
               GermanGenderEndings[
                 changes[item].newValue as keyof typeof GermanGenderEndings
               ],
+          });
+          break;
+        case StorageKeys.DISABLED_CATEGORIES:
+          setReqConfig({
+            ...reqConfigRef.current,
+            disabled_categories: changes[item].newValue,
           });
           break;
       }

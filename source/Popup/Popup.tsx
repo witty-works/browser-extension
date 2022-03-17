@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import ApiSelector from './ApiSelector';
-import LanguageSelector from './LanguageSelector';
+// import LanguageSelector from './LanguageSelector';
 import Toggle from '../shared/components/Toggle/Toggle';
 import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
-import PreferredLanguagesSelector from './PreferedLanguagesSelector';
-import GermanGenderEndSelector from './GermanGenderEndSelector';
+// import PreferredLanguagesSelector from './PreferedLanguagesSelector';
+// import GermanGenderEndSelector from './GermanGenderEndSelector';
+import GlobalSettings from './GlobalSettings';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -78,8 +79,8 @@ const Popup: React.FC = () => {
           </a>
         </h1>
       </header>
-      <hr></hr>
       <section>
+        <GlobalSettings />
         <h2>{t('settings')}</h2>
         <Toggle
           on={enabled}
@@ -88,13 +89,12 @@ const Popup: React.FC = () => {
           scale={0.35}
           label={t('enableWitty')}
         />
-        <LanguageSelector />
+        {/* <LanguageSelector />
         <PreferredLanguagesSelector />
-        <GermanGenderEndSelector />
+        <GermanGenderEndSelector /> */}
       </section>
       {DEV_ENV ? (
         <>
-          <hr></hr>
           <section>
             <h2>{t('developmentSettings')}</h2>
             <ApiSelector />

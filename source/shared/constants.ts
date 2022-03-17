@@ -14,6 +14,8 @@ export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   APP_ID = 'id',
   APP_ENABLED = 'enabled',
+  TOGGLE_STATE = 'toggleState',
+  DISABLED_CATEGORIES = 'disabledCategories',
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
@@ -37,7 +39,7 @@ export enum Colors {
   purple = '#9489DB',
   blue = '#55B8E9',
   cyan = '#37D1E5',
-  green = '#5ACFB9',
+  green = '#5fca7d',
 }
 interface IHighlightColors {
   default: string;

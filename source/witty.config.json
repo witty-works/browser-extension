@@ -1,6 +1,7 @@
 {
   "APP_ENABLED": true,
+  "DISABLED_CATEGORIES": [],
   "PRIMARY_LANGUAGE": "de-DE",
-  "PREFERRED_LANGUAGES": ["de-DE","en-GB"],
-  "GERMAN_GENDER_ENDING":"colon_in"
+  "PREFERRED_LANGUAGES": ["de-DE", "en-GB"],
+  "GERMAN_GENDER_ENDING": "colon_in"
 }
