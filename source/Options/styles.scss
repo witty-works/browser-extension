@@ -10,6 +10,8 @@
   width: auto;
   font-family: $lato;
   color: $black;
+  font-weight: 400;
+  font-size: 14px;
 }
 
 .wittyworks-options-content {
@@ -18,13 +20,10 @@
 }
 
 .wittyworks-options-header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
   padding: 12px 24px;
   width: 100%;
   height: 77px;
+  margin-bottom: 3em;
 
   background: linear-gradient(
     139.06deg,
@@ -35,41 +34,31 @@
     #5acfb9 174.94%
   );
 }
-.wittyworks-options-header-title {
-  font-family: 'Ibarra Real Nova';
-  font-style: normal;
-  font-weight: 400;
-  font-size: 21px;
-  line-height: 26px;
-  display: flex;
-  align-items: center;
-  letter-spacing: -0.3px;
 
-  color: #ffffff;
-}
-.wittyworks-options-header-button {
+.wittyworks-options-header-content {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  justify-content: flex-start;
+  align-items: center;
+  margin-left: 13em;
+  margin-right: 14em;
+}
+
+.wittyworks-options-header-title {
+  font-family: 'Ibarra Real Nova';
+  font-size: 21px;
+  margin-left: 2em;
+  color: $white;
+}
+.wittyworks-options-header-button {
+  margin-left: auto;
   padding: 10px 15px;
-  cursor: pointer;
-
-  position: static;
-  left: 0%;
-  right: 0%;
-  top: 0%;
-  bottom: 0%;
-
   background: $white;
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
   border-radius: 8px;
-  color: #f06464;
-
-  font-family: 'Lato';
-  font-style: normal;
+  color: $orange;
   font-weight: 600;
-  font-size: 14px;
-  line-height: 14px;
+  cursor: pointer;
 }
 
 .wittyworks-upgrade-box {
@@ -77,53 +66,96 @@
   flex-direction: row;
   align-items: center;
   padding: 18px;
-
-  position: static;
   width: 100%;
-  height: 71px;
-
-  background: radial-gradient(
-        77.73% 534.3% at 103.67% 105.04%,
-        rgba(55, 209, 229, 0.084) 0%,
-        rgba(55, 209, 229, 0) 100%
-      )
-      /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */,
-    linear-gradient(
-      96.78deg,
-      rgba(240, 100, 100, 0.05) -3.1%,
-      rgba(242, 119, 208, 0.06) 57.76%,
-      rgba(242, 119, 208, 0) 111.13%
-    ),
-    #ffffff;
+  height: 84px;
+  border: 1px solid transparent;
   border-radius: 10px;
 
-  flex: none;
-  order: 0;
-  align-self: stretch;
-  flex-grow: 0;
-  margin: 16px 0px;
+  background: linear-gradient(
+        96.78deg,
+        #fef7f8 -6.3%,
+        #fbf6fa 35.9%,
+        #e9f2f5 100.12%
+      )
+      padding-box,
+    linear-gradient(
+        114.59deg,
+        #f06464 1.6%,
+        #f277d0 32.79%,
+        #9489db 71.64%,
+        #37d1e5 101.91%,
+        #5acfb9 131.52%
+      )
+      border-box;
 }
 
 .wittyworks-upgrade-button {
-  position: static;
-  width: 116px;
-  height: 34px;
-  left: 541px;
-  top: 18.5px;
+  margin-left: auto;
   padding: 10px 15px;
-
-  background: #9489db;
+  background: $wittyPurple;
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
   border-radius: 8px;
-
-  font-family: 'Lato';
-  font-style: normal;
+  color: $white;
   font-weight: 600;
-  font-size: 14px;
-  line-height: 14px;
-  /* identical to box height, or 100% */
+  cursor: pointer;
+}
 
-  /* brand/white */
+.wittyworks-upgrade-text-container {
+  flex-grow: 1;
+  color: $wittyPurple;
+}
 
-  color: #ffffff;
+.wittyworks-upgrade-text--large {
+  font-weight: 700;
+  margin: 4px 0px;
+}
+
+.wittyworks-options-content-section {
+  width: 100%;
+  height: 100%;
+  background: #fafafa;
+  border-radius: 10px;
+  margin: 16px 0px;
+  font-weight: 700;
+  font-size: 18px;
+  color: $black;
+}
+
+.wittyworks-options-content-section-title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.4em;
+  cursor: pointer;
+}
+
+.wittyworks-options-content-section-toggle {
+  padding: 1.4em;
+  border-radius: 10px;
+  margin: 16px 0px;
+  background: #fafafa;
+  font-weight: 700;
+  font-size: 18px;
+  color: $black;
+}
+
+.wittyworks-options-content-section-icon {
+  margin-right: 0.8em;
+}
+
+.wittyworks-options-content-section-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-right: 1.4em;
+  padding-left: 1.4em;
+  font-size: 16px;
+  font-weight: 400;
+  color: $black;
+}
+
+.wittyworks-options-content-section-content-item {
+  margin: 1em 0px;
+  width: 100%;
 }

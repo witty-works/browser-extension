@@ -24,7 +24,7 @@ const Toggle: React.FC<ToggleProps> = ({
         height: `${50 * scale}px`,
       }}
     >
-      <label className='toggle-label'>{label}:</label>
+      <label className='toggle-label'>{label}</label>
       <input
         checked={on}
         onChange={handleToggle}
