@@ -10,7 +10,7 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import './styles.scss';
 
 const GlobalSettings: React.FC = () => {
-  const [toggleState, setToggleState] = useState<{
+  const [globalSettings, setGlobalSettings] = useState<{
     orthography: boolean;
     inclusive: boolean;
     style: boolean;
@@ -25,21 +25,16 @@ const GlobalSettings: React.FC = () => {
 
   useEffect(() => {
     browser.storage.local
-      .get(StorageKeys.TOGGLE_STATE)
+      .get(StorageKeys.GLOBAL_SETTINGS)
       .then((result) => {
-        setToggleState(result[StorageKeys.TOGGLE_STATE]);
+        setGlobalSettings(result[StorageKeys.GLOBAL_SETTINGS]);
       })
       .catch(onError);
   }, []);
 
   useEffect(() => {
-    const falsyKeys = Object.keys(toggleState).filter(
-      (key) => !toggleState[key as keyof typeof toggleState]
-    );
-
-    storeInLocalStorage(StorageKeys.DISABLED_CATEGORIES, falsyKeys);
-    storeInLocalStorage(StorageKeys.TOGGLE_STATE, toggleState);
-  }, [toggleState]);
+    storeInLocalStorage(StorageKeys.GLOBAL_SETTINGS, globalSettings);
+  }, [globalSettings]);
 
   const onError = (error: string) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
@@ -58,11 +53,11 @@ const GlobalSettings: React.FC = () => {
     <>
       <h2 className='wittyworks-toggle-title'>{t('globalSettings')}</h2>
       <Toggle
-        on={toggleState.orthography}
+        on={globalSettings.orthography}
         handleToggle={() => {
-          setToggleState({
-            ...toggleState,
-            orthography: !toggleState.orthography,
+          setGlobalSettings({
+            ...globalSettings,
+            orthography: !globalSettings.orthography,
           });
         }}
         color={Colors.green}
@@ -70,11 +65,11 @@ const GlobalSettings: React.FC = () => {
         label={t('spellChecking')}
       />
       <Toggle
-        on={toggleState.inclusive}
+        on={globalSettings.inclusive}
         handleToggle={() => {
-          setToggleState({
-            ...toggleState,
-            inclusive: !toggleState.inclusive,
+          setGlobalSettings({
+            ...globalSettings,
+            inclusive: !globalSettings.inclusive,
           });
         }}
         color={Colors.green}
@@ -82,11 +77,11 @@ const GlobalSettings: React.FC = () => {
         label={t('inclusiveTerms')}
       />
       <Toggle
-        on={toggleState.style}
+        on={globalSettings.style}
         handleToggle={() => {
-          setToggleState({
-            ...toggleState,
-            style: !toggleState.style,
+          setGlobalSettings({
+            ...globalSettings,
+            style: !globalSettings.style,
           });
         }}
         color={Colors.green}
