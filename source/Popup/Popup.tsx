@@ -2,12 +2,10 @@ import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import ApiSelector from './ApiSelector';
 import { DEV_ENV } from '../shared/constants';
-import EnableWitty from './EnableWitty';
+import GlobalSettings from './GlobalSettings';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
-import Settings from '../assets/icons/popup/settings.svg';
 import Logo from '../assets/icons/witty-logo-color.svg';
-import GlobalSettings from './GlobalSettings';
 import './styles.scss';
 import DelaySelector from './DelaySelector';
 
@@ -23,12 +21,8 @@ const Popup: React.FC = () => {
           }}
         />
       </header>
-      <section className='wittyworks-toggles'>
-        <h2>{t('globalSettings')}</h2>
-        <GlobalSettings page={'popup'} />
-        <h2>{t('settings')}</h2>
-        <EnableWitty />
-        <hr className='toggle-seperator' />
+      <section>
+        <GlobalSettings />
       </section>
       {DEV_ENV ? (
         <>

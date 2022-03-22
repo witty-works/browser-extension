@@ -6,6 +6,7 @@ import { StorageKeys, Colors } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
+import defaultConfig from '../witty.config.json';
 
 import './styles.scss';
 interface GlobalSettingsProps {
@@ -18,17 +19,27 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
     orthography: boolean;
     inclusive: boolean;
     style: boolean;
+    casing: boolean;
   }>({
     orthography: true,
     inclusive: true,
     style: true,
+    casing: true,
   });
+  const [enabled, setEnabled] = useState<boolean>(defaultConfig.APP_ENABLED);
 
   const { t } = useTranslation(namespaces.pages.popup);
   const log = useLog('Popup');
 
   useEffect(() => {
     let isMounted = true;
+    browser.storage.local
+      .get(StorageKeys.APP_ENABLED)
+      .then((result) => {
+        setEnabled(result[StorageKeys.APP_ENABLED]);
+      })
+      .catch(onError);
+
     browser.storage.local
       .get(StorageKeys.GLOBAL_SETTINGS)
       .then((result) => {
@@ -40,6 +51,34 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    //Save app status on the local storage
+    browser.storage.local
+      .set({ [StorageKeys.APP_ENABLED]: enabled })
+      .then(() => {
+        log(
+          `Witty status *${enabled ? 'enabled' : 'disabled'}* correctly saved`
+        );
+      })
+      .catch(onError);
+
+    enabled
+      ? browser.browserAction.setIcon({
+          path: {
+            '16': 'assets/icons/icon16.png',
+            '32': 'assets/icons/icon32.png',
+            '48': 'assets/icons/icon48.png',
+          },
+        })
+      : browser.browserAction.setIcon({
+          path: {
+            '16': 'assets/icons/icon16_disabled.png',
+            '32': 'assets/icons/icon32_disabled.png',
+            '48': 'assets/icons/icon48_disabled.png',
+          },
+        });
+  }, [enabled]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.GLOBAL_SETTINGS, globalSettings);
@@ -108,13 +147,27 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         scale={0.35}
         label={t('styleCorrections')}
       />
-      {page == 'popup' ? (
-        <hr className='toggle-seperator' />
-      ) : (
-        <div className='wittyworks-options-content-section-content-subtitle'>
-          {t('inclusiveLanguageExplanation')}
-        </div>
-      )}
+
+      <h2 className='wittyworks-toggle-title'>{t('websiteSettings')}</h2>
+      <Toggle
+        on={enabled}
+        handleToggle={() => setEnabled(!enabled)}
+        color={Colors.green}
+        scale={0.35}
+        label={t('enableWitty')}
+      />
+      <Toggle
+        on={globalSettings.casing}
+        handleToggle={() =>
+          setGlobalSettings({
+            ...globalSettings,
+            casing: !globalSettings.casing,
+          })
+        }
+        color={Colors.green}
+        scale={0.35}
+        label={t('caseSensitivity')}
+      />
     </>
   );
 };
