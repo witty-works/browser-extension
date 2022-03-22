@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
+import Logo from '../assets/icons/witty-logo-color.svg';
 
 import './styles.scss';
 
@@ -62,19 +63,11 @@ const Popup: React.FC = () => {
   return (
     <>
       <header>
-        <h1>
-          <a href='https://www.witty.works/' target='_blank'>
-            <img
-              className='icon'
-              alt='Witty Works Logo'
-              width='100'
-              height='15'
-              src={browser.runtime.getURL(
-                '../assets/icons/witty-logo-color.svg'
-              )}
-            />
-          </a>
-        </h1>
+        <Logo
+          onClick={() => {
+            browser.tabs.create({ url: 'https://www.witty.works/' });
+          }}
+        />
       </header>
       <section>
         <GlobalSettings />
