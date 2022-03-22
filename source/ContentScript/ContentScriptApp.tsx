@@ -68,11 +68,20 @@ const ContentScriptApp: React.FC = () => {
                 StorageKeys.GERMAN_GENDER_ENDING
               ] as keyof typeof GermanGenderEndings
             ],
-          preferred_languages: result[StorageKeys.PREFERRED_LANGUAGES]
-            .map((lang: string) => lang.split('-')[0])
-            .join(','),
-          preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES].join(','),
+          preferred_languages: result[StorageKeys.PREFERRED_LANGUAGES].map(
+            (lang: string) => lang.split('-')[0]
+          ),
+          preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES],
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
+
+          disabled_categories: Object.keys(
+            result[StorageKeys.GLOBAL_SETTINGS]
+          ).filter(
+            (key) =>
+              !result[StorageKeys.GLOBAL_SETTINGS][
+                key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
+              ]
+          ),
         };
         setReqConfig(reqConfig);
       })
@@ -145,6 +154,14 @@ const ContentScriptApp: React.FC = () => {
               GermanGenderEndings[
                 changes[item].newValue as keyof typeof GermanGenderEndings
               ],
+          });
+          break;
+        case StorageKeys.GLOBAL_SETTINGS:
+          setReqConfig({
+            ...reqConfigRef.current,
+            disabled_categories: Object.keys(changes[item].newValue).filter(
+              (key) => !changes[item].newValue[key as keyof typeof changes]
+            ),
           });
           break;
       }
