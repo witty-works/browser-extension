@@ -10,12 +10,13 @@ import ArrowDown from '../assets/icons/options/arrow-down.svg';
 import ArrowUp from '../assets/icons/options/arrow-up.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import '../i18n/i18n';
 
 const Options: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.options);
   const [languagesTabOpen, setLanguagesTabOpen] = useState(false);
-  const [rulesTabOpen, setRulesTabOpen] = useState(false);
-  const [disableTabOpen, setDisableTabOpen] = useState(false);
+  // const [rulesTabOpen, setRulesTabOpen] = useState(false);
+  // const [disableTabOpen, setDisableTabOpen] = useState(false);
 
   return (
     <>
@@ -79,7 +80,7 @@ const Options: React.FC = () => {
             </div>
           )}
         </div>
-
+        {/* 
         <div className='wittyworks-options-content-section'>
           <div
             className='wittyworks-options-content-section-title'
@@ -92,11 +93,10 @@ const Options: React.FC = () => {
               {rulesTabOpen ? <ArrowUp /> : <ArrowDown />}
             </div>
           </div>
-          {/* TODO */}
-          {/* <div className='wittyworks-options-content-section-content'></div> */}
-        </div>
+          <div className='wittyworks-options-content-section-content'></div>
+        </div> */}
 
-        <div className='wittyworks-options-content-section'>
+        {/* <div className='wittyworks-options-content-section'>
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
@@ -108,9 +108,8 @@ const Options: React.FC = () => {
               {disableTabOpen ? <ArrowUp /> : <ArrowDown />}
             </div>
           </div>
-          {/* TODO */}
-          {/* <div className='wittyworks-options-content-section-content'></div> */}
-        </div>
+          <div className='wittyworks-options-content-section-content'></div>
+        </div> */}
       </div>
     </>
   );
