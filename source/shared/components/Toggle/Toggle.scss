@@ -1,8 +1,11 @@
+@import '../../../styles/variables';
+
 .toggle-container {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  margin-right: -2em;
 }
 
 .toggle-checkbox {
@@ -14,8 +17,7 @@
 .toggle-encloser {
   cursor: pointer;
   width: 100px;
-  margin-right: -25px;
-  height: 50px;
+  height: 60px;
   background: grey;
   border-radius: 100px;
   position: relative;
@@ -25,8 +27,8 @@
 .toggle-encloser .toggle-button {
   content: '';
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 8px;
+  left: 6px;
   width: 45px;
   height: 45px;
   border-radius: 45px;
@@ -35,7 +37,7 @@
 }
 
 .toggle-checkbox:checked + .toggle-encloser .toggle-button {
-  left: calc(100% - 2px);
+  left: calc(100% - 6px);
   transform: translateX(-100%);
 }
 

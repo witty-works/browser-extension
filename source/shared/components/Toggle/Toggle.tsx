@@ -18,31 +18,33 @@ const Toggle: React.FC<ToggleProps> = ({
   label,
 }: ToggleProps) => {
   return (
-    <div
-      className='toggle-container'
-      style={{
-        height: `${50 * scale}px`,
-      }}
-    >
-      <label className='toggle-label'>{label}</label>
-      <input
-        checked={on}
-        onChange={handleToggle}
-        className='toggle-checkbox'
-        id={`toggle`}
-        type='checkbox'
-      />
-      <label
+    <>
+      <div
+        className='toggle-container'
         style={{
-          background: (on && color) as string,
-          transform: `scale(${scale}, ${scale})`,
+          height: `${50 * scale}px`,
         }}
-        className='toggle-encloser'
-        htmlFor={`toggle`}
       >
-        <span className={`toggle-button`} />
-      </label>
-    </div>
+        <label className='toggle-label'>{label}</label>
+        <input
+          checked={on}
+          onChange={handleToggle}
+          className='toggle-checkbox'
+          id={`toggle-${label}`}
+          type='checkbox'
+        />
+        <label
+          style={{
+            background: (on && color) as string,
+            transform: `scale(${scale}, ${scale})`,
+          }}
+          className='toggle-encloser'
+          htmlFor={`toggle-${label}`}
+        >
+          <span className={`toggle-button`} />
+        </label>
+      </div>
+    </>
   );
 };
 

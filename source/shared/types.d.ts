@@ -3,6 +3,7 @@ export interface RequestConfig {
   preferred_languages: string;
   preferred_variants: string;
   german_gender_ending: string;
+  disabled_categories: string[];
 }
 export interface ScrollPos {
   top: number;
