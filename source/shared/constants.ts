@@ -18,6 +18,8 @@ export enum StorageKeys {
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
+  DISABLED_SITES = 'disabledSites',
+  DOMAIN_DISABLED = 'domainDisabled',
 }
 
 //API endpoints

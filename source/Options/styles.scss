@@ -145,9 +145,6 @@
 }
 
 .wittyworks-options-content-section-content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   padding-right: 1.4em;
   padding-left: 1.4em;
   font-size: 16px;
@@ -157,5 +154,66 @@
 
 .wittyworks-options-content-section-content-item {
   margin: 1em 0px;
+  padding-bottom: 1em;
   width: 100%;
+}
+.wittyworks-options-content-section-content-input {
+  padding: 4px 8px;
+  width: 80%;
+  height: 34px;
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+
+.wittyworks-options-content-section-content-input-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-right: 5em;
+  margin-top: 1em;
+}
+
+.wittyworks-options-content-section-content-title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+  border-bottom: 1px solid $white;
+}
+
+.wittyworks-options-content-section-content-icon {
+  cursor: pointer;
+  margin-left: auto;
+  margin-right: 5em;
+}
+
+.wittyworks-options-content-section-content-item--purple {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 14px;
+  color: #9489db;
+  padding-bottom: 1em;
+  padding-top: 1em;
+  cursor: pointer;
+}
+
+.wittyworks-options-content-section-content-item-error {
+  color: $errorRed;
+  font-size: 10px;
+}
+
+.wittyworks-options-content-section-content-button {
+  padding: 7px 14px;
+  margin-left: auto;
+  background: #5fca7d;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  color: $white;
+  font-weight: 600;
+  cursor: pointer;
 }

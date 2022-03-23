@@ -8,6 +8,26 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 const analytics = useAnalytics();
 
+const scanTabs = () => {
+  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+    var tab = tabs[0];
+    //domain
+    if (!tab.url) return;
+    var domain = new URL(tab.url).hostname.replace('www.', '');
+
+    browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+      if (result[StorageKeys.DISABLED_SITES].includes(domain)) {
+        browser.storage.local.set({ [StorageKeys.DOMAIN_DISABLED]: true });
+      } else {
+        browser.storage.local.set({ [StorageKeys.DOMAIN_DISABLED]: false });
+      }
+    });
+  });
+};
+
+browser.tabs.onUpdated.addListener(scanTabs);
+browser.tabs.onCreated.addListener(scanTabs);
+
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (!DEV_ENV)
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
