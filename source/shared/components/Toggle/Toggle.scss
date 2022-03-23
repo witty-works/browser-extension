@@ -5,20 +5,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 19px;
-  color: $black;
   margin-right: -2em;
-}
-
-.toggle-seperator {
-  background-color: $whiteGray;
-  margin-bottom: 1em;
-  border: 0;
-  height: 1px;
 }
 
 .toggle-checkbox {

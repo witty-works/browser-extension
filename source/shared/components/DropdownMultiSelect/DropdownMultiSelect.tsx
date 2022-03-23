@@ -44,17 +44,19 @@ const DropdownMultiSelect: React.FC<DropdownMultiSelectProps> = ({
   }, [selectedOptions]);
 
   return (
-    <Select
-      isMulti
-      closeMenuOnSelect={false}
-      hideSelectedOptions={false}
-      components={{
-        Option,
-      }}
-      value={selecOptions}
-      options={options}
-      onChange={handleChange}
-    />
+    <div style={{ marginTop: '0.5em' }}>
+      <Select
+        isMulti
+        closeMenuOnSelect={false}
+        hideSelectedOptions={false}
+        components={{
+          Option,
+        }}
+        value={selecOptions}
+        options={options}
+        onChange={handleChange}
+      />
+    </div>
   );
 };
 

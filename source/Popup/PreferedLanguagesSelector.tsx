@@ -67,7 +67,7 @@ const PreferredLanguagesSelector: React.FC = () => {
 
   return (
     <div>
-      <label>{t('preferredLanguage')}:</label>
+      <label>{t('preferredLanguage')}</label>
       <DropdownMultiSelect
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}

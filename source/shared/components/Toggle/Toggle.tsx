@@ -44,7 +44,6 @@ const Toggle: React.FC<ToggleProps> = ({
           <span className={`toggle-button`} />
         </label>
       </div>
-      <hr className='toggle-seperator' />
     </>
   );
 };

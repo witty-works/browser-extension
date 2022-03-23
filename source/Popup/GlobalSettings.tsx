@@ -64,6 +64,7 @@ const GlobalSettings: React.FC = () => {
         scale={0.35}
         label={t('spellChecking')}
       />
+      <hr className='toggle-seperator' />
       <Toggle
         on={globalSettings.inclusive}
         handleToggle={() => {
@@ -76,6 +77,7 @@ const GlobalSettings: React.FC = () => {
         scale={0.35}
         label={t('inclusiveTerms')}
       />
+      <hr className='toggle-seperator' />
       <Toggle
         on={globalSettings.style}
         handleToggle={() => {
@@ -88,6 +90,7 @@ const GlobalSettings: React.FC = () => {
         scale={0.35}
         label={t('styleCorrections')}
       />
+      <hr className='toggle-seperator' />
     </>
   );
 };

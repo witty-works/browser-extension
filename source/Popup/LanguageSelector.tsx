@@ -53,7 +53,7 @@ const LanguageSelector: React.FC = () => {
 
   return (
     <div>
-      <label>{t('primaryLanguage')}:</label>
+      <label>{t('primaryLanguage')}</label>
       <Dropdown
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}
