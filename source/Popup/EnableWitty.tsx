@@ -34,21 +34,57 @@ const EnableWitty: React.FC = () => {
         );
       })
       .catch(onError);
-    enabled
-      ? browser.browserAction.setIcon({
+
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      var tab = tabs[0];
+      if (!tab.url) return;
+      const currentDomain = new URL(tab.url).hostname.replace('www.', '');
+
+      if (enabled) {
+        browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+          const disabledSites = result[StorageKeys.DISABLED_SITES];
+          const newDisabledSites = disabledSites.filter(
+            (domain: string) => domain !== currentDomain
+          );
+          browser.storage.local
+            .set({ [StorageKeys.DISABLED_SITES]: newDisabledSites })
+            .then(() => {
+              log(
+                `Witty ${StorageKeys.DISABLED_SITES} *${newDisabledSites}* correctly saved`
+              );
+            })
+            .catch(onError);
+        });
+        browser.browserAction.setIcon({
           path: {
             '16': 'assets/icons/icon16.png',
             '32': 'assets/icons/icon32.png',
             '48': 'assets/icons/icon48.png',
           },
-        })
-      : browser.browserAction.setIcon({
+        });
+      } else {
+        browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+          const disabledSites = result[StorageKeys.DISABLED_SITES];
+          const newDisabledSites = [...disabledSites, currentDomain];
+          browser.storage.local
+            .set({ [StorageKeys.DISABLED_SITES]: newDisabledSites })
+            .then(() => {
+              log(
+                `Witty ${StorageKeys.DISABLED_SITES} *${newDisabledSites}* correctly saved`
+              );
+            })
+            .catch(onError);
+        });
+
+        browser.browserAction.setIcon({
           path: {
             '16': 'assets/icons/icon16_disabled.png',
             '32': 'assets/icons/icon32_disabled.png',
             '48': 'assets/icons/icon48_disabled.png',
           },
         });
+      }
+    });
   }, [enabled]);
 
   const onError = (error: string) => {

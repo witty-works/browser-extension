@@ -38,18 +38,10 @@ const storageChange = (changes: any) => {
 browser.storage.onChanged.addListener(storageChange);
 
 const customRender = (enabled: boolean) => {
-  // ReactDOM.render(
-  //   enabled ? <ContentScriptApp /> : <></>,
-  //   document.querySelector('witty-code')
-  // );
-  browser.storage.local
-    .get(StorageKeys.DOMAIN_DISABLED)
-    .then((domainDisabled) => {
-      ReactDOM.render(
-        enabled && domainDisabled ? <ContentScriptApp /> : <></>,
-        document.querySelector('witty-code')
-      );
-    });
+  ReactDOM.render(
+    enabled ? <ContentScriptApp /> : <></>,
+    document.querySelector('witty-code')
+  );
 };
 
 export {};

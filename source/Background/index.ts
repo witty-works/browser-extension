@@ -17,9 +17,23 @@ const scanTabs = () => {
 
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
       if (result[StorageKeys.DISABLED_SITES].includes(domain)) {
-        browser.storage.local.set({ [StorageKeys.DOMAIN_DISABLED]: true });
+        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: false });
+        browser.browserAction.setIcon({
+          path: {
+            '16': 'assets/icons/icon16_disabled.png',
+            '32': 'assets/icons/icon32_disabled.png',
+            '48': 'assets/icons/icon48_disabled.png',
+          },
+        });
       } else {
-        browser.storage.local.set({ [StorageKeys.DOMAIN_DISABLED]: false });
+        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: true });
+        browser.browserAction.setIcon({
+          path: {
+            '16': 'assets/icons/icon16.png',
+            '32': 'assets/icons/icon32.png',
+            '48': 'assets/icons/icon48.png',
+          },
+        });
       }
     });
   });

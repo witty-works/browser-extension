@@ -48,7 +48,7 @@ export const de = {
     configureRules: 'Configure how Witty checks your texts DE',
     disableWitty: 'Disable Witty on some websites DE',
     addSite: 'Type a website’s URL DE',
-    invalidDomain: 'Invalid domain DE',
+    invalidDomain: 'Invalid domain (example format: google.com)DE',
   },
 };
 
@@ -100,6 +100,6 @@ export const en = {
     configureRules: 'Configure how Witty checks your texts',
     disableWitty: 'Disable Witty on some websites',
     addSite: 'Type a website’s URL',
-    invalidDomain: 'Invalid domain',
+    invalidDomain: 'Invalid domain (example format: google.com)',
   },
 };
