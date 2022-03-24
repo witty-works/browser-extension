@@ -11,7 +11,6 @@ const analytics = useAnalytics();
 const scanTabs = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     var tab = tabs[0];
-    //domain
     if (!tab.url) return;
     var domain = new URL(tab.url).hostname.replace('www.', '');
 

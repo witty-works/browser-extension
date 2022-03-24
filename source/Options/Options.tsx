@@ -28,7 +28,6 @@ const Options: React.FC = () => {
 
   const log = useLog('ContentScriptApp');
 
-  //get disabled sites from storage
   useEffect(() => {
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
       console.log('result', result);
