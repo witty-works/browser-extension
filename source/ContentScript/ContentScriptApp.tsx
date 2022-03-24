@@ -82,6 +82,10 @@ const ContentScriptApp: React.FC = () => {
                 key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
               ]
           ),
+          maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE],
+          singular_they: result[StorageKeys.SINGULAR_THEY],
+          show_inspiration_alternatives:
+            result[StorageKeys.INSPIRATIONAL_ALTERNATIVES],
         };
         setReqConfig(reqConfig);
       })
@@ -162,6 +166,24 @@ const ContentScriptApp: React.FC = () => {
             disabled_categories: Object.keys(changes[item].newValue).filter(
               (key) => !changes[item].newValue[key as keyof typeof changes]
             ),
+          });
+          break;
+        case StorageKeys.MAXIMUM_IMPORTANCE:
+          setReqConfig({
+            ...reqConfigRef.current,
+            maximum_importance: changes[item].newValue,
+          });
+          break;
+        case StorageKeys.SINGULAR_THEY:
+          setReqConfig({
+            ...reqConfigRef.current,
+            singular_they: changes[item].newValue,
+          });
+          break;
+        case StorageKeys.INSPIRATIONAL_ALTERNATIVES:
+          setReqConfig({
+            ...reqConfigRef.current,
+            show_inspiration_alternatives: changes[item].newValue,
           });
           break;
       }

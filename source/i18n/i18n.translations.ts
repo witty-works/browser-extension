@@ -47,6 +47,18 @@ export const de = {
     setUpLanguages: 'Set up languages DE',
     configureRules: 'Configure how Witty checks your texts DE',
     disableWitty: 'Disable Witty on some websites DE',
+    expertMode: 'Expert Mode DE',
+    expertModeExplanation:
+      'Turning this on makes Witty not point out less severe issues in your text DE',
+    styleCorrectionExplanation:
+      'Turn this off to ignore stylistic not severe issues to be highlighted DE',
+
+    inclusiveLanguageExplanation:
+      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green DE',
+    inspirationAlternatives: 'Show inspiration alternatives as options DE',
+    inspirationAlternativesExplanation:
+      'Turn this off to only have automatic replacements as suggestions DE',
+    singularThey: 'Accept “singular they” as correct DE',
   },
 };
 
@@ -97,5 +109,17 @@ export const en = {
     setUpLanguages: 'Set up languages',
     configureRules: 'Configure how Witty checks your texts',
     disableWitty: 'Disable Witty on some websites',
+    expertMode: 'Expert Mode',
+    expertModeExplanation:
+      'Turning this on makes Witty not point out less severe issues in your text',
+    styleCorrectionExplanation:
+      'Turn this off to ignore stylistic not severe issues to be highlighted',
+
+    inclusiveLanguageExplanation:
+      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green',
+    inspirationAlternatives: 'Show inspiration alternatives as options',
+    inspirationAlternativesExplanation:
+      'Turn this off to only have automatic replacements as suggestions',
+    singularThey: 'Accept “singular they” as correct',
   },
 };

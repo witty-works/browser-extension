@@ -18,6 +18,9 @@ export enum StorageKeys {
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
+  MAXIMUM_IMPORTANCE = 'maximumImportance',
+  SINGULAR_THEY = 'singularThey',
+  INSPIRATIONAL_ALTERNATIVES = 'inspirationalAlternatives',
 }
 
 //API endpoints
