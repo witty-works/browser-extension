@@ -27,6 +27,11 @@ export const de = {
     spellChecking: 'Spell checking DE',
     inclusiveTerms: 'Show inclusive terms DE',
     styleCorrections: 'Allow style corrections DE',
+    styleCorrectionExplanation:
+      'Turn this off to ignore stylistic not severe issues to be highlighted DE',
+
+    inclusiveLanguageExplanation:
+      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -50,11 +55,6 @@ export const de = {
     expertMode: 'Expert Mode DE',
     expertModeExplanation:
       'Turning this on makes Witty not point out less severe issues in your text DE',
-    styleCorrectionExplanation:
-      'Turn this off to ignore stylistic not severe issues to be highlighted DE',
-
-    inclusiveLanguageExplanation:
-      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green DE',
     inspirationAlternatives: 'Show inspiration alternatives as options DE',
     inspirationAlternativesExplanation:
       'Turn this off to only have automatic replacements as suggestions DE',
@@ -91,6 +91,10 @@ export const en = {
     spellChecking: 'Spell checking',
     inclusiveTerms: 'Show inclusive terms',
     styleCorrections: 'Allow style corrections',
+    styleCorrectionExplanation:
+      'Turn this off to ignore stylistic not severe issues to be highlighted',
+    inclusiveLanguageExplanation:
+      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green',
   },
   [namespaces.popover]: {
     insteadTry: 'Try instead ...',
@@ -114,11 +118,6 @@ export const en = {
     expertMode: 'Expert Mode',
     expertModeExplanation:
       'Turning this on makes Witty not point out less severe issues in your text',
-    styleCorrectionExplanation:
-      'Turn this off to ignore stylistic not severe issues to be highlighted',
-
-    inclusiveLanguageExplanation:
-      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green',
     inspirationAlternatives: 'Show inspiration alternatives as options',
     inspirationAlternativesExplanation:
       'Turn this off to only have automatic replacements as suggestions',

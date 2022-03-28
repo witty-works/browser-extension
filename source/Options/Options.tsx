@@ -172,62 +172,49 @@ const Options: React.FC = () => {
           </div>
           <div className='wittyworks-options-content-section-content'>
             {rulesTabOpen && (
-              <>
-                <div className='wittyworks-options-content-section-content-item'>
-                  <Toggle
-                    on={expertMode}
-                    handleToggle={() => {
-                      setExpertMode(!expertMode);
-                    }}
-                    color={Colors.green}
-                    scale={0.35}
-                    label={t('expertMode')}
-                  />
-                  <div className='wittyworks-options-content-section-content-item-subtitle'>
-                    {t('expertModeExplanation')}
-                  </div>
+              <div className='wittyworks-options-content-section-content-items'>
+                <Toggle
+                  on={expertMode}
+                  handleToggle={() => {
+                    setExpertMode(!expertMode);
+                  }}
+                  color={Colors.green}
+                  scale={0.35}
+                  label={t('expertMode')}
+                  locked={false}
+                />
+                <div className='wittyworks-options-content-section-content-subtitle'>
+                  {t('expertModeExplanation')}
                 </div>
 
-                <div className='wittyworks-options-content-section-content-item'>
-                  <GlobalSettings />
+                <GlobalSettings page={'options'} />
 
-                  <div className='wittyworks-options-content-section-content-item-subtitle'>
-                    {t('styleCorrectionExplanation')}
-                  </div>
-
-                  <div className='wittyworks-options-content-section-content-item-subtitle'>
-                    {t('inclusiveLanguageExplanation')}
-                  </div>
+                {/* currently does nothing, is locked untill we have 'premium users' */}
+                <Toggle
+                  on={inspirationalAlternatives}
+                  handleToggle={() => {
+                    setInspirationalAlternatives(inspirationalAlternatives);
+                  }}
+                  color={Colors.green}
+                  scale={0.35}
+                  label={t('inspirationAlternatives')}
+                  locked={true}
+                />
+                <div className='wittyworks-options-content-section-content-subtitle'>
+                  {t('inspirationAlternativesExplanation')}
                 </div>
 
-                <div className='wittyworks-options-content-section-content-item'>
-                  {/* currently does nothing, is locked untill we have 'premium users' */}
-                  <Toggle
-                    on={inspirationalAlternatives}
-                    handleToggle={() => {
-                      setInspirationalAlternatives(inspirationalAlternatives);
-                    }}
-                    color={Colors.green}
-                    scale={0.35}
-                    label={t('inspirationAlternatives')}
-                  />
-                  <div className='wittyworks-options-content-section-content-item-subtitle'>
-                    {t('inspirationAlternativesExplanation')}
-                  </div>
-                </div>
-
-                <div className='wittyworks-options-content-section-content-item'>
-                  <Toggle
-                    on={singularThey}
-                    handleToggle={() => {
-                      setSingularThey(!singularThey);
-                    }}
-                    color={Colors.green}
-                    scale={0.35}
-                    label={t('singularThey')}
-                  />
-                </div>
-              </>
+                <Toggle
+                  on={singularThey}
+                  handleToggle={() => {
+                    setSingularThey(!singularThey);
+                  }}
+                  color={Colors.green}
+                  scale={0.35}
+                  label={t('singularThey')}
+                  locked={false}
+                />
+              </div>
             )}
           </div>
         </div>

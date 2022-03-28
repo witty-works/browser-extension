@@ -8,8 +8,12 @@ import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 
 import './styles.scss';
-
-const GlobalSettings: React.FC = () => {
+interface GlobalSettingsProps {
+  page: string;
+}
+const GlobalSettings: React.FC<GlobalSettingsProps> = ({
+  page,
+}: GlobalSettingsProps) => {
   const [globalSettings, setGlobalSettings] = useState<{
     orthography: boolean;
     inclusive: boolean;
@@ -51,7 +55,6 @@ const GlobalSettings: React.FC = () => {
 
   return (
     <>
-      <h2 className='wittyworks-toggle-title'>{t('globalSettings')}</h2>
       <Toggle
         on={globalSettings.orthography}
         handleToggle={() => {
@@ -63,8 +66,13 @@ const GlobalSettings: React.FC = () => {
         color={Colors.green}
         scale={0.35}
         label={t('spellChecking')}
+        locked={false}
       />
-      <hr className='toggle-seperator' />
+      {page == 'popup' ? (
+        <hr className='toggle-seperator' />
+      ) : (
+        <div className='wittyworks-options-content-section-content-subtitle'></div>
+      )}
       <Toggle
         on={globalSettings.inclusive}
         handleToggle={() => {
@@ -76,8 +84,15 @@ const GlobalSettings: React.FC = () => {
         color={Colors.green}
         scale={0.35}
         label={t('inclusiveTerms')}
+        locked={false}
       />
-      <hr className='toggle-seperator' />
+      {page == 'popup' ? (
+        <hr className='toggle-seperator' />
+      ) : (
+        <div className='wittyworks-options-content-section-content-subtitle'>
+          {t('styleCorrectionExplanation')}
+        </div>
+      )}
       <Toggle
         on={globalSettings.style}
         handleToggle={() => {
@@ -89,8 +104,15 @@ const GlobalSettings: React.FC = () => {
         color={Colors.green}
         scale={0.35}
         label={t('styleCorrections')}
+        locked={false}
       />
-      <hr className='toggle-seperator' />
+      {page == 'popup' ? (
+        <hr className='toggle-seperator' />
+      ) : (
+        <div className='wittyworks-options-content-section-content-subtitle'>
+          {t('inclusiveLanguageExplanation')}
+        </div>
+      )}
     </>
   );
 };

@@ -77,6 +77,7 @@ const EnableWitty: React.FC = () => {
         color={Colors.green}
         scale={0.35}
         label={t('enableWitty')}
+        locked={false}
       />
     </>
   );

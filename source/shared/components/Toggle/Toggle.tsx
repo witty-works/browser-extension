@@ -1,6 +1,8 @@
 import React from 'react';
 
 import './Toggle.scss';
+import Lock from '../../../assets/icons/options/lock.svg';
+import PremiumOnly from '../../../assets/icons/options/premium-only.svg';
 
 interface ToggleProps {
   on: boolean | undefined;
@@ -8,6 +10,7 @@ interface ToggleProps {
   color: string;
   scale: number;
   label: string;
+  locked: boolean;
 }
 
 const Toggle: React.FC<ToggleProps> = ({
@@ -16,6 +19,7 @@ const Toggle: React.FC<ToggleProps> = ({
   color,
   scale,
   label,
+  locked,
 }: ToggleProps) => {
   return (
     <>
@@ -33,6 +37,16 @@ const Toggle: React.FC<ToggleProps> = ({
           id={`toggle-${label}`}
           type='checkbox'
         />
+        {locked && (
+          <>
+            <div className='toggle-premium-only'>
+              <PremiumOnly />
+            </div>
+            <div className='toggle-lock'>
+              <Lock />
+            </div>
+          </>
+        )}
         <label
           style={{
             background: (on && color) as string,
