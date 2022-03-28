@@ -20,6 +20,8 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
+import { browser } from 'webextension-polyfill-ts';
+import { StorageKeys } from '../shared/constants';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -150,9 +152,10 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    element.spellcheck = false;
+    browser.storage.local.get(StorageKeys.GLOBAL_SETTINGS).then((result) => {
+      element.spellcheck = result.globalSettings.orthography ? false : true;
+    });
     const nextText: string = getInputText(element);
-
     handleTextAndIcon(nextText, event);
   };
 
