@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import Toggle from '../shared/components/Toggle/Toggle';
-import { StorageKeys, Colors } from '../shared/constants';
+import {
+  StorageKeys,
+  Colors,
+  WittyIconActive,
+  WittyIconInactive,
+} from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -34,21 +39,30 @@ const EnableWitty: React.FC = () => {
         );
       })
       .catch(onError);
-    enabled
-      ? browser.browserAction.setIcon({
-          path: {
-            '16': 'assets/icons/icon16.png',
-            '32': 'assets/icons/icon32.png',
-            '48': 'assets/icons/icon48.png',
-          },
-        })
-      : browser.browserAction.setIcon({
-          path: {
-            '16': 'assets/icons/icon16_disabled.png',
-            '32': 'assets/icons/icon32_disabled.png',
-            '48': 'assets/icons/icon48_disabled.png',
-          },
-        });
+
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      var tab = tabs[0];
+      if (!tab.url) return;
+      const currentDomain = new URL(tab.url).hostname.replace('www.', '');
+
+      browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+        const disabledSites = result[StorageKeys.DISABLED_SITES];
+        const newDisabledSites = enabled
+          ? disabledSites.filter((domain: string) => domain !== currentDomain)
+          : [...disabledSites, currentDomain];
+        const icon = enabled ? WittyIconActive : WittyIconInactive;
+
+        browser.storage.local
+          .set({ [StorageKeys.DISABLED_SITES]: newDisabledSites })
+          .then(() => {
+            log(
+              `Witty ${StorageKeys.DISABLED_SITES} *${newDisabledSites}* correctly saved`
+            );
+          })
+          .catch(onError);
+        browser.browserAction.setIcon(icon);
+      });
+    });
   }, [enabled]);
 
   const onError = (error: string) => {

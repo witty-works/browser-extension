@@ -82,7 +82,7 @@ const ContentScriptApp: React.FC = () => {
                 key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
               ]
           ),
-          maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE],
+          maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE] ? 3 : 2,
           singular_they: result[StorageKeys.SINGULAR_THEY],
           show_inspiration_alternatives:
             result[StorageKeys.INSPIRATIONAL_ALTERNATIVES],
@@ -171,7 +171,7 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.MAXIMUM_IMPORTANCE:
           setReqConfig({
             ...reqConfigRef.current,
-            maximum_importance: changes[item].newValue,
+            maximum_importance: changes[item].newValue ? 3 : 2,
           });
           break;
         case StorageKeys.SINGULAR_THEY:

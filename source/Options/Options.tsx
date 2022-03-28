@@ -9,41 +9,55 @@ import './styles.scss';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';
 import ArrowDown from '../assets/icons/options/arrow-down.svg';
 import ArrowUp from '../assets/icons/options/arrow-up.svg';
+import Bin from '../assets/icons/options/bin.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import '../i18n/i18n';
 import Toggle from '../shared/components/Toggle/Toggle';
+
 import { Colors, StorageKeys } from '../shared/constants';
-import { browser } from 'webextension-polyfill-ts';
 import { logTypes, useLog } from '../shared/customHooks/useLog';
+import { browser } from 'webextension-polyfill-ts';
 
 const Options: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.options);
-  const [languagesTabOpen, setLanguagesTabOpen] = useState(false);
+  const [languagesTabOpen, setLanguagesTabOpen] = useState<boolean>(false);
   const [rulesTabOpen, setRulesTabOpen] = useState(false);
   const [expertMode, setExpertMode] = useState(false);
   const [inspirationalAlternatives, setInspirationalAlternatives] =
     useState(false);
   const [singularThey, setSingularThey] = useState(false);
+  const [disableTabOpen, setDisableTabOpen] = useState<boolean>(false);
+  const [disabledSites, setDisabledSites] = useState<string[]>([]);
+  const [addDomainTabOpen, setAddDomainTabOpen] = useState<boolean>(false);
+  const [input, setInput] = useState<string>('');
+  const [invalidDomain, setInvalidDomain] = useState<boolean>(false);
 
-  // const [disableTabOpen, setDisableTabOpen] = useState(false);
+  const log = useLog('Options');
 
-  const log = useLog('Popup');
+  useEffect(() => {
+    browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+      console.log('result', result);
+      setDisabledSites(result[StorageKeys.DISABLED_SITES]);
+    });
+  }, []);
+
+  useEffect(() => {
+    browser.storage.local
+      .set({ [StorageKeys.DISABLED_SITES]: disabledSites })
+      .then(() => {
+        log(
+          `Witty ${StorageKeys.DISABLED_SITES} *${disabledSites}* correctly saved`
+        );
+      })
+      .catch(onError);
+  }, [disabledSites]);
 
   useEffect(() => {
     browser.storage.local
       .get(StorageKeys.MAXIMUM_IMPORTANCE)
       .then((result) => {
         setExpertMode(result[StorageKeys.MAXIMUM_IMPORTANCE]);
-      })
-      .catch(onError);
-
-    browser.storage.local
-      .get(StorageKeys.INSPIRATIONAL_ALTERNATIVES)
-      .then((result) => {
-        setInspirationalAlternatives(
-          result[StorageKeys.INSPIRATIONAL_ALTERNATIVES]
-        );
       })
       .catch(onError);
 
@@ -65,19 +79,6 @@ const Options: React.FC = () => {
       })
       .catch(onError);
   }, [expertMode]);
-
-  useEffect(() => {
-    browser.storage.local
-      .set({
-        [StorageKeys.INSPIRATIONAL_ALTERNATIVES]: inspirationalAlternatives,
-      })
-      .then(() => {
-        log(
-          `Witty ${StorageKeys.INSPIRATIONAL_ALTERNATIVES} *${inspirationalAlternatives}* correctly saved`
-        );
-      })
-      .catch(onError);
-  }, [inspirationalAlternatives]);
 
   useEffect(() => {
     browser.storage.local
@@ -200,10 +201,11 @@ const Options: React.FC = () => {
                 </div>
 
                 <div className='wittyworks-options-content-section-content-item'>
+                  {/* currently does nothing, is locked untill we have 'premium users' */}
                   <Toggle
                     on={inspirationalAlternatives}
                     handleToggle={() => {
-                      setInspirationalAlternatives(!inspirationalAlternatives);
+                      setInspirationalAlternatives(inspirationalAlternatives);
                     }}
                     color={Colors.green}
                     scale={0.35}
@@ -230,7 +232,7 @@ const Options: React.FC = () => {
           </div>
         </div>
 
-        {/* <div className='wittyworks-options-content-section'>
+        <div className='wittyworks-options-content-section'>
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
@@ -242,8 +244,71 @@ const Options: React.FC = () => {
               {disableTabOpen ? <ArrowUp /> : <ArrowDown />}
             </div>
           </div>
-          <div className='wittyworks-options-content-section-content'></div>
-        </div> */}
+          {disableTabOpen && (
+            <div className='wittyworks-options-content-section-content'>
+              {disabledSites.map((site) => (
+                <div
+                  className='wittyworks-options-content-section-content-title'
+                  key={`disabledSites-${site}`}
+                >
+                  {site}
+                  <div className='wittyworks-options-content-section-content-icon'>
+                    <Bin
+                      onClick={() => {
+                        setDisabledSites(
+                          disabledSites.filter((s) => s !== site)
+                        );
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+              {addDomainTabOpen && (
+                <div className='wittyworks-options-content-section-content-input-wrapper'>
+                  <input
+                    className='wittyworks-options-content-section-content-input'
+                    type='text'
+                    placeholder={t('addSite')}
+                    onChange={(e) => {
+                      setInput(e.target.value);
+                    }}
+                  />
+                  <div
+                    className='wittyworks-options-content-section-content-button'
+                    onClick={() => {
+                      if (
+                        input.match(
+                          /^(?:(?:(?:[a-zA-z\-]+)\:\/{1,3})?(?:[a-zA-Z0-9])(?:[a-zA-Z0-9\-\.]){1,61}(?:\.[a-zA-Z]{2,})+|\[(?:(?:(?:[a-fA-F0-9]){1,4})(?::(?:[a-fA-F0-9]){1,4}){7}|::1|::)\]|(?:(?:[0-9]{1,3})(?:\.[0-9]{1,3}){3}))(?:\:[0-9]{1,5})?$/
+                        )
+                      ) {
+                        setDisabledSites([...disabledSites, input]);
+                        setAddDomainTabOpen(false);
+                        setInvalidDomain(false);
+                      } else {
+                        setInvalidDomain(true);
+                      }
+                    }}
+                  >
+                    OK
+                  </div>
+                </div>
+              )}
+              {invalidDomain && (
+                <div className='wittyworks-options-content-section-content-item-error'>
+                  {t('invalidDomain')}
+                </div>
+              )}
+              <div
+                className='wittyworks-options-content-section-content-item--purple'
+                onClick={() => {
+                  setAddDomainTabOpen(true);
+                }}
+              >
+                + Add Domain
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

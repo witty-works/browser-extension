@@ -21,6 +21,7 @@ export enum StorageKeys {
   MAXIMUM_IMPORTANCE = 'maximumImportance',
   SINGULAR_THEY = 'singularThey',
   INSPIRATIONAL_ALTERNATIVES = 'inspirationalAlternatives',
+  DISABLED_SITES = 'disabledSites',
 }
 
 //API endpoints
@@ -90,3 +91,19 @@ export enum GermanGenderEndings {
   slash_in = '/in',
   uppercase_in = 'In',
 }
+
+export const WittyIconActive = {
+  path: {
+    '16': 'assets/icons/icon16.png',
+    '32': 'assets/icons/icon32.png',
+    '48': 'assets/icons/icon48.png',
+  },
+};
+
+export const WittyIconInactive = {
+  path: {
+    '16': 'assets/icons/icon16_disabled.png',
+    '32': 'assets/icons/icon32_disabled.png',
+    '48': 'assets/icons/icon48_disabled.png',
+  },
+};

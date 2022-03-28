@@ -59,6 +59,8 @@ export const de = {
     inspirationAlternativesExplanation:
       'Turn this off to only have automatic replacements as suggestions DE',
     singularThey: 'Accept “singular they” as correct DE',
+    addSite: 'Type a website’s URL DE',
+    invalidDomain: 'Invalid domain (example format: google.com)DE',
   },
 };
 
@@ -121,5 +123,7 @@ export const en = {
     inspirationAlternativesExplanation:
       'Turn this off to only have automatic replacements as suggestions',
     singularThey: 'Accept “singular they” as correct',
+    addSite: 'Type a website’s URL',
+    invalidDomain: 'Invalid domain (example format: google.com)',
   },
 };
