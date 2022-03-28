@@ -6,6 +6,7 @@ import { DEV_ENV } from '../shared/constants';
 import EnableWitty from './EnableWitty';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import Settings from '../assets/icons/popup/settings.svg';
 import Logo from '../assets/icons/witty-logo-color.svg';
 import GlobalSettings from './GlobalSettings';
 
@@ -36,9 +37,7 @@ const Popup: React.FC = () => {
         </>
       ) : null}
       <footer>
-        <a href='https://www.witty.works/onboarding' target='_blank'>
-          {t('needHelpQuestionMark')}
-        </a>
+        <Settings onClick={() => browser.runtime.openOptionsPage()} />
       </footer>
     </>
   );
