@@ -1,6 +1,11 @@
 import { browser } from 'webextension-polyfill-ts';
 
-import { StorageKeys, DEV_ENV } from '../shared/constants';
+import {
+  StorageKeys,
+  DEV_ENV,
+  WittyIconActive,
+  WittyIconInactive,
+} from '../shared/constants';
 import { isFunction } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
@@ -17,22 +22,10 @@ const scanTabs = () => {
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
       if (result[StorageKeys.DISABLED_SITES].includes(domain)) {
         browser.storage.local.set({ [StorageKeys.APP_ENABLED]: false });
-        browser.browserAction.setIcon({
-          path: {
-            '16': 'assets/icons/icon16_disabled.png',
-            '32': 'assets/icons/icon32_disabled.png',
-            '48': 'assets/icons/icon48_disabled.png',
-          },
-        });
+        browser.browserAction.setIcon(WittyIconInactive);
       } else {
         browser.storage.local.set({ [StorageKeys.APP_ENABLED]: true });
-        browser.browserAction.setIcon({
-          path: {
-            '16': 'assets/icons/icon16.png',
-            '32': 'assets/icons/icon32.png',
-            '48': 'assets/icons/icon48.png',
-          },
-        });
+        browser.browserAction.setIcon(WittyIconActive);
       }
     });
   });
@@ -50,13 +43,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     setSettings();
 
     //Set icon to active
-    browser.browserAction.setIcon({
-      path: {
-        '16': 'assets/icons/icon16.png',
-        '32': 'assets/icons/icon32.png',
-        '48': 'assets/icons/icon48.png',
-      },
-    });
+    browser.browserAction.setIcon(WittyIconActive);
 
     //Log install event to posthog
     analytics.extensionStatusLog('install', getBrowserId());
@@ -72,20 +59,8 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     //Update icon
     browser.storage.local.get(StorageKeys.APP_ENABLED).then((result) => {
       result[StorageKeys.APP_ENABLED]
-        ? browser.browserAction.setIcon({
-            path: {
-              '16': 'assets/icons/icon16.png',
-              '32': 'assets/icons/icon32.png',
-              '48': 'assets/icons/icon48.png',
-            },
-          })
-        : browser.browserAction.setIcon({
-            path: {
-              '16': 'assets/icons/icon16_disabled.png',
-              '32': 'assets/icons/icon32_disabled.png',
-              '48': 'assets/icons/icon48_disabled.png',
-            },
-          });
+        ? browser.browserAction.setIcon(WittyIconActive)
+        : browser.browserAction.setIcon(WittyIconInactive);
     });
 
     //Log update event to posthog
