@@ -33,8 +33,14 @@ section {
   }
 
   h2 {
-    font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 2em;
+    margin-top: 1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 14px;
+    color: $black;
+    opacity: 0.5;
   }
 }
 
@@ -47,4 +53,20 @@ footer {
   padding: 2em;
   margin-left: auto;
   cursor: pointer;
+}
+
+.wittyworks-toggles {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  color: $black;
+}
+
+.toggle-seperator {
+  background-color: $whiteGray;
+  margin-bottom: 1em;
+  border: 0;
+  height: 1px;
 }

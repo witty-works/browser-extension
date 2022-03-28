@@ -48,7 +48,7 @@ const GermanGenderEndSelector: React.FC = () => {
 
   return (
     <div>
-      <label>{t('germanGenderEnding')}:</label>
+      <label>{t('germanGenderEnding')}</label>
       <Dropdown
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}

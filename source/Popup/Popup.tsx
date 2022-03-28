@@ -1,101 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import ApiSelector from './ApiSelector';
-import LanguageSelector from './LanguageSelector';
-import Toggle from '../shared/components/Toggle/Toggle';
-import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
-import PreferredLanguagesSelector from './PreferedLanguagesSelector';
-import GermanGenderEndSelector from './GermanGenderEndSelector';
+import { DEV_ENV } from '../shared/constants';
+import EnableWitty from './EnableWitty';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
-import { useLog, logTypes } from '../shared/customHooks/useLog';
-import defaultConfig from '../witty.config.json';
 import Settings from '../assets/icons/popup/settings.svg';
+import Logo from '../assets/icons/witty-logo-color.svg';
+import GlobalSettings from './GlobalSettings';
 
 import './styles.scss';
 
 const Popup: React.FC = () => {
-  const [enabled, setEnabled] = useState<boolean>(defaultConfig.APP_ENABLED);
   const { t } = useTranslation(namespaces.pages.popup);
-  const log = useLog('Popup');
-
-  useEffect(() => {
-    browser.storage.local
-      .get(StorageKeys.APP_ENABLED)
-      .then((result) => {
-        setEnabled(result[StorageKeys.APP_ENABLED]);
-      })
-      .catch(onError);
-  }, []);
-
-  useEffect(() => {
-    //Save app status on the local storage
-    browser.storage.local
-      .set({ [StorageKeys.APP_ENABLED]: enabled })
-      .then(() => {
-        log(
-          `Witty status *${enabled ? 'enabled' : 'disabled'}* correctly saved`
-        );
-      })
-      .catch(onError);
-
-    //Change app icon acordingly
-    enabled
-      ? browser.browserAction.setIcon({
-          path: {
-            '16': 'assets/icons/icon16.png',
-            '32': 'assets/icons/icon32.png',
-            '48': 'assets/icons/icon48.png',
-          },
-        })
-      : browser.browserAction.setIcon({
-          path: {
-            '16': 'assets/icons/icon16_disabled.png',
-            '32': 'assets/icons/icon32_disabled.png',
-            '48': 'assets/icons/icon48_disabled.png',
-          },
-        });
-  }, [enabled]);
-
-  const onError = (error: string) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-  };
-
   return (
     <>
       <header>
-        <h1>
-          <a href='https://www.witty.works/' target='_blank'>
-            <img
-              className='icon'
-              alt='Witty Works Logo'
-              width='100'
-              height='15'
-              src={browser.runtime.getURL(
-                '../assets/icons/witty-logo-color.svg'
-              )}
-            />
-          </a>
-        </h1>
-      </header>
-      <hr></hr>
-      <section>
-        <h2>{t('settings')}</h2>
-        <Toggle
-          on={enabled}
-          handleToggle={() => setEnabled(!enabled)}
-          color={Colors.green}
-          scale={0.35}
-          label={t('enableWitty')}
+        <Logo
+          onClick={() => {
+            browser.tabs.create({ url: 'https://www.witty.works/' });
+          }}
         />
-        <LanguageSelector />
-        <PreferredLanguagesSelector />
-        <GermanGenderEndSelector />
+      </header>
+      <section className='wittyworks-toggles'>
+        <GlobalSettings />
+        <h2>{t('settings')}</h2>
+        <EnableWitty />
       </section>
       {DEV_ENV ? (
         <>
-          <hr></hr>
           <section>
             <h2>{t('developmentSettings')}</h2>
             <ApiSelector />
