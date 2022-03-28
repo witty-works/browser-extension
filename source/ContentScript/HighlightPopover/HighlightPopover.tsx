@@ -240,8 +240,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
         </div>
 
-        {data.alert.data.alternatives.filter((word) => word.text != ' ')
-          .length > 0 && (
+        {data.alert.data.alternatives.length > 0 && (
           <>
             <hr className='wittyworks-popover-separator' />
             <div className='wittyworks-popover-row'>
