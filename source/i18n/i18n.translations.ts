@@ -47,6 +47,8 @@ export const de = {
     setUpLanguages: 'Set up languages DE',
     configureRules: 'Configure how Witty checks your texts DE',
     disableWitty: 'Disable Witty on some websites DE',
+    addSite: 'Type a website’s URL DE',
+    invalidDomain: 'Invalid domain (example format: google.com)DE',
   },
 };
 
@@ -97,5 +99,7 @@ export const en = {
     setUpLanguages: 'Set up languages',
     configureRules: 'Configure how Witty checks your texts',
     disableWitty: 'Disable Witty on some websites',
+    addSite: 'Type a website’s URL',
+    invalidDomain: 'Invalid domain (example format: google.com)',
   },
 };
