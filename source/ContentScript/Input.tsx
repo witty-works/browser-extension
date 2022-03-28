@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 import defaultConfig from '../witty.config.json';
+import { WTags } from '../shared/constants';
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -28,25 +29,33 @@ import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEn
 
 const Input: React.FC<{
   element: CustomInputElement;
-  bodyScroll: ScrollPos;
-  parentScroll: ScrollPos;
-}> = ({ element, bodyScroll, parentScroll }) => {
+  // bodyScroll: ScrollPos;
+  // parentScroll: ScrollPos;
+}> = ({ element /*  bodyScroll,   parentScroll*/ }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
+
+  // console.log('INPUT element', element);
   let elementRect = useResizeObserver(element);
-  let elementOffsetParentRect = useResizeObserver(
-    element.offsetParent as HTMLElement
-  );
+
+  // console.log('INPUT element.offsetParent', element.offsetParent);
+  // let elementOffsetParentRect = useResizeObserver(
+  //   element.offsetParent as HTMLElement
+  // );
+  // TODO maybe this goes off
+  // let elementOffsetParentRect = useResizeObserver(
+  //   element.offsetParent ? (element.offsetParent as HTMLElement) : element
+  // );
 
   const [alerts, setAlerts] = useState<IAlert[]>([]);
-  const [observedElement, setObservedElement] = useState<HTMLElement>(element);
-  const [observedElementRect, setObservedElementRect] = useState<DOMRect>(
-    element.getBoundingClientRect()
-  );
+  // const [observedElement, setObservedElement] = useState<HTMLElement>(element);
+  // const [observedElementRect, setObservedElementRect] = useState<DOMRect>(
+  //   element.getBoundingClientRect()
+  // );
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
@@ -138,19 +147,19 @@ const Input: React.FC<{
     docTextEvaluation(element);
   }, [element]);
 
-  useEffect(() => {
-    const ele: { element: HTMLElement; rect: DOMRect } =
-      elementOffsetParentRect.width < elementRect.width ||
-      elementOffsetParentRect.height < elementRect.height
-        ? {
-            element: element.offsetParent as HTMLElement,
-            rect: elementOffsetParentRect,
-          }
-        : { element: element, rect: elementRect };
+  // useEffect(() => {
+  //   const ele: { element: HTMLElement; rect: DOMRect } =
+  //     elementOffsetParentRect.width < elementRect.width ||
+  //     elementOffsetParentRect.height < elementRect.height
+  //       ? {
+  //           element: element.offsetParent as HTMLElement,
+  //           rect: elementOffsetParentRect,
+  //         }
+  //       : { element: element, rect: elementRect };
 
-    setObservedElement(ele.element);
-    setObservedElementRect(ele.rect);
-  }, [elementRect, elementOffsetParentRect]);
+  //   setObservedElement(ele.element);
+  //   setObservedElementRect(ele.rect);
+  // }, [elementRect, elementOffsetParentRect]);
 
   const handleMouseoverEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(true);
@@ -200,9 +209,10 @@ const Input: React.FC<{
     //In this case always create a new string to force change the state of setTextToCheck
     setTextToCheck(text);
   }, debounceDelay);
-  const handleElementScrollEvent = debounce(() => {
+
+  const handleElementScrollEvent = () => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
-  }, 500);
+  };
 
   const handleSubmitFormEvent = () => {
     //It's assumed that when user sends info through a form, text will disappear.
@@ -646,26 +656,33 @@ const Input: React.FC<{
   }, [checkEndpointError]);
 
   return (
-    <div className='canvas-container'>
-      <StateIndicatorIcon
-        elementReference={element}
-        iconType={activeIcon}
-        isHovered={isHovered}
-      />
-      {isTextArea(element) && (
-        <TextAreaClone
-          element={element}
-          elementRect={elementRect}
-          elementScroll={elementScroll}
-          updateClone={updateCloneData}
+    <>
+      <WTags.WW_ACTIVITY_INDICATOR>
+        <StateIndicatorIcon
+          elementReference={element}
+          iconType={activeIcon}
+          isHovered={isHovered}
         />
+      </WTags.WW_ACTIVITY_INDICATOR>
+
+      {isTextArea(element) && (
+        <WTags.WW_CLONE>
+          <TextAreaClone
+            element={element}
+            elementRect={elementRect}
+            elementScroll={elementScroll}
+            updateClone={updateCloneData}
+          />
+        </WTags.WW_CLONE>
       )}
       {isInputText(element) && (
-        <InputTextClone
-          element={element}
-          elementRect={elementRect}
-          updateClone={updateCloneData}
-        />
+        <WTags.WW_CLONE>
+          <InputTextClone
+            element={element}
+            elementRect={elementRect}
+            updateClone={updateCloneData}
+          />
+        </WTags.WW_CLONE>
       )}
       {popoverData && (
         <HighlightPopover
@@ -677,16 +694,20 @@ const Input: React.FC<{
           movePopoverNextOrPrev={movePopoverNextOrPrev}
         />
       )}
-      <Highlights
-        bodyScroll={bodyScroll}
-        parentScroll={parentScroll}
-        elementScroll={elementScroll}
-        elementRect={observedElementRect}
-        nodesWithAlerts={nodesWithAlerts}
-        element={observedElement}
-        selectedAlert={selectedAlert}
-      />
-    </div>
+      <WTags.WW_HIGHLIGHTS>
+        <Highlights
+          // bodyScroll={bodyScroll}
+          // parentScroll={parentScroll}
+          elementScroll={elementScroll}
+          // elementRect={observedElementRect}
+          elementRect={elementRect}
+          nodesWithAlerts={nodesWithAlerts}
+          // element={observedElement}
+          element={element}
+          selectedAlert={selectedAlert}
+        />
+      </WTags.WW_HIGHLIGHTS>
+    </>
   );
 };
 

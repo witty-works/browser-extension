@@ -7,7 +7,7 @@ interface InputTextCloneProps {
 
 const InputTextClone: React.FC<InputTextCloneProps> = ({
   element,
-  elementRect,
+  // elementRect,
   updateClone,
 }: InputTextCloneProps) => {
   const elementStyle = window.getComputedStyle(element);
@@ -26,8 +26,8 @@ const InputTextClone: React.FC<InputTextCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top}px`,
-          left: `${elementRect.left}px`,
+          top: '0px',
+          left: '0px',
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
@@ -40,15 +40,7 @@ const InputTextClone: React.FC<InputTextCloneProps> = ({
           fontFamily: elementStyle.fontFamily,
           border: `${elementStyle.borderBottomWidth} solid black`,
           visibility: 'hidden',
-          // outline: '5px solid red',
-          // pointerEvents: 'none',
-          // zIndex: 1,
-          // top: `${
-          //   elementBoundingClientRect.top -
-          //   element.scrollTop +
-          //   elementBoundingClientRect.height +
-          //   50
-          // }px`,
+          pointerEvents: 'none',
         } as React.CSSProperties
       }
     >

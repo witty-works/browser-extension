@@ -1,7 +1,7 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
-import { StorageKeys } from '../shared/constants';
+import { StorageKeys, WTags } from '../shared/constants';
 import ContentScriptApp from './ContentScriptApp';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
@@ -17,7 +17,7 @@ document.body.appendChild(element);
 const customRender = (enabled: boolean) => {
   ReactDOM.render(
     enabled ? <ContentScriptApp /> : <></>,
-    document.querySelector('witty-code')
+    document.querySelector(WTags.WW_CONTAINER)
   );
 };
 

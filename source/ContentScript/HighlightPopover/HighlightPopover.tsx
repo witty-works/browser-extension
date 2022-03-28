@@ -4,6 +4,7 @@ import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
 import { CustomInputElement, IAlert } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
+import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 

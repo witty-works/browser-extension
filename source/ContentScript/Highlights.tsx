@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
+
 import { Highlight, IAlert, INodeWithAlerts, ScrollPos } from '../shared/types';
 import { getColor } from '../shared/constants';
 import { nodeExistsInDOM } from '../shared/utils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
+import { isTextArea, isInputText } from '../shared/utils';
 
 interface HighlightsProps {
-  bodyScroll: ScrollPos;
-  parentScroll: ScrollPos;
+  // bodyScroll: ScrollPos;
+  // parentScroll: ScrollPos;
   elementScroll: ScrollPos;
   elementRect: DOMRect;
   nodesWithAlerts: INodeWithAlerts[];
@@ -15,14 +17,15 @@ interface HighlightsProps {
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
-  bodyScroll,
-  parentScroll,
+  // bodyScroll,
+  // parentScroll,
   elementScroll,
   elementRect,
   nodesWithAlerts,
   element,
   selectedAlert,
 }: HighlightsProps) => {
+  const doc = document.documentElement || document.body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
@@ -45,13 +48,30 @@ const Highlights: React.FC<HighlightsProps> = ({
             range.setEnd(node, alert.endOffset);
             const rects: DOMRect[] = Array.from(range.getClientRects()).map(
               (rect: DOMRect) => {
+                // console.log('HL elementScroll.top', elementScroll.top);
+                // console.log('HL rect.top', rect.top);
+                // console.log('HL doc.scrollTop', doc.scrollTop);
+                // console.log(
+                //   'HL rect.top + doc.scrollTop',
+                //   rect.top + doc.scrollTop
+                // );
+                // console.log(
+                //   'HL rect.top - elementRect.top + doc.scrollTop',
+                //   rect.top - elementScroll.top + doc.scrollTop
+                // );
+
                 return {
                   ...rect,
                   width: rect.width,
                   height: rect.height,
                   left: rect.left,
                   x: rect.left,
-                  top: rect.top + bodyScroll.top,
+                  top:
+                    rect.top +
+                    doc.scrollTop -
+                    (isTextArea(element) || isInputText(element)
+                      ? elementScroll.top
+                      : 0),
                   y: rect.top,
                 };
               }
@@ -72,7 +92,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
 
     setHighlights(highlights);
-  }, [nodesWithAlerts, parentScroll, elementScroll, elementRect]);
+  }, [nodesWithAlerts, /* parentScroll, */ elementScroll, elementRect]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -81,8 +101,8 @@ const Highlights: React.FC<HighlightsProps> = ({
     const ratio = window.devicePixelRatio;
     canvas.width = elementRect.width * ratio;
     canvas.height = elementRect.height * ratio;
-    canvas.style.width = elementRect.width + 'px';
-    canvas.style.height = elementRect.height + 'px';
+    // canvas.style.width = `${elementRect.width}px`;
+    // canvas.style.height = `${elementRect.height}px`;
     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
     if (!context) return;
 
@@ -118,7 +138,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawLine(params, hoverColor, dashedLine);
       }
     });
-  }, [highlights, selectedAlert]);
+  }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
     <canvas
@@ -126,13 +146,15 @@ const Highlights: React.FC<HighlightsProps> = ({
       style={
         {
           position: 'absolute',
-          top: `${elementRect.top}px`,
-          left: `${elementRect.left}px`,
+          top: '0px',
+          left: '0px',
           width: `${elementRect.width}px`,
           height: `${elementRect.height}px`,
           overflow: 'auto',
-          zIndex: 99999999,
+          // zIndex: 99999999,
           pointerEvents: 'none',
+          // mixBlendMode: 'normal',   //TODO Explorer this property
+          // backgroundColor: 'rgba(0,0,150,0.3)',
         } as React.CSSProperties
       }
     ></canvas>

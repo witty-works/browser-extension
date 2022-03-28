@@ -9,8 +9,8 @@ interface TextAreaCloneProps {
 
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
-  elementRect,
-  elementScroll,
+  // elementRect,
+  // elementScroll,
   updateClone,
 }: TextAreaCloneProps) => {
   const elementStyle = window.getComputedStyle(element);
@@ -29,8 +29,8 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top - elementScroll.top}px`,
-          left: `${elementRect.left - elementScroll.left}px`,
+          top: '0px',
+          left: '0px',
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
@@ -43,9 +43,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           fontFamily: elementStyle.fontFamily,
           border: `${elementStyle.borderBottomWidth} solid black`,
           visibility: 'hidden',
-          // outline: '8px solid red',
           pointerEvents: 'none',
-          // zIndex: 9999999,
         } as React.CSSProperties
       }
     >

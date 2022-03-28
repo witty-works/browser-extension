@@ -69,6 +69,16 @@ export enum ConfigPropertyStatus {
   SUGGESTION = 'suggestion',
 }
 
+//HTML element's tags
+export enum WTags {
+  WW_CONTAINER = 'ww-container',
+  WW_HIGHLIGHTS = 'ww-highlights',
+  WW_MOUSEOVER_INDICATOR = 'ww-mo-indicator',
+  WW_ACTIVITY_INDICATOR = 'ww-activity-indicator',
+  WW_CLONE = 'ww-clone',
+}
+
+//Colors
 export enum Colors {
   red = '#F06464',
   magenta = '#F277D0',
@@ -125,6 +135,7 @@ export enum GermanGenderEndings {
   uppercase_in = 'In',
 }
 
+//Icons
 export const WittyIconActive = {
   path: {
     '16': 'assets/icons/icon16.png',
