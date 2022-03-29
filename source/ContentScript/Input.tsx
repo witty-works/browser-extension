@@ -20,6 +20,8 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
+import { browser } from 'webextension-polyfill-ts';
+import { StorageKeys } from '../shared/constants';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -58,6 +60,7 @@ const Input: React.FC<{
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
   const [elementXPathResult, setElementXPathResult] = useState<XPathResult>();
+  const [, setDelay, delayRef] = useStateRef<number>(3000);
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -75,8 +78,10 @@ const Input: React.FC<{
   const log = useLog('Input');
 
   useEffect(() => {
+    browser.storage.local.get(StorageKeys.API_DELAY).then((result) => {
+      setDelay(result[StorageKeys.API_DELAY] as number);
+    });
     handleKeyupEvent();
-
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
@@ -176,7 +181,8 @@ const Input: React.FC<{
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
     setTextToCheck(new String(text) as string);
-  }, 3000);
+    console.log('delay', delayRef.current);
+  }, delayRef.current);
 
   const handleElementScrollEvent = debounce(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
