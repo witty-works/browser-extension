@@ -339,6 +339,7 @@ const ContentScriptApp: React.FC = () => {
       );
 
       if (indicatorElement) {
+        ReactDOM.unmountComponentAtNode(indicatorElement);
         indicatorElement.remove();
       }
     }

@@ -108,9 +108,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       posY >= data.position.y &&
       posY <= data.position.y + data.position.height;
 
-    if (hasClickedOutsidePopOver && !hasClickedThisHighlight) {
-      hidePopover();
-    }
+    if (hasClickedOutsidePopOver && !hasClickedThisHighlight) hidePopover();
   };
 
   const hidePopover = () => {

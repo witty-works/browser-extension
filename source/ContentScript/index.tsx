@@ -15,6 +15,8 @@ element.setAttribute('extension-id', browser.runtime.id);
 document.body.appendChild(element);
 
 const customRender = (enabled: boolean) => {
+  if (enabled)
+    document.body.appendChild(document.createElement(WTags.WW_POPOVER));
   ReactDOM.render(
     enabled ? <ContentScriptApp /> : <></>,
     document.querySelector(WTags.WW_CONTAINER)
