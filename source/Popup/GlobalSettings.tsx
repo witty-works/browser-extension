@@ -27,7 +27,8 @@ const GlobalSettings: React.FC = () => {
     browser.storage.local
       .get(StorageKeys.GLOBAL_SETTINGS)
       .then((result) => {
-        setGlobalSettings(result[StorageKeys.GLOBAL_SETTINGS]);
+        if (result[StorageKeys.GLOBAL_SETTINGS])
+          setGlobalSettings(result[StorageKeys.GLOBAL_SETTINGS]);
       })
       .catch(onError);
   }, []);

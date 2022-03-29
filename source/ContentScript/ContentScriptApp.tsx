@@ -73,15 +73,14 @@ const ContentScriptApp: React.FC = () => {
           ),
           preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES],
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
-
-          disabled_categories: Object.keys(
-            result[StorageKeys.GLOBAL_SETTINGS]
-          ).filter(
-            (key) =>
-              !result[StorageKeys.GLOBAL_SETTINGS][
-                key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
-              ]
-          ),
+          disabled_categories: result[StorageKeys.GLOBAL_SETTINGS]
+            ? Object.keys(result[StorageKeys.GLOBAL_SETTINGS]).filter(
+                (key) =>
+                  !result[StorageKeys.GLOBAL_SETTINGS][
+                    key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
+                  ]
+              )
+            : [],
         };
         setReqConfig(reqConfig);
       })
@@ -159,9 +158,11 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.GLOBAL_SETTINGS:
           setReqConfig({
             ...reqConfigRef.current,
-            disabled_categories: Object.keys(changes[item].newValue).filter(
-              (key) => !changes[item].newValue[key as keyof typeof changes]
-            ),
+            disabled_categories: changes[item].newValue
+              ? Object.keys(changes[item].newValue).filter(
+                  (key) => !changes[item].newValue[key as keyof typeof changes]
+                )
+              : [],
           });
           break;
       }
