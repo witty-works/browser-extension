@@ -60,7 +60,7 @@ const Input: React.FC<{
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
   const [elementXPathResult, setElementXPathResult] = useState<XPathResult>();
-  const [, setDelay, delayRef] = useStateRef<number>(3000);
+  const [debounceDelay, setDebounceDelay] = useState(3000);
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -79,9 +79,12 @@ const Input: React.FC<{
 
   useEffect(() => {
     browser.storage.local.get(StorageKeys.API_DELAY).then((result) => {
-      setDelay(result[StorageKeys.API_DELAY] as number);
+      setDebounceDelay(result[StorageKeys.API_DELAY] as number);
     });
     handleKeyupEvent();
+  }, []);
+
+  useEffect(() => {
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
@@ -116,7 +119,7 @@ const Input: React.FC<{
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
-  }, []);
+  }, [debounceDelay]);
 
   useEffect(() => {
     docTextEvaluation(element);
@@ -180,10 +183,8 @@ const Input: React.FC<{
 
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
-    setTextToCheck(new String(text) as string);
-    console.log('delay', delayRef.current);
-  }, delayRef.current);
-
+    setTextToCheck(text);
+  }, debounceDelay);
   const handleElementScrollEvent = debounce(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   }, 500);
