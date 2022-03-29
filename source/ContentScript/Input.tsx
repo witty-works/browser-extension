@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 
 import defaultConfig from '../witty.config.json';
 import { WTags } from '../shared/constants';
@@ -236,7 +237,7 @@ const Input: React.FC<{
     setClone(newClone);
   };
 
-  const hidePopover = () => {
+  const resetPopover = () => {
     if (popoverData) {
       setPopoverData(null);
       setSelectedAlert(null);
@@ -641,7 +642,7 @@ const Input: React.FC<{
     const newText: string = getInputText(element);
     setTextToCheck(newText);
 
-    hidePopover();
+    resetPopover();
   };
 
   useEffect(() => {
@@ -673,6 +674,29 @@ const Input: React.FC<{
     }
   }, [checkEndpointError]);
 
+  useEffect(() => {
+    //Show/Hide the popover
+    if (popoverData) {
+      ReactDOM.render(
+        <HighlightPopover
+          element={element}
+          data={popoverData}
+          hide={resetPopover}
+          updateTextWithAlternative={updateTextWithAlternative}
+          addIgnoredTerm={addIgnoredTerm}
+          movePopoverNextOrPrev={movePopoverNextOrPrev}
+        />,
+        document.querySelector(WTags.WW_POPOVER)
+      );
+    } else {
+      const popoverElement = document.querySelector(WTags.WW_POPOVER);
+
+      if (popoverElement) {
+        ReactDOM.unmountComponentAtNode(popoverElement);
+      }
+    }
+  }, [popoverData]);
+
   return (
     <>
       <WTags.WW_ACTIVITY_INDICATOR>
@@ -701,16 +725,6 @@ const Input: React.FC<{
             updateClone={updateCloneData}
           />
         </WTags.WW_CLONE>
-      )}
-      {popoverData && (
-        <HighlightPopover
-          element={element}
-          data={popoverData}
-          hide={hidePopover}
-          updateTextWithAlternative={updateTextWithAlternative}
-          addIgnoredTerm={addIgnoredTerm}
-          movePopoverNextOrPrev={movePopoverNextOrPrev}
-        />
       )}
       <WTags.WW_HIGHLIGHTS>
         <Highlights

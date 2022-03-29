@@ -74,6 +74,7 @@ export enum WTags {
   WW_MOUSEOVER_INDICATOR = 'ww-mo-indicator',
   WW_ACTIVITY_INDICATOR = 'ww-activity-indicator',
   WW_CLONE = 'ww-clone',
+  WW_POPOVER = 'ww-popover',
 }
 
 //Colors
