@@ -152,6 +152,7 @@ const Input: React.FC<{
 
   const handleKeyupEvent = (event?: Event) => {
     browser.storage.local.get(StorageKeys.GLOBAL_SETTINGS).then((result) => {
+      if (!result.globalSettings) return;
       element.spellcheck = result.globalSettings.orthography ? false : true;
     });
     const nextText: string = getInputText(element);

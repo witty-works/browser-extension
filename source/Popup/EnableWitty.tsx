@@ -21,12 +21,17 @@ const EnableWitty: React.FC = () => {
   const log = useLog('Popup');
 
   useEffect(() => {
+    let isMounted = true;
     browser.storage.local
       .get(StorageKeys.APP_ENABLED)
       .then((result) => {
+        if (!isMounted) return;
         setEnabled(result[StorageKeys.APP_ENABLED]);
       })
       .catch(onError);
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -45,7 +50,9 @@ const EnableWitty: React.FC = () => {
       const currentDomain = new URL(tab.url).hostname.replace('www.', '');
 
       browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
-        const disabledSites = result[StorageKeys.DISABLED_SITES];
+        const disabledSites = result[StorageKeys.DISABLED_SITES]
+          ? result[StorageKeys.DISABLED_SITES]
+          : [];
 
         const newDisabledSites = enabled
           ? disabledSites.filter((domain: string) => domain !== currentDomain)

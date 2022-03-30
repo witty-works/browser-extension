@@ -46,6 +46,7 @@ const ContentScriptApp: React.FC = () => {
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
+    let isMounted = true;
     //Init API requests Config
     browser.storage.local
       .get(null)
@@ -82,6 +83,7 @@ const ContentScriptApp: React.FC = () => {
               )
             : [],
         };
+        if (!isMounted) return;
         setReqConfig(reqConfig);
       })
       .catch(onBrowserStorageError);
@@ -108,7 +110,10 @@ const ContentScriptApp: React.FC = () => {
     // newTextarea.rows = 25;
     // if (section) section.appendChild(newTextarea);
 
-    if (Object.keys(StorageKeys.GLOBAL_SETTINGS).includes('orthography')) {
+    if (
+      StorageKeys.GLOBAL_SETTINGS &&
+      Object.keys(StorageKeys.GLOBAL_SETTINGS).includes('orthography')
+    ) {
       document.body.spellcheck = false; //needed here for linkedin, could be removed when we fix focusin issue
     } else {
       document.body.spellcheck = true;
@@ -119,6 +124,7 @@ const ContentScriptApp: React.FC = () => {
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
+      isMounted = false;
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
