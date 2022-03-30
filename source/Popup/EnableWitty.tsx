@@ -30,7 +30,6 @@ const EnableWitty: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    //Save app status on the local storage
     browser.storage.local
       .set({ [StorageKeys.APP_ENABLED]: enabled })
       .then(() => {
@@ -47,11 +46,12 @@ const EnableWitty: React.FC = () => {
 
       browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
         const disabledSites = result[StorageKeys.DISABLED_SITES];
+
         const newDisabledSites = enabled
           ? disabledSites.filter((domain: string) => domain !== currentDomain)
+          : disabledSites.includes(currentDomain)
+          ? disabledSites
           : [...disabledSites, currentDomain];
-        const icon = enabled ? WittyIconActive : WittyIconInactive;
-
         browser.storage.local
           .set({ [StorageKeys.DISABLED_SITES]: newDisabledSites })
           .then(() => {
@@ -60,8 +60,9 @@ const EnableWitty: React.FC = () => {
             );
           })
           .catch(onError);
-        browser.browserAction.setIcon(icon);
       });
+      const icon = enabled ? WittyIconActive : WittyIconInactive;
+      browser.browserAction.setIcon(icon);
     });
   }, [enabled]);
 
