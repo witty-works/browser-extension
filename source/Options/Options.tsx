@@ -18,78 +18,70 @@ import Toggle from '../shared/components/Toggle/Toggle';
 import { Colors, StorageKeys } from '../shared/constants';
 import { logTypes, useLog } from '../shared/customHooks/useLog';
 import { browser } from 'webextension-polyfill-ts';
+import defaultConfig from '../witty.config.json';
 
 const Options: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.options);
   const [languagesTabOpen, setLanguagesTabOpen] = useState<boolean>(false);
-  const [rulesTabOpen, setRulesTabOpen] = useState(false);
-  const [expertMode, setExpertMode] = useState(false);
-  const [inspirationalAlternatives, setInspirationalAlternatives] =
-    useState(false);
-  const [singularThey, setSingularThey] = useState(false);
+  const [rulesTabOpen, setRulesTabOpen] = useState<boolean>(false);
   const [disableTabOpen, setDisableTabOpen] = useState<boolean>(false);
   const [disabledSites, setDisabledSites] = useState<string[]>([]);
   const [addDomainTabOpen, setAddDomainTabOpen] = useState<boolean>(false);
   const [input, setInput] = useState<string>('');
   const [invalidDomain, setInvalidDomain] = useState<boolean>(false);
+  const [expertMode, setExpertMode] = useState<boolean>(
+    defaultConfig.EXPERT_MODE
+  );
+  const [inspirationalAlternatives, setInspirationalAlternatives] =
+    useState<boolean>(defaultConfig.INSPIRATIONAL_ALTERNATIVES);
+  const [singularThey, setSingularThey] = useState<boolean>(
+    defaultConfig.SINGULAR_THEY
+  );
 
   const log = useLog('Options');
 
   useEffect(() => {
-    browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
-      console.log('result', result);
-      setDisabledSites(result[StorageKeys.DISABLED_SITES]);
+    getFromLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE).then((result) => {
+      setExpertMode(result);
+    });
+    getFromLocalStorage(StorageKeys.SINGULAR_THEY).then((result) => {
+      setSingularThey(result);
+    });
+
+    getFromLocalStorage(StorageKeys.DISABLED_SITES).then((result) => {
+      setDisabledSites(result);
     });
   }, []);
 
   useEffect(() => {
-    browser.storage.local
-      .set({ [StorageKeys.DISABLED_SITES]: disabledSites })
-      .then(() => {
-        log(
-          `Witty ${StorageKeys.DISABLED_SITES} *${disabledSites}* correctly saved`
-        );
-      })
-      .catch(onError);
+    storeInLocalStorage(StorageKeys.DISABLED_SITES, disabledSites);
   }, [disabledSites]);
 
   useEffect(() => {
-    browser.storage.local
-      .get(StorageKeys.MAXIMUM_IMPORTANCE)
-      .then((result) => {
-        setExpertMode(result[StorageKeys.MAXIMUM_IMPORTANCE]);
-      })
-      .catch(onError);
-
-    browser.storage.local
-      .get(StorageKeys.SINGULAR_THEY)
-      .then((result) => {
-        setSingularThey(result[StorageKeys.SINGULAR_THEY]);
-      })
-      .catch(onError);
-  }, []);
-
-  useEffect(() => {
-    browser.storage.local
-      .set({ [StorageKeys.MAXIMUM_IMPORTANCE]: expertMode })
-      .then(() => {
-        log(
-          `Witty ${StorageKeys.MAXIMUM_IMPORTANCE} *${expertMode}* correctly saved`
-        );
-      })
-      .catch(onError);
+    storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, expertMode);
   }, [expertMode]);
 
   useEffect(() => {
+    storeInLocalStorage(StorageKeys.SINGULAR_THEY, singularThey);
+  }, [singularThey]);
+
+  const storeInLocalStorage = (key: string, value: any) => {
     browser.storage.local
-      .set({ [StorageKeys.SINGULAR_THEY]: singularThey })
+      .set({ [key]: value })
       .then(() => {
-        log(
-          `Witty ${StorageKeys.SINGULAR_THEY} *${singularThey}* correctly saved`
-        );
+        log(`Witty ${key} *${value}* correctly saved`);
       })
       .catch(onError);
-  }, [singularThey]);
+  };
+
+  const getFromLocalStorage = (key: string) => {
+    return browser.storage.local
+      .get(key)
+      .then((result) => {
+        return result[key];
+      })
+      .catch(onError);
+  };
 
   const onError = (error: string) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
@@ -181,7 +173,6 @@ const Options: React.FC = () => {
                   color={Colors.green}
                   scale={0.35}
                   label={t('expertMode')}
-                  locked={false}
                 />
                 <div className='wittyworks-options-content-section-content-subtitle'>
                   {t('expertModeExplanation')}
@@ -212,7 +203,6 @@ const Options: React.FC = () => {
                   color={Colors.green}
                   scale={0.35}
                   label={t('singularThey')}
-                  locked={false}
                 />
               </div>
             )}

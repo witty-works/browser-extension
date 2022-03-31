@@ -66,7 +66,6 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         color={Colors.green}
         scale={0.35}
         label={t('spellChecking')}
-        locked={false}
       />
       {page == 'popup' ? (
         <hr className='toggle-seperator' />
@@ -84,7 +83,6 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         color={Colors.green}
         scale={0.35}
         label={t('inclusiveTerms')}
-        locked={false}
       />
       {page == 'popup' ? (
         <hr className='toggle-seperator' />
@@ -104,7 +102,6 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         color={Colors.green}
         scale={0.35}
         label={t('styleCorrections')}
-        locked={false}
       />
       {page == 'popup' ? (
         <hr className='toggle-seperator' />

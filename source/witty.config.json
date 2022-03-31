@@ -2,5 +2,8 @@
   "APP_ENABLED": true,
   "PRIMARY_LANGUAGE": "de-DE",
   "PREFERRED_LANGUAGES": ["de-DE", "en-GB"],
-  "GERMAN_GENDER_ENDING": "colon_in"
+  "GERMAN_GENDER_ENDING": "colon_in",
+  "EXPERT_MODE": false,
+  "INSPIRATIONAL_ALTERNATIVES": false,
+  "SINGULAR_THEY": false
 }

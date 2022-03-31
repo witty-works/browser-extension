@@ -10,7 +10,7 @@ interface ToggleProps {
   color: string;
   scale: number;
   label: string;
-  locked: boolean;
+  locked?: boolean;
 }
 
 const Toggle: React.FC<ToggleProps> = ({
