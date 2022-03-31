@@ -272,9 +272,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                             )
                           }
                         >
-                          {alternative.text
-                            ? t('removeSpaces')
-                            : alternative.text}
+                          {alternative.text === ' ' ? (
+                            <i>{t('removeSpaces')}</i>
+                          ) : (
+                            alternative.text
+                          )}
                         </div>
                         {alternative.context && (
                           <div className='wittyworks-popover-alternative-context'>

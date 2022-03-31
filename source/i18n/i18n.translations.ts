@@ -35,7 +35,7 @@ export const de = {
     ignoreTerm: 'Ignorieren',
     whyQuestionMark: 'Warum?',
     alertOftotal: 'von',
-    removeSpaces: 'Remove extra spaces DE',
+    removeSpaces: '(Remove extra spaces) DE',
   },
   [namespaces.pages.options]: {
     settings: 'Settings DE',
@@ -88,7 +88,7 @@ export const en = {
     ignoreTerm: 'Ignore',
     whyQuestionMark: 'Why?',
     alertOftotal: 'of',
-    removeSpaces: 'Remove extra spaces',
+    removeSpaces: '(Remove extra spaces)',
   },
   [namespaces.pages.options]: {
     settings: 'Settings',
