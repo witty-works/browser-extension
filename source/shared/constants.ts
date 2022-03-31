@@ -19,6 +19,7 @@ export enum StorageKeys {
   PREFERRED_LANGUAGES = 'preferredLanguages',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   DISABLED_SITES = 'disabledSites',
+  API_DELAY = 'apiDelay',
 }
 
 //API endpoints
