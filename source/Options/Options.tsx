@@ -41,15 +41,10 @@ const Options: React.FC = () => {
   const log = useLog('Options');
 
   useEffect(() => {
-    getFromLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE).then((result) => {
-      setExpertMode(result);
-    });
-    getFromLocalStorage(StorageKeys.SINGULAR_THEY).then((result) => {
-      setSingularThey(result);
-    });
-
-    getFromLocalStorage(StorageKeys.DISABLED_SITES).then((result) => {
-      setDisabledSites(result);
+    browser.storage.local.get(null).then((result) => {
+      setExpertMode(result[StorageKeys.MAXIMUM_IMPORTANCE]);
+      setSingularThey(result[StorageKeys.SINGULAR_THEY]);
+      setDisabledSites(result[StorageKeys.DISABLED_SITES]);
     });
   }, []);
 
@@ -70,15 +65,6 @@ const Options: React.FC = () => {
       .set({ [key]: value })
       .then(() => {
         log(`Witty ${key} *${value}* correctly saved`);
-      })
-      .catch(onError);
-  };
-
-  const getFromLocalStorage = (key: string) => {
-    return browser.storage.local
-      .get(key)
-      .then((result) => {
-        return result[key];
       })
       .catch(onError);
   };
