@@ -46,6 +46,7 @@ const ContentScriptApp: React.FC = () => {
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
+    let isMounted = true;
     //Init API requests Config
     browser.storage.local
       .get(null)
@@ -73,16 +74,16 @@ const ContentScriptApp: React.FC = () => {
           ),
           preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES],
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
-
-          disabled_categories: Object.keys(
-            result[StorageKeys.GLOBAL_SETTINGS]
-          ).filter(
-            (key) =>
-              !result[StorageKeys.GLOBAL_SETTINGS][
-                key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
-              ]
-          ),
+          disabled_categories: result[StorageKeys.GLOBAL_SETTINGS]
+            ? Object.keys(result[StorageKeys.GLOBAL_SETTINGS]).filter(
+                (key) =>
+                  !result[StorageKeys.GLOBAL_SETTINGS][
+                    key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
+                  ]
+              )
+            : [],
         };
+        if (!isMounted) return;
         setReqConfig(reqConfig);
       })
       .catch(onBrowserStorageError);
@@ -109,7 +110,10 @@ const ContentScriptApp: React.FC = () => {
     // newTextarea.rows = 25;
     // if (section) section.appendChild(newTextarea);
 
-    if (Object.keys(StorageKeys.GLOBAL_SETTINGS).includes('orthography')) {
+    if (
+      StorageKeys.GLOBAL_SETTINGS &&
+      Object.keys(StorageKeys.GLOBAL_SETTINGS).includes('orthography')
+    ) {
       document.body.spellcheck = false; //needed here for linkedin, could be removed when we fix focusin issue
     } else {
       document.body.spellcheck = true;
@@ -120,6 +124,7 @@ const ContentScriptApp: React.FC = () => {
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
+      isMounted = false;
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
@@ -164,9 +169,11 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.GLOBAL_SETTINGS:
           setReqConfig({
             ...reqConfigRef.current,
-            disabled_categories: Object.keys(changes[item].newValue).filter(
-              (key) => !changes[item].newValue[key as keyof typeof changes]
-            ),
+            disabled_categories: changes[item].newValue
+              ? Object.keys(changes[item].newValue).filter(
+                  (key) => !changes[item].newValue[key as keyof typeof changes]
+                )
+              : [],
           });
           break;
       }
