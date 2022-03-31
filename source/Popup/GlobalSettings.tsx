@@ -28,12 +28,17 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
   const log = useLog('Popup');
 
   useEffect(() => {
+    let isMounted = true;
     browser.storage.local
       .get(StorageKeys.GLOBAL_SETTINGS)
       .then((result) => {
-        setGlobalSettings(result[StorageKeys.GLOBAL_SETTINGS]);
+        if (result[StorageKeys.GLOBAL_SETTINGS] && isMounted)
+          setGlobalSettings(result[StorageKeys.GLOBAL_SETTINGS]);
       })
       .catch(onError);
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
