@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+
+import defaultConfig from '../witty.config.json';
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -60,6 +62,9 @@ const Input: React.FC<{
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
   const [elementXPathResult, setElementXPathResult] = useState<XPathResult>();
+  const [debounceDelay, setDebounceDelay] = useState<number>(
+    defaultConfig.API_DELAY
+  );
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -77,11 +82,10 @@ const Input: React.FC<{
   const log = useLog('Input');
 
   useEffect(() => {
-    handleKeyupEvent();
-    //Listener should be on input, but on Twitter it simply does not fire when deleting
-    //The work around (at least for the moment) is to use 'keyup'
-    element.addEventListener('keyup', handleKeyupEvent);
-    element.addEventListener('focusin', handleFocusinEvent);
+    browser.storage.local.get(StorageKeys.API_DELAY).then((result) => {
+      setDebounceDelay(result[StorageKeys.API_DELAY] as number);
+    });
+
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
@@ -99,8 +103,6 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
-      element.removeEventListener('keyup', handleKeyupEvent);
-      element.removeEventListener('focusin', handleFocusinEvent);
       element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('mouseover', handleMouseoverEvent);
       element.removeEventListener('mouseout', handleMouseoutEvent);
@@ -113,6 +115,20 @@ const Input: React.FC<{
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
+
+  useEffect(() => {
+    handleKeyupEvent();
+    //Listener should be on input, but on Twitter it simply does not fire when deleting
+    //The work around (at least for the moment) is to use 'keyup'
+    element.addEventListener('keyup', handleKeyupEvent);
+    element.addEventListener('focusin', handleFocusinEvent);
+
+    return () => {
+      //Don't forget to remove the listeners at the end
+      element.removeEventListener('keyup', handleKeyupEvent);
+      element.removeEventListener('focusin', handleFocusinEvent);
+    };
+  }, [debounceDelay]);
 
   useEffect(() => {
     docTextEvaluation(element);
@@ -178,9 +194,8 @@ const Input: React.FC<{
 
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
-    setTextToCheck(new String(text) as string);
-  }, 3000);
-
+    setTextToCheck(text);
+  }, debounceDelay);
   const handleElementScrollEvent = debounce(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   }, 500);

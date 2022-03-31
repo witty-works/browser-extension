@@ -72,7 +72,7 @@ const log = useLog('Background index');
 
 const devAppId = 'DEV_APP_ID';
 
-type DefaultConfigValue = string | boolean | string[] | (() => string);
+type DefaultConfigValue = string | boolean | number | string[] | (() => string);
 
 const onSave = (key: string, value: DefaultConfigValue) => {
   log(`Key *${key}* with value *${value}* saved correctly in local storage`);
