@@ -116,7 +116,14 @@ const Options: React.FC = () => {
             </div>
             <div className='wittyworks-upgrade-text'>{t('getMoreText')}</div>
           </div>
-          <div className='wittyworks-upgrade-button'>{t('getMoreButton')}</div>
+          <div
+            className='wittyworks-upgrade-button'
+            onClick={() => {
+              window.open('https://www.witty.works/pricing', '_blank');
+            }}
+          >
+            {t('getMoreButton')}
+          </div>
         </div>
 
         <div className='wittyworks-options-content-section-toggle'>
