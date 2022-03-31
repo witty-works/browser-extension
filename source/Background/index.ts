@@ -15,12 +15,14 @@ const analytics = useAnalytics();
 
 const scanTabs = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-    var tab = tabs[0];
-    if (!tab.url) return;
-    var domain = new URL(tab.url).hostname.replace('www.', '');
+    if (tabs.length === 0 || !tabs[0].url) return;
+    const domain = new URL(tabs[0].url).hostname.replace('www.', '');
 
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
-      if (result[StorageKeys.DISABLED_SITES].includes(domain)) {
+      if (
+        result[StorageKeys.DISABLED_SITES] &&
+        result[StorageKeys.DISABLED_SITES].includes(domain)
+      ) {
         browser.storage.local.set({ [StorageKeys.APP_ENABLED]: false });
         browser.browserAction.setIcon(WittyIconInactive);
       } else {
