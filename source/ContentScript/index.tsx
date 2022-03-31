@@ -7,35 +7,14 @@ import '../i18n/i18n';
 
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 
-const log = useLog('ContentScript index');
-
 //Main element to add extra markup
 document.body.appendChild(document.createElement('witty-code'));
 
-//get extension enable status
-browser.storage.local
-  .get(StorageKeys.APP_ENABLED)
-  .then((result) => {
-    if (result[StorageKeys.APP_ENABLED])
-      customRender(result[StorageKeys.APP_ENABLED]);
-  })
-  .catch((error: string) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-  });
+const log = useLog('ContentScript index');
 
-const storageChange = (changes: any) => {
-  let changedItems = Object.keys(changes);
-
-  for (let item of changedItems) {
-    switch (item) {
-      case StorageKeys.APP_ENABLED:
-        customRender(changes[item].newValue);
-        break;
-    }
-  }
+const onError = (error: string) => {
+  log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
 };
-
-browser.storage.onChanged.addListener(storageChange);
 
 const customRender = (enabled: boolean) => {
   ReactDOM.render(
@@ -43,5 +22,34 @@ const customRender = (enabled: boolean) => {
     document.querySelector('witty-code')
   );
 };
+browser.storage.local
+  .get(StorageKeys.DISABLED_SITES)
+  .then((result) => {
+    const disabledSites = result[StorageKeys.DISABLED_SITES] || [];
+    const currentDomain = window.location.host.replace('www.', '');
+    disabledSites.includes(currentDomain as never)
+      ? customRender(false)
+      : customRender(true);
+  })
+  .catch(onError);
+
+const storageChange = (changes: any) => {
+  let changedItems = Object.keys(changes);
+  for (let item of changedItems) {
+    switch (item) {
+      case StorageKeys.DISABLED_SITES:
+        browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+          const disabledSites = result[StorageKeys.DISABLED_SITES] || [];
+          const currentDomain = window.location.host.replace('www.', '');
+          disabledSites.includes(currentDomain as never)
+            ? customRender(false)
+            : customRender(true);
+        });
+        break;
+    }
+  }
+};
+
+browser.storage.onChanged.addListener(storageChange);
 
 export {};

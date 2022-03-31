@@ -21,10 +21,8 @@ const scanTabs = () => {
 
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
       if (result[StorageKeys.DISABLED_SITES].includes(domain)) {
-        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: false });
         browser.browserAction.setIcon(WittyIconInactive);
       } else {
-        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: true });
         browser.browserAction.setIcon(WittyIconActive);
       }
     });
@@ -57,10 +55,16 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   }
   if (details.reason === 'update') {
     //Update icon
-    browser.storage.local.get(StorageKeys.APP_ENABLED).then((result) => {
-      result[StorageKeys.APP_ENABLED]
-        ? browser.browserAction.setIcon(WittyIconActive)
-        : browser.browserAction.setIcon(WittyIconInactive);
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      var tab = tabs[0];
+      if (!tab.url) return;
+      var domain = new URL(tab.url).hostname.replace('www.', '');
+
+      browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+        result[StorageKeys.DISABLED_SITES].includes(domain)
+          ? browser.browserAction.setIcon(WittyIconInactive)
+          : browser.browserAction.setIcon(WittyIconActive);
+      });
     });
 
     //Log update event to posthog

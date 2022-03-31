@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import LanguageSelector from '../Popup/LanguageSelector';
 import GermanGenderEndSelector from '../Popup/GermanGenderEndSelector';
 import PreferedLanguagesSelector from '../Popup/PreferedLanguagesSelector';
-import EnableWitty from '../Popup/EnableWitty';
 import './styles.scss';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';
 import ArrowDown from '../assets/icons/options/arrow-down.svg';
@@ -30,7 +29,6 @@ const Options: React.FC = () => {
 
   useEffect(() => {
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
-      console.log('result', result);
       setDisabledSites(result[StorageKeys.DISABLED_SITES]);
     });
   }, []);
@@ -82,9 +80,9 @@ const Options: React.FC = () => {
           <div className='wittyworks-upgrade-button'>{t('getMoreButton')}</div>
         </div>
 
-        <div className='wittyworks-options-content-section-toggle'>
+        {/* <div className='wittyworks-options-content-section-toggle'>
           <EnableWitty />
-        </div>
+        </div> */}
 
         <div className='wittyworks-options-content-section'>
           <div
