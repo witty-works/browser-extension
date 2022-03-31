@@ -22,6 +22,7 @@ export enum StorageKeys {
   SINGULAR_THEY = 'singularThey',
   INSPIRATIONAL_ALTERNATIVES = 'inspirationalAlternatives',
   DISABLED_SITES = 'disabledSites',
+  API_DELAY = 'apiDelay',
 }
 
 //API endpoints

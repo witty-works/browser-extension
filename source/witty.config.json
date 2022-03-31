@@ -5,5 +5,6 @@
   "GERMAN_GENDER_ENDING": "colon_in",
   "EXPERT_MODE": false,
   "INSPIRATIONAL_ALTERNATIVES": false,
-  "SINGULAR_THEY": false
+  "SINGULAR_THEY": false,
+  "API_DELAY": 500
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
-
 import ApiSelector from './ApiSelector';
 import { DEV_ENV } from '../shared/constants';
 import EnableWitty from './EnableWitty';
@@ -9,11 +8,12 @@ import { namespaces } from '../i18n/i18n.constants';
 import Settings from '../assets/icons/popup/settings.svg';
 import Logo from '../assets/icons/witty-logo-color.svg';
 import GlobalSettings from './GlobalSettings';
-
 import './styles.scss';
+import DelaySelector from './DelaySelector';
 
 const Popup: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
+
   return (
     <>
       <header>
@@ -35,6 +35,7 @@ const Popup: React.FC = () => {
           <section>
             <h2>{t('developmentSettings')}</h2>
             <ApiSelector />
+            <DelaySelector />
           </section>
         </>
       ) : null}
