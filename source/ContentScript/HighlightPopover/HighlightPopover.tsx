@@ -240,8 +240,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
         </div>
 
-        {data.alert.data.alternatives.filter((word) => word.text != ' ')
-          .length > 0 && (
+        {data.alert.data.alternatives.length > 0 && (
           <>
             <hr className='wittyworks-popover-separator' />
             <div className='wittyworks-popover-row'>
@@ -273,7 +272,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                             )
                           }
                         >
-                          {alternative.text}
+                          {alternative.text === ' ' ? (
+                            <i>{t('removeSpaces')}</i>
+                          ) : (
+                            alternative.text
+                          )}
                         </div>
                         {alternative.context && (
                           <div className='wittyworks-popover-alternative-context'>
