@@ -74,14 +74,19 @@ const ContentScriptApp: React.FC = () => {
           ),
           preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES],
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
-          disabled_categories: result[StorageKeys.GLOBAL_SETTINGS]
-            ? Object.keys(result[StorageKeys.GLOBAL_SETTINGS]).filter(
-                (key) =>
-                  !result[StorageKeys.GLOBAL_SETTINGS][
-                    key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
-                  ]
-              )
-            : [],
+
+          disabled_categories: Object.keys(
+            result[StorageKeys.GLOBAL_SETTINGS]
+          ).filter(
+            (key) =>
+              !result[StorageKeys.GLOBAL_SETTINGS][
+                key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
+              ]
+          ),
+          maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE] ? 3 : 2,
+          singular_they: result[StorageKeys.SINGULAR_THEY],
+          show_inspiration_alternatives:
+            result[StorageKeys.INSPIRATIONAL_ALTERNATIVES],
         };
         if (!isMounted) return;
         setReqConfig(reqConfig);
@@ -174,6 +179,24 @@ const ContentScriptApp: React.FC = () => {
                   (key) => !changes[item].newValue[key as keyof typeof changes]
                 )
               : [],
+          });
+          break;
+        case StorageKeys.MAXIMUM_IMPORTANCE:
+          setReqConfig({
+            ...reqConfigRef.current,
+            maximum_importance: changes[item].newValue ? 3 : 2,
+          });
+          break;
+        case StorageKeys.SINGULAR_THEY:
+          setReqConfig({
+            ...reqConfigRef.current,
+            singular_they: changes[item].newValue,
+          });
+          break;
+        case StorageKeys.INSPIRATIONAL_ALTERNATIVES:
+          setReqConfig({
+            ...reqConfigRef.current,
+            show_inspiration_alternatives: changes[item].newValue,
           });
           break;
       }

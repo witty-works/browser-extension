@@ -27,6 +27,11 @@ export const de = {
     spellChecking: 'Spell checking DE',
     inclusiveTerms: 'Show inclusive terms DE',
     styleCorrections: 'Allow style corrections DE',
+    styleCorrectionExplanation:
+      'Turn this off to ignore stylistic not severe issues to be highlighted DE',
+
+    inclusiveLanguageExplanation:
+      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -48,6 +53,13 @@ export const de = {
     setUpLanguages: 'Set up languages DE',
     configureRules: 'Configure how Witty checks your texts DE',
     disableWitty: 'Disable Witty on some websites DE',
+    expertMode: 'Expert Mode DE',
+    expertModeExplanation:
+      'Turning this on makes Witty not point out less severe issues in your text DE',
+    inspirationAlternatives: 'Show inspiration alternatives as options DE',
+    inspirationAlternativesExplanation:
+      'Turn this off to only have automatic replacements as suggestions DE',
+    singularThey: 'Accept “singular they” as correct DE',
     addSite: 'Type a website’s URL DE',
     invalidDomain: 'Invalid domain (example format: google.com)DE',
   },
@@ -80,6 +92,10 @@ export const en = {
     spellChecking: 'Spell checking',
     inclusiveTerms: 'Show inclusive terms',
     styleCorrections: 'Allow style corrections',
+    styleCorrectionExplanation:
+      'Turn this off to ignore stylistic not severe issues to be highlighted',
+    inclusiveLanguageExplanation:
+      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green',
   },
   [namespaces.popover]: {
     insteadTry: 'Try instead ...',
@@ -101,6 +117,13 @@ export const en = {
     setUpLanguages: 'Set up languages',
     configureRules: 'Configure how Witty checks your texts',
     disableWitty: 'Disable Witty on some websites',
+    expertMode: 'Expert Mode',
+    expertModeExplanation:
+      'Turning this on makes Witty not point out less severe issues in your text',
+    inspirationAlternatives: 'Show inspiration alternatives as options',
+    inspirationAlternativesExplanation:
+      'Turn this off to only have automatic replacements as suggestions',
+    singularThey: 'Accept “singular they” as correct',
     addSite: 'Type a website’s URL',
     invalidDomain: 'Invalid domain (example format: google.com)',
   },

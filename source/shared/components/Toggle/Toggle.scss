@@ -14,6 +14,18 @@
   visibility: hidden;
 }
 
+.toggle-lock {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.toggle-premium-only {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+}
+
 .toggle-encloser {
   cursor: pointer;
   width: 100px;

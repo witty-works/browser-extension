@@ -157,6 +157,26 @@
   padding-bottom: 1em;
   width: 100%;
 }
+
+.wittyworks-options-content-section-content-items {
+  padding-bottom: 1.5em;
+  padding-top: 1em;
+}
+
+.wittyworks-options-content-section-content-subtitle {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  color: #656565;
+  padding-top: 0.5em;
+  padding-bottom: 1em;
+  border-bottom: 1px solid $white;
+  margin-bottom: 1em;
+  max-width: 80%;
+}
+
 .wittyworks-options-content-section-content-input {
   padding: 4px 8px;
   width: 80%;

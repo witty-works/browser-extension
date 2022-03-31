@@ -24,9 +24,11 @@ const Popup: React.FC = () => {
         />
       </header>
       <section className='wittyworks-toggles'>
-        <GlobalSettings />
+        <h2>{t('globalSettings')}</h2>
+        <GlobalSettings page={'popup'} />
         <h2>{t('settings')}</h2>
         <EnableWitty />
+        <hr className='toggle-seperator' />
       </section>
       {DEV_ENV ? (
         <>
