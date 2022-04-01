@@ -12,29 +12,9 @@ import { useLog } from '../shared/customHooks/useLog';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 const analytics = useAnalytics();
-
-const scanTabs = () => {
-  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-    if (tabs.length === 0 || !tabs[0].url) return;
-    const domain = new URL(tabs[0].url).hostname.replace('www.', '');
-
-    browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
-      if (
-        result[StorageKeys.DISABLED_SITES] &&
-        result[StorageKeys.DISABLED_SITES].includes(domain)
-      ) {
-        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: false });
-        browser.browserAction.setIcon(WittyIconInactive);
-      } else {
-        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: true });
-        browser.browserAction.setIcon(WittyIconActive);
-      }
-    });
-  });
-};
-
-browser.tabs.onUpdated.addListener(scanTabs);
-browser.tabs.onCreated.addListener(scanTabs);
+const log = useLog('Background index');
+const devAppId = 'DEV_APP_ID';
+type DefaultConfigValue = string | boolean | number | string[] | (() => string);
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (!DEV_ENV)
@@ -69,20 +49,6 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     analytics.extensionStatusLog('update', getBrowserId());
   }
 });
-
-const log = useLog('Background index');
-
-const devAppId = 'DEV_APP_ID';
-
-type DefaultConfigValue = string | boolean | number | string[] | (() => string);
-
-const onSave = (key: string, value: DefaultConfigValue) => {
-  log(`Key *${key}* with value *${value}* saved correctly in local storage`);
-};
-
-const onError = (error: string) => {
-  log(`Local Storage Error: ${error}`);
-};
 
 const getRandomToken = () => {
   const bytes = new Uint8Array(32); //256 bits token
@@ -123,6 +89,14 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
     .catch(onError);
 };
 
+const onSave = (key: string, value: DefaultConfigValue) => {
+  log(`Key *${key}* with value *${value}* saved correctly in local storage`);
+};
+
+const onError = (error: string) => {
+  log(`Local Storage Error: ${error}`);
+};
+
 const setSettings = () => {
   //Set default settings
   for (let [defaultConfigKey, defaultConfigValue] of Object.entries(
@@ -137,3 +111,27 @@ const setSettings = () => {
   //Set browser id
   setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
 };
+
+const scanTabsToDetectStatus = () => {
+  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+    if (tabs.length === 0 || !tabs[0].url) return;
+    const domain: string = new URL(tabs[0].url).hostname.replace('www.', '');
+
+    browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+      if (
+        result[StorageKeys.DISABLED_SITES] &&
+        result[StorageKeys.DISABLED_SITES].includes(domain)
+      ) {
+        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: false });
+        browser.browserAction.setIcon(WittyIconInactive);
+      } else {
+        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: true });
+        browser.browserAction.setIcon(WittyIconActive);
+      }
+    });
+  });
+};
+
+browser.tabs.onCreated.addListener(scanTabsToDetectStatus);
+browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
+browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
