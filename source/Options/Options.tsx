@@ -182,7 +182,6 @@ const Options: React.FC = () => {
                   color={Colors.green}
                   scale={0.35}
                   label={t('inspirationAlternatives')}
-                  locked={true}
                 />
                 <div className='wittyworks-options-content-section-content-subtitle'>
                   {t('inspirationAlternativesExplanation')}
@@ -197,6 +196,9 @@ const Options: React.FC = () => {
                   scale={0.35}
                   label={t('singularThey')}
                 />
+                <div className='wittyworks-options-content-section-content-subtitle'>
+                  {t('singularTheysExplanation')}
+                </div>
               </div>
             )}
           </div>
@@ -274,7 +276,7 @@ const Options: React.FC = () => {
                   setAddDomainTabOpen(true);
                 }}
               >
-                + Add Domain
+                + {t('addDomain')}
               </div>
             </div>
           )}
