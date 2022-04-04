@@ -1,4 +1,9 @@
 import chroma from 'chroma-js';
+import { browser } from 'webextension-polyfill-ts';
+
+import { useLog, logTypes } from '../shared/customHooks/useLog';
+
+const log = useLog('Utils');
 
 const isObjectEmpty = (obj: object) =>
   obj &&
@@ -52,6 +57,21 @@ const textIsLight = (color: any) => {
   return hsp > 127.5 ? true : false;
 };
 
+const storeInLocalStorage = (key: string, value: any) => {
+  browser.storage.local
+    .set({ [key]: value })
+    .then(() => {
+      log(
+        `WittyU ${key} *${
+          typeof value === 'object' ? Object.keys(value) : value
+        }* correctly saved`
+      );
+    })
+    .catch((error: string) =>
+      log(`onBrowserStorage Error: ${error}`, logTypes.ERROR)
+    );
+};
+
 export {
   isObjectEmpty,
   isFunction,
@@ -61,4 +81,5 @@ export {
   nodeExistsInDOM,
   elementIsVisible,
   textIsLight,
+  storeInLocalStorage,
 };

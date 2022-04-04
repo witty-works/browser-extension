@@ -4,7 +4,7 @@ import LanguageSelector from '../Popup/LanguageSelector';
 import GermanGenderEndSelector from '../Popup/GermanGenderEndSelector';
 import PreferedLanguagesSelector from '../Popup/PreferedLanguagesSelector';
 import EnableWitty from '../Popup/EnableWitty';
-import GlobalSettings from '../Popup/GlobalSettings';
+// import GlobalSettings from '../Popup/GlobalSettings';
 import './styles.scss';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';
 import ArrowDown from '../assets/icons/options/arrow-down.svg';
@@ -171,7 +171,7 @@ const Options: React.FC = () => {
                   {t('expertModeExplanation')}
                 </div>
 
-                <GlobalSettings page={'options'} />
+                {/* <GlobalSettings page={'options'} /> */}
 
                 {/* currently does nothing, is locked untill we have 'premium users' */}
                 <Toggle

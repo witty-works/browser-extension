@@ -9,18 +9,20 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
 
 import './styles.scss';
+
+interface GlobalSettings {
+  orthography: boolean;
+  inclusive: boolean;
+  style: boolean;
+  casing: boolean;
+}
 interface GlobalSettingsProps {
   page: string;
 }
 const GlobalSettings: React.FC<GlobalSettingsProps> = ({
   page,
 }: GlobalSettingsProps) => {
-  const [globalSettings, setGlobalSettings] = useState<{
-    orthography: boolean;
-    inclusive: boolean;
-    style: boolean;
-    casing: boolean;
-  }>({
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
     orthography: true,
     inclusive: true,
     style: true,
@@ -81,6 +83,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
   }, [enabled]);
 
   useEffect(() => {
+    console.log('lets store');
     storeInLocalStorage(StorageKeys.GLOBAL_SETTINGS, globalSettings);
   }, [globalSettings]);
 
@@ -89,10 +92,15 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
   };
 
   const storeInLocalStorage = (key: string, value: any) => {
+    console.log('storeInLocalStorage key value', key, value);
     browser.storage.local
       .set({ [key]: value })
       .then(() => {
-        log(`Witty ${key} *${value}* correctly saved`);
+        log(
+          `WittyX ${key} *${
+            typeof value === 'object' ? Object.keys(value) : value
+          }* correctly saved`
+        );
       })
       .catch(onError);
   };
@@ -112,7 +120,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         label={t('spellChecking')}
       />
       {page == 'popup' ? (
-        <hr className='toggle-seperator' />
+        <hr className='toggle-separator' />
       ) : (
         <div className='wittyworks-options-content-section-content-subtitle'></div>
       )}
@@ -129,7 +137,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         label={t('inclusiveTerms')}
       />
       {page == 'popup' ? (
-        <hr className='toggle-seperator' />
+        <hr className='toggle-separator' />
       ) : (
         <div className='wittyworks-options-content-section-content-subtitle'>
           {t('styleCorrectionExplanation')}
@@ -147,8 +155,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         scale={0.35}
         label={t('styleCorrections')}
       />
-
-      <h2 className='wittyworks-toggle-title'>{t('websiteSettings')}</h2>
+      {/* <h2 className='wittyworks-toggle-title'>{t('websiteSettings')}</h2>
       <Toggle
         on={enabled}
         handleToggle={() => setEnabled(!enabled)}
@@ -156,6 +163,8 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         scale={0.35}
         label={t('enableWitty')}
       />
+      <hr className='toggle-separator' />
+
       <Toggle
         on={globalSettings.casing}
         handleToggle={() =>
@@ -167,7 +176,14 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         color={Colors.green}
         scale={0.35}
         label={t('caseSensitivity')}
-      />
+      /> */}
+      {page == 'popup' ? (
+        <hr className='toggle-separator' />
+      ) : (
+        <div className='wittyworks-options-content-section-content-subtitle'>
+          {t('inclusiveLanguageExplanation')}
+        </div>
+      )}
     </>
   );
 };

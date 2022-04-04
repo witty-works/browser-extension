@@ -1,13 +1,12 @@
 @import '~advanced-css-reset/dist/reset.css';
 
-// Add your custom reset rules here
+html {
+  height: auto;
+}
 
-// * {
-//   margin: 0;
-//   padding: 0;
-//   border: 0;
-//   outline: 0;
-// }
+body {
+  min-height: 0;
+}
 
 img {
   max-width: 100%;
