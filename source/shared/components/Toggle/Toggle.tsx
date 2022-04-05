@@ -2,7 +2,7 @@ import React from 'react';
 
 import './Toggle.scss';
 import Lock from '../../../assets/icons/options/lock.svg';
-// import PremiumOnly from '../../../assets/icons/options/premium-only.svg';
+import PremiumOnly from '../../../assets/icons/options/premium-only.svg';
 
 interface ToggleProps {
   on: boolean | undefined;
@@ -39,6 +39,9 @@ const Toggle: React.FC<ToggleProps> = ({
         />
         {locked && (
           <>
+            <div className='toggle-premium-only'>
+              <PremiumOnly />
+            </div>
             <div className='toggle-lock'>
               <Lock />
             </div>
