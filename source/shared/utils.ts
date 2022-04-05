@@ -1,4 +1,5 @@
 import chroma from 'chroma-js';
+import { browser } from 'webextension-polyfill-ts';
 
 const isObjectEmpty = (obj: object) =>
   obj &&
@@ -52,6 +53,40 @@ const textIsLight = (color: any) => {
   return hsp > 127.5 ? true : false;
 };
 
+const storeInLocalStorage = (key: string, value: any) => {
+  browser.storage.local
+    .set({ [key]: value })
+    .then(() => {
+      //TODO bug, some values are not pronted correctly (for example arrays)
+      const wittyVersion = browser.runtime.getManifest().version;
+      const componentName = 'Utils';
+      const message = `Witty ${key} *${
+        typeof value === 'object' ? Object.keys(value) : value
+      }* correctly saved`;
+      const data = typeof value === 'object' ? Object.keys(value) : value;
+
+      console.log(
+        `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
+        `color: #55B8E9`,
+        `color: #5fca7d`,
+        `color: #000`,
+        data
+      );
+    })
+    .catch((error: string) => {
+      const wittyVersion = browser.runtime.getManifest().version;
+      const componentName = 'Utils';
+      const message = `onBrowserStorage Error: ${error}`;
+
+      console.log(
+        `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
+        `color: #55B8E9`,
+        `color: #5fca7d`,
+        `color: #f00`
+      );
+    });
+};
+
 export {
   isObjectEmpty,
   isFunction,
@@ -61,4 +96,5 @@ export {
   nodeExistsInDOM,
   elementIsVisible,
   textIsLight,
+  storeInLocalStorage,
 };

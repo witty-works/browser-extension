@@ -14,6 +14,7 @@ import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
+import '../../i18n/i18n';
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 export interface PopoverData {
@@ -240,8 +241,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
         </div>
 
-        {data.alert.data.alternatives.filter((word) => word.text != ' ')
-          .length > 0 && (
+        {data.alert.data.alternatives.length > 0 && (
           <>
             <hr className='wittyworks-popover-separator' />
             <div className='wittyworks-popover-row'>
@@ -273,7 +273,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                             )
                           }
                         >
-                          {alternative.text}
+                          {alternative.text === ' ' ? (
+                            <i>{t('removeSpaces')}</i>
+                          ) : (
+                            alternative.text
+                          )}
                         </div>
                         {alternative.context && (
                           <div className='wittyworks-popover-alternative-context'>

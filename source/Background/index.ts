@@ -1,12 +1,20 @@
 import { browser } from 'webextension-polyfill-ts';
 
-import { StorageKeys, DEV_ENV } from '../shared/constants';
+import {
+  StorageKeys,
+  DEV_ENV,
+  WittyIconActive,
+  WittyIconInactive,
+} from '../shared/constants';
 import { isFunction } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 const analytics = useAnalytics();
+const log = useLog('Background index');
+const devAppId = 'DEV_APP_ID';
+type DefaultConfigValue = string | boolean | number | string[] | (() => string);
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (!DEV_ENV)
@@ -17,13 +25,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     setSettings();
 
     //Set icon to active
-    browser.browserAction.setIcon({
-      path: {
-        '16': 'assets/icons/icon16.png',
-        '32': 'assets/icons/icon32.png',
-        '48': 'assets/icons/icon48.png',
-      },
-    });
+    browser.browserAction.setIcon(WittyIconActive);
 
     //Log install event to posthog
     analytics.extensionStatusLog('install', getBrowserId());
@@ -36,43 +38,13 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     }
   }
   if (details.reason === 'update') {
-    //Update icon
-    browser.storage.local.get(StorageKeys.APP_ENABLED).then((result) => {
-      result[StorageKeys.APP_ENABLED]
-        ? browser.browserAction.setIcon({
-            path: {
-              '16': 'assets/icons/icon16.png',
-              '32': 'assets/icons/icon32.png',
-              '48': 'assets/icons/icon48.png',
-            },
-          })
-        : browser.browserAction.setIcon({
-            path: {
-              '16': 'assets/icons/icon16_disabled.png',
-              '32': 'assets/icons/icon32_disabled.png',
-              '48': 'assets/icons/icon48_disabled.png',
-            },
-          });
-    });
+    //Set icon according to the saved settings
+    scanTabsToDetectStatus();
 
     //Log update event to posthog
     analytics.extensionStatusLog('update', getBrowserId());
   }
 });
-
-const log = useLog('Background index');
-
-const devAppId = 'DEV_APP_ID';
-
-type DefaultConfigValue = string | boolean | string[] | (() => string);
-
-const onSave = (key: string, value: DefaultConfigValue) => {
-  log(`Key *${key}* with value *${value}* saved correctly in local storage`);
-};
-
-const onError = (error: string) => {
-  log(`Local Storage Error: ${error}`);
-};
 
 const getRandomToken = () => {
   const bytes = new Uint8Array(32); //256 bits token
@@ -113,6 +85,14 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
     .catch(onError);
 };
 
+const onSave = (key: string, value: DefaultConfigValue) => {
+  log(`Key *${key}* with value *${value}* saved correctly in local storage`);
+};
+
+const onError = (error: string) => {
+  log(`Local Storage Error: ${error}`);
+};
+
 const setSettings = () => {
   //Set default settings
   for (let [defaultConfigKey, defaultConfigValue] of Object.entries(
@@ -127,3 +107,51 @@ const setSettings = () => {
   //Set browser id
   setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
 };
+
+const scanTabsToDetectStatus = () => {
+  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+    if (tabs.length === 0 || !tabs[0].url) return;
+    const domain = new URL(tabs[0].url).hostname.replace('www.', '');
+
+    browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+      browser.browserAction.setIcon(
+        result[StorageKeys.DISABLED_SITES] &&
+          result[StorageKeys.DISABLED_SITES].length > 0 &&
+          result[StorageKeys.DISABLED_SITES].includes(domain)
+          ? WittyIconInactive
+          : WittyIconActive
+      );
+    });
+  });
+};
+
+//TODO specify changes type
+const storageChange = (changes: any) => {
+  const changedItems = Object.keys(changes);
+  for (let item of changedItems) {
+    switch (item) {
+      case StorageKeys.DISABLED_SITES:
+        browser.tabs
+          .query({ active: true, currentWindow: true })
+          .then((tabs) => {
+            if (tabs.length === 0 || !tabs[0].url) return;
+            const domain = new URL(tabs[0].url).hostname.replace('www.', '');
+
+            browser.browserAction.setIcon(
+              changes[item].newValue.length > 0 &&
+                changes[item].newValue.includes(domain)
+                ? WittyIconInactive
+                : WittyIconActive
+            );
+          });
+        break;
+    }
+  }
+};
+
+browser.tabs.onCreated.addListener(scanTabsToDetectStatus);
+browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
+browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
+browser.storage.onChanged.addListener(storageChange);
+
+//TODO Remove Listeners

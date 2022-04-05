@@ -13,10 +13,19 @@ export const POSTHOG_API_KEY = DEV_ENV
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   APP_ID = 'id',
-  APP_ENABLED = 'enabled',
+  DISABLED_SITES = 'disabledSites',
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
+  EXPERT_MODE = 'expertMode',
+  SPELL_CHECKING = 'spellChecking',
+  STYLE_CORRECTIONS = 'styleCorrections',
+  INCLUSIVE_LANGUAGE = 'inclusiveLanguage',
+  INSPIRATIONAL_ALTERNATIVES = 'inspirationalAlternatives',
+  SINGULAR_THEY = 'singularThey',
+  MAXIMUM_IMPORTANCE = 'maximumImportance',
+  CASING_SITES = 'casingSites',
+  API_DELAY = 'apiDelay',
 }
 
 //API endpoints
@@ -37,7 +46,7 @@ export enum Colors {
   purple = '#9489DB',
   blue = '#55B8E9',
   cyan = '#37D1E5',
-  green = '#5ACFB9',
+  green = '#5fca7d',
 }
 interface IHighlightColors {
   default: string;
@@ -86,3 +95,19 @@ export enum GermanGenderEndings {
   slash_in = '/in',
   uppercase_in = 'In',
 }
+
+export const WittyIconActive = {
+  path: {
+    '16': 'assets/icons/icon16.png',
+    '32': 'assets/icons/icon32.png',
+    '48': 'assets/icons/icon48.png',
+  },
+};
+
+export const WittyIconInactive = {
+  path: {
+    '16': 'assets/icons/icon16_disabled.png',
+    '32': 'assets/icons/icon32_disabled.png',
+    '48': 'assets/icons/icon48_disabled.png',
+  },
+};

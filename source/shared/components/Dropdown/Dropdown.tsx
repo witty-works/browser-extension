@@ -3,14 +3,14 @@ import React, { useState, useEffect, ChangeEvent } from 'react';
 import './styles.scss';
 
 export interface OptionProp {
-  key: string;
+  key: string | number;
   value: string;
 }
 
 export interface DropdownProps {
   onDropdownChange: (value: string) => void;
   options: OptionProp[];
-  selectedOption: string;
+  selectedOption: string | number;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
@@ -18,7 +18,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   options,
   selectedOption,
 }: DropdownProps) => {
-  const [selected, setSelected] = useState<string>('');
+  const [selected, setSelected] = useState<string | number>('');
 
   useEffect(() => {
     setSelected(selectedOption);
