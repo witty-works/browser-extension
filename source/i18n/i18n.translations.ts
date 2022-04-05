@@ -19,7 +19,7 @@ export const de = {
     enableWitty: 'Witty aktivieren',
     globalSettings: 'Globale Einstellungen',
     websiteSettings: 'Aktuelle Webseite',
-    caseSensitivity: 'Gross- und Kleinschreibung',
+    caseSensitivity: 'Gross- & Kleinschreibung',
     primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
@@ -99,9 +99,9 @@ export const en = {
     developmentSettings: 'Development Settings',
     apiEndpoint: 'API Endpoint',
     needHelpQuestionMark: 'Need Help?',
-    spellChecking: 'Check grammar & spelling',
-    inclusiveTerms: 'Check inclusive terms',
-    styleCorrections: 'Check style issues',
+    spellChecking: 'Highlight grammar & spelling',
+    inclusiveTerms: 'Highlight inclusive terms',
+    styleCorrections: 'Highlight style issues',
     styleCorrectionExplanation:
       'Turn this off to ignore stylistic not severe issues to be highlighted',
     inclusiveLanguageExplanation:
