@@ -158,7 +158,8 @@ const Popup: React.FC = () => {
           }}
         />
       </header>
-      <section className='wittyworks-toggles'>
+      <section className='wittyworks-toggles website-settings'>
+        <h2>{t('websiteSettings')}</h2>
         <Toggle
           on={enabled}
           handleToggle={handleEnableToggle}
@@ -167,6 +168,18 @@ const Popup: React.FC = () => {
           label={t('enableWitty')}
         />
         <hr className='toggle-separator' />
+        {enabled && (
+          <>
+            <Toggle
+              on={casing}
+              handleToggle={handleCasingToggle}
+              color={Colors.green}
+              scale={0.35}
+              label={t('caseSensitivity')}
+            />
+            <hr className='toggle-separator' />
+          </>
+        )}
       </section>
       {enabled && (
         <section className='wittyworks-toggles global-settings'>
@@ -199,19 +212,6 @@ const Popup: React.FC = () => {
             color={Colors.green}
             scale={0.35}
             label={t('styleCorrections')}
-          />
-          <hr className='toggle-separator' />
-        </section>
-      )}
-      {enabled && (
-        <section className='wittyworks-toggles website-settings'>
-          <h2>{t('websiteSettings')}</h2>
-          <Toggle
-            on={casing}
-            handleToggle={handleCasingToggle}
-            color={Colors.green}
-            scale={0.35}
-            label={t('caseSensitivity')}
           />
           <hr className='toggle-separator' />
         </section>
