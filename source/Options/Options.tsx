@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import LanguageSelector from '../Popup/LanguageSelector';
+import { browser } from 'webextension-polyfill-ts';
+
+import defaultConfig from '../witty.config.json';
+import { Colors, StorageKeys } from '../shared/constants';
+import { storeInLocalStorage } from '../shared/utils';
+// import LanguageSelector from '../Popup/LanguageSelector';
 import GermanGenderEndSelector from '../Popup/GermanGenderEndSelector';
 import PreferedLanguagesSelector from '../Popup/PreferedLanguagesSelector';
-import EnableWitty from '../Popup/EnableWitty';
-// import GlobalSettings from '../Popup/GlobalSettings';
-import './styles.scss';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';
 import ArrowDown from '../assets/icons/options/arrow-down.svg';
 import ArrowUp from '../assets/icons/options/arrow-up.svg';
@@ -14,64 +16,74 @@ import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import '../i18n/i18n';
 import Toggle from '../shared/components/Toggle/Toggle';
-
-import { Colors, StorageKeys } from '../shared/constants';
-import { logTypes, useLog } from '../shared/customHooks/useLog';
-import { browser } from 'webextension-polyfill-ts';
-import defaultConfig from '../witty.config.json';
+import './styles.scss';
 
 const Options: React.FC = () => {
-  const { t } = useTranslation(namespaces.pages.options);
-  const [languagesTabOpen, setLanguagesTabOpen] = useState<boolean>(false);
+  const { t } = useTranslation([
+    namespaces.pages.options,
+    namespaces.pages.popup,
+  ]);
+  // const [languagesTabOpen, setLanguagesTabOpen] = useState<boolean>(false);
   const [rulesTabOpen, setRulesTabOpen] = useState<boolean>(false);
   const [disableTabOpen, setDisableTabOpen] = useState<boolean>(false);
   const [disabledSites, setDisabledSites] = useState<string[]>([]);
   const [addDomainTabOpen, setAddDomainTabOpen] = useState<boolean>(false);
   const [input, setInput] = useState<string>('');
   const [invalidDomain, setInvalidDomain] = useState<boolean>(false);
-  const [expertMode, setExpertMode] = useState<boolean>(
+  const [spellChecking, setSpellChecking] = useState<boolean>(
+    defaultConfig.SPELL_CHECKING
+  );
+  const [inclusiveLanguage, setInclusiveLanguage] = useState<boolean>(
+    defaultConfig.INCLUSIVE_LANGUAGE
+  );
+  const [styleCorrections, setStyleCorrections] = useState<boolean>(
+    defaultConfig.STYLE_CORRECTIONS
+  );
+  const [expertMode /* , setExpertMode */] = useState<boolean>(
     defaultConfig.EXPERT_MODE
   );
-  const [inspirationalAlternatives, setInspirationalAlternatives] =
+  const [inspirationalAlternatives /* , setInspirationalAlternatives */] =
     useState<boolean>(defaultConfig.INSPIRATIONAL_ALTERNATIVES);
   const [singularThey, setSingularThey] = useState<boolean>(
     defaultConfig.SINGULAR_THEY
   );
 
-  const log = useLog('Options');
-
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
-      setExpertMode(result[StorageKeys.MAXIMUM_IMPORTANCE]);
+      setSpellChecking(result[StorageKeys.SPELL_CHECKING]);
+      setInclusiveLanguage(result[StorageKeys.INCLUSIVE_LANGUAGE]);
+      setStyleCorrections(result[StorageKeys.STYLE_CORRECTIONS]);
+      // setExpertMode(
+      //   result[StorageKeys.MAXIMUM_IMPORTANCE] === 3 ? true : false
+      // );
       setSingularThey(result[StorageKeys.SINGULAR_THEY]);
       setDisabledSites(result[StorageKeys.DISABLED_SITES]);
     });
   }, []);
 
   useEffect(() => {
+    storeInLocalStorage(StorageKeys.SPELL_CHECKING, spellChecking);
+  }, [spellChecking]);
+
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.INCLUSIVE_LANGUAGE, inclusiveLanguage);
+  }, [inclusiveLanguage]);
+
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.STYLE_CORRECTIONS, styleCorrections);
+  }, [styleCorrections]);
+
+  useEffect(() => {
     storeInLocalStorage(StorageKeys.DISABLED_SITES, disabledSites);
   }, [disabledSites]);
 
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, expertMode);
-  }, [expertMode]);
+  // useEffect(() => {
+  //   storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, expertMode);
+  // }, [expertMode]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.SINGULAR_THEY, singularThey);
   }, [singularThey]);
-
-  const storeInLocalStorage = (key: string, value: any) => {
-    browser.storage.local
-      .set({ [key]: value })
-      .then(() => {
-        log(`Witty ${key} *${value}* correctly saved`);
-      })
-      .catch(onError);
-  };
-
-  const onError = (error: string) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-  };
 
   return (
     <>
@@ -95,15 +107,17 @@ const Options: React.FC = () => {
       </div>
 
       <div className='wittyworks-options-content'>
-        <div className='wittyworks-upgrade-box'>
-          <div className='wittyworks-upgrade-text-container'>
-            <div className='wittyworks-upgrade-text--large'>
+        <div className='wittyworks-upgrade-banner'>
+          <div className='wittyworks-upgrade-banner-text-container'>
+            <div className='wittyworks-upgrade-banner-title'>
               {t('getMoreTitle')}
             </div>
-            <div className='wittyworks-upgrade-text'>{t('getMoreText')}</div>
+            <div className='wittyworks-upgrade-banner-text'>
+              {t('getMoreText')}
+            </div>
           </div>
           <div
-            className='wittyworks-upgrade-button'
+            className='wittyworks-upgrade-banner-button'
             onClick={() => {
               window.open('https://www.witty.works/pricing', '_blank');
             }}
@@ -112,11 +126,7 @@ const Options: React.FC = () => {
           </div>
         </div>
 
-        <div className='wittyworks-options-content-section-toggle'>
-          <EnableWitty />
-        </div>
-
-        <div className='wittyworks-options-content-section'>
+        {/* <section className='wittyworks-options-content-section'>
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
@@ -124,7 +134,7 @@ const Options: React.FC = () => {
             }}
           >
             {t('setUpLanguages')}
-            <div className='wittyworks-options-content-section-icon'>
+            <div className='wittyworks-options-content-section-title-arrow'>
               {languagesTabOpen ? <ArrowUp /> : <ArrowDown />}
             </div>
           </div>
@@ -141,9 +151,9 @@ const Options: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
+        </section> */}
 
-        <div className='wittyworks-options-content-section'>
+        <section className='wittyworks-options-content-section'>
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
@@ -151,60 +161,115 @@ const Options: React.FC = () => {
             }}
           >
             {t('configureRules')}
-            <div className='wittyworks-options-content-section-icon'>
+            <div className='wittyworks-options-content-section-title-arrow'>
               {rulesTabOpen ? <ArrowUp /> : <ArrowDown />}
             </div>
           </div>
-          <div className='wittyworks-options-content-section-content'>
+          <div className='wittyworks-options-content-section-container'>
             {rulesTabOpen && (
-              <div className='wittyworks-options-content-section-content-items'>
-                <Toggle
-                  on={expertMode}
-                  handleToggle={() => {
-                    setExpertMode(!expertMode);
-                  }}
-                  color={Colors.green}
-                  scale={0.35}
-                  label={t('expertMode')}
-                />
-                <div className='wittyworks-options-content-section-content-subtitle'>
-                  {t('expertModeExplanation')}
+              <>
+                <div className='wittyworks-options-content-section-container-item'>
+                  <PreferedLanguagesSelector />
+                </div>
+                <div className='wittyworks-options-content-section-container-item'>
+                  <GermanGenderEndSelector />
+                </div>
+                <div className='wittyworks-options-content-section-container-item'>
+                  <Toggle
+                    on={expertMode}
+                    // handleToggle={() => {
+                    //   setExpertMode(!expertMode);
+                    // }}
+                    handleToggle={() => {}}
+                    color={Colors.green}
+                    scale={0.35}
+                    label={t('expertMode')}
+                    locked={true}
+                  />
+                  <div className='wittyworks-options-content-section-container-subtitle'>
+                    {t('expertModeExplanation')}
+                  </div>
                 </div>
 
-                {/* <GlobalSettings page={'options'} /> */}
+                <div className='wittyworks-options-content-section-container-item'>
+                  <Toggle
+                    on={spellChecking}
+                    handleToggle={() => {
+                      setSpellChecking(!spellChecking);
+                    }}
+                    color={Colors.green}
+                    scale={0.35}
+                    label={t('spellChecking', { ns: namespaces.pages.popup })}
+                  />
+                </div>
+
+                <div className='wittyworks-options-content-section-container-item'>
+                  <Toggle
+                    on={inclusiveLanguage}
+                    handleToggle={() => {
+                      setInclusiveLanguage(!inclusiveLanguage);
+                    }}
+                    color={Colors.green}
+                    scale={0.35}
+                    label={t('inclusiveTerms', { ns: namespaces.pages.popup })}
+                  />
+                  <div className='wittyworks-options-content-section-container-subtitle'>
+                    {t('inclusiveLanguageExplanation')}
+                  </div>
+                </div>
+
+                <div className='wittyworks-options-content-section-container-item'>
+                  <Toggle
+                    on={styleCorrections}
+                    handleToggle={() => {
+                      setStyleCorrections(!styleCorrections);
+                    }}
+                    color={Colors.green}
+                    scale={0.35}
+                    label={t('styleCorrections', {
+                      ns: namespaces.pages.popup,
+                    })}
+                  />
+                  <div className='wittyworks-options-content-section-container-subtitle'>
+                    {t('styleCorrectionExplanation')}
+                  </div>
+                </div>
 
                 {/* currently does nothing, is locked untill we have 'premium users' */}
-                <Toggle
-                  on={inspirationalAlternatives}
-                  handleToggle={() => {
-                    setInspirationalAlternatives(inspirationalAlternatives);
-                  }}
-                  color={Colors.green}
-                  scale={0.35}
-                  label={t('inspirationAlternatives')}
-                />
-                <div className='wittyworks-options-content-section-content-subtitle'>
-                  {t('inspirationAlternativesExplanation')}
+                <div className='wittyworks-options-content-section-container-item'>
+                  <Toggle
+                    on={inspirationalAlternatives}
+                    // handleToggle={() => {
+                    //   setInspirationalAlternatives(inspirationalAlternatives);
+                    // }}
+                    handleToggle={() => {}}
+                    color={Colors.green}
+                    scale={0.35}
+                    label={t('inspirationAlternatives')}
+                    locked={true}
+                  />
+                  <div className='wittyworks-options-content-section-container-subtitle'>
+                    {t('inspirationAlternativesExplanation')}
+                  </div>
                 </div>
 
-                <Toggle
-                  on={singularThey}
-                  handleToggle={() => {
-                    setSingularThey(!singularThey);
-                  }}
-                  color={Colors.green}
-                  scale={0.35}
-                  label={t('singularThey')}
-                />
-                <div className='wittyworks-options-content-section-content-subtitle'>
-                  {t('singularTheysExplanation')}
+                <div className='wittyworks-options-content-section-container-item'>
+                  <Toggle
+                    on={singularThey}
+                    handleToggle={() => {
+                      setSingularThey(!singularThey);
+                    }}
+                    color={Colors.green}
+                    scale={0.35}
+                    label={t('singularThey')}
+                  />
                 </div>
-              </div>
+              </>
             )}
           </div>
-        </div>
+        </section>
 
-        <div className='wittyworks-options-content-section'>
+        <section className='wittyworks-options-content-section'>
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
@@ -212,19 +277,22 @@ const Options: React.FC = () => {
             }}
           >
             {t('disableWitty')}
-            <div className='wittyworks-options-content-section-icon'>
+            <div className='wittyworks-options-content-section-title-arrow'>
               {disableTabOpen ? <ArrowUp /> : <ArrowDown />}
             </div>
           </div>
           {disableTabOpen && (
-            <div className='wittyworks-options-content-section-content'>
+            <div className='wittyworks-options-content-section-container'>
               {disabledSites.map((site) => (
                 <div
-                  className='wittyworks-options-content-section-content-title'
+                  className='wittyworks-options-content-section-container-site-item'
                   key={`disabledSites-${site}`}
                 >
-                  {site}
-                  <div className='wittyworks-options-content-section-content-icon'>
+                  <span className='wittyworks-options-content-section-container-site-url'>
+                    {site}
+                  </span>
+
+                  <div className='wittyworks-options-content-section-container-site-icon'>
                     <Bin
                       onClick={() => {
                         setDisabledSites(
@@ -236,9 +304,9 @@ const Options: React.FC = () => {
                 </div>
               ))}
               {addDomainTabOpen && (
-                <div className='wittyworks-options-content-section-content-input-wrapper'>
+                <div className='wittyworks-options-content-section-container-input-wrapper'>
                   <input
-                    className='wittyworks-options-content-section-content-input'
+                    className='wittyworks-options-content-section-container-input'
                     type='text'
                     placeholder={t('addSite')}
                     onChange={(e) => {
@@ -246,7 +314,7 @@ const Options: React.FC = () => {
                     }}
                   />
                   <div
-                    className='wittyworks-options-content-section-content-button'
+                    className='wittyworks-options-content-section-container-button'
                     onClick={() => {
                       if (
                         input.match(
@@ -266,12 +334,12 @@ const Options: React.FC = () => {
                 </div>
               )}
               {invalidDomain && (
-                <div className='wittyworks-options-content-section-content-item-error'>
+                <div className='wittyworks-options-content-section-container-item-error'>
                   {t('invalidDomain')}
                 </div>
               )}
               <div
-                className='wittyworks-options-content-section-content-item--purple'
+                className='wittyworks-options-content-section-container-add-domain'
                 onClick={() => {
                   setAddDomainTabOpen(true);
                 }}
@@ -280,7 +348,7 @@ const Options: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
+        </section>
       </div>
     </>
   );

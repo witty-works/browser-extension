@@ -13,7 +13,6 @@ export const POSTHOG_API_KEY = DEV_ENV
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   APP_ID = 'id',
-  // GLOBAL_SETTINGS = 'globalSettings',
   DISABLED_SITES = 'disabledSites',
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',

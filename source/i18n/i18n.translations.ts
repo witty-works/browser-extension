@@ -66,6 +66,10 @@ export const de = {
     addSite: 'Geben sie eine Webseite ein',
     invalidDomain: 'Bitte geben sie die Webseiten im Format "google.com" ein.',
     addDomain: 'Webseite hinzufügen',
+    inclusiveLanguageExplanation:
+      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green DE',
+    styleCorrectionExplanation:
+      'Turn this off to ignore stylistic not severe issues to be highlighted DE',
   },
 };
 
@@ -135,5 +139,9 @@ export const en = {
     addSite: 'Type a website’s URL',
     invalidDomain: 'Please enter the websites in the format "google.com".',
     addDomain: 'Add Domain',
+    inclusiveLanguageExplanation:
+      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green',
+    styleCorrectionExplanation:
+      'Turn this off to ignore stylistic not severe issues to be highlighted',
   },
 };

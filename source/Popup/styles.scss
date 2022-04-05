@@ -21,8 +21,6 @@ a {
 }
 
 header {
-  // padding: 1rem 1rem 0 1rem;
-  // padding-bottom: 1rem;
   padding: 0 1rem 1.2rem 1rem;
 }
 
@@ -38,7 +36,6 @@ section {
 
   h2 {
     margin-bottom: 2em;
-    // margin-top: 1em;
     text-transform: uppercase;
     font-weight: 600;
     font-size: 12px;
@@ -57,7 +54,6 @@ hr {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
-  // font-size: 16px;
   line-height: 19px;
   color: $black;
 }
@@ -74,7 +70,5 @@ footer {
   display: flex;
   flex-direction: row;
   justify-content: end;
-  // padding-right: 2em;
-  // margin-left: auto;
   cursor: pointer;
 }

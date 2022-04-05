@@ -61,6 +61,7 @@ const storeInLocalStorage = (key: string, value: any) => {
   browser.storage.local
     .set({ [key]: value })
     .then(() => {
+      //TODO bug, some values are not pronted correctly (for example arrays)
       log(
         `WittyU ${key} *${
           typeof value === 'object' ? Object.keys(value) : value

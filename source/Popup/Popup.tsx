@@ -9,8 +9,6 @@ import {
 } from '../shared/constants';
 import { DEV_ENV } from '../shared/constants';
 import { storeInLocalStorage } from '../shared/utils';
-// import EnableWitty from './EnableWitty';
-// import GlobalSettings from './GlobalSettings';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import '../i18n/i18n';
@@ -22,13 +20,6 @@ import Settings from '../assets/icons/popup/settings.svg';
 import Logo from '../assets/icons/witty-logo-color.svg';
 import defaultConfig from '../witty.config.json';
 import './styles.scss';
-
-// type GlobalSettings = {
-//   orthography: boolean;
-//   inclusive: boolean;
-//   style: boolean;
-//   casing: boolean;
-// };
 
 const Popup: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
@@ -51,12 +42,6 @@ const Popup: React.FC = () => {
   const [casingSites, setCasingSites] = useState<string[]>(
     defaultConfig.CASING_SITES
   );
-  // const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
-  //   orthography: true,
-  //   inclusive: true,
-  //   style: true,
-  //   casing: true,
-  // });
 
   useEffect(() => {
     browser.storage.local
@@ -174,7 +159,6 @@ const Popup: React.FC = () => {
         />
       </header>
       <section className='wittyworks-toggles'>
-        {/* <EnableWitty /> */}
         <Toggle
           on={enabled}
           handleToggle={handleEnableToggle}

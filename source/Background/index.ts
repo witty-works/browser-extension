@@ -129,11 +129,6 @@ const scanTabsToDetectStatus = () => {
 const storageChange = (changes: any) => {
   const changedItems = Object.keys(changes);
   for (let item of changedItems) {
-    console.log(
-      'bkg index changes[item].newValue = ',
-      item,
-      changes[item].newValue
-    );
     switch (item) {
       case StorageKeys.DISABLED_SITES:
         browser.tabs

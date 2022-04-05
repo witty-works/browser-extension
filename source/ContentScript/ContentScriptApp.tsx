@@ -48,6 +48,7 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     //TODO check if isMounted is needed
     // let isMounted = true;
+
     //Init API requests Config
     browser.storage.local
       .get(null)
@@ -63,7 +64,6 @@ const ContentScriptApp: React.FC = () => {
         );
 
         //Enable/disable spellchecker
-        //TODO this fails
         document.body.spellcheck = result[StorageKeys.SPELL_CHECKING]
           ? (document.body.spellcheck = false) //needed here for linkedin, could be removed when we fix focusin issue
           : (document.body.spellcheck = true);
@@ -240,7 +240,6 @@ const ContentScriptApp: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('reqConfig', reqConfig);
     setRequestConfig(reqConfig);
   }, [reqConfig]);
 
