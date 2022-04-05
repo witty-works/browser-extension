@@ -1,5 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
-import { DEV_ENV, Colors } from '../constants';
+import { DEV_ENV, Colors, wittyVersion } from '../constants';
 
 export enum logTypes {
   INFO = 'info',
@@ -9,8 +8,6 @@ export enum logTypes {
 export const useLog = (
   componentName: string
 ): ((message: string, type?: string, data?: any) => void) => {
-  const wittyVersion = browser.runtime.getManifest().version;
-
   const log = (message: string, type?: string, data?: any) => {
     if (DEV_ENV) {
       console.log(

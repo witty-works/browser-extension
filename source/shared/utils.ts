@@ -1,10 +1,6 @@
 import chroma from 'chroma-js';
 import { browser } from 'webextension-polyfill-ts';
 
-import { useLog, logTypes } from '../shared/customHooks/useLog';
-
-const log = useLog('Utils');
-
 const isObjectEmpty = (obj: object) =>
   obj &&
   Object.keys(obj).length === 0 &&
@@ -62,15 +58,33 @@ const storeInLocalStorage = (key: string, value: any) => {
     .set({ [key]: value })
     .then(() => {
       //TODO bug, some values are not pronted correctly (for example arrays)
-      log(
-        `WittyU ${key} *${
-          typeof value === 'object' ? Object.keys(value) : value
-        }* correctly saved`
+      const wittyVersion = browser.runtime.getManifest().version;
+      const componentName = 'Utils';
+      const message = `Witty ${key} *${
+        typeof value === 'object' ? Object.keys(value) : value
+      }* correctly saved`;
+      const data = typeof value === 'object' ? Object.keys(value) : value;
+
+      console.log(
+        `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
+        `color: #55B8E9`,
+        `color: #5fca7d`,
+        `color: #000`,
+        data
       );
     })
-    .catch((error: string) =>
-      log(`onBrowserStorage Error: ${error}`, logTypes.ERROR)
-    );
+    .catch((error: string) => {
+      const wittyVersion = browser.runtime.getManifest().version;
+      const componentName = 'Utils';
+      const message = `onBrowserStorage Error: ${error}`;
+
+      console.log(
+        `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
+        `color: #55B8E9`,
+        `color: #5fca7d`,
+        `color: #f00`
+      );
+    });
 };
 
 export {
