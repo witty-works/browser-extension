@@ -171,6 +171,7 @@ const Options: React.FC = () => {
                     color={Colors.green}
                     scale={0.35}
                     label={t('expertMode')}
+                    locked
                   />
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
@@ -189,6 +190,7 @@ const Options: React.FC = () => {
                     color={Colors.green}
                     scale={0.35}
                     label={t('inspirationAlternatives')}
+                    locked
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('inspirationAlternativesExplanation')}
