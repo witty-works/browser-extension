@@ -99,7 +99,7 @@ export const en = {
     developmentSettings: 'Development Settings',
     apiEndpoint: 'API Endpoint',
     needHelpQuestionMark: 'Need Help?',
-    spellChecking: 'Highlight grammar & spelling',
+    spellChecking: 'Check grammar & spelling',
     inclusiveTerms: 'Highlight inclusive terms',
     styleCorrections: 'Highlight style issues',
     styleCorrectionExplanation:
