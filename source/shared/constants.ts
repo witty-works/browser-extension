@@ -13,15 +13,18 @@ export const POSTHOG_API_KEY = DEV_ENV
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   APP_ID = 'id',
-  APP_ENABLED = 'enabled',
-  GLOBAL_SETTINGS = 'globalSettings',
+  DISABLED_SITES = 'disabledSites',
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
-  MAXIMUM_IMPORTANCE = 'maximumImportance',
-  SINGULAR_THEY = 'singularThey',
+  EXPERT_MODE = 'expertMode',
+  SPELL_CHECKING = 'spellChecking',
+  STYLE_CORRECTIONS = 'styleCorrections',
+  INCLUSIVE_LANGUAGE = 'inclusiveLanguage',
   INSPIRATIONAL_ALTERNATIVES = 'inspirationalAlternatives',
-  DISABLED_SITES = 'disabledSites',
+  SINGULAR_THEY = 'singularThey',
+  MAXIMUM_IMPORTANCE = 'maximumImportance',
+  CASING_SITES = 'casingSites',
   API_DELAY = 'apiDelay',
 }
 

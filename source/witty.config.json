@@ -1,10 +1,15 @@
 {
-  "APP_ENABLED": true,
+  "DISABLED_SITES": [],
   "PRIMARY_LANGUAGE": "de-DE",
   "PREFERRED_LANGUAGES": ["de-DE", "en-GB"],
   "GERMAN_GENDER_ENDING": "colon_in",
   "EXPERT_MODE": false,
+  "SPELL_CHECKING": true,
+  "STYLE_CORRECTIONS": true,
+  "INCLUSIVE_LANGUAGE": true,
   "INSPIRATIONAL_ALTERNATIVES": false,
   "SINGULAR_THEY": false,
+  "MAXIMUM_IMPORTANCE": 2,
+  "CASING_SITES": [],
   "API_DELAY": 500
 }

@@ -46,7 +46,9 @@ const ContentScriptApp: React.FC = () => {
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
-    let isMounted = true;
+    //TODO check if isMounted is needed
+    // let isMounted = true;
+
     //Init API requests Config
     browser.storage.local
       .get(null)
@@ -61,6 +63,11 @@ const ContentScriptApp: React.FC = () => {
             : DefaultBaseUrlKey
         );
 
+        //Enable/disable spellchecker
+        document.body.spellcheck = result[StorageKeys.SPELL_CHECKING]
+          ? (document.body.spellcheck = false) //needed here for linkedin, could be removed when we fix focusin issue
+          : (document.body.spellcheck = true);
+
         //Define API requests config
         const reqConfig: RequestConfig = {
           german_gender_ending:
@@ -74,21 +81,22 @@ const ContentScriptApp: React.FC = () => {
           ),
           preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES],
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
-
-          disabled_categories: Object.keys(
-            result[StorageKeys.GLOBAL_SETTINGS]
-          ).filter(
-            (key) =>
-              !result[StorageKeys.GLOBAL_SETTINGS][
-                key as keyof typeof result[StorageKeys.GLOBAL_SETTINGS]
-              ]
-          ),
+          disabled_categories: [
+            result[StorageKeys.SPELL_CHECKING] ? '' : 'orthography',
+            result[StorageKeys.INCLUSIVE_LANGUAGE] ? '' : 'inclusive',
+            result[StorageKeys.STYLE_CORRECTIONS] ? '' : 'style',
+            result[StorageKeys.CASING_SITES].includes(
+              window.location.hostname.replace('www.', '')
+            )
+              ? 'casing'
+              : '',
+          ].filter((category) => category !== ''),
           maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE] ? 3 : 2,
           singular_they: result[StorageKeys.SINGULAR_THEY],
           show_inspiration_alternatives:
             result[StorageKeys.INSPIRATIONAL_ALTERNATIVES],
         };
-        if (!isMounted) return;
+        // if (!isMounted) return;
         setReqConfig(reqConfig);
       })
       .catch(onBrowserStorageError);
@@ -115,21 +123,13 @@ const ContentScriptApp: React.FC = () => {
     // newTextarea.rows = 25;
     // if (section) section.appendChild(newTextarea);
 
-    if (
-      StorageKeys.GLOBAL_SETTINGS &&
-      Object.keys(StorageKeys.GLOBAL_SETTINGS).includes('orthography')
-    ) {
-      document.body.spellcheck = false; //needed here for linkedin, could be removed when we fix focusin issue
-    } else {
-      document.body.spellcheck = true;
-    }
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
-      isMounted = false;
+      // isMounted = false;
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
@@ -139,6 +139,8 @@ const ContentScriptApp: React.FC = () => {
     };
   }, []);
 
+  //TODO specify changes type
+  //TODO review all cases
   const storageChange = (changes: any) => {
     let changedItems = Object.keys(changes);
 
@@ -171,20 +173,54 @@ const ContentScriptApp: React.FC = () => {
               ],
           });
           break;
-        case StorageKeys.GLOBAL_SETTINGS:
+        case StorageKeys.SPELL_CHECKING:
           setReqConfig({
             ...reqConfigRef.current,
             disabled_categories: changes[item].newValue
-              ? Object.keys(changes[item].newValue).filter(
-                  (key) => !changes[item].newValue[key as keyof typeof changes]
+              ? reqConfigRef.current.disabled_categories.filter(
+                  (category) => category !== 'orthography'
                 )
-              : [],
+              : [...reqConfigRef.current.disabled_categories, 'orthography'],
           });
           break;
-        case StorageKeys.MAXIMUM_IMPORTANCE:
+        case StorageKeys.INCLUSIVE_LANGUAGE:
           setReqConfig({
             ...reqConfigRef.current,
-            maximum_importance: changes[item].newValue ? 3 : 2,
+            disabled_categories: changes[item].newValue
+              ? reqConfigRef.current.disabled_categories.filter(
+                  (category) => category !== 'inclusive'
+                )
+              : [...reqConfigRef.current.disabled_categories, 'inclusive'],
+          });
+          break;
+
+        case StorageKeys.STYLE_CORRECTIONS:
+          setReqConfig({
+            ...reqConfigRef.current,
+            disabled_categories: changes[item].newValue
+              ? reqConfigRef.current.disabled_categories.filter(
+                  (category) => category !== 'style'
+                )
+              : [...reqConfigRef.current.disabled_categories, 'style'],
+          });
+          break;
+        case StorageKeys.CASING_SITES:
+          setReqConfig({
+            ...reqConfigRef.current,
+            disabled_categories: changes[item].newValue.includes(
+              window.location.hostname.replace('www.', '')
+            )
+              ? [...reqConfigRef.current.disabled_categories, 'casing']
+              : reqConfigRef.current.disabled_categories.filter(
+                  (category) => category !== 'casing'
+                ),
+          });
+          break;
+
+        case StorageKeys.INSPIRATIONAL_ALTERNATIVES:
+          setReqConfig({
+            ...reqConfigRef.current,
+            show_inspiration_alternatives: changes[item].newValue,
           });
           break;
         case StorageKeys.SINGULAR_THEY:
@@ -193,10 +229,10 @@ const ContentScriptApp: React.FC = () => {
             singular_they: changes[item].newValue,
           });
           break;
-        case StorageKeys.INSPIRATIONAL_ALTERNATIVES:
+        case StorageKeys.MAXIMUM_IMPORTANCE:
           setReqConfig({
             ...reqConfigRef.current,
-            show_inspiration_alternatives: changes[item].newValue,
+            maximum_importance: changes[item].newValue ? 3 : 2,
           });
           break;
       }

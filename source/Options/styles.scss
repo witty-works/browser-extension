@@ -7,16 +7,10 @@
   flex-direction: column;
   justify-content: space-around;
   background-color: $white;
-  width: auto;
   font-family: $lato;
   color: $black;
   font-weight: 400;
   font-size: 14px;
-}
-
-.wittyworks-options-content {
-  margin-left: 15em;
-  margin-right: 15em;
 }
 
 .wittyworks-options-header {
@@ -40,8 +34,8 @@
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  margin-left: 13em;
-  margin-right: 14em;
+  max-width: 80%;
+  margin: 0 auto;
 }
 
 .wittyworks-options-header-title {
@@ -61,9 +55,16 @@
   cursor: pointer;
 }
 
-.wittyworks-upgrade-box {
+.wittyworks-options-content {
+  min-width: 680px;
+  max-width: 80%;
+  margin: 0 auto;
+}
+
+.wittyworks-upgrade-banner {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   padding: 18px;
   width: 100%;
@@ -89,7 +90,17 @@
       border-box;
 }
 
-.wittyworks-upgrade-button {
+.wittyworks-upgrade-banner-text-container {
+  flex-basis: 75%;
+  color: $wittyPurple;
+}
+
+.wittyworks-upgrade-banner-title {
+  font-weight: 700;
+  margin: 4px 0px;
+}
+
+.wittyworks-upgrade-banner-button {
   margin-left: auto;
   padding: 10px 15px;
   background: $wittyPurple;
@@ -98,16 +109,6 @@
   color: $white;
   font-weight: 600;
   cursor: pointer;
-}
-
-.wittyworks-upgrade-text-container {
-  flex-grow: 1;
-  color: $wittyPurple;
-}
-
-.wittyworks-upgrade-text--large {
-  font-weight: 700;
-  margin: 4px 0px;
 }
 
 .wittyworks-options-content-section {
@@ -140,11 +141,7 @@
   color: $black;
 }
 
-.wittyworks-options-content-section-icon {
-  margin-right: 0.8em;
-}
-
-.wittyworks-options-content-section-content {
+.wittyworks-options-content-section-container {
   padding-right: 1.4em;
   padding-left: 1.4em;
   font-size: 16px;
@@ -152,32 +149,23 @@
   color: $black;
 }
 
-.wittyworks-options-content-section-content-item {
-  margin: 1em 0px;
-  padding-bottom: 1em;
-  width: 100%;
+.wittyworks-options-content-section-container-item {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid $white;
 }
 
-.wittyworks-options-content-section-content-items {
-  padding-bottom: 1.5em;
-  padding-top: 1em;
-}
-
-.wittyworks-options-content-section-content-subtitle {
-  font-family: $lato;
-  font-style: normal;
+.wittyworks-options-content-section-container-subtitle {
   font-weight: 400;
   font-size: 14px;
   line-height: 17px;
-  color: #656565;
+  color: $darkGray;
   padding-top: 0.5em;
-  padding-bottom: 1em;
-  border-bottom: 1px solid $white;
-  margin-bottom: 1em;
   max-width: 80%;
 }
 
-.wittyworks-options-content-section-content-input {
+.wittyworks-options-content-section-container-input {
   padding: 4px 8px;
   width: 80%;
   height: 34px;
@@ -187,7 +175,7 @@
   border-radius: 4px;
 }
 
-.wittyworks-options-content-section-content-input-wrapper {
+.wittyworks-options-content-section-container-input-wrapper {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -196,41 +184,39 @@
   margin-top: 1em;
 }
 
-.wittyworks-options-content-section-content-title {
+.wittyworks-options-content-section-container-site-item {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 0.5em;
-  padding-top: 0.5em;
+  padding: 0.5em 0;
+  margin-right: 20%;
   border-bottom: 1px solid $white;
 }
 
-.wittyworks-options-content-section-content-icon {
+.wittyworks-options-content-section-container-site-icon {
   cursor: pointer;
-  margin-left: auto;
-  margin-right: 5em;
 }
 
-.wittyworks-options-content-section-content-item--purple {
+.wittyworks-options-content-section-container-add-domain {
   font-weight: 700;
   font-size: 16px;
   line-height: 14px;
-  color: #9489db;
+  color: $wittyPurple;
   padding-bottom: 1em;
   padding-top: 1em;
   cursor: pointer;
 }
 
-.wittyworks-options-content-section-content-item-error {
+.wittyworks-options-content-section-container-item-error {
   color: $errorRed;
   font-size: 10px;
 }
 
-.wittyworks-options-content-section-content-button {
+.wittyworks-options-content-section-container-button {
   padding: 7px 14px;
   margin-left: auto;
-  background: #5fca7d;
+  background: $successGreen;
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
   border-radius: 8px;
   color: $white;

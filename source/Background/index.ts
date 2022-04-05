@@ -38,12 +38,8 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     }
   }
   if (details.reason === 'update') {
-    //Update icon
-    browser.storage.local.get(StorageKeys.APP_ENABLED).then((result) => {
-      result[StorageKeys.APP_ENABLED]
-        ? browser.browserAction.setIcon(WittyIconActive)
-        : browser.browserAction.setIcon(WittyIconInactive);
-    });
+    //Set icon according to the saved settings
+    scanTabsToDetectStatus();
 
     //Log update event to posthog
     analytics.extensionStatusLog('update', getBrowserId());
@@ -115,23 +111,47 @@ const setSettings = () => {
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs.length === 0 || !tabs[0].url) return;
-    const domain: string = new URL(tabs[0].url).hostname.replace('www.', '');
+    const domain = new URL(tabs[0].url).hostname.replace('www.', '');
 
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
-      if (
+      browser.browserAction.setIcon(
         result[StorageKeys.DISABLED_SITES] &&
-        result[StorageKeys.DISABLED_SITES].includes(domain)
-      ) {
-        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: false });
-        browser.browserAction.setIcon(WittyIconInactive);
-      } else {
-        browser.storage.local.set({ [StorageKeys.APP_ENABLED]: true });
-        browser.browserAction.setIcon(WittyIconActive);
-      }
+          result[StorageKeys.DISABLED_SITES].length > 0 &&
+          result[StorageKeys.DISABLED_SITES].includes(domain)
+          ? WittyIconInactive
+          : WittyIconActive
+      );
     });
   });
+};
+
+//TODO specify changes type
+const storageChange = (changes: any) => {
+  const changedItems = Object.keys(changes);
+  for (let item of changedItems) {
+    switch (item) {
+      case StorageKeys.DISABLED_SITES:
+        browser.tabs
+          .query({ active: true, currentWindow: true })
+          .then((tabs) => {
+            if (tabs.length === 0 || !tabs[0].url) return;
+            const domain = new URL(tabs[0].url).hostname.replace('www.', '');
+
+            browser.browserAction.setIcon(
+              changes[item].newValue.length > 0 &&
+                changes[item].newValue.includes(domain)
+                ? WittyIconInactive
+                : WittyIconActive
+            );
+          });
+        break;
+    }
+  }
 };
 
 browser.tabs.onCreated.addListener(scanTabsToDetectStatus);
 browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
 browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
+browser.storage.onChanged.addListener(storageChange);
+
+//TODO Remove Listeners
