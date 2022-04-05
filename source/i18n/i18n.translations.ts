@@ -18,8 +18,8 @@ export const de = {
     settings: 'Aktuelle Webseite',
     enableWitty: 'Witty aktivieren',
     globalSettings: 'Globale Einstellungen',
-    websiteSettings: 'Website settings DE',
-    caseSensitivity: 'Case-sensitive checks DE',
+    websiteSettings: 'Webseitem Einstellungen',
+    caseSensitivity: 'Gross- und Kleinschreibung',
     primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
@@ -51,7 +51,7 @@ export const de = {
     getMoreButton: 'Upgraden',
     enableWitty: 'Witty aktivieren',
     setUpLanguages: 'Spracheinstellungen',
-    configureRules: 'Regeln anpassen',
+    configureRules: 'Witty Regeln anpassen',
     disableWitty: 'Witty auf gewissen Webseiten deaktivieren',
     expertMode: 'Weniger schwerwiegende Probleme hervorheben',
     expertModeExplanation:
@@ -67,9 +67,9 @@ export const de = {
     invalidDomain: 'Bitte geben sie die Webseiten im Format "google.com" ein.',
     addDomain: 'Webseite hinzufügen',
     inclusiveLanguageExplanation:
-      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green DE',
+      'Wenn aktiviert, unterstreicht Witty auch inklusive Begriffe. Bei diesen werden keine Alternativen angeboten.',
     styleCorrectionExplanation:
-      'Turn this off to ignore stylistic not severe issues to be highlighted DE',
+      'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
   },
 };
 
@@ -125,7 +125,7 @@ export const en = {
     getMoreButton: 'Upgrade now',
     enableWitty: 'Enable Witty',
     setUpLanguages: 'Language settings',
-    configureRules: 'Customize',
+    configureRules: 'Customize Witty',
     disableWitty: 'Disable Witty on some websites',
     expertMode: 'Highlight less severe issues',
     expertModeExplanation:

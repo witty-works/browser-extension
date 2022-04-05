@@ -126,33 +126,6 @@ const Options: React.FC = () => {
           </div>
         </div>
 
-        {/* <section className='wittyworks-options-content-section'>
-          <div
-            className='wittyworks-options-content-section-title'
-            onClick={() => {
-              setLanguagesTabOpen(!languagesTabOpen);
-            }}
-          >
-            {t('setUpLanguages')}
-            <div className='wittyworks-options-content-section-title-arrow'>
-              {languagesTabOpen ? <ArrowUp /> : <ArrowDown />}
-            </div>
-          </div>
-          {languagesTabOpen && (
-            <div className='wittyworks-options-content-section-content'>
-              <div className='wittyworks-options-content-section-content-item'>
-                <LanguageSelector />
-              </div>
-              <div className='wittyworks-options-content-section-content-item'>
-                <PreferedLanguagesSelector />
-              </div>
-              <div className='wittyworks-options-content-section-content-item'>
-                <GermanGenderEndSelector />
-              </div>
-            </div>
-          )}
-        </section> */}
-
         <section className='wittyworks-options-content-section'>
           <div
             className='wittyworks-options-content-section-title'
@@ -171,9 +144,23 @@ const Options: React.FC = () => {
                 <div className='wittyworks-options-content-section-container-item'>
                   <PreferedLanguagesSelector />
                 </div>
+
+                <div className='wittyworks-options-content-section-container-item'>
+                  <Toggle
+                    on={singularThey}
+                    handleToggle={() => {
+                      setSingularThey(!singularThey);
+                    }}
+                    color={Colors.green}
+                    scale={0.35}
+                    label={t('singularThey')}
+                  />
+                </div>
+
                 <div className='wittyworks-options-content-section-container-item'>
                   <GermanGenderEndSelector />
                 </div>
+
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
                     on={expertMode}
@@ -184,23 +171,28 @@ const Options: React.FC = () => {
                     color={Colors.green}
                     scale={0.35}
                     label={t('expertMode')}
-                    locked={true}
                   />
+
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('expertModeExplanation')}
                   </div>
                 </div>
 
+                {/* currently does nothing, is locked untill we have 'premium users' */}
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
-                    on={spellChecking}
-                    handleToggle={() => {
-                      setSpellChecking(!spellChecking);
-                    }}
+                    on={inspirationalAlternatives}
+                    // handleToggle={() => {
+                    //   setInspirationalAlternatives(inspirationalAlternatives);
+                    // }}
+                    handleToggle={() => {}}
                     color={Colors.green}
                     scale={0.35}
-                    label={t('spellChecking', { ns: namespaces.pages.popup })}
+                    label={t('inspirationAlternatives')}
                   />
+                  <div className='wittyworks-options-content-section-container-subtitle'>
+                    {t('inspirationAlternativesExplanation')}
+                  </div>
                 </div>
 
                 <div className='wittyworks-options-content-section-container-item'>
@@ -235,33 +227,15 @@ const Options: React.FC = () => {
                   </div>
                 </div>
 
-                {/* currently does nothing, is locked untill we have 'premium users' */}
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
-                    on={inspirationalAlternatives}
-                    // handleToggle={() => {
-                    //   setInspirationalAlternatives(inspirationalAlternatives);
-                    // }}
-                    handleToggle={() => {}}
-                    color={Colors.green}
-                    scale={0.35}
-                    label={t('inspirationAlternatives')}
-                    locked={true}
-                  />
-                  <div className='wittyworks-options-content-section-container-subtitle'>
-                    {t('inspirationAlternativesExplanation')}
-                  </div>
-                </div>
-
-                <div className='wittyworks-options-content-section-container-item'>
-                  <Toggle
-                    on={singularThey}
+                    on={spellChecking}
                     handleToggle={() => {
-                      setSingularThey(!singularThey);
+                      setSpellChecking(!spellChecking);
                     }}
                     color={Colors.green}
                     scale={0.35}
-                    label={t('singularThey')}
+                    label={t('spellChecking', { ns: namespaces.pages.popup })}
                   />
                 </div>
               </>
