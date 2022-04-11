@@ -175,7 +175,7 @@ const Options: React.FC = () => {
                   />
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
-                    {t('expertModeExplanation')}
+                    {t('expertModeExplanation')} <a href={t('expertModeExplanationUrl')} target="_blank">{t('learnMore')}</a>
                   </div>
                 </div>
 
@@ -208,7 +208,7 @@ const Options: React.FC = () => {
                     label={t('inclusiveTerms', { ns: namespaces.pages.popup })}
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
-                    {t('inclusiveLanguageExplanation')}
+                    {t('inclusiveLanguageExplanation')} <a href={t('inclusiveLanguageExplanationUrl')} target="_blank">{t('learnMore')}</a>
                   </div>
                 </div>
 
@@ -225,7 +225,7 @@ const Options: React.FC = () => {
                     })}
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
-                    {t('styleCorrectionExplanation')}
+                    {t('styleCorrectionExplanation')} <a href={t('styleCorrectionExplanationUrl')} target="_blank">{t('learnMore')}</a>
                   </div>
                 </div>
 
