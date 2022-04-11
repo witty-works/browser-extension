@@ -16,22 +16,15 @@ export const de = {
   },
   [namespaces.pages.popup]: {
     settings: 'Aktuelle Webseite',
-    enableWitty: 'Witty aktivieren',
+    enableWitty: 'Text auf dieser Seite prüfen',
     globalSettings: 'Globale Einstellungen',
     websiteSettings: 'Aktuelle Webseite',
     caseSensitivity: 'Gross- & Kleinschreibung',
-    primaryLanguage: 'Primäre Sprache',
-    preferredLanguage: 'Ich bevorzuge',
-    germanGenderEnding: 'Wähle die deutsche Gender-Endung',
     developmentSettings: 'Entwicklungs-Einstellungen',
     needHelpQuestionMark: 'Brauchen Sie Hilfe?',
     spellChecking: 'Grammatik & Rechtschreibung',
     inclusiveTerms: 'Inklusive Begriffe',
     styleCorrections: 'Stilvorschläge',
-    styleCorrectionExplanation:
-      'Wenn eingeschaltet macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
-    inclusiveLanguageExplanation:
-      'Wenn aktiviert, unterstreicht Witty auch inklusive Begriffe. Bei diesen werden keine Alternativen angeboten.',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -48,13 +41,14 @@ export const de = {
     getMoreTitle: 'WITTY KANN NOCH VIEL MEHR!',
     getMoreText: 'Upgraden, um eigene Regeln zu verwalten und zu teilen!',
     getMoreButton: 'Upgraden',
-    enableWitty: 'Witty aktivieren',
     setUpLanguages: 'Spracheinstellungen',
     configureRules: 'Witty Regeln anpassen',
     disableWitty: 'Witty auf gewissen Webseiten deaktivieren',
-    expertMode: 'Weniger schwerwiegende Probleme hervorheben',
+    expertMode: 'Inklusions-Profi werden',
     expertModeExplanation:
-      'Wenn aktiviert, macht Witty auch bei weniger schwerwiegenden Probleme in Bezug auf Diversität und Inklusion Vorschläge.',
+      'Wenn aktiviert, bietet Witty auch Vorschläge zu subtileren Fragen der Diversität und Inklusion.',
+    expertModeExplanationUrl:
+      'https://www.witty.works/de/blog/wie-analysiert-witty-rahmenwerk-der-inklusiven-sprache',
     inspirationAlternatives:
       'Inspirationen zur Umformulierung ganzer Sätze zeigen',
     inspirationAlternativesExplanation:
@@ -67,9 +61,18 @@ export const de = {
     addDomain: 'Webseite hinzufügen',
     inclusiveLanguageExplanation:
       'Wenn aktiviert, unterstreicht Witty auch inklusive Begriffe. Bei diesen werden keine Alternativen angeboten.',
+    inclusiveLanguageExplanationUrl:
+      'https://www.witty.works/de/kategorien/inklusiv',
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
-  },
+    styleCorrectionExplanationUrl:
+      'https://www.witty.works/de/kategorien/stil',
+    learnMore:
+      'Mehr dazu',
+    primaryLanguage: 'Primäre Sprache',
+    preferredLanguage: 'Ich bevorzuge',
+    germanGenderEnding: 'Wähle die deutsche Gender-Endung',
+    },
 };
 
 export const en = {
@@ -88,22 +91,15 @@ export const en = {
   },
   [namespaces.pages.popup]: {
     settings: 'Current Website',
-    enableWitty: 'Enable Witty',
+    enableWitty: 'Check text on this page',
     globalSettings: 'Global settings',
     websiteSettings: 'Current website',
     caseSensitivity: 'Check upper & lower case',
-    primaryLanguage: 'Primary Language',
-    preferredLanguage: 'I write in',
-    germanGenderEnding: 'Choose the German gender ending',
     developmentSettings: 'Development Settings',
     needHelpQuestionMark: 'Need Help?',
     spellChecking: 'Check grammar & spelling',
     inclusiveTerms: 'Highlight inclusive terms',
     styleCorrections: 'Highlight style issues',
-    styleCorrectionExplanation:
-      'Turn this off to ignore stylistic not severe issues to be highlighted',
-    inclusiveLanguageExplanation:
-      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green',
   },
   [namespaces.popover]: {
     insteadTry: 'Try instead ...',
@@ -121,13 +117,14 @@ export const en = {
     getMoreText:
       'Upgrade and get access to more checks, custom rules, and much more!',
     getMoreButton: 'Upgrade now',
-    enableWitty: 'Enable Witty',
     setUpLanguages: 'Language settings',
     configureRules: 'Customize Witty',
     disableWitty: 'Disable Witty on some websites',
-    expertMode: 'Highlight less severe issues',
+    expertMode: 'Become an inclusion pro',
     expertModeExplanation:
-      'When switched on, Witty highlights also less severe issues about diversity and inclusion.',
+      'When switched on, Witty highlights also more subtle issues about diversity and inclusion.',
+    expertModeExplanationUrl:
+      'https://www.witty.works/en/blog/how-does-witty-analyze',
     inspirationAlternatives: 'Show inspirations to rephrase entire sentences',
     inspirationAlternativesExplanation:
       'When switched on, Witty will make suggestions to rephrase entire sentences.',
@@ -138,8 +135,18 @@ export const en = {
     invalidDomain: 'Please enter the websites in the format "google.com".',
     addDomain: 'Add Domain',
     inclusiveLanguageExplanation:
-      'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green',
+      'When switched on, Witty highlights inclusive terms. For these, no alternatives are offered.',
+    inclusiveLanguageExplanationUrl:
+      'https://www.witty.works/en/categories/inclusive',
     styleCorrectionExplanation:
       'Turn this off to ignore stylistic not severe issues to be highlighted',
+    styleCorrectionExplanationUrl:
+      'https://www.witty.works/en/categories/style',
+    learnMore:
+      'Learn more',
+    primaryLanguage: 'Primary Language',
+    preferredLanguage: 'I write in',
+    germanGenderEnding: 'Choose the German gender ending',
+
   },
 };
