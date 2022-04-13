@@ -224,7 +224,12 @@ const Popup: React.FC = () => {
         </section>
       )}
       <footer>
-        <Settings onClick={() => browser.runtime.openOptionsPage()} />
+        <Settings
+          onClick={
+            //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
+            () => browser.runtime.openOptionsPage().then(() => window.close())
+          }
+        />
       </footer>
     </>
   );

@@ -11,7 +11,7 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 const GermanGenderEndSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
-  const { t } = useTranslation(namespaces.pages.popup);
+  const { t } = useTranslation(namespaces.pages.options);
   const log = useLog('GermanGenderEndSelector');
 
   useEffect(() => {
