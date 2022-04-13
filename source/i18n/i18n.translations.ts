@@ -20,9 +20,6 @@ export const de = {
     globalSettings: 'Globale Einstellungen',
     websiteSettings: 'Aktuelle Webseite',
     caseSensitivity: 'Gross- & Kleinschreibung',
-    primaryLanguage: 'Primäre Sprache',
-    preferredLanguage: 'Ich bevorzuge',
-    germanGenderEnding: 'Wähle die deutsche Gender-Endung',
     developmentSettings: 'Entwicklungs-Einstellungen',
     needHelpQuestionMark: 'Brauchen Sie Hilfe?',
     spellChecking: 'Grammatik & Rechtschreibung',
@@ -68,10 +65,11 @@ export const de = {
       'https://www.witty.works/de/kategorien/inklusiv',
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
-    styleCorrectionExplanationUrl:
-      'https://www.witty.works/de/kategorien/stil',
-    learnMore:
-      'Mehr dazu',
+    styleCorrectionExplanationUrl: 'https://www.witty.works/de/kategorien/stil',
+    learnMore: 'Mehr dazu',
+    primaryLanguage: 'Primäre Sprache',
+    preferredLanguage: 'Ich bevorzuge',
+    germanGenderEnding: 'Wähle die deutsche Gender-Endung',
   },
 };
 
@@ -91,16 +89,8 @@ export const en = {
   },
   [namespaces.pages.popup]: {
     settings: 'Current Website',
-    globalSettings: 'Global settings',
-    websiteSettings: 'Current website',
-    caseSensitivity: 'Check upper & lower case',
-    primaryLanguage: 'Primary Language',
-    preferredLanguage: 'I write in',
-    germanGenderEnding: 'Choose the German gender ending',
-    developmentSettings: 'Development Settings',
-    needHelpQuestionMark: 'Need Help?',
+    enableWitty: 'Check text on this page',
     spellChecking: 'Check grammar & spelling',
-    inclusiveTerms: 'Highlight inclusive terms',
     styleCorrections: 'Highlight style issues',
   },
   [namespaces.popover]: {
@@ -119,7 +109,6 @@ export const en = {
     getMoreText:
       'Upgrade and get access to more checks, custom rules, and much more!',
     getMoreButton: 'Upgrade now',
-    enableWitty: 'Check text on this page',
     setUpLanguages: 'Language settings',
     configureRules: 'Customize Witty',
     disableWitty: 'Disable Witty on some websites',
@@ -142,10 +131,12 @@ export const en = {
     inclusiveLanguageExplanationUrl:
       'https://www.witty.works/en/categories/inclusive',
     styleCorrectionExplanation:
-      'Turn this off to ignore stylistic not severe issues to be highlighted',
+      'Turn this off to ignore stylistic not severe issues to be highlighted.',
     styleCorrectionExplanationUrl:
       'https://www.witty.works/en/categories/style',
-    learnMore:
-      'Learn more',
+    learnMore: 'Learn more',
+    primaryLanguage: 'Primary Language',
+    preferredLanguage: 'I write in',
+    germanGenderEnding: 'Choose the German gender ending',
   },
 };
