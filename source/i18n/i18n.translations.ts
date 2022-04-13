@@ -43,11 +43,13 @@ export const de = {
     removeSpaces: 'Extra Leerzeichen entfernen',
   },
   [namespaces.pages.options]: {
+    greeting: 'Hello DE',
     settings: 'Einstellungen',
     needHelp: 'Brauchst du Hilfe?',
     getMoreTitle: 'WITTY KANN NOCH VIEL MEHR!',
     getMoreText: 'Upgraden, um eigene Regeln zu verwalten und zu teilen!',
     getMoreButton: 'Upgraden',
+    LoginButton: 'Login Now DE',
     enableWitty: 'Witty aktivieren',
     setUpLanguages: 'Spracheinstellungen',
     configureRules: 'Witty Regeln anpassen',
@@ -115,12 +117,14 @@ export const en = {
     removeSpaces: '(Remove extra spaces)',
   },
   [namespaces.pages.options]: {
+    greeting: 'Hello',
     settings: 'Settings',
     needHelp: 'Need Help?',
     getMoreTitle: 'GET MUCH MORE FROM WITTY!',
     getMoreText:
       'Upgrade and get access to more checks, custom rules, and much more!',
     getMoreButton: 'Upgrade now',
+    LoginButton: 'Login Now',
     enableWitty: 'Enable Witty',
     setUpLanguages: 'Language settings',
     configureRules: 'Customize Witty',

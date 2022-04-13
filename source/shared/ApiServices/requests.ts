@@ -2,6 +2,7 @@ import { IRequest, RequestConfig } from '../types';
 import { BaseUrls, wittyVersion } from '../constants';
 
 let BASE_URL: string = '';
+let token: string = '';
 export let appID: string = ''; // TODO context hook
 export let requestConfig: RequestConfig = {} as RequestConfig;
 
@@ -12,6 +13,7 @@ export const setBaseURL = (urlKey: string) =>
 export const setRequestConfig = (reqConfig: RequestConfig) =>
   (requestConfig = reqConfig);
 export const setAppID = (id: string) => (appID = id);
+export const setToken = (tok: string) => (token = tok);
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
     url: createUrl(BASE_URL, 'v1.1/check'),
@@ -20,6 +22,7 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        Authentication: token !== '' ? `Bearer ${token}` : 'Basic',
       },
       body: text
         ? JSON.stringify({

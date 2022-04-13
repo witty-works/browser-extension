@@ -13,6 +13,7 @@ import {
   setBaseURL,
   setRequestConfig,
   setAppID,
+  setToken,
 } from '../shared/ApiServices/requests';
 import {
   isInputElement,
@@ -62,6 +63,9 @@ const ContentScriptApp: React.FC = () => {
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
+
+        //Set auth token
+        setToken(result[StorageKeys.ACCESS_TOKEN]);
 
         //Enable/disable spellchecker
         document.body.spellcheck = result[StorageKeys.SPELL_CHECKING]
@@ -148,6 +152,9 @@ const ContentScriptApp: React.FC = () => {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
           setBaseURL(changes[item].newValue);
+          break;
+        case StorageKeys.ACCESS_TOKEN:
+          setToken(changes[item].newValue);
           break;
         case StorageKeys.PRIMARY_LANGUAGE:
           setReqConfig({

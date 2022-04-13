@@ -11,5 +11,7 @@
   "SINGULAR_THEY": false,
   "MAXIMUM_IMPORTANCE": 2,
   "CASING_SITES": [],
-  "API_DELAY": 500
+  "API_DELAY": 500,
+  "USERNAME": "",
+  "ACCESS_TOKEN": ""
 }

@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import defaultConfig from '../witty.config.json';
@@ -47,6 +46,10 @@ const Options: React.FC = () => {
   const [singularThey, setSingularThey] = useState<boolean>(
     defaultConfig.SINGULAR_THEY
   );
+  const [username, setUsername] = useState<string>('');
+  const [accessToken, setAccessToken] = useState<string>('');
+  // const baseUrl = 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/';
+  const baseUrl = 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site';
 
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
@@ -58,8 +61,32 @@ const Options: React.FC = () => {
       // );
       setSingularThey(result[StorageKeys.SINGULAR_THEY]);
       setDisabledSites(result[StorageKeys.DISABLED_SITES]);
+      setUsername(result[StorageKeys.USERNAME]);
+      setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
     });
+
+    window.addEventListener('load', onOptionsLoad);
+
+    return () => {
+      window.removeEventListener('load', onOptionsLoad);
+    };
   }, []);
+
+  const onOptionsLoad = (event: Event) => {
+    const searchParams = new URLSearchParams(
+      (event.currentTarget as Window).location.search
+    );
+    for (let param of searchParams) {
+      switch (param[0]) {
+        case 'email':
+          setUsername(param[1]);
+          break;
+        case 'access_token':
+          setAccessToken(param[1]);
+          break;
+      }
+    }
+  };
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.SPELL_CHECKING, spellChecking);
@@ -84,6 +111,26 @@ const Options: React.FC = () => {
   useEffect(() => {
     storeInLocalStorage(StorageKeys.SINGULAR_THEY, singularThey);
   }, [singularThey]);
+
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.USERNAME, username);
+  }, [username]);
+
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.ACCESS_TOKEN, accessToken);
+  }, [accessToken]);
+
+  const authWW = async () => {
+    const originalOptionsUri = window.location.href;
+    const url = `${baseUrl}/en/browser-login?redirect_uri=${originalOptionsUri}`;
+    window.open(url, '_self');
+  };
+
+  const logout = () => {
+    setUsername('');
+    setAccessToken('');
+    browser.runtime.openOptionsPage();
+  };
 
   return (
     <>
@@ -126,6 +173,33 @@ const Options: React.FC = () => {
           </div>
         </div>
 
+        <section className='wittyworks-options-login'>
+          {username === '' ? (
+            <div
+              className='wittyworks-options-button'
+              onClick={() => {
+                authWW();
+              }}
+            >
+              {t('LoginButton')}
+            </div>
+          ) : (
+            <>
+              <div className='wittyworks-options-login-text'>
+                {t('greeting')}{' '}
+                <span className='wittyworks-options-login-cursiva'>
+                  {username}
+                </span>
+              </div>
+              <div
+                className='wittyworks-options-button-light'
+                onClick={() => logout()}
+              >
+                {t('Logout')}
+              </div>
+            </>
+          )}
+        </section>
         <section className='wittyworks-options-content-section'>
           <div
             className='wittyworks-options-content-section-title'

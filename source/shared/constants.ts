@@ -26,12 +26,15 @@ export enum StorageKeys {
   MAXIMUM_IMPORTANCE = 'maximumImportance',
   CASING_SITES = 'casingSites',
   API_DELAY = 'apiDelay',
+  USERNAME = 'username',
+  ACCESS_TOKEN = 'accessToken',
 }
 
 //API endpoints
 export enum BaseUrls {
   API_PLATFORMSH = 'https://default.api.witty.works/',
-  DEV_PLATFORMSH = 'https://default.api.witty.works.dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
+  DEV_PLATFORMSH = 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
+  // DEV_PLATFORMSH = 'https://default.api.witty.works.dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
   WITTY_LOCAL = 'http://127.0.0.1:8000/',
 }
 
