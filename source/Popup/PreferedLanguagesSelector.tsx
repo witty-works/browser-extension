@@ -11,7 +11,7 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 const PreferredLanguagesSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<OptionProp[]>([]);
-  const { t } = useTranslation(namespaces.pages.popup);
+  const { t } = useTranslation(namespaces.pages.options);
   const log = useLog('PreferredLanguagesSelector');
 
   useEffect(() => {
