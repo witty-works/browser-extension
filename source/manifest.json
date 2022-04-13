@@ -18,7 +18,10 @@
   "__opera__developer": {
     "name": "Witty Works"
   },
-  "options_page": "options.html",
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "__firefox__applications": {
     "gecko": {
       "id": "{4b376457-9460-4891-b28a-60499c2e3343}"
