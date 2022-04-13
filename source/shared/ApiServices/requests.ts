@@ -22,7 +22,7 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        Authentication: token !== '' ? `Bearer ${token}` : 'Basic',
+        Authorization: token !== '' ? `Bearer ${token}` : 'Basic',
       },
       body: text
         ? JSON.stringify({
