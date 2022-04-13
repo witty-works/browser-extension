@@ -21,7 +21,6 @@ export const de = {
     websiteSettings: 'Aktuelle Webseite',
     caseSensitivity: 'Gross- & Kleinschreibung',
     developmentSettings: 'Entwicklungs-Einstellungen',
-    needHelpQuestionMark: 'Brauchen Sie Hilfe?',
     spellChecking: 'Grammatik & Rechtschreibung',
     inclusiveTerms: 'Inklusive Begriffe',
     styleCorrections: 'Stilvorschläge',
@@ -90,7 +89,12 @@ export const en = {
   [namespaces.pages.popup]: {
     settings: 'Current Website',
     enableWitty: 'Check text on this page',
+    globalSettings: 'Global settings',
+    websiteSettings: 'Current website',
+    caseSensitivity: 'Check upper & lower case',
+    developmentSettings: 'Development Settings',
     spellChecking: 'Check grammar & spelling',
+    inclusiveTerms: 'Highlight inclusive terms',
     styleCorrections: 'Highlight style issues',
   },
   [namespaces.popover]: {
