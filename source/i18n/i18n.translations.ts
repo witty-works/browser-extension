@@ -135,7 +135,7 @@ export const en = {
     inclusiveLanguageExplanationUrl:
       'https://www.witty.works/en/categories/inclusive',
     styleCorrectionExplanation:
-      'Turn this off to ignore stylistic not severe issues to be highlighted.',
+      'Witty makes suggestions to make your text more understandable, or to give it authenticity or emotionality.',
     styleCorrectionExplanationUrl:
       'https://www.witty.works/en/categories/style',
     learnMore: 'Learn more',
