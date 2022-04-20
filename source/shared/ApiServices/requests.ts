@@ -10,11 +10,16 @@ const createUrl = (base: string, path: string): string => `${base}${path}`;
 
 export const setBaseURL = (urlKey: string) =>
   (BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls]);
+
 export const setRequestConfig = (reqConfig: RequestConfig) =>
   (requestConfig = reqConfig);
+
 export const setAppID = (id: string) => (appID = id);
+
 export const setToken = (tok: string) => (token = tok);
+
 export const getAnalyzedTextResults = (text: string): IRequest => {
+  console.log('token', token);
   return {
     url: createUrl(BASE_URL, 'v1.1/check'),
     config: {
@@ -33,6 +38,22 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
             config: requestConfig,
           })
         : null,
+    },
+  };
+};
+
+export const getConfiguration = (): IRequest => {
+  console.log('request getConfiguration', BASE_URL);
+
+  return {
+    url: createUrl(BASE_URL, 'auth'),
+    config: {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
     },
   };
 };

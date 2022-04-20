@@ -50,8 +50,8 @@ export const useCheckEndpoint = () => {
               type: 'boolean',
             },
             inspiration: {
-              description: 'the inspiration of the alternative word',
-              type: 'string',
+              description: 'the alternative is an inspiration',
+              type: 'boolean',
             },
             context: {
               description: 'the context of the alternative word',
@@ -91,7 +91,6 @@ export const useCheckEndpoint = () => {
     },
     required: [
       'text',
-      'context',
       'category',
       'subcategory',
       'start',

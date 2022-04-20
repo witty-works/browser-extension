@@ -6,12 +6,16 @@ import Ajv, { JSONSchemaType } from 'ajv';
 
 const useApiResult = <TResponse,>(
   request: IRequest,
-  responseSchema: JSONSchemaType<TResponse>
+  responseSchema: JSONSchemaType<TResponse> | null
 ): [TResponse | null, IEndpointError | null] => {
-  const validateResponse = useMemo(
-    () => new Ajv().compile(responseSchema),
-    [responseSchema]
-  );
+  console.log('useApiResult request', request);
+  console.log('useApiResult responseSchema', responseSchema);
+
+  const validateResponse =
+    responseSchema === null
+      ? null
+      : useMemo(() => new Ajv().compile(responseSchema), [responseSchema]);
+
   const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
     null
   );
@@ -23,8 +27,9 @@ const useApiResult = <TResponse,>(
   useEffect(() => {
     const ac = new AbortController();
 
-    //Avoid endpoint calls if body is null
-    if (request.config.body) {
+    //Avoid endpoint calls if config is null
+
+    if (request.config) {
       request.config = { ...request.config, signal: ac.signal };
 
       log('Request:', logTypes.INFO, request);
@@ -46,7 +51,12 @@ const useApiResult = <TResponse,>(
           }
           const responseResults: any = await response.json();
 
-          if (!validateResponse(responseResults) && validateResponse.errors) {
+          if (
+            validateResponse &&
+            !validateResponse(responseResults) &&
+            validateResponse.errors
+          ) {
+            console.log('validateResponse.errors', validateResponse.errors);
             log(
               `JSON Schema Error: ${validateResponse.errors.join(', ')}`,
               logTypes.ERROR

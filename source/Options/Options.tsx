@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import defaultConfig from '../witty.config.json';
-import { Colors, StorageKeys } from '../shared/constants';
+import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
+import { DefaultBaseUrlKey, Colors, StorageKeys } from '../shared/constants';
 import { storeInLocalStorage } from '../shared/utils';
 // import LanguageSelector from '../Popup/LanguageSelector';
 import GermanGenderEndSelector from '../Popup/GermanGenderEndSelector';
@@ -16,6 +17,7 @@ import { namespaces } from '../i18n/i18n.constants';
 import '../i18n/i18n';
 import Toggle from '../shared/components/Toggle/Toggle';
 import './styles.scss';
+import { setBaseURL, setToken } from '../shared/ApiServices/requests';
 
 const Options: React.FC = () => {
   const { t } = useTranslation([
@@ -48,11 +50,22 @@ const Options: React.FC = () => {
   );
   const [username, setUsername] = useState<string>('');
   const [accessToken, setAccessToken] = useState<string>('');
-  // const baseUrl = 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/';
+  const [refreshToken, setRefreshToken] = useState<string>('');
+  const [authResponse, authErrorResponse, getConfig] = useAuthEndpoint();
+
   const baseUrl = 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site';
+  const originalOptionsUri = window.location.href;
 
   useEffect(() => {
+    console.log('options useeffect');
     browser.storage.local.get(null).then((result) => {
+      console.log('options storage result', result);
+      //Set the Endpoint url
+      setBaseURL(
+        result[StorageKeys.API_ENDPOINT_KEY]
+          ? result[StorageKeys.API_ENDPOINT_KEY]
+          : DefaultBaseUrlKey
+      );
       setSpellChecking(result[StorageKeys.SPELL_CHECKING]);
       setInclusiveLanguage(result[StorageKeys.INCLUSIVE_LANGUAGE]);
       setStyleCorrections(result[StorageKeys.STYLE_CORRECTIONS]);
@@ -76,15 +89,12 @@ const Options: React.FC = () => {
     const searchParams = new URLSearchParams(
       (event.currentTarget as Window).location.search
     );
-    for (let param of searchParams) {
-      switch (param[0]) {
-        case 'email':
-          setUsername(param[1]);
-          break;
-        case 'access_token':
-          setAccessToken(param[1]);
-          break;
-      }
+
+    if ([...searchParams].length > 0) {
+      setUsername(searchParams.get('email') as string);
+      setAccessToken(searchParams.get('access_token') as string);
+      setRefreshToken(searchParams.get('refresh_token') as string);
+      window.open(browser.runtime.getURL('options.html'), '_self');
     }
   };
 
@@ -117,19 +127,36 @@ const Options: React.FC = () => {
   }, [username]);
 
   useEffect(() => {
+    console.log('options accessToken', accessToken);
+    if (accessToken !== '') {
+      setToken(accessToken);
+      getConfig();
+    }
+
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, accessToken);
   }, [accessToken]);
 
-  const authWW = async () => {
-    const originalOptionsUri = window.location.href;
-    const url = `${baseUrl}/en/browser-login?redirect_uri=${originalOptionsUri}`;
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.REFRESH_TOKEN, refreshToken);
+  }, [refreshToken]);
+
+  useEffect(() => {
+    console.log('authResponse', authResponse);
+  }, [authResponse]);
+
+  useEffect(() => {
+    console.log('authErrorResponse', authErrorResponse);
+  }, [authErrorResponse]);
+
+  const logIn = async () => {
+    const url = `${baseUrl}/browser-login?redirect_uri=${originalOptionsUri}`;
     window.open(url, '_self');
   };
 
-  const logout = () => {
+  const logOut = () => {
     setUsername('');
     setAccessToken('');
-    browser.runtime.openOptionsPage();
+    setRefreshToken(''); //TODO sure?
   };
 
   return (
@@ -178,7 +205,7 @@ const Options: React.FC = () => {
             <div
               className='wittyworks-options-button'
               onClick={() => {
-                authWW();
+                logIn();
               }}
             >
               {t('LoginButton')}
@@ -193,7 +220,7 @@ const Options: React.FC = () => {
               </div>
               <div
                 className='wittyworks-options-button-light'
-                onClick={() => logout()}
+                onClick={() => logOut()}
               >
                 {t('Logout')}
               </div>

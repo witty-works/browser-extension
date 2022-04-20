@@ -53,6 +53,26 @@ export interface ICheckResponse {
   language: string;
 }
 
+export interface IOrganizationConfig {
+  primary_language: string;
+  preferred_languages: string[];
+  preferred_variants: string[];
+  german_gender_ending: string;
+  gendered_roles_format: string;
+  disabled_categories: string[];
+  singular_they: string;
+  show_inspiration_alternatives: boolean;
+  maximum_importance: number;
+}
+export interface IAuthResponse {
+  forced: IOrganizationConfig;
+  suggestion: IOrganizationConfig;
+  id: string;
+  name: string;
+  plan: string;
+  store_context: boolean;
+}
+
 export interface ICheckResponseResult {
   text: string;
   context: string;
@@ -69,7 +89,7 @@ export interface ICheckResponseResult {
 export interface IAlternatives {
   text: string;
   remove: boolean;
-  inspiration: string;
+  inspiration: boolean;
   context: string;
 }
 

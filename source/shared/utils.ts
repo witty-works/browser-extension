@@ -60,17 +60,16 @@ const storeInLocalStorage = (key: string, value: any) => {
       //TODO bug, some values are not pronted correctly (for example arrays)
       const wittyVersion = browser.runtime.getManifest().version;
       const componentName = 'Utils';
-      const message = `Witty ${key} *${
-        typeof value === 'object' ? Object.keys(value) : value
+      const message = `${key}(${typeof value}) *${
+        typeof value === 'object' ? Object.keys(value) : value.toString()
       }* correctly saved`;
-      const data = typeof value === 'object' ? Object.keys(value) : value;
+      // const data = typeof value === 'object' ? Object.keys(value) : value;
 
       console.log(
         `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
         `color: #55B8E9`,
         `color: #5fca7d`,
-        `color: #000`,
-        data
+        `color: #000`
       );
     })
     .catch((error: string) => {

@@ -28,6 +28,7 @@ export enum StorageKeys {
   API_DELAY = 'apiDelay',
   USERNAME = 'username',
   ACCESS_TOKEN = 'accessToken',
+  REFRESH_TOKEN = 'refreshToken',
 }
 
 //API endpoints
