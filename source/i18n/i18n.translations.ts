@@ -24,6 +24,9 @@ export const de = {
     spellChecking: 'Grammatik & Rechtschreibung',
     inclusiveTerms: 'Inklusive Begriffe',
     styleCorrections: 'Stilvorschläge',
+    noSupport: 'We’re sorry! Witty doesn’t yet support this site DE',
+    vote: 'Vote for this feature DE',
+    editor: 'Try the editor DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -96,7 +99,11 @@ export const en = {
     spellChecking: 'Check grammar & spelling',
     inclusiveTerms: 'Highlight inclusive terms',
     styleCorrections: 'Highlight style issues',
+    noSupport: 'We’re sorry! Witty doesn’t yet support this site',
+    vote: 'Vote for this feature',
+    editor: 'Try the editor',
   },
+
   [namespaces.popover]: {
     insteadTry: 'Try instead ...',
     learnMorePositive: 'Why?',

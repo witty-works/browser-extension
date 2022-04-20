@@ -72,3 +72,39 @@ footer {
   justify-content: end;
   cursor: pointer;
 }
+
+.domain-not-supported {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.domain-not-supported-title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  line-height: 20px;
+  color: $black;
+}
+
+.domain-not-supported-icon {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin: 1em;
+}
+
+.domain-not-supported-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  line-height: 17px;
+  color: #55b8e9;
+  padding-top: 0.5em;
+  box-shadow: 0px -1px 0px #f1f2f2;
+  cursor: pointer;
+}
