@@ -55,8 +55,8 @@ export const de = {
     singularThey: 'Im Englischen geschlechtsneutrale Pronomen vorschlagen',
     singularTheysExplanation:
       'Wenn aktiviert, schlägt Witty im Englischen geschlechtsneutrale Pronomen vor, z. B. "their" anstelle von "his" oder "her".',
-    addSite: 'Geben sie eine Webseite ein',
-    invalidDomain: 'Bitte geben sie die Webseiten im Format "google.com" ein.',
+    addSite: 'https://..',
+    invalidDomain: 'Bitte die Webseite im Format "google.com" eingeben.',
     addDomain: 'Webseite hinzufügen',
     inclusiveLanguageExplanation:
       'Wenn aktiviert, unterstreicht Witty auch inklusive Begriffe. Bei diesen werden keine Alternativen angeboten.',
@@ -127,7 +127,7 @@ export const en = {
     singularThey: 'Use gender-neutral pronouns in English',
     singularTheysExplanation:
       'When switched on, Witty suggests using gender-neutral pronouns such as "their" instead of "his" or "her".',
-    addSite: 'Type a website’s URL',
+    addSite: 'https://..',
     invalidDomain: 'Please enter the websites in the format "google.com".',
     addDomain: 'Add Domain',
     inclusiveLanguageExplanation:
