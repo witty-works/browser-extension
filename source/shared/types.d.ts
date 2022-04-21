@@ -69,7 +69,7 @@ export interface ICheckResponseResult {
 export interface IAlternatives {
   text: string;
   remove: boolean;
-  inspiration: string;
+  inspiration: boolean;
   context: string;
 }
 
