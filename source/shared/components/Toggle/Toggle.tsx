@@ -40,7 +40,7 @@ const Toggle: React.FC<ToggleProps> = ({
         {locked && (
           <>
             <div className='toggle-premium-only'>
-              <a href="https://www.witty.works/pricing" target="_blank">
+              <a href='https://www.witty.works/pricing' target='_blank'>
                 <PremiumOnly />
               </a>
             </div>

@@ -26,6 +26,7 @@ export enum StorageKeys {
   MAXIMUM_IMPORTANCE = 'maximumImportance',
   CASING_SITES = 'casingSites',
   API_DELAY = 'apiDelay',
+  GENDER_ROLES_FORMAT = 'genderRolesFormat',
 }
 
 //API endpoints

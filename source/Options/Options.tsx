@@ -8,6 +8,7 @@ import { storeInLocalStorage } from '../shared/utils';
 // import LanguageSelector from '../Popup/LanguageSelector';
 import GermanGenderEndSelector from '../Popup/GermanGenderEndSelector';
 import PreferedLanguagesSelector from '../Popup/PreferedLanguagesSelector';
+import GenderRoleFormatSelector from '../Popup/GenderRoleFormatSelector';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';
 import ArrowDown from '../assets/icons/options/arrow-down.svg';
 import ArrowUp from '../assets/icons/options/arrow-up.svg';
@@ -39,25 +40,37 @@ const Options: React.FC = () => {
   const [styleCorrections, setStyleCorrections] = useState<boolean>(
     defaultConfig.STYLE_CORRECTIONS
   );
-  const [expertMode /* , setExpertMode */] = useState<boolean>(
+  const [expertMode, setExpertMode] = useState<boolean>(
     defaultConfig.EXPERT_MODE
   );
-  const [inspirationalAlternatives /* , setInspirationalAlternatives */] =
+  const [inspirationalAlternatives, setInspirationalAlternatives] =
     useState<boolean>(defaultConfig.INSPIRATIONAL_ALTERNATIVES);
+
   const [singularThey, setSingularThey] = useState<boolean>(
     defaultConfig.SINGULAR_THEY
   );
+
+  const wittyTeamsActivated = true; //TODO: get subscription status from check call, organization_config -> plan
 
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
       setSpellChecking(result[StorageKeys.SPELL_CHECKING]);
       setInclusiveLanguage(result[StorageKeys.INCLUSIVE_LANGUAGE]);
       setStyleCorrections(result[StorageKeys.STYLE_CORRECTIONS]);
-      // setExpertMode(
-      //   result[StorageKeys.MAXIMUM_IMPORTANCE] === 3 ? true : false
-      // );
+      setExpertMode(
+        wittyTeamsActivated
+          ? result[StorageKeys.MAXIMUM_IMPORTANCE] === 3
+            ? true
+            : false
+          : false
+      );
       setSingularThey(result[StorageKeys.SINGULAR_THEY]);
       setDisabledSites(result[StorageKeys.DISABLED_SITES]);
+      setInspirationalAlternatives(
+        wittyTeamsActivated
+          ? result[StorageKeys.INSPIRATIONAL_ALTERNATIVES]
+          : false
+      );
     });
   }, []);
 
@@ -77,9 +90,16 @@ const Options: React.FC = () => {
     storeInLocalStorage(StorageKeys.DISABLED_SITES, disabledSites);
   }, [disabledSites]);
 
-  // useEffect(() => {
-  //   storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, expertMode);
-  // }, [expertMode]);
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, expertMode ? 3 : 1);
+  }, [expertMode]);
+
+  useEffect(() => {
+    storeInLocalStorage(
+      StorageKeys.INSPIRATIONAL_ALTERNATIVES,
+      inspirationalAlternatives
+    );
+  }, [inspirationalAlternatives]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.SINGULAR_THEY, singularThey);
@@ -162,16 +182,19 @@ const Options: React.FC = () => {
                 </div>
 
                 <div className='wittyworks-options-content-section-container-item'>
+                  <GenderRoleFormatSelector locked={!wittyTeamsActivated} />
+                </div>
+
+                <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
                     on={expertMode}
-                    // handleToggle={() => {
-                    //   setExpertMode(!expertMode);
-                    // }}
-                    handleToggle={() => {}}
+                    handleToggle={() => {
+                      setExpertMode(wittyTeamsActivated ? !expertMode : false);
+                    }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('expertMode')}
-                    locked
+                    locked={!wittyTeamsActivated}
                   />
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
@@ -186,18 +209,18 @@ const Options: React.FC = () => {
                   </div>
                 </div>
 
-                {/* currently does nothing, is locked untill we have 'premium users' */}
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
                     on={inspirationalAlternatives}
-                    // handleToggle={() => {
-                    //   setInspirationalAlternatives(inspirationalAlternatives);
-                    // }}
-                    handleToggle={() => {}}
+                    handleToggle={() => {
+                      setInspirationalAlternatives(
+                        wittyTeamsActivated ? !inspirationalAlternatives : false
+                      );
+                    }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('inspirationAlternatives')}
-                    locked
+                    locked={!wittyTeamsActivated}
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('inspirationAlternativesExplanation')}

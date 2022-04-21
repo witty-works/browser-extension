@@ -95,6 +95,7 @@ const ContentScriptApp: React.FC = () => {
           singular_they: result[StorageKeys.SINGULAR_THEY],
           show_inspiration_alternatives:
             result[StorageKeys.INSPIRATIONAL_ALTERNATIVES],
+          gendered_roles_format: result[StorageKeys.GENDER_ROLES_FORMAT],
         };
         // if (!isMounted) return;
         setReqConfig(reqConfig);
@@ -235,6 +236,11 @@ const ContentScriptApp: React.FC = () => {
             maximum_importance: changes[item].newValue ? 3 : 2,
           });
           break;
+        case StorageKeys.GENDER_ROLES_FORMAT:
+          setReqConfig({
+            ...reqConfigRef.current,
+            gendered_roles_format: changes[item].newValue,
+          });
       }
     }
   };

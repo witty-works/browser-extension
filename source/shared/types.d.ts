@@ -7,6 +7,7 @@ export interface RequestConfig {
   maximum_importance: number;
   singular_they: string;
   show_inspiration_alternatives: boolean;
+  gendered_roles_format: string;
 }
 export interface ScrollPos {
   top: number;

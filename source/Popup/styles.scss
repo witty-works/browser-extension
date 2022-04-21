@@ -72,3 +72,18 @@ footer {
   justify-content: end;
   cursor: pointer;
 }
+
+.dropdown-title-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.dropdown-premium-only {
+  margin-left: 0.5em;
+}
+
+.dropdown-lock {
+  margin-left: 0.5em;
+}

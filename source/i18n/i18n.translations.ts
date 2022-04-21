@@ -69,6 +69,11 @@ export const de = {
     primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
+    genderRoleFormat: 'Witty sollte folgende Vorschläge machen',
+    genderRoleFormatFemaleAndMale:
+      'Weibliche und männliche Form (z.Bsp. "Managerin oder Manager")',
+    genderRoleFormatGermanEnding: 'Gewählte Gender-Endung',
+    genderRoleFormatBoth: 'Beide',
   },
 };
 
@@ -142,5 +147,10 @@ export const en = {
     primaryLanguage: 'Primary Language',
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
+    genderRoleFormat: 'Witty should suggest',
+    genderRoleFormatFemaleAndMale:
+      'Female and male form (e.g "Managerin oder Manager")',
+    genderRoleFormatGermanEnding: 'Chosen German gender ending',
+    genderRoleFormatBoth: 'Both',
   },
 };
