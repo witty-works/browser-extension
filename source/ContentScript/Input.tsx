@@ -411,8 +411,10 @@ const Input: React.FC<{
         return [alert0, ...alerts]
           .filter(Boolean)
           .reduce((minAlert, currentAlert) =>
-            (minAlert.data.gravity || Infinity) <
-            (currentAlert.data.gravity || Infinity)
+            minAlert.data.gravity === currentAlert.data.gravity
+              ? minAlert
+              : (minAlert.data.gravity || Infinity) <
+                (currentAlert.data.gravity || Infinity)
               ? minAlert
               : currentAlert
           );
