@@ -155,6 +155,10 @@ const Options: React.FC = () => {
                     scale={0.35}
                     label={t('singularThey')}
                   />
+
+                  <div className='wittyworks-options-content-section-container-subtitle'>
+                    {t('singularTheyExplanation')}
+                  </div>
                 </div>
 
                 <div className='wittyworks-options-content-section-container-item'>
