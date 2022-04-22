@@ -53,9 +53,7 @@ const Options: React.FC = () => {
       setSpellChecking(result[StorageKeys.SPELL_CHECKING]);
       setInclusiveLanguage(result[StorageKeys.INCLUSIVE_LANGUAGE]);
       setStyleCorrections(result[StorageKeys.STYLE_CORRECTIONS]);
-      // setExpertMode(
-      //   result[StorageKeys.MAXIMUM_IMPORTANCE] === 3 ? true : false
-      // );
+      // setExpertMode(result[StorageKeys.MAXIMUM_IMPORTANCE]);
       setSingularThey(result[StorageKeys.SINGULAR_THEY]);
       setDisabledSites(result[StorageKeys.DISABLED_SITES]);
     });

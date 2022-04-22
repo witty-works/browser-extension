@@ -226,13 +226,13 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.SINGULAR_THEY:
           setReqConfig({
             ...reqConfigRef.current,
-            singular_they: changes[item].newValue ? 'all_pronouns' : 'he_or_she',
+            singular_they: changes[item].newValue,
           });
           break;
         case StorageKeys.MAXIMUM_IMPORTANCE:
           setReqConfig({
             ...reqConfigRef.current,
-            maximum_importance: changes[item].newValue ? 3 : 2,
+            maximum_importance: changes[item].newValue,
           });
           break;
       }
