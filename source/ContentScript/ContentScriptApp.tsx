@@ -92,7 +92,7 @@ const ContentScriptApp: React.FC = () => {
               : '',
           ].filter((category) => category !== ''),
           maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE] ? 3 : 2,
-          singular_they: result[StorageKeys.SINGULAR_THEY],
+          singular_they: result[StorageKeys.SINGULAR_THEY] ? 'all_pronouns' : 'he_or_she',
           show_inspiration_alternatives:
             result[StorageKeys.INSPIRATIONAL_ALTERNATIVES],
         };
@@ -226,7 +226,7 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.SINGULAR_THEY:
           setReqConfig({
             ...reqConfigRef.current,
-            singular_they: changes[item].newValue,
+            singular_they: changes[item].newValue ? 'all_pronouns' : 'he_or_she',
           });
           break;
         case StorageKeys.MAXIMUM_IMPORTANCE:
