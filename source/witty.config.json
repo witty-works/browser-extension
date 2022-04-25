@@ -1,6 +1,11 @@
 {
   "DISABLED_SITES": [],
-  "ACTIVE_SITES": ["mail.google.com", "linkedin.com", "github.com"],
+  "ACTIVE_SITES": [
+    "witty.works",
+    "mail.google.com",
+    "linkedin.com",
+    "github.com"
+  ],
   "PRIMARY_LANGUAGE": "de-DE",
   "PREFERRED_LANGUAGES": ["de-DE", "en-GB"],
   "GERMAN_GENDER_ENDING": "colon_in",
