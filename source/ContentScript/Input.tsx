@@ -167,8 +167,8 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    browser.storage.local.get(StorageKeys.SPELL_CHECKING).then((result) => {
-      element.spellcheck = !result[StorageKeys.SPELL_CHECKING];
+    browser.storage.local.get(StorageKeys.ORTHOGRAPHY).then((result) => {
+      element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
     });
     const nextText: string = getInputText(element);
     handleTextAndIcon(nextText, event);

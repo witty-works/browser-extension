@@ -2,9 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import defaultConfig from '../witty.config.json';
+import { ConfigProperty } from '../shared/types';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { DefaultBaseUrlKey, Colors, StorageKeys } from '../shared/constants';
-import { storeInLocalStorage } from '../shared/utils';
+import {
+  storeInLocalStorage,
+  singularTheyToBoolean,
+  changeSingularThey,
+  maximumImportanceToBoolean,
+  changeMaximumImportance,
+} from '../shared/utils';
 // import LanguageSelector from '../Popup/LanguageSelector';
 import GermanGenderEndSelector from '../Popup/GermanGenderEndSelector';
 import PreferedLanguagesSelector from '../Popup/PreferedLanguagesSelector';
@@ -31,21 +38,29 @@ const Options: React.FC = () => {
   const [addDomainTabOpen, setAddDomainTabOpen] = useState<boolean>(false);
   const [input, setInput] = useState<string>('');
   const [invalidDomain, setInvalidDomain] = useState<boolean>(false);
-  const [spellChecking, setSpellChecking] = useState<boolean>(
-    defaultConfig.SPELL_CHECKING
-  );
-  const [inclusiveLanguage, setInclusiveLanguage] = useState<boolean>(
+
+  // TODO
+  // const [genderedRolesFormat, setGenderedRolesFormat] =
+  //   useState<ConfigProperty>({
+  //     value: defaultConfig.GERMAN_GENDER_ENDING
+  //   });
+  //TODO StoreContext?
+  // TODO lock the dropdowns
+  const [inclusiveLanguage, setInclusiveLanguage] = useState<ConfigProperty>(
     defaultConfig.INCLUSIVE_LANGUAGE
   );
-  const [styleCorrections, setStyleCorrections] = useState<boolean>(
+  const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
     defaultConfig.STYLE_CORRECTIONS
   );
-  const [expertMode /* , setExpertMode */] = useState<boolean>(
-    defaultConfig.EXPERT_MODE
+  const [maximumImportance, setMaximumImportance] = useState<ConfigProperty>(
+    defaultConfig.MAXIMUM_IMPORTANCE
   );
-  const [inspirationalAlternatives /* , setInspirationalAlternatives */] =
-    useState<boolean>(defaultConfig.INSPIRATIONAL_ALTERNATIVES);
-  const [singularThey, setSingularThey] = useState<boolean>(
+  const [orthography, setOrthography] = useState<ConfigProperty>(
+    defaultConfig.ORTHOGRAPHY
+  );
+  const [inspirationalAlternatives, setInspirationalAlternatives] =
+    useState<ConfigProperty>(defaultConfig.INSPIRATIONAL_ALTERNATIVES);
+  const [singularThey, setSingularThey] = useState<ConfigProperty>(
     defaultConfig.SINGULAR_THEY
   );
   const [username, setUsername] = useState<string>('');
@@ -66,13 +81,15 @@ const Options: React.FC = () => {
           ? result[StorageKeys.API_ENDPOINT_KEY]
           : DefaultBaseUrlKey
       );
-      setSpellChecking(result[StorageKeys.SPELL_CHECKING]);
+
+      setOrthography(result[StorageKeys.ORTHOGRAPHY]);
       setInclusiveLanguage(result[StorageKeys.INCLUSIVE_LANGUAGE]);
       setStyleCorrections(result[StorageKeys.STYLE_CORRECTIONS]);
-      // setExpertMode(
-      //   result[StorageKeys.MAXIMUM_IMPORTANCE] === 3 ? true : false
-      // );
+      setMaximumImportance(result[StorageKeys.MAXIMUM_IMPORTANCE]);
       setSingularThey(result[StorageKeys.SINGULAR_THEY]);
+      setInspirationalAlternatives(
+        result[StorageKeys.INSPIRATIONAL_ALTERNATIVES]
+      );
       setDisabledSites(result[StorageKeys.DISABLED_SITES]);
       setUsername(result[StorageKeys.USERNAME]);
       setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
@@ -99,8 +116,8 @@ const Options: React.FC = () => {
   };
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.SPELL_CHECKING, spellChecking);
-  }, [spellChecking]);
+    storeInLocalStorage(StorageKeys.ORTHOGRAPHY, orthography);
+  }, [orthography]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.INCLUSIVE_LANGUAGE, inclusiveLanguage);
@@ -114,13 +131,20 @@ const Options: React.FC = () => {
     storeInLocalStorage(StorageKeys.DISABLED_SITES, disabledSites);
   }, [disabledSites]);
 
-  // useEffect(() => {
-  //   storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, expertMode);
-  // }, [expertMode]);
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, maximumImportance);
+  }, [maximumImportance]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.SINGULAR_THEY, singularThey);
   }, [singularThey]);
+
+  useEffect(() => {
+    storeInLocalStorage(
+      StorageKeys.INSPIRATIONAL_ALTERNATIVES,
+      inspirationalAlternatives
+    );
+  }, [inspirationalAlternatives]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.USERNAME, username);
@@ -142,6 +166,44 @@ const Options: React.FC = () => {
 
   useEffect(() => {
     console.log('authResponse', authResponse);
+    if (authResponse) {
+      for (let key in authResponse.config) {
+        switch (key) {
+          case 'german_gender_ending':
+            storeInLocalStorage(
+              StorageKeys.GERMAN_GENDER_ENDING,
+              authResponse.config[key]
+            );
+            break;
+          case 'inclusive':
+            setInclusiveLanguage(authResponse.config[key] as ConfigProperty);
+            break;
+          case 'maximum_importance':
+            setMaximumImportance(authResponse.config[key] as ConfigProperty);
+            break;
+          case 'orthography':
+            setOrthography(authResponse.config[key] as ConfigProperty);
+            break;
+          case 'preferred_variants':
+            storeInLocalStorage(
+              StorageKeys.PREFERRED_LANGUAGES,
+              authResponse.config[key]
+            );
+            break;
+          case 'show_inspiration_alternatives':
+            setInspirationalAlternatives(
+              authResponse.config[key] as ConfigProperty
+            );
+            break;
+          case 'singular_they':
+            setSingularThey(authResponse.config[key] as ConfigProperty);
+            break;
+          case 'style':
+            setStyleCorrections(authResponse.config[key] as ConfigProperty);
+            break;
+        }
+      }
+    }
   }, [authResponse]);
 
   useEffect(() => {
@@ -248,13 +310,21 @@ const Options: React.FC = () => {
 
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
-                    on={singularThey}
+                    on={singularTheyToBoolean(singularThey.value as string)}
                     handleToggle={() => {
-                      setSingularThey(!singularThey);
+                      setSingularThey({
+                        ...singularThey,
+                        value: changeSingularThey(
+                          !singularTheyToBoolean(singularThey.value as string)
+                        ),
+                      });
                     }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('singularThey')}
+                    iconType={
+                      singularThey.status ? singularThey.status : 'none'
+                    }
                   />
                 </div>
 
@@ -264,15 +334,27 @@ const Options: React.FC = () => {
 
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
-                    on={expertMode}
-                    // handleToggle={() => {
-                    //   setExpertMode(!expertMode);
-                    // }}
-                    handleToggle={() => {}}
+                    on={maximumImportanceToBoolean(
+                      maximumImportance.value as number
+                    )}
+                    handleToggle={() => {
+                      setMaximumImportance({
+                        ...maximumImportance,
+                        value: changeMaximumImportance(
+                          !maximumImportanceToBoolean(
+                            maximumImportance.value as number
+                          )
+                        ),
+                      });
+                    }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('expertMode')}
-                    locked
+                    iconType={
+                      maximumImportance.status
+                        ? maximumImportance.status
+                        : 'none'
+                    }
                   />
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
@@ -280,18 +362,24 @@ const Options: React.FC = () => {
                   </div>
                 </div>
 
-                {/* currently does nothing, is locked untill we have 'premium users' */}
+                {/* TODO currently does nothing, is locked untill we have 'premium users' */}
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
-                    on={inspirationalAlternatives}
-                    // handleToggle={() => {
-                    //   setInspirationalAlternatives(inspirationalAlternatives);
-                    // }}
-                    handleToggle={() => {}}
+                    on={inspirationalAlternatives.value as boolean}
+                    handleToggle={() => {
+                      setInspirationalAlternatives({
+                        ...inspirationalAlternatives,
+                        value: !inspirationalAlternatives.value,
+                      });
+                    }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('inspirationAlternatives')}
-                    locked
+                    iconType={
+                      inspirationalAlternatives.status
+                        ? inspirationalAlternatives.status
+                        : 'none'
+                    }
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('inspirationAlternativesExplanation')}
@@ -300,13 +388,21 @@ const Options: React.FC = () => {
 
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
-                    on={inclusiveLanguage}
+                    on={inclusiveLanguage.value as boolean}
                     handleToggle={() => {
-                      setInclusiveLanguage(!inclusiveLanguage);
+                      setInclusiveLanguage({
+                        ...inclusiveLanguage,
+                        value: !inclusiveLanguage.value,
+                      });
                     }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('inclusiveTerms', { ns: namespaces.pages.popup })}
+                    iconType={
+                      inclusiveLanguage.status
+                        ? inclusiveLanguage.status
+                        : 'none'
+                    }
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('inclusiveLanguageExplanation')}
@@ -315,15 +411,21 @@ const Options: React.FC = () => {
 
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
-                    on={styleCorrections}
+                    on={styleCorrections.value as boolean}
                     handleToggle={() => {
-                      setStyleCorrections(!styleCorrections);
+                      setStyleCorrections({
+                        ...styleCorrections,
+                        value: !styleCorrections.value,
+                      });
                     }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('styleCorrections', {
                       ns: namespaces.pages.popup,
                     })}
+                    iconType={
+                      styleCorrections.status ? styleCorrections.status : 'none'
+                    }
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('styleCorrectionExplanation')}
@@ -332,13 +434,17 @@ const Options: React.FC = () => {
 
                 <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
-                    on={spellChecking}
+                    on={orthography.value as boolean}
                     handleToggle={() => {
-                      setSpellChecking(!spellChecking);
+                      setOrthography({
+                        ...orthography,
+                        value: !orthography.value,
+                      });
                     }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('spellChecking', { ns: namespaces.pages.popup })}
+                    iconType={orthography.status ? orthography.status : 'none'}
                   />
                 </div>
               </>

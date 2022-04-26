@@ -14,7 +14,13 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 const analytics = useAnalytics();
 const log = useLog('Background index');
 const devAppId = 'DEV_APP_ID';
-type DefaultConfigValue = string | boolean | number | string[] | (() => string);
+type DefaultConfigValue =
+  | string
+  | boolean
+  | number
+  | string[]
+  | object
+  | (() => string);
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (!DEV_ENV)
@@ -86,7 +92,12 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
 };
 
 const onSave = (key: string, value: DefaultConfigValue) => {
-  log(`Key *${key}* with value *${value}* saved correctly in local storage`);
+  log(
+    `Key *${key}* with value *${(typeof value === 'object'
+      ? JSON.stringify(value)
+      : value
+    ).toString()}* saved correctly in local storage`
+  );
 };
 
 const onError = (error: string) => {

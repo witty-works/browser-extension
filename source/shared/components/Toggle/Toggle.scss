@@ -5,7 +5,10 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-right: -2em;
+}
+
+.toggle-label {
+  flex-grow: 1;
 }
 
 .toggle-checkbox {
@@ -14,10 +17,8 @@
   visibility: hidden;
 }
 
-.toggle-lock {
-  display: flex;
-  align-items: center;
-  margin-left: auto;
+.toggle-icon {
+  margin-right: -4rem;
 }
 
 .toggle-premium-only {

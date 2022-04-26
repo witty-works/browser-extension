@@ -35,7 +35,7 @@ const PreferredLanguagesSelector: React.FC = () => {
         if (result[StorageKeys.PREFERRED_LANGUAGES]) {
           const selecOptions: OptionProp[] = result[
             StorageKeys.PREFERRED_LANGUAGES
-          ].map((opt: string) => {
+          ].value.map((opt: string) => {
             return {
               value: opt,
               label: t(`languages.${opt.replace('-', '_')}`, {

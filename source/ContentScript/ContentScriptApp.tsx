@@ -68,37 +68,34 @@ const ContentScriptApp: React.FC = () => {
         setToken(result[StorageKeys.ACCESS_TOKEN]);
 
         //Enable/disable spellchecker
-        document.body.spellcheck = result[StorageKeys.SPELL_CHECKING]
+        document.body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
           ? (document.body.spellcheck = false) //needed here for linkedin, could be removed when we fix focusin issue
           : (document.body.spellcheck = true);
 
         //Define API requests config
         const reqConfig: RequestConfig = {
-          german_gender_ending:
-            GermanGenderEndings[
-              result[
-                StorageKeys.GERMAN_GENDER_ENDING
-              ] as keyof typeof GermanGenderEndings
-            ],
-          preferred_languages: result[StorageKeys.PREFERRED_LANGUAGES].map(
-            (lang: string) => lang.split('-')[0]
-          ),
-          preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES],
+          german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value,
+          preferred_languages: result[
+            StorageKeys.PREFERRED_LANGUAGES
+          ].value.map((lang: string) => lang.split('-')[0]),
+          preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES].value,
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
           disabled_categories: [
-            result[StorageKeys.SPELL_CHECKING] ? '' : 'orthography',
-            result[StorageKeys.INCLUSIVE_LANGUAGE] ? '' : 'inclusive',
-            result[StorageKeys.STYLE_CORRECTIONS] ? '' : 'style',
+            result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
+            result[StorageKeys.INCLUSIVE_LANGUAGE].value === true
+              ? ''
+              : 'inclusive',
+            result[StorageKeys.STYLE_CORRECTIONS].value === true ? '' : 'style',
             result[StorageKeys.CASING_SITES].includes(
               window.location.hostname.replace('www.', '')
             )
               ? 'casing'
               : '',
           ].filter((category) => category !== ''),
-          maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE] ? 3 : 2,
-          singular_they: result[StorageKeys.SINGULAR_THEY],
+          maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE].value,
+          singular_they: result[StorageKeys.SINGULAR_THEY].value,
           show_inspiration_alternatives:
-            result[StorageKeys.INSPIRATIONAL_ALTERNATIVES],
+            result[StorageKeys.INSPIRATIONAL_ALTERNATIVES].value,
         };
         // if (!isMounted) return;
         setReqConfig(reqConfig);
@@ -180,7 +177,7 @@ const ContentScriptApp: React.FC = () => {
               ],
           });
           break;
-        case StorageKeys.SPELL_CHECKING:
+        case StorageKeys.ORTHOGRAPHY:
           setReqConfig({
             ...reqConfigRef.current,
             disabled_categories: changes[item].newValue
@@ -233,7 +230,7 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.SINGULAR_THEY:
           setReqConfig({
             ...reqConfigRef.current,
-            singular_they: changes[item].newValue,
+            singular_they: changes[item].newValue.value,
           });
           break;
         case StorageKeys.MAXIMUM_IMPORTANCE:

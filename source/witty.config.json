@@ -1,15 +1,28 @@
 {
   "DISABLED_SITES": [],
   "PRIMARY_LANGUAGE": "de-DE",
-  "PREFERRED_LANGUAGES": ["de-DE", "en-GB"],
-  "GERMAN_GENDER_ENDING": "colon_in",
-  "EXPERT_MODE": false,
-  "SPELL_CHECKING": true,
-  "STYLE_CORRECTIONS": true,
-  "INCLUSIVE_LANGUAGE": true,
-  "INSPIRATIONAL_ALTERNATIVES": false,
-  "SINGULAR_THEY": false,
-  "MAXIMUM_IMPORTANCE": 2,
+  "PREFERRED_LANGUAGES": { "value": ["de-DE", "en-GB"] },
+  "GERMAN_GENDER_ENDING": {
+    "value": "colon_in"
+  },
+  "MAXIMUM_IMPORTANCE": {
+    "value": 2
+  },
+  "ORTHOGRAPHY": {
+    "value": true
+  },
+  "STYLE_CORRECTIONS": {
+    "value": true
+  },
+  "INCLUSIVE_LANGUAGE": {
+    "value": true
+  },
+  "INSPIRATIONAL_ALTERNATIVES": {
+    "value": false
+  },
+  "SINGULAR_THEY": {
+    "value": "he_or_she"
+  },
   "CASING_SITES": [],
   "API_DELAY": 500,
   "USERNAME": "",

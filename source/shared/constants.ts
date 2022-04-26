@@ -17,8 +17,7 @@ export enum StorageKeys {
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
-  EXPERT_MODE = 'expertMode',
-  SPELL_CHECKING = 'spellChecking',
+  ORTHOGRAPHY = 'spellChecking',
   STYLE_CORRECTIONS = 'styleCorrections',
   INCLUSIVE_LANGUAGE = 'inclusiveLanguage',
   INSPIRATIONAL_ALTERNATIVES = 'inspirationalAlternatives',
@@ -34,6 +33,7 @@ export enum StorageKeys {
 //API endpoints
 export enum BaseUrls {
   API_PLATFORMSH = 'https://default.api.witty.works/',
+  DEV_ARNAU = 'https://pr-448-5htg4gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
   DEV_PLATFORMSH = 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
   // DEV_PLATFORMSH = 'https://default.api.witty.works.dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
   WITTY_LOCAL = 'http://127.0.0.1:8000/',
@@ -42,6 +42,11 @@ export enum BaseUrls {
 export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(
   BaseUrls
 )[0] as keyof typeof BaseUrls;
+
+export enum ConfigPropertyStatus {
+  FORCE = 'force',
+  SUGGESTION = 'suggestion',
+}
 
 export enum Colors {
   red = '#F06464',

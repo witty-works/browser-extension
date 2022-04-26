@@ -60,9 +60,10 @@ const storeInLocalStorage = (key: string, value: any) => {
       //TODO bug, some values are not pronted correctly (for example arrays)
       const wittyVersion = browser.runtime.getManifest().version;
       const componentName = 'Utils';
-      const message = `${key}(${typeof value}) *${
-        typeof value === 'object' ? Object.keys(value) : value.toString()
-      }* correctly saved`;
+      const message = `${key}(${typeof value}) *${(typeof value === 'object'
+        ? JSON.stringify(value)
+        : value
+      ).toString()}* correctly saved`;
       // const data = typeof value === 'object' ? Object.keys(value) : value;
 
       console.log(
@@ -86,6 +87,17 @@ const storeInLocalStorage = (key: string, value: any) => {
     });
 };
 
+const singularTheyToBoolean = (value: string) =>
+  value === 'he_or_she' ? false : true;
+
+const changeSingularThey = (value: boolean) =>
+  value ? 'all_pronouns' : 'he_or_she';
+
+const maximumImportanceToBoolean = (value: number) =>
+  value === 3 ? true : false;
+
+const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
+
 export {
   isObjectEmpty,
   isFunction,
@@ -96,4 +108,8 @@ export {
   elementIsVisible,
   textIsLight,
   storeInLocalStorage,
+  singularTheyToBoolean,
+  changeSingularThey,
+  maximumImportanceToBoolean,
+  changeMaximumImportance,
 };
