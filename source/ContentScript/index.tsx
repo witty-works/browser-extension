@@ -9,6 +9,8 @@ const log = useLog('ContentScript index');
 
 //Main element to add extra markup
 document.body.appendChild(document.createElement('witty-code'));
+const element = document.querySelector('witty-code');
+element && element.setAttribute('extension-id', browser.runtime.id);
 
 //get extension enable status
 browser.storage.local
