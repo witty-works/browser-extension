@@ -74,7 +74,12 @@ const ContentScriptApp: React.FC = () => {
 
         //Define API requests config
         const reqConfig: RequestConfig = {
-          german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value,
+          // german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value,
+          german_gender_ending:
+            GermanGenderEndings[
+              result[StorageKeys.GERMAN_GENDER_ENDING]
+                .value as keyof typeof GermanGenderEndings
+            ],
           preferred_languages: result[
             StorageKeys.PREFERRED_LANGUAGES
           ].value.map((lang: string) => lang.split('-')[0]),
@@ -98,6 +103,7 @@ const ContentScriptApp: React.FC = () => {
             result[StorageKeys.INSPIRATIONAL_ALTERNATIVES].value,
         };
         // if (!isMounted) return;
+        console.log('useEffect reqConfig = ', reqConfig);
         setReqConfig(reqConfig);
       })
       .catch(onBrowserStorageError);
@@ -162,7 +168,7 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.PREFERRED_LANGUAGES:
           setReqConfig({
             ...reqConfigRef.current,
-            preferred_languages: changes[item].newValue
+            preferred_languages: changes[item].newValue.value
               .map((lang: string) => lang.split('-')[0])
               .join(','),
             preferred_variants: changes[item].newValue.join(','),
@@ -173,14 +179,14 @@ const ContentScriptApp: React.FC = () => {
             ...reqConfigRef.current,
             german_gender_ending:
               GermanGenderEndings[
-                changes[item].newValue as keyof typeof GermanGenderEndings
+                changes[item].newValue.value as keyof typeof GermanGenderEndings
               ],
           });
           break;
         case StorageKeys.ORTHOGRAPHY:
           setReqConfig({
             ...reqConfigRef.current,
-            disabled_categories: changes[item].newValue
+            disabled_categories: changes[item].newValue.value
               ? reqConfigRef.current.disabled_categories.filter(
                   (category) => category !== 'orthography'
                 )
@@ -190,7 +196,7 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.INCLUSIVE_LANGUAGE:
           setReqConfig({
             ...reqConfigRef.current,
-            disabled_categories: changes[item].newValue
+            disabled_categories: changes[item].newValue.value
               ? reqConfigRef.current.disabled_categories.filter(
                   (category) => category !== 'inclusive'
                 )
@@ -201,7 +207,7 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.STYLE_CORRECTIONS:
           setReqConfig({
             ...reqConfigRef.current,
-            disabled_categories: changes[item].newValue
+            disabled_categories: changes[item].newValue.value
               ? reqConfigRef.current.disabled_categories.filter(
                   (category) => category !== 'style'
                 )
@@ -224,7 +230,7 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.INSPIRATIONAL_ALTERNATIVES:
           setReqConfig({
             ...reqConfigRef.current,
-            show_inspiration_alternatives: changes[item].newValue,
+            show_inspiration_alternatives: changes[item].newValue.value,
           });
           break;
         case StorageKeys.SINGULAR_THEY:
@@ -244,6 +250,7 @@ const ContentScriptApp: React.FC = () => {
   };
 
   useEffect(() => {
+    console.log('reqConfig = ', reqConfig);
     setRequestConfig(reqConfig);
   }, [reqConfig]);
 
