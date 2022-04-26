@@ -112,7 +112,7 @@ const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs.length === 0 || !tabs[0].url) return;
     const domain = new URL(tabs[0].url).hostname.replace('www.', '');
-    setInLocalStorage(StorageKeys.CURRENT_DOMAIN, domain);
+
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
       browser.browserAction.setIcon(
         (result[StorageKeys.DISABLED_SITES] &&
@@ -137,7 +137,7 @@ const storageChange = (changes: any) => {
           .then((tabs) => {
             if (tabs.length === 0 || !tabs[0].url) return;
             const domain = new URL(tabs[0].url).hostname.replace('www.', '');
-            setInLocalStorage(StorageKeys.CURRENT_DOMAIN, domain);
+
             browser.browserAction.setIcon(
               (changes[item].newValue.length > 0 &&
                 changes[item].newValue.includes(domain)) ||

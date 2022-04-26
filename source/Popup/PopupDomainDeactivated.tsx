@@ -10,17 +10,21 @@ import { namespaces } from '../i18n/i18n.constants';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
-  const [pageName, setPageName] = React.useState<string | undefined>('');
+  const [pageName, setPageName] = React.useState<string>('');
 
   useEffect(() => {
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      const domain =
-        tabs[0].url && tabs[0].url.replace('https://www.', '').replace('/', '');
-      domain &&
+      console.log('tabs', tabs);
+      //Empty tab
+      if (tabs.length === 0 || !tabs[0].url) setPageName('this page');
+      else {
+        const currentDomain = new URL(tabs[0].url).hostname
+          .replace('www.', '')
+          .split('.')[0];
         setPageName(
-          domain.split('.')[0].charAt(0).toUpperCase() +
-            domain.split('.')[0].slice(1)
+          `${currentDomain.charAt(0).toUpperCase()}${currentDomain.slice(1)}`
         );
+      }
     });
   }, []);
 
@@ -29,7 +33,7 @@ const PopupDomainDeactivated: React.FC = () => {
       <div className='domain-not-supported-title-wrapper'>
         <SadFace className='domain-not-supported-icon' />
         <div className='domain-not-supported-title'>
-          {t('noSupport') + pageName}
+          {`${t('noSupport')} ${pageName}`}
         </div>
       </div>
 
