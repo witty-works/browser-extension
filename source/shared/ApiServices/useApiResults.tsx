@@ -8,9 +8,6 @@ const useApiResult = <TResponse,>(
   request: IRequest,
   responseSchema: JSONSchemaType<TResponse> | null
 ): [TResponse | null, IEndpointError | null] => {
-  console.log('useApiResult request', request);
-  console.log('useApiResult responseSchema', responseSchema);
-
   const validateResponse =
     responseSchema === null
       ? null

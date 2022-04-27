@@ -375,6 +375,16 @@ const Input: React.FC<{
         : 'None'
     );
 
+    const apiConfig = checkEndpointResponse.organization_config;
+    console.log('apiConfig', apiConfig);
+    if (apiConfig) {
+      //TODO
+      console.log('Save the config');
+    } else {
+      //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken
+      console.log('there is no config');
+    }
+
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
         id: `${result.text}-${result.category}-${result.start}${result.end}`,

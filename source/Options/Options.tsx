@@ -72,7 +72,6 @@ const Options: React.FC = () => {
   const originalOptionsUri = window.location.href;
 
   useEffect(() => {
-    console.log('options useeffect');
     browser.storage.local.get(null).then((result) => {
       console.log('options storage result', result);
       //Set the Endpoint url
@@ -151,7 +150,6 @@ const Options: React.FC = () => {
   }, [username]);
 
   useEffect(() => {
-    console.log('options accessToken', accessToken);
     if (accessToken !== '') {
       setToken(accessToken);
       getConfig();
@@ -165,7 +163,6 @@ const Options: React.FC = () => {
   }, [refreshToken]);
 
   useEffect(() => {
-    console.log('authResponse', authResponse);
     if (authResponse) {
       for (let key in authResponse.config) {
         switch (key) {
@@ -211,7 +208,7 @@ const Options: React.FC = () => {
   }, [authErrorResponse]);
 
   const logIn = async () => {
-    const url = `${baseUrl}/browser-login?redirect_uri=${originalOptionsUri}`;
+    const url = `${baseUrl}/api/browser-login?redirect_uri=${originalOptionsUri}`;
     window.open(url, '_self');
   };
 

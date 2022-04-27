@@ -55,6 +55,7 @@ export interface IAlertContentData {
 
 export interface ICheckResponse {
   results: ICheckResponseResult[];
+  organization_config: IAuthResponse;
   language: string;
 }
 
@@ -80,7 +81,7 @@ export interface ICheckResponse {
 
 export interface IAuthResponse {
   config: {
-    gender_roles_format: ConfigProperty;
+    gendered_roles_format: ConfigProperty;
     german_gender_ending: ConfigProperty;
     inclusive: ConfigProperty;
     maximum_importance: ConfigProperty;
