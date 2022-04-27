@@ -8,7 +8,9 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 const log = useLog('ContentScript index');
 
 //Main element to add extra markup
-document.body.appendChild(document.createElement('witty-code'));
+const element = document.createElement('witty-code');
+element.setAttribute('extension-id', browser.runtime.id);
+document.body.appendChild(element);
 
 //get extension enable status
 browser.storage.local
