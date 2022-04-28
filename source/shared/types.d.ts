@@ -35,6 +35,7 @@ export interface IAlert {
   startOffset: number;
   endOffset: number;
   data: IAlertContentData;
+  groupId?: string | null;
 }
 export interface IAlertContentData {
   text: string;
@@ -51,8 +52,15 @@ export interface IAlertContentData {
 export interface ICheckResponse {
   results: ICheckResponseResult[];
   language: string;
+  limit_reached: boolean;
+  organization_config: IOrganizationConfig;
 }
 
+export interface IOrganizationConfig {
+  id: string;
+  name: string;
+  plan: string;
+}
 export interface ICheckResponseResult {
   text: string;
   context: string;

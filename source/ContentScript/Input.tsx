@@ -381,6 +381,9 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
+        groupId: checkEndpointResponse.organization_config
+          ? checkEndpointResponse.organization_config.id
+          : null,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,

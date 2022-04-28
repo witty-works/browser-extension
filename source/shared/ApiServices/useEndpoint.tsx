@@ -115,6 +115,29 @@ export const useCheckEndpoint = () => {
         description: 'language used by the user',
         type: 'string',
       },
+      limit_reached: {
+        description: 'whether the limit has been reached',
+        type: 'boolean',
+      },
+      organization_config: {
+        description: 'organization configuration',
+        type: 'object',
+        properties: {
+          id: {
+            description: 'the organization id',
+            type: 'string',
+          },
+          name: {
+            description: 'the organization name',
+            type: 'string',
+          },
+          plan: {
+            description: 'the organization plan',
+            type: 'string',
+          },
+        },
+        required: ['id', 'name', 'plan'],
+      },
     },
     required: ['results', 'language'],
   };
