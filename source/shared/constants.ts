@@ -26,6 +26,7 @@ export enum StorageKeys {
   MAXIMUM_IMPORTANCE = 'maximumImportance',
   CASING_SITES = 'casingSites',
   API_DELAY = 'apiDelay',
+  CURRENT_DOMAIN = 'currentDomain',
 }
 
 //API endpoints
