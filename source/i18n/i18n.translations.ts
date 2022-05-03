@@ -71,6 +71,11 @@ export const de = {
       'Wenn aktiviert, unterstreicht Witty auch inklusive Begriffe. Bei diesen werden keine Alternativen angeboten.',
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
+    genderRoleFormat: 'Witty sollte folgende Vorschläge machen',
+    genderRoleFormatFemaleAndMale:
+      'Weibliche und männliche Form (z.Bsp. "Managerin oder Manager")',
+    genderRoleFormatGermanEnding: 'Gewählte Gender-Endung',
+    genderRoleFormatBoth: 'Beide',
   },
 };
 
@@ -145,5 +150,10 @@ export const en = {
       'When this feature is active, each time you use an inclusive term correctly, witty will highlight it in green',
     styleCorrectionExplanation:
       'Turn this off to ignore stylistic not severe issues to be highlighted',
+    genderRoleFormat: 'Witty should suggest',
+    genderRoleFormatFemaleAndMale:
+      'Female and male form (e.g "Managerin oder Manager")',
+    genderRoleFormatGermanEnding: 'Chosen German gender ending',
+    genderRoleFormatBoth: 'Both',
   },
 };

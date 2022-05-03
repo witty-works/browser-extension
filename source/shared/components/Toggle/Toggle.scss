@@ -7,8 +7,11 @@
   justify-content: space-between;
 }
 
-.toggle-label {
-  flex-grow: 1;
+.toggle-lock {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: -3rem;
 }
 
 .toggle-checkbox {

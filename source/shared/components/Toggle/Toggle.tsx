@@ -3,8 +3,7 @@ import React from 'react';
 import { ConfigPropertyStatus } from '../../constants';
 import './Toggle.scss';
 import Lock from '../../../assets/icons/options/lock.svg';
-import Star from '../../../assets/icons/options/star.svg';
-// import PremiumOnly from '../../../assets/icons/options/premium-only.svg';
+import PremiumOnly from '../../../assets/icons/options/premium-only.svg';
 
 interface ToggleProps {
   on: boolean | undefined;
@@ -12,7 +11,7 @@ interface ToggleProps {
   color: string;
   scale: number;
   label: string;
-  // locked?: boolean;
+  locked?: boolean;
   iconType?: string;
 }
 
@@ -22,7 +21,7 @@ const Toggle: React.FC<ToggleProps> = ({
   color,
   scale,
   label,
-  // locked,
+  locked,
   iconType,
 }: ToggleProps) => {
   return (
@@ -39,12 +38,6 @@ const Toggle: React.FC<ToggleProps> = ({
             <Lock />
           </div>
         )}
-        {iconType === ConfigPropertyStatus.SUGGESTION && (
-          <div className='toggle-icon'>
-            <Star />
-          </div>
-        )}
-
         <input
           checked={on}
           onChange={handleToggle}
@@ -52,6 +45,18 @@ const Toggle: React.FC<ToggleProps> = ({
           id={`toggle-${label}`}
           type='checkbox'
         />
+        {locked && iconType != ConfigPropertyStatus.FORCE && (
+          <>
+            <div className='toggle-premium-only'>
+              <a href='https://www.witty.works/pricing' target='_blank'>
+                <PremiumOnly />
+              </a>
+            </div>
+            <div className='toggle-lock'>
+              <Lock />
+            </div>
+          </>
+        )}
         <label
           style={{
             background: (on && color) as string,

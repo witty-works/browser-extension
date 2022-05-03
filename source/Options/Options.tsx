@@ -25,6 +25,7 @@ import '../i18n/i18n';
 import Toggle from '../shared/components/Toggle/Toggle';
 import './styles.scss';
 import { setBaseURL, setToken } from '../shared/ApiServices/requests';
+import GenderRoleFormatSelector from '../Popup/GenderRoleFormatSelector';
 
 const Options: React.FC = () => {
   const { t } = useTranslation([
@@ -70,6 +71,7 @@ const Options: React.FC = () => {
 
   const baseUrl = 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site';
   const originalOptionsUri = window.location.href;
+  const wittyTeamsActivated = false; //TODO: get subscription status from check call, organization_config -> plan
 
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
@@ -330,6 +332,10 @@ const Options: React.FC = () => {
                 </div>
 
                 <div className='wittyworks-options-content-section-container-item'>
+                  <GenderRoleFormatSelector locked={!wittyTeamsActivated} />
+                </div>
+
+                <div className='wittyworks-options-content-section-container-item'>
                   <Toggle
                     on={maximumImportanceToBoolean(
                       maximumImportance.value as number
@@ -337,16 +343,19 @@ const Options: React.FC = () => {
                     handleToggle={() => {
                       setMaximumImportance({
                         ...maximumImportance,
-                        value: changeMaximumImportance(
-                          !maximumImportanceToBoolean(
-                            maximumImportance.value as number
-                          )
-                        ),
+                        value: wittyTeamsActivated
+                          ? changeMaximumImportance(
+                              !maximumImportanceToBoolean(
+                                maximumImportance.value as number
+                              )
+                            )
+                          : false,
                       });
                     }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('expertMode')}
+                    locked={!wittyTeamsActivated}
                     iconType={
                       maximumImportance.status
                         ? maximumImportance.status
@@ -366,12 +375,15 @@ const Options: React.FC = () => {
                     handleToggle={() => {
                       setInspirationalAlternatives({
                         ...inspirationalAlternatives,
-                        value: !inspirationalAlternatives.value,
+                        value: wittyTeamsActivated
+                          ? !inspirationalAlternatives.value
+                          : false,
                       });
                     }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('inspirationAlternatives')}
+                    locked={!wittyTeamsActivated}
                     iconType={
                       inspirationalAlternatives.status
                         ? inspirationalAlternatives.status
