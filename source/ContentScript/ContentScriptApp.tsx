@@ -87,10 +87,8 @@ const ContentScriptApp: React.FC = () => {
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
           disabled_categories: [
             result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
-            result[StorageKeys.INCLUSIVE_LANGUAGE].value === true
-              ? ''
-              : 'inclusive',
-            result[StorageKeys.STYLE_CORRECTIONS].value === true ? '' : 'style',
+            result[StorageKeys.INCLUSIVE].value === true ? '' : 'inclusive',
+            result[StorageKeys.STYLE].value === true ? '' : 'style',
             result[StorageKeys.CASING_SITES].includes(
               window.location.hostname.replace('www.', '')
             )
@@ -100,8 +98,9 @@ const ContentScriptApp: React.FC = () => {
           maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE].value,
           singular_they: result[StorageKeys.SINGULAR_THEY].value,
           show_inspiration_alternatives:
-            result[StorageKeys.INSPIRATIONAL_ALTERNATIVES].value,
-          gendered_roles_format: result[StorageKeys.GENDER_ROLES_FORMAT],
+            result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES].value,
+          gendered_roles_format:
+            result[StorageKeys.GENDERED_ROLES_FORMAT].value,
         };
         // if (!isMounted) return;
         console.log('useEffect reqConfig = ', reqConfig);
@@ -194,7 +193,7 @@ const ContentScriptApp: React.FC = () => {
               : [...reqConfigRef.current.disabled_categories, 'orthography'],
           });
           break;
-        case StorageKeys.INCLUSIVE_LANGUAGE:
+        case StorageKeys.INCLUSIVE:
           setReqConfig({
             ...reqConfigRef.current,
             disabled_categories: changes[item].newValue.value
@@ -205,7 +204,7 @@ const ContentScriptApp: React.FC = () => {
           });
           break;
 
-        case StorageKeys.STYLE_CORRECTIONS:
+        case StorageKeys.STYLE:
           setReqConfig({
             ...reqConfigRef.current,
             disabled_categories: changes[item].newValue.value
@@ -228,7 +227,7 @@ const ContentScriptApp: React.FC = () => {
           });
           break;
 
-        case StorageKeys.INSPIRATIONAL_ALTERNATIVES:
+        case StorageKeys.SHOW_INSPIRATION_ALTERNATIVES:
           setReqConfig({
             ...reqConfigRef.current,
             show_inspiration_alternatives: changes[item].newValue.value,
@@ -246,10 +245,10 @@ const ContentScriptApp: React.FC = () => {
             maximum_importance: changes[item].newValue ? 3 : 2,
           });
           break;
-        case StorageKeys.GENDER_ROLES_FORMAT:
+        case StorageKeys.GENDERED_ROLES_FORMAT:
           setReqConfig({
             ...reqConfigRef.current,
-            gendered_roles_format: changes[item].newValue,
+            gendered_roles_format: changes[item].newValue.value,
           });
       }
     }

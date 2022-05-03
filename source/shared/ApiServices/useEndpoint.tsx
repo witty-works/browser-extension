@@ -110,7 +110,7 @@ export const useCheckEndpoint = () => {
   /*
   export interface IAuthResponse {
   config: {
-    gender_roles_format: ConfigProperty;
+    gendered_roles_format: ConfigProperty;
     german_gender_ending: ConfigProperty;
     inclusive: ConfigProperty;
     maximum_importance: ConfigProperty;
@@ -221,7 +221,7 @@ export const useCheckEndpoint = () => {
         type: 'string',
       },
     },
-    required: ['results', 'organization_config', 'language'],
+    required: ['results', 'language'],
   };
 
   const [textToAnalyze, setTextToAnalyse] = useState<string>('');

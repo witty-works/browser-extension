@@ -11,14 +11,17 @@
   "ORTHOGRAPHY": {
     "value": true
   },
-  "STYLE_CORRECTIONS": {
+  "STYLE": {
     "value": true
   },
-  "INCLUSIVE_LANGUAGE": {
+  "INCLUSIVE": {
     "value": true
   },
-  "INSPIRATIONAL_ALTERNATIVES": {
+  "SHOW_INSPIRATION_ALTERNATIVES": {
     "value": false
+  },
+  "GENDERED_ROLES_FORMAT": {
+    "value": "both"
   },
   "SINGULAR_THEY": {
     "value": "he_or_she"

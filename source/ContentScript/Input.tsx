@@ -10,7 +10,7 @@ import {
   INodeWithAlerts,
   ScrollPos,
 } from '../shared/types';
-import { isTextArea, isInputText } from '../shared/utils';
+import { isTextArea, isInputText, storeInLocalStorage } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
@@ -376,10 +376,59 @@ const Input: React.FC<{
     );
 
     const apiConfig = checkEndpointResponse.organization_config;
-    console.log('apiConfig', apiConfig);
     if (apiConfig) {
-      //TODO
-      console.log('Save the config');
+      console.log('apiConfig', apiConfig);
+      //can be refactored (had type issues)
+      Object.keys(apiConfig.config).forEach((key) => {
+        if (!Object.keys(StorageKeys).includes(key.toUpperCase())) {
+          console.warn(`${key.toUpperCase()} is not a valid storage key`);
+          return;
+        }
+        if (key == 'gendered_roles_format') {
+          storeInLocalStorage(
+            StorageKeys.GENDERED_ROLES_FORMAT,
+            apiConfig.config[key]
+          );
+        } else if (key == 'german_gender_ending') {
+          storeInLocalStorage(
+            StorageKeys.GERMAN_GENDER_ENDING,
+            apiConfig.config[key]
+          );
+        } else if (key == 'inclusive') {
+          storeInLocalStorage(StorageKeys.INCLUSIVE, apiConfig.config[key]);
+        } else if (key == 'maximum_importance') {
+          storeInLocalStorage(
+            StorageKeys.MAXIMUM_IMPORTANCE,
+            apiConfig.config[key]
+          );
+        } else if (key == 'orthography') {
+          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, apiConfig.config[key]);
+        } else if (key == 'preferred_variants') {
+          storeInLocalStorage(
+            StorageKeys.PREFERRED_VARIANTS,
+            apiConfig.config[key]
+          );
+        } else if (key == 'show_inspiration_alternatives') {
+          storeInLocalStorage(
+            StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
+            apiConfig.config[key]
+          );
+        } else if (key == 'singular_they') {
+          storeInLocalStorage(StorageKeys.SINGULAR_THEY, apiConfig.config[key]);
+        }
+        // else if (key == 'store_context') {
+        //   storeInLocalStorage(StorageKeys.STORE_CONTEXT, apiConfig.config[key]);
+        // }
+        else if (key == 'style') {
+          storeInLocalStorage(StorageKeys.STYLE, apiConfig.config[key]);
+        }
+        // else if (key == 'preferred_languages') {
+        //   storeInLocalStorage(
+        //     StorageKeys.PREFERRED_LANGUAGES,
+        //     apiConfig.config[key]
+        //   );
+        // }
+      });
     } else {
       //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken
       console.log('there is no config');

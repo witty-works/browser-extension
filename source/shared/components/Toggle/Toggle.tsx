@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { ConfigPropertyStatus } from '../../constants';
 import './Toggle.scss';
 import Lock from '../../../assets/icons/options/lock.svg';
 import PremiumOnly from '../../../assets/icons/options/premium-only.svg';
@@ -12,7 +11,8 @@ interface ToggleProps {
   scale: number;
   label: string;
   locked?: boolean;
-  iconType?: string;
+  wittyTeamsRequired?: boolean;
+  userIsLoggedIn?: boolean;
 }
 
 const Toggle: React.FC<ToggleProps> = ({
@@ -22,7 +22,8 @@ const Toggle: React.FC<ToggleProps> = ({
   scale,
   label,
   locked,
-  iconType,
+  wittyTeamsRequired = false,
+  userIsLoggedIn,
 }: ToggleProps) => {
   return (
     <>
@@ -33,11 +34,6 @@ const Toggle: React.FC<ToggleProps> = ({
         }}
       >
         <label className='toggle-label'>{label}</label>
-        {iconType === ConfigPropertyStatus.FORCE && (
-          <div className='toggle-icon'>
-            <Lock />
-          </div>
-        )}
         <input
           checked={on}
           onChange={handleToggle}
@@ -45,7 +41,7 @@ const Toggle: React.FC<ToggleProps> = ({
           id={`toggle-${label}`}
           type='checkbox'
         />
-        {locked && iconType != ConfigPropertyStatus.FORCE && (
+        {wittyTeamsRequired && (
           <>
             <div className='toggle-premium-only'>
               <a href='https://www.witty.works/pricing' target='_blank'>
@@ -56,6 +52,12 @@ const Toggle: React.FC<ToggleProps> = ({
               <Lock />
             </div>
           </>
+        )}
+        {userIsLoggedIn && locked && !wittyTeamsRequired && (
+          //TODO: info box on hover when locked by admin (locked && premiumAccess)
+          <div className='toggle-lock'>
+            <Lock />
+          </div>
         )}
         <label
           style={{

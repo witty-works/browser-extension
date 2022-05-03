@@ -37,10 +37,10 @@ const Popup: React.FC = () => {
     defaultConfig.ORTHOGRAPHY
   );
   const [inclusiveLanguage, setInclusiveLanguage] = useState<ConfigProperty>(
-    defaultConfig.INCLUSIVE_LANGUAGE
+    defaultConfig.INCLUSIVE
   );
   const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
-    defaultConfig.STYLE_CORRECTIONS
+    defaultConfig.STYLE
   );
   const [casing, setCasing] = useState<boolean>(true);
   const [casingSites, setCasingSites] = useState<string[]>(
@@ -52,8 +52,8 @@ const Popup: React.FC = () => {
       .get(null)
       .then((result) => {
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
-        setInclusiveLanguage(result[StorageKeys.INCLUSIVE_LANGUAGE]);
-        setStyleCorrections(result[StorageKeys.STYLE_CORRECTIONS]);
+        setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
+        setStyleCorrections(result[StorageKeys.STYLE]);
         setDisabledSites(result[StorageKeys.DISABLED_SITES]);
         setCasingSites(result[StorageKeys.CASING_SITES]);
 
@@ -99,11 +99,11 @@ const Popup: React.FC = () => {
   }, [orthography]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.INCLUSIVE_LANGUAGE, inclusiveLanguage);
+    storeInLocalStorage(StorageKeys.INCLUSIVE, inclusiveLanguage);
   }, [inclusiveLanguage]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.STYLE_CORRECTIONS, styleCorrections);
+    storeInLocalStorage(StorageKeys.STYLE, styleCorrections);
   }, [styleCorrections]);
 
   const onStorageError = (error: string) => {
@@ -192,13 +192,14 @@ const Popup: React.FC = () => {
             handleToggle={() => {
               setOrthography({
                 ...orthography,
-                value: !orthography.value,
+                value:
+                  orthography.status != 'force' ? !orthography.value : false,
               });
             }}
             color={Colors.green}
             scale={0.35}
             label={t('spellChecking')}
-            iconType={orthography.status ? orthography.status : 'none'}
+            locked={orthography.status == 'force'}
           />
           <hr className='toggle-separator' />
           <Toggle
@@ -206,15 +207,16 @@ const Popup: React.FC = () => {
             handleToggle={() => {
               setInclusiveLanguage({
                 ...inclusiveLanguage,
-                value: !inclusiveLanguage.value,
+                value:
+                  inclusiveLanguage.status != 'force'
+                    ? !inclusiveLanguage.value
+                    : false,
               });
             }}
             color={Colors.green}
             scale={0.35}
             label={t('inclusiveTerms')}
-            iconType={
-              inclusiveLanguage.status ? inclusiveLanguage.status : 'none'
-            }
+            locked={inclusiveLanguage.status === 'force'}
           />
           <hr className='toggle-separator' />
           <Toggle
@@ -222,15 +224,16 @@ const Popup: React.FC = () => {
             handleToggle={() => {
               setStyleCorrections({
                 ...styleCorrections,
-                value: !styleCorrections.value,
+                value:
+                  styleCorrections.status != 'force'
+                    ? !styleCorrections.value
+                    : false,
               });
             }}
             color={Colors.green}
             scale={0.35}
             label={t('styleCorrections')}
-            iconType={
-              styleCorrections.status ? styleCorrections.status : 'none'
-            }
+            locked={styleCorrections.status == 'force'}
           />
           <hr className='toggle-separator' />
         </section>
