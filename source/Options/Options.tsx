@@ -341,6 +341,10 @@ const Options: React.FC = () => {
                     locked={singularThey.status === 'force'}
                     userIsLoggedIn={userIsLoggedIn}
                   />
+
+                  <div className='wittyworks-options-content-section-container-subtitle'>
+                    {t('singularTheyExplanation')}
+                  </div>
                 </div>
 
                 <div className='wittyworks-options-content-section-container-item'>
@@ -390,6 +394,13 @@ const Options: React.FC = () => {
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('expertModeExplanation')}
+                    <a
+                      className='wittyworks-options-content-section-container-link'
+                      href={t('expertModeExplanationUrl')}
+                      target='_blank'
+                    >
+                      {t('learnMore')}
+                    </a>
                   </div>
                 </div>
 
@@ -440,7 +451,14 @@ const Options: React.FC = () => {
                     userIsLoggedIn={userIsLoggedIn}
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
-                    {t('inclusiveLanguageExplanation')}
+                    {t('inclusiveLanguageExplanation')}{' '}
+                    <a
+                      className='wittyworks-options-content-section-container-link'
+                      href={t('inclusiveLanguageExplanationUrl')}
+                      target='_blank'
+                    >
+                      {t('learnMore')}
+                    </a>
                   </div>
                 </div>
 
@@ -465,7 +483,14 @@ const Options: React.FC = () => {
                     userIsLoggedIn={userIsLoggedIn}
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
-                    {t('styleCorrectionExplanation')}
+                    {t('styleCorrectionExplanation')}{' '}
+                    <a
+                      className='wittyworks-options-content-section-container-link'
+                      href={t('styleCorrectionExplanationUrl')}
+                      target='_blank'
+                    >
+                      {t('learnMore')}
+                    </a>
                   </div>
                 </div>
 

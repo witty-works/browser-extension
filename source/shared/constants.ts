@@ -30,6 +30,7 @@ export enum StorageKeys {
   USERNAME = 'username',
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',
+  CURRENT_DOMAIN = 'currentDomain',
 }
 
 //API endpoints

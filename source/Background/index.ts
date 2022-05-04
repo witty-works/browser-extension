@@ -126,9 +126,10 @@ const scanTabsToDetectStatus = () => {
 
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
       browser.browserAction.setIcon(
-        result[StorageKeys.DISABLED_SITES] &&
+        (result[StorageKeys.DISABLED_SITES] &&
           result[StorageKeys.DISABLED_SITES].length > 0 &&
-          result[StorageKeys.DISABLED_SITES].includes(domain)
+          result[StorageKeys.DISABLED_SITES].includes(domain)) ||
+          !defaultConfig.ACTIVE_SITES.includes(domain)
           ? WittyIconInactive
           : WittyIconActive
       );
@@ -149,8 +150,9 @@ const storageChange = (changes: any) => {
             const domain = new URL(tabs[0].url).hostname.replace('www.', '');
 
             browser.browserAction.setIcon(
-              changes[item].newValue.length > 0 &&
-                changes[item].newValue.includes(domain)
+              (changes[item].newValue.length > 0 &&
+                changes[item].newValue.includes(domain)) ||
+                !defaultConfig.ACTIVE_SITES.includes(domain)
                 ? WittyIconInactive
                 : WittyIconActive
             );
