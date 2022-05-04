@@ -1,4 +1,4 @@
-name: Build extension
+name: Build dev extension
 
 on: [push]
 
@@ -27,29 +27,6 @@ jobs:
         if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: |
           yarn install
-
-      - name: Disable development mode
-        run: |
-          sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
-          mv constants.ts source/shared/constants.ts
-
-      - name: Build artifacts
-        run: |
-          yarn run build
-
-      - name: Store Chrome artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: chrome
-          path: |
-            extension/chrome
-
-      - name: Store Firefox artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: firefox
-          path: |
-            extension/firefox.xpi
 
       - name: Enable development mode
         run: |

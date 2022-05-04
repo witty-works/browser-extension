@@ -1,0 +1,69 @@
+name: Build prod extension and source code
+
+on: 
+  push:
+      branches:
+          - feature/store-source-code
+      tags:
+          - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+
+      - name: Disable development mode
+        run: |
+          sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
+
+      - name: Remove git
+        run: rm -rf .git
+
+      - name: Zip source code
+        run: zip release.zip ./ -r
+
+      - name: Upload source code
+        uses: actions/upload-artifact@v2
+        with:
+          name: source-code
+          path: release.zip
+
+      - name: Install yarn
+        run: |
+          npm install --global yarn
+
+      - id: cache-yarn
+        uses: actions/cache@v1
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        run: |
+          yarn install
+
+      - name: Build artifacts
+        run: |
+          yarn run build
+
+      - name: Store Chrome artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: chrome
+          path: |
+            extension/chrome
+
+      - name: Store Firefox artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: firefox
+          path: |
+            extension/firefox.xpi
