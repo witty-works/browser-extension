@@ -103,7 +103,6 @@ const ContentScriptApp: React.FC = () => {
             result[StorageKeys.GENDERED_ROLES_FORMAT].value,
         };
         // if (!isMounted) return;
-        console.log('useEffect reqConfig = ', reqConfig);
         setReqConfig(reqConfig);
       })
       .catch(onBrowserStorageError);

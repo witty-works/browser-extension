@@ -16,6 +16,7 @@ const useApiResult = <TResponse,>(
   const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
     null
   );
+
   const [endpointError, setEndpointError] = useState<IEndpointError | null>(
     null
   );

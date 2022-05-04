@@ -14,7 +14,6 @@ const PopupDomainDeactivated: React.FC = () => {
 
   useEffect(() => {
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      console.log('tabs', tabs);
       //Empty tab
       if (tabs.length === 0 || !tabs[0].url) setPageName('this page');
       else {

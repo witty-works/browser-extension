@@ -92,6 +92,7 @@ const Options: React.FC = () => {
       setDisabledSites(result[StorageKeys.DISABLED_SITES]);
       setUsername(result[StorageKeys.USERNAME]);
       setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
+      setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
       setGenderRolesFormat(result[StorageKeys.GENDERED_ROLES_FORMAT]);
       setTeamName(result[StorageKeys.NAME]);
       setSubscriptionPlan(result[StorageKeys.PLAN]);
@@ -224,6 +225,9 @@ const Options: React.FC = () => {
     }
   }, [authResponse]);
 
+  console.log('accessToken', accessToken);
+  console.log('refreshToken', refreshToken);
+
   useEffect(() => {
     console.log('authErrorResponse', authErrorResponse);
   }, [authErrorResponse]);
@@ -316,7 +320,7 @@ const Options: React.FC = () => {
                 )}
               </div>
               <div
-                className='wittyworks-options-button-light'
+                className='wittyworks-options-button'
                 onClick={() => logOut()}
               >
                 {t('Logout')}

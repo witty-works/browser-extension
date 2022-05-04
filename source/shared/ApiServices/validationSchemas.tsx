@@ -26,7 +26,7 @@ export const checkResponseOrgConfigPropertySchema: JSONSchemaType<ConfigProperty
             type: 'boolean',
           },
           {
-            type: 'integer',
+            type: 'number',
           },
         ],
       },
@@ -41,6 +41,7 @@ export const checkResponseOrgConfigPropertySchema: JSONSchemaType<ConfigProperty
 
 export const checkResponseOrgConfigSchema: JSONSchemaType<IAuthResponse> = {
   title: 'checkResponseOrgConfig',
+  description: 'config schema',
   type: 'object',
   properties: {
     config: {
@@ -81,7 +82,7 @@ export const checkResponseOrgConfigSchema: JSONSchemaType<IAuthResponse> = {
       type: 'string',
     },
   },
-  required: ['config', 'id', 'name', 'plan'],
+  required: ['id', 'name', 'plan'],
 };
 
 export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {

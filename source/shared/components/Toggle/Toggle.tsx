@@ -30,7 +30,6 @@ const Toggle: React.FC<ToggleProps> = ({
   const { t } = useTranslation([namespaces.pages.options]);
   const [lockHovered, setLockHovered] = useState<boolean>(false);
   console.log('on', on);
-
   return (
     <>
       <div
@@ -41,9 +40,9 @@ const Toggle: React.FC<ToggleProps> = ({
       >
         <label className='toggle-label'>{label}</label>
         <input
+          className='toggle-checkbox'
           checked={on}
           onChange={handleToggle}
-          className='toggle-checkbox'
           id={`toggle-${label}`}
           type='checkbox'
         />
@@ -80,7 +79,12 @@ const Toggle: React.FC<ToggleProps> = ({
           className='toggle-encloser'
           htmlFor={`toggle-${label}`}
         >
-          <span className={`toggle-button`} />
+          <span
+            className={`toggle-button`}
+            style={{
+              marginLeft: on && locked ? '2.7em' : '0', //TEMP: fix for weird toggle behavior when locked
+            }}
+          />
         </label>
       </div>
     </>

@@ -19,7 +19,6 @@ export const setAppID = (id: string) => (appID = id);
 export const setToken = (tok: string) => (token = tok);
 
 export const getAnalyzedTextResults = (text: string): IRequest => {
-  console.log('token', token);
   return {
     url: createUrl(BASE_URL, 'v1.1/check'),
     config: {
