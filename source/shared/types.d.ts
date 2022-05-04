@@ -59,39 +59,18 @@ export interface ICheckResponse {
   organization_config: IAuthResponse;
   language: string;
 }
-
-// export interface IOrganizationConfig {
-//   primary_language: string;
-//   preferred_languages: string[];
-//   preferred_variants: string[];
-//   german_gender_ending: string;
-//   gendered_roles_format: string;
-//   disabled_categories: string[];
-//   singular_they: string;
-//   show_inspiration_alternatives: boolean;
-//   maximum_importance: number;
-// }
-// export interface IAuthResponse {
-//   forced: IOrganizationConfig;
-//   suggestion: IOrganizationConfig;
-//   id: string;
-//   name: string;
-//   plan: string;
-//   store_context: boolean;
-// }
-
 export interface IAuthResponse {
   config: {
-    gendered_roles_format: ConfigProperty;
-    german_gender_ending: ConfigProperty;
-    inclusive: ConfigProperty;
-    maximum_importance: ConfigProperty;
-    orthography: ConfigProperty;
-    preferred_variants: ConfigProperty;
-    show_inspiration_alternatives: ConfigProperty;
-    singular_they: ConfigProperty;
     store_context: ConfigProperty;
+    preferred_variants: ConfigProperty;
+    german_gender_ending: ConfigProperty;
+    gendered_roles_format: ConfigProperty;
+    inclusive: ConfigProperty;
     style: ConfigProperty;
+    orthography: ConfigProperty;
+    singular_they: ConfigProperty;
+    show_inspiration_alternatives: ConfigProperty;
+    maximum_importance: ConfigProperty;
   };
   id: string;
   name: string;
