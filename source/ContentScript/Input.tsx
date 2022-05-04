@@ -378,7 +378,10 @@ const Input: React.FC<{
     const apiConfig = checkEndpointResponse.organization_config;
     if (apiConfig) {
       console.log('apiConfig', apiConfig);
-      //can be refactored (had type issues)
+      storeInLocalStorage(StorageKeys.NAME, apiConfig.name);
+      storeInLocalStorage(StorageKeys.PLAN, apiConfig.plan);
+
+      //TODO: refactored (had type issues)
       Object.keys(apiConfig.config).forEach((key) => {
         if (!Object.keys(StorageKeys).includes(key.toUpperCase())) {
           console.warn(`${key.toUpperCase()} is not a valid storage key`);

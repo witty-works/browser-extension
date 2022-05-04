@@ -39,6 +39,8 @@ export const de = {
   },
   [namespaces.pages.options]: {
     greeting: 'Hello DE',
+    greetingTeam: 'You are logged in to DE',
+    greetingPlan: 'with the subscription DE',
     settings: 'Einstellungen',
     needHelp: 'Brauchst du Hilfe?',
     getMoreTitle: 'WITTY KANN NOCH VIEL MEHR!',
@@ -80,6 +82,7 @@ export const de = {
     primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
+    lockedInfo: 'This has been locked by the group administrator DE',
   },
 };
 
@@ -123,6 +126,8 @@ export const en = {
   },
   [namespaces.pages.options]: {
     greeting: 'Hello',
+    greetingTeam: 'You are logged in to',
+    greetingPlan: 'with the subscription',
     settings: 'Settings',
     needHelp: 'Need Help?',
     getMoreTitle: 'GET MUCH MORE FROM WITTY!',
@@ -165,5 +170,6 @@ export const en = {
     primaryLanguage: 'Primary Language',
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
+    lockedInfo: 'This has been locked by the group administrator',
   },
 };

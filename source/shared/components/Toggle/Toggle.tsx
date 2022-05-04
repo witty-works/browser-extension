@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import './Toggle.scss';
 import Lock from '../../../assets/icons/options/lock.svg';
 import PremiumOnly from '../../../assets/icons/options/premium-only.svg';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../../../i18n/i18n.constants';
 
 interface ToggleProps {
   on: boolean | undefined;
@@ -11,7 +13,7 @@ interface ToggleProps {
   scale: number;
   label: string;
   locked?: boolean;
-  wittyTeamsRequired?: boolean;
+  hasWittyTeams?: boolean;
   userIsLoggedIn?: boolean;
 }
 
@@ -22,9 +24,13 @@ const Toggle: React.FC<ToggleProps> = ({
   scale,
   label,
   locked,
-  wittyTeamsRequired = false,
-  userIsLoggedIn,
+  hasWittyTeams = true,
+  userIsLoggedIn = true,
 }: ToggleProps) => {
+  const { t } = useTranslation([namespaces.pages.options]);
+  const [lockHovered, setLockHovered] = useState<boolean>(false);
+  console.log('on', on);
+
   return (
     <>
       <div
@@ -41,7 +47,7 @@ const Toggle: React.FC<ToggleProps> = ({
           id={`toggle-${label}`}
           type='checkbox'
         />
-        {wittyTeamsRequired && (
+        {!hasWittyTeams && (
           <>
             <div className='toggle-premium-only'>
               <a href='https://www.witty.works/pricing' target='_blank'>
@@ -53,12 +59,19 @@ const Toggle: React.FC<ToggleProps> = ({
             </div>
           </>
         )}
-        {userIsLoggedIn && locked && !wittyTeamsRequired && (
-          //TODO: info box on hover when locked by admin (locked && premiumAccess)
-          <div className='toggle-lock'>
+        {userIsLoggedIn && locked && hasWittyTeams && (
+          <div
+            className='toggle-lock'
+            onMouseEnter={() => setLockHovered(true)}
+            onMouseLeave={() => setLockHovered(false)}
+          >
             <Lock />
+            {lockHovered && (
+              <div className='toggle-lock-info'> {t('lockedInfo')} </div>
+            )}
           </div>
         )}
+
         <label
           style={{
             background: (on && color) as string,

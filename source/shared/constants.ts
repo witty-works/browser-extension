@@ -31,6 +31,8 @@ export enum StorageKeys {
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',
   CURRENT_DOMAIN = 'currentDomain',
+  NAME = 'name', //team name
+  PLAN = 'plan',
 }
 
 //API endpoints

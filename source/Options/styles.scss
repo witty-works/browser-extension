@@ -118,11 +118,17 @@
   margin: 1em 0;
   justify-content: space-between;
   align-items: center;
+  background: #fafafa;
+  border-radius: 10px;
 }
 
 .wittyworks-options-login-cursiva {
   font-style: italic;
   color: $darkGray;
+}
+
+.wittyworks-options-login-text {
+  margin-bottom: 0 !important;
 }
 
 .wittyworks-options-content-section {

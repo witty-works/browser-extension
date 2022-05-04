@@ -59,6 +59,8 @@ const Options: React.FC = () => {
   const [genderRolesFormat, setGenderRolesFormat] = useState<ConfigProperty>(
     defaultConfig.GENDERED_ROLES_FORMAT
   );
+  const [teamName, setTeamName] = useState<string>('');
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string>('');
 
   const [username, setUsername] = useState<string>('');
   const [accessToken, setAccessToken] = useState<string>('');
@@ -67,12 +69,11 @@ const Options: React.FC = () => {
 
   const baseUrl = 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site';
   const originalOptionsUri = window.location.href;
-  const [wittyTeamsRequired, setWittyTeamsRequired] = useState<boolean>(false);
+  const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(false);
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
 
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
-      console.log('!!LOCAL STORAFGE result', result);
       //Set the Endpoint url
       setBaseURL(
         result[StorageKeys.API_ENDPOINT_KEY]
@@ -92,12 +93,15 @@ const Options: React.FC = () => {
       setUsername(result[StorageKeys.USERNAME]);
       setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
       setGenderRolesFormat(result[StorageKeys.GENDERED_ROLES_FORMAT]);
-      result[StorageKeys.ACCESS_TOKEN] !== ''
-        ? setUserIsLoggedIn(true)
-        : setUserIsLoggedIn(false);
+      setTeamName(result[StorageKeys.NAME]);
+      setSubscriptionPlan(result[StorageKeys.PLAN]);
 
-      //TODO: get subscription status
-      setWittyTeamsRequired(true);
+      result[StorageKeys.ACCESS_TOKEN] == ''
+        ? setUserIsLoggedIn(false)
+        : setUserIsLoggedIn(true);
+      result[StorageKeys.PLAN] == 'witty_teams'
+        ? setHasWittyTeams(true)
+        : setHasWittyTeams(false);
     });
 
     window.addEventListener('load', onOptionsLoad);
@@ -170,6 +174,14 @@ const Options: React.FC = () => {
   }, [refreshToken]);
 
   useEffect(() => {
+    storeInLocalStorage(StorageKeys.NAME, teamName);
+  }, [teamName]);
+
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.PLAN, subscriptionPlan);
+  }, [subscriptionPlan]);
+
+  useEffect(() => {
     if (authResponse) {
       for (let key in authResponse.config) {
         switch (key) {
@@ -226,6 +238,8 @@ const Options: React.FC = () => {
     setAccessToken('');
     setRefreshToken(''); //TODO sure?
     setUserIsLoggedIn(false);
+    setTeamName('');
+    setSubscriptionPlan('');
   };
 
   return (
@@ -284,8 +298,22 @@ const Options: React.FC = () => {
               <div className='wittyworks-options-login-text'>
                 {t('greeting')}{' '}
                 <span className='wittyworks-options-login-cursiva'>
-                  {username}
+                  {username}{' '}
                 </span>
+                {teamName !== '' && subscriptionPlan !== '' && (
+                  <div>
+                    {t('greetingTeam')}{' '}
+                    <span className='wittyworks-options-login-cursiva'>
+                      {teamName}{' '}
+                    </span>
+                    {t('greetingPlan')}{' '}
+                    <span className='wittyworks-options-login-cursiva'>
+                      {subscriptionPlan
+                        .replace(/_/g, ' ')
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </span>
+                  </div>
+                )}
               </div>
               <div
                 className='wittyworks-options-button-light'
@@ -354,7 +382,7 @@ const Options: React.FC = () => {
                 <div className='wittyworks-options-content-section-container-item'>
                   <GenderRoleFormatSelector
                     locked={
-                      wittyTeamsRequired || genderRolesFormat.status == 'force'
+                      !hasWittyTeams || genderRolesFormat.status == 'force'
                     }
                   />
                 </div>
@@ -368,17 +396,14 @@ const Options: React.FC = () => {
                       setMaximumImportance({
                         ...maximumImportance,
                         value:
-                          !wittyTeamsRequired &&
-                          maximumImportance.status != 'force'
+                          hasWittyTeams && maximumImportance.status != 'force'
                             ? changeMaximumImportance(
                                 !maximumImportanceToBoolean(
                                   maximumImportance.value as number
                                 )
                               )
-                            : changeMaximumImportance(
-                                maximumImportanceToBoolean(
-                                  maximumImportance.value as number
-                                )
+                            : maximumImportanceToBoolean(
+                                maximumImportance.value as number
                               ),
                       });
                     }}
@@ -386,9 +411,9 @@ const Options: React.FC = () => {
                     scale={0.35}
                     label={t('expertMode')}
                     locked={
-                      maximumImportance.status == 'force' || !wittyTeamsRequired
+                      maximumImportance.status == 'force' || !hasWittyTeams
                     }
-                    wittyTeamsRequired={wittyTeamsRequired}
+                    hasWittyTeams={hasWittyTeams}
                     userIsLoggedIn={userIsLoggedIn}
                   />
 
@@ -412,7 +437,7 @@ const Options: React.FC = () => {
                         ...inspirationalAlternatives,
                         value:
                           inspirationalAlternatives.status != 'force' ||
-                          !wittyTeamsRequired
+                          hasWittyTeams
                             ? !inspirationalAlternatives.value
                             : inspirationalAlternatives.value,
                       });
@@ -422,9 +447,9 @@ const Options: React.FC = () => {
                     label={t('inspirationAlternatives')}
                     locked={
                       inspirationalAlternatives.status == 'force' ||
-                      !wittyTeamsRequired
+                      !hasWittyTeams
                     }
-                    wittyTeamsRequired={wittyTeamsRequired}
+                    hasWittyTeams={hasWittyTeams}
                     userIsLoggedIn={userIsLoggedIn}
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>

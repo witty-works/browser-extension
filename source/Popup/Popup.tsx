@@ -30,9 +30,6 @@ const Popup: React.FC = () => {
   const [disabledSites, setDisabledSites] = useState<string[]>(
     defaultConfig.DISABLED_SITES
   );
-  // const [spellChecking, setSpellChecking] = useState<ConfigProperty>(
-  //   defaultConfig.ORTHOGRAPHY
-  // );
   const [orthography, setOrthography] = useState<ConfigProperty>(
     defaultConfig.ORTHOGRAPHY
   );
