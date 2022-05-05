@@ -7,7 +7,13 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
 
 const log = useLog('ContentScript index');
+let enableWittyEverywhere = false;
 
+browser.storage.local
+  .get(StorageKeys.ENABLE_WITTY_EVERYWHERE)
+  .then((result) => {
+    enableWittyEverywhere = result[StorageKeys.ENABLE_WITTY_EVERYWHERE];
+  });
 //Main element to add extra markup
 const element = document.createElement('witty-code');
 element.setAttribute('extension-id', browser.runtime.id);
@@ -23,7 +29,8 @@ const customRender = (enabled: boolean) => {
 if (
   !defaultConfig.ACTIVE_SITES.includes(
     window.location.hostname.replace('www.', '')
-  )
+  ) &&
+  !enableWittyEverywhere
 ) {
   customRender(false);
 } else {
@@ -47,7 +54,8 @@ const storageChange = (changes: any) => {
   if (
     !defaultConfig.ACTIVE_SITES.includes(
       window.location.hostname.replace('www.', '')
-    )
+    ) &&
+    !enableWittyEverywhere
   ) {
     customRender(false);
   } else {

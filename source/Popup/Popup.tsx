@@ -224,6 +224,14 @@ const Popup: React.FC = () => {
         </section>
       )}
       <footer>
+        <div
+          className='enable-witty'
+          onClick={() => {
+            storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, false);
+          }}
+        >
+          <span>{t('alfa')}</span>
+        </div>
         <Settings
           onClick={
             //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour

@@ -113,12 +113,13 @@ const scanTabsToDetectStatus = () => {
     if (tabs.length === 0 || !tabs[0].url) return;
     const domain = new URL(tabs[0].url).hostname.replace('www.', '');
 
-    browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+    browser.storage.local.get(null).then((result) => {
       browser.browserAction.setIcon(
         (result[StorageKeys.DISABLED_SITES] &&
           result[StorageKeys.DISABLED_SITES].length > 0 &&
           result[StorageKeys.DISABLED_SITES].includes(domain)) ||
-          !defaultConfig.ACTIVE_SITES.includes(domain)
+          (!defaultConfig.ACTIVE_SITES.includes(domain) &&
+            !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
           ? WittyIconInactive
           : WittyIconActive
       );
@@ -141,7 +142,8 @@ const storageChange = (changes: any) => {
             browser.browserAction.setIcon(
               (changes[item].newValue.length > 0 &&
                 changes[item].newValue.includes(domain)) ||
-                !defaultConfig.ACTIVE_SITES.includes(domain)
+                (!defaultConfig.ACTIVE_SITES.includes(domain) &&
+                  !StorageKeys.ENABLE_WITTY_EVERYWHERE)
                 ? WittyIconInactive
                 : WittyIconActive
             );

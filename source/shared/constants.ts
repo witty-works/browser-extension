@@ -27,6 +27,7 @@ export enum StorageKeys {
   CASING_SITES = 'casingSites',
   API_DELAY = 'apiDelay',
   CURRENT_DOMAIN = 'currentDomain',
+  ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
 }
 
 //API endpoints
