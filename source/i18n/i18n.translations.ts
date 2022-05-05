@@ -73,10 +73,10 @@ export const de = {
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
     genderRoleFormat: 'Witty sollte folgende Vorschläge machen',
-    genderRoleFormatFemaleAndMale:
-      'Weibliche und männliche Form (z.Bsp. "Managerin oder Manager")',
+    genderRoleFormatFemaleAndMale: 'Weibliche und männliche Form (z.B. "Managerin/Manager")',
     genderRoleFormatGermanEnding: 'Gewählte Gender-Endung',
-    genderRoleFormatBoth: 'Beide',
+    genderRoleFormatBoth: 'Deutsche Gender-Endung und weibliche und männliche Form',
+    genderRoleFormatNone: 'Nur geschlechtsneutrale Alternativen anzeigen',
     styleCorrectionExplanationUrl: 'https://www.witty.works/de/kategorien/stil',
     learnMore: 'Mehr dazu',
     primaryLanguage: 'Primäre Sprache',
@@ -160,10 +160,10 @@ export const en = {
     styleCorrectionExplanation:
       'Witty makes suggestions to make your text more understandable, or to give it authenticity or emotionality.',
     genderRoleFormat: 'Witty should suggest',
-    genderRoleFormatFemaleAndMale:
-      'Female and male form (e.g "Managerin oder Manager")',
+    genderRoleFormatFemaleAndMale: 'Female and male form (e.g. "Managerin/Manager")',
     genderRoleFormatGermanEnding: 'Chosen German gender ending',
-    genderRoleFormatBoth: 'Both',
+    genderRoleFormatBoth: 'Show both German gender ending and Female and male form',
+    genderRoleFormatNone: 'Only show gender neutral alternatives',
     styleCorrectionExplanationUrl:
       'https://www.witty.works/en/categories/style',
     learnMore: 'Learn more',

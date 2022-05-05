@@ -24,9 +24,10 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   const log = useLog('GermanGenderEndSelector');
 
   const GenderRoleFormat = {
-    binary_gender: t('genderRoleFormatGermanEnding'),
     inclusive_gender: t('genderRoleFormatFemaleAndMale'),
     both: t('genderRoleFormatBoth'),
+    binary_gender: t('genderRoleFormatGermanEnding'),
+    none: t('genderRoleFormatNone'),
   };
 
   useEffect(() => {
