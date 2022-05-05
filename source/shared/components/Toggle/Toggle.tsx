@@ -82,7 +82,7 @@ const Toggle: React.FC<ToggleProps> = ({
           <span
             className={`toggle-button`}
             style={{
-              marginLeft: on && locked ? '2.7em' : '0', //TEMP: fix for weird toggle behavior when locked
+              marginLeft: on && locked && userIsLoggedIn ? '2.7em' : '0', //TEMP: fix for weird toggle behavior when locked
             }}
           />
         </label>

@@ -43,10 +43,7 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
 
 export const getConfiguration = (): IRequest => {
   return {
-    url: createUrl(
-      BASE_URL ? BASE_URL : 'https://default.api.witty.works/', //Because this is called before BASE_URL is set, should be fixed
-      'auth'
-    ),
+    url: createUrl(BASE_URL, 'auth'),
     config: {
       method: 'POST',
       headers: {

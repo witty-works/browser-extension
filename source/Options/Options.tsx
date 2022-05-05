@@ -166,8 +166,10 @@ const Options: React.FC = () => {
 
   useEffect(() => {
     setToken(accessToken);
-    getConfig();
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, accessToken);
+    if (accessToken != '') {
+      getConfig();
+    }
   }, [accessToken]);
 
   useEffect(() => {
@@ -184,6 +186,8 @@ const Options: React.FC = () => {
 
   useEffect(() => {
     if (authResponse) {
+      setTeamName(authResponse.name);
+      setSubscriptionPlan(authResponse.plan);
       for (let key in authResponse.config) {
         switch (key) {
           case 'german_gender_ending':
@@ -224,9 +228,6 @@ const Options: React.FC = () => {
       }
     }
   }, [authResponse]);
-
-  console.log('accessToken', accessToken);
-  console.log('refreshToken', refreshToken);
 
   useEffect(() => {
     console.log('authErrorResponse', authErrorResponse);
