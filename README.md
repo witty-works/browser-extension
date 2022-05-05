@@ -13,6 +13,8 @@ Clone repo `git clone https://github.com/witty-works/browser-extension.git`
 
 Go to project directory `cd browser-extension`
 
+Ensure you are using node 14, fe. via `nvm use 14`.
+
 Run `yarn install` to install dependencies.
 
 ## Development
