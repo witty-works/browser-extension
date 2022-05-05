@@ -109,5 +109,14 @@ export const useAnalytics = () => {
         response: logResponse,
       });
     },
+
+    async voteForUrlLog(url: string) {
+      ph.session.distinctId = appID;
+
+      ph.capture('vote', {
+        request__id: appID,
+        url: url,
+      });
+    },
   };
 };

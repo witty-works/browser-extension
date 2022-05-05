@@ -27,6 +27,7 @@ export const de = {
     noSupport: 'We’re sorry! Witty doesn’t yet support ',
     vote: 'Vote for this feature DE',
     editor: 'Try the editor DE',
+    thanks: 'Thanks for your feedback! DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -102,6 +103,7 @@ export const en = {
     noSupport: 'We’re sorry! Witty doesn’t yet support ',
     vote: 'Vote for this feature',
     editor: 'Try the editor',
+    thanks: 'Thanks for your feedback!',
   },
 
   [namespaces.popover]: {

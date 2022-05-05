@@ -7,17 +7,22 @@ import UpvoteButton from '../assets/icons/popup/upvote-button.svg';
 import EditorButton from '../assets/icons/popup/editor-button.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
   const [pageName, setPageName] = React.useState<string>('');
+  const [currentTab, setCurrentTab] = React.useState<string>('');
+  const [hasVoted, setHasVoted] = React.useState<boolean>(false);
+  const analytics = useAnalytics();
 
   useEffect(() => {
+    setHasVoted(false);
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      console.log('tabs', tabs);
       //Empty tab
       if (tabs.length === 0 || !tabs[0].url) setPageName('this page');
       else {
+        setCurrentTab(tabs[0].url);
         const currentDomain = new URL(tabs[0].url).hostname
           .replace('www.', '')
           .split('.')[0];
@@ -39,12 +44,13 @@ const PopupDomainDeactivated: React.FC = () => {
 
       <div
         className='domain-not-supported-container'
-        onClick={() =>
-          browser.tabs.create({ url: 'https://roadmap.witty.works/' })
-        }
+        onClick={() => {
+          analytics.voteForUrlLog(currentTab);
+          setHasVoted(true);
+        }}
       >
         <UpvoteButton />
-        <div>{t('vote')}</div>
+        {!hasVoted ? <div>{t('vote')}</div> : <div>{t('thanks')}</div>}
       </div>
 
       <div
