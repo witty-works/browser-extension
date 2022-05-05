@@ -1,17 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
-import { IEndpointError, IEndpointResponseError, IRequest } from '../types';
+import { IEndpointError, IRequest } from '../types';
 import { useLog, logTypes } from '../customHooks/useLog';
 import Ajv, { JSONSchemaType } from 'ajv';
+const ajv = new Ajv();
 
 const useApiResult = <TResponse,>(
   request: IRequest,
   responseSchema: JSONSchemaType<TResponse> | null
 ): [TResponse | null, IEndpointError | null] => {
   const validateResponse =
-    responseSchema === null
-      ? null
-      : useMemo(() => new Ajv().compile(responseSchema), [responseSchema]);
+    responseSchema === null ? null : ajv.compile(responseSchema);
 
   const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
     null
@@ -37,13 +36,9 @@ const useApiResult = <TResponse,>(
           log('Response: ', logTypes.INFO, response);
 
           if (!response.ok) {
-            const error: { detail: IEndpointResponseError[] } =
-              await response.json();
             setEndpointError({
               status: response.status,
-              message: error.detail
-                .map((detail: IEndpointResponseError) => detail.msg)
-                .join(', '),
+              message: response.statusText,
             });
             return;
           }

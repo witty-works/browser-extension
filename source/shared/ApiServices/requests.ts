@@ -57,3 +57,19 @@ export const getConfiguration = (): IRequest => {
     },
   };
 };
+
+export const getToken = (refreshToken: string): IRequest => {
+  return {
+    url: 'https://dashboard.lndo.site/api/refresh-token',
+    config: {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        token: refreshToken,
+      }),
+    },
+  };
+};

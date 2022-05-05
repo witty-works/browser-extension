@@ -76,6 +76,11 @@ export interface IAuthResponse {
   name: string;
   plan: string;
 }
+export interface IRefreshTokenResponse {
+  email: string;
+  refresh_token: string;
+  access_token: string;
+}
 
 export interface ICheckResponseResult {
   text: string;

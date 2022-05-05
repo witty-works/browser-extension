@@ -254,7 +254,6 @@ const ContentScriptApp: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('reqConfig = ', reqConfig);
     setRequestConfig(reqConfig);
   }, [reqConfig]);
 
