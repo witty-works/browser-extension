@@ -41,6 +41,7 @@ export interface IAlert {
   startOffset: number;
   endOffset: number;
   data: IAlertContentData;
+  groupId?: string | null;
 }
 export interface IAlertContentData {
   text: string;
@@ -58,6 +59,8 @@ export interface ICheckResponse {
   results: ICheckResponseResult[];
   organization_config: IAuthResponse;
   language: string;
+  limit_reached: boolean;
+  organization_config: IOrganizationConfig;
 }
 export interface IAuthResponse {
   config: {
@@ -82,6 +85,11 @@ export interface IRefreshTokenResponse {
   access_token: string;
 }
 
+export interface IOrganizationConfig {
+  id: string;
+  name: string;
+  plan: string;
+}
 export interface ICheckResponseResult {
   text: string;
   context: string;

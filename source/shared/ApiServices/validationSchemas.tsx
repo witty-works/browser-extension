@@ -196,6 +196,10 @@ export const checkResponseSchema: JSONSchemaType<ICheckResponse> = {
       description: 'language used by the user',
       type: 'string',
     },
+    limit_reached: {
+      description: 'whether the limit of the free plan has been reached',
+      type: 'boolean',
+    },
   },
   required: ['results', 'language'],
 };
