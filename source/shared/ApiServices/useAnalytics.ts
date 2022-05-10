@@ -110,12 +110,22 @@ export const useAnalytics = () => {
       });
     },
 
-    async voteForUrlLog(url: string) {
+    async voteForUrlLog(url: string, appID: string) {
       ph.session.distinctId = appID;
-
-      ph.capture('vote', {
+      const request: ILogRequest = {
+        request__type: 'vote',
+        request__lang: 'auto',
         request__id: appID,
-        url: url,
+        request__client: wittyVersion,
+        request__config__primary_language: requestConfig.primary_language,
+        request__config__preferred_languages: requestConfig.preferred_languages,
+        request__config__preferred_variants: requestConfig.preferred_variants,
+        request__config__german_gender_ending:
+          requestConfig.german_gender_ending,
+      };
+      ph.capture('vote', {
+        ...request,
+        vote_url: url,
       });
     },
   };

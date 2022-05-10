@@ -8,6 +8,7 @@ import EditorButton from '../assets/icons/popup/editor-button.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+import { StorageKeys } from '../shared/constants';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
@@ -15,9 +16,15 @@ const PopupDomainDeactivated: React.FC = () => {
   const [currentTab, setCurrentTab] = React.useState<string>('');
   const [hasVoted, setHasVoted] = React.useState<boolean>(false);
   const analytics = useAnalytics();
+  const [appId, setAppId] = React.useState<string>('');
 
   useEffect(() => {
     setHasVoted(false);
+
+    browser.storage.local.get(null).then((result) => {
+      setAppId(result[StorageKeys.APP_ID]);
+    });
+
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
       //Empty tab
       if (tabs.length === 0 || !tabs[0].url) setPageName('this page');
@@ -45,7 +52,7 @@ const PopupDomainDeactivated: React.FC = () => {
       <div
         className='domain-not-supported-container'
         onClick={() => {
-          analytics.voteForUrlLog(currentTab);
+          analytics.voteForUrlLog(currentTab, appId);
           setHasVoted(true);
         }}
       >
