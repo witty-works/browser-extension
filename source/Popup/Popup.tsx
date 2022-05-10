@@ -22,7 +22,10 @@ import defaultConfig from '../witty.config.json';
 import './styles.scss';
 
 const Popup: React.FC = () => {
-  const { t } = useTranslation(namespaces.pages.popup);
+  const { t } = useTranslation([
+    namespaces.pages.options,
+    namespaces.pages.popup,
+  ]);
   const log = useLog('Popup');
 
   const [enabled, setEnabled] = useState<boolean>(true);
@@ -214,6 +217,34 @@ const Popup: React.FC = () => {
             label={t('styleCorrections')}
           />
           <hr className='toggle-separator' />
+          <div className='wittyworks-upgrade-banner'>
+            <div className='wittyworks-upgrade-banner-text-container'>
+              <div className='wittyworks-upgrade-banner-title'>
+                {t('getMoreTitle')}
+              </div>
+              <div className='wittyworks-upgrade-banner-text'>
+                {t('getMoreText')}
+              </div>
+            </div>
+            <div
+              className='wittyworks-upgrade-banner-button'
+              onClick={() => {
+                window.open('https://www.witty.works/pricing', '_blank');
+              }}
+            >
+              {t('learnMoreButton')}
+            </div>
+          </div>
+          <div className='wittyworks-dashboard-button-container'>
+            <div
+              className='wittyworks-dashboard-button'
+              onClick={() => {
+                window.open('https://dashboard.lndo.site/', '_blank');
+              }}
+            >
+              {t('goToDashboard')}
+            </div>
+          </div>
         </section>
       )}
       {DEV_ENV && (

@@ -43,6 +43,8 @@ export const de = {
     getMoreTitle: 'WITTY KANN NOCH VIEL MEHR!',
     getMoreText: 'Upgraden, um eigene Regeln zu verwalten und zu teilen!',
     getMoreButton: 'Upgraden',
+    learnMoreButton: 'Learn more DE',
+    goToDashboard: 'Go to dashboard DE',
     setUpLanguages: 'Spracheinstellungen',
     configureRules: 'Witty Regeln anpassen',
     disableWitty: 'Witty auf gewissen Webseiten deaktivieren',
@@ -120,6 +122,8 @@ export const en = {
     getMoreText:
       'Upgrade and get access to more checks, custom rules, and much more!',
     getMoreButton: 'Upgrade now',
+    learnMoreButton: 'Learn more',
+    goToDashboard: 'Go to dashboard',
     setUpLanguages: 'Language settings',
     configureRules: 'Customize Witty',
     disableWitty: 'Disable Witty on some websites',

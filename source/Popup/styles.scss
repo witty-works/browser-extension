@@ -113,3 +113,83 @@ footer {
   box-shadow: 0px -1px 0px #f1f2f2;
   cursor: pointer;
 }
+
+.wittyworks-upgrade-banner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5em;
+  width: 111%;
+  margin-left: -1em;
+  margin-top: -1em;
+  padding-left: 1em;
+
+  background: linear-gradient(
+        96.78deg,
+        #fef7f8 -6.3%,
+        #fbf6fa 35.9%,
+        #e9f2f5 100.12%
+      )
+      padding-box,
+    linear-gradient(
+        114.59deg,
+        #f06464 1.6%,
+        #f277d0 32.79%,
+        #9489db 71.64%,
+        #37d1e5 101.91%,
+        #5acfb9 131.52%
+      )
+      border-box;
+}
+
+.wittyworks-upgrade-banner-text-container {
+  color: $wittyPurple;
+}
+
+.wittyworks-upgrade-banner-title {
+  font-weight: 700;
+  margin: 4px 0px;
+}
+
+.wittyworks-upgrade-banner-button {
+  display: flex;
+  width: 93px;
+  height: 22px;
+  margin-right: auto;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  padding: 4px 8px;
+  background: $wittyPurple;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
+  border-radius: 4px;
+  color: $white;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.wittyworks-dashboard-button-container {
+  display: flex;
+  justify-content: center;
+}
+.wittyworks-dashboard-button {
+  width: 130px;
+  height: 22px;
+  margin-top: 1em;
+  padding: 4px 8px;
+  background: $wittyPurple;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
+  border-radius: 4px;
+  color: $white;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
