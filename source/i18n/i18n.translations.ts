@@ -28,8 +28,8 @@ export const de = {
       'Es tut uns leid! Witty unterstützt diese Webseite noch nicht offiziell.',
     vote: 'Stimme für diese Webseite ab',
     editor: 'Verwende das Witty Formular',
-    overrideRecomendedSites: 'Override DE',
-    backToRecomendedSites: 'Safe version DE',
+    overrideRecomendedSites: 'Witty auch auf dieser Webseite nutzen',
+    backToRecomendedSites: 'Witty nur auf unterstützten Webseiten aktiv',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -119,8 +119,8 @@ export const en = {
       'We’re sorry! Witty doesn’t yet officially support this website.',
     vote: 'Vote for this website',
     editor: 'Use Witty form instead',
-    overrideRecomendedSites: 'Override',
-    backToRecomendedSites: 'Safe version',
+    overrideRecomendedSites: 'Use Witty also on this website',
+    backToRecomendedSites: 'Use Witty only on supported websites',
   },
 
   [namespaces.popover]: {

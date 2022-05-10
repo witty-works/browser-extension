@@ -48,8 +48,8 @@ const PopupDomainDeactivated: React.FC = () => {
             storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, true);
           }}
         >
-          {t('overrideRecomendedSites')}
           <ArrowIcon play={true} />
+          {t('overrideRecomendedSites')}
         </div>
         <Settings
           onClick={

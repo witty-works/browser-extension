@@ -21,7 +21,6 @@ import Settings from '../assets/icons/popup/settings.svg';
 import Logo from '../assets/icons/witty-logo-color.svg';
 import defaultConfig from '../witty.config.json';
 import './styles.scss';
-import ArrowIcon from '../shared/animations/Arrow';
 
 const Popup: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
@@ -257,7 +256,6 @@ const Popup: React.FC = () => {
           {showBackToRecomendedSites && (
             <>
               <span>{t('backToRecomendedSites')}</span>
-              <ArrowIcon play={true} />
             </>
           )}
         </div>
