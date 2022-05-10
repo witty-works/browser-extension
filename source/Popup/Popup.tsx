@@ -44,6 +44,8 @@ const Popup: React.FC = () => {
   const [casingSites, setCasingSites] = useState<string[]>(
     defaultConfig.CASING_SITES
   );
+  const [showBackToRecomendedSites, setShowBackToRecomendedSites] =
+    useState<boolean>(false);
 
   useEffect(() => {
     browser.storage.local
@@ -63,6 +65,8 @@ const Popup: React.FC = () => {
               'www.',
               ''
             );
+            !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
+              setShowBackToRecomendedSites(true);
             if (
               result[StorageKeys.DISABLED_SITES] &&
               result[StorageKeys.DISABLED_SITES].includes(currentDomain)
@@ -250,8 +254,12 @@ const Popup: React.FC = () => {
             storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, false);
           }}
         >
-          <span>{t('alfa')}</span>
-          <ArrowIcon play={true} />
+          {showBackToRecomendedSites && (
+            <>
+              <span>{t('backToRecomendedSites')}</span>
+              <ArrowIcon play={true} />
+            </>
+          )}
         </div>
         <Settings
           onClick={

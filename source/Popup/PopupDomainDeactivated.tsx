@@ -19,9 +19,7 @@ const PopupDomainDeactivated: React.FC = () => {
     <div className='domain-not-supported'>
       <div className='domain-not-supported-title-wrapper'>
         <SadFace className='domain-not-supported-icon' />
-        <div className='domain-not-supported-title'>
-          {t('noSupport')}
-        </div>
+        <div className='domain-not-supported-title'>{t('noSupport')}</div>
       </div>
 
       <div
@@ -50,7 +48,7 @@ const PopupDomainDeactivated: React.FC = () => {
             storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, true);
           }}
         >
-          {t('beta')}
+          {t('overrideRecomendedSites')}
           <ArrowIcon play={true} />
         </div>
         <Settings
