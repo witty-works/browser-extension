@@ -66,11 +66,26 @@ hr {
 }
 
 footer {
-  padding: 0 1em;
+  padding: 0 1.3em;
   display: flex;
   flex-direction: row;
   justify-content: end;
   cursor: pointer;
+}
+
+.dropdown-title-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.dropdown-premium-only {
+  margin-left: 0.5em;
+}
+
+.dropdown-lock {
+  margin-left: 0.5em;
 }
 
 .domain-not-supported {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
+import { ConfigProperty } from '../shared/types';
 import {
   StorageKeys,
   Colors,
@@ -32,14 +33,14 @@ const Popup: React.FC = () => {
   const [disabledSites, setDisabledSites] = useState<string[]>(
     defaultConfig.DISABLED_SITES
   );
-  const [spellChecking, setSpellChecking] = useState<boolean>(
-    defaultConfig.SPELL_CHECKING
+  const [orthography, setOrthography] = useState<ConfigProperty>(
+    defaultConfig.ORTHOGRAPHY
   );
-  const [inclusiveLanguage, setInclusiveLanguage] = useState<boolean>(
-    defaultConfig.INCLUSIVE_LANGUAGE
+  const [inclusiveLanguage, setInclusiveLanguage] = useState<ConfigProperty>(
+    defaultConfig.INCLUSIVE
   );
-  const [styleCorrections, setStyleCorrections] = useState<boolean>(
-    defaultConfig.STYLE_CORRECTIONS
+  const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
+    defaultConfig.STYLE
   );
   const [casing, setCasing] = useState<boolean>(true);
   const [casingSites, setCasingSites] = useState<string[]>(
@@ -50,10 +51,9 @@ const Popup: React.FC = () => {
     browser.storage.local
       .get(null)
       .then((result) => {
-        setSpellChecking(result[StorageKeys.SPELL_CHECKING]);
-        setInclusiveLanguage(result[StorageKeys.INCLUSIVE_LANGUAGE]);
-        setStyleCorrections(result[StorageKeys.STYLE_CORRECTIONS]);
-
+        setOrthography(result[StorageKeys.ORTHOGRAPHY]);
+        setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
+        setStyleCorrections(result[StorageKeys.STYLE]);
         setDisabledSites(result[StorageKeys.DISABLED_SITES]);
         setCasingSites(result[StorageKeys.CASING_SITES]);
 
@@ -95,15 +95,15 @@ const Popup: React.FC = () => {
   }, [enabled]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.SPELL_CHECKING, spellChecking);
-  }, [spellChecking]);
+    storeInLocalStorage(StorageKeys.ORTHOGRAPHY, orthography);
+  }, [orthography]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.INCLUSIVE_LANGUAGE, inclusiveLanguage);
+    storeInLocalStorage(StorageKeys.INCLUSIVE, inclusiveLanguage);
   }, [inclusiveLanguage]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.STYLE_CORRECTIONS, styleCorrections);
+    storeInLocalStorage(StorageKeys.STYLE, styleCorrections);
   }, [styleCorrections]);
 
   const onStorageError = (error: string) => {
@@ -188,33 +188,52 @@ const Popup: React.FC = () => {
         <section className='wittyworks-toggles global-settings'>
           <h2>{t('globalSettings')}</h2>
           <Toggle
-            on={spellChecking}
+            on={orthography.value as boolean}
             handleToggle={() => {
-              setSpellChecking(!spellChecking);
+              setOrthography({
+                ...orthography,
+                value:
+                  orthography.status != 'force' ? !orthography.value : false,
+              });
             }}
             color={Colors.green}
             scale={0.35}
             label={t('spellChecking')}
+            locked={orthography.status == 'force'}
           />
           <hr className='toggle-separator' />
           <Toggle
-            on={inclusiveLanguage}
+            on={inclusiveLanguage.value as boolean}
             handleToggle={() => {
-              setInclusiveLanguage(!inclusiveLanguage);
+              setInclusiveLanguage({
+                ...inclusiveLanguage,
+                value:
+                  inclusiveLanguage.status != 'force'
+                    ? !inclusiveLanguage.value
+                    : false,
+              });
             }}
             color={Colors.green}
             scale={0.35}
             label={t('inclusiveTerms')}
+            locked={inclusiveLanguage.status === 'force'}
           />
           <hr className='toggle-separator' />
           <Toggle
-            on={styleCorrections}
+            on={styleCorrections.value as boolean}
             handleToggle={() => {
-              setStyleCorrections(!styleCorrections);
+              setStyleCorrections({
+                ...styleCorrections,
+                value:
+                  styleCorrections.status != 'force'
+                    ? !styleCorrections.value
+                    : false,
+              });
             }}
             color={Colors.green}
             scale={0.35}
             label={t('styleCorrections')}
+            locked={styleCorrections.status == 'force'}
           />
           <hr className='toggle-separator' />
           <div className='wittyworks-upgrade-banner'>
