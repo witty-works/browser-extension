@@ -15,8 +15,8 @@ const PopupDomainDeactivated: React.FC = () => {
   const [pageName, setPageName] = React.useState<string>('');
   const [currentTab, setCurrentTab] = React.useState<string>('');
   const [hasVoted, setHasVoted] = React.useState<boolean>(false);
-  const analytics = useAnalytics();
   const [appId, setAppId] = React.useState<string>('');
+  const analytics = useAnalytics();
 
   useEffect(() => {
     setHasVoted(false);
