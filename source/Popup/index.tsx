@@ -30,3 +30,21 @@ browser.storage.local
       }
     });
   });
+
+const storageChange = (changes: any) => {
+  let changedItems = Object.keys(changes);
+  for (let item of changedItems) {
+    switch (item) {
+      case StorageKeys.ENABLE_WITTY_EVERYWHERE:
+        changes[item].newValue
+          ? ReactDOM.render(<Popup />, document.getElementById('popup-root'))
+          : ReactDOM.render(
+              <PopupDomainDeactivated />,
+              document.getElementById('popup-root')
+            );
+        break;
+    }
+  }
+};
+
+browser.storage.onChanged.addListener(storageChange);

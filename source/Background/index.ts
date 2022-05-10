@@ -142,13 +142,16 @@ const storageChange = (changes: any) => {
             browser.browserAction.setIcon(
               (changes[item].newValue.length > 0 &&
                 changes[item].newValue.includes(domain)) ||
-                (!defaultConfig.ACTIVE_SITES.includes(domain) &&
-                  !StorageKeys.ENABLE_WITTY_EVERYWHERE)
+                !defaultConfig.ACTIVE_SITES.includes(domain)
                 ? WittyIconInactive
                 : WittyIconActive
             );
           });
         break;
+      case StorageKeys.ENABLE_WITTY_EVERYWHERE:
+        changes[item].newValue
+          ? browser.browserAction.setIcon(WittyIconActive)
+          : browser.browserAction.setIcon(WittyIconInactive);
     }
   }
 };
