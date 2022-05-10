@@ -23,10 +23,7 @@ import defaultConfig from '../witty.config.json';
 import './styles.scss';
 
 const Popup: React.FC = () => {
-  const { t } = useTranslation([
-    namespaces.pages.options,
-    namespaces.pages.popup,
-  ]);
+  const { t } = useTranslation([namespaces.pages.popup]);
   const log = useLog('Popup');
 
   const [enabled, setEnabled] = useState<boolean>(true);

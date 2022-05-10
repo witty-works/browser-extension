@@ -28,6 +28,10 @@ export const de = {
       'Es tut uns leid! Witty unterstützt diese Webseite noch nicht offiziell.',
     vote: 'Stimme für diese Webseite ab',
     editor: 'Verwende das Witty Formular',
+    getMoreTitle: 'WITTY KANN NOCH VIEL MEHR!',
+    getMoreText: 'Upgraden, um eigene Regeln zu verwalten und zu teilen!',
+    learnMoreButton: 'Learn more DE',
+    goToDashboard: 'Go to dashboard DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -47,8 +51,6 @@ export const de = {
     getMoreTitle: 'WITTY KANN NOCH VIEL MEHR!',
     getMoreText: 'Upgraden, um eigene Regeln zu verwalten und zu teilen!',
     getMoreButton: 'Upgraden',
-    learnMoreButton: 'Learn more DE',
-    goToDashboard: 'Go to dashboard DE',
     LoginButton: 'Jetzt Anmelden',
     enableWitty: 'Witty aktivieren',
     setUpLanguages: 'Spracheinstellungen',
@@ -119,6 +121,11 @@ export const en = {
       'We’re sorry! Witty doesn’t yet officially support this website.',
     vote: 'Vote for this website',
     editor: 'Use Witty form instead',
+    getMoreTitle: 'GET MUCH MORE FROM WITTY!',
+    getMoreText:
+      'Upgrade and get access to more checks, custom rules, and much more!',
+    learnMoreButton: 'Learn more',
+    goToDashboard: 'Go to dashboard',
   },
 
   [namespaces.popover]: {
@@ -140,8 +147,6 @@ export const en = {
     getMoreText:
       'Upgrade and get access to more checks, custom rules, and much more!',
     getMoreButton: 'Upgrade now',
-    learnMoreButton: 'Learn more',
-    goToDashboard: 'Go to dashboard',
     LoginButton: 'Login Now',
     enableWitty: 'Enable Witty',
     setUpLanguages: 'Language settings',
