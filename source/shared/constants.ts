@@ -16,30 +16,42 @@ export enum StorageKeys {
   DISABLED_SITES = 'disabledSites',
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',
+  PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
-  EXPERT_MODE = 'expertMode',
-  SPELL_CHECKING = 'spellChecking',
-  STYLE_CORRECTIONS = 'styleCorrections',
-  INCLUSIVE_LANGUAGE = 'inclusiveLanguage',
-  INSPIRATIONAL_ALTERNATIVES = 'inspirationalAlternatives',
+  ORTHOGRAPHY = 'spellChecking',
+  STYLE = 'styleCorrections',
+  INCLUSIVE = 'inclusiveLanguage',
+  SHOW_INSPIRATION_ALTERNATIVES = 'inspirationalAlternatives',
   SINGULAR_THEY = 'singularThey',
   MAXIMUM_IMPORTANCE = 'maximumImportance',
   CASING_SITES = 'casingSites',
   API_DELAY = 'apiDelay',
+  GENDERED_ROLES_FORMAT = 'genderedRolesFormat',
+  USERNAME = 'username',
+  ACCESS_TOKEN = 'accessToken',
+  REFRESH_TOKEN = 'refreshToken',
   CURRENT_DOMAIN = 'currentDomain',
   ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
+  NAME = 'name', //team name
+  PLAN = 'plan',
 }
 
 //API endpoints
 export enum BaseUrls {
   API_PLATFORMSH = 'https://default.api.witty.works/',
   DEV_PLATFORMSH = 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
+  // DEV_PLATFORMSH = 'https://default.api.witty.works.dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
   WITTY_LOCAL = 'http://127.0.0.1:8000/',
 }
 
 export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(
   BaseUrls
 )[0] as keyof typeof BaseUrls;
+
+export enum ConfigPropertyStatus {
+  FORCE = 'force',
+  SUGGESTION = 'suggestion',
+}
 
 export enum Colors {
   red = '#F06464',

@@ -1,21 +1,42 @@
 {
   "DISABLED_SITES": [],
   "ACTIVE_SITES": [
+    "twitter.com",
+    "umantis.com",
     "witty.works",
     "mail.google.com",
     "linkedin.com",
     "github.com"
   ],
   "PRIMARY_LANGUAGE": "de-DE",
-  "PREFERRED_LANGUAGES": ["de-DE", "en-GB"],
-  "GERMAN_GENDER_ENDING": "colon_in",
-  "EXPERT_MODE": false,
-  "SPELL_CHECKING": true,
-  "STYLE_CORRECTIONS": true,
-  "INCLUSIVE_LANGUAGE": true,
-  "INSPIRATIONAL_ALTERNATIVES": false,
-  "SINGULAR_THEY": false,
-  "MAXIMUM_IMPORTANCE": 2,
+  "PREFERRED_LANGUAGES": { "value": ["de-DE", "en-US"] },
+  "GERMAN_GENDER_ENDING": {
+    "value": "colon_in"
+  },
+  "MAXIMUM_IMPORTANCE": {
+    "value": 2
+  },
+  "ORTHOGRAPHY": {
+    "value": true
+  },
+  "STYLE": {
+    "value": true
+  },
+  "INCLUSIVE": {
+    "value": true
+  },
+  "SHOW_INSPIRATION_ALTERNATIVES": {
+    "value": false
+  },
+  "GENDERED_ROLES_FORMAT": {
+    "value": "both"
+  },
+  "SINGULAR_THEY": {
+    "value": "he_or_she"
+  },
   "CASING_SITES": [],
-  "API_DELAY": 500
+  "API_DELAY": 500,
+  "USERNAME": "",
+  "ACCESS_TOKEN": "",
+  "REFRESH_TOKEN": ""
 }

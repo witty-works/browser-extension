@@ -5,7 +5,19 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-right: -2em;
+}
+
+.toggle-lock {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: -3rem;
+}
+
+.toggle-premium-only {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
 }
 
 .toggle-checkbox {
@@ -14,16 +26,14 @@
   visibility: hidden;
 }
 
-.toggle-lock {
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-}
-
-.toggle-premium-only {
-  display: flex;
-  align-items: center;
-  margin-right: auto;
+.toggle-lock-info {
+  position: absolute;
+  width: 30em;
+  margin-bottom: 4em;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
 }
 
 .toggle-encloser {
@@ -36,7 +46,7 @@
   transition: background-color 0.2s;
 }
 
-.toggle-encloser .toggle-button {
+.toggle-button {
   content: '';
   position: absolute;
   top: 8px;
@@ -51,8 +61,4 @@
 .toggle-checkbox:checked + .toggle-encloser .toggle-button {
   left: calc(100% - 6px);
   transform: translateX(-100%);
-}
-
-.toggle-encloser:active .toggle-button {
-  width: 60px;
 }

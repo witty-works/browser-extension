@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import '../i18n/i18n';
 import './styles.scss';
@@ -14,30 +14,13 @@ import { StorageKeys } from '../shared/constants';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
-  const [pageName, setPageName] = React.useState<string>('');
-
-  useEffect(() => {
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      console.log('tabs', tabs);
-      //Empty tab
-      if (tabs.length === 0 || !tabs[0].url) setPageName('this page');
-      else {
-        const currentDomain = new URL(tabs[0].url).hostname
-          .replace('www.', '')
-          .split('.')[0];
-        setPageName(
-          `${currentDomain.charAt(0).toUpperCase()}${currentDomain.slice(1)}`
-        );
-      }
-    });
-  }, []);
 
   return (
     <div className='domain-not-supported'>
       <div className='domain-not-supported-title-wrapper'>
         <SadFace className='domain-not-supported-icon' />
         <div className='domain-not-supported-title'>
-          {`${t('noSupport')} ${pageName}`}
+          {t('noSupport')}
         </div>
       </div>
 
