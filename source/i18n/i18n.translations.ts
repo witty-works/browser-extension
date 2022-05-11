@@ -24,7 +24,8 @@ export const de = {
     spellChecking: 'Grammatik & Rechtschreibung',
     inclusiveTerms: 'Inklusive Begriffe',
     styleCorrections: 'Stilvorschläge',
-    noSupport: 'Es tut uns leid! Witty unterstützt diese Webseite noch nicht offiziell.',
+    noSupport:
+      'Es tut uns leid! Witty unterstützt diese Webseite noch nicht offiziell.',
     vote: 'Stimme für diese Webseite ab',
     editor: 'Verwende das Witty Formular',
   },
@@ -73,16 +74,18 @@ export const de = {
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
     genderRoleFormat: 'Witty sollte folgende Vorschläge machen',
-    genderRoleFormatFemaleAndMale: 'Weibliche und männliche Form (z.B. "Managerin/Manager")',
+    genderRoleFormatFemaleAndMale:
+      'Weibliche und männliche Form (z.B. "Managerin/Manager")',
     genderRoleFormatGermanEnding: 'Gewählte Gender-Endung',
-    genderRoleFormatBoth: 'Deutsche Gender-Endung und weibliche und männliche Form',
+    genderRoleFormatBoth:
+      'Deutsche Gender-Endung und weibliche und männliche Form',
     genderRoleFormatNone: 'Nur geschlechtsneutrale Alternativen anzeigen',
     styleCorrectionExplanationUrl: 'https://www.witty.works/de/kategorien/stil',
     learnMore: 'Mehr dazu',
     primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
-    lockedInfo: 'This has been locked by the group administrator DE',
+    lockedInfo: 'Locked by group administrator DE',
   },
 };
 
@@ -110,7 +113,8 @@ export const en = {
     spellChecking: 'Check grammar & spelling',
     inclusiveTerms: 'Highlight inclusive terms',
     styleCorrections: 'Highlight style issues',
-    noSupport: 'We’re sorry! Witty doesn’t yet officially support this website.',
+    noSupport:
+      'We’re sorry! Witty doesn’t yet officially support this website.',
     vote: 'Vote for this website',
     editor: 'Use Witty form instead',
   },
@@ -160,9 +164,11 @@ export const en = {
     styleCorrectionExplanation:
       'Witty makes suggestions to make your text more understandable, or to give it authenticity or emotionality.',
     genderRoleFormat: 'Witty should suggest',
-    genderRoleFormatFemaleAndMale: 'Female and male form (e.g. "Managerin/Manager")',
+    genderRoleFormatFemaleAndMale:
+      'Female and male form (e.g. "Managerin/Manager")',
     genderRoleFormatGermanEnding: 'Chosen German gender ending',
-    genderRoleFormatBoth: 'Show both German gender ending and Female and male form',
+    genderRoleFormatBoth:
+      'Show both German gender ending and Female and male form',
     genderRoleFormatNone: 'Only show gender neutral alternatives',
     styleCorrectionExplanationUrl:
       'https://www.witty.works/en/categories/style',
@@ -170,6 +176,6 @@ export const en = {
     primaryLanguage: 'Primary Language',
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
-    lockedInfo: 'This has been locked by the group administrator',
+    lockedInfo: 'Locked by group administrator',
   },
 };

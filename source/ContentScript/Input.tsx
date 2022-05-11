@@ -24,6 +24,7 @@ import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys } from '../shared/constants';
+import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -32,6 +33,9 @@ const Input: React.FC<{
 }> = ({ element, bodyScroll, parentScroll }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
+  const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
+    useRefreshTokenEndpoint();
+  const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
   let elementRect = useResizeObserver(element);
   let elementOffsetParentRect = useResizeObserver(
@@ -176,6 +180,7 @@ const Input: React.FC<{
 
   const handleTextAndIcon = (text: string, event?: Event) => {
     //If there isn't text, there's nothing to highlight
+    setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setNodesWithAlerts([]);
@@ -612,11 +617,33 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    if (checkEndpointError)
-      log(
-        `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
-        logTypes.ERROR
-      );
+    if (checkEndpointError) {
+      //gets new access token using the refresh token if the access token has expired
+      if (checkEndpointError.status == 403) {
+        browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
+          if (result[StorageKeys.REFRESH_TOKEN] == '') return;
+          setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
+          if (refreshTokenError || !refreshTokenResponse) return;
+          storeInLocalStorage(
+            StorageKeys.ACCESS_TOKEN,
+            refreshTokenResponse.access_token
+          );
+          storeInLocalStorage(
+            StorageKeys.REFRESH_TOKEN,
+            refreshTokenResponse.refresh_token
+          );
+          storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
+
+          setTextToCheck('');
+          setTextToCheck(currentTextToCheck);
+        });
+      } else {
+        log(
+          `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
+          logTypes.ERROR
+        );
+      }
+    }
   }, [checkEndpointError]);
 
   return (
