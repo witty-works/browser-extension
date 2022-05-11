@@ -43,6 +43,8 @@ const Popup: React.FC = () => {
   const [casingSites, setCasingSites] = useState<string[]>(
     defaultConfig.CASING_SITES
   );
+  const [showBackToRecomendedSites, setShowBackToRecomendedSites] =
+    useState<boolean>(false);
 
   useEffect(() => {
     browser.storage.local
@@ -62,6 +64,8 @@ const Popup: React.FC = () => {
               'www.',
               ''
             );
+            !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
+              setShowBackToRecomendedSites(true);
             if (
               result[StorageKeys.DISABLED_SITES] &&
               result[StorageKeys.DISABLED_SITES].includes(currentDomain)
@@ -243,6 +247,18 @@ const Popup: React.FC = () => {
         </section>
       )}
       <footer>
+        <div
+          className='enable-witty'
+          onClick={() => {
+            storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, false);
+          }}
+        >
+          {showBackToRecomendedSites && (
+            <>
+              <span>{t('backToRecomendedSites')}</span>
+            </>
+          )}
+        </div>
         <Settings
           onClick={
             //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
