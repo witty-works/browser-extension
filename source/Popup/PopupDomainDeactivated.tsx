@@ -8,6 +8,9 @@ import EditorButton from '../assets/icons/popup/editor-button.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import Settings from '../assets/icons/popup/settings.svg';
+import ArrowIcon from '../shared/animations/Arrow';
+import { storeInLocalStorage } from '../shared/utils';
+import { StorageKeys } from '../shared/constants';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
@@ -16,9 +19,7 @@ const PopupDomainDeactivated: React.FC = () => {
     <div className='domain-not-supported'>
       <div className='domain-not-supported-title-wrapper'>
         <SadFace className='domain-not-supported-icon' />
-        <div className='domain-not-supported-title'>
-          {t('noSupport')}
-        </div>
+        <div className='domain-not-supported-title'>{t('noSupport')}</div>
       </div>
 
       <div
@@ -41,6 +42,15 @@ const PopupDomainDeactivated: React.FC = () => {
         <div>{t('editor')}</div>
       </div>
       <footer>
+        <div
+          className='enable-witty'
+          onClick={() => {
+            storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, true);
+          }}
+        >
+          <ArrowIcon play={true} />
+          {t('overrideRecomendedSites')}
+        </div>
         <Settings
           onClick={
             //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour

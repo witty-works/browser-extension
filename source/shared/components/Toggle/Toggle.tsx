@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import './Toggle.scss';
 import Lock from '../../../assets/icons/options/lock.svg';
@@ -28,7 +28,6 @@ const Toggle: React.FC<ToggleProps> = ({
   userIsLoggedIn = true,
 }: ToggleProps) => {
   const { t } = useTranslation([namespaces.pages.options]);
-  const [lockHovered, setLockHovered] = useState<boolean>(false);
   console.log('on', on);
   return (
     <>
@@ -59,15 +58,9 @@ const Toggle: React.FC<ToggleProps> = ({
           </>
         )}
         {userIsLoggedIn && locked && hasWittyTeams && (
-          <div
-            className='toggle-lock'
-            onMouseEnter={() => setLockHovered(true)}
-            onMouseLeave={() => setLockHovered(false)}
-          >
+          <div className='toggle-lock'>
             <Lock />
-            {lockHovered && (
-              <div className='toggle-lock-info'> {t('lockedInfo')} </div>
-            )}
+            {<div className='toggle-lock-info'> {t('lockedInfo')} </div>}
           </div>
         )}
 

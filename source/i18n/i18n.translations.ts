@@ -32,6 +32,8 @@ export const de = {
     getMoreText: 'Upgraden, um eigene Regeln zu verwalten und zu teilen!',
     learnMoreButton: 'Learn more DE',
     goToDashboard: 'Go to dashboard DE',
+    overrideRecomendedSites: 'Witty auch auf dieser Webseite nutzen',
+    backToRecomendedSites: 'Witty nur auf unterstützten Webseiten aktiv',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -89,7 +91,7 @@ export const de = {
     primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
-    lockedInfo: 'This has been locked by the group administrator DE',
+    lockedInfo: 'Locked by group administrator DE',
   },
 };
 
@@ -126,6 +128,8 @@ export const en = {
       'Upgrade and get access to more checks, custom rules, and much more!',
     learnMoreButton: 'Learn more',
     goToDashboard: 'Go to dashboard',
+    overrideRecomendedSites: 'Use Witty also on this website',
+    backToRecomendedSites: 'Use Witty only on supported websites',
   },
 
   [namespaces.popover]: {
@@ -185,6 +189,6 @@ export const en = {
     primaryLanguage: 'Primary Language',
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
-    lockedInfo: 'This has been locked by the group administrator',
+    lockedInfo: 'Locked by group administrator',
   },
 };

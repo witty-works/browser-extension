@@ -20,48 +20,51 @@ const customRender = (enabled: boolean) => {
   );
 };
 
-if (
-  !defaultConfig.ACTIVE_SITES.includes(
-    window.location.hostname.replace('www.', '')
-  )
-) {
-  customRender(false);
-} else {
-  //get extension enable status
-  browser.storage.local
-    .get(StorageKeys.DISABLED_SITES)
-    .then((result) => {
-      customRender(
-        !result[StorageKeys.DISABLED_SITES].includes(
-          window.location.hostname.replace('www.', '')
-        )
-      );
-    })
-    .catch((error: string) => {
-      log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-    });
-}
+browser.storage.local
+  .get(null)
+  .then((result) => {
+    if (
+      result[StorageKeys.ENABLE_WITTY_EVERYWHERE] &&
+      !result[StorageKeys.DISABLED_SITES].includes(
+        window.location.hostname.replace('www.', '')
+      )
+    ) {
+      customRender(true);
+    } else if (
+      !defaultConfig.ACTIVE_SITES.includes(
+        window.location.hostname.replace('www.', '')
+      )
+    ) {
+      customRender(false);
+    }
+  })
+  .catch((error: string) => {
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+  });
 
 //TODO define changes type
 const storageChange = (changes: any) => {
-  if (
-    !defaultConfig.ACTIVE_SITES.includes(
-      window.location.hostname.replace('www.', '')
-    )
-  ) {
-    customRender(false);
-  } else {
-    let changedItems = Object.keys(changes);
-    for (let item of changedItems) {
-      switch (item) {
-        case StorageKeys.DISABLED_SITES:
-          customRender(
-            !changes[item].newValue.includes(
-              window.location.hostname.replace('www.', '')
-            )
-          );
-          break;
-      }
+  let changedItems = Object.keys(changes);
+  for (let item of changedItems) {
+    switch (item) {
+      case StorageKeys.DISABLED_SITES:
+        customRender(
+          !changes[item].newValue.includes(
+            window.location.hostname.replace('www.', '')
+          )
+        );
+        break;
+      case StorageKeys.ENABLE_WITTY_EVERYWHERE:
+        customRender(changes[item].newValue);
+        if (
+          changes[item].newValue &&
+          !defaultConfig.ACTIVE_SITES.includes(
+            window.location.hostname.replace('www.', '')
+          )
+        ) {
+          customRender(false);
+        }
+        break;
     }
   }
 };
