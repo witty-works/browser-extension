@@ -26,6 +26,7 @@ import Toggle from '../shared/components/Toggle/Toggle';
 import './styles.scss';
 import { setBaseUrls, setToken } from '../shared/ApiServices/requests';
 import GenderRoleFormatSelector from '../Popup/GenderRoleFormatSelector';
+import LoadingIcon from '../shared/StateIndicatorIcons/LoadingIcon';
 
 const Options: React.FC = () => {
   const { t } = useTranslation([
@@ -71,6 +72,7 @@ const Options: React.FC = () => {
   const originalOptionsUri = window.location.href;
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(false);
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
@@ -288,47 +290,51 @@ const Options: React.FC = () => {
           </div>
         </div>
 
-        <section className='wittyworks-options-login'>
-          {username === '' ? (
+        {username === '' ? (
+          <section className='wittyworks-options-login'>
+            {loading && (
+              <div className='wittyworks-options-loading-icon'>
+                <LoadingIcon />
+              </div>
+            )}
             <div
               className='wittyworks-options-button'
               onClick={() => {
                 logIn();
+                setLoading(true);
               }}
             >
               {t('LoginButton')}
             </div>
-          ) : (
-            <>
-              <div className='wittyworks-options-login-text'>
-                {t('greeting')}{' '}
-                <span className='wittyworks-options-login-cursiva'>
-                  {username}{' '}
-                </span>
-                {teamName !== '' && subscriptionPlan !== '' && (
-                  <div>
-                    {t('greetingTeam')}{' '}
-                    <span className='wittyworks-options-login-cursiva'>
-                      {teamName}{' '}
-                    </span>
-                    {t('greetingPlan')}{' '}
-                    <span className='wittyworks-options-login-cursiva'>
-                      {subscriptionPlan
-                        .replace(/_/g, ' ')
-                        .replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div
-                className='wittyworks-options-button'
-                onClick={() => logOut()}
-              >
-                {t('Logout')}
-              </div>
-            </>
-          )}
-        </section>
+          </section>
+        ) : (
+          <section className='wittyworks-options-logout'>
+            <div className='wittyworks-options-login-text'>
+              {t('greeting')}{' '}
+              <span className='wittyworks-options-login-cursiva'>
+                {username}{' '}
+              </span>
+              {teamName !== '' && subscriptionPlan !== '' && (
+                <div>
+                  {t('greetingTeam')}{' '}
+                  <span className='wittyworks-options-login-cursiva'>
+                    {teamName}{' '}
+                  </span>
+                  {t('greetingPlan')}{' '}
+                  <span className='wittyworks-options-login-cursiva'>
+                    {subscriptionPlan
+                      .replace(/_/g, ' ')
+                      .replace(/\b\w/g, (l) => l.toUpperCase())}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className='wittyworks-options-button' onClick={() => logOut()}>
+              {t('Logout')}
+            </div>
+          </section>
+        )}
+
         <section className='wittyworks-options-content-section'>
           <div
             className='wittyworks-options-content-section-title'

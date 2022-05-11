@@ -117,6 +117,17 @@
   flex-direction: row;
   padding: 1.1em;
   margin: 1em 0;
+  justify-content: right;
+  align-items: center;
+  background: #fafafa;
+  border-radius: 10px;
+}
+
+.wittyworks-options-logout {
+  display: flex;
+  flex-direction: row;
+  padding: 1.1em;
+  margin: 1em 0;
   justify-content: space-between;
   align-items: center;
   background: #fafafa;
@@ -259,4 +270,9 @@
   color: $white;
   font-weight: 600;
   cursor: pointer;
+}
+
+.wittyworks-options-loading-icon {
+  margin-bottom: 0em !important;
+  margin-right: 2em;
 }
