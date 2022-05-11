@@ -23,7 +23,7 @@ import defaultConfig from '../witty.config.json';
 import './styles.scss';
 
 const Popup: React.FC = () => {
-  const { t } = useTranslation(namespaces.pages.popup);
+  const { t } = useTranslation([namespaces.pages.popup]);
   const log = useLog('Popup');
 
   const [enabled, setEnabled] = useState<boolean>(true);
@@ -43,6 +43,7 @@ const Popup: React.FC = () => {
   const [casingSites, setCasingSites] = useState<string[]>(
     defaultConfig.CASING_SITES
   );
+  const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(false);
   const [showBackToRecomendedSites, setShowBackToRecomendedSites] =
     useState<boolean>(false);
 
@@ -55,6 +56,9 @@ const Popup: React.FC = () => {
         setStyleCorrections(result[StorageKeys.STYLE]);
         setDisabledSites(result[StorageKeys.DISABLED_SITES]);
         setCasingSites(result[StorageKeys.CASING_SITES]);
+        result[StorageKeys.PLAN] == 'witty_teams'
+          ? setHasWittyTeams(true)
+          : setHasWittyTeams(false);
 
         browser.tabs
           .query({ active: true, currentWindow: true })
@@ -237,6 +241,37 @@ const Popup: React.FC = () => {
             locked={styleCorrections.status == 'force'}
           />
           <hr className='toggle-separator' />
+          {hasWittyTeams ? (
+            <div className='wittyworks-dashboard-button-container'>
+              <div
+                className='wittyworks-dashboard-button'
+                onClick={() => {
+                  window.open('https://dashboard.lndo.site/', '_blank');
+                }}
+              >
+                {t('goToDashboard')}
+              </div>
+            </div>
+          ) : (
+            <div className='wittyworks-upgrade-banner-popup'>
+              <div className='wittyworks-upgrade-banner-popup-text-container'>
+                <div className='wittyworks-upgrade-banner-popup-title'>
+                  {t('getMoreTitle')}
+                </div>
+                <div className='wittyworks-upgrade-banner-popup-text'>
+                  {t('getMoreText')}
+                </div>
+              </div>
+              <div
+                className='wittyworks-upgrade-banner-popup-button'
+                onClick={() => {
+                  window.open('https://www.witty.works/pricing', '_blank');
+                }}
+              >
+                {t('learnMoreButton')}
+              </div>
+            </div>
+          )}
         </section>
       )}
       {DEV_ENV && (
