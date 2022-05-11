@@ -249,17 +249,17 @@ const Popup: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className='wittyworks-upgrade-banner'>
-              <div className='wittyworks-upgrade-banner-text-container'>
-                <div className='wittyworks-upgrade-banner-title'>
+            <div className='wittyworks-upgrade-banner-popup'>
+              <div className='wittyworks-upgrade-banner-popup-text-container'>
+                <div className='wittyworks-upgrade-banner-popup-title'>
                   {t('getMoreTitle')}
                 </div>
-                <div className='wittyworks-upgrade-banner-text'>
+                <div className='wittyworks-upgrade-banner-popup-text'>
                   {t('getMoreText')}
                 </div>
               </div>
               <div
-                className='wittyworks-upgrade-banner-button'
+                className='wittyworks-upgrade-banner-popup-button'
                 onClick={() => {
                   window.open('https://www.witty.works/pricing', '_blank');
                 }}

@@ -129,7 +129,7 @@ footer {
   cursor: pointer;
 }
 
-.wittyworks-upgrade-banner {
+.wittyworks-upgrade-banner-popup {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -158,16 +158,16 @@ footer {
       border-box;
 }
 
-.wittyworks-upgrade-banner-text-container {
+.wittyworks-upgrade-banner-popup-text-container {
   color: $wittyPurple;
 }
 
-.wittyworks-upgrade-banner-title {
+.wittyworks-upgrade-banner-popup-title {
   font-weight: 700;
   margin: 4px 0px;
 }
 
-.wittyworks-upgrade-banner-button {
+.wittyworks-upgrade-banner-popup-button {
   display: flex;
   width: 93px;
   height: 22px;
