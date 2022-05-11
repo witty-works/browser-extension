@@ -24,7 +24,7 @@ import { namespaces } from '../i18n/i18n.constants';
 import '../i18n/i18n';
 import Toggle from '../shared/components/Toggle/Toggle';
 import './styles.scss';
-import { setBaseURL, setToken } from '../shared/ApiServices/requests';
+import { setBaseUrls, setToken } from '../shared/ApiServices/requests';
 import GenderRoleFormatSelector from '../Popup/GenderRoleFormatSelector';
 
 const Options: React.FC = () => {
@@ -74,8 +74,8 @@ const Options: React.FC = () => {
 
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
-      //Set the Endpoint url
-      setBaseURL(
+      //Set the API/Dashboard urls
+      setBaseUrls(
         result[StorageKeys.API_ENDPOINT_KEY]
           ? result[StorageKeys.API_ENDPOINT_KEY]
           : DefaultBaseUrlKey
