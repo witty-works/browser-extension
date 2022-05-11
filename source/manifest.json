@@ -52,6 +52,7 @@
     }
   ],
   "web_accessible_resources": [
+    "options.html",
     "assets/icons/w-logo-wire-color.svg",
     "assets/icons/popover/ignore.svg",
     "assets/icons/popover/arrow.svg",

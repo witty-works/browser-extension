@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import '../i18n/i18n';
 import './styles.scss';
@@ -7,34 +7,19 @@ import UpvoteButton from '../assets/icons/popup/upvote-button.svg';
 import EditorButton from '../assets/icons/popup/editor-button.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import Settings from '../assets/icons/popup/settings.svg';
+import ArrowIcon from '../shared/animations/Arrow';
+import { storeInLocalStorage } from '../shared/utils';
+import { StorageKeys } from '../shared/constants';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
-  const [pageName, setPageName] = React.useState<string>('');
-
-  useEffect(() => {
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      console.log('tabs', tabs);
-      //Empty tab
-      if (tabs.length === 0 || !tabs[0].url) setPageName('this page');
-      else {
-        const currentDomain = new URL(tabs[0].url).hostname
-          .replace('www.', '')
-          .split('.')[0];
-        setPageName(
-          `${currentDomain.charAt(0).toUpperCase()}${currentDomain.slice(1)}`
-        );
-      }
-    });
-  }, []);
 
   return (
     <div className='domain-not-supported'>
       <div className='domain-not-supported-title-wrapper'>
         <SadFace className='domain-not-supported-icon' />
-        <div className='domain-not-supported-title'>
-          {`${t('noSupport')} ${pageName}`}
-        </div>
+        <div className='domain-not-supported-title'>{t('noSupport')}</div>
       </div>
 
       <div
@@ -56,6 +41,23 @@ const PopupDomainDeactivated: React.FC = () => {
         <EditorButton />
         <div>{t('editor')}</div>
       </div>
+      <footer>
+        <div
+          className='enable-witty'
+          onClick={() => {
+            storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, true);
+          }}
+        >
+          <ArrowIcon play={true} />
+          {t('overrideRecomendedSites')}
+        </div>
+        <Settings
+          onClick={
+            //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
+            () => browser.runtime.openOptionsPage().then(() => window.close())
+          }
+        />
+      </footer>
     </div>
   );
 };

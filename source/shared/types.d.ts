@@ -7,6 +7,12 @@ export interface RequestConfig {
   maximum_importance: number;
   singular_they: string;
   show_inspiration_alternatives: boolean;
+  gendered_roles_format: string;
+}
+
+export interface ConfigProperty {
+  value: string | string[] | boolean | number;
+  status?: string;
 }
 export interface ScrollPos {
   top: number;
@@ -35,6 +41,7 @@ export interface IAlert {
   startOffset: number;
   endOffset: number;
   data: IAlertContentData;
+  groupId?: string | null;
 }
 export interface IAlertContentData {
   text: string;
@@ -50,9 +57,39 @@ export interface IAlertContentData {
 
 export interface ICheckResponse {
   results: ICheckResponseResult[];
+  organization_config: IAuthResponse;
   language: string;
+  limit_reached: boolean;
+  organization_config: IOrganizationConfig;
+}
+export interface IAuthResponse {
+  config: {
+    store_context: ConfigProperty;
+    preferred_variants: ConfigProperty;
+    german_gender_ending: ConfigProperty;
+    gendered_roles_format: ConfigProperty;
+    inclusive: ConfigProperty;
+    style: ConfigProperty;
+    orthography: ConfigProperty;
+    singular_they: ConfigProperty;
+    show_inspiration_alternatives: ConfigProperty;
+    maximum_importance: ConfigProperty;
+  };
+  id: string;
+  name: string;
+  plan: string;
+}
+export interface IRefreshTokenResponse {
+  email: string;
+  refresh_token: string;
+  access_token: string;
 }
 
+export interface IOrganizationConfig {
+  id: string;
+  name: string;
+  plan: string;
+}
 export interface ICheckResponseResult {
   text: string;
   context: string;
