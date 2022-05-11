@@ -1,15 +1,15 @@
 import { IRequest, RequestConfig } from '../types';
 import { BaseUrls, wittyVersion } from '../constants';
 
-let BASE_URL: string = '';
+let BASE_URL: string[] = [];
 let token: string = '';
 export let appID: string = ''; // TODO context hook
 export let requestConfig: RequestConfig = {} as RequestConfig;
 
 const createUrl = (base: string, path: string): string => `${base}${path}`;
 
-export const setBaseURL = (urlKey: string) =>
-  (BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls]);
+export const setBaseURL = (urlKey: string) => (BASE_URL = BaseUrls[urlKey]);
+console.log('BASE_URL', BASE_URL);
 
 export const setRequestConfig = (reqConfig: RequestConfig) =>
   (requestConfig = reqConfig);
@@ -20,7 +20,7 @@ export const setToken = (tok: string) => (token = tok);
 
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
-    url: createUrl(BASE_URL, 'v1.1/check'),
+    url: createUrl(BASE_URL[0], 'v1.1/check'),
     config: {
       method: 'POST',
       headers: {
@@ -43,7 +43,7 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
 
 export const getConfiguration = (): IRequest => {
   return {
-    url: createUrl(BASE_URL, 'auth'),
+    url: createUrl(BASE_URL[0], 'auth'),
     config: {
       method: 'POST',
       headers: {
@@ -57,7 +57,7 @@ export const getConfiguration = (): IRequest => {
 
 export const getToken = (refreshToken: string): IRequest => {
   return {
-    url: 'https://dashboard.lndo.site/api/refresh-token',
+    url: createUrl(BASE_URL[1], 'api/refresh-token'),
     config: {
       method: 'POST',
       headers: {
