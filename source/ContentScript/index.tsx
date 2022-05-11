@@ -24,8 +24,11 @@ browser.storage.local
   .get(null)
   .then((result) => {
     if (
-      result[StorageKeys.ENABLE_WITTY_EVERYWHERE] &&
-      !result[StorageKeys.DISABLED_SITES].includes(
+      (result[StorageKeys.ENABLE_WITTY_EVERYWHERE] &&
+        !result[StorageKeys.DISABLED_SITES].includes(
+          window.location.hostname.replace('www.', '')
+        )) ||
+      defaultConfig.ACTIVE_SITES.includes(
         window.location.hostname.replace('www.', '')
       )
     ) {
