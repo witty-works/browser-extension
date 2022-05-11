@@ -175,7 +175,7 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.PREFERRED_VARIANTS:
           setReqConfig({
             ...reqConfigRef.current,
-            preferred_variants: changes[item].newValue.join(','),
+            preferred_variants: changes[item].newValue.value.join(','),
           });
           break;
         case StorageKeys.GERMAN_GENDER_ENDING:

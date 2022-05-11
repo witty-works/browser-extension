@@ -637,7 +637,6 @@ const Input: React.FC<{
           setTextToCheck('');
           setTextToCheck(currentTextToCheck);
         });
-      } else {
         log(
           `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
           logTypes.ERROR
