@@ -4,6 +4,7 @@ import defaultConfig from '../witty.config.json';
 import PopupDomainDeactivated from './PopupDomainDeactivated';
 import Popup from './Popup';
 import { browser } from 'webextension-polyfill-ts';
+import { getDomainWithoutSubdomain } from '../shared/utils';
 
 browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
   if (tabs.length === 0 || !tabs[0].url)
@@ -13,9 +14,9 @@ browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
       document.getElementById('popup-root')
     );
   else {
-    const currentDomain = new URL(tabs[0].url).hostname.replace('www.', '');
+    const domain = getDomainWithoutSubdomain(tabs[0].url);
     ReactDOM.render(
-      defaultConfig.ACTIVE_SITES.includes(currentDomain) ? (
+      defaultConfig.ACTIVE_SITES.includes(domain) ? (
         <Popup />
       ) : (
         <PopupDomainDeactivated />

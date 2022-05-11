@@ -6,7 +6,7 @@ import {
   WittyIconActive,
   WittyIconInactive,
 } from '../shared/constants';
-import { isFunction } from '../shared/utils';
+import { getDomainWithoutSubdomain, isFunction } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -111,7 +111,7 @@ const setSettings = () => {
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs.length === 0 || !tabs[0].url) return;
-    const domain = new URL(tabs[0].url).hostname.replace('www.', '');
+    const domain = getDomainWithoutSubdomain(tabs[0].url);
 
     browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
       browser.browserAction.setIcon(
@@ -136,7 +136,7 @@ const storageChange = (changes: any) => {
           .query({ active: true, currentWindow: true })
           .then((tabs) => {
             if (tabs.length === 0 || !tabs[0].url) return;
-            const domain = new URL(tabs[0].url).hostname.replace('www.', '');
+            const domain = getDomainWithoutSubdomain(tabs[0].url);
 
             browser.browserAction.setIcon(
               (changes[item].newValue.length > 0 &&

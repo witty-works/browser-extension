@@ -5,6 +5,7 @@ import { StorageKeys } from '../shared/constants';
 import ContentScriptApp from './ContentScriptApp';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
+import { getDomainWithoutSubdomain } from '../shared/utils';
 
 const log = useLog('ContentScript index');
 
@@ -20,11 +21,8 @@ const customRender = (enabled: boolean) => {
   );
 };
 
-if (
-  !defaultConfig.ACTIVE_SITES.includes(
-    window.location.hostname.replace('www.', '')
-  )
-) {
+const domain = getDomainWithoutSubdomain(window.location.hostname);
+if (!defaultConfig.ACTIVE_SITES.includes(domain)) {
   customRender(false);
 } else {
   //get extension enable status
@@ -44,11 +42,7 @@ if (
 
 //TODO define changes type
 const storageChange = (changes: any) => {
-  if (
-    !defaultConfig.ACTIVE_SITES.includes(
-      window.location.hostname.replace('www.', '')
-    )
-  ) {
+  if (!defaultConfig.ACTIVE_SITES.includes(domain)) {
     customRender(false);
   } else {
     let changedItems = Object.keys(changes);
