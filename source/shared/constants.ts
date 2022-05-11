@@ -36,21 +36,32 @@ export enum StorageKeys {
 }
 
 //nlp api, dashboard
-export const BaseUrls: IBaseUrls = {
-  prod: ['https://default.api.witty.works/', 'https://dashboard.witty.works/'],
-  dev: [
-    'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
-    'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
-  ],
-  local: ['http://127.0.0.1:8000/', 'https://dashboard.lndo.site/'],
+export type BaseUrl = {
+  api: string;
+  dashboard: string;
 };
 
 interface IBaseUrls {
-  [key: string]: string[];
+  [key: string]: BaseUrl;
 }
 
+export const BaseUrls: IBaseUrls = {
+  Prod: {
+    api: 'https://default.api.witty.works/',
+    dashboard: 'https://dashboard.witty.works/',
+  },
+  Dev: {
+    api: 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
+    dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
+  },
+  Local: {
+    api: 'http://127.0.0.1:8000/',
+    dashboard: 'https://dashboard.lndo.site/',
+  },
+};
+
 export const DefaultBaseUrlKey: keyof typeof BaseUrls =
-  'prod' as keyof typeof BaseUrls;
+  'Prod' as keyof typeof BaseUrls;
 
 export enum ConfigPropertyStatus {
   FORCE = 'force',

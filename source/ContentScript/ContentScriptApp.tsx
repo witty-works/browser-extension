@@ -10,7 +10,7 @@ import {
   GermanGenderEndings,
 } from '../shared/constants';
 import {
-  setBaseURL,
+  setBaseUrls,
   setRequestConfig,
   setAppID,
   setToken,
@@ -57,8 +57,8 @@ const ContentScriptApp: React.FC = () => {
         //Set appID
         setAppID(result[StorageKeys.APP_ID]);
 
-        //Set the Endpoint url
-        setBaseURL(
+        //Set the API/Dashboard urls
+        setBaseUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
@@ -153,7 +153,7 @@ const ContentScriptApp: React.FC = () => {
     for (let item of changedItems) {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
-          setBaseURL(changes[item].newValue);
+          setBaseUrls(changes[item].newValue);
           break;
         case StorageKeys.ACCESS_TOKEN:
           setToken(changes[item].newValue);
