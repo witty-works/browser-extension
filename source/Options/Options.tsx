@@ -441,7 +441,7 @@ const Options: React.FC = () => {
                       setInspirationalAlternatives({
                         ...inspirationalAlternatives,
                         value:
-                          inspirationalAlternatives.status != 'force' ||
+                          inspirationalAlternatives.status != 'force' &&
                           hasWittyTeams
                             ? !inspirationalAlternatives.value
                             : inspirationalAlternatives.value,
