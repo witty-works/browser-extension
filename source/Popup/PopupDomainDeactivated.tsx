@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import '../i18n/i18n';
 import './styles.scss';
@@ -12,10 +12,10 @@ import { StorageKeys } from '../shared/constants';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
-  const [pageName, setPageName] = React.useState<string>('');
-  const [currentTab, setCurrentTab] = React.useState<string>('');
-  const [hasVoted, setHasVoted] = React.useState<boolean>(false);
-  const [appId, setAppId] = React.useState<string>('');
+  const [pageName, setPageName] = useState<string>('');
+  const [currentTab, setCurrentTab] = useState<string>('');
+  const [hasVoted, setHasVoted] = useState<boolean>(false);
+  const [appId, setAppId] = useState<string>('');
   const analytics = useAnalytics();
 
   useEffect(() => {
@@ -57,7 +57,7 @@ const PopupDomainDeactivated: React.FC = () => {
         }}
       >
         <UpvoteButton />
-        {!hasVoted ? <div>{t('vote')}</div> : <div>{t('thanks')}</div>}
+        <div>{!hasVoted ? t('vote') : t('thanks')}</div>
       </div>
 
       <div
