@@ -170,6 +170,11 @@ const ContentScriptApp: React.FC = () => {
             preferred_languages: changes[item].newValue.value
               .map((lang: string) => lang.split('-')[0])
               .join(','),
+          });
+          break;
+        case StorageKeys.PREFERRED_VARIANTS:
+          setReqConfig({
+            ...reqConfigRef.current,
             preferred_variants: changes[item].newValue.join(','),
           });
           break;
