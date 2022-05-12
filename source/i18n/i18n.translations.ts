@@ -24,6 +24,7 @@ export const de = {
     spellChecking: 'Grammatik & Rechtschreibung',
     inclusiveTerms: 'Inklusive Begriffe',
     styleCorrections: 'Stilvorschläge',
+    thanks: 'Thanks for your feedback! DE',
     noSupport:
       'Es tut uns leid! Witty unterstützt diese Webseite noch nicht offiziell.',
     vote: 'Stimme für diese Webseite ab',
@@ -119,6 +120,7 @@ export const en = {
     spellChecking: 'Check grammar & spelling',
     inclusiveTerms: 'Highlight inclusive terms',
     styleCorrections: 'Highlight style issues',
+    thanks: 'Thanks for your feedback!',
     noSupport:
       'We’re sorry! Witty doesn’t yet officially support this website.',
     vote: 'Vote for this website',

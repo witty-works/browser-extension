@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import '../i18n/i18n';
 import './styles.scss';
@@ -7,6 +7,7 @@ import UpvoteButton from '../assets/icons/popup/upvote-button.svg';
 import EditorButton from '../assets/icons/popup/editor-button.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import Settings from '../assets/icons/popup/settings.svg';
 import ArrowIcon from '../shared/animations/Arrow';
 import { storeInLocalStorage } from '../shared/utils';
@@ -14,6 +15,23 @@ import { StorageKeys } from '../shared/constants';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
+  const [currentTab, setCurrentTab] = useState<string>('');
+  const [hasVoted, setHasVoted] = useState<boolean>(false);
+  const [appId, setAppId] = useState<string>('');
+  const analytics = useAnalytics();
+
+  useEffect(() => {
+    setHasVoted(false);
+
+    browser.storage.local.get(null).then((result) => {
+      setAppId(result[StorageKeys.APP_ID]);
+    });
+
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      if (tabs.length != 0 && tabs[0].url) setCurrentTab(tabs[0].url);
+      console.log('currentTab', tabs[0].url);
+    });
+  }, []);
 
   return (
     <div className='domain-not-supported'>
@@ -24,12 +42,13 @@ const PopupDomainDeactivated: React.FC = () => {
 
       <div
         className='domain-not-supported-container'
-        onClick={() =>
-          browser.tabs.create({ url: 'https://roadmap.witty.works/' })
-        }
+        onClick={() => {
+          analytics.voteForUrlLog(currentTab, appId);
+          setHasVoted(true);
+        }}
       >
         <UpvoteButton />
-        <div>{t('vote')}</div>
+        <div>{!hasVoted ? t('vote') : t('thanks')}</div>
       </div>
 
       <div
