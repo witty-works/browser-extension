@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
@@ -34,7 +34,6 @@ width: 0px !important;height: 0px !important; top: 0px !important;left: 0px !imp
 position: relative !important;visibility: visible !important;overflow: visible !important;`;
 
 const ContentScriptApp: React.FC = () => {
-  const [enabled, setEnabled] = useState<boolean>(false);
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
     {} as RequestConfig
   );
@@ -68,11 +67,8 @@ const ContentScriptApp: React.FC = () => {
         //Set appID
         setAppID(result[StorageKeys.APP_ID]);
 
-        if (result[StorageKeys.APP_ENABLED])
-          setEnabled(result[StorageKeys.APP_ENABLED]);
-
-        //Set the Endpoint url
-        setBaseURL(
+        //Set the API/Dashboard urls
+        setBaseUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
@@ -167,9 +163,6 @@ const ContentScriptApp: React.FC = () => {
 
     for (let item of changedItems) {
       switch (item) {
-        case StorageKeys.APP_ENABLED:
-          setEnabled(changes[item].newValue);
-          break;
         case StorageKeys.API_ENDPOINT_KEY:
           setBaseUrls(changes[item].newValue);
           break;
@@ -346,7 +339,7 @@ const ContentScriptApp: React.FC = () => {
   }, [hoveredElementRef.current]);
 
   useEffect(() => {
-    if (enabled && inputs.length > 0) {
+    if (inputs.length > 0) {
       log(
         `Analyzed inputs:`,
         logTypes.INFO,
@@ -371,7 +364,7 @@ const ContentScriptApp: React.FC = () => {
         }
       });
     }
-  }, [enabled, inputs]);
+  }, [inputs]);
 
   // Check if tracked inputs exists or are still visible
   // If not, remove them from the list of inputs. This way the highlights are also removed

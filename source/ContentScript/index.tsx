@@ -9,17 +9,16 @@ import { getDomainWithoutSubdomain } from '../shared/utils';
 
 const log = useLog('ContentScript index');
 
-//Main element to add extra markup
-const element = document.createElement('witty-code');
-element.setAttribute('extension-id', browser.runtime.id);
-document.body.appendChild(element);
-
 const customRender = (enabled: boolean) => {
-  if (enabled)
-    document.body.appendChild(document.createElement(WTags.WW_POPOVER));
+  if (!document.querySelector(WTags.WW_POPOVER)) {
+    const element = document.createElement(WTags.WW_POPOVER);
+    element.setAttribute('extension-id', browser.runtime.id);
+    document.body.appendChild(element);
+  }
+
   ReactDOM.render(
     enabled ? <ContentScriptApp /> : <></>,
-    document.querySelector(WTags.WW_CONTAINER)
+    document.querySelector(WTags.WW_POPOVER)
   );
 };
 
