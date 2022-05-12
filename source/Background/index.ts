@@ -14,7 +14,13 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 const analytics = useAnalytics();
 const log = useLog('Background index');
 const devAppId = 'DEV_APP_ID';
-type DefaultConfigValue = string | boolean | number | string[] | (() => string);
+type DefaultConfigValue =
+  | string
+  | boolean
+  | number
+  | string[]
+  | object
+  | (() => string);
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (!DEV_ENV)
@@ -86,7 +92,12 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
 };
 
 const onSave = (key: string, value: DefaultConfigValue) => {
-  log(`Key *${key}* with value *${value}* saved correctly in local storage`);
+  log(
+    `Key *${key}* with value *${(typeof value === 'object'
+      ? JSON.stringify(value)
+      : value
+    ).toString()}* saved correctly in local storage`
+  );
 };
 
 const onError = (error: string) => {
@@ -113,12 +124,13 @@ const scanTabsToDetectStatus = () => {
     if (tabs.length === 0 || !tabs[0].url) return;
     const domain = new URL(tabs[0].url).hostname.replace('www.', '');
 
-    browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
+    browser.storage.local.get(null).then((result) => {
       browser.browserAction.setIcon(
         (result[StorageKeys.DISABLED_SITES] &&
           result[StorageKeys.DISABLED_SITES].length > 0 &&
           result[StorageKeys.DISABLED_SITES].includes(domain)) ||
-          !defaultConfig.ACTIVE_SITES.includes(domain)
+          (!defaultConfig.ACTIVE_SITES.includes(domain) &&
+            !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
           ? WittyIconInactive
           : WittyIconActive
       );
@@ -147,6 +159,10 @@ const storageChange = (changes: any) => {
             );
           });
         break;
+      case StorageKeys.ENABLE_WITTY_EVERYWHERE:
+        changes[item].newValue
+          ? browser.browserAction.setIcon(WittyIconActive)
+          : browser.browserAction.setIcon(WittyIconInactive);
     }
   }
 };

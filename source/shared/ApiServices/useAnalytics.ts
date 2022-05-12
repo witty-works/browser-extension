@@ -31,10 +31,20 @@ export const useAnalytics = () => {
         request__alternative: alternative,
       };
 
-      ph.capture('alternative', {
-        ...request,
-        response: logResponse,
-      });
+      if (logResponse.groupId) {
+        ph.capture('alternative', {
+          ...request,
+          response: logResponse,
+          $groups: {
+            organization: logResponse.groupId,
+          },
+        });
+      } else {
+        ph.capture('alternative', {
+          ...request,
+          response: logResponse,
+        });
+      }
     },
 
     async checkLog(logResponse: ILogResponse, inputLength: number) {
@@ -53,10 +63,20 @@ export const useAnalytics = () => {
         request__text__length: inputLength,
       };
 
-      ph.capture('check', {
-        ...request,
-        response: logResponse,
-      });
+      if (logResponse.organization_config) {
+        ph.capture('check', {
+          ...request,
+          response: logResponse,
+          $groups: {
+            organization: logResponse.organization_config.id,
+          },
+        });
+      } else {
+        ph.capture('check', {
+          ...request,
+          response: logResponse,
+        });
+      }
     },
 
     async ignoreLog(logResponse: IAlert) {
@@ -75,10 +95,20 @@ export const useAnalytics = () => {
         request__ignored: logResponse.data.text,
       };
 
-      ph.capture('ignore', {
-        ...request,
-        response: logResponse,
-      });
+      if (logResponse.groupId) {
+        ph.capture('ignore', {
+          ...request,
+          response: logResponse,
+          $groups: {
+            organization: logResponse.groupId,
+          },
+        });
+      } else {
+        ph.capture('ignore', {
+          ...request,
+          response: logResponse,
+        });
+      }
     },
 
     async extensionStatusLog(status: string, appID: string) {
@@ -104,10 +134,20 @@ export const useAnalytics = () => {
           requestConfig.german_gender_ending,
       };
 
-      ph.capture(logType, {
-        ...request,
-        response: logResponse,
-      });
+      if (logResponse.groupId) {
+        ph.capture(logType, {
+          ...request,
+          response: logResponse,
+          $groups: {
+            organization: logResponse.groupId,
+          },
+        });
+      } else {
+        ph.capture(logType, {
+          ...request,
+          response: logResponse,
+        });
+      }
     },
 
     async voteForUrlLog(url: string, appID: string) {

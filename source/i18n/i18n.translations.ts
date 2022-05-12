@@ -24,10 +24,17 @@ export const de = {
     spellChecking: 'Grammatik & Rechtschreibung',
     inclusiveTerms: 'Inklusive Begriffe',
     styleCorrections: 'Stilvorschläge',
-    noSupport: 'We’re sorry! Witty doesn’t yet support ',
-    vote: 'Vote for this feature DE',
-    editor: 'Try the editor DE',
     thanks: 'Thanks for your feedback! DE',
+    noSupport:
+      'Es tut uns leid! Witty unterstützt diese Webseite noch nicht offiziell.',
+    vote: 'Stimme für diese Webseite ab',
+    editor: 'Verwende das Witty Formular',
+    getMoreTitle: 'Witty kann noch viel mehr!',
+    getMoreText: 'Upgraden, um deine Spracheinstellungen zu teilen!',
+    learnMoreButton: 'Mehr dazu',
+    goToDashboard: 'Zum Witty Dashboard',
+    overrideRecomendedSites: 'Witty auch auf dieser Webseite nutzen',
+    backToRecomendedSites: 'Witty nur auf unterstützten Webseiten aktiv',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -39,11 +46,16 @@ export const de = {
     removeSpaces: 'Extra Leerzeichen entfernen',
   },
   [namespaces.pages.options]: {
+    greeting: 'Hallo',
+    greetingTeam: 'Du bist eingeloggt im Team',
+    greetingPlan: 'mit einem Abo von',
     settings: 'Einstellungen',
     needHelp: 'Brauchst du Hilfe?',
-    getMoreTitle: 'WITTY KANN NOCH VIEL MEHR!',
-    getMoreText: 'Upgraden, um eigene Regeln zu verwalten und zu teilen!',
+    getMoreTitle: 'Witty kann noch viel mehr!',
+    getMoreText: 'Upgraden, um deine Spracheinstellungen zu teilen!',
     getMoreButton: 'Upgraden',
+    LoginButton: 'Jetzt Anmelden',
+    enableWitty: 'Witty aktivieren',
     setUpLanguages: 'Spracheinstellungen',
     configureRules: 'Witty Regeln anpassen',
     disableWitty: 'Witty auf gewissen Webseiten deaktivieren',
@@ -68,11 +80,19 @@ export const de = {
       'https://www.witty.works/de/kategorien/inklusiv',
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
+    genderRoleFormat: 'Witty sollte folgende Vorschläge machen',
+    genderRoleFormatFemaleAndMale:
+      'Weibliche und männliche Form (z.B. "Managerin/Manager")',
+    genderRoleFormatGermanEnding: 'Gewählte Gender-Endung',
+    genderRoleFormatBoth:
+      'Deutsche Gender-Endung und weibliche und männliche Form',
+    genderRoleFormatNone: 'Nur geschlechtsneutrale Alternativen anzeigen',
     styleCorrectionExplanationUrl: 'https://www.witty.works/de/kategorien/stil',
     learnMore: 'Mehr dazu',
     primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
+    lockedInfo: 'Team Administrator:in hat diese Einstellung vorgegeben',
   },
 };
 
@@ -100,10 +120,18 @@ export const en = {
     spellChecking: 'Check grammar & spelling',
     inclusiveTerms: 'Highlight inclusive terms',
     styleCorrections: 'Highlight style issues',
-    noSupport: 'We’re sorry! Witty doesn’t yet support ',
-    vote: 'Vote for this feature',
-    editor: 'Try the editor',
     thanks: 'Thanks for your feedback!',
+    noSupport:
+      'We’re sorry! Witty doesn’t yet officially support this website.',
+    vote: 'Vote for this website',
+    editor: 'Use Witty form instead',
+    getMoreTitle: 'Get much more from Witty!',
+    getMoreText:
+      'Upgrade and get access to more checks and share your language settings!',
+    learnMoreButton: 'Learn more',
+    goToDashboard: 'Go to Witty Dashboard',
+    overrideRecomendedSites: 'Use Witty also on this website',
+    backToRecomendedSites: 'Use Witty only on supported websites',
   },
 
   [namespaces.popover]: {
@@ -116,12 +144,17 @@ export const en = {
     removeSpaces: '(Remove extra spaces)',
   },
   [namespaces.pages.options]: {
+    greeting: 'Hello',
+    greetingTeam: 'You are logged in to',
+    greetingPlan: 'with the subscription',
     settings: 'Settings',
     needHelp: 'Need Help?',
-    getMoreTitle: 'GET MUCH MORE FROM WITTY!',
+    getMoreTitle: 'Get much more from Witty!',
     getMoreText:
-      'Upgrade and get access to more checks, custom rules, and much more!',
+      'Upgrade and get access to more checks and share your language settings!',
     getMoreButton: 'Upgrade now',
+    LoginButton: 'Login Now',
+    enableWitty: 'Enable Witty',
     setUpLanguages: 'Language settings',
     configureRules: 'Customize Witty',
     disableWitty: 'Disable Witty on some websites',
@@ -145,11 +178,19 @@ export const en = {
       'https://www.witty.works/en/categories/inclusive',
     styleCorrectionExplanation:
       'Witty makes suggestions to make your text more understandable, or to give it authenticity or emotionality.',
+    genderRoleFormat: 'Witty should suggest',
+    genderRoleFormatFemaleAndMale:
+      'Female and male form (e.g. "Managerin/Manager")',
+    genderRoleFormatGermanEnding: 'Chosen German gender ending',
+    genderRoleFormatBoth:
+      'Show both German gender ending and Female and male form',
+    genderRoleFormatNone: 'Only show gender neutral alternatives',
     styleCorrectionExplanationUrl:
       'https://www.witty.works/en/categories/style',
     learnMore: 'Learn more',
     primaryLanguage: 'Primary Language',
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
+    lockedInfo: 'Team administrator has locked this setting',
   },
 };

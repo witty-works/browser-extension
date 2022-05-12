@@ -8,11 +8,13 @@ import EditorButton from '../assets/icons/popup/editor-button.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+import Settings from '../assets/icons/popup/settings.svg';
+import ArrowIcon from '../shared/animations/Arrow';
+import { storeInLocalStorage } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
-  const [pageName, setPageName] = useState<string>('');
   const [currentTab, setCurrentTab] = useState<string>('');
   const [hasVoted, setHasVoted] = useState<boolean>(false);
   const [appId, setAppId] = useState<string>('');
@@ -26,17 +28,8 @@ const PopupDomainDeactivated: React.FC = () => {
     });
 
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      //Empty tab
-      if (tabs.length === 0 || !tabs[0].url) setPageName('this page');
-      else {
-        setCurrentTab(tabs[0].url);
-        const currentDomain = new URL(tabs[0].url).hostname
-          .replace('www.', '')
-          .split('.')[0];
-        setPageName(
-          `${currentDomain.charAt(0).toUpperCase()}${currentDomain.slice(1)}`
-        );
-      }
+      if (tabs.length != 0 && tabs[0].url) setCurrentTab(tabs[0].url);
+      console.log('currentTab', tabs[0].url);
     });
   }, []);
 
@@ -44,9 +37,7 @@ const PopupDomainDeactivated: React.FC = () => {
     <div className='domain-not-supported'>
       <div className='domain-not-supported-title-wrapper'>
         <SadFace className='domain-not-supported-icon' />
-        <div className='domain-not-supported-title'>
-          {`${t('noSupport')} ${pageName}`}
-        </div>
+        <div className='domain-not-supported-title'>{t('noSupport')}</div>
       </div>
 
       <div
@@ -69,6 +60,23 @@ const PopupDomainDeactivated: React.FC = () => {
         <EditorButton />
         <div>{t('editor')}</div>
       </div>
+      <footer>
+        <div
+          className='enable-witty'
+          onClick={() => {
+            storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, true);
+          }}
+        >
+          <ArrowIcon play={true} />
+          {t('overrideRecomendedSites')}
+        </div>
+        <Settings
+          onClick={
+            //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
+            () => browser.runtime.openOptionsPage().then(() => window.close())
+          }
+        />
+      </footer>
     </div>
   );
 };

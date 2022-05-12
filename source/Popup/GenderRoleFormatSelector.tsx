@@ -3,39 +3,52 @@ import { browser } from 'webextension-polyfill-ts';
 
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
-import { GermanGenderEndings, StorageKeys } from '../shared/constants';
+import { StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import Lock from '../assets/icons/options/lock.svg';
+import PremiumOnly from '../assets/icons/options/premium-only.svg';
+import './styles.scss';
+
 interface SelectorProps {
   locked?: boolean;
-  userIsLoggedIn?: boolean;
+  hasWittyTeams?: boolean;
 }
-const GermanGenderEndSelector: React.FC<SelectorProps> = ({
+
+const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   locked,
-  userIsLoggedIn = false,
+  hasWittyTeams = true,
 }: SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const { t } = useTranslation(namespaces.pages.options);
   const log = useLog('GermanGenderEndSelector');
 
+  const GenderRoleFormat = {
+    inclusive_gender: t('genderRoleFormatFemaleAndMale'),
+    both: t('genderRoleFormatBoth'),
+    binary_gender: t('genderRoleFormatGermanEnding'),
+    none: t('genderRoleFormatNone'),
+  };
+
   useEffect(() => {
-    const dropdownOptions: OptionProp[] = Object.keys(GermanGenderEndings).map(
+    const dropdownOptions: OptionProp[] = Object.keys(GenderRoleFormat).map(
       (key: string) => ({
         key,
-        value: GermanGenderEndings[key as keyof typeof GermanGenderEndings],
+        value: GenderRoleFormat[key as keyof typeof GenderRoleFormat],
       })
     );
 
     setDropdownOptions(dropdownOptions);
 
     browser.storage.local
-      .get(StorageKeys.GERMAN_GENDER_ENDING)
+      .get(StorageKeys.GENDERED_ROLES_FORMAT)
       .then((result) => {
-        if (result[StorageKeys.GERMAN_GENDER_ENDING])
-          setSelectedOption(result[StorageKeys.GERMAN_GENDER_ENDING]);
+        if (result[StorageKeys.GENDERED_ROLES_FORMAT])
+          setSelectedOption(
+            locked ? 'both' : result[StorageKeys.GENDERED_ROLES_FORMAT].value
+          );
       })
       .catch(onError);
   }, []);
@@ -46,9 +59,9 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
 
   const handleDropdownChange = (value: string) => {
     browser.storage.local
-      .set({ [StorageKeys.GERMAN_GENDER_ENDING]: value })
+      .set({ [StorageKeys.GENDERED_ROLES_FORMAT]: value })
       .then(() => {
-        log(`New German Gender Ending ${value} saved`);
+        log(`New gender role format ${value} saved`);
       })
       .catch(onError);
   };
@@ -56,12 +69,21 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
   return (
     <div>
       <div className='dropdown-title-wrapper'>
-        <label>{t('germanGenderEnding')}</label>
-        {locked && userIsLoggedIn && (
+        <label>{t('genderRoleFormat')}</label>
+        {locked && (
           <>
+            {!hasWittyTeams && (
+              <div className='dropdown-premium-only'>
+                <a href='https://www.witty.works/pricing' target='_blank'>
+                  <PremiumOnly />
+                </a>
+              </div>
+            )}
             <div className='dropdown-lock'>
               <Lock />
-              {<div className='dropdown-lock-info'>{t('lockedInfo')}</div>}
+              {hasWittyTeams && (
+                <div className='dropdown-lock-info'>{t('lockedInfo')}</div>
+              )}
             </div>
           </>
         )}
@@ -70,10 +92,10 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}
         selectedOption={selectedOption}
-        locked={locked && userIsLoggedIn}
+        locked={locked}
       />
     </div>
   );
 };
 
-export default GermanGenderEndSelector;
+export default GenderRoleFormatSelector;
