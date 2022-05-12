@@ -28,6 +28,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   const doc = document.documentElement || document.body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const elementStyles = getComputedStyle(element);
 
   useEffect(() => {
     const highlights: Highlight[] = [];
@@ -146,15 +147,26 @@ const Highlights: React.FC<HighlightsProps> = ({
       style={
         {
           position: 'absolute',
-          top: '0px',
-          left: '0px',
-          width: `${elementRect.width}px`,
-          height: `${elementRect.height}px`,
+          top: `${
+            parseInt(elementStyles.borderTopWidth) +
+            parseInt(elementStyles.marginTop) //Don't know why getBoundingClientRect used in useResizeObserver ignores margin values, so we need to add them here
+          }px`,
+          left: elementStyles.borderLeftWidth,
+          width: `${
+            elementRect.width -
+            parseInt(elementStyles.borderLeftWidth) -
+            parseInt(elementStyles.borderRightWidth)
+          }px`,
+          height: `${
+            elementRect.height -
+            parseInt(elementStyles.borderTopWidth) -
+            parseInt(elementStyles.borderBottomWidth)
+          }px`,
           overflow: 'auto',
           // zIndex: 99999999,
           pointerEvents: 'none',
           // mixBlendMode: 'normal',   //TODO Explorer this property
-          // backgroundColor: 'rgba(0,0,150,0.3)',
+          backgroundColor: 'rgba(0,0,150,0.3)',
         } as React.CSSProperties
       }
     ></canvas>
