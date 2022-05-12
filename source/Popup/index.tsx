@@ -11,14 +11,8 @@ browser.storage.local
   .get(StorageKeys.ENABLE_WITTY_EVERYWHERE)
   .then((result) => {
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      if (tabs.length === 0 || !tabs[0].url)
-        //Empty tab
-        ReactDOM.render(
-          <PopupDomainDeactivated />,
-          document.getElementById('popup-root')
-        );
-      else {
-        const domain = getDomainWithoutSubdomain(tabs[0].url);
+      if (tabs.length != 0 && tabs[0].url) {
+        const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
         ReactDOM.render(
           defaultConfig.ACTIVE_SITES.includes(domain) ||
             result[StorageKeys.ENABLE_WITTY_EVERYWHERE] ? (
@@ -28,7 +22,17 @@ browser.storage.local
           ),
           document.getElementById('popup-root')
         );
-      }
+      } else if (
+        defaultConfig.CHROME_AND_FIREFOX_SITES.includes(
+          window.location.protocol
+        )
+      ) {
+        ReactDOM.render(<Popup />, document.getElementById('popup-root'));
+      } else
+        ReactDOM.render(
+          <PopupDomainDeactivated />,
+          document.getElementById('popup-root')
+        );
     });
   });
 

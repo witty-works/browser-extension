@@ -88,7 +88,7 @@ const storeInLocalStorage = (key: string, value: any) => {
 };
 
 const getDomainWithoutSubdomain = (url: string) => {
-  const urlParts = new URL(url).hostname.split('.');
+  const urlParts = url.split('.');
   return urlParts
     .slice(0)
     .slice(-(urlParts.length === 4 ? 3 : 2))

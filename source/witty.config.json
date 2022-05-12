@@ -8,6 +8,12 @@
     "linkedin.com",
     "github.com"
   ],
+  "CHROME_AND_FIREFOX_SITES": [
+    "chrome:",
+    "chrome-extension:",
+    "about:",
+    "moz-extension:"
+  ],
   "PRIMARY_LANGUAGE": "de-DE",
   "PREFERRED_LANGUAGES": { "value": ["de-DE", "en-US"] },
   "GERMAN_GENDER_ENDING": {

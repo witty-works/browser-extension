@@ -121,20 +121,26 @@ const setSettings = () => {
 
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-    if (tabs.length === 0 || !tabs[0].url) return;
-    const domain = getDomainWithoutSubdomain(tabs[0].url);
-
-    browser.storage.local.get(null).then((result) => {
-      browser.browserAction.setIcon(
-        (result[StorageKeys.DISABLED_SITES] &&
-          result[StorageKeys.DISABLED_SITES].length > 0 &&
-          result[StorageKeys.DISABLED_SITES].includes(domain)) ||
-          (!defaultConfig.ACTIVE_SITES.includes(domain) &&
-            !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
-          ? WittyIconInactive
-          : WittyIconActive
-      );
-    });
+    if (tabs.length != 0 && tabs[0].url) {
+      const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
+      browser.storage.local.get(null).then((result) => {
+        browser.browserAction.setIcon(
+          (result[StorageKeys.DISABLED_SITES] &&
+            result[StorageKeys.DISABLED_SITES].length > 0 &&
+            result[StorageKeys.DISABLED_SITES].includes(domain)) ||
+            (!defaultConfig.ACTIVE_SITES.includes(domain) &&
+              !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
+            ? WittyIconInactive
+            : WittyIconActive
+        );
+      });
+    } else if (
+      defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
+    ) {
+      browser.browserAction.setIcon(WittyIconActive);
+    } else {
+      browser.browserAction.setIcon(WittyIconInactive);
+    }
   });
 };
 
@@ -147,17 +153,29 @@ const storageChange = (changes: any) => {
         browser.tabs
           .query({ active: true, currentWindow: true })
           .then((tabs) => {
-            if (tabs.length === 0 || !tabs[0].url) return;
-            const domain = getDomainWithoutSubdomain(tabs[0].url);
+            if (tabs.length != 0 && tabs[0].url) {
+              const domain = getDomainWithoutSubdomain(
+                new URL(tabs[0].url).hostname
+              );
 
-            browser.browserAction.setIcon(
-              (changes[item].newValue.length > 0 &&
-                changes[item].newValue.includes(domain)) ||
-                !defaultConfig.ACTIVE_SITES.includes(domain)
-                ? WittyIconInactive
-                : WittyIconActive
-            );
+              browser.browserAction.setIcon(
+                (changes[item].newValue.length > 0 &&
+                  changes[item].newValue.includes(domain)) ||
+                  !defaultConfig.ACTIVE_SITES.includes(domain)
+                  ? WittyIconInactive
+                  : WittyIconActive
+              );
+            } else if (
+              defaultConfig.CHROME_AND_FIREFOX_SITES.includes(
+                window.location.protocol
+              )
+            ) {
+              browser.browserAction.setIcon(WittyIconActive);
+            } else {
+              browser.browserAction.setIcon(WittyIconInactive);
+            }
           });
+
         break;
       case StorageKeys.ENABLE_WITTY_EVERYWHERE:
         changes[item].newValue

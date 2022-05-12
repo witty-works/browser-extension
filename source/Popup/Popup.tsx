@@ -48,6 +48,7 @@ const Popup: React.FC = () => {
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(false);
   const [showBackToRecomendedSites, setShowBackToRecomendedSites] =
     useState<boolean>(false);
+  const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
 
   useEffect(() => {
     browser.storage.local
@@ -77,6 +78,11 @@ const Popup: React.FC = () => {
             );
             !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
               setShowBackToRecomendedSites(true);
+
+            result[StorageKeys.ACCESS_TOKEN] == ''
+              ? setUserIsLoggedIn(false)
+              : setUserIsLoggedIn(true);
+
             if (
               result[StorageKeys.DISABLED_SITES] &&
               result[StorageKeys.DISABLED_SITES].includes(currentDomain)
@@ -205,13 +211,16 @@ const Popup: React.FC = () => {
               setOrthography({
                 ...orthography,
                 value:
-                  orthography.status != 'force' ? !orthography.value : false,
+                  orthography.status != 'force'
+                    ? !orthography.value
+                    : orthography.value,
               });
             }}
             color={Colors.green}
             scale={0.35}
             label={t('spellChecking')}
             locked={orthography.status == 'force'}
+            userIsLoggedIn={userIsLoggedIn}
           />
           <hr className='toggle-separator' />
           <Toggle
@@ -222,13 +231,14 @@ const Popup: React.FC = () => {
                 value:
                   inclusiveLanguage.status != 'force'
                     ? !inclusiveLanguage.value
-                    : false,
+                    : inclusiveLanguage.value,
               });
             }}
             color={Colors.green}
             scale={0.35}
             label={t('inclusiveTerms')}
             locked={inclusiveLanguage.status === 'force'}
+            userIsLoggedIn={userIsLoggedIn}
           />
           <hr className='toggle-separator' />
           <Toggle
@@ -239,13 +249,14 @@ const Popup: React.FC = () => {
                 value:
                   styleCorrections.status != 'force'
                     ? !styleCorrections.value
-                    : false,
+                    : styleCorrections.value,
               });
             }}
             color={Colors.green}
             scale={0.35}
             label={t('styleCorrections')}
             locked={styleCorrections.status == 'force'}
+            userIsLoggedIn={userIsLoggedIn}
           />
           <hr className='toggle-separator' />
           {hasWittyTeams ? (
