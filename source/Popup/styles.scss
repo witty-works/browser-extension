@@ -160,6 +160,9 @@ footer {
 
 .wittyworks-upgrade-banner-popup-text-container {
   color: $wittyPurple;
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
 }
 
 .wittyworks-upgrade-banner-popup-title {
@@ -205,6 +208,7 @@ footer {
   font-size: 12px;
   line-height: 14px;
   text-transform: uppercase;
+  cursor: pointer;
 }
 
 .enable-witty {

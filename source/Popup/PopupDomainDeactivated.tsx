@@ -28,8 +28,8 @@ const PopupDomainDeactivated: React.FC = () => {
     });
 
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      if (tabs.length != 0 && tabs[0].url) setCurrentTab(tabs[0].url);
-      console.log('currentTab', tabs[0].url);
+      if (tabs.length != 0 && tabs[0].url)
+        setCurrentTab(new URL(tabs[0].url).hostname);
     });
   }, []);
 
