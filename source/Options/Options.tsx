@@ -347,20 +347,23 @@ const Options: React.FC = () => {
               <span className='wittyworks-options-login-cursiva'>
                 {username}{' '}
               </span>
-              {teamName !== '' && subscriptionPlan !== '' && (
-                <div>
-                  {t('greetingTeam')}{' '}
-                  <span className='wittyworks-options-login-cursiva'>
-                    {teamName}{' '}
-                  </span>
-                  {t('greetingPlan')}{' '}
-                  <span className='wittyworks-options-login-cursiva'>
-                    {subscriptionPlan
-                      .replace(/_/g, ' ')
-                      .replace(/\b\w/g, (l) => l.toUpperCase())}
-                  </span>
-                </div>
-              )}
+              {teamName !== '' &&
+                teamName &&
+                subscriptionPlan &&
+                subscriptionPlan !== '' && (
+                  <div>
+                    {t('greetingTeam')}{' '}
+                    <span className='wittyworks-options-login-cursiva'>
+                      {teamName}{' '}
+                    </span>
+                    {t('greetingPlan')}{' '}
+                    <span className='wittyworks-options-login-cursiva'>
+                      {subscriptionPlan
+                        .replace(/_/g, ' ')
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </span>
+                  </div>
+                )}
             </div>
             <div className='wittyworks-options-button' onClick={() => logOut()}>
               {t('Logout')}
