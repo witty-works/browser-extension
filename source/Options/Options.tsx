@@ -43,6 +43,10 @@ const Options: React.FC = () => {
   const [inclusiveLanguage, setInclusiveLanguage] = useState<ConfigProperty>(
     defaultConfig.INCLUSIVE
   );
+  const [preferredVariants, setPreferredVariants] = useState<ConfigProperty>(
+    defaultConfig.PREFERRED_LANGUAGES //is prederred variants the same as preferred languages?
+  );
+
   const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
     defaultConfig.STYLE
   );
@@ -85,6 +89,7 @@ const Options: React.FC = () => {
           ? result[StorageKeys.API_ENDPOINT_KEY]
           : DefaultBaseUrlKey
       );
+      setPreferredVariants(result[StorageKeys.PREFERRED_LANGUAGES]);
       setOrthography(result[StorageKeys.ORTHOGRAPHY]);
       setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
       setStyleCorrections(result[StorageKeys.STYLE]);
@@ -133,6 +138,10 @@ const Options: React.FC = () => {
   useEffect(() => {
     storeInLocalStorage(StorageKeys.ORTHOGRAPHY, orthography);
   }, [orthography]);
+
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.PREFERRED_LANGUAGES, preferredVariants);
+  }, [preferredVariants]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.INCLUSIVE, inclusiveLanguage);
@@ -201,43 +210,55 @@ const Options: React.FC = () => {
         ? setHasWittyTeams(true)
         : setHasWittyTeams(false);
 
+      // refactor this
       for (let key in authResponse.config) {
         switch (key) {
           case 'german_gender_ending':
-            storeInLocalStorage(
-              StorageKeys.GERMAN_GENDER_ENDING,
-              authResponse.config[key]
-            );
-            setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force') {
+              setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
+            }
             break;
           case 'inclusive':
-            setInclusiveLanguage(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force') {
+              setInclusiveLanguage(authResponse.config[key] as ConfigProperty);
+            }
             break;
           case 'maximum_importance':
-            setMaximumImportance(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force') {
+              setMaximumImportance(authResponse.config[key] as ConfigProperty);
+            }
             break;
           case 'orthography':
-            setOrthography(authResponse.config[key] as ConfigProperty);
-            break;
-          case 'preferred_variants':
-            storeInLocalStorage(
-              StorageKeys.PREFERRED_LANGUAGES,
-              authResponse.config[key]
-            );
+            if (authResponse.config[key].status == 'force') {
+              setOrthography(authResponse.config[key] as ConfigProperty);
+            }
             break;
           case 'show_inspiration_alternatives':
-            setInspirationalAlternatives(
-              authResponse.config[key] as ConfigProperty
-            );
+            if (authResponse.config[key].status == 'force') {
+              setInspirationalAlternatives(
+                authResponse.config[key] as ConfigProperty
+              );
+            }
             break;
           case 'singular_they':
-            setSingularThey(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force') {
+              setSingularThey(authResponse.config[key] as ConfigProperty);
+            }
             break;
           case 'style':
-            setStyleCorrections(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force') {
+              setStyleCorrections(authResponse.config[key] as ConfigProperty);
+            }
             break;
           case 'gendered_roles_format':
-            setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force') {
+              setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
+            }
+            break;
+          case 'preferred_variants':
+            if (authResponse.config[key].status == 'force') {
+              setPreferredVariants(authResponse.config[key] as ConfigProperty);
+            }
         }
       }
     }
@@ -363,7 +384,10 @@ const Options: React.FC = () => {
             {rulesTabOpen && (
               <>
                 <div className='wittyworks-options-content-section-container-item'>
-                  <PreferedLanguagesSelector />
+                  <PreferedLanguagesSelector
+                    locked={preferredVariants.status === 'force'}
+                    userIsLoggedIn={userIsLoggedIn}
+                  />
                 </div>
 
                 <div className='wittyworks-options-content-section-container-item'>

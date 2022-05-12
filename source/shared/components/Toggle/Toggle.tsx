@@ -28,7 +28,6 @@ const Toggle: React.FC<ToggleProps> = ({
   userIsLoggedIn = true,
 }: ToggleProps) => {
   const { t } = useTranslation([namespaces.pages.options]);
-  console.log('on', on);
   return (
     <>
       <div
