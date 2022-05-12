@@ -4,6 +4,7 @@ import defaultConfig from '../witty.config.json';
 import PopupDomainDeactivated from './PopupDomainDeactivated';
 import Popup from './Popup';
 import { browser } from 'webextension-polyfill-ts';
+import { getDomainWithoutSubdomain } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 
 browser.storage.local
@@ -17,9 +18,9 @@ browser.storage.local
           document.getElementById('popup-root')
         );
       else {
-        const currentDomain = new URL(tabs[0].url).hostname.replace('www.', '');
+        const domain = getDomainWithoutSubdomain(tabs[0].url);
         ReactDOM.render(
-          defaultConfig.ACTIVE_SITES.includes(currentDomain) ||
+          defaultConfig.ACTIVE_SITES.includes(domain) ||
             result[StorageKeys.ENABLE_WITTY_EVERYWHERE] ? (
             <Popup />
           ) : (

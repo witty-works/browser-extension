@@ -87,6 +87,13 @@ const storeInLocalStorage = (key: string, value: any) => {
     });
 };
 
+const getDomainWithoutSubdomain = (url: string) => {
+  const urlParts = new URL(url).hostname.split('.');
+  return urlParts
+    .slice(0)
+    .slice(-(urlParts.length === 4 ? 3 : 2))
+    .join('.');
+};
 const singularTheyToBoolean = (value: string) =>
   value === 'he_or_she' ? false : true;
 
@@ -108,6 +115,7 @@ export {
   elementIsVisible,
   textIsLight,
   storeInLocalStorage,
+  getDomainWithoutSubdomain,
   singularTheyToBoolean,
   changeSingularThey,
   maximumImportanceToBoolean,
