@@ -24,7 +24,7 @@ export const de = {
     spellChecking: 'Grammatik & Rechtschreibung',
     inclusiveTerms: 'Inklusive Begriffe',
     styleCorrections: 'Stilvorschläge',
-    thanks: 'Thanks for your feedback! DE',
+    thanks: 'Danke für deinen Beitrag!',
     noSupport:
       'Es tut uns leid! Witty unterstützt diese Webseite noch nicht offiziell.',
     vote: 'Stimme für diese Webseite ab',
@@ -92,7 +92,7 @@ export const de = {
     primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
-    lockedInfo: 'Team Administrator:in hat diese Einstellung vorgegeben',
+    lockedInfo: 'Team-Vorgabe',
   },
 };
 
@@ -191,6 +191,6 @@ export const en = {
     primaryLanguage: 'Primary Language',
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
-    lockedInfo: 'Team administrator has locked this setting',
+    lockedInfo: 'Team presetting',
   },
 };
