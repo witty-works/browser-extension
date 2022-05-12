@@ -60,17 +60,17 @@ const storeInLocalStorage = (key: string, value: any) => {
       //TODO bug, some values are not pronted correctly (for example arrays)
       const wittyVersion = browser.runtime.getManifest().version;
       const componentName = 'Utils';
-      const message = `Witty ${key} *${
-        typeof value === 'object' ? Object.keys(value) : value
-      }* correctly saved`;
-      const data = typeof value === 'object' ? Object.keys(value) : value;
+      const message = `${key}(${typeof value}) *${(typeof value === 'object'
+        ? JSON.stringify(value)
+        : value
+      ).toString()}* correctly saved`;
+      // const data = typeof value === 'object' ? Object.keys(value) : value;
 
       console.log(
         `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
         `color: #55B8E9`,
         `color: #5fca7d`,
-        `color: #000`,
-        data
+        `color: #000`
       );
     })
     .catch((error: string) => {
@@ -94,6 +94,16 @@ const getDomainWithoutSubdomain = (url: string) => {
     .slice(-(urlParts.length === 4 ? 3 : 2))
     .join('.');
 };
+const singularTheyToBoolean = (value: string) =>
+  value === 'he_or_she' ? false : true;
+
+const changeSingularThey = (value: boolean) =>
+  value ? 'all_pronouns' : 'he_or_she';
+
+const maximumImportanceToBoolean = (value: number) =>
+  value === 3 ? true : false;
+
+const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
 export {
   isObjectEmpty,
@@ -106,4 +116,8 @@ export {
   textIsLight,
   storeInLocalStorage,
   getDomainWithoutSubdomain,
+  singularTheyToBoolean,
+  changeSingularThey,
+  maximumImportanceToBoolean,
+  changeMaximumImportance,
 };
