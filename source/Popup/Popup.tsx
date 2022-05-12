@@ -7,6 +7,7 @@ import {
   Colors,
   WittyIconActive,
   WittyIconInactive,
+  DefaultBaseUrlKey,
 } from '../shared/constants';
 import { DEV_ENV } from '../shared/constants';
 import { storeInLocalStorage } from '../shared/utils';
@@ -21,6 +22,7 @@ import Settings from '../assets/icons/popup/settings.svg';
 import Logo from '../assets/icons/witty-logo-color.svg';
 import defaultConfig from '../witty.config.json';
 import './styles.scss';
+import { getBaseUrls, setBaseUrls } from '../shared/ApiServices/requests';
 
 const Popup: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
@@ -51,6 +53,11 @@ const Popup: React.FC = () => {
     browser.storage.local
       .get(null)
       .then((result) => {
+        setBaseUrls(
+          result[StorageKeys.API_ENDPOINT_KEY]
+            ? result[StorageKeys.API_ENDPOINT_KEY]
+            : DefaultBaseUrlKey
+        );
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
@@ -246,7 +253,7 @@ const Popup: React.FC = () => {
               <div
                 className='wittyworks-dashboard-button'
                 onClick={() => {
-                  window.open('https://dashboard.lndo.site/', '_blank');
+                  window.open(getBaseUrls().dashboard, '_blank');
                 }}
               >
                 {t('goToDashboard')}

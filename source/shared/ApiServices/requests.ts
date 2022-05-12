@@ -14,6 +14,10 @@ export const setBaseUrls = (urlKey: string) => {
   BASE_URL_DASHBOARD = BaseUrls[urlKey].dashboard;
 };
 
+export const getBaseUrls = () => {
+  return { api: BASE_URL_API, dashboard: BASE_URL_DASHBOARD };
+};
+
 export const setRequestConfig = (reqConfig: RequestConfig) =>
   (requestConfig = reqConfig);
 
