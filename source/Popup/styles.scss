@@ -215,3 +215,27 @@ footer {
   font-size: 12px;
   cursor: pointer;
 }
+
+.dropdown-lock {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+
+  .dropdown-lock-info {
+    display: none;
+  }
+
+  &:hover {
+    .dropdown-lock-info {
+      display: block;
+      position: absolute;
+      width: 30em;
+      margin-bottom: 4em;
+      margin-left: -6em;
+      font-family: $lato;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 12px;
+    }
+  }
+}

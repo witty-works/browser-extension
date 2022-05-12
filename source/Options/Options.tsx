@@ -60,6 +60,9 @@ const Options: React.FC = () => {
   const [genderRolesFormat, setGenderRolesFormat] = useState<ConfigProperty>(
     defaultConfig.GENDERED_ROLES_FORMAT
   );
+  const [germanGenderEnding, setGermanGenderEnding] = useState<ConfigProperty>(
+    defaultConfig.GERMAN_GENDER_ENDING
+  );
   const [teamName, setTeamName] = useState<string>('');
   const [subscriptionPlan, setSubscriptionPlan] = useState<string>('');
 
@@ -82,7 +85,6 @@ const Options: React.FC = () => {
           ? result[StorageKeys.API_ENDPOINT_KEY]
           : DefaultBaseUrlKey
       );
-
       setOrthography(result[StorageKeys.ORTHOGRAPHY]);
       setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
       setStyleCorrections(result[StorageKeys.STYLE]);
@@ -96,6 +98,7 @@ const Options: React.FC = () => {
       setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
       setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
       setGenderRolesFormat(result[StorageKeys.GENDERED_ROLES_FORMAT]);
+      setGermanGenderEnding(result[StorageKeys.GERMAN_GENDER_ENDING]);
       setTeamName(result[StorageKeys.NAME]);
       setSubscriptionPlan(result[StorageKeys.PLAN]);
 
@@ -163,6 +166,10 @@ const Options: React.FC = () => {
   }, [genderRolesFormat]);
 
   useEffect(() => {
+    storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, germanGenderEnding);
+  }, [germanGenderEnding]);
+
+  useEffect(() => {
     storeInLocalStorage(StorageKeys.USERNAME, username);
   }, [username]);
 
@@ -190,6 +197,10 @@ const Options: React.FC = () => {
     if (authResponse) {
       setTeamName(authResponse.name);
       setSubscriptionPlan(authResponse.plan);
+      authResponse.plan === 'witty_teams'
+        ? setHasWittyTeams(true)
+        : setHasWittyTeams(false);
+
       for (let key in authResponse.config) {
         switch (key) {
           case 'german_gender_ending':
@@ -197,6 +208,7 @@ const Options: React.FC = () => {
               StorageKeys.GERMAN_GENDER_ENDING,
               authResponse.config[key]
             );
+            setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
             break;
           case 'inclusive':
             setInclusiveLanguage(authResponse.config[key] as ConfigProperty);
@@ -387,7 +399,10 @@ const Options: React.FC = () => {
                 </div>
 
                 <div className='wittyworks-options-content-section-container-item'>
-                  <GermanGenderEndSelector />
+                  <GermanGenderEndSelector
+                    locked={germanGenderEnding.status == 'force'}
+                    userIsLoggedIn={userIsLoggedIn}
+                  />
                 </div>
 
                 <div className='wittyworks-options-content-section-container-item'>
@@ -395,6 +410,7 @@ const Options: React.FC = () => {
                     locked={
                       !hasWittyTeams || genderRolesFormat.status == 'force'
                     }
+                    hasWittyTeams={hasWittyTeams}
                   />
                 </div>
 

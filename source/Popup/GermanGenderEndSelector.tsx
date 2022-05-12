@@ -7,8 +7,15 @@ import { GermanGenderEndings, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-
-const GermanGenderEndSelector: React.FC = () => {
+import Lock from '../assets/icons/options/lock.svg';
+interface SelectorProps {
+  locked?: boolean;
+  userIsLoggedIn?: boolean;
+}
+const GermanGenderEndSelector: React.FC<SelectorProps> = ({
+  locked,
+  userIsLoggedIn = false,
+}: SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const { t } = useTranslation(namespaces.pages.options);
@@ -48,11 +55,22 @@ const GermanGenderEndSelector: React.FC = () => {
 
   return (
     <div>
-      <label>{t('germanGenderEnding')}</label>
+      <div className='dropdown-title-wrapper'>
+        <label>{t('germanGenderEnding')}</label>
+        {locked && userIsLoggedIn && (
+          <>
+            <div className='dropdown-lock'>
+              <Lock />
+              {<div className='dropdown-lock-info'>{t('lockedInfo')}</div>}
+            </div>
+          </>
+        )}
+      </div>
       <Dropdown
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}
         selectedOption={selectedOption}
+        locked={locked && userIsLoggedIn}
       />
     </div>
   );

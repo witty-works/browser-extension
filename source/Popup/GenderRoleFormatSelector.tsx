@@ -13,10 +13,12 @@ import './styles.scss';
 
 interface SelectorProps {
   locked?: boolean;
+  hasWittyTeams?: boolean;
 }
 
 const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   locked,
+  hasWittyTeams = true,
 }: SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
@@ -70,13 +72,18 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
         <label>{t('genderRoleFormat')}</label>
         {locked && (
           <>
-            <div className='dropdown-premium-only'>
-              <a href='https://www.witty.works/pricing' target='_blank'>
-                <PremiumOnly />
-              </a>
-            </div>
+            {!hasWittyTeams && (
+              <div className='dropdown-premium-only'>
+                <a href='https://www.witty.works/pricing' target='_blank'>
+                  <PremiumOnly />
+                </a>
+              </div>
+            )}
             <div className='dropdown-lock'>
               <Lock />
+              {hasWittyTeams && (
+                <div className='dropdown-lock-info'>{t('lockedInfo')}</div>
+              )}
             </div>
           </>
         )}
