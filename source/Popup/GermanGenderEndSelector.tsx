@@ -11,10 +11,12 @@ import Lock from '../assets/icons/options/lock.svg';
 interface SelectorProps {
   locked?: boolean;
   userIsLoggedIn?: boolean;
+  lockedValue: string;
 }
 const GermanGenderEndSelector: React.FC<SelectorProps> = ({
   locked,
   userIsLoggedIn = false,
+  lockedValue,
 }: SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
@@ -29,15 +31,24 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
       })
     );
 
-    setDropdownOptions(dropdownOptions);
-
-    browser.storage.local
-      .get(StorageKeys.GERMAN_GENDER_ENDING)
-      .then((result) => {
-        if (result[StorageKeys.GERMAN_GENDER_ENDING])
-          setSelectedOption(result[StorageKeys.GERMAN_GENDER_ENDING]);
-      })
-      .catch(onError);
+    if (locked && userIsLoggedIn) {
+      const lockedKeyValuePair = dropdownOptions.find(
+        (option: OptionProp) => option.value === lockedValue
+      );
+      if (lockedKeyValuePair) {
+        setDropdownOptions([lockedKeyValuePair]);
+        setSelectedOption(lockedValue);
+      }
+    } else {
+      setDropdownOptions(dropdownOptions);
+      browser.storage.local
+        .get(StorageKeys.GERMAN_GENDER_ENDING)
+        .then((result) => {
+          if (result[StorageKeys.GERMAN_GENDER_ENDING])
+            setSelectedOption(result[StorageKeys.GERMAN_GENDER_ENDING]);
+        })
+        .catch(onError);
+    }
   }, []);
 
   const onError = (error: string) => {

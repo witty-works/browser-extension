@@ -321,10 +321,12 @@ const Options: React.FC = () => {
   const logOut = () => {
     setUsername('');
     setAccessToken('');
-    setRefreshToken(''); //TODO sure?
+    setRefreshToken('');
     setUserIsLoggedIn(false);
     setTeamName('');
     setSubscriptionPlan('');
+    //reload the page to update everything
+    window.location.reload();
   };
 
   return (
@@ -474,6 +476,7 @@ const Options: React.FC = () => {
                   <GermanGenderEndSelector
                     locked={germanGenderEnding.status == 'force'}
                     userIsLoggedIn={userIsLoggedIn}
+                    lockedValue={germanGenderEnding.value as string}
                   />
                 </div>
 
@@ -483,6 +486,8 @@ const Options: React.FC = () => {
                       !hasWittyTeams || genderRolesFormat.status == 'force'
                     }
                     hasWittyTeams={hasWittyTeams}
+                    userIsLoggedIn={userIsLoggedIn}
+                    lockedValue={genderRolesFormat.value as string}
                   />
                 </div>
 

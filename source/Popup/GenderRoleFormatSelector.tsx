@@ -14,11 +14,15 @@ import './styles.scss';
 interface SelectorProps {
   locked?: boolean;
   hasWittyTeams?: boolean;
+  lockedValue: string;
+  userIsLoggedIn?: boolean;
 }
 
 const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   locked,
   hasWittyTeams = true,
+  lockedValue,
+  userIsLoggedIn = false,
 }: SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
@@ -26,9 +30,9 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   const log = useLog('GermanGenderEndSelector');
 
   const GenderRoleFormat = {
-    inclusive_gender: t('genderRoleFormatFemaleAndMale'),
+    inclusive_gender: t('genderRoleFormatGermanEnding'),
     both: t('genderRoleFormatBoth'),
-    binary_gender: t('genderRoleFormatGermanEnding'),
+    binary_gender: t('genderRoleFormatFemaleAndMale'),
     none: t('genderRoleFormatNone'),
   };
 
@@ -40,17 +44,26 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
       })
     );
 
-    setDropdownOptions(dropdownOptions);
-
-    browser.storage.local
-      .get(StorageKeys.GENDERED_ROLES_FORMAT)
-      .then((result) => {
-        if (result[StorageKeys.GENDERED_ROLES_FORMAT])
-          setSelectedOption(
-            locked ? 'both' : result[StorageKeys.GENDERED_ROLES_FORMAT].value
-          );
-      })
-      .catch(onError);
+    if (locked && userIsLoggedIn) {
+      const lockedKeyValuePair = dropdownOptions.find(
+        (option: OptionProp) => option.key === lockedValue
+      );
+      if (lockedKeyValuePair) {
+        setDropdownOptions([lockedKeyValuePair]);
+        setSelectedOption(lockedValue);
+      }
+    } else {
+      setDropdownOptions(dropdownOptions);
+      browser.storage.local
+        .get(StorageKeys.GENDERED_ROLES_FORMAT)
+        .then((result) => {
+          if (result[StorageKeys.GENDERED_ROLES_FORMAT])
+            setSelectedOption(
+              locked ? 'both' : result[StorageKeys.GENDERED_ROLES_FORMAT].value
+            );
+        })
+        .catch(onError);
+    }
   }, []);
 
   const onError = (error: string) => {
@@ -81,7 +94,7 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
             )}
             <div className='dropdown-lock'>
               <Lock />
-              {hasWittyTeams && (
+              {hasWittyTeams && userIsLoggedIn && (
                 <div className='dropdown-lock-info'>{t('lockedInfo')}</div>
               )}
             </div>
