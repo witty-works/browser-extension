@@ -216,21 +216,41 @@ const Options: React.FC = () => {
           case 'german_gender_ending':
             if (authResponse.config[key].status == 'force') {
               setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
+            } else {
+              setGermanGenderEnding({
+                ...germanGenderEnding,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
             }
             break;
           case 'inclusive':
             if (authResponse.config[key].status == 'force') {
               setInclusiveLanguage(authResponse.config[key] as ConfigProperty);
+            } else {
+              setInclusiveLanguage({
+                ...inclusiveLanguage,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
             }
             break;
           case 'maximum_importance':
             if (authResponse.config[key].status == 'force') {
               setMaximumImportance(authResponse.config[key] as ConfigProperty);
+            } else {
+              setMaximumImportance({
+                ...maximumImportance,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
             }
             break;
           case 'orthography':
             if (authResponse.config[key].status == 'force') {
               setOrthography(authResponse.config[key] as ConfigProperty);
+            } else {
+              setOrthography({
+                ...orthography,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
             }
             break;
           case 'show_inspiration_alternatives':
@@ -238,26 +258,51 @@ const Options: React.FC = () => {
               setInspirationalAlternatives(
                 authResponse.config[key] as ConfigProperty
               );
+            } else {
+              setInspirationalAlternatives({
+                ...inspirationalAlternatives,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
             }
             break;
           case 'singular_they':
             if (authResponse.config[key].status == 'force') {
               setSingularThey(authResponse.config[key] as ConfigProperty);
+            } else {
+              setSingularThey({
+                ...singularThey,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
             }
             break;
           case 'style':
             if (authResponse.config[key].status == 'force') {
               setStyleCorrections(authResponse.config[key] as ConfigProperty);
+            } else {
+              setStyleCorrections({
+                ...styleCorrections,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
             }
             break;
           case 'gendered_roles_format':
             if (authResponse.config[key].status == 'force') {
               setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
+            } else {
+              setGenderRolesFormat({
+                ...genderRolesFormat,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
             }
             break;
           case 'preferred_variants':
             if (authResponse.config[key].status == 'force') {
               setPreferredVariants(authResponse.config[key] as ConfigProperty);
+            } else {
+              setPreferredVariants({
+                ...preferredVariants,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
             }
         }
       }
