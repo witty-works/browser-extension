@@ -28,11 +28,6 @@ jobs:
         run: |
           yarn install
 
-      - name: Enable development mode
-        run: |
-          sed 's/export const DEV_ENV = .*$/export const DEV_ENV = true;/' source/shared/constants.ts > constants.ts
-          mv constants.ts source/shared/constants.ts
-
       - name: Build artifacts
         run: |
           yarn run build:chrome
