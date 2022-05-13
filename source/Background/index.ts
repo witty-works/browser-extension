@@ -6,7 +6,7 @@ import {
   WittyIconActive,
   WittyIconInactive,
 } from '../shared/constants';
-import { isFunction } from '../shared/utils';
+import { getDomainWithoutSubdomain, isFunction } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -14,7 +14,13 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 const analytics = useAnalytics();
 const log = useLog('Background index');
 const devAppId = 'DEV_APP_ID';
-type DefaultConfigValue = string | boolean | number | string[] | (() => string);
+type DefaultConfigValue =
+  | string
+  | boolean
+  | number
+  | string[]
+  | object
+  | (() => string);
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (!DEV_ENV)
@@ -86,7 +92,12 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
 };
 
 const onSave = (key: string, value: DefaultConfigValue) => {
-  log(`Key *${key}* with value *${value}* saved correctly in local storage`);
+  log(
+    `Key *${key}* with value *${(typeof value === 'object'
+      ? JSON.stringify(value)
+      : value
+    ).toString()}* saved correctly in local storage`
+  );
 };
 
 const onError = (error: string) => {
@@ -110,18 +121,26 @@ const setSettings = () => {
 
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-    if (tabs.length === 0 || !tabs[0].url) return;
-    const domain = new URL(tabs[0].url).hostname.replace('www.', '');
-
-    browser.storage.local.get(StorageKeys.DISABLED_SITES).then((result) => {
-      browser.browserAction.setIcon(
-        result[StorageKeys.DISABLED_SITES] &&
-          result[StorageKeys.DISABLED_SITES].length > 0 &&
-          result[StorageKeys.DISABLED_SITES].includes(domain)
-          ? WittyIconInactive
-          : WittyIconActive
-      );
-    });
+    if (tabs.length != 0 && tabs[0].url) {
+      const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
+      browser.storage.local.get(null).then((result) => {
+        browser.browserAction.setIcon(
+          (result[StorageKeys.DISABLED_SITES] &&
+            result[StorageKeys.DISABLED_SITES].length > 0 &&
+            result[StorageKeys.DISABLED_SITES].includes(domain)) ||
+            (!defaultConfig.ACTIVE_SITES.includes(domain) &&
+              !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
+            ? WittyIconInactive
+            : WittyIconActive
+        );
+      });
+    } else if (
+      defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
+    ) {
+      browser.browserAction.setIcon(WittyIconActive);
+    } else {
+      browser.browserAction.setIcon(WittyIconInactive);
+    }
   });
 };
 
@@ -134,17 +153,34 @@ const storageChange = (changes: any) => {
         browser.tabs
           .query({ active: true, currentWindow: true })
           .then((tabs) => {
-            if (tabs.length === 0 || !tabs[0].url) return;
-            const domain = new URL(tabs[0].url).hostname.replace('www.', '');
+            if (tabs.length != 0 && tabs[0].url) {
+              const domain = getDomainWithoutSubdomain(
+                new URL(tabs[0].url).hostname
+              );
 
-            browser.browserAction.setIcon(
-              changes[item].newValue.length > 0 &&
-                changes[item].newValue.includes(domain)
-                ? WittyIconInactive
-                : WittyIconActive
-            );
+              browser.browserAction.setIcon(
+                (changes[item].newValue.length > 0 &&
+                  changes[item].newValue.includes(domain)) ||
+                  !defaultConfig.ACTIVE_SITES.includes(domain)
+                  ? WittyIconInactive
+                  : WittyIconActive
+              );
+            } else if (
+              defaultConfig.CHROME_AND_FIREFOX_SITES.includes(
+                window.location.protocol
+              )
+            ) {
+              browser.browserAction.setIcon(WittyIconActive);
+            } else {
+              browser.browserAction.setIcon(WittyIconInactive);
+            }
           });
+
         break;
+      case StorageKeys.ENABLE_WITTY_EVERYWHERE:
+        changes[item].newValue
+          ? browser.browserAction.setIcon(WittyIconActive)
+          : browser.browserAction.setIcon(WittyIconInactive);
     }
   }
 };
