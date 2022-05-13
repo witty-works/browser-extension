@@ -16,7 +16,7 @@ export const de = {
   },
   [namespaces.pages.popup]: {
     settings: 'Aktuelle Webseite',
-    enableWitty: 'Text auf dieser Seite prüfen',
+    enableWitty: 'Witty aktivieren',
     globalSettings: 'Globale Einstellungen',
     websiteSettings: 'Aktuelle Webseite',
     caseSensitivity: 'Gross- & Kleinschreibung',
@@ -55,7 +55,6 @@ export const de = {
     getMoreText: 'Upgraden, um deine Spracheinstellungen zu teilen!',
     getMoreButton: 'Upgraden',
     LoginButton: 'Jetzt Anmelden',
-    enableWitty: 'Witty aktivieren',
     setUpLanguages: 'Spracheinstellungen',
     configureRules: 'Witty Regeln anpassen',
     disableWitty: 'Witty auf gewissen Webseiten deaktivieren',
@@ -112,7 +111,7 @@ export const en = {
   },
   [namespaces.pages.popup]: {
     settings: 'Current Website',
-    enableWitty: 'Check text on this page',
+    enableWitty: 'Enable Witty',
     globalSettings: 'Global settings',
     websiteSettings: 'Current website',
     caseSensitivity: 'Check upper & lower case',
@@ -154,7 +153,6 @@ export const en = {
       'Upgrade and get access to more checks and share your language settings!',
     getMoreButton: 'Upgrade now',
     LoginButton: 'Login Now',
-    enableWitty: 'Enable Witty',
     setUpLanguages: 'Language settings',
     configureRules: 'Customize Witty',
     disableWitty: 'Disable Witty on some websites',
