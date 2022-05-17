@@ -1,110 +1,323 @@
 import React, { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import ApiSelector from './ApiSelector';
-import LanguageSelector from './LanguageSelector';
-import Toggle from '../shared/components/Toggle/Toggle';
-import { DEV_ENV, StorageKeys, Colors } from '../shared/constants';
-import PreferredLanguagesSelector from './PreferedLanguagesSelector';
-import GermanGenderEndSelector from './GermanGenderEndSelector';
+import { ConfigProperty } from '../shared/types';
+import {
+  StorageKeys,
+  Colors,
+  WittyIconActive,
+  WittyIconInactive,
+  DefaultBaseUrlKey,
+} from '../shared/constants';
+import { DEV_ENV } from '../shared/constants';
+import { storeInLocalStorage } from '../shared/utils';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
+import '../i18n/i18n';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
+import Toggle from '../shared/components/Toggle/Toggle';
+import ApiSelector from './ApiSelector';
+import DelaySelector from './DelaySelector';
+import Settings from '../assets/icons/popup/settings.svg';
+import Logo from '../assets/icons/witty-logo-color.svg';
 import defaultConfig from '../witty.config.json';
-
 import './styles.scss';
+import { getBaseUrls, setBaseUrls } from '../shared/ApiServices/requests';
 
 const Popup: React.FC = () => {
-  const [enabled, setEnabled] = useState<boolean>(defaultConfig.APP_ENABLED);
-  const { t } = useTranslation(namespaces.pages.popup);
+  const { t } = useTranslation([namespaces.pages.popup]);
   const log = useLog('Popup');
+
+  const [enabled, setEnabled] = useState<boolean>(true);
+  const [disabledSites, setDisabledSites] = useState<string[]>(
+    defaultConfig.DISABLED_SITES
+  );
+  const [orthography, setOrthography] = useState<ConfigProperty>(
+    defaultConfig.ORTHOGRAPHY
+  );
+  const [inclusiveLanguage, setInclusiveLanguage] = useState<ConfigProperty>(
+    defaultConfig.INCLUSIVE
+  );
+  const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
+    defaultConfig.STYLE
+  );
+  const [casing, setCasing] = useState<boolean>(true);
+  const [casingSites, setCasingSites] = useState<string[]>(
+    defaultConfig.CASING_SITES
+  );
+  const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(false);
+  const [showBackToRecomendedSites, setShowBackToRecomendedSites] =
+    useState<boolean>(false);
+  const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
 
   useEffect(() => {
     browser.storage.local
-      .get(StorageKeys.APP_ENABLED)
+      .get(null)
       .then((result) => {
-        setEnabled(result[StorageKeys.APP_ENABLED]);
+        setBaseUrls(
+          result[StorageKeys.API_ENDPOINT_KEY]
+            ? result[StorageKeys.API_ENDPOINT_KEY]
+            : DefaultBaseUrlKey
+        );
+        setOrthography(result[StorageKeys.ORTHOGRAPHY]);
+        setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
+        setStyleCorrections(result[StorageKeys.STYLE]);
+        setDisabledSites(result[StorageKeys.DISABLED_SITES]);
+        setCasingSites(result[StorageKeys.CASING_SITES]);
+        result[StorageKeys.PLAN] == 'witty_teams'
+          ? setHasWittyTeams(true)
+          : setHasWittyTeams(false);
+
+        browser.tabs
+          .query({ active: true, currentWindow: true })
+          .then((tabs) => {
+            if (tabs.length === 0 || !tabs[0].url) return;
+            const currentDomain = new URL(tabs[0].url).hostname.replace(
+              'www.',
+              ''
+            );
+            !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
+              setShowBackToRecomendedSites(true);
+
+            result[StorageKeys.ACCESS_TOKEN] == ''
+              ? setUserIsLoggedIn(false)
+              : setUserIsLoggedIn(true);
+
+            if (
+              result[StorageKeys.DISABLED_SITES] &&
+              result[StorageKeys.DISABLED_SITES].includes(currentDomain)
+            )
+              setEnabled(false);
+
+            if (
+              result[StorageKeys.CASING_SITES] &&
+              result[StorageKeys.CASING_SITES].includes(currentDomain)
+            )
+              setCasing(false);
+          })
+          .catch(onTabsQueryError);
       })
-      .catch(onError);
+      .catch(onStorageError);
   }, []);
 
   useEffect(() => {
-    //Save app status on the local storage
-    browser.storage.local
-      .set({ [StorageKeys.APP_ENABLED]: enabled })
-      .then(() => {
-        log(
-          `Witty status *${enabled ? 'enabled' : 'disabled'}* correctly saved`
-        );
-      })
-      .catch(onError);
+    storeInLocalStorage(StorageKeys.DISABLED_SITES, disabledSites);
+  }, [disabledSites.length]);
 
-    //Change app icon acordingly
-    enabled
-      ? browser.browserAction.setIcon({
-          path: {
-            '16': 'assets/icons/icon16.png',
-            '32': 'assets/icons/icon32.png',
-            '48': 'assets/icons/icon48.png',
-          },
-        })
-      : browser.browserAction.setIcon({
-          path: {
-            '16': 'assets/icons/icon16_disabled.png',
-            '32': 'assets/icons/icon32_disabled.png',
-            '48': 'assets/icons/icon48_disabled.png',
-          },
-        });
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.CASING_SITES, casingSites);
+  }, [casingSites.length]);
+
+  useEffect(() => {
+    setWittyIcon(enabled);
   }, [enabled]);
 
-  const onError = (error: string) => {
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.ORTHOGRAPHY, orthography);
+  }, [orthography]);
+
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.INCLUSIVE, inclusiveLanguage);
+  }, [inclusiveLanguage]);
+
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.STYLE, styleCorrections);
+  }, [styleCorrections]);
+
+  const onStorageError = (error: string) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+  };
+
+  const onTabsQueryError = (error: string) => {
+    log(`onTabsQueryError Error: ${error}`, logTypes.ERROR);
+  };
+
+  const setWittyIcon = (state: boolean) => {
+    browser.browserAction.setIcon(state ? WittyIconActive : WittyIconInactive);
+  };
+
+  const handleEnableToggle = () => {
+    setEnabled(!enabled);
+    browser.tabs
+      .query({ active: true, currentWindow: true })
+      .then((tabs) => {
+        if (tabs.length === 0 || !tabs[0].url) return;
+        const currentDomain = new URL(tabs[0].url).hostname.replace('www.', '');
+
+        setDisabledSites(
+          enabled
+            ? [...disabledSites, currentDomain]
+            : disabledSites.filter((item: string) => item !== currentDomain)
+        );
+      })
+      .catch(onTabsQueryError);
+  };
+
+  const handleCasingToggle = () => {
+    setCasing(!casing);
+    browser.tabs
+      .query({ active: true, currentWindow: true })
+      .then((tabs) => {
+        if (tabs.length === 0 || !tabs[0].url) return;
+        const currentDomain = new URL(tabs[0].url).hostname.replace('www.', '');
+
+        setCasingSites(
+          casing
+            ? [...casingSites, currentDomain]
+            : casingSites.filter((item: string) => item !== currentDomain)
+        );
+      })
+      .catch(onTabsQueryError);
   };
 
   return (
     <>
       <header>
-        <h1>
-          <a href='https://www.witty.works/' target='_blank'>
-            <img
-              className='icon'
-              alt='Witty Works Logo'
-              width='100'
-              height='15'
-              src={browser.runtime.getURL(
-                '../assets/icons/witty-logo-color.svg'
-              )}
-            />
-          </a>
-        </h1>
+        <Logo
+          onClick={() => {
+            browser.tabs.create({ url: 'https://www.witty.works/' });
+          }}
+        />
       </header>
-      <hr></hr>
-      <section>
-        <h2>{t('settings')}</h2>
+      <section className='wittyworks-toggles website-settings'>
+        <h2>{t('websiteSettings')}</h2>
         <Toggle
           on={enabled}
-          handleToggle={() => setEnabled(!enabled)}
+          handleToggle={handleEnableToggle}
           color={Colors.green}
           scale={0.35}
           label={t('enableWitty')}
         />
-        <LanguageSelector />
-        <PreferredLanguagesSelector />
-        <GermanGenderEndSelector />
+        <hr className='toggle-separator' />
+        {enabled && (
+          <>
+            <Toggle
+              on={casing}
+              handleToggle={handleCasingToggle}
+              color={Colors.green}
+              scale={0.35}
+              label={t('caseSensitivity')}
+            />
+            <hr className='toggle-separator' />
+          </>
+        )}
       </section>
-      {DEV_ENV ? (
-        <>
-          <hr></hr>
-          <section>
-            <h2>{t('developmentSettings')}</h2>
-            <ApiSelector />
-          </section>
-        </>
-      ) : null}
+      {enabled && (
+        <section className='wittyworks-toggles global-settings'>
+          <h2>{t('globalSettings')}</h2>
+          <Toggle
+            on={orthography.value as boolean}
+            handleToggle={() => {
+              setOrthography({
+                ...orthography,
+                value:
+                  orthography.status != 'force'
+                    ? !orthography.value
+                    : orthography.value,
+              });
+            }}
+            color={Colors.green}
+            scale={0.35}
+            label={t('spellChecking')}
+            locked={orthography.status == 'force'}
+            userIsLoggedIn={userIsLoggedIn}
+          />
+          <hr className='toggle-separator' />
+          <Toggle
+            on={inclusiveLanguage.value as boolean}
+            handleToggle={() => {
+              setInclusiveLanguage({
+                ...inclusiveLanguage,
+                value:
+                  inclusiveLanguage.status != 'force'
+                    ? !inclusiveLanguage.value
+                    : inclusiveLanguage.value,
+              });
+            }}
+            color={Colors.green}
+            scale={0.35}
+            label={t('inclusiveTerms')}
+            locked={inclusiveLanguage.status === 'force'}
+            userIsLoggedIn={userIsLoggedIn}
+          />
+          <hr className='toggle-separator' />
+          <Toggle
+            on={styleCorrections.value as boolean}
+            handleToggle={() => {
+              setStyleCorrections({
+                ...styleCorrections,
+                value:
+                  styleCorrections.status != 'force'
+                    ? !styleCorrections.value
+                    : styleCorrections.value,
+              });
+            }}
+            color={Colors.green}
+            scale={0.35}
+            label={t('styleCorrections')}
+            locked={styleCorrections.status == 'force'}
+            userIsLoggedIn={userIsLoggedIn}
+          />
+          <hr className='toggle-separator' />
+          {hasWittyTeams ? (
+            <div className='wittyworks-dashboard-button-container'>
+              <div
+                className='wittyworks-dashboard-button'
+                onClick={() => {
+                  window.open(getBaseUrls().dashboard, '_blank');
+                }}
+              >
+                {t('goToDashboard')}
+              </div>
+            </div>
+          ) : (
+            <div className='wittyworks-upgrade-banner-popup'>
+              <div className='wittyworks-upgrade-banner-popup-text-container'>
+                <div className='wittyworks-upgrade-banner-popup-title'>
+                  {t('getMoreTitle')}
+                </div>
+                <div className='wittyworks-upgrade-banner-popup-text'>
+                  {t('getMoreText')}
+                </div>
+              </div>
+              <div
+                className='wittyworks-upgrade-banner-popup-button'
+                onClick={() => {
+                  window.open('https://www.witty.works/pricing', '_blank');
+                }}
+              >
+                {t('learnMoreButton')}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+      {DEV_ENV && (
+        <section>
+          <h2>{t('developmentSettings')}</h2>
+          <ApiSelector />
+          <DelaySelector />
+        </section>
+      )}
       <footer>
-        <a href='https://www.witty.works/onboarding' target='_blank'>
-          {t('needHelpQuestionMark')}
-        </a>
+        <div
+          className='enable-witty'
+          onClick={() => {
+            storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, false);
+          }}
+        >
+          {showBackToRecomendedSites && (
+            <>
+              <span>{t('backToRecomendedSites')}</span>
+            </>
+          )}
+        </div>
+        <Settings
+          onClick={
+            //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
+            () => browser.runtime.openOptionsPage().then(() => window.close())
+          }
+        />
       </footer>
     </>
   );

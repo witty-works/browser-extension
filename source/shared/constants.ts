@@ -3,7 +3,7 @@ import { browser } from 'webextension-polyfill-ts';
 export const wittyVersion = browser.runtime.getManifest().version;
 
 //Development
-export const DEV_ENV = process.env.NODE_ENV === 'development';
+export const DEV_ENV = true;
 
 export const POSTHOG_API_KEY = DEV_ENV
   ? 'phc_o3cjCKKkO7rn3CTBUJNmehFoa6vPc3zYavfnGj7WyqK'
@@ -13,23 +13,61 @@ export const POSTHOG_API_KEY = DEV_ENV
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   APP_ID = 'id',
-  APP_ENABLED = 'enabled',
+  DISABLED_SITES = 'disabledSites',
   PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_LANGUAGES = 'preferredLanguages',
+  PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
+  ORTHOGRAPHY = 'spellChecking',
+  STYLE = 'styleCorrections',
+  INCLUSIVE = 'inclusiveLanguage',
+  SHOW_INSPIRATION_ALTERNATIVES = 'inspirationalAlternatives',
+  SINGULAR_THEY = 'singularThey',
+  MAXIMUM_IMPORTANCE = 'maximumImportance',
+  CASING_SITES = 'casingSites',
+  API_DELAY = 'apiDelay',
+  GENDERED_ROLES_FORMAT = 'genderedRolesFormat',
+  USERNAME = 'username',
+  ACCESS_TOKEN = 'accessToken',
+  REFRESH_TOKEN = 'refreshToken',
+  CURRENT_DOMAIN = 'currentDomain',
+  ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
+  NAME = 'name', //team name
+  PLAN = 'plan',
 }
 
-//API endpoints
-export enum BaseUrls {
-  API_PLATFORMSH = 'https://default.api.witty.works/',
-  DEV_PLATFORMSH = 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
-  MAIN_PLATFORMSH = 'https://main-bvxea6i-qh3uq7skrqxzg.de-2.platformsh.site/',
-  WITTY_LOCAL = 'http://127.0.0.1:8000/',
+//nlp api, dashboard
+export type BaseUrl = {
+  api: string;
+  dashboard: string;
+};
+
+interface IBaseUrls {
+  [key: string]: BaseUrl;
 }
 
-export const DefaultBaseUrlKey: keyof typeof BaseUrls = Object.keys(
-  BaseUrls
-)[0] as keyof typeof BaseUrls;
+export const BaseUrls: IBaseUrls = {
+  Prod: {
+    api: 'https://default.api.witty.works/',
+    dashboard: 'https://dashboard.witty.works/',
+  },
+  Dev: {
+    api: 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
+    dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
+  },
+  Local: {
+    api: 'http://127.0.0.1:8000/',
+    dashboard: 'https://dashboard.lndo.site/',
+  },
+};
+
+export const DefaultBaseUrlKey: keyof typeof BaseUrls =
+  'Prod' as keyof typeof BaseUrls;
+
+export enum ConfigPropertyStatus {
+  FORCE = 'force',
+  SUGGESTION = 'suggestion',
+}
 
 export enum Colors {
   red = '#F06464',
@@ -37,7 +75,7 @@ export enum Colors {
   purple = '#9489DB',
   blue = '#55B8E9',
   cyan = '#37D1E5',
-  green = '#5ACFB9',
+  green = '#5fca7d',
 }
 interface IHighlightColors {
   default: string;
@@ -86,3 +124,19 @@ export enum GermanGenderEndings {
   slash_in = '/in',
   uppercase_in = 'In',
 }
+
+export const WittyIconActive = {
+  path: {
+    '16': 'assets/icons/icon16.png',
+    '32': 'assets/icons/icon32.png',
+    '48': 'assets/icons/icon48.png',
+  },
+};
+
+export const WittyIconInactive = {
+  path: {
+    '16': 'assets/icons/icon16_disabled.png',
+    '32': 'assets/icons/icon32_disabled.png',
+    '48': 'assets/icons/icon48_disabled.png',
+  },
+};

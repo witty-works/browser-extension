@@ -5,6 +5,7 @@
 body {
   font-family: $lato;
   color: $black;
+  font-size: 88%;
 }
 
 a {
@@ -15,15 +16,15 @@ a {
   min-width: 300px;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  padding: 1.15rem 0;
 }
 
 header {
-  padding: 1rem 1rem 0 1rem;
+  padding: 0 1rem 1.2rem 1rem;
 }
 
 section {
-  padding: 1rem;
+  padding: 0 1rem 1rem 1rem;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -33,8 +34,13 @@ section {
   }
 
   h2 {
-    font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 14px;
+    color: $black;
+    opacity: 0.5;
   }
 }
 
@@ -43,7 +49,197 @@ hr {
   margin: 0;
 }
 
-footer {
-  padding: 1rem;
+.wittyworks-toggles {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 19px;
+  color: $black;
+}
+
+.toggle-separator {
   background-color: $whiteGray;
+  margin-bottom: 1em;
+  border: 0;
+  height: 1px;
+}
+
+footer {
+  padding: 0 1.3em;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  cursor: pointer;
+  margin-top: 1em;
+}
+
+.dropdown-title-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.dropdown-premium-only {
+  margin-left: 0.5em;
+}
+
+.dropdown-lock {
+  margin-left: 0.5em;
+}
+
+.domain-not-supported {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.domain-not-supported-title-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  line-height: 20px;
+  color: $black;
+  margin-bottom: 1em;
+}
+
+.domain-not-supported-title {
+  width: 70%;
+}
+
+.domain-not-supported-icon {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5em;
+}
+
+.domain-not-supported-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  line-height: 17px;
+  color: #55b8e9;
+  padding-top: 0.5em;
+  box-shadow: 0px -1px 0px #f1f2f2;
+  cursor: pointer;
+}
+
+.wittyworks-upgrade-banner-popup {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5em;
+  width: 111%;
+  margin-left: -1em;
+  margin-top: -1em;
+  padding-left: 1em;
+
+  background: linear-gradient(
+        96.78deg,
+        #fef7f8 -6.3%,
+        #fbf6fa 35.9%,
+        #e9f2f5 100.12%
+      )
+      padding-box,
+    linear-gradient(
+        114.59deg,
+        #f06464 1.6%,
+        #f277d0 32.79%,
+        #9489db 71.64%,
+        #37d1e5 101.91%,
+        #5acfb9 131.52%
+      )
+      border-box;
+}
+
+.wittyworks-upgrade-banner-popup-text-container {
+  color: $wittyPurple;
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+}
+
+.wittyworks-upgrade-banner-popup-title {
+  font-weight: 700;
+  margin: 4px 0px;
+  text-transform: uppercase;
+}
+
+.wittyworks-upgrade-banner-popup-button {
+  display: flex;
+  height: 22px;
+  margin-right: auto;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  padding: 4px 8px;
+  background: $wittyPurple;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
+  border-radius: 4px;
+  color: $white;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.wittyworks-dashboard-button-container {
+  display: flex;
+  justify-content: center;
+}
+.wittyworks-dashboard-button {
+  height: 22px;
+  margin-top: 1em;
+  padding: 4px 8px;
+  background: $wittyPurple;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
+  border-radius: 4px;
+  color: $white;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.enable-witty {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  display: flex;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dropdown-lock {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+
+  .dropdown-lock-info {
+    display: none;
+  }
+
+  &:hover {
+    .dropdown-lock-info {
+      display: block;
+      position: absolute;
+      width: 30em;
+      margin-bottom: 4em;
+      margin-left: -6em;
+      font-family: $lato;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 12px;
+    }
+  }
 }

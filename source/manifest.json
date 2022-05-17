@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_appName__",
-  "version": "1.17.0",
+  "version": "1.20.1",
   "default_locale": "en",
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -17,6 +17,10 @@
   "__chrome|firefox__author": "Witty Works",
   "__opera__developer": {
     "name": "Witty Works"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
   },
   "__firefox__applications": {
     "gecko": {
@@ -48,6 +52,7 @@
     }
   ],
   "web_accessible_resources": [
+    "options.html",
     "assets/icons/w-logo-wire-color.svg",
     "assets/icons/popover/ignore.svg",
     "assets/icons/popover/arrow.svg",

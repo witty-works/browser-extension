@@ -1,41 +1,18 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
-import ContentScriptApp from './ContentScriptApp';
 import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys } from '../shared/constants';
-import '../i18n/i18n';
-
+import ContentScriptApp from './ContentScriptApp';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
+import defaultConfig from '../witty.config.json';
+import { getDomainWithoutSubdomain } from '../shared/utils';
 
 const log = useLog('ContentScript index');
 
 //Main element to add extra markup
-document.body.appendChild(document.createElement('witty-code'));
-
-//get extension enable status
-browser.storage.local
-  .get(StorageKeys.APP_ENABLED)
-  .then((result) => {
-    if (result[StorageKeys.APP_ENABLED])
-      customRender(result[StorageKeys.APP_ENABLED]);
-  })
-  .catch((error: string) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-  });
-
-const storageChange = (changes: any) => {
-  let changedItems = Object.keys(changes);
-
-  for (let item of changedItems) {
-    switch (item) {
-      case StorageKeys.APP_ENABLED:
-        customRender(changes[item].newValue);
-        break;
-    }
-  }
-};
-
-browser.storage.onChanged.addListener(storageChange);
+const element = document.createElement('witty-code');
+element.setAttribute('extension-id', browser.runtime.id);
+document.body.appendChild(element);
 
 const customRender = (enabled: boolean) => {
   ReactDOM.render(
@@ -43,5 +20,68 @@ const customRender = (enabled: boolean) => {
     document.querySelector('witty-code')
   );
 };
+
+const domain = getDomainWithoutSubdomain(window.location.hostname);
+if (!defaultConfig.ACTIVE_SITES.includes(domain)) {
+  customRender(false);
+} else {
+  //get extension enable status
+  browser.storage.local
+    .get(null)
+    .then((result) => {
+      if (
+        (result[StorageKeys.ENABLE_WITTY_EVERYWHERE] &&
+          !result[StorageKeys.DISABLED_SITES].includes(
+            window.location.hostname.replace('www.', '')
+          )) ||
+        defaultConfig.ACTIVE_SITES.includes(
+          window.location.hostname.replace('www.', '')
+        )
+      ) {
+        customRender(true);
+      } else if (
+        !defaultConfig.ACTIVE_SITES.includes(
+          window.location.hostname.replace('www.', '')
+        )
+      ) {
+        customRender(false);
+      }
+    })
+    .catch((error: string) => {
+      log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    });
+}
+//TODO define changes type
+const storageChange = (changes: any) => {
+  if (!defaultConfig.ACTIVE_SITES.includes(domain)) {
+    customRender(false);
+  } else {
+    let changedItems = Object.keys(changes);
+    for (let item of changedItems) {
+      switch (item) {
+        case StorageKeys.DISABLED_SITES:
+          customRender(
+            !changes[item].newValue.includes(
+              window.location.hostname.replace('www.', '')
+            )
+          );
+          break;
+        case StorageKeys.ENABLE_WITTY_EVERYWHERE:
+          customRender(changes[item].newValue);
+          if (
+            changes[item].newValue &&
+            !defaultConfig.ACTIVE_SITES.includes(
+              window.location.hostname.replace('www.', '')
+            )
+          ) {
+            customRender(false);
+          }
+          break;
+      }
+    }
+  }
+};
+
+browser.storage.onChanged.addListener(storageChange);
 
 export {};

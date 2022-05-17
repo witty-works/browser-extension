@@ -7,11 +7,18 @@ import { StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
-
-const PreferredLanguagesSelector: React.FC = () => {
+import Lock from '../assets/icons/options/lock.svg';
+interface SelectorProps {
+  locked?: boolean;
+  userIsLoggedIn?: boolean;
+}
+const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
+  locked,
+  userIsLoggedIn = false,
+}: SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<OptionProp[]>([]);
-  const { t } = useTranslation(namespaces.pages.popup);
+  const { t } = useTranslation(namespaces.pages.options);
   const log = useLog('PreferredLanguagesSelector');
 
   useEffect(() => {
@@ -35,7 +42,7 @@ const PreferredLanguagesSelector: React.FC = () => {
         if (result[StorageKeys.PREFERRED_LANGUAGES]) {
           const selecOptions: OptionProp[] = result[
             StorageKeys.PREFERRED_LANGUAGES
-          ].map((opt: string) => {
+          ].value.map((opt: string) => {
             return {
               value: opt,
               label: t(`languages.${opt.replace('-', '_')}`, {
@@ -67,11 +74,22 @@ const PreferredLanguagesSelector: React.FC = () => {
 
   return (
     <div>
-      <label>{t('preferredLanguage')}:</label>
+      <div className='dropdown-title-wrapper'>
+        <label>{t('preferredLanguage')}</label>
+        {locked && userIsLoggedIn && (
+          <>
+            <div className='dropdown-lock'>
+              <Lock />
+              {<div className='dropdown-lock-info'>{t('lockedInfo')}</div>}
+            </div>
+          </>
+        )}
+      </div>
       <DropdownMultiSelect
         onDropdownChange={handleDropdownChange}
         options={dropdownOptions}
         selectedOptions={selectedOption}
+        disabled={locked && userIsLoggedIn}
       />
     </div>
   );
