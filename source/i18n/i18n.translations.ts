@@ -92,7 +92,7 @@ export const de = {
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
     lockedInfo: 'Team-Vorgabe',
-    resetTeamsSettings: 'Reset to defaults DE',
+    resetTeamsSettings: 'Auf Standardwerte zurücksetzen',
   },
 };
 
