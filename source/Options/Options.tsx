@@ -270,6 +270,7 @@ const Options: React.FC = () => {
             break;
         }
       }
+      setResetSettings(false);
     }
   }, [authResponse, resetSettings]);
 
