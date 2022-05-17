@@ -11,12 +11,14 @@ import Lock from '../assets/icons/options/lock.svg';
 interface SelectorProps {
   locked?: boolean;
   userIsLoggedIn?: boolean;
-  lockedValue: string;
+  selectedValue: string;
+  resetSettings?: boolean;
 }
 const GermanGenderEndSelector: React.FC<SelectorProps> = ({
   locked,
   userIsLoggedIn = false,
-  lockedValue,
+  selectedValue,
+  resetSettings = false,
 }: SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
@@ -33,11 +35,11 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
 
     if (locked && userIsLoggedIn) {
       const lockedKeyValuePair = dropdownOptions.find(
-        (option: OptionProp) => option.value === lockedValue
+        (option: OptionProp) => option.value === selectedValue
       );
       if (lockedKeyValuePair) {
         setDropdownOptions([lockedKeyValuePair]);
-        setSelectedOption(lockedValue);
+        setSelectedOption(selectedValue);
       }
     } else {
       setDropdownOptions(dropdownOptions);
@@ -55,7 +57,15 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
+  useEffect(() => {
+    const selectedKey = dropdownOptions.find(
+      (option: OptionProp) => option.value === selectedValue
+    );
+    handleDropdownChange(selectedKey?.key as string);
+  }, [resetSettings]);
+
   const handleDropdownChange = (value: string) => {
+    setSelectedOption(value);
     browser.storage.local
       .set({ [StorageKeys.GERMAN_GENDER_ENDING]: value })
       .then(() => {

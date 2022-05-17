@@ -14,15 +14,17 @@ import './styles.scss';
 interface SelectorProps {
   locked?: boolean;
   hasWittyTeams?: boolean;
-  lockedValue: string;
+  selectedValue: string;
   userIsLoggedIn?: boolean;
+  resetSettings?: boolean;
 }
 
 const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   locked,
   hasWittyTeams = true,
-  lockedValue,
+  selectedValue,
   userIsLoggedIn = false,
+  resetSettings = false,
 }: SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
@@ -46,11 +48,11 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
 
     if (locked && userIsLoggedIn) {
       const lockedKeyValuePair = dropdownOptions.find(
-        (option: OptionProp) => option.key === lockedValue
+        (option: OptionProp) => option.key === selectedValue
       );
       if (lockedKeyValuePair) {
         setDropdownOptions([lockedKeyValuePair]);
-        setSelectedOption(lockedValue);
+        setSelectedOption(selectedValue);
       }
     } else {
       setDropdownOptions(dropdownOptions);
@@ -59,7 +61,7 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
         .then((result) => {
           if (result[StorageKeys.GENDERED_ROLES_FORMAT])
             setSelectedOption(
-              locked ? 'both' : result[StorageKeys.GENDERED_ROLES_FORMAT].value
+              locked ? 'both' : result[StorageKeys.GENDERED_ROLES_FORMAT]
             );
         })
         .catch(onError);
@@ -70,7 +72,15 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
+  useEffect(() => {
+    const selectedKey = dropdownOptions.find(
+      (option: OptionProp) => option.key === selectedValue
+    );
+    handleDropdownChange(selectedKey?.key as string);
+  }, [resetSettings]);
+
   const handleDropdownChange = (value: string) => {
+    setSelectedOption(value);
     browser.storage.local
       .set({ [StorageKeys.GENDERED_ROLES_FORMAT]: value })
       .then(() => {

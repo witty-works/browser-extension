@@ -188,6 +188,8 @@
   cursor: pointer;
   max-width: 20%;
   text-align: center;
+  user-select: none;
+  -moz-user-select: none;
 }
 
 .wittyworks-options-button-light {

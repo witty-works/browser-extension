@@ -44,9 +44,8 @@ const Options: React.FC = () => {
     defaultConfig.INCLUSIVE
   );
   const [preferredVariants, setPreferredVariants] = useState<ConfigProperty>(
-    defaultConfig.PREFERRED_LANGUAGES //is prederred variants the same as preferred languages?
+    defaultConfig.PREFERRED_VARIANTS
   );
-
   const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
     defaultConfig.STYLE
   );
@@ -89,7 +88,6 @@ const Options: React.FC = () => {
           ? result[StorageKeys.API_ENDPOINT_KEY]
           : DefaultBaseUrlKey
       );
-      setPreferredVariants(result[StorageKeys.PREFERRED_LANGUAGES]);
       setOrthography(result[StorageKeys.ORTHOGRAPHY]);
       setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
       setStyleCorrections(result[StorageKeys.STYLE]);
@@ -102,8 +100,6 @@ const Options: React.FC = () => {
       setUsername(result[StorageKeys.USERNAME]);
       setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
       setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-      setGenderRolesFormat(result[StorageKeys.GENDERED_ROLES_FORMAT]);
-      setGermanGenderEnding(result[StorageKeys.GERMAN_GENDER_ENDING]);
       setTeamName(result[StorageKeys.NAME]);
       setSubscriptionPlan(result[StorageKeys.PLAN]);
 
@@ -140,10 +136,6 @@ const Options: React.FC = () => {
   }, [orthography]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.PREFERRED_LANGUAGES, preferredVariants);
-  }, [preferredVariants]);
-
-  useEffect(() => {
     storeInLocalStorage(StorageKeys.INCLUSIVE, inclusiveLanguage);
   }, [inclusiveLanguage]);
 
@@ -169,14 +161,6 @@ const Options: React.FC = () => {
       inspirationalAlternatives
     );
   }, [inspirationalAlternatives]);
-
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.GENDERED_ROLES_FORMAT, genderRolesFormat);
-  }, [genderRolesFormat]);
-
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, germanGenderEnding);
-  }, [germanGenderEnding]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.USERNAME, username);
@@ -214,14 +198,7 @@ const Options: React.FC = () => {
       for (let key in authResponse.config) {
         switch (key) {
           case 'german_gender_ending':
-            if (authResponse.config[key].status == 'force' || resetSettings) {
-              setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
-            } else {
-              setGermanGenderEnding({
-                ...germanGenderEnding,
-                status: authResponse.config[key].status,
-              } as ConfigProperty);
-            }
+            setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
             break;
           case 'inclusive':
             if (authResponse.config[key].status == 'force' || resetSettings) {
@@ -286,27 +263,13 @@ const Options: React.FC = () => {
             }
             break;
           case 'gendered_roles_format':
-            if (authResponse.config[key].status == 'force' || resetSettings) {
-              setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
-            } else {
-              setGenderRolesFormat({
-                ...genderRolesFormat,
-                status: authResponse.config[key].status,
-              } as ConfigProperty);
-            }
+            setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
             break;
           case 'preferred_variants':
-            if (authResponse.config[key].status == 'force' || resetSettings) {
-              setPreferredVariants(authResponse.config[key] as ConfigProperty);
-            } else {
-              setPreferredVariants({
-                ...preferredVariants,
-                status: authResponse.config[key].status,
-              } as ConfigProperty);
-            }
+            setPreferredVariants(authResponse.config[key] as ConfigProperty);
+            break;
         }
       }
-      setResetSettings(false);
     }
   }, [authResponse, resetSettings]);
 
@@ -438,6 +401,8 @@ const Options: React.FC = () => {
                   <PreferedLanguagesSelector
                     locked={preferredVariants.status === 'force'}
                     userIsLoggedIn={userIsLoggedIn}
+                    resetSettings={resetSettings}
+                    selectedValue={preferredVariants.value as string[]}
                   />
                 </div>
 
@@ -477,7 +442,8 @@ const Options: React.FC = () => {
                   <GermanGenderEndSelector
                     locked={germanGenderEnding.status == 'force'}
                     userIsLoggedIn={userIsLoggedIn}
-                    lockedValue={germanGenderEnding.value as string}
+                    selectedValue={germanGenderEnding.value as string}
+                    resetSettings={resetSettings}
                   />
                 </div>
 
@@ -488,7 +454,8 @@ const Options: React.FC = () => {
                     }
                     hasWittyTeams={hasWittyTeams}
                     userIsLoggedIn={userIsLoggedIn}
-                    lockedValue={genderRolesFormat.value as string}
+                    selectedValue={genderRolesFormat.value as string}
+                    resetSettings={resetSettings}
                   />
                 </div>
 
