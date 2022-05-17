@@ -210,149 +210,103 @@ const Options: React.FC = () => {
         ? setHasWittyTeams(true)
         : setHasWittyTeams(false);
 
-      if (resetSettings) {
-        for (let key in authResponse.config) {
-          switch (key) {
-            case 'german_gender_ending':
+      // refactor this
+      for (let key in authResponse.config) {
+        switch (key) {
+          case 'german_gender_ending':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
-              break;
-            case 'inclusive':
+            } else {
+              setGermanGenderEnding({
+                ...germanGenderEnding,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
+            }
+            break;
+          case 'inclusive':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setInclusiveLanguage(authResponse.config[key] as ConfigProperty);
-              break;
-            case 'maximum_importance':
+            } else {
+              setInclusiveLanguage({
+                ...inclusiveLanguage,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
+            }
+            break;
+          case 'maximum_importance':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setMaximumImportance(authResponse.config[key] as ConfigProperty);
-              break;
-            case 'orthography':
+            } else {
+              setMaximumImportance({
+                ...maximumImportance,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
+            }
+            break;
+          case 'orthography':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setOrthography(authResponse.config[key] as ConfigProperty);
-              break;
-            case 'show_inspiration_alternatives':
+            } else {
+              setOrthography({
+                ...orthography,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
+            }
+            break;
+          case 'show_inspiration_alternatives':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setInspirationalAlternatives(
                 authResponse.config[key] as ConfigProperty
               );
-              break;
-            case 'singular_they':
+            } else {
+              setInspirationalAlternatives({
+                ...inspirationalAlternatives,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
+            }
+            break;
+          case 'singular_they':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setSingularThey(authResponse.config[key] as ConfigProperty);
-              break;
-            case 'style':
+            } else {
+              setSingularThey({
+                ...singularThey,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
+            }
+            break;
+          case 'style':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setStyleCorrections(authResponse.config[key] as ConfigProperty);
-              break;
-            case 'gendered_roles_format':
+            } else {
+              setStyleCorrections({
+                ...styleCorrections,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
+            }
+            break;
+          case 'gendered_roles_format':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
-              break;
-            case 'preferred_variants':
+            } else {
+              setGenderRolesFormat({
+                ...genderRolesFormat,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
+            }
+            break;
+          case 'preferred_variants':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setPreferredVariants(authResponse.config[key] as ConfigProperty);
-              break;
-          }
-        }
-        setResetSettings(false);
-      } else {
-        // refactor this
-        for (let key in authResponse.config) {
-          switch (key) {
-            case 'german_gender_ending':
-              if (authResponse.config[key].status == 'force') {
-                setGermanGenderEnding(
-                  authResponse.config[key] as ConfigProperty
-                );
-              } else {
-                setGermanGenderEnding({
-                  ...germanGenderEnding,
-                  status: authResponse.config[key].status,
-                } as ConfigProperty);
-              }
-              break;
-            case 'inclusive':
-              if (authResponse.config[key].status == 'force') {
-                setInclusiveLanguage(
-                  authResponse.config[key] as ConfigProperty
-                );
-              } else {
-                setInclusiveLanguage({
-                  ...inclusiveLanguage,
-                  status: authResponse.config[key].status,
-                } as ConfigProperty);
-              }
-              break;
-            case 'maximum_importance':
-              if (authResponse.config[key].status == 'force') {
-                setMaximumImportance(
-                  authResponse.config[key] as ConfigProperty
-                );
-              } else {
-                setMaximumImportance({
-                  ...maximumImportance,
-                  status: authResponse.config[key].status,
-                } as ConfigProperty);
-              }
-              break;
-            case 'orthography':
-              if (authResponse.config[key].status == 'force') {
-                setOrthography(authResponse.config[key] as ConfigProperty);
-              } else {
-                setOrthography({
-                  ...orthography,
-                  status: authResponse.config[key].status,
-                } as ConfigProperty);
-              }
-              break;
-            case 'show_inspiration_alternatives':
-              if (authResponse.config[key].status == 'force') {
-                setInspirationalAlternatives(
-                  authResponse.config[key] as ConfigProperty
-                );
-              } else {
-                setInspirationalAlternatives({
-                  ...inspirationalAlternatives,
-                  status: authResponse.config[key].status,
-                } as ConfigProperty);
-              }
-              break;
-            case 'singular_they':
-              if (authResponse.config[key].status == 'force') {
-                setSingularThey(authResponse.config[key] as ConfigProperty);
-              } else {
-                setSingularThey({
-                  ...singularThey,
-                  status: authResponse.config[key].status,
-                } as ConfigProperty);
-              }
-              break;
-            case 'style':
-              if (authResponse.config[key].status == 'force') {
-                setStyleCorrections(authResponse.config[key] as ConfigProperty);
-              } else {
-                setStyleCorrections({
-                  ...styleCorrections,
-                  status: authResponse.config[key].status,
-                } as ConfigProperty);
-              }
-              break;
-            case 'gendered_roles_format':
-              if (authResponse.config[key].status == 'force') {
-                setGenderRolesFormat(
-                  authResponse.config[key] as ConfigProperty
-                );
-              } else {
-                setGenderRolesFormat({
-                  ...genderRolesFormat,
-                  status: authResponse.config[key].status,
-                } as ConfigProperty);
-              }
-              break;
-            case 'preferred_variants':
-              if (authResponse.config[key].status == 'force') {
-                setPreferredVariants(
-                  authResponse.config[key] as ConfigProperty
-                );
-              } else {
-                setPreferredVariants({
-                  ...preferredVariants,
-                  status: authResponse.config[key].status,
-                } as ConfigProperty);
-              }
-          }
+            } else {
+              setPreferredVariants({
+                ...preferredVariants,
+                status: authResponse.config[key].status,
+              } as ConfigProperty);
+            }
         }
       }
+      setResetSettings(false);
     }
   }, [authResponse, resetSettings]);
 
