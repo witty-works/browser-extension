@@ -174,6 +174,7 @@ const Popup: React.FC = () => {
     <>
       <header>
         <Logo
+          id='witty-logo'
           onClick={() => {
             browser.tabs.create({ url: 'https://www.witty.works/' });
           }}
@@ -313,6 +314,7 @@ const Popup: React.FC = () => {
           )}
         </div>
         <Settings
+          id='witty-settings'
           onClick={
             //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
             () => browser.runtime.openOptionsPage().then(() => window.close())
