@@ -351,24 +351,26 @@ const Options: React.FC = () => {
       </div>
 
       <div className='wittyworks-options-content'>
-        <div className='wittyworks-upgrade-banner'>
-          <div className='wittyworks-upgrade-banner-text-container'>
-            <div className='wittyworks-upgrade-banner-title'>
-              {t('getMoreTitle')}
+        {!hasWittyTeams && (
+          <div className='wittyworks-upgrade-banner'>
+            <div className='wittyworks-upgrade-banner-text-container'>
+              <div className='wittyworks-upgrade-banner-title'>
+                {t('getMoreTitle')}
+              </div>
+              <div className='wittyworks-upgrade-banner-text'>
+                {t('getMoreText')}
+              </div>
             </div>
-            <div className='wittyworks-upgrade-banner-text'>
-              {t('getMoreText')}
+            <div
+              className='wittyworks-upgrade-banner-button'
+              onClick={() => {
+                window.open('https://www.witty.works/pricing', '_blank');
+              }}
+            >
+              {t('getMoreButton')}
             </div>
           </div>
-          <div
-            className='wittyworks-upgrade-banner-button'
-            onClick={() => {
-              window.open('https://www.witty.works/pricing', '_blank');
-            }}
-          >
-            {t('getMoreButton')}
-          </div>
-        </div>
+        )}
 
         {username === '' ? (
           <section className='wittyworks-options-login'>
