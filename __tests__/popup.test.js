@@ -7,7 +7,7 @@ const test = base.extend({
         const pathToExtension = ('./extension/chrome');
         const launchOptions = {
             devtools: true,
-            headless: true,
+            headless: false,
             viewport: {
                 width: 1920,
                 height: 1080
