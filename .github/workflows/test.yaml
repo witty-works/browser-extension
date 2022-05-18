@@ -31,12 +31,12 @@ jobs:
         run: |
           yarn install
 
-      - name: Install supported browsers
-        run: npx playwright install
+      # - name: Install supported browsers
+      #   run: npx playwright install
 
-      - name: Run tests
-        run: |
-          npx playwright test
+      # - name: Run tests
+      #   run: |
+      #     npx playwright test
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
