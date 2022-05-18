@@ -61,7 +61,7 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
         .then((result) => {
           if (result[StorageKeys.GENDERED_ROLES_FORMAT])
             setSelectedOption(
-              locked ? 'both' : result[StorageKeys.GENDERED_ROLES_FORMAT]
+              locked ? 'both' : result[StorageKeys.GENDERED_ROLES_FORMAT].value
             );
         })
         .catch(onError);
@@ -82,7 +82,9 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   const handleDropdownChange = (value: string) => {
     setSelectedOption(value);
     browser.storage.local
-      .set({ [StorageKeys.GENDERED_ROLES_FORMAT]: value })
+      .set({
+        [StorageKeys.GENDERED_ROLES_FORMAT]: { value: value },
+      })
       .then(() => {
         log(`New gender role format ${value} saved`);
       })
