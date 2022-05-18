@@ -31,6 +31,9 @@ jobs:
         run: |
           yarn install
 
+      - name: Install supported browsers
+        run: npx playwright install
+
       - name: Run tests
         run: |
           npx playwright test
