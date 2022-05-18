@@ -92,6 +92,7 @@ export const de = {
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
     lockedInfo: 'Team-Vorgabe',
+    resetTeamsSettings: 'Auf Standardwerte zurücksetzen',
   },
 };
 
@@ -190,5 +191,6 @@ export const en = {
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
     lockedInfo: 'Team presetting',
+    resetTeamsSettings: 'Reset to defaults',
   },
 };
