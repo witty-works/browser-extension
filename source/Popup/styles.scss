@@ -73,21 +73,6 @@ footer {
   margin-top: 1em;
 }
 
-.dropdown-title-wrapper {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.dropdown-premium-only {
-  margin-left: 0.5em;
-}
-
-.dropdown-lock {
-  margin-left: 0.5em;
-}
-
 .domain-not-supported {
   font-family: $lato;
   font-style: normal;
@@ -218,28 +203,4 @@ footer {
   display: flex;
   font-size: 12px;
   cursor: pointer;
-}
-
-.dropdown-lock {
-  display: flex;
-  align-items: center;
-  margin-right: auto;
-
-  .dropdown-lock-info {
-    display: none;
-  }
-
-  &:hover {
-    .dropdown-lock-info {
-      display: block;
-      position: absolute;
-      width: 30em;
-      margin-bottom: 4em;
-      margin-left: -6em;
-      font-family: $lato;
-      font-style: normal;
-      font-weight: 400;
-      font-size: 12px;
-    }
-  }
 }

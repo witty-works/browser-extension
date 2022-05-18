@@ -13,8 +13,8 @@ import {
   changeMaximumImportance,
 } from '../shared/utils';
 // import LanguageSelector from '../Popup/LanguageSelector';
-import GermanGenderEndSelector from '../Popup/GermanGenderEndSelector';
-import PreferedLanguagesSelector from '../Popup/PreferedLanguagesSelector';
+import GermanGenderEndSelector from './GermanGenderEndSelector';
+import PreferedLanguagesSelector from './PreferedLanguagesSelector';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';
 import ArrowDown from '../assets/icons/options/arrow-down.svg';
 import ArrowUp from '../assets/icons/options/arrow-up.svg';
@@ -25,7 +25,7 @@ import '../i18n/i18n';
 import Toggle from '../shared/components/Toggle/Toggle';
 import './styles.scss';
 import { setBaseUrls, setToken } from '../shared/ApiServices/requests';
-import GenderRoleFormatSelector from '../Popup/GenderRoleFormatSelector';
+import GenderRoleFormatSelector from './GenderRoleFormatSelector';
 import LoadingIcon from '../shared/StateIndicatorIcons/LoadingIcon';
 
 const Options: React.FC = () => {
@@ -612,13 +612,15 @@ const Options: React.FC = () => {
                   />
                 </div>
                 {userIsLoggedIn && hasWittyTeams && (
-                  <div
-                    className='wittyworks-options-button-reset-settings'
-                    onClick={() => {
-                      setResetSettings(true);
-                    }}
-                  >
-                    {t('resetTeamsSettings')}
+                  <div className='wittyworks-options-button-wrapper'>
+                    <div
+                      className='wittyworks-options-button'
+                      onClick={() => {
+                        setResetSettings(true);
+                      }}
+                    >
+                      {t('resetTeamsSettings')}
+                    </div>
                   </div>
                 )}
               </>

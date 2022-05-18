@@ -65,7 +65,6 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
   };
 
   useEffect(() => {
-    console.log('selectedValue', selectedValue);
     //get labels for each selectedValue.value and create OptionProp
     const selectedKey = selectedValue.map((value: string) => {
       return {
@@ -75,7 +74,6 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
         }),
       };
     });
-    console.log(selectedKey);
     handleDropdownChange(selectedKey);
   }, [resetSettings]);
 
