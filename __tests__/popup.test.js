@@ -1,13 +1,13 @@
-const { test: base, chromium, firefox, expect } = require('@playwright/test')
+const { test: base, chromium, expect } = require('@playwright/test') //add firefox
 const extensionId = 'libbonaaegmcdbmeefoccaecokjgjmab'
 
 const test = base.extend({
     context: async ({ browserName }, use) => {
-        const browserTypes = { chromium, firefox }
+        const browserTypes = { chromium } //add firefox
         const pathToExtension = ('./extension/chrome');
         const launchOptions = {
             devtools: true,
-            headless: false,
+            headless: true,
             viewport: {
                 width: 1920,
                 height: 1080
