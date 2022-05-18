@@ -175,6 +175,15 @@
   text-align: center;
 }
 
+.wittyworks-options-button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5em;
+  font-size: 14px;
+  user-select: none;
+  -moz-user-select: none;
+}
+
 .wittyworks-options-button-light {
   font-weight: 600;
   max-width: 30%;
@@ -275,4 +284,43 @@
 .wittyworks-options-loading-icon {
   margin-bottom: 0em !important;
   margin-right: 2em;
+}
+
+.dropdown-title-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.dropdown-lock {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+
+  .dropdown-lock-info {
+    display: none;
+  }
+
+  &:hover {
+    .dropdown-lock-info {
+      display: block;
+      position: absolute;
+      width: 30em;
+      margin-bottom: 4em;
+      margin-left: -6em;
+      font-family: $lato;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 12px;
+    }
+  }
+}
+
+.dropdown-premium-only {
+  margin-left: 0.5em;
+}
+
+.dropdown-lock {
+  margin-left: 0.5em;
 }

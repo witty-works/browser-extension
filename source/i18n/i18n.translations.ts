@@ -28,12 +28,12 @@ export const de = {
     noSupport:
       'Es tut uns leid! Witty unterstützt diese Webseite noch nicht offiziell.',
     vote: 'Stimme für diese Webseite ab',
-    editor: 'Verwende das Witty Formular',
+    editor: 'Nutze alternativ Witty Text-Tool',
     getMoreTitle: 'Witty kann noch viel mehr!',
     getMoreText: 'Upgraden, um deine Spracheinstellungen zu teilen!',
     learnMoreButton: 'Mehr dazu',
     goToDashboard: 'Zum Witty Dashboard',
-    overrideRecomendedSites: 'Witty auch auf dieser Webseite nutzen',
+    overrideRecomendedSites: 'Witty hier dennoch aktivieren',
     backToRecomendedSites: 'Witty nur auf unterstützten Webseiten aktiv',
   },
   [namespaces.popover]: {
@@ -92,6 +92,7 @@ export const de = {
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
     lockedInfo: 'Team-Vorgabe',
+    resetTeamsSettings: 'Auf Standardwerte zurücksetzen',
   },
 };
 
@@ -123,13 +124,13 @@ export const en = {
     noSupport:
       'We’re sorry! Witty doesn’t yet officially support this website.',
     vote: 'Vote for this website',
-    editor: 'Use Witty form instead',
+    editor: 'Use Witty text tool instead',
     getMoreTitle: 'Get much more from Witty!',
     getMoreText:
       'Upgrade and get access to more checks and share your language settings!',
     learnMoreButton: 'Learn more',
     goToDashboard: 'Go to Witty Dashboard',
-    overrideRecomendedSites: 'Use Witty also on this website',
+    overrideRecomendedSites: 'Try Witty here anyway',
     backToRecomendedSites: 'Use Witty only on supported websites',
   },
 
@@ -190,5 +191,6 @@ export const en = {
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
     lockedInfo: 'Team presetting',
+    resetTeamsSettings: 'Reset to defaults',
   },
 };
