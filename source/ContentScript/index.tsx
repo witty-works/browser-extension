@@ -31,19 +31,11 @@ if (!defaultConfig.ACTIVE_SITES.includes(domain)) {
     .then((result) => {
       if (
         (result[StorageKeys.ENABLE_WITTY_EVERYWHERE] &&
-          !result[StorageKeys.DISABLED_SITES].includes(
-            window.location.hostname.replace('www.', '')
-          )) ||
-        defaultConfig.ACTIVE_SITES.includes(
-          window.location.hostname.replace('www.', '')
-        )
+          !result[StorageKeys.DISABLED_SITES].includes(domain)) ||
+        defaultConfig.ACTIVE_SITES.includes(domain)
       ) {
         customRender(true);
-      } else if (
-        !defaultConfig.ACTIVE_SITES.includes(
-          window.location.hostname.replace('www.', '')
-        )
-      ) {
+      } else if (!defaultConfig.ACTIVE_SITES.includes(domain)) {
         customRender(false);
       }
     })
