@@ -1,13 +1,13 @@
 import { IRequest, RequestConfig } from '../types';
 import { BaseUrls, wittyVersion } from '../constants';
 
-export let BASE_URL_API: string = '';
-export let BASE_URL_DASHBOARD: string = '';
+let BASE_URL_API: string = '';
+let BASE_URL_DASHBOARD: string = '';
 let token: string = '';
 export let appID: string = ''; // TODO context hook
 export let requestConfig: RequestConfig = {} as RequestConfig;
 
-export const createUrl = (base: string, path: string): string => `${base}${path}`;
+const createUrl = (base: string, path: string): string => `${base}${path}`;
 
 export const setBaseUrls = (urlKey: string) => {
   BASE_URL_API = BaseUrls[urlKey].api;

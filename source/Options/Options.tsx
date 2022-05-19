@@ -4,7 +4,12 @@ import { browser } from 'webextension-polyfill-ts';
 import defaultConfig from '../witty.config.json';
 import { ConfigProperty } from '../shared/types';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
-import { DefaultBaseUrlKey, Colors, StorageKeys } from '../shared/constants';
+import {
+  BaseUrls,
+  DefaultBaseUrlKey,
+  Colors,
+  StorageKeys,
+} from '../shared/constants';
 import {
   storeInLocalStorage,
   singularTheyToBoolean,
@@ -24,7 +29,7 @@ import { namespaces } from '../i18n/i18n.constants';
 import '../i18n/i18n';
 import Toggle from '../shared/components/Toggle/Toggle';
 import './styles.scss';
-import { BASE_URL_DASHBOARD, createUrl, setBaseUrls, setToken } from '../shared/ApiServices/requests';
+import { setBaseUrls, setToken } from '../shared/ApiServices/requests';
 import GenderRoleFormatSelector from './GenderRoleFormatSelector';
 import LoadingIcon from '../shared/StateIndicatorIcons/LoadingIcon';
 
@@ -74,6 +79,7 @@ const Options: React.FC = () => {
   const [refreshToken, setRefreshToken] = useState<string>('');
   const [authResponse, authErrorResponse, getConfig] = useAuthEndpoint();
 
+  const [urls, setUrls] = useState<string>('Prod');
   const originalOptionsUri = window.location.href;
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(false);
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
@@ -82,11 +88,12 @@ const Options: React.FC = () => {
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
       //Set the API/Dashboard urls
-      setBaseUrls(
+      setUrls(
         result[StorageKeys.API_ENDPOINT_KEY]
           ? result[StorageKeys.API_ENDPOINT_KEY]
           : DefaultBaseUrlKey
       );
+
       setOrthography(result[StorageKeys.ORTHOGRAPHY]);
       setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
       setStyleCorrections(result[StorageKeys.STYLE]);
@@ -111,11 +118,28 @@ const Options: React.FC = () => {
     });
 
     window.addEventListener('load', onOptionsLoad);
+    browser.storage.onChanged.addListener(storageChange);
 
     return () => {
       window.removeEventListener('load', onOptionsLoad);
+      browser.storage.onChanged.removeListener(storageChange);
     };
   }, []);
+
+  const storageChange = (changes: any) => {
+    let changedItems = Object.keys(changes);
+    for (let item of changedItems) {
+      switch (item) {
+        case StorageKeys.API_ENDPOINT_KEY:
+          setUrls(changes[item].newValue);
+          break;
+      }
+    }
+  };
+
+  useEffect(() => {
+    setBaseUrls(urls);
+  }, [urls]);
 
   const onOptionsLoad = (event: Event) => {
     const searchParams = new URLSearchParams(
@@ -278,7 +302,8 @@ const Options: React.FC = () => {
   }, [authErrorResponse]);
 
   const logIn = async () => {
-    window.open(createUrl(BASE_URL_DASHBOARD, `api/browser-login?redirect_uri=${originalOptionsUri}`), '_self');
+    const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${originalOptionsUri}`;
+    window.open(url, '_self');
   };
 
   const logOut = () => {
