@@ -51,14 +51,17 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
 export const getConfiguration = (): IRequest => {
   return {
     url: createUrl(BASE_URL_API, 'auth'),
-    config: {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    },
+    config:
+      BASE_URL_API !== ''
+        ? {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        : null,
   };
 };
 
