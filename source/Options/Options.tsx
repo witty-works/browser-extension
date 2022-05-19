@@ -24,7 +24,7 @@ import { namespaces } from '../i18n/i18n.constants';
 import '../i18n/i18n';
 import Toggle from '../shared/components/Toggle/Toggle';
 import './styles.scss';
-import { setBaseUrls, setToken } from '../shared/ApiServices/requests';
+import { BASE_URL_DASHBOARD, createUrl, setBaseUrls, setToken } from '../shared/ApiServices/requests';
 import GenderRoleFormatSelector from './GenderRoleFormatSelector';
 import LoadingIcon from '../shared/StateIndicatorIcons/LoadingIcon';
 
@@ -74,7 +74,6 @@ const Options: React.FC = () => {
   const [refreshToken, setRefreshToken] = useState<string>('');
   const [authResponse, authErrorResponse, getConfig] = useAuthEndpoint();
 
-  const baseUrl = 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site';
   const originalOptionsUri = window.location.href;
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(false);
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
@@ -279,8 +278,7 @@ const Options: React.FC = () => {
   }, [authErrorResponse]);
 
   const logIn = async () => {
-    const url = `${baseUrl}/api/browser-login?redirect_uri=${originalOptionsUri}`;
-    window.open(url, '_self');
+    window.open(createUrl(BASE_URL_DASHBOARD, `api/browser-login?redirect_uri=${originalOptionsUri}`), '_self');
   };
 
   const logOut = () => {
