@@ -54,7 +54,7 @@ export const de = {
     getMoreTitle: 'Witty kann noch viel mehr!',
     getMoreText: 'Upgraden, um deine Spracheinstellungen zu teilen!',
     getMoreButton: 'Upgraden',
-    LoginButton: 'Registieren / Anmelden',
+    LoginButton: 'Registrieren / Anmelden',
     setUpLanguages: 'Spracheinstellungen',
     configureRules: 'Witty Regeln anpassen',
     disableWitty: 'Witty auf gewissen Webseiten deaktivieren',
