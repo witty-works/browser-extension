@@ -53,3 +53,4 @@ const storageChange = (changes: any) => {
 };
 
 browser.storage.onChanged.addListener(storageChange);
+//TODO call removeListener

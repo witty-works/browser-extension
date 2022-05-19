@@ -140,7 +140,7 @@ export type ILogResponse = ICheckResponse;
 
 export interface IRequest {
   url: string;
-  config: RequestInit;
+  config: RequestInit | null;
 }
 
 export interface IEndpointResponseError {
