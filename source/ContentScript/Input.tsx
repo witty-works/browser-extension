@@ -555,7 +555,7 @@ const Input: React.FC<{
 
       if (
         node.nodeValue &&
-        node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
+        node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!-_]/i)
       ) {
         textStartingAbsPosition = textEndAbsPosition;
 
