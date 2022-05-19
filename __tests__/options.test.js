@@ -37,7 +37,7 @@ test.describe('Options', () => {
     //     expect(pages.length).toBe(3);
     // });
 
-    // test('clickin help button opens a page in another window', async ({ page, context }) => {
+    // test('clicking help button opens a page in another window', async ({ page, context }) => {
     //     await page.goto(`chrome-extension://${extensionId}/options.html`);
     //     await page.click('.wittyworks-options-header-button');
     //     await page.waitForTimeout(5000);
@@ -217,22 +217,52 @@ test.describe('Options', () => {
     // });
 
     ////user is logged in 
-    // test('a user can log in', async ({ page }) => {
+    // test('user can log in', async ({ page }) => {
     //     await page.goto(`chrome-extension://${extensionId}/options.html`);
     //     await page.click('.wittyworks-options-button');
-    //     //cannot sign in with email -> need to create account -> verification email
-    //     // await page.type('#email', 'hi@solvieg.io');
-    //     // await page.type('#password', 'testTest123');
-    //     // await page.click('#next');
+    //     await page.waitForTimeout(3000);
+    //     await page.type('#email', 'witty.works.user@gmail.com');
+    //     await page.type('#password', 'gdx@PGM-vdz6pjg5rkm');
+    //     await page.click('#next');
+    //     await page.waitForTimeout(3000);
 
-    //     //cannot sign in with gmail -> verification sms
-    //     // await page.click('#GoogleExchange');
+    //     const logout = await page.$('.wittyworks-options-logout');
+    //     expect(logout).toBeTruthy();
 
-    //     await page.waitForTimeout(10000);
+    //     const accountInfo = await page.$('.wittyworks-options-login-text');
+    //     expect(accountInfo).toBeTruthy();
+    // });
 
-    //     //need to mock logged in state somehow
+    //if subscription is witty me, the upgrade banner is shown 
+    // test('if subscription is witty me, the upgrade banner is shown', async ({ page }) => {
     // });
 
 
+    ////interaction with dashboard
+    test('when user makes changes on dashboard, options page is updated', async ({ page }) => {
+        await page.goto(`https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en`);
+        await page.waitForSelector('#CybotCookiebotDialog');
+        await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+        await page.click('.navigation-wrapper .navigation-link:nth-child(1)');
+
+        await page.waitForTimeout(2000);
+
+        await page.type('#email', 'witty.works.user@gmail.com');
+        await page.type('#password', 'gdx@PGM-vdz6pjg5rkm');
+        await page.click('#next');
+        await page.waitForTimeout(3000);
+
+        await page.click('.onboarding-quick-links-container .onboarding-iconWrapper:nth-child(2)');
+        await page.waitForTimeout(2000);
+        await page.click('.onboarding-quick-links-container .onboarding-iconWrapper:nth-child(1)');
+
+        await page.waitForTimeout(2000);
+
+        //edit settings
+
+        //go tooptions page and confirm settings are updated
+
+
+    });
 
 });
