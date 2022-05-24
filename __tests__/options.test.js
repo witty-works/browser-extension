@@ -216,8 +216,11 @@ test.describe('Options', () => {
     //     expect(list.length).toBe(0);
     // });
 
+    // test('when page is reloaded page, setting persist', async ({ page }) => {
+    // });
+
     ////user is logged in 
-    // test('user can log in', async ({ page }) => {
+    // test('user can login', async ({ page }) => {
     //     await page.goto(`chrome-extension://${extensionId}/options.html`);
     //     await page.click('.wittyworks-options-button');
     //     await page.waitForTimeout(3000);
@@ -233,36 +236,80 @@ test.describe('Options', () => {
     //     expect(accountInfo).toBeTruthy();
     // });
 
-    //if subscription is witty me, the upgrade banner is shown 
-    // test('if subscription is witty me, the upgrade banner is shown', async ({ page }) => {
+    // test('when user loggs out, locks and premium banners reappear', async ({ page }) => {
     // });
 
 
     ////interaction with dashboard
-    test('when user makes changes on dashboard, options page is updated', async ({ page }) => {
-        await page.goto(`https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en`);
-        await page.waitForSelector('#CybotCookiebotDialog');
-        await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.click('.navigation-wrapper .navigation-link:nth-child(1)');
+    // test('when user makes changes to language settings on dashboard, options page is updated', async ({ page }) => {
+    //     await page.goto(`https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en`);
+    //     await page.waitForSelector('#CybotCookiebotDialog');
+    //     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.click('.navigation-wrapper .navigation-link:nth-child(1)');
 
-        await page.waitForTimeout(2000);
+    //     await page.waitForTimeout(2000);
 
-        await page.type('#email', 'witty.works.user@gmail.com');
-        await page.type('#password', 'gdx@PGM-vdz6pjg5rkm');
-        await page.click('#next');
-        await page.waitForTimeout(3000);
+    //     await page.type('#email', 'witty.works.user@gmail.com');
+    //     await page.type('#password', 'gdx@PGM-vdz6pjg5rkm');
+    //     await page.click('#next');
+    //     await page.waitForTimeout(3000);
 
-        await page.click('.onboarding-quick-links-container .onboarding-iconWrapper:nth-child(2)');
-        await page.waitForTimeout(2000);
-        await page.click('.onboarding-quick-links-container .onboarding-iconWrapper:nth-child(1)');
+    //     await page.click('.onboarding-quick-links-container .onboarding-iconWrapper:nth-child(2)');
+    //     await page.waitForTimeout(2000);
+    //     await page.click('.onboarding-quick-links-container .onboarding-iconWrapper:nth-child(1)');
 
-        await page.waitForTimeout(2000);
+    //     await page.waitForTimeout(2000);
 
-        //edit settings
+    //     //edit settings
 
-        //go tooptions page and confirm settings are updated
+    //     //go tooptions page and confirm settings are updated
+    // });
+
+    // test('when user makes forced changes to English settings on dashboard, options page is updated', async ({ page }) => {
+    // });
+
+    // test('when user makes forced changes to German settings on dashboard, options page is updated', async ({ page }) => {
+    // });
+
+    // test('when user makes forced changes to inclusion pro settings on dashboard, options page is updated', async ({ page }) => {
+    // });
+
+    // test('when user makes forced changes to inspirations settings on dashboard, options page is updated', async ({ page }) => {
+    // });
+
+    // test('when user makes forced changes to Inclusive settings on dashboard, options page is updated', async ({ page }) => {
+    // });
+
+    // test('when user makes forced changes to Style settings on dashboard, options page is updated', async ({ page }) => {
+    // });
+
+    // test('when user makes forced changes to Grammar settings on dashboard, options page is updated', async ({ page }) => {
+    // });
+
+    // test('when user chages name in team settings on dashboard, options page is updated', async ({ page }) => {
+    //     //change name
+    // });
+
+    ////user is logged in and has witty_teams
+    // test('when premium user, the upselling banner is not shown', async ({ page }) => {
+    //     // witty.works.premium.user@gmail.com
+    //     //nqz.dtj*feu3EQX6fdc
+    // });
+
+    // test('when premium user, the premium only labals are not show and dont have locks', async ({ page }) => {
+    // });
+
+    // test('when premium user, premium features can be used', async ({ page }) => {
+    // });
+
+    // test('when preium user, reset to team settings button is visible', async ({ page }) => {
+    // });
+
+    // test('when premium user clicks reset settings button, toggles respond', async ({ page }) => {
+    // });
 
 
-    });
+
+
 
 });

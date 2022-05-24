@@ -104,22 +104,22 @@ test.describe('Popup', () => {
     // });
 
     // test('changing global toggle on options page changes popup', async ({ page, context }) => {
-    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
-    //     //inclusive terms
-    //     let element = await page.waitForSelector('#toggle-encloser-highlight-inclusive-terms');
-    //     const backgroundColorBefore = await element.evaluate((el) => {
-    //         return window.getComputedStyle(el).getPropertyValue('background-color');
-    //     });
+    // await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    // //inclusive terms
+    // let element = await page.waitForSelector('#toggle-encloser-highlight-inclusive-terms');
+    // const backgroundColorBefore = await element.evaluate((el) => {
+    //     return window.getComputedStyle(el).getPropertyValue('background-color');
+    // });
 
-    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
-    //     await page.click('.wittyworks-options-content-section-title');
-    //     await page.click('#toggle-button-highlight-inclusive-terms');
+    // await page.goto(`chrome-extension://${extensionId}/options.html`);
+    // await page.click('.wittyworks-options-content-section-title');
+    // await page.click('#toggle-button-highlight-inclusive-terms');
 
-    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
-    //     element = await page.waitForSelector('#toggle-encloser-highlight-inclusive-terms');
-    //     const backgroundColorAfter = await element.evaluate((el) => {
-    //         return window.getComputedStyle(el).getPropertyValue('#toggle-encloser-highlight-inclusive-terms');
-    //     });
+    // await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    // element = await page.waitForSelector('#toggle-encloser-highlight-inclusive-terms');
+    // const backgroundColorAfter = await element.evaluate((el) => {
+    //     return window.getComputedStyle(el).getPropertyValue('#toggle-encloser-highlight-inclusive-terms');
+    // });
 
     //     expect(backgroundColorBefore).not.toBe(backgroundColorAfter);
 
@@ -160,7 +160,97 @@ test.describe('Popup', () => {
     //     expect(backgroundColorBefore3).not.toBe(backgroundColorAfter3);
     // });
 
-    //User is logged in
+    // test('changing global toggles on popup changes toggles on options page', async ({ page, context }) => {
+    //     //inclusive terms
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-content-section-title');
+    //     let inclusiveTerms = await page.waitForSelector('#toggle-encloser-highlight-inclusive-terms');
+    //     const backgroundColorBefore = await inclusiveTerms.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.click('#toggle-button-highlight-inclusive-terms');
+
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-content-section-title');
+    //     inclusiveTerms = await page.waitForSelector('#toggle-encloser-highlight-inclusive-terms');
+    //     const backgroundColorAfter = await inclusiveTerms.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+    //     expect(backgroundColorBefore).not.toBe(backgroundColorAfter);
+
+    //     //style-issues
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-content-section-title');
+    //     let styleIssues = await page.waitForSelector('#toggle-encloser-highlight-style-issues');
+    //     const backgroundColorBefore2 = await styleIssues.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.click('#toggle-button-highlight-style-issues');
+
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-content-section-title');
+    //     styleIssues = await page.waitForSelector('#toggle-encloser-highlight-style-issues');
+    //     const backgroundColorAfter2 = await styleIssues.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+
+    //     expect(backgroundColorBefore2).not.toBe(backgroundColorAfter2);
+
+    //     //grammar
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-content-section-title');
+    //     let grammar = await page.waitForSelector('#toggle-encloser-check-grammar---spelling');
+    //     const backgroundColorBefore3 = await grammar.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.click('#toggle-button-check-grammar---spelling');
+
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-content-section-title');
+    //     grammar = await page.waitForSelector('#toggle-encloser-check-grammar---spelling');
+    //     const backgroundColorAfter3 = await grammar.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+
+    //     expect(backgroundColorBefore3).not.toBe(backgroundColorAfter3);
+    // });
+
+    //open toggle on website + tests of 'popup deactivated' popup (not sure if this is possible)
+    // test('when user disables witty for a site, it appears on the options page', async ({ page, context }) => {
+    //     //open popup on page & click disable for this site 
+    // });
+
+    // test('when opening popup on untested site, deactivated popup is shown', async ({ page, context }) => {
+    // });
+
+    // //User is logged in
+    // test('when user is logged in, and has witty_teams a link to the dashboard in shown', async ({ page, context }) => {
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-button');
+    //     await page.waitForTimeout(3000);
+    //     await page.type('#email', 'witty.works.premium.user@gmail.com');
+    //     await page.type('#password', 'nqz.dtj*feu3EQX6fdc');
+    //     await page.click('#next');
+    //     await page.waitForTimeout(3000);
+
+    //     // await page.goto(`chrome-extension://${extensionId}/popup.html`);
+
+    //     await page.waitForTimeout(3000);
+
+    //     let dashboardButton = await page.waitForSelector('#wittyworks-dashboard-button');
+    //     expect(dashboardButton).toBeTruthy();
+    // });
 
 
+    // test('when user is logged in, and has witty_me the upselling banner is shown', async ({ page, context }) => {
+    // });
+
+    // test('when user is logged in, locks made by administrators are show', async ({ page, context }) => {
+    // });
 })
