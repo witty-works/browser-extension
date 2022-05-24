@@ -6,11 +6,11 @@ const test = base.extend({
         const browserTypes = { chromium } //add firefox
         const pathToExtension = ('./extension/chrome');
         const launchOptions = {
-            devtools: true,
+            devtools: false,
             headless: false,
             viewport: {
-                width: 1920,
-                height: 1080
+                width: 1400,
+                height: 700
             },
             args: [
                 `--disable-extensions-except=${pathToExtension}`,
@@ -216,9 +216,6 @@ test.describe('Options', () => {
     //     expect(list.length).toBe(0);
     // });
 
-    // test('when page is reloaded page, setting persist', async ({ page }) => {
-    // });
-
     ////user is logged in 
     // test('user can login', async ({ page }) => {
     //     await page.goto(`chrome-extension://${extensionId}/options.html`);
@@ -236,11 +233,34 @@ test.describe('Options', () => {
     //     expect(accountInfo).toBeTruthy();
     // });
 
-    // test('when user loggs out, locks and premium banners reappear', async ({ page }) => {
+    // test('premium banners disspear when logged in with witty_teams and reappear when logged out', async ({ page }) => {
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.selectOption('.dropdown-select', 'Dev');
+
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-button');
+    //     await page.waitForTimeout(2000);
+    //     await page.type('#email', 'witty.works.premium.user@gmail.com');
+    //     await page.type('#password', 'nqz.dtj*feu3EQX6fdc');
+    //     await page.click('#next');
+
+    //     await page.click('#wittyworks-options-content-section-configure-rules');
+    //     const premiumOnlyLabelsDropdownLoggedIn = await page.$$('.dropdown-premium-only');
+    //     const premiumLabelsToggleLoggedIn = await page.$$('.toggle-premium-only');
+    //     expect(premiumOnlyLabelsDropdownLoggedIn.length).toBe(0);
+    //     expect(premiumLabelsToggleLoggedIn.length).toBe(0);
+
+    //     await page.click('.wittyworks-options-button');
+    //     await page.reload();
+
+    //     await page.click('#wittyworks-options-content-section-configure-rules');
+    //     const premiumOnlyLabelsDropdownLoggedOut = await page.$$('.dropdown-premium-only');
+    //     const premiumLabelsToggleLoggedOut = await page.$$('.toggle-premium-only');
+    //     expect(premiumOnlyLabelsDropdownLoggedOut.length).toBe(1);
+    //     expect(premiumLabelsToggleLoggedOut.length).toBe(2);
     // });
 
-
-    ////interaction with dashboard
+    //interaction with dashboard
     // test('when user makes changes to language settings on dashboard, options page is updated', async ({ page }) => {
     //     await page.goto(`https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en`);
     //     await page.waitForSelector('#CybotCookiebotDialog');
@@ -265,51 +285,117 @@ test.describe('Options', () => {
     //     //go tooptions page and confirm settings are updated
     // });
 
-    // test('when user makes forced changes to English settings on dashboard, options page is updated', async ({ page }) => {
-    // });
-
-    // test('when user makes forced changes to German settings on dashboard, options page is updated', async ({ page }) => {
-    // });
-
-    // test('when user makes forced changes to inclusion pro settings on dashboard, options page is updated', async ({ page }) => {
-    // });
-
-    // test('when user makes forced changes to inspirations settings on dashboard, options page is updated', async ({ page }) => {
-    // });
-
-    // test('when user makes forced changes to Inclusive settings on dashboard, options page is updated', async ({ page }) => {
-    // });
-
-    // test('when user makes forced changes to Style settings on dashboard, options page is updated', async ({ page }) => {
-    // });
-
-    // test('when user makes forced changes to Grammar settings on dashboard, options page is updated', async ({ page }) => {
+    // test('when user makes forced changes to settings on dashboard, toggle is locked on options page', async ({ page }) => {
     // });
 
     // test('when user chages name in team settings on dashboard, options page is updated', async ({ page }) => {
-    //     //change name
+    //     //login to dashboard
+    //     await page.goto(`https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en`);
+    //     await page.waitForSelector('#CybotCookiebotDialog');
+    //     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.click('.navigation-wrapper .navigation-link:nth-child(1)');
+    //     await page.type('#email', 'witty.works.user@gmail.com');
+    //     await page.type('#password', 'gdx@PGM-vdz6pjg5rkm');
+    //     await page.click('#next');
+    //     await page.waitForTimeout(2000);
+
+    //     //change team name 
+    //     const randomName = Math.random().toString(36).substring(7);
+    //     await page.click('.onboarding-quick-links-container .onboarding-iconWrapper:nth-child(1)');
+    //     await page.waitForTimeout(2000);
+    //     const elementHandle = await page.$('#name');
+    //     await elementHandle.click({ clickCount: 3 });
+    //     await elementHandle.press('Backspace');
+    //     await elementHandle.type(randomName);
+    //     await page.click('.max-w-7xl > div > .guidelines-wrapper .inline-flex');
+
+    //     //change login url popup -> Dev
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.selectOption('.dropdown-select', 'Dev');
+    //     await page.waitForTimeout(1000);
+
+    //     //login to options page
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-button');
+    //     await page.waitForTimeout(3000);
+
+    //     //confirm team name is updated
+    //     const teamName = await page.$('#team-name')
+    //     const teamNameText = await page.evaluate(element => element.textContent, teamName);
+    //     expect(teamNameText.replace(/\s/g, '')).toBe(randomName);
     // });
 
-    ////user is logged in and has witty_teams
     // test('when premium user, the upselling banner is not shown', async ({ page }) => {
-    //     // witty.works.premium.user@gmail.com
-    //     //nqz.dtj*feu3EQX6fdc
-    // });
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.selectOption('.dropdown-select', 'Dev');
 
-    // test('when premium user, the premium only labals are not show and dont have locks', async ({ page }) => {
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-button');
+    //     await page.waitForTimeout(2000);
+    //     await page.type('#email', 'witty.works.premium.user@gmail.com');
+    //     await page.type('#password', 'nqz.dtj*feu3EQX6fdc');
+    //     await page.click('#next');
+    //     await page.waitForTimeout(5000);
+
+    //     const upsellingBanner = await page.$('.wittyworks-upgrade-banner');
+    //     expect(upsellingBanner).toBeFalsy();
     // });
 
     // test('when premium user, premium features can be used', async ({ page }) => {
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.selectOption('.dropdown-select', 'Dev');
+
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-button');
+    //     await page.waitForTimeout(2000);
+    //     await page.type('#email', 'witty.works.premium.user@gmail.com');
+    //     await page.type('#password', 'nqz.dtj*feu3EQX6fdc');
+    //     await page.click('#next');
+    //     await page.waitForTimeout(3000);
+
+    //     await page.click('#wittyworks-options-content-section-configure-rules');
+
+    //     const inclusionPro = await page.waitForSelector('#toggle-encloser-become-an-inclusion-pro');
+    //     const inclusionProBackgroundBefore = await inclusionPro.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+    //     await page.click('#toggle-button-become-an-inclusion-pro');
+    //     await page.waitForTimeout(2000);
+    //     const inclusionProBackgroundAfter = await inclusionPro.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+    //     expect(inclusionProBackgroundBefore).not.toBe(inclusionProBackgroundAfter);
+
+    //     const inspirations = await page.waitForSelector('#toggle-encloser-show-inspirations-to-rephrase-entire-sentences');
+    //     const inspirationsBackgroundBefore = await inspirations.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+    //     await page.click('#toggle-button-show-inspirations-to-rephrase-entire-sentences');
+    //     await page.waitForTimeout(2000);
+    //     const inspirationsBackgroundAfter = await inspirations.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+    //     expect(inspirationsBackgroundBefore).not.toBe(inspirationsBackgroundAfter);
+
+    //     //'witty should suggest' dropdown
     // });
 
     // test('when preium user, reset to team settings button is visible', async ({ page }) => {
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.selectOption('.dropdown-select', 'Dev');
+
+    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
+    //     await page.click('.wittyworks-options-button');
+    //     await page.waitForTimeout(2000);
+    //     await page.type('#email', 'witty.works.premium.user@gmail.com');
+    //     await page.type('#password', 'nqz.dtj*feu3EQX6fdc');
+    //     await page.click('#next');
+    //     await page.waitForTimeout(3000);
+
+    //     await page.click('#wittyworks-options-content-section-configure-rules');
+
+    //     const resetToTeamSettingsButton = await page.waitForSelector('.wittyworks-options-button-wrapper .wittyworks-options-button');
+    //     expect(resetToTeamSettingsButton).toBeTruthy();
     // });
-
-    // test('when premium user clicks reset settings button, toggles respond', async ({ page }) => {
-    // });
-
-
-
-
 
 });

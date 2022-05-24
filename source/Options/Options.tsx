@@ -391,7 +391,10 @@ const Options: React.FC = () => {
                 subscriptionPlan !== '' && (
                   <div>
                     {t('greetingTeam')}{' '}
-                    <span className='wittyworks-options-login-cursiva'>
+                    <span
+                      className='wittyworks-options-login-cursiva'
+                      id='team-name'
+                    >
                       {teamName}{' '}
                     </span>
                     {t('greetingPlan')}{' '}
