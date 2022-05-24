@@ -11,10 +11,14 @@ import Lock from '../assets/icons/options/lock.svg';
 interface SelectorProps {
   locked?: boolean;
   userIsLoggedIn?: boolean;
+  selectedValue: string[];
+  resetSettings?: boolean;
 }
 const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
   locked,
   userIsLoggedIn = false,
+  selectedValue,
+  resetSettings = false,
 }: SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<OptionProp[]>([]);
@@ -42,7 +46,7 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
         if (result[StorageKeys.PREFERRED_LANGUAGES]) {
           const selecOptions: OptionProp[] = result[
             StorageKeys.PREFERRED_LANGUAGES
-          ].value.map((opt: string) => {
+          ].map((opt: string) => {
             return {
               value: opt,
               label: t(`languages.${opt.replace('-', '_')}`, {
@@ -60,6 +64,19 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
+  useEffect(() => {
+    //get labels for each selectedValue.value and create OptionProp
+    const selectedKey = selectedValue.map((value: string) => {
+      return {
+        value: value,
+        label: t(`languages.${value.replace('-', '_')}`, {
+          ns: namespaces.common,
+        }),
+      };
+    });
+    handleDropdownChange(selectedKey);
+  }, [resetSettings]);
+
   const handleDropdownChange = (options: OptionProp[]) => {
     const prefLanguages: string[] = options.map((option) => option.value);
     browser.storage.local
@@ -68,8 +85,7 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
         log(`New Preferred languages ${prefLanguages.join(',')} saved`);
       })
       .catch(onError);
-
-    // window.close();
+    setSelectedOption(options);
   };
 
   return (

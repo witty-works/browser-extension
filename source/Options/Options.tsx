@@ -4,7 +4,12 @@ import { browser } from 'webextension-polyfill-ts';
 import defaultConfig from '../witty.config.json';
 import { ConfigProperty } from '../shared/types';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
-import { DefaultBaseUrlKey, Colors, StorageKeys } from '../shared/constants';
+import {
+  BaseUrls,
+  DefaultBaseUrlKey,
+  Colors,
+  StorageKeys,
+} from '../shared/constants';
 import {
   storeInLocalStorage,
   singularTheyToBoolean,
@@ -13,8 +18,8 @@ import {
   changeMaximumImportance,
 } from '../shared/utils';
 // import LanguageSelector from '../Popup/LanguageSelector';
-import GermanGenderEndSelector from '../Popup/GermanGenderEndSelector';
-import PreferedLanguagesSelector from '../Popup/PreferedLanguagesSelector';
+import GermanGenderEndSelector from './GermanGenderEndSelector';
+import PreferedLanguagesSelector from './PreferedLanguagesSelector';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';
 import ArrowDown from '../assets/icons/options/arrow-down.svg';
 import ArrowUp from '../assets/icons/options/arrow-up.svg';
@@ -25,7 +30,7 @@ import '../i18n/i18n';
 import Toggle from '../shared/components/Toggle/Toggle';
 import './styles.scss';
 import { setBaseUrls, setToken } from '../shared/ApiServices/requests';
-import GenderRoleFormatSelector from '../Popup/GenderRoleFormatSelector';
+import GenderRoleFormatSelector from './GenderRoleFormatSelector';
 import LoadingIcon from '../shared/StateIndicatorIcons/LoadingIcon';
 
 const Options: React.FC = () => {
@@ -44,9 +49,8 @@ const Options: React.FC = () => {
     defaultConfig.INCLUSIVE
   );
   const [preferredVariants, setPreferredVariants] = useState<ConfigProperty>(
-    defaultConfig.PREFERRED_LANGUAGES //is prederred variants the same as preferred languages?
+    defaultConfig.PREFERRED_VARIANTS
   );
-
   const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
     defaultConfig.STYLE
   );
@@ -75,21 +79,21 @@ const Options: React.FC = () => {
   const [refreshToken, setRefreshToken] = useState<string>('');
   const [authResponse, authErrorResponse, getConfig] = useAuthEndpoint();
 
-  const baseUrl = 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site';
+  const [urls, setUrls] = useState<string>('Prod');
   const originalOptionsUri = window.location.href;
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(false);
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-
+  const [resetSettings, setResetSettings] = useState<boolean>(false);
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
       //Set the API/Dashboard urls
-      setBaseUrls(
+      setUrls(
         result[StorageKeys.API_ENDPOINT_KEY]
           ? result[StorageKeys.API_ENDPOINT_KEY]
           : DefaultBaseUrlKey
       );
-      setPreferredVariants(result[StorageKeys.PREFERRED_LANGUAGES]);
+
       setOrthography(result[StorageKeys.ORTHOGRAPHY]);
       setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
       setStyleCorrections(result[StorageKeys.STYLE]);
@@ -102,8 +106,6 @@ const Options: React.FC = () => {
       setUsername(result[StorageKeys.USERNAME]);
       setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
       setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-      setGenderRolesFormat(result[StorageKeys.GENDERED_ROLES_FORMAT]);
-      setGermanGenderEnding(result[StorageKeys.GERMAN_GENDER_ENDING]);
       setTeamName(result[StorageKeys.NAME]);
       setSubscriptionPlan(result[StorageKeys.PLAN]);
 
@@ -116,11 +118,28 @@ const Options: React.FC = () => {
     });
 
     window.addEventListener('load', onOptionsLoad);
+    browser.storage.onChanged.addListener(storageChange);
 
     return () => {
       window.removeEventListener('load', onOptionsLoad);
+      browser.storage.onChanged.removeListener(storageChange);
     };
   }, []);
+
+  const storageChange = (changes: any) => {
+    let changedItems = Object.keys(changes);
+    for (let item of changedItems) {
+      switch (item) {
+        case StorageKeys.API_ENDPOINT_KEY:
+          setUrls(changes[item].newValue);
+          break;
+      }
+    }
+  };
+
+  useEffect(() => {
+    setBaseUrls(urls);
+  }, [urls]);
 
   const onOptionsLoad = (event: Event) => {
     const searchParams = new URLSearchParams(
@@ -138,10 +157,6 @@ const Options: React.FC = () => {
   useEffect(() => {
     storeInLocalStorage(StorageKeys.ORTHOGRAPHY, orthography);
   }, [orthography]);
-
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.PREFERRED_LANGUAGES, preferredVariants);
-  }, [preferredVariants]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.INCLUSIVE, inclusiveLanguage);
@@ -169,14 +184,6 @@ const Options: React.FC = () => {
       inspirationalAlternatives
     );
   }, [inspirationalAlternatives]);
-
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.GENDERED_ROLES_FORMAT, genderRolesFormat);
-  }, [genderRolesFormat]);
-
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, germanGenderEnding);
-  }, [germanGenderEnding]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.USERNAME, username);
@@ -214,17 +221,10 @@ const Options: React.FC = () => {
       for (let key in authResponse.config) {
         switch (key) {
           case 'german_gender_ending':
-            if (authResponse.config[key].status == 'force') {
-              setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
-            } else {
-              setGermanGenderEnding({
-                ...germanGenderEnding,
-                status: authResponse.config[key].status,
-              } as ConfigProperty);
-            }
+            setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
             break;
           case 'inclusive':
-            if (authResponse.config[key].status == 'force') {
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setInclusiveLanguage(authResponse.config[key] as ConfigProperty);
             } else {
               setInclusiveLanguage({
@@ -234,7 +234,7 @@ const Options: React.FC = () => {
             }
             break;
           case 'maximum_importance':
-            if (authResponse.config[key].status == 'force') {
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setMaximumImportance(authResponse.config[key] as ConfigProperty);
             } else {
               setMaximumImportance({
@@ -244,7 +244,7 @@ const Options: React.FC = () => {
             }
             break;
           case 'orthography':
-            if (authResponse.config[key].status == 'force') {
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setOrthography(authResponse.config[key] as ConfigProperty);
             } else {
               setOrthography({
@@ -254,7 +254,7 @@ const Options: React.FC = () => {
             }
             break;
           case 'show_inspiration_alternatives':
-            if (authResponse.config[key].status == 'force') {
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setInspirationalAlternatives(
                 authResponse.config[key] as ConfigProperty
               );
@@ -266,7 +266,7 @@ const Options: React.FC = () => {
             }
             break;
           case 'singular_they':
-            if (authResponse.config[key].status == 'force') {
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setSingularThey(authResponse.config[key] as ConfigProperty);
             } else {
               setSingularThey({
@@ -276,7 +276,7 @@ const Options: React.FC = () => {
             }
             break;
           case 'style':
-            if (authResponse.config[key].status == 'force') {
+            if (authResponse.config[key].status == 'force' || resetSettings) {
               setStyleCorrections(authResponse.config[key] as ConfigProperty);
             } else {
               setStyleCorrections({
@@ -286,35 +286,23 @@ const Options: React.FC = () => {
             }
             break;
           case 'gendered_roles_format':
-            if (authResponse.config[key].status == 'force') {
-              setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
-            } else {
-              setGenderRolesFormat({
-                ...genderRolesFormat,
-                status: authResponse.config[key].status,
-              } as ConfigProperty);
-            }
+            setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
             break;
           case 'preferred_variants':
-            if (authResponse.config[key].status == 'force') {
-              setPreferredVariants(authResponse.config[key] as ConfigProperty);
-            } else {
-              setPreferredVariants({
-                ...preferredVariants,
-                status: authResponse.config[key].status,
-              } as ConfigProperty);
-            }
+            setPreferredVariants(authResponse.config[key] as ConfigProperty);
+            break;
         }
       }
+      setResetSettings(false);
     }
-  }, [authResponse]);
+  }, [authResponse, resetSettings]);
 
   useEffect(() => {
     console.log('authErrorResponse', authErrorResponse);
   }, [authErrorResponse]);
 
   const logIn = async () => {
-    const url = `${baseUrl}/api/browser-login?redirect_uri=${originalOptionsUri}`;
+    const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${originalOptionsUri}`;
     window.open(url, '_self');
   };
 
@@ -352,24 +340,26 @@ const Options: React.FC = () => {
       </div>
 
       <div className='wittyworks-options-content'>
-        <div className='wittyworks-upgrade-banner'>
-          <div className='wittyworks-upgrade-banner-text-container'>
-            <div className='wittyworks-upgrade-banner-title'>
-              {t('getMoreTitle')}
+        {!hasWittyTeams && (
+          <div className='wittyworks-upgrade-banner'>
+            <div className='wittyworks-upgrade-banner-text-container'>
+              <div className='wittyworks-upgrade-banner-title'>
+                {t('getMoreTitle')}
+              </div>
+              <div className='wittyworks-upgrade-banner-text'>
+                {t('getMoreText')}
+              </div>
             </div>
-            <div className='wittyworks-upgrade-banner-text'>
-              {t('getMoreText')}
+            <div
+              className='wittyworks-upgrade-banner-button'
+              onClick={() => {
+                window.open('https://www.witty.works/pricing', '_blank');
+              }}
+            >
+              {t('getMoreButton')}
             </div>
           </div>
-          <div
-            className='wittyworks-upgrade-banner-button'
-            onClick={() => {
-              window.open('https://www.witty.works/pricing', '_blank');
-            }}
-          >
-            {t('getMoreButton')}
-          </div>
-        </div>
+        )}
 
         {username === '' ? (
           <section className='wittyworks-options-login'>
@@ -441,6 +431,8 @@ const Options: React.FC = () => {
                   <PreferedLanguagesSelector
                     locked={preferredVariants.status === 'force'}
                     userIsLoggedIn={userIsLoggedIn}
+                    resetSettings={resetSettings}
+                    selectedValue={preferredVariants.value as string[]}
                   />
                 </div>
 
@@ -480,7 +472,8 @@ const Options: React.FC = () => {
                   <GermanGenderEndSelector
                     locked={germanGenderEnding.status == 'force'}
                     userIsLoggedIn={userIsLoggedIn}
-                    lockedValue={germanGenderEnding.value as string}
+                    selectedValue={germanGenderEnding.value as string}
+                    resetSettings={resetSettings}
                   />
                 </div>
 
@@ -491,7 +484,8 @@ const Options: React.FC = () => {
                     }
                     hasWittyTeams={hasWittyTeams}
                     userIsLoggedIn={userIsLoggedIn}
-                    lockedValue={genderRolesFormat.value as string}
+                    selectedValue={genderRolesFormat.value as string}
+                    resetSettings={resetSettings}
                   />
                 </div>
 
@@ -646,6 +640,18 @@ const Options: React.FC = () => {
                     userIsLoggedIn={userIsLoggedIn}
                   />
                 </div>
+                {userIsLoggedIn && hasWittyTeams && (
+                  <div className='wittyworks-options-button-wrapper'>
+                    <div
+                      className='wittyworks-options-button'
+                      onClick={() => {
+                        setResetSettings(true);
+                      }}
+                    >
+                      {t('resetTeamsSettings')}
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>

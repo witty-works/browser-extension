@@ -15,7 +15,7 @@
     "moz-extension:"
   ],
   "PRIMARY_LANGUAGE": "de-DE",
-  "PREFERRED_LANGUAGES": { "value": ["de-DE", "en-US"] },
+  "PREFERRED_VARIANTS": { "value": ["de-DE", "en-US"] },
   "GERMAN_GENDER_ENDING": {
     "value": "colon_in"
   },
