@@ -5,22 +5,17 @@ import { getColor } from '../shared/constants';
 import { nodeExistsInDOM } from '../shared/utils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
 import { isTextArea, isInputText } from '../shared/utils';
+import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 
 interface HighlightsProps {
-  // bodyScroll: ScrollPos;
-  // parentScroll: ScrollPos;
   elementScroll: ScrollPos;
-  elementRect: DOMRect;
   nodesWithAlerts: INodeWithAlerts[];
   element: HTMLElement;
   selectedAlert: IAlert | null;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
-  // bodyScroll,
-  // parentScroll,
   elementScroll,
-  elementRect,
   nodesWithAlerts,
   element,
   selectedAlert,
@@ -29,6 +24,17 @@ const Highlights: React.FC<HighlightsProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const elementStyles = getComputedStyle(element);
+  let elementRect = useResizeObserver(element);
+  const canvasSize = {
+    width:
+      elementRect.width -
+      parseInt(elementStyles.borderLeftWidth) -
+      parseInt(elementStyles.borderRightWidth),
+    height:
+      elementRect.height -
+      parseInt(elementStyles.borderTopWidth) -
+      parseInt(elementStyles.borderBottomWidth),
+  };
 
   useEffect(() => {
     const highlights: Highlight[] = [];
@@ -49,18 +55,6 @@ const Highlights: React.FC<HighlightsProps> = ({
             range.setEnd(node, alert.endOffset);
             const rects: DOMRect[] = Array.from(range.getClientRects()).map(
               (rect: DOMRect) => {
-                // console.log('HL elementScroll.top', elementScroll.top);
-                // console.log('HL rect.top', rect.top);
-                // console.log('HL doc.scrollTop', doc.scrollTop);
-                // console.log(
-                //   'HL rect.top + doc.scrollTop',
-                //   rect.top + doc.scrollTop
-                // );
-                // console.log(
-                //   'HL rect.top - elementRect.top + doc.scrollTop',
-                //   rect.top - elementScroll.top + doc.scrollTop
-                // );
-
                 return {
                   ...rect,
                   width: rect.width,
@@ -73,7 +67,12 @@ const Highlights: React.FC<HighlightsProps> = ({
                     (isTextArea(element) || isInputText(element)
                       ? elementScroll.top
                       : 0),
-                  y: rect.top,
+                  y:
+                    rect.top +
+                    doc.scrollTop -
+                    (isTextArea(element) || isInputText(element)
+                      ? elementScroll.top
+                      : 0),
                 };
               }
             );
@@ -93,17 +92,15 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
 
     setHighlights(highlights);
-  }, [nodesWithAlerts, /* parentScroll, */ elementScroll, elementRect]);
+  }, [nodesWithAlerts, elementScroll, elementRect]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     //makes the canvas ratio correct, needed to make text clear
     const ratio = window.devicePixelRatio;
-    canvas.width = elementRect.width * ratio;
-    canvas.height = elementRect.height * ratio;
-    // canvas.style.width = `${elementRect.width}px`;
-    // canvas.style.height = `${elementRect.height}px`;
+    canvas.width = canvasSize.width * ratio;
+    canvas.height = canvasSize.height * ratio;
     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
     if (!context) return;
 
@@ -141,32 +138,40 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
+  const calculatePositionCorrection = () => {
+    const elementRect: DOMRect = element.getBoundingClientRect();
+
+    return canvasRef.current.parentElement
+      ? {
+          top:
+            elementRect.top -
+            canvasRef.current.parentElement.getBoundingClientRect().top +
+            parseInt(elementStyles.borderTopWidth),
+          left:
+            elementRect.left -
+            canvasRef.current.parentElement.getBoundingClientRect().left +
+            parseInt(elementStyles.borderLeftWidth),
+        }
+      : {
+          top: elementRect.top + parseInt(elementStyles.borderTopWidth),
+          left: elementRect.left + parseInt(elementStyles.borderLeftWidth),
+        };
+  };
+
   return (
     <canvas
       ref={canvasRef}
       style={
         {
           position: 'absolute',
-          top: `${
-            parseInt(elementStyles.borderTopWidth) +
-            parseInt(elementStyles.marginTop) //Don't know why getBoundingClientRect used in useResizeObserver ignores margin values, so we need to add them here
-          }px`,
-          left: elementStyles.borderLeftWidth,
-          width: `${
-            elementRect.width -
-            parseInt(elementStyles.borderLeftWidth) -
-            parseInt(elementStyles.borderRightWidth)
-          }px`,
-          height: `${
-            elementRect.height -
-            parseInt(elementStyles.borderTopWidth) -
-            parseInt(elementStyles.borderBottomWidth)
-          }px`,
+          top: `${calculatePositionCorrection().top}px`,
+          left: `${calculatePositionCorrection().left}px`,
+          width: `${canvasSize.width}px`,
+          height: `${canvasSize.height}px`,
           overflow: 'auto',
-          // zIndex: 99999999,
           pointerEvents: 'none',
           // mixBlendMode: 'normal',   //TODO Explorer this property
-          backgroundColor: 'rgba(0,0,150,0.3)',
+          // backgroundColor: 'rgba(0,0,150,0.3)',
         } as React.CSSProperties
       }
     ></canvas>

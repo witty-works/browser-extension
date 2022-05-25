@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import { CustomInputElement } from '../types';
 import LoadingIcon from './LoadingIcon';
@@ -7,26 +7,58 @@ import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.sv
 
 interface IconControllerProps {
   iconType: string;
-  elementReference: CustomInputElement;
+  element: CustomInputElement;
   isHovered: boolean;
 }
 
 const IconController: React.FC<IconControllerProps> = ({
   iconType,
-  elementReference,
+  element,
   isHovered,
 }: IconControllerProps) => {
-  const elementsReferenceRect = elementReference.getBoundingClientRect();
+  const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
 
+  const elementRect = element.getBoundingClientRect();
   const iconPadding: number = 8;
+
+  //TODO This function is repeated in several components, move it to DOMUtils file
+  const calculatePositionCorrection = () => {
+    const elementRect: DOMRect = element.getBoundingClientRect();
+
+    return ref.current.parentElement
+      ? {
+          top:
+            elementRect.top -
+            ref.current.parentElement.getBoundingClientRect().top,
+          left:
+            elementRect.left -
+            ref.current.parentElement.getBoundingClientRect().left,
+        }
+      : {
+          top: elementRect.top,
+          left: elementRect.left,
+        };
+  };
 
   return (
     <div
+      ref={ref}
       style={{
         display: 'flex',
         position: 'absolute',
-        bottom: `${-elementsReferenceRect.height + iconPadding}px`,
-        right: `${-elementsReferenceRect.width + iconPadding}px`,
+        //TODO don't hardcode icons width & height
+        top: `${
+          elementRect.height +
+          calculatePositionCorrection().top -
+          21 -
+          iconPadding
+        }px`,
+        left: `${
+          elementRect.width +
+          calculatePositionCorrection().left -
+          25 -
+          iconPadding
+        }px`,
       }}
     >
       {iconType == 'loading' && <LoadingIcon />}
