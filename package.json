@@ -7,7 +7,7 @@
   "author": "abhijithvijayan <email@abhijithvijayan.in> (https://abhijithvijayan.in)",
   "license": "MIT",
   "engines": {
-    "node": "^14.0.0",
+    "node": "^18.0.0",
     "yarn": ">= 1.0.0"
   },
   "engineStrict": true,
@@ -30,6 +30,7 @@
     "@types/resize-observer-browser": "^0.1.6",
     "advanced-css-reset": "^1.2.2",
     "ajv": "^8.8.2",
+    "dotenv": "^16.0.1",
     "emoji-log": "^1.0.2",
     "i18next": "^21.5.2",
     "i18next-browser-languagedetector": "^6.1.2",
