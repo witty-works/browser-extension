@@ -2,10 +2,7 @@ import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
-import {
-  CustomInputElement,
-  RequestConfig /* , ScrollPos  */,
-} from '../shared/types';
+import { CustomInputElement, RequestConfig } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
@@ -40,16 +37,6 @@ const ContentScriptApp: React.FC = () => {
   const [inputs, setInputs, inputsRef] = useStateRef(
     [] as CustomInputElement[]
   );
-  // const doc = document.documentElement || document.body;
-  // const [bodyScroll, setBodyScroll] = useState<ScrollPos>({
-  //   top: doc.scrollTop,
-  //   left: doc.scrollLeft,
-  // } as ScrollPos);
-
-  // const [parentScroll, setParentScroll] = useState<ScrollPos>({
-  //   top: 0,
-  //   left: 0,
-  // } as ScrollPos);
 
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
@@ -134,7 +121,6 @@ const ContentScriptApp: React.FC = () => {
 
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
-    // document.addEventListener('scroll', handleDocumentScrollEvent, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
@@ -142,7 +128,6 @@ const ContentScriptApp: React.FC = () => {
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
-      // document.removeEventListener('scroll', handleDocumentScrollEvent);
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
     };
@@ -302,7 +287,7 @@ const ContentScriptApp: React.FC = () => {
       );
       ReactDOM.render(
         <StateIndicatorIcon
-          elementReference={hoveredElementRef.current}
+          element={hoveredElementRef.current}
           iconType={'passive'}
           isHovered={true}
         />,
@@ -335,14 +320,7 @@ const ContentScriptApp: React.FC = () => {
           );
           highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
           input.parentElement.insertBefore(highlightsContainer, input);
-          ReactDOM.render(
-            <Input
-              element={input}
-              // bodyScroll={bodyScroll}
-              // parentScroll={parentScroll}
-            />,
-            highlightsContainer
-          );
+          ReactDOM.render(<Input element={input} />, highlightsContainer);
         }
       });
     }

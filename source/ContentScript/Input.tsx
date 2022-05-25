@@ -13,7 +13,6 @@ import {
   ScrollPos,
 } from '../shared/types';
 import { isTextArea, isInputText, storeInLocalStorage } from '../shared/utils';
-import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -30,33 +29,14 @@ import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEn
 
 const Input: React.FC<{
   element: CustomInputElement;
-  // bodyScroll: ScrollPos;
-  // parentScroll: ScrollPos;
-}> = ({ element /*  bodyScroll,   parentScroll*/ }) => {
+}> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
-
-  // console.log('INPUT element', element);
-  let elementRect = useResizeObserver(element);
-
-  // console.log('INPUT element.offsetParent', element.offsetParent);
-  // let elementOffsetParentRect = useResizeObserver(
-  //   element.offsetParent as HTMLElement
-  // );
-  // TODO maybe this goes off
-  // let elementOffsetParentRect = useResizeObserver(
-  //   element.offsetParent ? (element.offsetParent as HTMLElement) : element
-  // );
-
   const [alerts, setAlerts] = useState<IAlert[]>([]);
-  // const [observedElement, setObservedElement] = useState<HTMLElement>(element);
-  // const [observedElementRect, setObservedElementRect] = useState<DOMRect>(
-  //   element.getBoundingClientRect()
-  // );
   const [elementScroll, setElementScroll] = useState<ScrollPos>({
     top: 0,
     left: 0,
@@ -147,20 +127,6 @@ const Input: React.FC<{
   useEffect(() => {
     docTextEvaluation(element);
   }, [element]);
-
-  // useEffect(() => {
-  //   const ele: { element: HTMLElement; rect: DOMRect } =
-  //     elementOffsetParentRect.width < elementRect.width ||
-  //     elementOffsetParentRect.height < elementRect.height
-  //       ? {
-  //           element: element.offsetParent as HTMLElement,
-  //           rect: elementOffsetParentRect,
-  //         }
-  //       : { element: element, rect: elementRect };
-
-  //   setObservedElement(ele.element);
-  //   setObservedElementRect(ele.rect);
-  // }, [elementRect, elementOffsetParentRect]);
 
   const handleMouseoverEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(true);
@@ -701,7 +667,7 @@ const Input: React.FC<{
     <>
       <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
-          elementReference={element}
+          element={element}
           iconType={activeIcon}
           isHovered={isHovered}
         />
@@ -711,7 +677,6 @@ const Input: React.FC<{
         <WTags.WW_CLONE>
           <TextAreaClone
             element={element}
-            elementRect={elementRect}
             elementScroll={elementScroll}
             updateClone={updateCloneData}
           />
@@ -719,22 +684,13 @@ const Input: React.FC<{
       )}
       {isInputText(element) && (
         <WTags.WW_CLONE>
-          <InputTextClone
-            element={element}
-            elementRect={elementRect}
-            updateClone={updateCloneData}
-          />
+          <InputTextClone element={element} updateClone={updateCloneData} />
         </WTags.WW_CLONE>
       )}
       <WTags.WW_HIGHLIGHTS>
         <Highlights
-          // bodyScroll={bodyScroll}
-          // parentScroll={parentScroll}
           elementScroll={elementScroll}
-          // elementRect={observedElementRect}
-          elementRect={elementRect}
           nodesWithAlerts={nodesWithAlerts}
-          // element={observedElement}
           element={element}
           selectedAlert={selectedAlert}
         />

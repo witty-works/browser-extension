@@ -186,7 +186,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   <NextIcon />
                 </div>
               )}
-
               <div
                 className='wittyworks-popover-nav-btn'
                 onClick={() => {
