@@ -3,11 +3,13 @@ import ReactDOM from 'react-dom';
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 import { browser } from 'webextension-polyfill-ts';
+
 import { StorageKeys } from '../shared/constants';
 import ContentScriptApp from './ContentScriptApp';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
 import { getDomainWithoutSubdomain } from '../shared/utils';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 const log = useLog('ContentScript index');
 
@@ -41,8 +43,9 @@ if (!defaultConfig.ACTIVE_SITES.includes(domain)) {
         customRender(false);
       }
     })
-    .catch((error: string) => {
+    .catch((error: unknown) => {
       log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+      sendErrorToSentry(error);
     });
 }
 //TODO define changes type

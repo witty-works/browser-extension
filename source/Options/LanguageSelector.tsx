@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
+import { sendErrorToSentry } from '../shared/errorUtils';
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { StorageKeys } from '../shared/constants';
@@ -38,10 +39,6 @@ const LanguageSelector: React.FC = () => {
       .catch(onError);
   }, []);
 
-  const onError = (error: string) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-  };
-
   const handleDropdownChange = (value: string) => {
     browser.storage.local
       .set({ [StorageKeys.PRIMARY_LANGUAGE]: value })
@@ -49,6 +46,11 @@ const LanguageSelector: React.FC = () => {
         log(`New language ${value} saved`);
       })
       .catch(onError);
+  };
+
+  const onError = (error: unknown) => {
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
   };
 
   return (

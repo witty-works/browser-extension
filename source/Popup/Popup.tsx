@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
+import { useTranslation } from 'react-i18next';
 
 import { ConfigProperty } from '../shared/types';
 import {
@@ -8,10 +9,10 @@ import {
   WittyIconActive,
   WittyIconInactive,
   DefaultBaseUrlKey,
+  DEV_ENV,
 } from '../shared/constants';
-import { DEV_ENV } from '../shared/constants';
 import { storeInLocalStorage } from '../shared/utils';
-import { useTranslation } from 'react-i18next';
+import { sendErrorToSentry } from '../shared/errorUtils';
 import { namespaces } from '../i18n/i18n.constants';
 import '../i18n/i18n';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -124,12 +125,14 @@ const Popup: React.FC = () => {
     storeInLocalStorage(StorageKeys.STYLE, styleCorrections);
   }, [styleCorrections]);
 
-  const onStorageError = (error: string) => {
+  const onStorageError = (error: unknown) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
   };
 
-  const onTabsQueryError = (error: string) => {
+  const onTabsQueryError = (error: unknown) => {
     log(`onTabsQueryError Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
   };
 
   const setWittyIcon = (state: boolean) => {

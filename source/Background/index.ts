@@ -1,4 +1,6 @@
 import { browser } from 'webextension-polyfill-ts';
+import * as Sentry from '@sentry/react';
+import { BrowserTracing } from '@sentry/tracing';
 
 import {
   StorageKeys,
@@ -7,6 +9,7 @@ import {
   WittyIconInactive,
 } from '../shared/constants';
 import { getDomainWithoutSubdomain, isFunction } from '../shared/utils';
+import { sendErrorToSentry } from '../shared/errorUtils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -21,6 +24,16 @@ type DefaultConfigValue =
   | string[]
   | object
   | (() => string);
+
+Sentry.init({
+  dsn: 'https://41a158eff71044a3ad021f381e0f0349@o512991.ingest.sentry.io/6223342',
+  integrations: [new BrowserTracing()],
+
+  // TODO
+  // We recommend adjusting this value in production, or using tracesSampler
+  // for finer control
+  tracesSampleRate: 1.0,
+});
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (!DEV_ENV)
@@ -102,6 +115,7 @@ const onSave = (key: string, value: DefaultConfigValue) => {
 
 const onError = (error: string) => {
   log(`Local Storage Error: ${error}`);
+  sendErrorToSentry(error);
 };
 
 const setSettings = () => {

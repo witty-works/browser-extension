@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+
 import { Highlight, IAlert, INodeWithAlerts, ScrollPos } from '../shared/types';
 import { getColor } from '../shared/constants';
-// import { nodeExistsInDOM } from '../shared/utils';
+import { nodeExistsInDOM } from '../shared/utils';
+import { sendErrorToSentry } from '../shared/errorUtils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
 
 interface HighlightsProps {
@@ -31,44 +33,41 @@ const Highlights: React.FC<HighlightsProps> = ({
     if (nodesWithAlerts.length === 0) setHighlights([]);
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
-      console.log('node = ', node);
-      //quick fix to avoid error: check if node exists in the DOM
-      //but also filter alerts that have a bigger endOffset than the length of the text
-      if (typeof node !== 'undefined' /*  && nodeExistsInDOM(node) */) {
-        alerts
-          // .filter(
-          //   (alert: IAlert) =>
-          //     node.textContent && alert.endOffset <= node.textContent.length
-          // )
-          .forEach((alert: IAlert) => {
-            const range = document.createRange();
+      if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
+        alerts.forEach((alert: IAlert) => {
+          const range = document.createRange();
+          try {
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
-            const rects: DOMRect[] = Array.from(range.getClientRects()).map(
-              (rect: DOMRect) => {
-                return {
-                  ...rect,
-                  width: rect.width,
-                  height: rect.height,
-                  left: rect.left,
-                  x: rect.left,
-                  top: rect.top + bodyScroll.top,
-                  y: rect.top,
-                };
-              }
-            );
+          } catch (error) {
+            sendErrorToSentry(error);
+          }
 
-            const newHighlight: Highlight = {
-              rects,
-              id: alert.id,
-              data: alert.data,
-              startOffset: alert.startOffset,
-              endOffset: alert.endOffset,
-              node: node,
-            };
+          const rects: DOMRect[] = Array.from(range.getClientRects()).map(
+            (rect: DOMRect) => {
+              return {
+                ...rect,
+                width: rect.width,
+                height: rect.height,
+                left: rect.left,
+                x: rect.left,
+                top: rect.top + bodyScroll.top,
+                y: rect.top,
+              };
+            }
+          );
 
-            highlights.push(newHighlight);
-          });
+          const newHighlight: Highlight = {
+            rects,
+            id: alert.id,
+            data: alert.data,
+            startOffset: alert.startOffset,
+            endOffset: alert.endOffset,
+            node: node,
+          };
+
+          highlights.push(newHighlight);
+        });
       }
     });
 
