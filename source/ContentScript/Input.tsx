@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { browser } from 'webextension-polyfill-ts';
 
 import defaultConfig from '../witty.config.json';
 import * as Sentry from '@sentry/react';
@@ -24,9 +25,9 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
+import Toast from '../shared/components/Toast/Toast';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -647,12 +648,9 @@ const Input: React.FC<{
     }
   }, [checkEndpointError]);
 
-  const FallbackComponent = () => {
-    console.log('Sentry Fallback component error!');
-    return <div>An error has occurred</div>;
-  };
-
-  const myFallback = <FallbackComponent />;
+  const ErrorBoundaryFallback = () => (
+    <Toast message='Please reload the website' type='error' />
+  );
 
   return (
     <div className='canvas-container'>
@@ -677,17 +675,19 @@ const Input: React.FC<{
         />
       )}
       {popoverData && (
-        <HighlightPopover
-          element={element}
-          data={popoverData}
-          hide={hidePopover}
-          updateTextWithAlternative={updateTextWithAlternative}
-          addIgnoredTerm={addIgnoredTerm}
-          movePopoverNextOrPrev={movePopoverNextOrPrev}
-        />
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopover
+            element={element}
+            data={popoverData}
+            hide={hidePopover}
+            updateTextWithAlternative={updateTextWithAlternative}
+            addIgnoredTerm={addIgnoredTerm}
+            movePopoverNextOrPrev={movePopoverNextOrPrev}
+          />
+        </Sentry.ErrorBoundary>
       )}
       {nodesWithAlerts.length > 0 && (
-        <Sentry.ErrorBoundary fallback={myFallback}>
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <Highlights
             bodyScroll={bodyScroll}
             parentScroll={parentScroll}

@@ -31,6 +31,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     if (nodesWithAlerts.length === 0) setHighlights([]);
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
+      console.log('node = ', node);
       //quick fix to avoid error: check if node exists in the DOM
       //but also filter alerts that have a bigger endOffset than the length of the text
       if (typeof node !== 'undefined' /*  && nodeExistsInDOM(node) */) {
@@ -122,7 +123,6 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   return (
     <>
-      <button onClick={methodDoesNotExist}>Break the world</button>;
       <canvas
         ref={canvasRef}
         style={
