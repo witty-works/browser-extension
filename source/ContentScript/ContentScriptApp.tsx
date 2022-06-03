@@ -130,6 +130,8 @@ const ContentScriptApp: React.FC = () => {
     // if (section) section.appendChild(newTextarea);
 
     browser.storage.onChanged.addListener(storageChange);
+    console.log('document', document);
+
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);
     document.addEventListener('mouseover', handleMouseOver, true);
@@ -267,9 +269,21 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleFocusinElement = (event: Event) => {
-    const target = event.target as CustomInputElement;
+    console.log('focus', event.target);
+    let target = event.target as CustomInputElement;
 
-    if (isInputElement(target) && !inputsRef.current.includes(target)) {
+    const googleDocsHtml = document.querySelectorAll(
+      '.kix-canvas-tile-content svg > g'
+    )[0];
+
+    if (googleDocsHtml) {
+      target = googleDocsHtml as CustomInputElement;
+    }
+
+    if (
+      (isInputElement(target) && !inputsRef.current.includes(target)) ||
+      googleDocsHtml
+    ) {
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
     }

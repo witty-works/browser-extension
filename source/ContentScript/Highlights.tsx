@@ -10,7 +10,7 @@ interface HighlightsProps {
   elementScroll: ScrollPos;
   elementRect: DOMRect;
   nodesWithAlerts: INodeWithAlerts[];
-  element: HTMLElement;
+  element: Element;
   selectedAlert: IAlert | null;
 }
 
@@ -41,8 +41,10 @@ const Highlights: React.FC<HighlightsProps> = ({
           )
           .forEach((alert: IAlert) => {
             const range = document.createRange();
+
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
+
             const rects: DOMRect[] = Array.from(range.getClientRects()).map(
               (rect: DOMRect) => {
                 return {

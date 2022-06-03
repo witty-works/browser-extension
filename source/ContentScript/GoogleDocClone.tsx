@@ -1,25 +1,36 @@
 import React from 'react';
-import { ScrollPos } from '../shared/types';
-interface TextAreaCloneProps {
-  element: HTMLTextAreaElement;
+interface GoogleDocProps {
+  element: HTMLInputElement;
   elementRect: DOMRect;
-  elementScroll: ScrollPos;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
-const TextAreaClone: React.FC<TextAreaCloneProps> = ({
+const GoogleDocClone: React.FC<GoogleDocProps> = ({
   element,
   elementRect,
-  elementScroll,
   updateClone,
-}: TextAreaCloneProps) => {
+}: GoogleDocProps) => {
   const elementStyle = window.getComputedStyle(element);
-  console.log('element.value', element.value);
+
+  const rect = element.firstChild as Element;
+  const font = rect.getAttribute('data-font-css');
+  const fontSize = font?.split(' ')[1];
+  const fontFamily = font?.split(' ')[3];
+  const fontWeight = font?.split(' ')[0];
+
+  const text: string = Array.from(element.children)
+    .map((child) => {
+      if (child.getAttribute('aria-label')) {
+        return child.getAttribute('aria-label');
+      } else {
+        return '';
+      }
+    })
+    .join(' ');
 
   return (
     <div
       ref={(ref) => {
-        console.log('ref area', ref);
         if (ref !== null) {
           updateClone(ref);
         }
@@ -31,29 +42,25 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top - elementScroll.top}px`,
-          left: `${elementRect.left - elementScroll.left}px`,
+          top: `${elementRect.top}px`,
+          left: `${elementRect.left}px`,
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
           paddingBottom: elementStyle.paddingBottom,
           width: elementStyle.width,
           height: elementStyle.height,
-          fontSize: elementStyle.fontSize,
-          fontWeight: elementStyle.fontWeight,
+          fontSize: fontSize,
+          fontWeight: fontWeight,
           lineHeight: elementStyle.lineHeight,
-          fontFamily: elementStyle.fontFamily,
+          fontFamily: fontFamily,
           border: `${elementStyle.borderBottomWidth} solid black`,
           visibility: 'hidden',
-          // outline: '8px solid red',
-          pointerEvents: 'none',
-          // zIndex: 9999999,
         } as React.CSSProperties
       }
     >
-      {element.value}
+      {text}
     </div>
   );
 };
-
-export default TextAreaClone;
+export default GoogleDocClone;

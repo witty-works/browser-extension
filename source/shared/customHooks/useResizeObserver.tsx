@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 
-export const useResizeObserver = (element: HTMLElement): DOMRect => {
+export function useResizeObserver(element: Element): DOMRect;
+export function useResizeObserver(element: Element | null): DOMRect | null;
+export function useResizeObserver(element: Element | null): DOMRect | null {
+  if (!element) return null;
   const [rect, setRect] = useState<DOMRect>(new DOMRect());
   const doc = document.documentElement || document.body;
 
@@ -25,4 +28,4 @@ export const useResizeObserver = (element: HTMLElement): DOMRect => {
   }, [element]);
 
   return rect;
-};
+}

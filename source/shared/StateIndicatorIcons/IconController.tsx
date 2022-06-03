@@ -18,13 +18,17 @@ const IconController: React.FC<IconControllerProps> = ({
 }: IconControllerProps) => {
   const elementsReferenceRect = elementReference.getBoundingClientRect();
   const iconPadding: number = 8;
+  const googleDocsPadding = elementReference.tagName === 'g' ? 100 : 0;
   return (
     <div
       style={{
         position: 'fixed',
         zIndex: 99999999,
         bottom: `${
-          window.innerHeight - elementsReferenceRect.bottom + iconPadding
+          window.innerHeight -
+          elementsReferenceRect.bottom +
+          iconPadding -
+          googleDocsPadding
         }px`,
         right: `${
           window.innerWidth - elementsReferenceRect.right + iconPadding

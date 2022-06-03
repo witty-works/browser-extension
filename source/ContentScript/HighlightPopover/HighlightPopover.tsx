@@ -47,8 +47,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
   const [isHovered, setIsHovered] = useState<boolean>(false);
-
+  console.log('POPOVER');
   useEffect(() => {
+    console.log('popover OPEN');
     analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
 

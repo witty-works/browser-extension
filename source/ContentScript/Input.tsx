@@ -25,6 +25,7 @@ import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
+import GoogleDocClone from './GoogleDocClone';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -38,12 +39,10 @@ const Input: React.FC<{
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
   let elementRect = useResizeObserver(element);
-  let elementOffsetParentRect = useResizeObserver(
-    element.offsetParent as HTMLElement
-  );
+  let elementOffsetParentRect = useResizeObserver(element.offsetParent);
 
   const [alerts, setAlerts] = useState<IAlert[]>([]);
-  const [observedElement, setObservedElement] = useState<HTMLElement>(element);
+  const [observedElement, setObservedElement] = useState<Element>(element);
   const [observedElementRect, setObservedElementRect] = useState<DOMRect>(
     element.getBoundingClientRect()
   );
@@ -90,6 +89,8 @@ const Input: React.FC<{
       setDebounceDelay(result[StorageKeys.API_DELAY] as number);
     });
 
+    console.log('Element: ', element);
+
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
@@ -115,8 +116,7 @@ const Input: React.FC<{
         'click',
         handleElementClickEvent as EventListener
       );
-      if (parentForm)
-        parentForm.removeEventListener('submit', handleSubmitFormEvent);
+      parentForm?.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
 
@@ -139,17 +139,18 @@ const Input: React.FC<{
   }, [element]);
 
   useEffect(() => {
-    const ele: { element: HTMLElement; rect: DOMRect } =
-      elementOffsetParentRect.width < elementRect.width ||
-      elementOffsetParentRect.height < elementRect.height
-        ? {
-            element: element.offsetParent as HTMLElement,
-            rect: elementOffsetParentRect,
-          }
-        : { element: element, rect: elementRect };
-
-    setObservedElement(ele.element);
-    setObservedElementRect(ele.rect);
+    if (
+      element.offsetParent &&
+      elementOffsetParentRect &&
+      (elementOffsetParentRect.width < elementRect.width ||
+        elementOffsetParentRect.height < elementRect.height)
+    ) {
+      setObservedElement(element.offsetParent);
+      setObservedElementRect(elementOffsetParentRect);
+    } else {
+      setObservedElement(element);
+      setObservedElementRect(elementRect);
+    }
   }, [elementRect, elementOffsetParentRect]);
 
   const handleMouseoverEvent = () => {
@@ -200,6 +201,7 @@ const Input: React.FC<{
     //In this case always create a new string to force change the state of setTextToCheck
     setTextToCheck(text);
   }, debounceDelay);
+
   const handleElementScrollEvent = debounce(() => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   }, 500);
@@ -223,7 +225,9 @@ const Input: React.FC<{
   };
 
   const updateCloneData = (newClone: HTMLDivElement) => {
-    setClone(newClone);
+    if (newClone !== cloneRef.current) {
+      setClone(newClone);
+    }
   };
 
   const hidePopover = () => {
@@ -235,10 +239,31 @@ const Input: React.FC<{
     }
   };
 
-  const getInputText = (element: CustomInputElement) =>
-    isTextArea(element) || isInputText(element)
+  const getInputText = (element: CustomInputElement) => {
+    if (element.tagName == 'g' && element.querySelector('rect')) {
+      //loop through all the children of the g element
+
+      const text: string = Array.from(element.children)
+        .map((child) => {
+          //if child has attribute 'aria-label' add it to the text
+          if (child.getAttribute('aria-label')) {
+            return child.getAttribute('aria-label');
+          } else {
+            return '';
+          }
+        })
+        .join(' ');
+
+      // const rect = element.querySelector('rect');
+      // if (rect) {
+      //   const text = rect.getAttribute('aria-label');
+      if (text) return text;
+      // }
+    }
+    return isTextArea(element) || isInputText(element)
       ? element.value
       : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
+  };
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
@@ -247,6 +272,7 @@ const Input: React.FC<{
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
+    console.log('click!');
     // If user clicks on an element only once...
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
@@ -326,6 +352,12 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
+    console.log(
+      'inside effect!!!!',
+      nodesWithAlertsRef.current.length,
+      selectedNodeWithAlertsIndex,
+      selectedAlertIndex
+    );
     if (
       nodesWithAlertsRef.current.length > 0 &&
       selectedNodeWithAlertsIndex > -1 &&
@@ -505,7 +537,7 @@ const Input: React.FC<{
       ).sort((a, b) => a.startOffset - b.startOffset);
 
       const nodesWithAlertsTemp: INodeWithAlerts[] =
-        isTextArea(element) || isInputText(element)
+        isTextArea(element) || isInputText(element) || element.tagName === 'g'
           ? [
               {
                 node: clone.firstChild as Node,
@@ -663,6 +695,13 @@ const Input: React.FC<{
       {isInputText(element) && (
         <InputTextClone
           element={element}
+          elementRect={elementRect}
+          updateClone={updateCloneData}
+        />
+      )}
+      {element.tagName === 'g' && (
+        <GoogleDocClone
+          element={element as HTMLInputElement}
           elementRect={elementRect}
           updateClone={updateCloneData}
         />
