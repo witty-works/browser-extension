@@ -130,9 +130,10 @@ const ContentScriptApp: React.FC = () => {
     // if (section) section.appendChild(newTextarea);
 
     browser.storage.onChanged.addListener(storageChange);
-    console.log('document', document);
 
     document.addEventListener('focusin', handleFocusinElement, true);
+    //click
+    document.addEventListener('click', handleFocusinElement, true);
     document.addEventListener('scroll', handleDocumentScrollEvent, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
@@ -141,6 +142,7 @@ const ContentScriptApp: React.FC = () => {
       //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
+      document.removeEventListener('click', handleFocusinElement);
       document.removeEventListener('scroll', handleDocumentScrollEvent);
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
@@ -269,7 +271,6 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleFocusinElement = (event: Event) => {
-    console.log('focus', event.target);
     let target = event.target as CustomInputElement;
 
     const googleDocsHtml = document.querySelectorAll(

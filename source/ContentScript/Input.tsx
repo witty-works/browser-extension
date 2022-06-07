@@ -89,13 +89,12 @@ const Input: React.FC<{
       setDebounceDelay(result[StorageKeys.API_DELAY] as number);
     });
 
-    console.log('Element: ', element);
-
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleElementClickEvent as EventListener);
+    document.addEventListener('click', handleElementClickEvent);
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
@@ -116,6 +115,7 @@ const Input: React.FC<{
         'click',
         handleElementClickEvent as EventListener
       );
+      document.removeEventListener('click', handleElementClickEvent);
       parentForm?.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
@@ -241,11 +241,8 @@ const Input: React.FC<{
 
   const getInputText = (element: CustomInputElement) => {
     if (element.tagName == 'g' && element.querySelector('rect')) {
-      //loop through all the children of the g element
-
       const text: string = Array.from(element.children)
         .map((child) => {
-          //if child has attribute 'aria-label' add it to the text
           if (child.getAttribute('aria-label')) {
             return child.getAttribute('aria-label');
           } else {
@@ -272,7 +269,7 @@ const Input: React.FC<{
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
-    console.log('click!');
+    console.log('click!', event);
     // If user clicks on an element only once...
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
@@ -280,26 +277,39 @@ const Input: React.FC<{
 
         // Get caret data
         const caret: { position: number | null; element: Node | null } =
-          isTextArea(element) || isInputText(element)
-            ? {
-                position: element.selectionStart,
-                element: cloneRef.current,
-              }
-            : {
-                position: (document.getSelection() as Selection).anchorOffset,
-                element: (document.getSelection() as Selection).anchorNode,
-              };
+          // isTextArea(element) || isInputText(element)
+          {
+            position: 0,
+            element: cloneRef.current,
+          };
+        // : {
+        //     position: (document.getSelection() as Selection).anchorOffset,
+        //     element: (document.getSelection() as Selection).anchorNode,
+        //   };
+
+        console.log(
+          'caret.element, caret.position',
+          caret.element,
+          caret.position
+        );
+        console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current);
 
         if (caret.element && caret.position && caret.position > -1) {
           // Find out if the clicked element has alerts
           const selectedNodeWithAlertsIndex: number =
             nodesWithAlertsRef.current.findIndex(
               (nodeWithAlerts: INodeWithAlerts) =>
-                isTextArea(target) || isInputText(target)
+                isTextArea(target) ||
+                isInputText(target) ||
+                element.tagName == 'g'
                   ? nodeWithAlerts.node.parentNode === caret.element
                   : nodeWithAlerts.node === caret.element
             );
 
+          console.log(
+            'selectedNodeWithAlertsIndex',
+            selectedNodeWithAlertsIndex
+          );
           setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
           const oneNodeWithAlerts =
             nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
@@ -352,12 +362,6 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    console.log(
-      'inside effect!!!!',
-      nodesWithAlertsRef.current.length,
-      selectedNodeWithAlertsIndex,
-      selectedAlertIndex
-    );
     if (
       nodesWithAlertsRef.current.length > 0 &&
       selectedNodeWithAlertsIndex > -1 &&
