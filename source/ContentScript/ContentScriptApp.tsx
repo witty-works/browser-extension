@@ -21,7 +21,7 @@ import {
   isInputElement,
   nodeExistsInDOM,
   elementIsVisible,
-} from '../shared/utils';
+} from '../shared/DOMutils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 

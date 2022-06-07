@@ -10,9 +10,10 @@ import {
   CustomInputElement,
   IAlert,
   INodeWithAlerts,
-  ScrollPos,
+  Position,
 } from '../shared/types';
-import { isTextArea, isInputText, storeInLocalStorage } from '../shared/utils';
+import { storeInLocalStorage } from '../shared/utils';
+import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -37,10 +38,10 @@ const Input: React.FC<{
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
   const [alerts, setAlerts] = useState<IAlert[]>([]);
-  const [elementScroll, setElementScroll] = useState<ScrollPos>({
+  const [elementScroll, setElementScroll] = useState<Position>({
     top: 0,
     left: 0,
-  } as ScrollPos);
+  } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(

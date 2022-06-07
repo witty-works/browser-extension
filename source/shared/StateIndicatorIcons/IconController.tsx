@@ -4,6 +4,7 @@ import { CustomInputElement } from '../types';
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
+import { usePositionCorrection } from '../../shared/customHooks/usePositionCorrection';
 
 interface IconControllerProps {
   iconType: string;
@@ -17,28 +18,12 @@ const IconController: React.FC<IconControllerProps> = ({
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-
+  const correctedPosition = usePositionCorrection(
+    element,
+    ref.current.parentElement
+  );
   const elementRect = element.getBoundingClientRect();
   const iconPadding: number = 8;
-
-  //TODO This function is repeated in several components, move it to DOMUtils file
-  const calculatePositionCorrection = () => {
-    const elementRect: DOMRect = element.getBoundingClientRect();
-
-    return ref.current.parentElement
-      ? {
-          top:
-            elementRect.top -
-            ref.current.parentElement.getBoundingClientRect().top,
-          left:
-            elementRect.left -
-            ref.current.parentElement.getBoundingClientRect().left,
-        }
-      : {
-          top: elementRect.top,
-          left: elementRect.left,
-        };
-  };
 
   return (
     <div
@@ -48,16 +33,10 @@ const IconController: React.FC<IconControllerProps> = ({
         position: 'absolute',
         //TODO don't hardcode icons width & height
         top: `${
-          elementRect.height +
-          calculatePositionCorrection().top -
-          21 -
-          iconPadding
+          elementRect.height + correctedPosition.top - 21 - iconPadding
         }px`,
         left: `${
-          elementRect.width +
-          calculatePositionCorrection().left -
-          25 -
-          iconPadding
+          elementRect.width + correctedPosition.left - 25 - iconPadding
         }px`,
       }}
     >

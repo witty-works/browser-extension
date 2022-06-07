@@ -1,4 +1,6 @@
 import React, { useRef } from 'react';
+
+import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
 interface InputTextCloneProps {
   element: HTMLInputElement;
   updateClone: (clone: HTMLDivElement) => void;
@@ -10,24 +12,10 @@ const InputTextClone: React.FC<InputTextCloneProps> = ({
 }: InputTextCloneProps) => {
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
   const elementStyle = window.getComputedStyle(element);
-
-  const calculatePositionCorrection = () => {
-    const elementRect: DOMRect = element.getBoundingClientRect();
-
-    return cloneRef.current.parentElement
-      ? {
-          top:
-            elementRect.top -
-            cloneRef.current.parentElement.getBoundingClientRect().top,
-          left:
-            elementRect.left -
-            cloneRef.current.parentElement.getBoundingClientRect().left,
-        }
-      : {
-          top: elementRect.top,
-          left: elementRect.left,
-        };
-  };
+  const correctedPosition = usePositionCorrection(
+    element,
+    cloneRef.current.parentElement
+  );
 
   return (
     <div
@@ -44,8 +32,8 @@ const InputTextClone: React.FC<InputTextCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${calculatePositionCorrection().top}px`,
-          left: `${calculatePositionCorrection().left}px`,
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,

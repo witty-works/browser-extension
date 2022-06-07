@@ -1,4 +1,4 @@
-import { textIsLight } from '../shared/utils';
+import { textIsLight } from '../shared/DOMutils';
 import chroma from 'chroma-js';
 
 export const drawLine = (params: any, color: string, dashedLine: boolean) => {
