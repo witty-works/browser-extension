@@ -1,8 +1,10 @@
 import React, { useRef } from 'react';
-import { ScrollPos } from '../shared/types';
+import { Position } from '../shared/types';
+import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
+
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
-  elementScroll: ScrollPos;
+  elementScroll: Position;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
@@ -13,23 +15,10 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
   const elementStyles = window.getComputedStyle(element);
 
-  const calculatePositionCorrection = () => {
-    const elementRect: DOMRect = element.getBoundingClientRect();
-
-    return cloneRef.current.parentElement
-      ? {
-          top:
-            elementRect.top -
-            cloneRef.current.parentElement.getBoundingClientRect().top,
-          left:
-            elementRect.left -
-            cloneRef.current.parentElement.getBoundingClientRect().left,
-        }
-      : {
-          top: elementRect.top,
-          left: elementRect.left,
-        };
-  };
+  const correctedPosition = usePositionCorrection(
+    element,
+    cloneRef.current.parentElement
+  );
 
   return (
     <div
@@ -46,8 +35,8 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${calculatePositionCorrection().top}px`,
-          left: `${calculatePositionCorrection().left}px`,
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
           paddingTop: elementStyles.paddingTop,
           paddingLeft: elementStyles.paddingLeft,
           paddingRight: elementStyles.paddingRight,

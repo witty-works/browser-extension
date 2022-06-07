@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Highlight, IAlert, INodeWithAlerts, ScrollPos } from '../shared/types';
+import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { nodeExistsInDOM } from '../shared/utils';
+import { nodeExistsInDOM, isTextArea, isInputText } from '../shared/DOMutils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
-import { isTextArea, isInputText } from '../shared/utils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
+import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
 
 interface HighlightsProps {
-  elementScroll: ScrollPos;
+  elementScroll: Position;
   nodesWithAlerts: INodeWithAlerts[];
   element: HTMLElement;
   selectedAlert: IAlert | null;
@@ -23,17 +23,16 @@ const Highlights: React.FC<HighlightsProps> = ({
   const doc = document.documentElement || document.body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
-  const elementStyles = getComputedStyle(element);
-  let elementRect = useResizeObserver(element);
+
+  const correctedPosition = usePositionCorrection(
+    element,
+    canvasRef.current.parentElement
+  );
+
+  const elementRect = useResizeObserver(element);
   const canvasSize = {
-    width:
-      elementRect.width -
-      parseInt(elementStyles.borderLeftWidth) -
-      parseInt(elementStyles.borderRightWidth),
-    height:
-      elementRect.height -
-      parseInt(elementStyles.borderTopWidth) -
-      parseInt(elementStyles.borderBottomWidth),
+    width: elementRect.width,
+    height: elementRect.height,
   };
 
   useEffect(() => {
@@ -138,34 +137,14 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
-  const calculatePositionCorrection = () => {
-    const elementRect: DOMRect = element.getBoundingClientRect();
-
-    return canvasRef.current.parentElement
-      ? {
-          top:
-            elementRect.top -
-            canvasRef.current.parentElement.getBoundingClientRect().top +
-            parseInt(elementStyles.borderTopWidth),
-          left:
-            elementRect.left -
-            canvasRef.current.parentElement.getBoundingClientRect().left +
-            parseInt(elementStyles.borderLeftWidth),
-        }
-      : {
-          top: elementRect.top + parseInt(elementStyles.borderTopWidth),
-          left: elementRect.left + parseInt(elementStyles.borderLeftWidth),
-        };
-  };
-
   return (
     <canvas
       ref={canvasRef}
       style={
         {
           position: 'absolute',
-          top: `${calculatePositionCorrection().top}px`,
-          left: `${calculatePositionCorrection().left}px`,
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
           width: `${canvasSize.width}px`,
           height: `${canvasSize.height}px`,
           overflow: 'auto',
