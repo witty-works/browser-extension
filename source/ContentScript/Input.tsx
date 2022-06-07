@@ -3,6 +3,8 @@ import { browser } from 'webextension-polyfill-ts';
 
 import defaultConfig from '../witty.config.json';
 import * as Sentry from '@sentry/react';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../i18n/i18n.constants';
 
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
@@ -85,7 +87,7 @@ const Input: React.FC<{
   );
 
   useMutationObserver(element, onElementMutation);
-
+  const { t } = useTranslation([namespaces.errors]);
   const log = useLog('Input');
 
   useEffect(() => {
@@ -649,7 +651,7 @@ const Input: React.FC<{
   }, [checkEndpointError]);
 
   const ErrorBoundaryFallback = () => (
-    <Toast message='Please reload the website' type='error' />
+    <Toast message={t('reloadWebsite')} type='error' />
   );
 
   return (

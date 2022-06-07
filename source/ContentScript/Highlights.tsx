@@ -121,23 +121,21 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [highlights, selectedAlert]);
 
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        style={
-          {
-            position: 'absolute',
-            top: `${elementRect.top}px`,
-            left: `${elementRect.left}px`,
-            width: `${elementRect.width}px`,
-            height: `${elementRect.height}px`,
-            overflow: 'auto',
-            zIndex: 99999999,
-            pointerEvents: 'none',
-          } as React.CSSProperties
-        }
-      ></canvas>
-    </>
+    <canvas
+      ref={canvasRef}
+      style={
+        {
+          position: 'absolute',
+          top: `${elementRect.top}px`,
+          left: `${elementRect.left}px`,
+          width: `${elementRect.width}px`,
+          height: `${elementRect.height}px`,
+          overflow: 'auto',
+          zIndex: 99999999,
+          pointerEvents: 'none',
+        } as React.CSSProperties
+      }
+    ></canvas>
   );
 };
 

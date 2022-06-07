@@ -94,6 +94,10 @@ export const de = {
     lockedInfo: 'Team-Vorgabe',
     resetTeamsSettings: 'Auf Standardwerte zurücksetzen',
   },
+  [namespaces.errors]: {
+    errorMessageGenericTitle: 'Ouch! Something went wrong! DE',
+    reloadWebsite: 'Please reload the website DE',
+  },
 };
 
 export const en = {
@@ -192,5 +196,9 @@ export const en = {
     germanGenderEnding: 'Choose the German gender ending',
     lockedInfo: 'Team presetting',
     resetTeamsSettings: 'Reset to defaults',
+  },
+  [namespaces.errors]: {
+    errorMessageGenericTitle: 'Ouch! Something went wrong!',
+    reloadWebsite: 'Please reload the website',
   },
 };
