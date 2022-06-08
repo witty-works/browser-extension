@@ -4,12 +4,14 @@ import { usePositionCorrection } from '../shared/customHooks/usePositionCorrecti
 
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
+  elementRect: DOMRect;
   elementScroll: Position;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
+  elementRect,
   updateClone,
 }: TextAreaCloneProps) => {
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
@@ -41,16 +43,17 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           paddingLeft: elementStyles.paddingLeft,
           paddingRight: elementStyles.paddingRight,
           paddingBottom: elementStyles.paddingBottom,
-          width: elementStyles.width,
-          height: elementStyles.height,
+          width: elementRect.width,
+          height: elementRect.height,
           fontSize: elementStyles.fontSize,
           fontWeight: elementStyles.fontWeight,
           lineHeight: elementStyles.lineHeight,
           fontFamily: elementStyles.fontFamily,
           border: `${elementStyles.borderBottomWidth} solid black`,
-          visibility: 'hidden',
+          // visibility: 'hidden',
           pointerEvents: 'none',
           boxSizing: elementStyles.boxSizing,
+          outline: '1px solid blue',
         } as React.CSSProperties
       }
     >

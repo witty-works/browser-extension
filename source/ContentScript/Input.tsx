@@ -14,6 +14,7 @@ import {
 } from '../shared/types';
 import { storeInLocalStorage } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
+import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -37,6 +38,7 @@ const Input: React.FC<{
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
+  const elementRect = useResizeObserver(element);
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [elementScroll, setElementScroll] = useState<Position>({
     top: 0,
@@ -660,6 +662,7 @@ const Input: React.FC<{
         <WTags.WW_CLONE>
           <TextAreaClone
             element={element}
+            elementRect={elementRect}
             elementScroll={elementScroll}
             updateClone={updateCloneData}
           />
@@ -667,7 +670,11 @@ const Input: React.FC<{
       )}
       {isInputText(element) && (
         <WTags.WW_CLONE>
-          <InputTextClone element={element} updateClone={updateCloneData} />
+          <InputTextClone
+            element={element}
+            elementRect={elementRect}
+            updateClone={updateCloneData}
+          />
         </WTags.WW_CLONE>
       )}
       <WTags.WW_HIGHLIGHTS>
@@ -675,6 +682,7 @@ const Input: React.FC<{
           elementScroll={elementScroll}
           nodesWithAlerts={nodesWithAlerts}
           element={element}
+          elementRect={elementRect}
           selectedAlert={selectedAlert}
         />
       </WTags.WW_HIGHLIGHTS>

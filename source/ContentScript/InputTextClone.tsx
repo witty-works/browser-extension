@@ -3,11 +3,13 @@ import React, { useRef } from 'react';
 import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
 interface InputTextCloneProps {
   element: HTMLInputElement;
+  elementRect: DOMRect;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
 const InputTextClone: React.FC<InputTextCloneProps> = ({
   element,
+  elementRect,
   updateClone,
 }: InputTextCloneProps) => {
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
@@ -38,8 +40,8 @@ const InputTextClone: React.FC<InputTextCloneProps> = ({
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
           paddingBottom: elementStyle.paddingBottom,
-          width: elementStyle.width,
-          height: elementStyle.height,
+          width: elementRect.width,
+          height: elementRect.height,
           fontSize: elementStyle.fontSize,
           fontWeight: elementStyle.fontWeight,
           lineHeight: elementStyle.lineHeight,
