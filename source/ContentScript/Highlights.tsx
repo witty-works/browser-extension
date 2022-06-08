@@ -4,13 +4,13 @@ import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
 import { nodeExistsInDOM, isTextArea, isInputText } from '../shared/DOMutils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
-import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
 
 interface HighlightsProps {
   elementScroll: Position;
   nodesWithAlerts: INodeWithAlerts[];
   element: HTMLElement;
+  elementRect: DOMRect;
   selectedAlert: IAlert | null;
 }
 
@@ -18,6 +18,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   elementScroll,
   nodesWithAlerts,
   element,
+  elementRect,
   selectedAlert,
 }: HighlightsProps) => {
   const doc = document.documentElement || document.body;
@@ -29,7 +30,6 @@ const Highlights: React.FC<HighlightsProps> = ({
     canvasRef.current.parentElement
   );
 
-  const elementRect = useResizeObserver(element);
   const canvasSize = {
     width: elementRect.width,
     height: elementRect.height,
