@@ -4,11 +4,7 @@ import { browser } from 'webextension-polyfill-ts';
 import { CustomInputElement, RequestConfig, ScrollPos } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
-import {
-  StorageKeys,
-  DefaultBaseUrlKey,
-  GermanGenderEndings,
-} from '../shared/constants';
+import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import {
   setBaseUrls,
   setRequestConfig,
@@ -74,16 +70,8 @@ const ContentScriptApp: React.FC = () => {
 
         //Define API requests config
         const reqConfig: RequestConfig = {
-          // german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value,
-          german_gender_ending:
-            GermanGenderEndings[
-              result[StorageKeys.GERMAN_GENDER_ENDING]
-                .value as keyof typeof GermanGenderEndings
-            ],
-          preferred_languages: result[
-            StorageKeys.PREFERRED_LANGUAGES
-          ].value.map((lang: string) => lang.split('-')[0]),
-          preferred_variants: result[StorageKeys.PREFERRED_LANGUAGES].value,
+          german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value,
+          preferred_variants: result[StorageKeys.PREFERRED_VARIANTS].value,
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
           disabled_categories: [
             result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
@@ -164,27 +152,16 @@ const ContentScriptApp: React.FC = () => {
             primary_language: changes[item].newValue,
           });
           break;
-        case StorageKeys.PREFERRED_LANGUAGES:
-          setReqConfig({
-            ...reqConfigRef.current,
-            preferred_languages: changes[item].newValue.value
-              .map((lang: string) => lang.split('-')[0])
-              .join(','),
-          });
-          break;
         case StorageKeys.PREFERRED_VARIANTS:
           setReqConfig({
             ...reqConfigRef.current,
-            preferred_variants: changes[item].newValue.value.join(','),
+            preferred_variants: changes[item].newValue,
           });
           break;
         case StorageKeys.GERMAN_GENDER_ENDING:
           setReqConfig({
             ...reqConfigRef.current,
-            german_gender_ending:
-              GermanGenderEndings[
-                changes[item].newValue.value as keyof typeof GermanGenderEndings
-              ],
+            german_gender_ending: changes[item].newValue,
           });
           break;
         case StorageKeys.ORTHOGRAPHY:
@@ -259,6 +236,7 @@ const ContentScriptApp: React.FC = () => {
   };
 
   useEffect(() => {
+    console.log('reqConfigRef', reqConfig);
     setRequestConfig(reqConfig);
   }, [reqConfig]);
 

@@ -23,7 +23,6 @@ export const useAnalytics = () => {
         request__id: appID,
         request__client: wittyVersion,
         request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
         request__config__preferred_variants: requestConfig.preferred_variants,
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
@@ -56,7 +55,6 @@ export const useAnalytics = () => {
         request__id: appID,
         request__client: wittyVersion,
         request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
         request__config__preferred_variants: requestConfig.preferred_variants,
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
@@ -88,7 +86,6 @@ export const useAnalytics = () => {
         request__id: appID,
         request__client: wittyVersion,
         request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
         request__config__preferred_variants: requestConfig.preferred_variants,
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
@@ -128,7 +125,6 @@ export const useAnalytics = () => {
         request__id: appID,
         request__client: wittyVersion,
         request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
         request__config__preferred_variants: requestConfig.preferred_variants,
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
@@ -158,7 +154,6 @@ export const useAnalytics = () => {
         request__id: appID,
         request__client: wittyVersion,
         request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
         request__config__preferred_variants: requestConfig.preferred_variants,
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,

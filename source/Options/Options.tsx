@@ -286,10 +286,14 @@ const Options: React.FC = () => {
             }
             break;
           case 'gendered_roles_format':
-            setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
+            }
             break;
           case 'preferred_variants':
-            setPreferredVariants(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setPreferredVariants(authResponse.config[key]);
+            }
             break;
         }
       }

@@ -41,11 +41,11 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
     setDropdownOptions(dropdownOptions);
 
     browser.storage.local
-      .get(StorageKeys.PREFERRED_LANGUAGES)
+      .get(StorageKeys.PREFERRED_VARIANTS)
       .then((result) => {
-        if (result[StorageKeys.PREFERRED_LANGUAGES]) {
+        if (result[StorageKeys.PREFERRED_VARIANTS]) {
           const selecOptions: OptionProp[] = result[
-            StorageKeys.PREFERRED_LANGUAGES
+            StorageKeys.PREFERRED_VARIANTS
           ].map((opt: string) => {
             return {
               value: opt,
@@ -79,8 +79,14 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
 
   const handleDropdownChange = (options: OptionProp[]) => {
     const prefLanguages: string[] = options.map((option) => option.value);
+    console.log('prefLanguages', prefLanguages);
+
     browser.storage.local
-      .set({ [StorageKeys.PREFERRED_LANGUAGES]: prefLanguages })
+      .set({
+        [StorageKeys.PREFERRED_VARIANTS]: {
+          value: prefLanguages,
+        },
+      })
       .then(() => {
         log(`New Preferred languages ${prefLanguages.join(',')} saved`);
       })

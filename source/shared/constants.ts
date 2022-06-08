@@ -15,7 +15,6 @@ export enum StorageKeys {
   APP_ID = 'id',
   DISABLED_SITES = 'disabledSites',
   PRIMARY_LANGUAGE = 'primaryLanguage',
-  PREFERRED_LANGUAGES = 'preferredLanguages',
   PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
