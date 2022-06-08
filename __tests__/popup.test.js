@@ -24,7 +24,6 @@ const test = base.extend({
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`
             ],
-
         }
         const context = await browserTypes[browserName].launchPersistentContext(
             '',
