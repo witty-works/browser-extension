@@ -26,8 +26,8 @@ jobs:
         if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: |
           yarn install
-          
-     - name: Build artifacts
+
+      - name: Build artifacts
         run: |
           yarn run build:chrome
 
