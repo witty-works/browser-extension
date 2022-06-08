@@ -540,19 +540,26 @@ const Input: React.FC<{
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
 
-      if (
-        node.nodeValue &&
-        node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!-_]/i)
-      ) {
+      if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
         textStartingAbsPosition = textEndAbsPosition;
 
         const nodeValueLength: number = node.nodeValue.length;
 
         textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
-        // Check if there is a whitespace char after the node's content
-        // If so, we +1 to the end position
-        if (nextText.charAt(textEndAbsPosition).match(/\n/gi))
+
+        const parentDisplay = window.getComputedStyle(
+          node.parentElement as HTMLElement
+        ).display;
+
+        if (!parentDisplay.includes('inline')) {
+          // Check if there is a whitespace char after the node's content
+          // If so, we +1 to the end position
+          if (nextText.charAt(textEndAbsPosition).match(/\n/gi)) {
+            textEndAbsPosition += 1;
+          }
+        } else {
           textEndAbsPosition += 1;
+        }
 
         const alertsTemp: IAlert[] = alerts
           .filter(
