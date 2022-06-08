@@ -38,7 +38,7 @@ test.use({ trace: 'off' })
 test.describe('Options', () => {
     // User not logged in
     test('clicking logo opens a page in another window', async ({ page, context }) => {
-        await page.goto(`chrome-extension://${extensionId}/options.html`);
+        await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
         await page.click('#witty-logo-white');
         await page.waitForTimeout(5000);
         let pages = await context.pages();
