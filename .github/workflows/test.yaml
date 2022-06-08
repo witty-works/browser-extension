@@ -35,8 +35,7 @@ jobs:
         run: npx playwright install
 
       - name: Run tests
-        run: |
-          npx playwright test
+        run: xvfb-run npx playwright test
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
