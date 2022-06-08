@@ -1,45 +1,45 @@
-# name: Run Tests
+name: Run Tests
 
-# on: [push]
+on: [push]
 
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - uses: actions/checkout@v2
-#         with:
-#           fetch-depth: 0
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-#       - uses: actions/setup-node@v2
-#         with:
-#           node-version: '18'
-#           cache: 'npm'
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+          cache: 'npm'
 
-#       - name: Install yarn
-#         run: |
-#           npm install --global yarn
+      - name: Install yarn
+        run: |
+          npm install --global yarn
 
-#       - id: cache-yarn
-#         uses: actions/cache@v1
-#         with:
-#           path: ./node_modules
-#           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      - id: cache-yarn
+        uses: actions/cache@v1
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
 
-#       - name: Install dependencies
-#         if: steps.cache-yarn.outputs.cache-hit != 'true'
-#         run: |
-#           yarn install
+      - name: Install dependencies
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        run: |
+          yarn install
 
-#       - name: Install supported browsers
-#         run: npx playwright install
+      - name: Install supported browsers
+        run: npx playwright install
 
-#       - name: Run tests
-#         run: |
-#           npx playwright test
+      - name: Run tests
+        run: |
+          npx playwright test
 
-#       - name: SonarCloud Scan
-#         uses: SonarSource/sonarcloud-github-action@master
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
-#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
