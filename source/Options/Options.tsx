@@ -386,6 +386,19 @@ const Options: React.FC = () => {
               <span className='wittyworks-options-login-cursiva'>
                 {username}{' '}
               </span>
+              {userIsLoggedIn && !teamName && (
+                <div
+                  className='wittyworks-options-team-link'
+                  onClick={() => {
+                    window.open(
+                      'https://dashboard.witty.works/en/teams/create',
+                      '_blank'
+                    );
+                  }}
+                >
+                  {t('createATeam')}
+                </div>
+              )}
               {teamName !== '' &&
                 teamName &&
                 subscriptionPlan &&

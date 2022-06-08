@@ -93,6 +93,7 @@ export const de = {
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
     lockedInfo: 'Team-Vorgabe',
     resetTeamsSettings: 'Auf Standardwerte zurücksetzen',
+    createATeam: 'Create a team DE',
   },
 };
 
@@ -192,5 +193,6 @@ export const en = {
     germanGenderEnding: 'Choose the German gender ending',
     lockedInfo: 'Team presetting',
     resetTeamsSettings: 'Reset to defaults',
+    createATeam: 'Create a team',
   },
 };
