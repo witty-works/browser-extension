@@ -80,6 +80,7 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   }, [resetSettings]);
 
   const handleDropdownChange = (value: string) => {
+    if (!value) return;
     setSelectedOption(value);
     browser.storage.local
       .set({

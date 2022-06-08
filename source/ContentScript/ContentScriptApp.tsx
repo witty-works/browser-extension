@@ -70,7 +70,9 @@ const ContentScriptApp: React.FC = () => {
 
         //Define API requests config
         const reqConfig: RequestConfig = {
-          german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value,
+          german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value
+            ? result[StorageKeys.GERMAN_GENDER_ENDING].value
+            : result[StorageKeys.GERMAN_GENDER_ENDING],
           preferred_variants: result[StorageKeys.PREFERRED_VARIANTS].value,
           primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
           disabled_categories: [
@@ -211,13 +213,17 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.SHOW_INSPIRATION_ALTERNATIVES:
           setReqConfig({
             ...reqConfigRef.current,
-            show_inspiration_alternatives: changes[item].newValue.value,
+            show_inspiration_alternatives: changes[item].newValue.value
+              ? changes[item].newValue.value
+              : changes[item].newValue,
           });
           break;
         case StorageKeys.SINGULAR_THEY:
           setReqConfig({
             ...reqConfigRef.current,
-            singular_they: changes[item].newValue.value,
+            singular_they: changes[item].newValue.value
+              ? changes[item].newValue.value
+              : changes[item].newValue,
           });
           break;
         case StorageKeys.MAXIMUM_IMPORTANCE:
@@ -229,14 +235,15 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.GENDERED_ROLES_FORMAT:
           setReqConfig({
             ...reqConfigRef.current,
-            gendered_roles_format: changes[item].newValue.value,
+            gendered_roles_format: changes[item].newValue.value
+              ? changes[item].newValue.value
+              : changes[item].newValue,
           });
       }
     }
   };
 
   useEffect(() => {
-    console.log('reqConfigRef', reqConfig);
     setRequestConfig(reqConfig);
   }, [reqConfig]);
 

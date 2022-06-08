@@ -46,7 +46,7 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
         if (result[StorageKeys.PREFERRED_VARIANTS]) {
           const selecOptions: OptionProp[] = result[
             StorageKeys.PREFERRED_VARIANTS
-          ].map((opt: string) => {
+          ].value.map((opt: string) => {
             return {
               value: opt,
               label: t(`languages.${opt.replace('-', '_')}`, {
@@ -66,6 +66,7 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
 
   useEffect(() => {
     //get labels for each selectedValue.value and create OptionProp
+    if (!resetSettings) return;
     const selectedKey = selectedValue.map((value: string) => {
       return {
         value: value,
@@ -78,8 +79,8 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
   }, [resetSettings]);
 
   const handleDropdownChange = (options: OptionProp[]) => {
+    if (!options) return;
     const prefLanguages: string[] = options.map((option) => option.value);
-    console.log('prefLanguages', prefLanguages);
 
     browser.storage.local
       .set({

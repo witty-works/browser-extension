@@ -381,8 +381,7 @@ const Input: React.FC<{
     );
 
     const apiConfig = checkEndpointResponse.organization_config;
-    if (apiConfig) {
-      console.log('apiConfig', apiConfig);
+    if (apiConfig && apiConfig.id) {
       storeInLocalStorage(StorageKeys.NAME, apiConfig.name);
       storeInLocalStorage(StorageKeys.PLAN, apiConfig.plan);
 
@@ -465,9 +464,11 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId: checkEndpointResponse.organization_config
-          ? checkEndpointResponse.organization_config.id
-          : null,
+        groupId:
+          checkEndpointResponse.organization_config &&
+          checkEndpointResponse.organization_config.id
+            ? checkEndpointResponse.organization_config.id
+            : null,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,

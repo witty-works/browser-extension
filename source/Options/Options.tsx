@@ -221,73 +221,71 @@ const Options: React.FC = () => {
       for (let key in authResponse.config) {
         switch (key) {
           case 'german_gender_ending':
-            setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
+            setGermanGenderEnding(authResponse.config[key]);
             break;
           case 'inclusive':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setInclusiveLanguage(authResponse.config[key] as ConfigProperty);
+              setInclusiveLanguage(authResponse.config[key]);
             } else {
               setInclusiveLanguage({
                 ...inclusiveLanguage,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'maximum_importance':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setMaximumImportance(authResponse.config[key] as ConfigProperty);
+              setMaximumImportance(authResponse.config[key]);
             } else {
               setMaximumImportance({
                 ...maximumImportance,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'orthography':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setOrthography(authResponse.config[key] as ConfigProperty);
+              setOrthography(authResponse.config[key]);
             } else {
               setOrthography({
                 ...orthography,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'show_inspiration_alternatives':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setInspirationalAlternatives(
-                authResponse.config[key] as ConfigProperty
-              );
+              setInspirationalAlternatives(authResponse.config[key]);
             } else {
               setInspirationalAlternatives({
                 ...inspirationalAlternatives,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'singular_they':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setSingularThey(authResponse.config[key] as ConfigProperty);
+              setSingularThey(authResponse.config[key]);
             } else {
               setSingularThey({
                 ...singularThey,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'style':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setStyleCorrections(authResponse.config[key] as ConfigProperty);
+              setStyleCorrections(authResponse.config[key]);
             } else {
               setStyleCorrections({
                 ...styleCorrections,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'gendered_roles_format':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
+              setGenderRolesFormat(authResponse.config[key]);
             }
             break;
           case 'preferred_variants':
