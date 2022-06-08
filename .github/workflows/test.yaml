@@ -34,12 +34,13 @@ jobs:
         run: xvfb-run npx playwright test
           - name: Upload test results
 
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: playwright-report
-          path: playwright-report
-
+      - name: Upload test results
+          if: always()
+          uses: actions/upload-artifact@v2
+          with:
+            name: playwright-report
+            path: playwright-report
+            
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
