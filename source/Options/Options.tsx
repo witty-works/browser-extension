@@ -38,6 +38,7 @@ const Options: React.FC = () => {
     namespaces.pages.options,
     namespaces.pages.popup,
   ]);
+
   // const [languagesTabOpen, setLanguagesTabOpen] = useState<boolean>(false);
   const [rulesTabOpen, setRulesTabOpen] = useState<boolean>(false);
   const [disableTabOpen, setDisableTabOpen] = useState<boolean>(false);
@@ -391,7 +392,9 @@ const Options: React.FC = () => {
                   className='wittyworks-options-team-link'
                   onClick={() => {
                     window.open(
-                      'https://dashboard.witty.works/en/teams/create',
+                      `${BaseUrls[urls].dashboard}${
+                        browser.i18n.getUILanguage().split('-')[0]
+                      }/team/create`,
                       '_blank'
                     );
                   }}
