@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import DropdownMultiSelect from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
-import { OptionProp } from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
+import DropdownMultiSelect, {
+  OptionProp,
+} from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
 import { StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';

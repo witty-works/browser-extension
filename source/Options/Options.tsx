@@ -18,7 +18,7 @@ import {
   changeMaximumImportance,
 } from '../shared/utils';
 import GermanGenderEndSelector from './GermanGenderEndSelector';
-import PreferedLanguagesSelector from './PreferedLanguagesSelector';
+import PreferedLanguagesSelector from './PreferredLanguagesSelector';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';
 import ArrowDown from '../assets/icons/options/arrow-down.svg';
 import ArrowUp from '../assets/icons/options/arrow-up.svg';
