@@ -17,7 +17,6 @@ import {
   maximumImportanceToBoolean,
   changeMaximumImportance,
 } from '../shared/utils';
-// import LanguageSelector from '../Popup/LanguageSelector';
 import GermanGenderEndSelector from './GermanGenderEndSelector';
 import PreferedLanguagesSelector from './PreferedLanguagesSelector';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';

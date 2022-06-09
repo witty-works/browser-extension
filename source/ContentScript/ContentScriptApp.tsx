@@ -74,7 +74,6 @@ const ContentScriptApp: React.FC = () => {
             ? result[StorageKeys.GERMAN_GENDER_ENDING].value
             : result[StorageKeys.GERMAN_GENDER_ENDING],
           preferred_variants: result[StorageKeys.PREFERRED_VARIANTS].value,
-          primary_language: result[StorageKeys.PRIMARY_LANGUAGE],
           disabled_categories: [
             result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
             result[StorageKeys.INCLUSIVE].value === true ? '' : 'inclusive',
@@ -147,12 +146,6 @@ const ContentScriptApp: React.FC = () => {
           break;
         case StorageKeys.ACCESS_TOKEN:
           setToken(changes[item].newValue);
-          break;
-        case StorageKeys.PRIMARY_LANGUAGE:
-          setReqConfig({
-            ...reqConfigRef.current,
-            primary_language: changes[item].newValue,
-          });
           break;
         case StorageKeys.PREFERRED_VARIANTS:
           setReqConfig({

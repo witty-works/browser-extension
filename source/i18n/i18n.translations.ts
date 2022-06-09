@@ -88,7 +88,6 @@ export const de = {
     genderRoleFormatNone: 'Nur geschlechtsneutrale Alternativen anzeigen',
     styleCorrectionExplanationUrl: 'https://www.witty.works/de/kategorien/stil',
     learnMore: 'Mehr dazu',
-    primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
     lockedInfo: 'Team-Vorgabe',
@@ -188,7 +187,6 @@ export const en = {
     styleCorrectionExplanationUrl:
       'https://www.witty.works/en/categories/style',
     learnMore: 'Learn more',
-    primaryLanguage: 'Primary Language',
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
     lockedInfo: 'Team presetting',

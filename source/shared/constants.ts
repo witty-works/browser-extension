@@ -14,7 +14,6 @@ export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   APP_ID = 'id',
   DISABLED_SITES = 'disabledSites',
-  PRIMARY_LANGUAGE = 'primaryLanguage',
   PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
