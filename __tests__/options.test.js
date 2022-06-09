@@ -59,7 +59,7 @@ test.describe('Options', () => {
     test('clicking logo opens a page in another window', async ({ page, context }) => {
         console.log(context);
 
-        await page.goto(`chrome-extension://${extensionId}/options.html`);
+        await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
         await page.click('#witty-logo-white');
         await page.waitForTimeout(5000);
         let pages = await context.pages();
