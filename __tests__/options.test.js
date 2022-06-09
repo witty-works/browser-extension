@@ -20,6 +20,8 @@ const test = base.extend({
                 height: 700
             },
             args: [
+                `--no-sandbox`,
+                `--disable-setuid-sandbox`,
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`
             ],
@@ -34,26 +36,27 @@ const test = base.extend({
 })
 test.use({ trace: 'on' })
 
-test.describe('Options', () => {
-    test('testing if other websites than chrome work', async ({ page }) => {
-        await page.goto('https://www.witty.works/editor');
-        //expect element with id witty-test to exist
-        await page.waitForSelector('#witty-test');
-        const wittyTest = await page.$('#witty-test');
 
-        expect(wittyTest).toBeTruthy();
-    }
-    )
+test.describe('Options', () => {
+    // test('testing if other websites than chrome work', async ({ page }) => {
+    //     await page.goto('https://www.witty.works/editor');
+    //     //expect element with id witty-test to exist
+    //     await page.waitForSelector('#witty-test');
+    //     const wittyTest = await page.$('#witty-test');
+
+    //     expect(wittyTest).toBeTruthy();
+    // }
+    // )
 
 
     //// User not logged in
-    // test('clicking logo opens a page in another window', async ({ page, context }) => {
-    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
-    //     await page.click('#witty-logo-white');
-    //     await page.waitForTimeout(5000);
-    //     let pages = await context.pages();
-    //     expect(pages.length).toBe(3);
-    // });
+    test('clicking logo opens a page in another window', async ({ page, context }) => {
+        await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
+        await page.click('#witty-logo-white');
+        await page.waitForTimeout(5000);
+        let pages = await context.pages();
+        expect(pages.length).toBe(3);
+    });
 
     // test('clicking help button opens a page in another window', async ({ page, context }) => {
     //     await page.goto(`chrome-extension://${extensionId}/options.html`);
