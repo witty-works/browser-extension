@@ -381,8 +381,7 @@ const Input: React.FC<{
     );
 
     const apiConfig = checkEndpointResponse.organization_config;
-    if (apiConfig) {
-      console.log('apiConfig', apiConfig);
+    if (apiConfig && apiConfig.id) {
       storeInLocalStorage(StorageKeys.NAME, apiConfig.name);
       storeInLocalStorage(StorageKeys.PLAN, apiConfig.plan);
 
@@ -392,54 +391,71 @@ const Input: React.FC<{
           console.warn(`${key.toUpperCase()} is not a valid storage key`);
           return;
         }
-        if (key == 'gendered_roles_format') {
+        if (
+          key == 'gendered_roles_format' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.GENDERED_ROLES_FORMAT,
             apiConfig.config[key]
           );
-        } else if (key == 'german_gender_ending') {
+        } else if (
+          key == 'german_gender_ending' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.GERMAN_GENDER_ENDING,
             apiConfig.config[key]
           );
-        } else if (key == 'inclusive') {
+        } else if (
+          key == 'inclusive' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(StorageKeys.INCLUSIVE, apiConfig.config[key]);
-        } else if (key == 'maximum_importance') {
+        } else if (
+          key == 'maximum_importance' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.MAXIMUM_IMPORTANCE,
             apiConfig.config[key]
           );
-        } else if (key == 'orthography') {
+        } else if (
+          key == 'orthography' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(StorageKeys.ORTHOGRAPHY, apiConfig.config[key]);
-        } else if (key == 'preferred_variants') {
+        } else if (
+          key == 'preferred_variants' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.PREFERRED_VARIANTS,
             apiConfig.config[key]
           );
-        } else if (key == 'show_inspiration_alternatives') {
+        } else if (
+          key == 'show_inspiration_alternatives' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
             apiConfig.config[key]
           );
-        } else if (key == 'singular_they') {
+        } else if (
+          key == 'singular_they' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(StorageKeys.SINGULAR_THEY, apiConfig.config[key]);
         }
         // else if (key == 'store_context') {
         //   storeInLocalStorage(StorageKeys.STORE_CONTEXT, apiConfig.config[key]);
         // }
-        else if (key == 'style') {
+        else if (key == 'style' && apiConfig.config[key].status == 'force') {
           storeInLocalStorage(StorageKeys.STYLE, apiConfig.config[key]);
         }
-        // else if (key == 'preferred_languages') {
-        //   storeInLocalStorage(
-        //     StorageKeys.PREFERRED_LANGUAGES,
-        //     apiConfig.config[key]
-        //   );
-        // }
       });
     } else {
-      //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken
-      console.log('there is no config');
+      //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken OR user is not logged in
     }
 
     const alerts: IAlert[] = checkEndpointResponse.results
@@ -448,9 +464,11 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId: checkEndpointResponse.organization_config
-          ? checkEndpointResponse.organization_config.id
-          : null,
+        groupId:
+          checkEndpointResponse.organization_config &&
+          checkEndpointResponse.organization_config.id
+            ? checkEndpointResponse.organization_config.id
+            : null,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
