@@ -25,6 +25,8 @@ const test = base.extend({
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`
             ],
+            ignoreDefaultArgs: ['--disable-extensions'],
+
         }
         const context = await browserTypes[browserName].launchPersistentContext(
             '',
@@ -50,8 +52,15 @@ test.describe('Options', () => {
 
 
     //// User not logged in
-    test('clicking logo opens a page in another window', async ({ page, context }) => {
+    test('clicking logo opens a page in another window', async ({ context }) => {
+        const page = await context.newPage();
+        // NOTE: use `chrome-extension://` url instead of just `extension://`.
         await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
+        // Somehow in my experiment the page wasn't loaded until the extension was live, so I had to wait & reload 💁‍♂️
+        await new Promise(x => setTimeout(x, 2000));
+        await page.reload();
+
+        // await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
         await page.click('#witty-logo-white');
         await page.waitForTimeout(5000);
         let pages = await context.pages();
