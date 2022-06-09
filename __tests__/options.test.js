@@ -11,7 +11,12 @@ const premiumUserPassword = process.env.PREMIUM_TEST_USER_PASSWORD;
 const test = base.extend({
     context: async ({ browserName }, use) => {
         const browserTypes = { chromium } //add firefox
-        const pathToExtension = ('./extension/chrome');
+        //root path +
+        const path = require('path');
+        const rootPath = path.dirname(__dirname);
+        rootPath.replace('/__tests__/options.test.js', '');
+        const pathToExtension = rootPath + '/extension/chrome';
+
         const launchOptions = {
             devtools: false,
             headless: false,
@@ -25,8 +30,6 @@ const test = base.extend({
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`
             ],
-            ignoreDefaultArgs: ['--disable-extensions'],
-
         }
         const context = await browserTypes[browserName].launchPersistentContext(
             '',
@@ -52,15 +55,10 @@ test.describe('Options', () => {
 
 
     //// User not logged in
-    test('clicking logo opens a page in another window', async ({ context }) => {
-        const page = await context.newPage();
-        // NOTE: use `chrome-extension://` url instead of just `extension://`.
-        await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
-        // Somehow in my experiment the page wasn't loaded until the extension was live, so I had to wait & reload 💁‍♂️
-        await new Promise(x => setTimeout(x, 2000));
-        await page.reload();
+    test('clicking logo opens a page in another window', async ({ page, context }) => {
+        console.log(context);
 
-        // await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
+        await page.goto(`chrome-extension://${extensionId}/options.html`);
         await page.click('#witty-logo-white');
         await page.waitForTimeout(5000);
         let pages = await context.pages();

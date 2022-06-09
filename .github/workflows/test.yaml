@@ -35,6 +35,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run tests
+        needs:
         run: xvfb-run npx playwright test
 
       - name: Upload test results
