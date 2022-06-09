@@ -46,8 +46,14 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
       browser.storage.local
         .get(StorageKeys.GERMAN_GENDER_ENDING)
         .then((result) => {
-          if (result[StorageKeys.GERMAN_GENDER_ENDING])
-            setSelectedOption(result[StorageKeys.GERMAN_GENDER_ENDING]);
+          if (result[StorageKeys.GERMAN_GENDER_ENDING]) {
+            const keyValuePair = dropdownOptions.find(
+              (option: OptionProp) =>
+                option.value === result[StorageKeys.GERMAN_GENDER_ENDING].value
+            );
+            if (!keyValuePair) return;
+            setSelectedOption(keyValuePair.key as string);
+          }
         })
         .catch(onError);
     }
@@ -66,10 +72,16 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
 
   const handleDropdownChange = (value: string) => {
     setSelectedOption(value);
+    const keyValuePair = dropdownOptions.find(
+      (option: OptionProp) => option.key === value
+    );
+    if (!keyValuePair) return;
     browser.storage.local
-      .set({ [StorageKeys.GERMAN_GENDER_ENDING]: value })
+      .set({
+        [StorageKeys.GERMAN_GENDER_ENDING]: { value: keyValuePair.value },
+      })
       .then(() => {
-        log(`New German Gender Ending ${value} saved`);
+        log(`New German Gender Ending ${keyValuePair.value} saved`);
       })
       .catch(onError);
   };
