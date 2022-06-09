@@ -12,10 +12,11 @@ const test = base.extend({
     context: async ({ browserName }, use) => {
         const browserTypes = { chromium } //add firefox
         //root path +
-        const path = require('path');
-        const rootPath = path.dirname(__dirname);
-        rootPath.replace('/__tests__/options.test.js', '');
-        const pathToExtension = rootPath + '/extension/chrome';
+        // const path = require('path');
+        // const rootPath = path.dirname(__dirname);
+        // rootPath.replace('/__tests__/options.test.js', '');
+        // const pathToExtension = rootPath + '/extension/chrome';
+        const pathToExtension = '/home/runner/work/browser-extension/extension/chrome';
 
         const launchOptions = {
             devtools: false,
