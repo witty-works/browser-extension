@@ -65,6 +65,7 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
             );
         })
         .catch(onError);
+      handleDropdownChange(selectedValue);
     }
   }, []);
 
