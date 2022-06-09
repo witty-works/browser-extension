@@ -56,15 +56,15 @@ test.describe('Options', () => {
 
 
     //// User not logged in
-    test('clicking logo opens a page in another window', async ({ page, context }) => {
-        console.log(context);
+    // test('clicking logo opens a page in another window', async ({ page, context }) => {
+    //     console.log(context);
 
-        await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
-        await page.click('#witty-logo-white');
-        await page.waitForTimeout(5000);
-        let pages = await context.pages();
-        expect(pages.length).toBe(3);
-    });
+    //     await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
+    //     await page.click('#witty-logo-white');
+    //     await page.waitForTimeout(5000);
+    //     let pages = await context.pages();
+    //     expect(pages.length).toBe(3);
+    // });
 
     // test('clicking help button opens a page in another window', async ({ page, context }) => {
     //     await page.goto(`chrome-extension://${extensionId}/options.html`);
@@ -97,18 +97,21 @@ test.describe('Options', () => {
     // });
 
     // //first dropdown section options page
-    // test('when opening the first section, there are 9 sub sections containing 3 dropdowns and 6 toggles', async ({ page }) => {
-    //     await page.goto(`chrome-extension://${extensionId}/options.html`);
-    //     await page.click('#wittyworks-options-content-section-configure-rules');
-    //     const settings = await page.$$('.wittyworks-options-content-section-container-item');
-    //     expect(settings.length).toBe(9);
+    test('when opening the first section, there are 9 sub sections containing 3 dropdowns and 6 toggles', async ({ page }) => {
+        await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/options.html`);
+        await page.click('#wittyworks-options-content-section-configure-rules');
+        const settings = await page.$$('.wittyworks-options-content-section-container-item');
+        expect(settings.length).toBe(9);
 
-    //     const dropdowns = await page.$$('.dropdown-title-wrapper');
-    //     expect(dropdowns.length).toBe(3);
+        console.log('settings', settings);
+        const dropdowns = await page.$$('.dropdown-title-wrapper');
+        expect(dropdowns.length).toBe(3);
+        console.log('dropdowns', dropdowns);
 
-    //     const toggles = await page.$$('.toggle-encloser');
-    //     expect(toggles.length).toBe(6);
-    // });
+        const toggles = await page.$$('.toggle-encloser');
+        expect(toggles.length).toBe(6);
+        console.log('toggles', toggles);
+    });
 
     // test('there are three premium only labels and three locks', async ({ page }) => {
     //     await page.goto(`chrome-extension://${extensionId}/options.html`);
