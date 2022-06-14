@@ -178,9 +178,15 @@ const Popup: React.FC = () => {
             browser.tabs.create({ url: 'https://www.witty.works/' });
           }}
         />
+        <Settings
+          onClick={
+            //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
+            () => browser.runtime.openOptionsPage().then(() => window.close())
+          }
+        />
       </header>
       <section className='wittyworks-toggles website-settings'>
-        <h2>{t('websiteSettings')}</h2>
+        <h2>{t('websiteSettings', { domain: 'miro.com'})}</h2>
         <Toggle
           on={enabled}
           handleToggle={handleEnableToggle}
@@ -222,6 +228,7 @@ const Popup: React.FC = () => {
             locked={orthography.status == 'force'}
             userIsLoggedIn={userIsLoggedIn}
           />
+
           <hr className='toggle-separator' />
           <Toggle
             on={inclusiveLanguage.value as boolean}
@@ -283,7 +290,7 @@ const Popup: React.FC = () => {
               <div
                 className='wittyworks-upgrade-banner-popup-button'
                 onClick={() => {
-                  window.open('https://www.witty.works/pricing', '_blank');
+                  window.open('https://www.witty.works/witty-for-teams', '_blank');
                 }}
               >
                 {t('learnMoreButton')}
@@ -312,12 +319,6 @@ const Popup: React.FC = () => {
             </>
           )}
         </div>
-        <Settings
-          onClick={
-            //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
-            () => browser.runtime.openOptionsPage().then(() => window.close())
-          }
-        />
       </footer>
     </>
   );
