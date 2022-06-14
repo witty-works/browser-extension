@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ChangeEvent } from 'react';
 import { browser } from 'webextension-polyfill-ts';
+
+import { storeInLocalStorage } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 import './styles.scss';
 import { logTypes, useLog } from '../shared/customHooks/useLog';
@@ -24,13 +26,11 @@ const DelaySelector: React.FC = () => {
       .catch(onError);
   }, []);
 
-  const handleDropdownChange = (value: string) => {
-    browser.storage.local
-      .set({ [StorageKeys.API_DELAY]: value })
-      .then(() => {
-        log(`Witty ${StorageKeys.API_DELAY} *${value}* correctly saved`);
-      })
-      .catch(onError);
+  const handleDropdownChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value: number = parseInt(event.currentTarget.value);
+    console.log('AAA delay value = ', value);
+    setDelay(value);
+    storeInLocalStorage(StorageKeys.API_DELAY, value);
   };
 
   const onError = (error: string) => {

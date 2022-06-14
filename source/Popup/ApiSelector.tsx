@@ -2,8 +2,7 @@ import React, { useEffect, useState, ChangeEvent } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import { storeInLocalStorage } from '../shared/utils';
-import Dropdown from '../shared/components/Dropdown/Dropdown';
-import { OptionProp } from '../shared/components/Dropdown/Dropdown';
+import Dropdown, { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { BaseUrls, DefaultBaseUrlKey, StorageKeys } from '../shared/constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 

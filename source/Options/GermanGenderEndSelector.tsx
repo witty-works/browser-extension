@@ -2,8 +2,7 @@ import React, { useEffect, useState, ChangeEvent } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import { storeInLocalStorage } from '../shared/utils';
-import Dropdown from '../shared/components/Dropdown/Dropdown';
-import { OptionProp } from '../shared/components/Dropdown/Dropdown';
+import Dropdown, { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { GermanGenderEndings, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
