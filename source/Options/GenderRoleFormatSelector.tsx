@@ -82,10 +82,6 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
 
   const handleDropdownChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value: string = event.currentTarget.value;
-    console.log(
-      'AAA GenderRoleFormatSelector handleDropdownChange value',
-      value
-    );
 
     setSelectedOption(value);
     storeInLocalStorage(StorageKeys.GENDERED_ROLES_FORMAT, { value });

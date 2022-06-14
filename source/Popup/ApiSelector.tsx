@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ChangeEvent } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
+import { storeInLocalStorage } from '../shared/utils';
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { BaseUrls, DefaultBaseUrlKey, StorageKeys } from '../shared/constants';
@@ -35,15 +36,10 @@ const ApiSelector: React.FC = () => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
-  const handleDropdownChange = (value: string) => {
-    browser.storage.local
-      .set({
-        [StorageKeys.API_ENDPOINT_KEY]: value,
-      })
-      .then(() => {
-        log(`New api endpoint ${value} saved`);
-      })
-      .catch(onError);
+  const handleDropdownChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value: string = event.currentTarget.value;
+    setSelectedOption(value);
+    storeInLocalStorage(StorageKeys.API_ENDPOINT_KEY, value);
   };
 
   return (
