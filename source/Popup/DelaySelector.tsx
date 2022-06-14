@@ -28,7 +28,6 @@ const DelaySelector: React.FC = () => {
 
   const handleDropdownChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value: number = parseInt(event.currentTarget.value);
-    console.log('AAA delay value = ', value);
     setDelay(value);
     storeInLocalStorage(StorageKeys.API_DELAY, value);
   };
