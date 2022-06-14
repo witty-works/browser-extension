@@ -76,7 +76,7 @@ const storeInLocalStorage = (key: string, value: any) => {
     .catch((error: string) => {
       const wittyVersion = browser.runtime.getManifest().version;
       const componentName = 'Utils';
-      const message = `onBrowserStorage Error: ${error}`;
+      const message = `onBrowserStorage Error: (${key}) ${error}`;
 
       console.log(
         `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,

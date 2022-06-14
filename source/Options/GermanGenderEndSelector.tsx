@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ChangeEvent } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
+import { storeInLocalStorage } from '../shared/utils';
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { GermanGenderEndings, StorageKeys } from '../shared/constants';
@@ -46,14 +47,8 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
       browser.storage.local
         .get(StorageKeys.GERMAN_GENDER_ENDING)
         .then((result) => {
-          if (result[StorageKeys.GERMAN_GENDER_ENDING]) {
-            const keyValuePair = dropdownOptions.find(
-              (option: OptionProp) =>
-                option.value === result[StorageKeys.GERMAN_GENDER_ENDING].value
-            );
-            if (!keyValuePair) return;
-            setSelectedOption(keyValuePair.key as string);
-          }
+          if (result[StorageKeys.GERMAN_GENDER_ENDING].value)
+            setSelectedOption(result[StorageKeys.GERMAN_GENDER_ENDING].value);
         })
         .catch(onError);
     }
@@ -64,26 +59,21 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
   };
 
   useEffect(() => {
-    const selectedKey = dropdownOptions.find(
-      (option: OptionProp) => option.value === selectedValue
-    );
-    handleDropdownChange(selectedKey?.key as string);
+    setSelectedOption(selectedValue);
+    storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, {
+      value: selectedValue,
+    });
   }, [resetSettings]);
 
-  const handleDropdownChange = (value: string) => {
-    setSelectedOption(value);
-    const keyValuePair = dropdownOptions.find(
-      (option: OptionProp) => option.key === value
+  const handleDropdownChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value: string = event.currentTarget.value;
+    console.log(
+      'AAA GermanGenderEndSelector handleDropdownChange value',
+      value
     );
-    if (!keyValuePair) return;
-    browser.storage.local
-      .set({
-        [StorageKeys.GERMAN_GENDER_ENDING]: { value: keyValuePair.value },
-      })
-      .then(() => {
-        log(`New German Gender Ending ${keyValuePair.value} saved`);
-      })
-      .catch(onError);
+
+    setSelectedOption(value);
+    storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, { value });
   };
 
   return (

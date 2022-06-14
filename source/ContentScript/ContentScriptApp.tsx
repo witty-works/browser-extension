@@ -4,7 +4,11 @@ import { browser } from 'webextension-polyfill-ts';
 import { CustomInputElement, RequestConfig, ScrollPos } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
-import { StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
+import {
+  StorageKeys,
+  DefaultBaseUrlKey,
+  GermanGenderEndings,
+} from '../shared/constants';
 import {
   setBaseUrls,
   setRequestConfig,
@@ -70,9 +74,11 @@ const ContentScriptApp: React.FC = () => {
 
         //Define API requests config
         const reqConfig: RequestConfig = {
-          german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value
-            ? result[StorageKeys.GERMAN_GENDER_ENDING].value
-            : result[StorageKeys.GERMAN_GENDER_ENDING],
+          german_gender_ending:
+            GermanGenderEndings[
+              result[StorageKeys.GERMAN_GENDER_ENDING]
+                .value as keyof typeof GermanGenderEndings
+            ],
           preferred_variants: result[StorageKeys.PREFERRED_VARIANTS].value,
           disabled_categories: [
             result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
@@ -91,6 +97,7 @@ const ContentScriptApp: React.FC = () => {
           gendered_roles_format:
             result[StorageKeys.GENDERED_ROLES_FORMAT].value,
         };
+
         // if (!isMounted) return;
         setReqConfig(reqConfig);
       })
@@ -156,7 +163,10 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.GERMAN_GENDER_ENDING:
           setReqConfig({
             ...reqConfigRef.current,
-            german_gender_ending: changes[item].newValue,
+            german_gender_ending:
+              GermanGenderEndings[
+                changes[item].newValue.value as keyof typeof GermanGenderEndings
+              ],
           });
           break;
         case StorageKeys.ORTHOGRAPHY:

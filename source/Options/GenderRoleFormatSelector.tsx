@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ChangeEvent } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
+import { storeInLocalStorage } from '../shared/utils';
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { StorageKeys } from '../shared/constants';
@@ -65,7 +66,6 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
             );
         })
         .catch(onError);
-      handleDropdownChange(selectedValue);
     }
   }, []);
 
@@ -74,23 +74,21 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   };
 
   useEffect(() => {
-    const selectedKey = dropdownOptions.find(
-      (option: OptionProp) => option.key === selectedValue
-    );
-    handleDropdownChange(selectedKey?.key as string);
+    setSelectedOption(selectedValue);
+    storeInLocalStorage(StorageKeys.GENDERED_ROLES_FORMAT, {
+      value: selectedValue,
+    });
   }, [resetSettings]);
 
-  const handleDropdownChange = (value: string) => {
-    if (!value) return;
+  const handleDropdownChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value: string = event.currentTarget.value;
+    console.log(
+      'AAA GenderRoleFormatSelector handleDropdownChange value',
+      value
+    );
+
     setSelectedOption(value);
-    browser.storage.local
-      .set({
-        [StorageKeys.GENDERED_ROLES_FORMAT]: { value: value },
-      })
-      .then(() => {
-        log(`New gender role format ${value} saved`);
-      })
-      .catch(onError);
+    storeInLocalStorage(StorageKeys.GENDERED_ROLES_FORMAT, { value });
   };
 
   return (

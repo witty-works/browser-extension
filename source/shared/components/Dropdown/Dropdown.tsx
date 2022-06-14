@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { ChangeEvent } from 'react';
 
 import './styles.scss';
 
@@ -8,7 +8,7 @@ export interface OptionProp {
 }
 
 export interface DropdownProps {
-  onDropdownChange: (value: string) => void;
+  onDropdownChange: (event: ChangeEvent<HTMLSelectElement>) => void;
   options: OptionProp[];
   selectedOption: string | number;
   locked?: boolean;
@@ -20,23 +20,11 @@ const Dropdown: React.FC<DropdownProps> = ({
   selectedOption,
   locked,
 }: DropdownProps) => {
-  const [selected, setSelected] = useState<string | number>('');
-
-  useEffect(() => {
-    setSelected(selectedOption);
-  }, [selectedOption]);
-
-  const handleOptionChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const selectedOption = (event.target as HTMLSelectElement).value;
-    setSelected(selectedOption);
-    onDropdownChange(selectedOption);
-  };
-
   return (
     <select
       className='dropdown-select'
-      onChange={handleOptionChange}
-      value={selected}
+      onChange={onDropdownChange}
+      value={selectedOption}
       disabled={locked}
     >
       {options.map((option) => (
