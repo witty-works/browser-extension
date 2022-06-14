@@ -354,7 +354,7 @@ const Options: React.FC = () => {
             <div
               className='wittyworks-upgrade-banner-button'
               onClick={() => {
-                window.open('https://www.witty.works/pricing', '_blank');
+                window.open('https://www.witty.works/witty-for-teams', '_blank');
               }}
             >
               {t('getMoreButton')}
@@ -534,13 +534,6 @@ const Options: React.FC = () => {
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('expertModeExplanation')}
-                    <a
-                      className='wittyworks-options-content-section-container-link'
-                      href={t('expertModeExplanationUrl')}
-                      target='_blank'
-                    >
-                      {t('learnMore')}
-                    </a>
                   </div>
                 </div>
 

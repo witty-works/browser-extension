@@ -101,7 +101,7 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
           <>
             {!hasWittyTeams && (
               <div className='dropdown-premium-only'>
-                <a href='https://www.witty.works/pricing' target='_blank'>
+                <a href='https://www.witty.works/witty-for-teams' target='_blank'>
                   <PremiumOnly />
                 </a>
               </div>

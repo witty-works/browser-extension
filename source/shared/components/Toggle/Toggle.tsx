@@ -47,7 +47,7 @@ const Toggle: React.FC<ToggleProps> = ({
         {!hasWittyTeams && (
           <>
             <div className='toggle-premium-only'>
-              <a href='https://www.witty.works/pricing' target='_blank'>
+              <a href='https://www.witty.works/witty-for-teams' target='_blank'>
                 <PremiumOnly />
               </a>
             </div>

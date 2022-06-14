@@ -51,20 +51,18 @@ export const de = {
     greetingPlan: 'mit einem Abo von',
     settings: 'Einstellungen',
     needHelp: 'Brauchst du Hilfe?',
-    getMoreTitle: 'Witty kann noch viel mehr!',
-    getMoreText: 'Upgraden, um deine Spracheinstellungen zu teilen!',
-    getMoreButton: 'Upgraden',
+    getMoreTitle: 'Witty für dein Team',
+    getMoreText: 'Registriere dich auf Witty Dashboard um Spracheinstellungen für dein Team zu definieren!',
+    getMoreButton: 'Kostenlos testen',
     LoginButton: 'Registrieren / Anmelden',
     setUpLanguages: 'Spracheinstellungen',
-    configureRules: 'Witty Regeln anpassen',
+    configureRules: 'Witty Regeln für mich anpassen',
     disableWitty: 'Witty auf gewissen Webseiten deaktivieren',
     expertMode: 'Inklusions-Profi werden',
     expertModeExplanation:
-      'Wenn aktiviert, bietet Witty auch Vorschläge zu subtileren Fragen der Diversität und Inklusion.',
-    expertModeExplanationUrl:
-      'https://www.witty.works/de/blog/wie-analysiert-witty-rahmenwerk-der-inklusiven-sprache',
+      'Wenn eingeschaltet, bietet Witty Vorschläge zu subtileren Fragen der Diversität und Inklusion. Witty würde z.Bsp. Hilfe bei Abkürzungen wie ROI oder SaaS bieten.',
     inspirationAlternatives:
-      'Inspirationen zur Umformulierung ganzer Sätze zeigen',
+      'Inspirationen zur Umformulierung ganzer Sätze vorschlagen',
     inspirationAlternativesExplanation:
       'Wenn aktiviert, macht Witty Vorschläge zur Umformulierung ganzer Sätze.',
     singularThey: 'Im Englischen geschlechtsneutrale Pronomen vorschlagen',
@@ -80,12 +78,13 @@ export const de = {
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
     genderRoleFormat: 'Witty sollte folgende Vorschläge machen',
+    genderRoleFormatExplanation: 'Wähle aus, ob Witty die gewählte Gender-Ending-Form (z.B. "Mitarbeiter*in"), nur die weibliche und männliche Form (z.B. "Mitarbeiterin oder Mitarbeiter"), beides oder nur genderneutrale Alternativen vorschlagen soll.',
     genderRoleFormatFemaleAndMale:
-      'Weibliche und männliche Form (z.B. "Managerin/Manager")',
-    genderRoleFormatGermanEnding: 'Gewählte Gender-Endung',
+      'Weibliche und männliche Form vorschlagen',
+    genderRoleFormatGermanEnding: 'Gewählte Gender-Endung vorschlagen',
     genderRoleFormatBoth:
-      'Deutsche Gender-Endung und weibliche und männliche Form',
-    genderRoleFormatNone: 'Nur geschlechtsneutrale Alternativen anzeigen',
+      'Die gewählte Gender-Endung und die weibliche und männliche Form vorschlagen',
+    genderRoleFormatNone: 'Nur geschlechtsneutrale Alternativen vorschlagen',
     styleCorrectionExplanationUrl: 'https://www.witty.works/de/kategorien/stil',
     learnMore: 'Mehr dazu',
     preferredLanguage: 'Ich bevorzuge',
@@ -149,19 +148,17 @@ export const en = {
     greetingPlan: 'with the subscription',
     settings: 'Settings',
     needHelp: 'Need Help?',
-    getMoreTitle: 'Get much more from Witty!',
+    getMoreTitle: 'Witty for your team',
     getMoreText:
-      'Upgrade and get access to more checks and share your language settings!',
-    getMoreButton: 'Upgrade now',
+      'Explore Witty Teams and start writing consistently as a team!',
+    getMoreButton: 'Try for free',
     LoginButton: 'Register / Login',
     setUpLanguages: 'Language settings',
-    configureRules: 'Customize Witty',
+    configureRules: 'Customize Witty for me',
     disableWitty: 'Disable Witty on some websites',
     expertMode: 'Become an inclusion pro',
     expertModeExplanation:
-      'When switched on, Witty highlights also more subtle issues about diversity and inclusion.',
-    expertModeExplanationUrl:
-      'https://www.witty.works/en/blog/how-does-witty-analyze',
+      'When switched on, Witty highlights more subtle aspects of diversity and inclusion. For example, Witty would highlight acronyms such as ROI or SaaS.',
     inspirationAlternatives: 'Show inspirations to rephrase entire sentences',
     inspirationAlternativesExplanation:
       'When switched on, Witty will make suggestions to rephrase entire sentences.',
@@ -178,17 +175,18 @@ export const en = {
     styleCorrectionExplanation:
       'Witty makes suggestions to make your text more understandable, or to give it authenticity or emotionality.',
     genderRoleFormat: 'Witty should suggest',
+    genderRoleFormatExplanation: 'Choose if Witty should suggest the chosen gender ending (e.g. "Mitarbeiter*in"), the female and male form (e.g. "Mitarbeiterin oder Mitarbeiter"), both or only gender-neutral alternatives ("Mitarbeitende").',
     genderRoleFormatFemaleAndMale:
-      'Female and male form (e.g. "Managerin/Manager")',
-    genderRoleFormatGermanEnding: 'Chosen German gender ending',
+      'Suggest the female and male form',
+    genderRoleFormatGermanEnding: 'Suggest the chosen gender ending',
     genderRoleFormatBoth:
-      'Show both German gender ending and Female and male form',
-    genderRoleFormatNone: 'Only show gender neutral alternatives',
+      'Suggest both the chosen gender ending and the female and male form',
+    genderRoleFormatNone: 'Suggest only gender-neutral alternatives',
     styleCorrectionExplanationUrl:
       'https://www.witty.works/en/categories/style',
     learnMore: 'Learn more',
     preferredLanguage: 'I write in',
-    germanGenderEnding: 'Choose the German gender ending',
+    germanGenderEnding: 'Choose the gender ending',
     lockedInfo: 'Team presetting',
     resetTeamsSettings: 'Reset to defaults',
     createATeam: 'Create a new team',
