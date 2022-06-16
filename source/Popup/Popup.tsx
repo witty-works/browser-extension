@@ -201,12 +201,6 @@ const Popup: React.FC = () => {
       {enabled && (
         <section className='wittyworks-toggles global-settings'>
           <h2>{t('globalSettings')}</h2>
-          <Settings
-            onClick={
-              //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
-              () => browser.runtime.openOptionsPage().then(() => window.close())
-            }
-          />
           <Toggle
             on={orthography.value as boolean}
             handleToggle={() => {
