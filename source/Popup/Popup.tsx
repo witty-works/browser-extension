@@ -18,11 +18,11 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import Toggle from '../shared/components/Toggle/Toggle';
 import ApiSelector from './ApiSelector';
 import DelaySelector from './DelaySelector';
-import Settings from '../assets/icons/popup/settings.svg';
-import Logo from '../assets/icons/witty-logo-color.svg';
+
 import defaultConfig from '../witty.config.json';
 import './styles.scss';
 import { getBaseUrls, setBaseUrls } from '../shared/ApiServices/requests';
+import PopupHeader from './PopupHeader';
 
 const Popup: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
@@ -161,20 +161,7 @@ const Popup: React.FC = () => {
 
   return (
     <>
-      <header>
-        <Logo
-          id='witty-logo'
-          onClick={() => {
-            browser.tabs.create({ url: 'https://www.witty.works/' });
-          }}
-        />
-        <Settings
-          onClick={
-            //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
-            () => browser.runtime.openOptionsPage().then(() => window.close())
-          }
-        />
-      </header>
+      <PopupHeader />
       <section className='wittyworks-toggles website-settings'>
         <h2>{t('websiteSettings', { domain: currentDomain })}</h2>
         <Toggle
@@ -307,9 +294,7 @@ const Popup: React.FC = () => {
           }}
         >
           {showBackToRecomendedSites && (
-            <>
-              <span>{t('backToRecomendedSites')}</span>
-            </>
+            <span>{t('backToRecomendedSites')}</span>
           )}
         </div>
       </footer>
