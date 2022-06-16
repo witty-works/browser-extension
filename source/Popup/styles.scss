@@ -23,6 +23,10 @@ header {
   padding: 0 1rem 1.2rem 1rem;
   display: flex;
   justify-content: space-between;
+
+  svg {
+    cursor: pointer;
+  }
 }
 
 section {
