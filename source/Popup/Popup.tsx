@@ -49,6 +49,7 @@ const Popup: React.FC = () => {
   const [showBackToRecomendedSites, setShowBackToRecomendedSites] =
     useState<boolean>(false);
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
+  const [currentDomain, setCurrentDomain] = useState<string>('');
 
   useEffect(() => {
     browser.storage.local
@@ -71,11 +72,11 @@ const Popup: React.FC = () => {
         browser.tabs
           .query({ active: true, currentWindow: true })
           .then((tabs) => {
-            if (tabs.length === 0 || !tabs[0].url) return;
-            const currentDomain = new URL(tabs[0].url).hostname.replace(
-              'www.',
-              ''
-            );
+            if (tabs.length > 0 && tabs[0].url)
+              setCurrentDomain(
+                new URL(tabs[0].url).hostname.replace('www.', '')
+              );
+
             !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
               setShowBackToRecomendedSites(true);
 
@@ -138,36 +139,24 @@ const Popup: React.FC = () => {
 
   const handleEnableToggle = () => {
     setEnabled(!enabled);
-    browser.tabs
-      .query({ active: true, currentWindow: true })
-      .then((tabs) => {
-        if (tabs.length === 0 || !tabs[0].url) return;
-        const currentDomain = new URL(tabs[0].url).hostname.replace('www.', '');
 
-        setDisabledSites(
-          enabled
-            ? [...disabledSites, currentDomain]
-            : disabledSites.filter((item: string) => item !== currentDomain)
-        );
-      })
-      .catch(onTabsQueryError);
+    if (currentDomain.length > 0)
+      setDisabledSites(
+        enabled
+          ? [...disabledSites, currentDomain]
+          : disabledSites.filter((item: string) => item !== currentDomain)
+      );
   };
 
   const handleCasingToggle = () => {
     setCasing(!casing);
-    browser.tabs
-      .query({ active: true, currentWindow: true })
-      .then((tabs) => {
-        if (tabs.length === 0 || !tabs[0].url) return;
-        const currentDomain = new URL(tabs[0].url).hostname.replace('www.', '');
 
-        setCasingSites(
-          casing
-            ? [...casingSites, currentDomain]
-            : casingSites.filter((item: string) => item !== currentDomain)
-        );
-      })
-      .catch(onTabsQueryError);
+    if (currentDomain.length > 0)
+      setCasingSites(
+        casing
+          ? [...casingSites, currentDomain]
+          : casingSites.filter((item: string) => item !== currentDomain)
+      );
   };
 
   return (
@@ -186,7 +175,7 @@ const Popup: React.FC = () => {
         />
       </header>
       <section className='wittyworks-toggles website-settings'>
-        <h2>{t('websiteSettings', { domain: 'miro.com'})}</h2>
+        <h2>{t('websiteSettings', { domain: currentDomain })}</h2>
         <Toggle
           on={enabled}
           handleToggle={handleEnableToggle}
@@ -211,6 +200,12 @@ const Popup: React.FC = () => {
       {enabled && (
         <section className='wittyworks-toggles global-settings'>
           <h2>{t('globalSettings')}</h2>
+          <Settings
+            onClick={
+              //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
+              () => browser.runtime.openOptionsPage().then(() => window.close())
+            }
+          />
           <Toggle
             on={orthography.value as boolean}
             handleToggle={() => {
@@ -281,7 +276,7 @@ const Popup: React.FC = () => {
             <div className='wittyworks-upgrade-banner-popup'>
               <div className='wittyworks-upgrade-banner-popup-text-container'>
                 <div className='wittyworks-upgrade-banner-popup-title'>
-                  {t('getMoreTitle')}
+                  {t('getMoreTitle', { domain: 'miro.com' })}
                 </div>
                 <div className='wittyworks-upgrade-banner-popup-text'>
                   {t('getMoreText')}
@@ -290,7 +285,10 @@ const Popup: React.FC = () => {
               <div
                 className='wittyworks-upgrade-banner-popup-button'
                 onClick={() => {
-                  window.open('https://www.witty.works/witty-for-teams', '_blank');
+                  window.open(
+                    'https://www.witty.works/witty-for-teams',
+                    '_blank'
+                  );
                 }}
               >
                 {t('learnMoreButton')}
