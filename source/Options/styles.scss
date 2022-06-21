@@ -286,6 +286,12 @@
   margin-right: 2em;
 }
 
+.wittyworks-options-team-link {
+  text-decoration: underline;
+  color: $wittyPurple;
+  cursor: pointer;
+}
+
 .dropdown-title-wrapper {
   display: flex;
   flex-direction: row;
