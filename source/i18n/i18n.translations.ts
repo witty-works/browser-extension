@@ -104,6 +104,7 @@ export const en = {
     },
     languages: {
       en_GB: 'English (🇬🇧 Great Britain)',
+
       en_US: 'English (🇺🇸 USA)',
       de_AT: 'German (🇦🇹 Austrian)',
       de_DE: 'German (🇩🇪 Germany)',

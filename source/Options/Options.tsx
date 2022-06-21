@@ -324,6 +324,7 @@ const Options: React.FC = () => {
       <div className='wittyworks-options-header'>
         <div className='wittyworks-options-header-content'>
           <WittyLogo
+            id='witty-logo-white'
             onClick={() => {
               window.open('https://www.witty.works/', '_blank');
             }}
@@ -407,7 +408,10 @@ const Options: React.FC = () => {
                 subscriptionPlan !== '' && (
                   <div>
                     {t('greetingTeam')}{' '}
-                    <span className='wittyworks-options-login-cursiva'>
+                    <span
+                      className='wittyworks-options-login-cursiva'
+                      id='team-name'
+                    >
                       {teamName}{' '}
                     </span>
                     {t('greetingPlan')}{' '}
@@ -425,7 +429,10 @@ const Options: React.FC = () => {
           </section>
         )}
 
-        <section className='wittyworks-options-content-section'>
+        <section
+          className='wittyworks-options-content-section'
+          id='wittyworks-options-content-section-configure-rules'
+        >
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
@@ -670,7 +677,10 @@ const Options: React.FC = () => {
           </div>
         </section>
 
-        <section className='wittyworks-options-content-section'>
+        <section
+          className='wittyworks-options-content-section'
+          id='wittyworks-options-content-section-disable-witty'
+        >
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
