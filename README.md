@@ -104,6 +104,16 @@ See the original [README](https://github.com/abhijithvijayan/wext-manifest-loade
 
 ## Unit Testing
 
+Create a `.env` file and add the following lines:
+
+```
+EXTENSION_ID_DEV = '<your chrome extension id>'
+TEST_USER_EMAIL = 'witty.works.user@gmail.com'
+TEST_USER_PASSWORD = '<can be found in 1Password>'
+PREMIUM_TEST_USER_EMAIL = 'witty.works.premium.user@gmail.com'
+PREMIUM_TEST_USER_PASSWORD = '<can be found in 1Password>'
+```
+
 From inside the directory just run `yarn run test`
 
 ## Linting & TypeScript Config
