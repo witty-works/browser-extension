@@ -16,7 +16,7 @@
   ],
   "PREFERRED_VARIANTS": { "value": ["de-DE", "en-US"] },
   "GERMAN_GENDER_ENDING": {
-    "value": "colon_in"
+    "value": "asterisk_in"
   },
   "MAXIMUM_IMPORTANCE": {
     "value": 2

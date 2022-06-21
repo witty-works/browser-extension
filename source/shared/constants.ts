@@ -115,8 +115,8 @@ export const getColor = (gravity: number): IHighlightColors => {
 
 //German Gender Endings
 export enum GermanGenderEndings {
-  colon_in = ':in',
   asterisk_in = '*in',
+  colon_in = ':in',
   underscore_in = '_in',
   slash_dash_in = '/-in',
   slash_in = '/in',
