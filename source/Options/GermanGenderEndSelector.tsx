@@ -12,14 +12,14 @@ interface SelectorProps {
   locked?: boolean;
   userIsLoggedIn?: boolean;
   selectedValue: string;
-  resetSettings?: boolean;
+  // resetSettings?: boolean;
 }
 const GermanGenderEndSelector: React.FC<SelectorProps> = ({
   locked,
   userIsLoggedIn = false,
   selectedValue,
-  resetSettings = false,
-}: SelectorProps) => {
+}: // resetSettings = false,
+SelectorProps) => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const { t } = useTranslation(namespaces.pages.options);
@@ -57,12 +57,12 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   };
 
-  useEffect(() => {
-    setSelectedOption(selectedValue);
-    storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, {
-      value: selectedValue,
-    });
-  }, [resetSettings]);
+  // useEffect(() => {
+  //   setSelectedOption(selectedValue);
+  //   storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, {
+  //     value: selectedValue,
+  //   });
+  // }, [resetSettings]);
 
   const handleDropdownChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value: string = event.currentTarget.value;

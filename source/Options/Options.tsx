@@ -486,7 +486,7 @@ const Options: React.FC = () => {
                     locked={germanGenderEnding.status == 'force'}
                     userIsLoggedIn={userIsLoggedIn}
                     selectedValue={germanGenderEnding.value as string}
-                    resetSettings={resetSettings}
+                    // resetSettings={resetSettings}
                   />
                 </div>
 
