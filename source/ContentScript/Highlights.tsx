@@ -60,18 +60,8 @@ const Highlights: React.FC<HighlightsProps> = ({
                   height: rect.height,
                   left: rect.left,
                   x: rect.left,
-                  top:
-                    rect.top +
-                    doc.scrollTop -
-                    (isTextArea(element) || isInputText(element)
-                      ? elementScroll.top
-                      : 0),
-                  y:
-                    rect.top +
-                    doc.scrollTop -
-                    (isTextArea(element) || isInputText(element)
-                      ? elementScroll.top
-                      : 0),
+                  top: rect.top + doc.scrollTop - elementScroll.top,
+                  y: rect.top + doc.scrollTop - elementScroll.top,
                 };
               }
             );

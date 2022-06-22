@@ -322,7 +322,16 @@ const Input: React.FC<{
       const nodeText = oneNodeWithAlerts.node;
       range.setStart(nodeText, selectedAlert.startOffset);
       range.setEnd(nodeText, selectedAlert.endOffset);
-      const clickedRect = range.getClientRects()[0];
+      const rect = range.getClientRects()[0];
+      const clickedRect = {
+        ...rect,
+        width: rect.width,
+        height: rect.height,
+        left: rect.left,
+        x: rect.left,
+        top: range.getClientRects()[0].top - elementScroll.top,
+        y: range.getClientRects()[0].top - elementScroll.top,
+      };
 
       const currentAlertIndex = nodesWithAlertsRef.current
         .slice(0, selectedNodeWithAlertsIndex + 1)
