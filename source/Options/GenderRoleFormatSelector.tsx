@@ -26,7 +26,6 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   userIsLoggedIn = false,
   resetSettings = false,
 }: SelectorProps) => {
-  const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const { t } = useTranslation(namespaces.pages.options);
   const log = useLog('GermanGenderEndSelector');
@@ -37,25 +36,15 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
     binary_gender: t('genderRoleFormatFemaleAndMale'),
     none: t('genderRoleFormatNone'),
   };
+  const dropdownOptions = Object.keys(GenderRoleFormat).map((key: string) => ({
+    key,
+    value: GenderRoleFormat[key as keyof typeof GenderRoleFormat],
+  }));
 
   useEffect(() => {
-    const dropdownOptions: OptionProp[] = Object.keys(GenderRoleFormat).map(
-      (key: string) => ({
-        key,
-        value: GenderRoleFormat[key as keyof typeof GenderRoleFormat],
-      })
-    );
-
     if (locked && userIsLoggedIn) {
-      const lockedKeyValuePair = dropdownOptions.find(
-        (option: OptionProp) => option.key === selectedValue
-      );
-      if (lockedKeyValuePair) {
-        setDropdownOptions([lockedKeyValuePair]);
-        setSelectedOption(selectedValue);
-      }
+      setSelectedOption(selectedValue);
     } else {
-      setDropdownOptions(dropdownOptions);
       browser.storage.local
         .get(StorageKeys.GENDERED_ROLES_FORMAT)
         .then((result) => {
@@ -65,8 +54,8 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
             );
         })
         .catch(onError);
-      handleDropdownChange(selectedValue);
     }
+    handleDropdownChange(selectedValue);
   }, []);
 
   const onError = (error: string) => {
