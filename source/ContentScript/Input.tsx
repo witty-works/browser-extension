@@ -544,29 +544,21 @@ const Input: React.FC<{
     const nextText: string = getInputText(element);
 
     let textStartingAbsPosition: number = 0;
-    let textEndAbsPosition: number = 0;
+    let textEndAbsPosition: number = -1;
 
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
 
       if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
-        textStartingAbsPosition = textEndAbsPosition;
+        textStartingAbsPosition = textEndAbsPosition + 1;
 
         const nodeValueLength: number = node.nodeValue.length;
 
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+        textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1;
 
-        const parentDisplay = window.getComputedStyle(
-          node.parentElement as HTMLElement
-        ).display;
-
-        if (!parentDisplay.includes('inline')) {
-          // Check if there is a whitespace char after the node's content
-          // If so, we +1 to the end position
-          if (nextText.charAt(textEndAbsPosition).match(/\n/gi)) {
-            textEndAbsPosition += 1;
-          }
-        } else {
+        // Check if there is a new line char after the node's content
+        // If so, we +1 to the end position
+        if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
           textEndAbsPosition += 1;
         }
 
@@ -575,6 +567,7 @@ const Input: React.FC<{
             (alert: IAlert) =>
               node.nodeValue && node.nodeValue.includes(alert.data.text)
           )
+
           .filter(
             (alert: IAlert) =>
               alert.startOffset >= textStartingAbsPosition &&
