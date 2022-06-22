@@ -20,29 +20,20 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
   selectedValue,
   resetSettings = false,
 }: SelectorProps) => {
-  const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
+  const dropdownOptions = Object.keys(GermanGenderEndings).map(
+    (key: string) => ({
+      key,
+      value: GermanGenderEndings[key as keyof typeof GermanGenderEndings],
+    })
+  );
   const [selectedOption, setSelectedOption] = useState<string>('');
   const { t } = useTranslation(namespaces.pages.options);
   const log = useLog('GermanGenderEndSelector');
 
   useEffect(() => {
-    const dropdownOptions: OptionProp[] = Object.keys(GermanGenderEndings).map(
-      (key: string) => ({
-        key,
-        value: GermanGenderEndings[key as keyof typeof GermanGenderEndings],
-      })
-    );
-
     if (locked && userIsLoggedIn) {
-      const lockedKeyValuePair = dropdownOptions.find(
-        (option: OptionProp) => option.value === selectedValue
-      );
-      if (lockedKeyValuePair) {
-        setDropdownOptions([lockedKeyValuePair]);
-        setSelectedOption(selectedValue);
-      }
+      setSelectedOption(selectedValue);
     } else {
-      setDropdownOptions(dropdownOptions);
       browser.storage.local
         .get(StorageKeys.GERMAN_GENDER_ENDING)
         .then((result) => {
