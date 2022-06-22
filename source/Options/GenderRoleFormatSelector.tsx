@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import Lock from '../assets/icons/options/lock.svg';
-import PremiumOnly from '../assets/icons/options/premium-only.svg';
 import './styles.scss';
 
 interface SelectorProps {
@@ -97,23 +96,27 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
     <div>
       <div className='dropdown-title-wrapper'>
         <label>{t('genderRoleFormat')}</label>
-        {locked && (
-          <>
-            {!hasWittyTeams && (
-              <div className='dropdown-premium-only'>
-                <a href='https://www.witty.works/witty-for-teams' target='_blank'>
-                  <PremiumOnly />
-                </a>
-              </div>
-            )}
-            <div className='dropdown-lock'>
-              <Lock />
-              {hasWittyTeams && userIsLoggedIn && (
-                <div className='dropdown-lock-info'>{t('lockedInfo')}</div>
-              )}
-            </div>
-          </>
+
+        {!hasWittyTeams && (
+          <div className='witty-teams-only-dropdown'>
+            <a
+              className='witty-teams-only-link'
+              href='https://www.witty.works/witty-for-teams'
+              target='_blank'
+            >
+              {t('wittyTeamsOnly')}
+            </a>
+          </div>
         )}
+        {locked && hasWittyTeams && userIsLoggedIn && (
+          <div className='dropdown-lock'>
+            <Lock />
+            <div className='dropdown-lock-info'>{t('lockedInfo')}</div>
+          </div>
+        )}
+      </div>
+      <div className='wittyworks-options-content-section-container-subtitle'>
+        {t('genderRoleFormatExplanation')}
       </div>
       <Dropdown
         onDropdownChange={handleDropdownChange}

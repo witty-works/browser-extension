@@ -52,7 +52,8 @@ export const de = {
     settings: 'Einstellungen',
     needHelp: 'Brauchst du Hilfe?',
     getMoreTitle: 'Witty für dein Team',
-    getMoreText: 'Registriere dich auf Witty Dashboard um Spracheinstellungen für dein Team zu definieren!',
+    getMoreText:
+      'Registriere dich auf Witty Dashboard um Spracheinstellungen für dein Team zu definieren!',
     getMoreButton: 'Kostenlos testen',
     LoginButton: 'Registrieren / Anmelden',
     setUpLanguages: 'Spracheinstellungen',
@@ -78,9 +79,9 @@ export const de = {
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
     genderRoleFormat: 'Witty sollte folgende Vorschläge machen',
-    genderRoleFormatExplanation: 'Wähle aus, ob Witty die gewählte Gender-Ending-Form (z.B. "Mitarbeiter*in"), nur die weibliche und männliche Form (z.B. "Mitarbeiterin oder Mitarbeiter"), beides oder nur genderneutrale Alternativen vorschlagen soll.',
-    genderRoleFormatFemaleAndMale:
-      'Weibliche und männliche Form vorschlagen',
+    genderRoleFormatExplanation:
+      'Wähle aus, ob Witty die gewählte Gender-Ending-Form (z.B. "Mitarbeiter*in"), nur die weibliche und männliche Form (z.B. "Mitarbeiterin oder Mitarbeiter"), beides oder nur genderneutrale Alternativen vorschlagen soll.',
+    genderRoleFormatFemaleAndMale: 'Weibliche und männliche Form vorschlagen',
     genderRoleFormatGermanEnding: 'Gewählte Gender-Endung vorschlagen',
     genderRoleFormatBoth:
       'Die gewählte Gender-Endung und die weibliche und männliche Form vorschlagen',
@@ -92,6 +93,7 @@ export const de = {
     lockedInfo: 'Team-Vorgabe',
     resetTeamsSettings: 'Auf Standardwerte zurücksetzen',
     createATeam: 'Erstelle ein Team',
+    wittyTeamsOnly: 'Nur Witty Teams',
   },
 };
 
@@ -175,9 +177,9 @@ export const en = {
     styleCorrectionExplanation:
       'Witty makes suggestions to make your text more understandable, or to give it authenticity or emotionality.',
     genderRoleFormat: 'Witty should suggest',
-    genderRoleFormatExplanation: 'Choose if Witty should suggest the chosen gender ending (e.g. "Mitarbeiter*in"), the female and male form (e.g. "Mitarbeiterin oder Mitarbeiter"), both or only gender-neutral alternatives ("Mitarbeitende").',
-    genderRoleFormatFemaleAndMale:
-      'Suggest the female and male form',
+    genderRoleFormatExplanation:
+      'Choose if Witty should suggest the chosen gender ending (e.g. "Mitarbeiter*in"), the female and male form (e.g. "Mitarbeiterin oder Mitarbeiter"), both or only gender-neutral alternatives ("Mitarbeitende").',
+    genderRoleFormatFemaleAndMale: 'Suggest the female and male form',
     genderRoleFormatGermanEnding: 'Suggest the chosen gender ending',
     genderRoleFormatBoth:
       'Suggest both the chosen gender ending and the female and male form',
@@ -190,5 +192,6 @@ export const en = {
     lockedInfo: 'Team presetting',
     resetTeamsSettings: 'Reset to defaults',
     createATeam: 'Create a new team',
+    wittyTeamsOnly: 'Witty Teams Only',
   },
 };
