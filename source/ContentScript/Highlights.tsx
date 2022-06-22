@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { nodeExistsInDOM, isTextArea, isInputText } from '../shared/DOMutils';
+import { nodeExistsInDOM } from '../shared/DOMutils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
 import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
 
