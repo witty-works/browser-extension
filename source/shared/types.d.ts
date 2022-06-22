@@ -112,6 +112,7 @@ export interface IExplanation {
   text: string;
   icon: string;
   url: string;
+  context: string;
 }
 export interface ILogRequest {
   request__type: string;

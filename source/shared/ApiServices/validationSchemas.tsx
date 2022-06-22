@@ -161,6 +161,10 @@ export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
           description: 'the url to the explanation',
           type: 'string',
         },
+        context: {
+          description: 'the context of the explanation',
+          type: 'string',
+        },
       },
       required: ['text'],
     },
