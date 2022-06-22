@@ -30,7 +30,7 @@ export enum StorageKeys {
   REFRESH_TOKEN = 'refreshToken',
   CURRENT_DOMAIN = 'currentDomain',
   ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
-  NAME = 'name', //team name
+  TEAM_NAME = 'teamName',
   PLAN = 'plan',
 }
 
