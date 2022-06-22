@@ -62,6 +62,8 @@ export const de = {
     expertMode: 'Inklusions-Profi werden',
     expertModeExplanation:
       'Wenn eingeschaltet, bietet Witty Vorschläge zu subtileren Fragen der Diversität und Inklusion. Witty würde z.Bsp. Hilfe bei Abkürzungen wie ROI oder SaaS bieten.',
+    expertModeExplanationUrl:
+      'https://www.witty.works/become-an-inclusion-pro',
     inspirationAlternatives:
       'Inspirationen zur Umformulierung ganzer Sätze vorschlagen',
     inspirationAlternativesExplanation:
@@ -78,7 +80,7 @@ export const de = {
       'https://www.witty.works/de/kategorien/inklusiv',
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
-    genderRoleFormat: 'Witty sollte folgende Vorschläge machen',
+    genderRoleFormat: 'Wie soll Witty mit dem generischen Maskulinum umgehen?',
     genderRoleFormatExplanation:
       'Wähle aus, ob Witty die gewählte Gender-Ending-Form (z.B. "Mitarbeiter*in"), nur die weibliche und männliche Form (z.B. "Mitarbeiterin oder Mitarbeiter"), beides oder nur genderneutrale Alternativen vorschlagen soll.',
     genderRoleFormatFemaleAndMale: 'Weibliche und männliche Form vorschlagen',
@@ -162,6 +164,8 @@ export const en = {
     expertMode: 'Become an inclusion pro',
     expertModeExplanation:
       'When switched on, Witty highlights more subtle aspects of diversity and inclusion. For example, Witty would highlight acronyms such as ROI or SaaS.',
+    expertModeExplanationUrl:
+      'https://www.witty.works/become-an-inclusion-pro',
     inspirationAlternatives: 'Show inspirations to rephrase entire sentences',
     inspirationAlternativesExplanation:
       'When switched on, Witty will make suggestions to rephrase entire sentences.',
@@ -177,7 +181,7 @@ export const en = {
       'https://www.witty.works/en/categories/inclusive',
     styleCorrectionExplanation:
       'Witty makes suggestions to make your text more understandable, or to give it authenticity or emotionality.',
-    genderRoleFormat: 'Witty should suggest',
+    genderRoleFormat: 'How should Witty handle the generic masculine?',
     genderRoleFormatExplanation:
       'Choose if Witty should suggest the chosen gender ending (e.g. "Mitarbeiter*in"), the female and male form (e.g. "Mitarbeiterin oder Mitarbeiter"), both or only gender-neutral alternatives ("Mitarbeitende").',
     genderRoleFormatFemaleAndMale: 'Suggest the female and male form',
