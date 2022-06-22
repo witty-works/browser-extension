@@ -43,5 +43,7 @@
   "API_DELAY": 500,
   "USERNAME": "",
   "ACCESS_TOKEN": "",
-  "REFRESH_TOKEN": ""
+  "REFRESH_TOKEN": "",
+  "PLAN": "witty_me",
+  "TEAM_NAME": ""
 }

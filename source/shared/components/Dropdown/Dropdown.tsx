@@ -37,10 +37,9 @@ const Dropdown: React.FC<DropdownProps> = ({
       className='dropdown-select'
       onChange={handleOptionChange}
       value={selected}
-      disabled={locked}
     >
       {options.map((option) => (
-        <option key={option.key} value={option.key}>
+        <option key={option.key} value={option.key} disabled={locked}>
           {option.value}
         </option>
       ))}

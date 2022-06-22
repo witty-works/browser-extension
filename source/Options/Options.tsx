@@ -71,8 +71,10 @@ const Options: React.FC = () => {
   const [germanGenderEnding, setGermanGenderEnding] = useState<ConfigProperty>(
     defaultConfig.GERMAN_GENDER_ENDING
   );
-  const [teamName, setTeamName] = useState<string>('');
-  const [subscriptionPlan, setSubscriptionPlan] = useState<string>('');
+  const [teamName, setTeamName] = useState<string>(defaultConfig.TEAM_NAME);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string>(
+    defaultConfig.PLAN
+  );
 
   const [username, setUsername] = useState<string>('');
   const [accessToken, setAccessToken] = useState<string>('');
@@ -106,7 +108,7 @@ const Options: React.FC = () => {
       setUsername(result[StorageKeys.USERNAME]);
       setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
       setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-      setTeamName(result[StorageKeys.NAME]);
+      setTeamName(result[StorageKeys.TEAM_NAME]);
       setSubscriptionPlan(result[StorageKeys.PLAN]);
 
       result[StorageKeys.ACCESS_TOKEN] == ''
@@ -202,7 +204,7 @@ const Options: React.FC = () => {
   }, [refreshToken]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.NAME, teamName);
+    storeInLocalStorage(StorageKeys.TEAM_NAME, teamName);
   }, [teamName]);
 
   useEffect(() => {
