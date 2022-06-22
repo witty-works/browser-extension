@@ -223,9 +223,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <div className='wittyworks-popover-row-explanation-text'>
               {data.alert.data.explanation.text}
               {data.alert.data.explanation.context && (
-                <div className='wittyworks-popover-row-explanation-context'>
-                  {data.alert.data.explanation.context}
-                </div>
+                <span className='wittyworks-popover-row-explanation-context'>
+                  &nbsp;({data.alert.data.explanation.context})
+                </span>
               )}
               {data.alert.data.explanation.url && (
                 <a
