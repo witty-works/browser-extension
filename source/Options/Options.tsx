@@ -544,13 +544,6 @@ const Options: React.FC = () => {
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('expertModeExplanation')}
-                    <a
-                      className='wittyworks-options-content-section-container-link'
-                      href={t('expertModeExplanationUrl')}
-                      target='_blank'
-                    >
-                      {t('learnMore')}
-                    </a>
                   </div>
                 </div>
 

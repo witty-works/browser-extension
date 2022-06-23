@@ -62,8 +62,6 @@ export const de = {
     expertMode: 'Inklusions-Profi werden',
     expertModeExplanation:
       'Wenn eingeschaltet, bietet Witty Vorschläge zu subtileren Fragen der Diversität und Inklusion. Witty würde z.Bsp. Hilfe bei Abkürzungen wie ROI oder SaaS bieten.',
-    expertModeExplanationUrl:
-      'https://www.witty.works/become-an-inclusion-pro',
     inspirationAlternatives:
       'Inspirationen zur Umformulierung ganzer Sätze vorschlagen',
     inspirationAlternativesExplanation:
@@ -164,8 +162,6 @@ export const en = {
     expertMode: 'Become an inclusion pro',
     expertModeExplanation:
       'When switched on, Witty highlights more subtle aspects of diversity and inclusion. For example, Witty would highlight acronyms such as ROI or SaaS.',
-    expertModeExplanationUrl:
-      'https://www.witty.works/become-an-inclusion-pro',
     inspirationAlternatives: 'Show inspirations to rephrase entire sentences',
     inspirationAlternativesExplanation:
       'When switched on, Witty will make suggestions to rephrase entire sentences.',
