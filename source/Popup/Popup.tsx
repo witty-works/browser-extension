@@ -258,7 +258,7 @@ const Popup: React.FC = () => {
             <div className='wittyworks-upgrade-banner-popup'>
               <div className='wittyworks-upgrade-banner-popup-text-container'>
                 <div className='wittyworks-upgrade-banner-popup-title'>
-                  {t('getMoreTitle', { domain: 'miro.com' })}
+                  {t('getMoreTitle')}
                 </div>
                 <div className='wittyworks-upgrade-banner-popup-text'>
                   {t('getMoreText')}
