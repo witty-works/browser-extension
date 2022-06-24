@@ -18,11 +18,11 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import Toggle from '../shared/components/Toggle/Toggle';
 import ApiSelector from './ApiSelector';
 import DelaySelector from './DelaySelector';
-import Settings from '../assets/icons/popup/settings.svg';
-import Logo from '../assets/icons/witty-logo-color.svg';
+
 import defaultConfig from '../witty.config.json';
 import './styles.scss';
 import { getBaseUrls, setBaseUrls } from '../shared/ApiServices/requests';
+import PopupHeader from './PopupHeader';
 
 const Popup: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
@@ -49,6 +49,7 @@ const Popup: React.FC = () => {
   const [showBackToRecomendedSites, setShowBackToRecomendedSites] =
     useState<boolean>(false);
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
+  const [currentDomain, setCurrentDomain] = useState<string>('');
 
   useEffect(() => {
     browser.storage.local
@@ -59,41 +60,44 @@ const Popup: React.FC = () => {
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
+
+        setUserIsLoggedIn(
+          result[StorageKeys.ACCESS_TOKEN] == '' ? false : true
+        );
+
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
         setDisabledSites(result[StorageKeys.DISABLED_SITES]);
         setCasingSites(result[StorageKeys.CASING_SITES]);
-        result[StorageKeys.PLAN] == 'witty_teams'
-          ? setHasWittyTeams(true)
-          : setHasWittyTeams(false);
+
+        setHasWittyTeams(
+          result[StorageKeys.PLAN] == 'witty_teams' ? true : false
+        );
 
         browser.tabs
           .query({ active: true, currentWindow: true })
           .then((tabs) => {
-            if (tabs.length === 0 || !tabs[0].url) return;
-            const currentDomain = new URL(tabs[0].url).hostname.replace(
-              'www.',
-              ''
-            );
-            !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
-              setShowBackToRecomendedSites(true);
+            if (tabs.length > 0 && tabs[0].url) {
+              setCurrentDomain(
+                new URL(tabs[0].url).hostname.replace('www.', '')
+              );
 
-            result[StorageKeys.ACCESS_TOKEN] == ''
-              ? setUserIsLoggedIn(false)
-              : setUserIsLoggedIn(true);
+              !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
+                setShowBackToRecomendedSites(true);
 
-            if (
-              result[StorageKeys.DISABLED_SITES] &&
-              result[StorageKeys.DISABLED_SITES].includes(currentDomain)
-            )
-              setEnabled(false);
+              if (
+                result[StorageKeys.DISABLED_SITES] &&
+                result[StorageKeys.DISABLED_SITES].includes(currentDomain)
+              )
+                setEnabled(false);
 
-            if (
-              result[StorageKeys.CASING_SITES] &&
-              result[StorageKeys.CASING_SITES].includes(currentDomain)
-            )
-              setCasing(false);
+              if (
+                result[StorageKeys.CASING_SITES] &&
+                result[StorageKeys.CASING_SITES].includes(currentDomain)
+              )
+                setCasing(false);
+            }
           })
           .catch(onTabsQueryError);
       })
@@ -138,71 +142,56 @@ const Popup: React.FC = () => {
 
   const handleEnableToggle = () => {
     setEnabled(!enabled);
-    browser.tabs
-      .query({ active: true, currentWindow: true })
-      .then((tabs) => {
-        if (tabs.length === 0 || !tabs[0].url) return;
-        const currentDomain = new URL(tabs[0].url).hostname.replace('www.', '');
 
-        setDisabledSites(
-          enabled
-            ? [...disabledSites, currentDomain]
-            : disabledSites.filter((item: string) => item !== currentDomain)
-        );
-      })
-      .catch(onTabsQueryError);
+    if (currentDomain.length > 0)
+      setDisabledSites(
+        enabled
+          ? [...disabledSites, currentDomain]
+          : disabledSites.filter((item: string) => item !== currentDomain)
+      );
+    //TODO if there is no currentDomain, show an error messsage
   };
 
   const handleCasingToggle = () => {
     setCasing(!casing);
-    browser.tabs
-      .query({ active: true, currentWindow: true })
-      .then((tabs) => {
-        if (tabs.length === 0 || !tabs[0].url) return;
-        const currentDomain = new URL(tabs[0].url).hostname.replace('www.', '');
 
-        setCasingSites(
-          casing
-            ? [...casingSites, currentDomain]
-            : casingSites.filter((item: string) => item !== currentDomain)
-        );
-      })
-      .catch(onTabsQueryError);
+    if (currentDomain.length > 0)
+      setCasingSites(
+        casing
+          ? [...casingSites, currentDomain]
+          : casingSites.filter((item: string) => item !== currentDomain)
+      );
+    //TODO if there is no currentDomain, show an error messsage
   };
 
   return (
     <>
-      <header>
-        <Logo
-          id='witty-logo'
-          onClick={() => {
-            browser.tabs.create({ url: 'https://www.witty.works/' });
-          }}
-        />
-      </header>
-      <section className='wittyworks-toggles website-settings'>
-        <h2>{t('websiteSettings')}</h2>
-        <Toggle
-          on={enabled}
-          handleToggle={handleEnableToggle}
-          color={Colors.green}
-          scale={0.35}
-          label={t('enableWitty')}
-        />
-        <hr className='toggle-separator' />
-        {enabled && (
-          <>
-            <Toggle
-              on={casing}
-              handleToggle={handleCasingToggle}
-              color={Colors.green}
-              scale={0.35}
-              label={t('caseSensitivity')}
-            />
-            <hr className='toggle-separator' />
-          </>
-        )}
-      </section>
+      <PopupHeader />
+      {currentDomain.length > 0 && (
+        <section className='wittyworks-toggles website-settings'>
+          <h2>{t('websiteSettings', { domain: currentDomain })}</h2>
+          <Toggle
+            on={enabled}
+            handleToggle={handleEnableToggle}
+            color={Colors.green}
+            scale={0.35}
+            label={t('enableWitty')}
+          />
+          <hr className='toggle-separator' />
+          {enabled && (
+            <>
+              <Toggle
+                on={casing}
+                handleToggle={handleCasingToggle}
+                color={Colors.green}
+                scale={0.35}
+                label={t('caseSensitivity')}
+              />
+              <hr className='toggle-separator' />
+            </>
+          )}
+        </section>
+      )}
       {enabled && (
         <section className='wittyworks-toggles global-settings'>
           <h2>{t('globalSettings')}</h2>
@@ -223,6 +212,7 @@ const Popup: React.FC = () => {
             locked={orthography.status == 'force'}
             userIsLoggedIn={userIsLoggedIn}
           />
+
           <hr className='toggle-separator' />
           <Toggle
             on={inclusiveLanguage.value as boolean}
@@ -275,7 +265,7 @@ const Popup: React.FC = () => {
             <div className='wittyworks-upgrade-banner-popup'>
               <div className='wittyworks-upgrade-banner-popup-text-container'>
                 <div className='wittyworks-upgrade-banner-popup-title'>
-                  {t('getMoreTitle')}
+                  {t('getMoreTitle', { domain: 'miro.com' })}
                 </div>
                 <div className='wittyworks-upgrade-banner-popup-text'>
                   {t('getMoreText')}
@@ -284,7 +274,10 @@ const Popup: React.FC = () => {
               <div
                 className='wittyworks-upgrade-banner-popup-button'
                 onClick={() => {
-                  window.open('https://www.witty.works/witty-for-teams', '_blank');
+                  window.open(
+                    'https://www.witty.works/witty-for-teams',
+                    '_blank'
+                  );
                 }}
               >
                 {t('learnMoreButton')}
@@ -308,18 +301,9 @@ const Popup: React.FC = () => {
           }}
         >
           {showBackToRecomendedSites && (
-            <>
-              <span>{t('backToRecomendedSites')}</span>
-            </>
+            <span>{t('backToRecomendedSites')}</span>
           )}
         </div>
-        <Settings
-          id='witty-settings'
-          onClick={
-            //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
-            () => browser.runtime.openOptionsPage().then(() => window.close())
-          }
-        />
       </footer>
     </>
   );
