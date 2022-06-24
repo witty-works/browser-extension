@@ -319,6 +319,10 @@ const Options: React.FC = () => {
     setUserIsLoggedIn(false);
     setTeamName('');
     setSubscriptionPlan('');
+    setMaximumImportance({
+      status: 'suggestion',
+      value: 2,
+    });
     //reload the page to update everything
     window.location.reload();
   };
@@ -531,8 +535,10 @@ const Options: React.FC = () => {
                                   maximumImportance.value as number
                                 )
                               )
-                            : maximumImportanceToBoolean(
-                                maximumImportance.value as number
+                            : changeMaximumImportance(
+                                maximumImportanceToBoolean(
+                                  maximumImportance.value as number
+                                )
                               ),
                       });
                     }}
