@@ -26,7 +26,6 @@ const Toggle: React.FC<ToggleProps> = ({
   hasWittyTeams = true,
   userIsLoggedIn = true,
 }: ToggleProps) => {
-  console.log('on', on, 'color', color);
   const { t } = useTranslation([namespaces.pages.options]);
   return (
     <>

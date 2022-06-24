@@ -302,7 +302,9 @@ const Options: React.FC = () => {
   }, [authResponse, resetSettings]);
 
   useEffect(() => {
-    console.log('authErrorResponse', authErrorResponse);
+    if (authErrorResponse?.status == 403) {
+      logOut();
+    }
   }, [authErrorResponse]);
 
   const logIn = async () => {
