@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import Dropdown from '../shared/components/Dropdown/Dropdown';
-import { OptionProp } from '../shared/components/Dropdown/Dropdown';
+import Dropdown, { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
@@ -35,26 +34,26 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
     binary_gender: t('genderRoleFormatFemaleAndMale'),
     none: t('genderRoleFormatNone'),
   };
+
   const dropdownOptions = Object.keys(GenderRoleFormat).map((key: string) => ({
     key,
     value: GenderRoleFormat[key as keyof typeof GenderRoleFormat],
   }));
 
   useEffect(() => {
-    if (locked && userIsLoggedIn) {
-      setSelectedOption(selectedValue);
+    if (!userIsLoggedIn) {
+      setSelectedOption('both'); //default value when not logged in (teams only feature)
+    } else if (locked && userIsLoggedIn) {
+      setSelectedOption(selectedValue); //locked value set on dashboard, passed from options.tsx
     } else {
       browser.storage.local
         .get(StorageKeys.GENDERED_ROLES_FORMAT)
         .then((result) => {
           if (result[StorageKeys.GENDERED_ROLES_FORMAT])
-            setSelectedOption(
-              locked ? 'both' : result[StorageKeys.GENDERED_ROLES_FORMAT].value
-            );
+            setSelectedOption(result[StorageKeys.GENDERED_ROLES_FORMAT].value);
         })
         .catch(onError);
     }
-    handleDropdownChange(selectedValue);
   }, []);
 
   const onError = (error: string) => {
@@ -62,10 +61,12 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
   };
 
   useEffect(() => {
-    const selectedKey = dropdownOptions.find(
-      (option: OptionProp) => option.key === selectedValue
-    );
-    handleDropdownChange(selectedKey?.key as string);
+    if (resetSettings) {
+      const selectedKey = dropdownOptions.find(
+        (option: OptionProp) => option.key === selectedValue
+      );
+      handleDropdownChange(selectedKey?.key as string);
+    }
   }, [resetSettings]);
 
   const handleDropdownChange = (value: string) => {

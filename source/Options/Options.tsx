@@ -39,7 +39,7 @@ const Options: React.FC = () => {
   ]);
 
   // const [languagesTabOpen, setLanguagesTabOpen] = useState<boolean>(false);
-  const [rulesTabOpen, setRulesTabOpen] = useState<boolean>(true);
+  const [rulesTabOpen, setRulesTabOpen] = useState<boolean>(false);
   const [disableTabOpen, setDisableTabOpen] = useState<boolean>(false);
   const [disabledSites, setDisabledSites] = useState<string[]>([]);
   const [addDomainTabOpen, setAddDomainTabOpen] = useState<boolean>(false);
@@ -470,7 +470,7 @@ const Options: React.FC = () => {
                       setSingularThey({
                         ...singularThey,
                         value:
-                          singularThey.status != 'force'
+                          singularThey.status != 'force' || !userIsLoggedIn
                             ? changeSingularThey(
                                 !singularTheyToBoolean(
                                   singularThey.value as string
@@ -581,7 +581,7 @@ const Options: React.FC = () => {
                       setInclusiveLanguage({
                         ...inclusiveLanguage,
                         value:
-                          inclusiveLanguage.status != 'force'
+                          inclusiveLanguage.status != 'force' || !userIsLoggedIn
                             ? !inclusiveLanguage.value
                             : inclusiveLanguage.value,
                       });
@@ -611,7 +611,7 @@ const Options: React.FC = () => {
                       setStyleCorrections({
                         ...styleCorrections,
                         value:
-                          styleCorrections.status != 'force'
+                          styleCorrections.status != 'force' || !userIsLoggedIn
                             ? !styleCorrections.value
                             : styleCorrections.value,
                       });
@@ -643,7 +643,7 @@ const Options: React.FC = () => {
                       setOrthography({
                         ...orthography,
                         value:
-                          orthography.status != 'force'
+                          orthography.status != 'force' || !userIsLoggedIn
                             ? !orthography.value
                             : orthography.value,
                       });

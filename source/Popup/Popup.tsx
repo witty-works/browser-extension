@@ -8,8 +8,8 @@ import {
   WittyIconActive,
   WittyIconInactive,
   DefaultBaseUrlKey,
+  DEV_ENV,
 } from '../shared/constants';
-import { DEV_ENV } from '../shared/constants';
 import { storeInLocalStorage } from '../shared/utils';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
@@ -60,41 +60,39 @@ const Popup: React.FC = () => {
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-
         setUserIsLoggedIn(
           result[StorageKeys.ACCESS_TOKEN] == '' ? false : true
         );
-
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
         setDisabledSites(result[StorageKeys.DISABLED_SITES]);
         setCasingSites(result[StorageKeys.CASING_SITES]);
-
         setHasWittyTeams(
           result[StorageKeys.PLAN] == 'witty_teams' ? true : false
         );
-
         browser.tabs
           .query({ active: true, currentWindow: true })
           .then((tabs) => {
             if (tabs.length > 0 && tabs[0].url) {
-              setCurrentDomain(
-                new URL(tabs[0].url).hostname.replace('www.', '')
+              const newCurrentDomain = new URL(tabs[0].url).hostname.replace(
+                'www.',
+                ''
               );
+              setCurrentDomain(newCurrentDomain);
 
-              !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
+              !defaultConfig.ACTIVE_SITES.includes(newCurrentDomain) &&
                 setShowBackToRecomendedSites(true);
 
               if (
                 result[StorageKeys.DISABLED_SITES] &&
-                result[StorageKeys.DISABLED_SITES].includes(currentDomain)
+                result[StorageKeys.DISABLED_SITES].includes(newCurrentDomain)
               )
                 setEnabled(false);
 
               if (
                 result[StorageKeys.CASING_SITES] &&
-                result[StorageKeys.CASING_SITES].includes(currentDomain)
+                result[StorageKeys.CASING_SITES].includes(newCurrentDomain)
               )
                 setCasing(false);
             }
@@ -149,7 +147,6 @@ const Popup: React.FC = () => {
           ? [...disabledSites, currentDomain]
           : disabledSites.filter((item: string) => item !== currentDomain)
       );
-    //TODO if there is no currentDomain, show an error messsage
   };
 
   const handleCasingToggle = () => {
@@ -161,7 +158,6 @@ const Popup: React.FC = () => {
           ? [...casingSites, currentDomain]
           : casingSites.filter((item: string) => item !== currentDomain)
       );
-    //TODO if there is no currentDomain, show an error messsage
   };
 
   return (
@@ -201,7 +197,7 @@ const Popup: React.FC = () => {
               setOrthography({
                 ...orthography,
                 value:
-                  orthography.status != 'force'
+                  orthography.status != 'force' || !userIsLoggedIn
                     ? !orthography.value
                     : orthography.value,
               });
@@ -220,7 +216,7 @@ const Popup: React.FC = () => {
               setInclusiveLanguage({
                 ...inclusiveLanguage,
                 value:
-                  inclusiveLanguage.status != 'force'
+                  inclusiveLanguage.status != 'force' || !userIsLoggedIn
                     ? !inclusiveLanguage.value
                     : inclusiveLanguage.value,
               });
@@ -238,7 +234,7 @@ const Popup: React.FC = () => {
               setStyleCorrections({
                 ...styleCorrections,
                 value:
-                  styleCorrections.status != 'force'
+                  styleCorrections.status != 'force' || !userIsLoggedIn
                     ? !styleCorrections.value
                     : styleCorrections.value,
               });
