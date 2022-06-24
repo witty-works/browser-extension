@@ -2,7 +2,6 @@ import React from 'react';
 
 import './Toggle.scss';
 import Lock from '../../../assets/icons/options/lock.svg';
-import PremiumOnly from '../../../assets/icons/options/premium-only.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
 
@@ -27,6 +26,7 @@ const Toggle: React.FC<ToggleProps> = ({
   hasWittyTeams = true,
   userIsLoggedIn = true,
 }: ToggleProps) => {
+  console.log('on', on, 'color', color);
   const { t } = useTranslation([namespaces.pages.options]);
   return (
     <>
@@ -45,27 +45,26 @@ const Toggle: React.FC<ToggleProps> = ({
           type='checkbox'
         />
         {!hasWittyTeams && (
-          <>
-            <div className='toggle-premium-only'>
-              <a href='https://www.witty.works/pricing' target='_blank'>
-                <PremiumOnly />
-              </a>
-            </div>
-            <div className='toggle-lock'>
-              <Lock />
-            </div>
-          </>
+          <div className='toggle-premium-only'>
+            <a
+              className='witty-teams-only-link'
+              href='https://www.witty.works/witty-for-teams'
+              target='_blank'
+            >
+              {t('wittyTeamsOnly')}
+            </a>
+          </div>
         )}
         {userIsLoggedIn && locked && hasWittyTeams && (
           <div className='toggle-lock'>
             <Lock />
-            {<div className='toggle-lock-info'> {t('lockedInfo')} </div>}
+            <div className='toggle-lock-info'> {t('lockedInfo')} </div>
           </div>
         )}
 
         <label
           style={{
-            background: (on && color) as string,
+            background: (hasWittyTeams && on && color) as string,
             transform: `translateX(${scale * 100}%) scale(${scale}, ${scale})`,
           }}
           id={`toggle-encloser-${label.replace(/\s+|&/g, '-').toLowerCase()}`}

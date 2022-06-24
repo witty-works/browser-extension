@@ -284,7 +284,7 @@ const Popup: React.FC = () => {
               <div
                 className='wittyworks-upgrade-banner-popup-button'
                 onClick={() => {
-                  window.open('https://www.witty.works/pricing', '_blank');
+                  window.open('https://www.witty.works/witty-for-teams', '_blank');
                 }}
               >
                 {t('learnMoreButton')}

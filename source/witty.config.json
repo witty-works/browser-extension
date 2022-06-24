@@ -16,7 +16,7 @@
   ],
   "PREFERRED_VARIANTS": { "value": ["de-DE", "en-US"] },
   "GERMAN_GENDER_ENDING": {
-    "value": "asterisk_in"
+    "value": "*in"
   },
   "MAXIMUM_IMPORTANCE": {
     "value": 2
@@ -44,6 +44,6 @@
   "USERNAME": "",
   "ACCESS_TOKEN": "",
   "REFRESH_TOKEN": "",
-  "PLAN": "witty_me",
+  "PLAN": "witty_free",
   "TEAM_NAME": ""
 }
