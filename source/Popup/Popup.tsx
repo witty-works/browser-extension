@@ -60,41 +60,44 @@ const Popup: React.FC = () => {
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
+
+        setUserIsLoggedIn(
+          result[StorageKeys.ACCESS_TOKEN] == '' ? false : true
+        );
+
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
         setDisabledSites(result[StorageKeys.DISABLED_SITES]);
         setCasingSites(result[StorageKeys.CASING_SITES]);
-        result[StorageKeys.PLAN] == 'witty_teams'
-          ? setHasWittyTeams(true)
-          : setHasWittyTeams(false);
+
+        setHasWittyTeams(
+          result[StorageKeys.PLAN] == 'witty_teams' ? true : false
+        );
 
         browser.tabs
           .query({ active: true, currentWindow: true })
           .then((tabs) => {
-            if (tabs.length > 0 && tabs[0].url)
+            if (tabs.length > 0 && tabs[0].url) {
               setCurrentDomain(
                 new URL(tabs[0].url).hostname.replace('www.', '')
               );
 
-            !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
-              setShowBackToRecomendedSites(true);
+              !defaultConfig.ACTIVE_SITES.includes(currentDomain) &&
+                setShowBackToRecomendedSites(true);
 
-            result[StorageKeys.ACCESS_TOKEN] == ''
-              ? setUserIsLoggedIn(false)
-              : setUserIsLoggedIn(true);
+              if (
+                result[StorageKeys.DISABLED_SITES] &&
+                result[StorageKeys.DISABLED_SITES].includes(currentDomain)
+              )
+                setEnabled(false);
 
-            if (
-              result[StorageKeys.DISABLED_SITES] &&
-              result[StorageKeys.DISABLED_SITES].includes(currentDomain)
-            )
-              setEnabled(false);
-
-            if (
-              result[StorageKeys.CASING_SITES] &&
-              result[StorageKeys.CASING_SITES].includes(currentDomain)
-            )
-              setCasing(false);
+              if (
+                result[StorageKeys.CASING_SITES] &&
+                result[StorageKeys.CASING_SITES].includes(currentDomain)
+              )
+                setCasing(false);
+            }
           })
           .catch(onTabsQueryError);
       })
@@ -146,6 +149,7 @@ const Popup: React.FC = () => {
           ? [...disabledSites, currentDomain]
           : disabledSites.filter((item: string) => item !== currentDomain)
       );
+    //TODO if there is no currentDomain, show an error messsage
   };
 
   const handleCasingToggle = () => {
@@ -157,34 +161,37 @@ const Popup: React.FC = () => {
           ? [...casingSites, currentDomain]
           : casingSites.filter((item: string) => item !== currentDomain)
       );
+    //TODO if there is no currentDomain, show an error messsage
   };
 
   return (
     <>
       <PopupHeader />
-      <section className='wittyworks-toggles website-settings'>
-        <h2>{t('websiteSettings', { domain: currentDomain })}</h2>
-        <Toggle
-          on={enabled}
-          handleToggle={handleEnableToggle}
-          color={Colors.green}
-          scale={0.35}
-          label={t('enableWitty')}
-        />
-        <hr className='toggle-separator' />
-        {enabled && (
-          <>
-            <Toggle
-              on={casing}
-              handleToggle={handleCasingToggle}
-              color={Colors.green}
-              scale={0.35}
-              label={t('caseSensitivity')}
-            />
-            <hr className='toggle-separator' />
-          </>
-        )}
-      </section>
+      {currentDomain.length > 0 && (
+        <section className='wittyworks-toggles website-settings'>
+          <h2>{t('websiteSettings', { domain: currentDomain })}</h2>
+          <Toggle
+            on={enabled}
+            handleToggle={handleEnableToggle}
+            color={Colors.green}
+            scale={0.35}
+            label={t('enableWitty')}
+          />
+          <hr className='toggle-separator' />
+          {enabled && (
+            <>
+              <Toggle
+                on={casing}
+                handleToggle={handleCasingToggle}
+                color={Colors.green}
+                scale={0.35}
+                label={t('caseSensitivity')}
+              />
+              <hr className='toggle-separator' />
+            </>
+          )}
+        </section>
+      )}
       {enabled && (
         <section className='wittyworks-toggles global-settings'>
           <h2>{t('globalSettings')}</h2>

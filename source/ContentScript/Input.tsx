@@ -382,7 +382,7 @@ const Input: React.FC<{
 
     const apiConfig = checkEndpointResponse.organization_config;
     if (apiConfig && apiConfig.id) {
-      storeInLocalStorage(StorageKeys.NAME, apiConfig.name);
+      storeInLocalStorage(StorageKeys.TEAM_NAME, apiConfig.name);
       storeInLocalStorage(StorageKeys.PLAN, apiConfig.plan);
 
       //TODO: refactored (had type issues)
