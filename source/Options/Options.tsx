@@ -39,7 +39,7 @@ const Options: React.FC = () => {
   ]);
 
   // const [languagesTabOpen, setLanguagesTabOpen] = useState<boolean>(false);
-  const [rulesTabOpen, setRulesTabOpen] = useState<boolean>(false);
+  const [rulesTabOpen, setRulesTabOpen] = useState<boolean>(true);
   const [disableTabOpen, setDisableTabOpen] = useState<boolean>(false);
   const [disabledSites, setDisabledSites] = useState<string[]>([]);
   const [addDomainTabOpen, setAddDomainTabOpen] = useState<boolean>(false);
@@ -357,7 +357,10 @@ const Options: React.FC = () => {
             <div
               className='wittyworks-upgrade-banner-button'
               onClick={() => {
-                window.open('https://www.witty.works/pricing', '_blank');
+                window.open(
+                  'https://www.witty.works/witty-for-teams',
+                  '_blank'
+                );
               }}
             >
               {t('getMoreButton')}
@@ -534,22 +537,13 @@ const Options: React.FC = () => {
                     color={Colors.green}
                     scale={0.35}
                     label={t('expertMode')}
-                    locked={
-                      maximumImportance.status == 'force' || !hasWittyTeams
-                    }
+                    locked={maximumImportance.status == 'force'}
                     hasWittyTeams={hasWittyTeams}
                     userIsLoggedIn={userIsLoggedIn}
                   />
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('expertModeExplanation')}
-                    <a
-                      className='wittyworks-options-content-section-container-link'
-                      href={t('expertModeExplanationUrl')}
-                      target='_blank'
-                    >
-                      {t('learnMore')}
-                    </a>
                   </div>
                 </div>
 
@@ -569,11 +563,8 @@ const Options: React.FC = () => {
                     color={Colors.green}
                     scale={0.35}
                     label={t('inspirationAlternatives')}
-                    locked={
-                      inspirationalAlternatives.status == 'force' ||
-                      !hasWittyTeams
-                    }
                     hasWittyTeams={hasWittyTeams}
+                    locked={inspirationalAlternatives.status == 'force'}
                     userIsLoggedIn={userIsLoggedIn}
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
