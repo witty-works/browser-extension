@@ -79,6 +79,8 @@
   margin: 4px 0px 4px 0px;
   border-radius: 2px;
   cursor: pointer;
+  white-space: nowrap;
+  max-height: 34px;
 
   &.remove-text {
     text-decoration: line-through !important;
@@ -136,6 +138,12 @@
   line-height: 110%;
 }
 
+.wittyworks-popover-row-explanation-context {
+  margin-top: 0.3em;
+  font-weight: 200;
+  font-style: italic;
+}
+
 .wittyworks-popover-row-explanation-url {
   display: flex;
   font-weight: 400;
@@ -143,8 +151,6 @@
   align-items: center;
   color: $darkGray;
   cursor: pointer;
-  line-height: 63%;
-  margin-top: 0.5em;
   white-space: nowrap;
   text-decoration: none;
 

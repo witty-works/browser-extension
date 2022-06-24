@@ -13,7 +13,7 @@ Clone repo `git clone https://github.com/witty-works/browser-extension.git`
 
 Go to project directory `cd browser-extension`
 
-Ensure you are using node 14, fe. via `nvm use 14`.
+Ensure you are using node 16.15.1.
 
 Run `yarn install` to install dependencies.
 
@@ -103,6 +103,16 @@ if the vendor is `chrome` or `opera`, this compiles to:
 See the original [README](https://github.com/abhijithvijayan/wext-manifest-loader) of `wext-manifest-loader` package for more details
 
 ## Unit Testing
+
+Create a `.env` file and add the following lines:
+
+```
+EXTENSION_ID_DEV = '<your chrome extension id>'
+TEST_USER_EMAIL = 'witty.works.user@gmail.com'
+TEST_USER_PASSWORD = '<can be found in 1Password>'
+PREMIUM_TEST_USER_EMAIL = 'witty.works.premium.user@gmail.com'
+PREMIUM_TEST_USER_PASSWORD = '<can be found in 1Password>'
+```
 
 From inside the directory just run `yarn run test`
 

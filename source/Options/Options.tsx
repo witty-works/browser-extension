@@ -71,8 +71,10 @@ const Options: React.FC = () => {
   const [germanGenderEnding, setGermanGenderEnding] = useState<ConfigProperty>(
     defaultConfig.GERMAN_GENDER_ENDING
   );
-  const [teamName, setTeamName] = useState<string>('');
-  const [subscriptionPlan, setSubscriptionPlan] = useState<string>('');
+  const [teamName, setTeamName] = useState<string>(defaultConfig.TEAM_NAME);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string>(
+    defaultConfig.PLAN
+  );
 
   const [username, setUsername] = useState<string>('');
   const [accessToken, setAccessToken] = useState<string>('');
@@ -106,7 +108,7 @@ const Options: React.FC = () => {
       setUsername(result[StorageKeys.USERNAME]);
       setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
       setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-      setTeamName(result[StorageKeys.NAME]);
+      setTeamName(result[StorageKeys.TEAM_NAME]);
       setSubscriptionPlan(result[StorageKeys.PLAN]);
 
       result[StorageKeys.ACCESS_TOKEN] == ''
@@ -202,7 +204,7 @@ const Options: React.FC = () => {
   }, [refreshToken]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.NAME, teamName);
+    storeInLocalStorage(StorageKeys.TEAM_NAME, teamName);
   }, [teamName]);
 
   useEffect(() => {
@@ -300,7 +302,9 @@ const Options: React.FC = () => {
   }, [authResponse, resetSettings]);
 
   useEffect(() => {
-    console.log('authErrorResponse', authErrorResponse);
+    if (authErrorResponse?.status == 403) {
+      logOut();
+    }
   }, [authErrorResponse]);
 
   const logIn = async () => {
@@ -315,6 +319,10 @@ const Options: React.FC = () => {
     setUserIsLoggedIn(false);
     setTeamName('');
     setSubscriptionPlan('');
+    setMaximumImportance({
+      status: 'suggestion',
+      value: 2,
+    });
     //reload the page to update everything
     window.location.reload();
   };
@@ -324,6 +332,7 @@ const Options: React.FC = () => {
       <div className='wittyworks-options-header'>
         <div className='wittyworks-options-header-content'>
           <WittyLogo
+            id='witty-logo-white'
             onClick={() => {
               window.open('https://www.witty.works/', '_blank');
             }}
@@ -354,7 +363,10 @@ const Options: React.FC = () => {
             <div
               className='wittyworks-upgrade-banner-button'
               onClick={() => {
-                window.open('https://www.witty.works/pricing', '_blank');
+                window.open(
+                  'https://www.witty.works/witty-for-teams',
+                  '_blank'
+                );
               }}
             >
               {t('getMoreButton')}
@@ -407,7 +419,10 @@ const Options: React.FC = () => {
                 subscriptionPlan !== '' && (
                   <div>
                     {t('greetingTeam')}{' '}
-                    <span className='wittyworks-options-login-cursiva'>
+                    <span
+                      className='wittyworks-options-login-cursiva'
+                      id='team-name'
+                    >
                       {teamName}{' '}
                     </span>
                     {t('greetingPlan')}{' '}
@@ -425,7 +440,10 @@ const Options: React.FC = () => {
           </section>
         )}
 
-        <section className='wittyworks-options-content-section'>
+        <section
+          className='wittyworks-options-content-section'
+          id='wittyworks-options-content-section-configure-rules'
+        >
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
@@ -456,7 +474,7 @@ const Options: React.FC = () => {
                       setSingularThey({
                         ...singularThey,
                         value:
-                          singularThey.status != 'force'
+                          singularThey.status != 'force' || !userIsLoggedIn
                             ? changeSingularThey(
                                 !singularTheyToBoolean(
                                   singularThey.value as string
@@ -517,30 +535,23 @@ const Options: React.FC = () => {
                                   maximumImportance.value as number
                                 )
                               )
-                            : maximumImportanceToBoolean(
-                                maximumImportance.value as number
+                            : changeMaximumImportance(
+                                maximumImportanceToBoolean(
+                                  maximumImportance.value as number
+                                )
                               ),
                       });
                     }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('expertMode')}
-                    locked={
-                      maximumImportance.status == 'force' || !hasWittyTeams
-                    }
+                    locked={maximumImportance.status == 'force'}
                     hasWittyTeams={hasWittyTeams}
                     userIsLoggedIn={userIsLoggedIn}
                   />
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('expertModeExplanation')}
-                    <a
-                      className='wittyworks-options-content-section-container-link'
-                      href={t('expertModeExplanationUrl')}
-                      target='_blank'
-                    >
-                      {t('learnMore')}
-                    </a>
                   </div>
                 </div>
 
@@ -560,11 +571,8 @@ const Options: React.FC = () => {
                     color={Colors.green}
                     scale={0.35}
                     label={t('inspirationAlternatives')}
-                    locked={
-                      inspirationalAlternatives.status == 'force' ||
-                      !hasWittyTeams
-                    }
                     hasWittyTeams={hasWittyTeams}
+                    locked={inspirationalAlternatives.status == 'force'}
                     userIsLoggedIn={userIsLoggedIn}
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
@@ -579,7 +587,7 @@ const Options: React.FC = () => {
                       setInclusiveLanguage({
                         ...inclusiveLanguage,
                         value:
-                          inclusiveLanguage.status != 'force'
+                          inclusiveLanguage.status != 'force' || !userIsLoggedIn
                             ? !inclusiveLanguage.value
                             : inclusiveLanguage.value,
                       });
@@ -609,7 +617,7 @@ const Options: React.FC = () => {
                       setStyleCorrections({
                         ...styleCorrections,
                         value:
-                          styleCorrections.status != 'force'
+                          styleCorrections.status != 'force' || !userIsLoggedIn
                             ? !styleCorrections.value
                             : styleCorrections.value,
                       });
@@ -641,7 +649,7 @@ const Options: React.FC = () => {
                       setOrthography({
                         ...orthography,
                         value:
-                          orthography.status != 'force'
+                          orthography.status != 'force' || !userIsLoggedIn
                             ? !orthography.value
                             : orthography.value,
                       });
@@ -670,7 +678,10 @@ const Options: React.FC = () => {
           </div>
         </section>
 
-        <section className='wittyworks-options-content-section'>
+        <section
+          className='wittyworks-options-content-section'
+          id='wittyworks-options-content-section-disable-witty'
+        >
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
