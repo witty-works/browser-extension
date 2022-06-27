@@ -68,10 +68,12 @@ const Toggle: React.FC<ToggleProps> = ({
             background: (on && color) as string,
             transform: `translateX(${scale * 100}%) scale(${scale}, ${scale})`,
           }}
+          id={`toggle-encloser-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
           className='toggle-encloser'
           htmlFor={`toggle-${label}`}
         >
           <span
+            id={`toggle-button-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
             className={`toggle-button`}
             style={{
               marginLeft: on && locked && userIsLoggedIn ? '2.7em' : '0', //TEMP: fix for weird toggle behavior when locked

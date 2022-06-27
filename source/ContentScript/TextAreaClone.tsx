@@ -50,10 +50,9 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           lineHeight: elementStyles.lineHeight,
           fontFamily: elementStyles.fontFamily,
           border: `${elementStyles.borderBottomWidth} solid black`,
-          // visibility: 'hidden',
+          visibility: 'hidden',
           pointerEvents: 'none',
           boxSizing: elementStyles.boxSizing,
-          outline: '1px solid blue',
         } as React.CSSProperties
       }
     >

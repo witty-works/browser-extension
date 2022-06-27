@@ -14,8 +14,6 @@ export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   APP_ID = 'id',
   DISABLED_SITES = 'disabledSites',
-  PRIMARY_LANGUAGE = 'primaryLanguage',
-  PREFERRED_LANGUAGES = 'preferredLanguages',
   PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
@@ -32,7 +30,7 @@ export enum StorageKeys {
   REFRESH_TOKEN = 'refreshToken',
   CURRENT_DOMAIN = 'currentDomain',
   ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
-  NAME = 'name', //team name
+  TEAM_NAME = 'teamName',
   PLAN = 'plan',
 }
 
@@ -128,8 +126,8 @@ export const getColor = (gravity: number): IHighlightColors => {
 
 //German Gender Endings
 export enum GermanGenderEndings {
-  colon_in = ':in',
   asterisk_in = '*in',
+  colon_in = ':in',
   underscore_in = '_in',
   slash_dash_in = '/-in',
   slash_in = '/in',

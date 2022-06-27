@@ -15,10 +15,12 @@ const storeInLocalStorage = (key: string, value: any) => {
       //TODO bug, some values are not pronted correctly (for example arrays)
       const wittyVersion = browser.runtime.getManifest().version;
       const componentName = 'Utils';
-      const message = `${key}(${typeof value}) *${(typeof value === 'object'
-        ? JSON.stringify(value)
-        : value
-      ).toString()}* correctly saved`;
+      const message = value
+        ? `${key}(${typeof value}) *${(typeof value === 'object'
+            ? JSON.stringify(value)
+            : value
+          ).toString()}* correctly saved`
+        : `value with key: ${key} is undefined`;
       // const data = typeof value === 'object' ? Object.keys(value) : value;
 
       console.log(

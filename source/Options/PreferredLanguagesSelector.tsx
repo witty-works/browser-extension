@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import DropdownMultiSelect from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
-import { OptionProp } from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
+import DropdownMultiSelect, {
+  OptionProp,
+} from '../shared/components/DropdownMultiSelect/DropdownMultiSelect';
 import { StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
@@ -41,12 +42,12 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
     setDropdownOptions(dropdownOptions);
 
     browser.storage.local
-      .get(StorageKeys.PREFERRED_LANGUAGES)
+      .get(StorageKeys.PREFERRED_VARIANTS)
       .then((result) => {
-        if (result[StorageKeys.PREFERRED_LANGUAGES]) {
+        if (result[StorageKeys.PREFERRED_VARIANTS]) {
           const selecOptions: OptionProp[] = result[
-            StorageKeys.PREFERRED_LANGUAGES
-          ].map((opt: string) => {
+            StorageKeys.PREFERRED_VARIANTS
+          ].value.map((opt: string) => {
             return {
               value: opt,
               label: t(`languages.${opt.replace('-', '_')}`, {
@@ -66,6 +67,7 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
 
   useEffect(() => {
     //get labels for each selectedValue.value and create OptionProp
+    if (!resetSettings) return;
     const selectedKey = selectedValue.map((value: string) => {
       return {
         value: value,
@@ -78,9 +80,15 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
   }, [resetSettings]);
 
   const handleDropdownChange = (options: OptionProp[]) => {
+    if (!options) return;
     const prefLanguages: string[] = options.map((option) => option.value);
+
     browser.storage.local
-      .set({ [StorageKeys.PREFERRED_LANGUAGES]: prefLanguages })
+      .set({
+        [StorageKeys.PREFERRED_VARIANTS]: {
+          value: prefLanguages,
+        },
+      })
       .then(() => {
         log(`New Preferred languages ${prefLanguages.join(',')} saved`);
       })

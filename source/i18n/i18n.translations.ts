@@ -88,11 +88,11 @@ export const de = {
     genderRoleFormatNone: 'Nur geschlechtsneutrale Alternativen anzeigen',
     styleCorrectionExplanationUrl: 'https://www.witty.works/de/kategorien/stil',
     learnMore: 'Mehr dazu',
-    primaryLanguage: 'Primäre Sprache',
     preferredLanguage: 'Ich bevorzuge',
     germanGenderEnding: 'Wähle die deutsche Gender-Endung',
     lockedInfo: 'Team-Vorgabe',
     resetTeamsSettings: 'Auf Standardwerte zurücksetzen',
+    createATeam: 'Erstelle ein Team',
   },
 };
 
@@ -104,6 +104,7 @@ export const en = {
     },
     languages: {
       en_GB: 'English (🇬🇧 Great Britain)',
+
       en_US: 'English (🇺🇸 USA)',
       de_AT: 'German (🇦🇹 Austrian)',
       de_DE: 'German (🇩🇪 Germany)',
@@ -187,10 +188,10 @@ export const en = {
     styleCorrectionExplanationUrl:
       'https://www.witty.works/en/categories/style',
     learnMore: 'Learn more',
-    primaryLanguage: 'Primary Language',
     preferredLanguage: 'I write in',
     germanGenderEnding: 'Choose the German gender ending',
     lockedInfo: 'Team presetting',
     resetTeamsSettings: 'Reset to defaults',
+    createATeam: 'Create a new team',
   },
 };

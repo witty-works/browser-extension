@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { nodeExistsInDOM, isTextArea, isInputText } from '../shared/DOMutils';
+import { isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
 import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
 
@@ -35,7 +35,28 @@ const Highlights: React.FC<HighlightsProps> = ({
     height: elementRect.height,
   };
 
+  // useEffect(() => {
+  //   document.addEventListener('scroll', handleScrollEvent, true);
+  //   return () => {
+  //     document.removeEventListener('scroll', handleScrollEvent);
+  //   };
+  // }, []);
+
+  // const handleScrollEvent = (event: Event) => {
+  //   //TODO add throttle
+  //   if ((event.target as HTMLElement).nodeName === '#document') {
+  //     //nothing todo
+  //   } else {
+  //     const target = event.target as HTMLElement;
+  //     console.log('target = ', target);
+  //     console.log('target scrollTop = ', target.scrollTop);
+  //     console.log('target scrollHeight = ', target.scrollHeight);
+  //     console.log('target clientHeight = ', target.clientHeight);
+  //   }
+  // };
+
   useEffect(() => {
+    // console.log('highlights correctedPosition = ', correctedPosition);
     const highlights: Highlight[] = [];
     if (nodesWithAlerts.length === 0) setHighlights([]);
 
@@ -63,15 +84,11 @@ const Highlights: React.FC<HighlightsProps> = ({
                   top:
                     rect.top +
                     doc.scrollTop -
-                    (isTextArea(element) || isInputText(element)
-                      ? elementScroll.top
-                      : 0),
+                    (isTextArea(element) ? elementScroll.top : 0),
                   y:
                     rect.top +
                     doc.scrollTop -
-                    (isTextArea(element) || isInputText(element)
-                      ? elementScroll.top
-                      : 0),
+                    (isTextArea(element) ? elementScroll.top : 0),
                 };
               }
             );
