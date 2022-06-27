@@ -39,27 +39,19 @@ const ContentScriptApp: React.FC = () => {
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
-    //TODO check if isMounted is needed
-    // let isMounted = true;
-
     //Init API requests Config
     browser.storage.local
       .get(null)
       .then((result) => {
-        //Set appID
         setAppID(result[StorageKeys.APP_ID]);
-
-        //Set the API/Dashboard urls
         setBaseUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-
-        //Set auth token
         setToken(result[StorageKeys.ACCESS_TOKEN]);
 
-        //Enable/disable spellchecker
+        //Enable/disable spellchecker on the website
         document.body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
           ? (document.body.spellcheck = false) //needed here for linkedin, could be removed when we fix focusin issue
           : (document.body.spellcheck = true);
@@ -87,40 +79,15 @@ const ContentScriptApp: React.FC = () => {
           gendered_roles_format:
             result[StorageKeys.GENDERED_ROLES_FORMAT].value,
         };
-        // if (!isMounted) return;
         setReqConfig(reqConfig);
       })
       .catch(onBrowserStorageError);
-
-    // const section = document.querySelector('section');
-    // const newEditableDiv: HTMLDivElement = document.createElement(
-    //   'DIV'
-    // ) as HTMLDivElement;
-    // newEditableDiv.id = 'div-editable';
-    // newEditableDiv.contentEditable = 'true';
-    // newEditableDiv.style.backgroundColor = 'white';
-    // // newEditableDiv.style.width = '600px';
-    // newEditableDiv.style.height = '150px';
-    // newEditableDiv.style.padding = '10px';
-    // newEditableDiv.style.overflow = 'auto';
-    // if (section) section.appendChild(newEditableDiv);
-
-    //TEMPORAL, create an extra textarea
-    // const newTextarea: HTMLTextAreaElement = document.createElement(
-    //   'TEXTAREA'
-    // ) as HTMLTextAreaElement;
-    // newTextarea.id = 'editor-copy';
-    // newTextarea.cols = 25;
-    // newTextarea.rows = 25;
-    // if (section) section.appendChild(newTextarea);
 
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
-      // isMounted = false;
-      //Don't forget to remove the listeners at the end
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('mouseover', handleMouseOver);
@@ -174,7 +141,6 @@ const ContentScriptApp: React.FC = () => {
               : [...reqConfigRef.current.disabled_categories, 'inclusive'],
           });
           break;
-
         case StorageKeys.STYLE:
           setReqConfig({
             ...reqConfigRef.current,
@@ -197,7 +163,6 @@ const ContentScriptApp: React.FC = () => {
                 ),
           });
           break;
-
         case StorageKeys.SHOW_INSPIRATION_ALTERNATIVES:
           setReqConfig({
             ...reqConfigRef.current,
@@ -266,12 +231,12 @@ const ContentScriptApp: React.FC = () => {
 
   const handleMouseOut = (event: MouseEvent) => {
     const target = event.target as CustomInputElement;
-
     if (hoveredElementRef.current?.isEqualNode(target)) setHoveredElement(null);
   };
 
   useEffect(() => {
     if (hoveredElementRef.current) {
+      removeAllHoverIndicators();
       const hoveredIndicatorContainer: HTMLElement = document.createElement(
         WTags.WW_MOUSEOVER_INDICATOR
       );
@@ -282,24 +247,30 @@ const ContentScriptApp: React.FC = () => {
       );
       ReactDOM.render(
         <StateIndicatorIcon
-          element={hoveredElementRef.current}
+          element={
+            hoveredElementRef.current.tagName === 'TEXTAREA'
+              ? hoveredElementRef.current
+              : (hoveredElementRef.current.parentElement as CustomInputElement)
+          }
           iconType={'passive'}
           isHovered={true}
         />,
         hoveredIndicatorContainer
       );
     } else {
-      const indicatorElement = document.querySelector(
-        WTags.WW_MOUSEOVER_INDICATOR
-      );
-
-      if (indicatorElement) {
-        ReactDOM.unmountComponentAtNode(indicatorElement);
-        indicatorElement.remove();
-      }
+      removeAllHoverIndicators();
     }
   }, [hoveredElementRef.current]);
 
+  const removeAllHoverIndicators = () => {
+    const indicatorElements = document.querySelectorAll(
+      WTags.WW_MOUSEOVER_INDICATOR
+    );
+    for (let element of indicatorElements) {
+      ReactDOM.unmountComponentAtNode(element);
+      element.remove();
+    }
+  };
   useEffect(() => {
     if (inputs.length > 0) {
       log(

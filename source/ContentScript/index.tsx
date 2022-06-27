@@ -20,6 +20,12 @@ const customRender = (enabled: boolean) => {
     enabled ? <ContentScriptApp /> : <></>,
     document.querySelector(WTags.WW_POPOVER)
   );
+
+  //if more than one container is found, remove all of except the first one. If witty disabled, remove all.
+  const containers = document.querySelectorAll(WTags.WW_CONTAINER);
+  for (let i = enabled ? 1 : 0; i < containers.length; i++) {
+    containers[i].remove();
+  }
 };
 
 const domain = getDomainWithoutSubdomain(window.location.hostname);

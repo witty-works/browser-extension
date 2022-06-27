@@ -668,8 +668,7 @@ const Input: React.FC<{
       );
     } else {
       const popoverElement = document.querySelector(WTags.WW_POPOVER);
-
-      if (popoverElement) {
+      if (popoverElement && popoverElement.childNodes.length > 0) {
         ReactDOM.unmountComponentAtNode(popoverElement);
       }
     }
