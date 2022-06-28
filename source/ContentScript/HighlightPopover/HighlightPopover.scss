@@ -5,8 +5,8 @@
   display: 'flex';
   background-color: $white;
   color: $black;
-  z-index: 999999999;
-  padding: 0.8%;
+  z-index: 999999;
+  padding: 0 0.5em;
   box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
   border-radius: 5px;
   font-family: $lato !important;
@@ -33,8 +33,8 @@
 
 .wittyworks-popover-separator {
   margin: 0;
-  margin-left: -1em;
-  margin-right: -1em;
+  margin-left: -0.5em;
+  margin-right: -0.5em;
   background-color: $whiteGray;
   border: 0;
   height: 1px;
@@ -50,6 +50,7 @@
 .wittyworks-popover-alternative-btn-container {
   display: flex;
   flex-direction: row;
+  margin: 4px 0px;
 
   &:hover {
     .wittyworks-popover-alternative-btn {
@@ -74,9 +75,9 @@
   color: $green;
   background-color: $lightGreen;
   display: table;
+  line-height: 136.69%;
   font-weight: 500;
-  padding: 2px 8px;
-  margin: 4px 0px 4px 0px;
+  padding: 4px 8px;
   border-radius: 2px;
   cursor: pointer;
   white-space: nowrap;
@@ -106,6 +107,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  line-height: 136.69%;
   font-weight: 500;
   font-size: 16px;
   margin-top: 0.5em;
@@ -131,6 +133,7 @@
 .wittyworks-popover-row-explanation-emoji {
   flex-basis: 12%;
   flex-shrink: 0;
+  font-size: 1.4em;
 }
 
 .wittyworks-popover-row-explanation-text {

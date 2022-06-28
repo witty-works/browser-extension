@@ -1,7 +1,7 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
-import { StorageKeys } from '../shared/constants';
+import { StorageKeys, WTags } from '../shared/constants';
 import ContentScriptApp from './ContentScriptApp';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
@@ -9,16 +9,23 @@ import { getDomainWithoutSubdomain } from '../shared/utils';
 
 const log = useLog('ContentScript index');
 
-//Main element to add extra markup
-const element = document.createElement('witty-code');
-element.setAttribute('extension-id', browser.runtime.id);
-document.body.appendChild(element);
-
 const customRender = (enabled: boolean) => {
+  if (!document.querySelector(WTags.WW_POPOVER)) {
+    const element = document.createElement(WTags.WW_POPOVER);
+    element.setAttribute('extension-id', browser.runtime.id);
+    document.body.appendChild(element);
+  }
+
   ReactDOM.render(
     enabled ? <ContentScriptApp /> : <></>,
-    document.querySelector('witty-code')
+    document.querySelector(WTags.WW_POPOVER)
   );
+
+  //if more than one container is found, remove all of except the first one. If witty disabled, remove all.
+  const containers = document.querySelectorAll(WTags.WW_CONTAINER);
+  for (let i = enabled ? 1 : 0; i < containers.length; i++) {
+    containers[i].remove();
+  }
 };
 
 const domain = getDomainWithoutSubdomain(window.location.hostname);
