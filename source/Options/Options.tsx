@@ -223,7 +223,14 @@ const Options: React.FC = () => {
       for (let key in authResponse.config) {
         switch (key) {
           case 'german_gender_ending':
-            setGermanGenderEnding(authResponse.config[key]);
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setGermanGenderEnding(authResponse.config[key]);
+            } else {
+              setGermanGenderEnding({
+                value: germanGenderEnding.value,
+                status: authResponse.config[key].status,
+              });
+            }
             break;
           case 'inclusive':
             if (authResponse.config[key].status == 'force' || resetSettings) {
@@ -288,11 +295,22 @@ const Options: React.FC = () => {
           case 'gendered_roles_format':
             if (authResponse.config[key].status == 'force' || resetSettings) {
               setGenderRolesFormat(authResponse.config[key]);
+            } else {
+              setGenderRolesFormat({
+                value: genderRolesFormat.value,
+                status: authResponse.config[key].status,
+              });
             }
+
             break;
           case 'preferred_variants':
             if (authResponse.config[key].status == 'force' || resetSettings) {
               setPreferredVariants(authResponse.config[key]);
+            } else {
+              setPreferredVariants({
+                value: preferredVariants.value,
+                status: authResponse.config[key].status,
+              });
             }
             break;
         }
