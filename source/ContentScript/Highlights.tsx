@@ -124,6 +124,8 @@ const Highlights: React.FC<HighlightsProps> = ({
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     highlights.forEach((highlight) => {
+      if (highlight.rects.length === 0) return;
+
       const [rect] = highlight.rects;
       const hoverColor = `${getColor(highlight.data.gravity).default}`;
       const highlightColor = `${getColor(highlight.data.gravity).hover}`;
