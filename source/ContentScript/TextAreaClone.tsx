@@ -1,24 +1,32 @@
-import React from 'react';
-import { ScrollPos } from '../shared/types';
+import React, { useRef } from 'react';
+import { Position } from '../shared/types';
+import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
+
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
   elementRect: DOMRect;
-  elementScroll: ScrollPos;
+  elementScroll: Position;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
 const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   element,
   elementRect,
-  elementScroll,
   updateClone,
 }: TextAreaCloneProps) => {
-  const elementStyle = window.getComputedStyle(element);
+  const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
+  const elementStyles = window.getComputedStyle(element);
+
+  const correctedPosition = usePositionCorrection(
+    element,
+    cloneRef.current.parentElement
+  );
 
   return (
     <div
       ref={(ref) => {
         if (ref !== null) {
+          cloneRef.current = ref;
           updateClone(ref);
         }
       }}
@@ -29,23 +37,22 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top - elementScroll.top}px`,
-          left: `${elementRect.left - elementScroll.left}px`,
-          paddingTop: elementStyle.paddingTop,
-          paddingLeft: elementStyle.paddingLeft,
-          paddingRight: elementStyle.paddingRight,
-          paddingBottom: elementStyle.paddingBottom,
-          width: elementStyle.width,
-          height: elementStyle.height,
-          fontSize: elementStyle.fontSize,
-          fontWeight: elementStyle.fontWeight,
-          lineHeight: elementStyle.lineHeight,
-          fontFamily: elementStyle.fontFamily,
-          border: `${elementStyle.borderBottomWidth} solid black`,
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
+          paddingTop: elementStyles.paddingTop,
+          paddingLeft: elementStyles.paddingLeft,
+          paddingRight: elementStyles.paddingRight,
+          paddingBottom: elementStyles.paddingBottom,
+          width: elementRect.width,
+          height: elementRect.height,
+          fontSize: elementStyles.fontSize,
+          fontWeight: elementStyles.fontWeight,
+          lineHeight: elementStyles.lineHeight,
+          fontFamily: elementStyles.fontFamily,
+          border: `${elementStyles.borderBottomWidth} solid black`,
           visibility: 'hidden',
-          // outline: '8px solid red',
           pointerEvents: 'none',
-          // zIndex: 9999999,
+          boxSizing: elementStyles.boxSizing,
         } as React.CSSProperties
       }
     >

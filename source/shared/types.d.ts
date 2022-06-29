@@ -12,7 +12,7 @@ export interface ConfigProperty {
   value: string | string[] | boolean | number;
   status?: string;
 }
-export interface ScrollPos {
+export interface Position {
   top: number;
   left: number;
 }
