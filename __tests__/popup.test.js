@@ -46,13 +46,14 @@ test.describe('Popup', () => {
         expect(pages.length).toBe(3);
     });
 
-    test('popup contains five toggles with labels', async ({ page }) => {
+    test('popup contains three toggles with labels', async ({ page }) => {
+        //it is 3, not 5, because it is a chrome page (we dont show the site specific settings)
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForTimeout(2000);
         let toggles = await page.$$('.toggle-encloser');
-        expect(toggles.length).toBe(5);
+        expect(toggles.length).toBe(3);
         let labels = await page.$$('.toggle-label');
-        expect(labels.length).toBe(5);
+        expect(labels.length).toBe(3);
     });
 
     test('upgrade banner has a button that leads to another page', async ({ page, context }) => {
@@ -71,12 +72,13 @@ test.describe('Popup', () => {
         expect(await pages[1].url()).toBe(`chrome-extension://${extensionId}/options.html`);
     });
 
-    test('clicking first toggle removes all other toggles', async ({ page }) => {
-        await page.goto(`chrome-extension://${extensionId}/popup.html`);
-        await page.click('#toggle-button-enable-witty');
-        let toggles = await page.$$('.toggle-encloser');
-        expect(toggles.length).toBe(1);
-    });
+    //this test no logner works as we dont show site specific settings on chorme page
+    // test('clicking first toggle removes all other toggles', async ({ page }) => {
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.click('#toggle-button-enable-witty');
+    //     let toggles = await page.$$('.toggle-encloser');
+    //     expect(toggles.length).toBe(1);
+    // });
 
     test('clicking unlocked global toggle changes background color', async ({ page }) => {
         await page.goto(`chrome-extension://${extensionId}/popup.html`);

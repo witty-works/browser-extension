@@ -92,19 +92,15 @@ test.describe('Options', () => {
         const toggles = await page.$$('.toggle-encloser');
         expect(toggles.length).toBe(6);
     });
-    test('there are three premium only labels and three locks', async ({ page }) => {
+
+    test('there are three premium only labels', async ({ page }) => {
         await page.goto(`chrome-extension://${extensionId}/options.html`);
         await page.click('#wittyworks-options-content-section-configure-rules');
 
-        const premiumOnlyLabelsDropdown = await page.$$('.dropdown-premium-only');
+        const premiumOnlyLabelsDropdown = await page.$$('.witty-teams-only-dropdown');
         const premiumLabelsToggle = await page.$$('.toggle-premium-only');
         expect(premiumOnlyLabelsDropdown.length).toBe(1);
         expect(premiumLabelsToggle.length).toBe(2);
-
-        const locksDropdown = await page.$$('.dropdown-lock');
-        const locksToggle = await page.$$('.toggle-lock');
-        expect(locksDropdown.length).toBe(1);
-        expect(locksToggle.length).toBe(2);
     });
 
     test('when clicking locked toggles, they remain the same', async ({ page }) => {
@@ -196,7 +192,7 @@ test.describe('Options', () => {
         await utils.loginOptionsPage(premiumUserEmail, premiumUserPassword, page);
 
         await page.click('#wittyworks-options-content-section-configure-rules');
-        const premiumOnlyLabelsDropdownLoggedIn = await page.$$('.dropdown-premium-only');
+        const premiumOnlyLabelsDropdownLoggedIn = await page.$$('.witty-teams-only-dropdown');
         const premiumLabelsToggleLoggedIn = await page.$$('.toggle-premium-only');
         expect(premiumOnlyLabelsDropdownLoggedIn.length).toBe(0);
         expect(premiumLabelsToggleLoggedIn.length).toBe(0);
@@ -205,7 +201,7 @@ test.describe('Options', () => {
         await page.reload();
 
         await page.click('#wittyworks-options-content-section-configure-rules');
-        const premiumOnlyLabelsDropdownLoggedOut = await page.$$('.dropdown-premium-only');
+        const premiumOnlyLabelsDropdownLoggedOut = await page.$$('.witty-teams-only-dropdown');
         const premiumLabelsToggleLoggedOut = await page.$$('.toggle-premium-only');
         expect(premiumOnlyLabelsDropdownLoggedOut.length).toBe(1);
         expect(premiumLabelsToggleLoggedOut.length).toBe(2);
@@ -243,6 +239,7 @@ test.describe('Options', () => {
         await utils.loginOptionsPage(premiumUserEmail, premiumUserPassword, page);
         await page.click('#wittyworks-options-content-section-configure-rules');
 
+        //TODO: make sure that no 'team presetting locks' are present. Makes this test flaky
         const inclusiveToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-become-an-inclusion-pro', '#toggle-button-become-an-inclusion-pro', false);
         expect(inclusiveToggle).toBe(true);
 

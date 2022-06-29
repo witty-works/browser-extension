@@ -17,6 +17,7 @@ exports.loginOptionsPage = async function (email, password, page) {
 exports.loginDashboard = async function (email, password, page) {
     await page.goto(`https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en`);
     await page.waitForSelector('#CybotCookiebotDialog');
+    await page.waitForTimeout(2000);
     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
     await page.click('.navigation-wrapper .navigation-link:nth-child(1)');
     await page.type('#email', email);
