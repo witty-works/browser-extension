@@ -112,13 +112,17 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.PREFERRED_VARIANTS:
           setReqConfig({
             ...reqConfigRef.current,
-            preferred_variants: changes[item].newValue,
+            preferred_variants: changes[item].newValue.value
+              ? changes[item].newValue.value
+              : changes[item].newValue,
           });
           break;
         case StorageKeys.GERMAN_GENDER_ENDING:
           setReqConfig({
             ...reqConfigRef.current,
-            german_gender_ending: changes[item].newValue,
+            german_gender_ending: changes[item].newValue.value
+              ? changes[item].newValue.value
+              : changes[item].newValue,
           });
           break;
         case StorageKeys.ORTHOGRAPHY:
@@ -166,9 +170,10 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.SHOW_INSPIRATION_ALTERNATIVES:
           setReqConfig({
             ...reqConfigRef.current,
-            show_inspiration_alternatives: changes[item].newValue.value
-              ? changes[item].newValue.value
-              : changes[item].newValue,
+            show_inspiration_alternatives:
+              typeof changes[item].newValue.value != undefined
+                ? changes[item].newValue.value
+                : changes[item].newValue,
           });
           break;
         case StorageKeys.SINGULAR_THEY:
