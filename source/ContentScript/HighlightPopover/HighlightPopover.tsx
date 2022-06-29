@@ -291,18 +291,18 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     )
                   )}
               </div>
-              <div className='wittyworks-popover-row-ignore-container'>
-                <div
-                  className='wittyworks-popover-ignore-btn'
-                  onClick={() => clickIgnoreTerm()}
-                >
-                  <IgnoreIcon />
-                  <span>{t('ignoreTerm')}</span>
-                </div>
-              </div>
             </div>
           </>
         )}
+        <div className='wittyworks-popover-row-ignore-container'>
+          <div
+            className='wittyworks-popover-ignore-btn'
+            onClick={() => clickIgnoreTerm()}
+          >
+            <IgnoreIcon />
+            <span>{t('ignoreTerm')}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
