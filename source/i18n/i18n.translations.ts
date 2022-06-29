@@ -77,7 +77,7 @@ export const de = {
       'https://www.witty.works/de/kategorien/inklusiv',
     styleCorrectionExplanation:
       'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
-    genderRoleFormat: 'Wie soll Witty mit dem generischen Maskulinum umgehen?',
+    genderRoleFormat: 'Wie soll Witty mit dem generischen Maskulinum in Deutsch umgehen?',
     genderRoleFormatExplanation:
       'Wähle aus, ob Witty die gewählte Gender-Ending-Form (z.B. "Mitarbeiter*in"), nur die weibliche und männliche Form (z.B. "Mitarbeiterin oder Mitarbeiter"), beides oder nur genderneutrale Alternativen vorschlagen soll.',
     genderRoleFormatFemaleAndMale: 'Weibliche und männliche Form vorschlagen',
@@ -174,7 +174,7 @@ export const en = {
       'https://www.witty.works/en/categories/inclusive',
     styleCorrectionExplanation:
       'Witty makes suggestions to make your text more understandable, or to give it authenticity or emotionality.',
-    genderRoleFormat: 'How should Witty handle the generic masculine?',
+    genderRoleFormat: 'How should Witty handle the generic masculine in German?',
     genderRoleFormatExplanation:
       'Choose if Witty should suggest the chosen gender ending (e.g. "Mitarbeiter*in"), the female and male form (e.g. "Mitarbeiterin oder Mitarbeiter"), both or only gender-neutral alternatives ("Mitarbeitende").',
     genderRoleFormatFemaleAndMale: 'Suggest the female and male form',
@@ -186,7 +186,7 @@ export const en = {
       'https://www.witty.works/en/categories/style',
     learnMore: 'Learn more',
     preferredLanguage: 'I write in',
-    germanGenderEnding: 'Choose the gender ending',
+    germanGenderEnding: 'Choose the German gender ending',
     lockedInfo: 'Team presetting',
     resetTeamsSettings: 'Reset to defaults',
     createATeam: 'Create a new team',
