@@ -85,11 +85,13 @@ const ContentScriptApp: React.FC = () => {
 
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
+    document.addEventListener('click', handleFocusinElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement);
+      document.removeEventListener('click', handleFocusinElement);
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
     };
@@ -285,14 +287,27 @@ const ContentScriptApp: React.FC = () => {
       );
 
       inputs.forEach((input: CustomInputElement) => {
-        if (input.parentElement) {
-          const highlightsContainer: HTMLElement = document.createElement(
-            WTags.WW_CONTAINER
-          );
-          highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
+        if (!input.parentElement) return;
+
+        const highlightsContainer: HTMLElement = document.createElement(
+          WTags.WW_CONTAINER
+        );
+        highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
+
+        if (window.location.hostname === 'docs.google.com') {
+          if (
+            input.parentElement.id === 't-formula-bar-input' &&
+            input.classList.contains('cell-input')
+          ) {
+            input.parentElement.insertBefore(
+              highlightsContainer,
+              input.previousSibling
+            );
+          }
+        } else {
           input.parentElement.insertBefore(highlightsContainer, input);
-          ReactDOM.render(<Input element={input} />, highlightsContainer);
         }
+        ReactDOM.render(<Input element={input} />, highlightsContainer);
       });
     }
   }, [inputs]);

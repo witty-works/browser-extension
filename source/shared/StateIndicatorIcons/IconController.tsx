@@ -23,7 +23,7 @@ const IconController: React.FC<IconControllerProps> = ({
     ref.current.parentElement
   );
   const elementRect = element.getBoundingClientRect();
-  const iconPadding: number = 8;
+  const iconPadding: number = 5;
 
   return (
     <div
