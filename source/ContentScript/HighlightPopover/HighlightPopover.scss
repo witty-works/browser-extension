@@ -11,7 +11,6 @@
   border-radius: 5px;
   font-family: $lato !important;
   min-width: 17em;
-  max-width: 20em;
 }
 
 #wittyworks-popover-content {
@@ -50,6 +49,7 @@
 .wittyworks-popover-alternative-btn-container {
   display: flex;
   flex-direction: row;
+  align-items: center;
   margin: 4px 0px;
 
   &:hover {
@@ -69,6 +69,7 @@
   padding: 2px 8px;
   margin: 4px 0px 4px 0px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .wittyworks-popover-alternative-btn {
@@ -139,6 +140,7 @@
 .wittyworks-popover-row-explanation-text {
   font-weight: 700;
   line-height: 110%;
+  max-width: 20em;
 }
 
 .wittyworks-popover-row-explanation-context {
