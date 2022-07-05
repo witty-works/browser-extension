@@ -242,6 +242,12 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     if (hoveredElementRef.current) {
       removeAllHoverIndicators();
+      if (
+        window.location.hostname === 'docs.google.com' &&
+        hoveredElementRef.current.classList.contains('cell-input')
+      ) {
+        return;
+      }
       const hoveredIndicatorContainer: HTMLElement = document.createElement(
         WTags.WW_MOUSEOVER_INDICATOR
       );
@@ -292,19 +298,14 @@ const ContentScriptApp: React.FC = () => {
         );
         highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
-        if (window.location.hostname === 'docs.google.com') {
-          if (
-            input.parentElement.id === 't-formula-bar-input' &&
-            input.classList.contains('cell-input')
-          ) {
-            input.parentElement.insertBefore(
-              highlightsContainer,
-              input.previousSibling
-            );
-          }
-        } else {
-          input.parentElement.insertBefore(highlightsContainer, input);
+        if (
+          window.location.hostname === 'docs.google.com' &&
+          input.classList.contains('cell-input')
+        ) {
+          return;
         }
+
+        input.parentElement.insertBefore(highlightsContainer, input);
         ReactDOM.render(<Input element={input} />, highlightsContainer);
       });
     }
