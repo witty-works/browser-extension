@@ -201,8 +201,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         <hr className='wittyworks-popover-separator' />
 
         <div className='wittyworks-popover-row'>
-          <div
+          <a
             className='wittyworks-popover-row-explanation'
+            onClick={() => {
+              analytics.popoverLogs(data.alert, 'learning_bites');
+            }}
+            href={data.alert.data.explanation.url}
+            target='_blank'
             style={{
               backgroundColor: isHovered
                 ? getColor(data.alert.data.gravity).hover
@@ -226,14 +231,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 </span>
               )}
               {data.alert.data.explanation.url && (
-                <a
-                  className='wittyworks-popover-row-explanation-url'
-                  onClick={() => {
-                    analytics.popoverLogs(data.alert, 'learning_bites');
-                  }}
-                  href={data.alert.data.explanation.url}
-                  target='_blank'
-                >
+                <a className='wittyworks-popover-row-explanation-url'>
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
@@ -241,7 +239,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 </a>
               )}
             </div>
-          </div>
+          </a>
         </div>
 
         {data.alert.data.alternatives.length > 0 && (
