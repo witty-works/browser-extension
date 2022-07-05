@@ -9,11 +9,10 @@ import { getDomainWithoutSubdomain } from '../shared/utils';
 
 const log = useLog('ContentScript index');
 
-//purpose of witty-code tag with extension-id is so that we can check if the extension has been installed
-document.body.appendChild(document.createElement('witty-code'));
-const wittyCodeElement = document.querySelector('witty-code');
-wittyCodeElement &&
-  wittyCodeElement.setAttribute('extension-id', browser.runtime.id);
+document.body.appendChild(document.createElement('witty-is-installed'));
+const wittyIsInstalledElement = document.querySelector('witty-is-installed');
+wittyIsInstalledElement &&
+  wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
 
 const customRender = (enabled: boolean) => {
   if (!document.querySelector(WTags.WW_POPOVER)) {
