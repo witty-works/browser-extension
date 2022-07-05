@@ -139,6 +139,11 @@
 .wittyworks-popover-row-explanation-text {
   font-weight: 700;
   line-height: 110%;
+  color: $black;
+
+  &:hover {
+    color: $black;
+  }
 }
 
 .wittyworks-popover-row-explanation-context {
