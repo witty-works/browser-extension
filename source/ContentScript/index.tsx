@@ -9,6 +9,11 @@ import { getDomainWithoutSubdomain } from '../shared/utils';
 
 const log = useLog('ContentScript index');
 
+document.body.appendChild(document.createElement('witty-is-installed'));
+const wittyIsInstalledElement = document.querySelector('witty-is-installed');
+wittyIsInstalledElement &&
+  wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
+
 const customRender = (enabled: boolean) => {
   if (!document.querySelector(WTags.WW_POPOVER)) {
     const element = document.createElement(WTags.WW_POPOVER);
