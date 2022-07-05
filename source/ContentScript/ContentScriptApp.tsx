@@ -242,6 +242,12 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     if (hoveredElementRef.current) {
       removeAllHoverIndicators();
+      if (
+        window.location.hostname === 'docs.google.com' &&
+        hoveredElementRef.current.classList.contains('cell-input')
+      ) {
+        return;
+      }
       const hoveredIndicatorContainer: HTMLElement = document.createElement(
         WTags.WW_MOUSEOVER_INDICATOR
       );
@@ -285,14 +291,22 @@ const ContentScriptApp: React.FC = () => {
       );
 
       inputs.forEach((input: CustomInputElement) => {
-        if (input.parentElement) {
-          const highlightsContainer: HTMLElement = document.createElement(
-            WTags.WW_CONTAINER
-          );
-          highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
-          input.parentElement.insertBefore(highlightsContainer, input);
-          ReactDOM.render(<Input element={input} />, highlightsContainer);
+        if (!input.parentElement) return;
+
+        const highlightsContainer: HTMLElement = document.createElement(
+          WTags.WW_CONTAINER
+        );
+        highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
+
+        if (
+          window.location.hostname === 'docs.google.com' &&
+          input.classList.contains('cell-input')
+        ) {
+          return;
         }
+
+        input.parentElement.insertBefore(highlightsContainer, input);
+        ReactDOM.render(<Input element={input} />, highlightsContainer);
       });
     }
   }, [inputs]);
