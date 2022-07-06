@@ -11,12 +11,14 @@ export interface DropdownProps {
   onDropdownChange: (value: string) => void;
   options: OptionProp[];
   selectedOption: string | number;
+  locked?: boolean;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
   onDropdownChange,
   options,
   selectedOption,
+  locked,
 }: DropdownProps) => {
   const [selected, setSelected] = useState<string | number>('');
 
@@ -37,10 +39,8 @@ const Dropdown: React.FC<DropdownProps> = ({
       value={selected}
     >
       {options.map((option) => (
-        <option key={option.key} value={option.key}>
-          {option.value.length > 42
-            ? option.value.slice(0, 40).concat('...')
-            : option.value}
+        <option key={option.key} value={option.key} disabled={locked}>
+          {option.value}
         </option>
       ))}
     </select>

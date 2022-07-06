@@ -1,14 +1,18 @@
 export interface RequestConfig {
-  primary_language: string;
-  preferred_languages: string;
   preferred_variants: string;
   german_gender_ending: string;
   disabled_categories: string[];
   maximum_importance: number;
   singular_they: string;
   show_inspiration_alternatives: boolean;
+  gendered_roles_format: string;
 }
-export interface ScrollPos {
+
+export interface ConfigProperty {
+  value: string | string[] | boolean | number;
+  status?: string;
+}
+export interface Position {
   top: number;
   left: number;
 }
@@ -35,6 +39,7 @@ export interface IAlert {
   startOffset: number;
   endOffset: number;
   data: IAlertContentData;
+  groupId?: string | null;
 }
 export interface IAlertContentData {
   text: string;
@@ -50,9 +55,39 @@ export interface IAlertContentData {
 
 export interface ICheckResponse {
   results: ICheckResponseResult[];
+  organization_config: IAuthResponse;
   language: string;
+  limit_reached: boolean;
+  organization_config: IOrganizationConfig;
+}
+export interface IAuthResponse {
+  config: {
+    store_context: ConfigProperty;
+    preferred_variants: ConfigProperty;
+    german_gender_ending: ConfigProperty;
+    gendered_roles_format: ConfigProperty;
+    inclusive: ConfigProperty;
+    style: ConfigProperty;
+    orthography: ConfigProperty;
+    singular_they: ConfigProperty;
+    show_inspiration_alternatives: ConfigProperty;
+    maximum_importance: ConfigProperty;
+  };
+  id: string;
+  name: string;
+  plan: string;
+}
+export interface IRefreshTokenResponse {
+  email: string;
+  refresh_token: string;
+  access_token: string;
 }
 
+export interface IOrganizationConfig {
+  id: string;
+  name: string;
+  plan: string;
+}
 export interface ICheckResponseResult {
   text: string;
   context: string;
@@ -69,7 +104,7 @@ export interface ICheckResponseResult {
 export interface IAlternatives {
   text: string;
   remove: boolean;
-  inspiration: string;
+  inspiration: boolean;
   context: string;
 }
 
@@ -77,14 +112,13 @@ export interface IExplanation {
   text: string;
   icon: string;
   url: string;
+  context: string;
 }
 export interface ILogRequest {
   request__type: string;
   request__lang: string;
   request__id: string;
   request__client: string;
-  request__config__primary_language: string;
-  request__config__preferred_languages: string;
   request__config__preferred_variants: string;
   request__config__german_gender_ending: string;
 }
@@ -103,7 +137,7 @@ export type ILogResponse = ICheckResponse;
 
 export interface IRequest {
   url: string;
-  config: RequestInit;
+  config: RequestInit | null;
 }
 
 export interface IEndpointResponseError {

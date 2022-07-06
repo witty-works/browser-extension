@@ -6,6 +6,7 @@ export interface DropdownMultiSelectProps {
   onDropdownChange: (option: OptionProp[]) => void;
   options: OptionProp[];
   selectedOptions: OptionProp[];
+  disabled?: boolean;
 }
 
 export interface OptionProp {
@@ -32,6 +33,7 @@ const DropdownMultiSelect: React.FC<DropdownMultiSelectProps> = ({
   onDropdownChange,
   options,
   selectedOptions,
+  disabled = false,
 }) => {
   const [selecOptions, setSelecOptions] = useState<OptionProp[]>([]);
   const handleChange = (selectedOption: any) => {
@@ -55,6 +57,7 @@ const DropdownMultiSelect: React.FC<DropdownMultiSelectProps> = ({
         value={selecOptions}
         options={options}
         onChange={handleChange}
+        isDisabled={disabled}
       />
     </div>
   );

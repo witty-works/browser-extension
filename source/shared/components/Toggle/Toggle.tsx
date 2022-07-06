@@ -2,7 +2,8 @@ import React from 'react';
 
 import './Toggle.scss';
 import Lock from '../../../assets/icons/options/lock.svg';
-import PremiumOnly from '../../../assets/icons/options/premium-only.svg';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../../../i18n/i18n.constants';
 
 interface ToggleProps {
   on: boolean | undefined;
@@ -11,6 +12,8 @@ interface ToggleProps {
   scale: number;
   label: string;
   locked?: boolean;
+  hasWittyTeams?: boolean;
+  userIsLoggedIn?: boolean;
 }
 
 const Toggle: React.FC<ToggleProps> = ({
@@ -20,7 +23,10 @@ const Toggle: React.FC<ToggleProps> = ({
   scale,
   label,
   locked,
+  hasWittyTeams = true,
+  userIsLoggedIn = true,
 }: ToggleProps) => {
+  const { t } = useTranslation([namespaces.pages.options]);
   return (
     <>
       <div
@@ -31,33 +37,46 @@ const Toggle: React.FC<ToggleProps> = ({
       >
         <label className='toggle-label'>{label}</label>
         <input
+          className='toggle-checkbox'
           checked={on}
           onChange={handleToggle}
-          className='toggle-checkbox'
           id={`toggle-${label}`}
           type='checkbox'
         />
-        {locked && (
-          <>
-            <div className='toggle-premium-only'>
-              <a href="https://www.witty.works/pricing" target="_blank">
-                <PremiumOnly />
-              </a>
-            </div>
-            <div className='toggle-lock'>
-              <Lock />
-            </div>
-          </>
+        {!hasWittyTeams && (
+          <div className='toggle-premium-only'>
+            <a
+              className='witty-teams-only-link'
+              href='https://www.witty.works/witty-for-teams'
+              target='_blank'
+            >
+              {t('wittyTeamsOnly')}
+            </a>
+          </div>
         )}
+        {userIsLoggedIn && locked && hasWittyTeams && (
+          <div className='toggle-lock'>
+            <Lock />
+            <div className='toggle-lock-info'> {t('lockedInfo')} </div>
+          </div>
+        )}
+
         <label
           style={{
-            background: (on && color) as string,
-            transform: `scale(${scale}, ${scale})`,
+            background: (hasWittyTeams && on && color) as string,
+            transform: `translateX(${scale * 100}%) scale(${scale}, ${scale})`,
           }}
+          id={`toggle-encloser-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
           className='toggle-encloser'
           htmlFor={`toggle-${label}`}
         >
-          <span className={`toggle-button`} />
+          <span
+            id={`toggle-button-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
+            className={`toggle-button`}
+            style={{
+              marginLeft: on && locked && userIsLoggedIn ? '2.7em' : '0', //TEMP: fix for weird toggle behavior when locked
+            }}
+          />
         </label>
       </div>
     </>
