@@ -180,10 +180,6 @@ const Input: React.FC<{
     }
   };
 
-  const ErrorBoundaryFallback = () => (
-    <Toast message='Please reload the website' type='error' />
-  );
-
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
     setTextToCheck(text);
@@ -660,6 +656,10 @@ const Input: React.FC<{
       }
     }
   }, [checkEndpointError]);
+
+  const ErrorBoundaryFallback = () => (
+    <Toast message={t('reloadWebsite')} type='error' />
+  );
 
   useEffect(() => {
     //Show/Hide the popover
