@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import ReactDOM from 'react-dom';
+import { browser } from 'webextension-polyfill-ts';
 
+import * as Sentry from '@sentry/react';
+import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
 import { WTags } from '../shared/constants';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../i18n/i18n.constants';
+
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -25,9 +30,9 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
+import Toast from '../shared/components/Toast/Toast';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -75,7 +80,7 @@ const Input: React.FC<{
   );
 
   useMutationObserver(element, onElementMutation);
-
+  const { t } = useTranslation([namespaces.errors]);
   const log = useLog('Input');
 
   useEffect(() => {
@@ -653,18 +658,24 @@ const Input: React.FC<{
     );
   }, [checkEndpointError]);
 
+  const ErrorBoundaryFallback = () => (
+    <Toast message={t('reloadWebsite')} type='error' />
+  );
+
   useEffect(() => {
     //Show/Hide the popover
     if (popoverData) {
       ReactDOM.render(
-        <HighlightPopover
-          element={element}
-          data={popoverData}
-          hide={resetPopover}
-          updateTextWithAlternative={updateTextWithAlternative}
-          addIgnoredTerm={addIgnoredTerm}
-          movePopoverNextOrPrev={movePopoverNextOrPrev}
-        />,
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopover
+            element={element}
+            data={popoverData}
+            hide={resetPopover}
+            updateTextWithAlternative={updateTextWithAlternative}
+            addIgnoredTerm={addIgnoredTerm}
+            movePopoverNextOrPrev={movePopoverNextOrPrev}
+          />
+        </Sentry.ErrorBoundary>,
         document.querySelector(WTags.WW_POPOVER)
       );
     } else {
@@ -705,13 +716,15 @@ const Input: React.FC<{
         </WTags.WW_CLONE>
       )}
       <WTags.WW_HIGHLIGHTS>
-        <Highlights
-          elementScroll={elementScroll}
-          nodesWithAlerts={nodesWithAlerts}
-          element={element}
-          elementRect={elementRect}
-          selectedAlert={selectedAlert}
-        />
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <Highlights
+            elementScroll={elementScroll}
+            nodesWithAlerts={nodesWithAlerts}
+            element={element}
+            elementRect={elementRect}
+            selectedAlert={selectedAlert}
+          />
+        </Sentry.ErrorBoundary>
       </WTags.WW_HIGHLIGHTS>
     </>
   );

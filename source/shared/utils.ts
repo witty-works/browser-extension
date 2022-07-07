@@ -1,5 +1,7 @@
 import { browser } from 'webextension-polyfill-ts';
 
+import { sendErrorToSentry } from './errorUtils';
+
 const isObjectEmpty = (obj: object) =>
   obj &&
   Object.keys(obj).length === 0 &&
@@ -30,7 +32,7 @@ const storeInLocalStorage = (key: string, value: any) => {
         `color: #000`
       );
     })
-    .catch((error: string) => {
+    .catch((error: unknown) => {
       const wittyVersion = browser.runtime.getManifest().version;
       const componentName = 'Utils';
       const message = `onBrowserStorage Error: ${error}`;
@@ -41,6 +43,8 @@ const storeInLocalStorage = (key: string, value: any) => {
         `color: #5fca7d`,
         `color: #f00`
       );
+
+      sendErrorToSentry(error);
     });
 };
 
