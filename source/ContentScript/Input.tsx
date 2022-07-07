@@ -5,6 +5,9 @@ import * as Sentry from '@sentry/react';
 import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
 import { WTags } from '../shared/constants';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../i18n/i18n.constants';
+
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -77,7 +80,7 @@ const Input: React.FC<{
   );
 
   useMutationObserver(element, onElementMutation);
-
+  const { t } = useTranslation([namespaces.errors]);
   const log = useLog('Input');
 
   useEffect(() => {

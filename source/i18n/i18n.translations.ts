@@ -94,6 +94,10 @@ export const de = {
     createATeam: 'Erstelle ein Team',
     wittyTeamsOnly: 'Nur Witty Teams',
   },
+  [namespaces.errors]: {
+    errorMessageGenericTitle: 'Ouch! Something went wrong! DE',
+    reloadWebsite: 'Please reload the website DE',
+  },
 };
 
 export const en = {
@@ -191,5 +195,9 @@ export const en = {
     resetTeamsSettings: 'Reset to defaults',
     createATeam: 'Create a new team',
     wittyTeamsOnly: 'Witty Teams Only',
+  },
+  [namespaces.errors]: {
+    errorMessageGenericTitle: 'Ouch! Something went wrong!',
+    reloadWebsite: 'Please reload the website',
   },
 };
