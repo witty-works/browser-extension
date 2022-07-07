@@ -92,9 +92,8 @@ Sentry.init({
   dsn: 'https://41a158eff71044a3ad021f381e0f0349@o512991.ingest.sentry.io/6223342',
   release: 'witty@' + browser.runtime.getManifest().version,
   integrations: [new BrowserTracing()],
-
-  // Set tracesSampleRate to 1.0 to capture 100%, recomended to djusting this value in production.
-  tracesSampleRate: 1.0,
+  sampleRate: 0.1,
+  tracesSampleRate: 0.00001,
 });
 
 export {};
