@@ -25,20 +25,27 @@ const IconController: React.FC<IconControllerProps> = ({
   const elementRect = element.getBoundingClientRect();
   const iconPadding: number = 8;
 
+  const textareaStyle = {
+    display: 'flex',
+    position: 'absolute',
+    top: `${elementRect.height + correctedPosition.top - 21 - iconPadding}px`,
+    left: `${elementRect.width + correctedPosition.left - 25 - iconPadding}px`,
+  };
+
+  const contenteditableStyle = {
+    position: 'fixed',
+    top: `${elementRect.bottom - elementRect.top + 21 + iconPadding}px`,
+    right: `${window.innerWidth - elementRect.right + iconPadding}px`,
+  };
+
   return (
     <div
       ref={ref}
-      style={{
-        display: 'flex',
-        position: 'absolute',
-        //TODO don't hardcode icons width & height
-        top: `${
-          elementRect.height + correctedPosition.top - 21 - iconPadding
-        }px`,
-        left: `${
-          elementRect.width + correctedPosition.left - 25 - iconPadding
-        }px`,
-      }}
+      style={
+        element.tagName === 'TEXTAREA'
+          ? (textareaStyle as React.CSSProperties)
+          : (contenteditableStyle as React.CSSProperties)
+      }
       onMouseDown={(e) => {
         e.stopPropagation();
         e.preventDefault();
