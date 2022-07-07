@@ -90,11 +90,10 @@ browser.storage.onChanged.addListener(storageChange);
 
 Sentry.init({
   dsn: 'https://41a158eff71044a3ad021f381e0f0349@o512991.ingest.sentry.io/6223342',
+  release: 'witty@' + browser.runtime.getManifest().version,
   integrations: [new BrowserTracing()],
 
-  // TODO
-  // We recommend adjusting this value in production, or using tracesSampler
-  // for finer control
+  // Set tracesSampleRate to 1.0 to capture 100%, recomended to djusting this value in production.
   tracesSampleRate: 1.0,
 });
 
