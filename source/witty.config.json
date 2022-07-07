@@ -14,10 +14,9 @@
     "about:",
     "moz-extension:"
   ],
-  "PRIMARY_LANGUAGE": "de-DE",
   "PREFERRED_VARIANTS": { "value": ["de-DE", "en-US"] },
   "GERMAN_GENDER_ENDING": {
-    "value": "colon_in"
+    "value": "*in"
   },
   "MAXIMUM_IMPORTANCE": {
     "value": 2
@@ -44,5 +43,7 @@
   "API_DELAY": 500,
   "USERNAME": "",
   "ACCESS_TOKEN": "",
-  "REFRESH_TOKEN": ""
+  "REFRESH_TOKEN": "",
+  "PLAN": "witty_free",
+  "TEAM_NAME": ""
 }

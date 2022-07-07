@@ -82,7 +82,7 @@ export const checkResponseOrgConfigSchema: JSONSchemaType<IAuthResponse> = {
       type: 'string',
     },
   },
-  required: ['id', 'name', 'plan'],
+  required: [],
 };
 
 export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
@@ -159,6 +159,10 @@ export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
         },
         url: {
           description: 'the url to the explanation',
+          type: 'string',
+        },
+        context: {
+          description: 'the context of the explanation',
           type: 'string',
         },
       },

@@ -1,6 +1,4 @@
 export interface RequestConfig {
-  primary_language: string;
-  preferred_languages: string;
   preferred_variants: string;
   german_gender_ending: string;
   disabled_categories: string[];
@@ -14,7 +12,7 @@ export interface ConfigProperty {
   value: string | string[] | boolean | number;
   status?: string;
 }
-export interface ScrollPos {
+export interface Position {
   top: number;
   left: number;
 }
@@ -114,14 +112,13 @@ export interface IExplanation {
   text: string;
   icon: string;
   url: string;
+  context: string;
 }
 export interface ILogRequest {
   request__type: string;
   request__lang: string;
   request__id: string;
   request__client: string;
-  request__config__primary_language: string;
-  request__config__preferred_languages: string;
   request__config__preferred_variants: string;
   request__config__german_gender_ending: string;
 }

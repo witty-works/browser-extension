@@ -4,6 +4,7 @@ import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
 import { CustomInputElement, IAlert } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
+import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 
@@ -107,9 +108,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       posY >= data.position.y &&
       posY <= data.position.y + data.position.height;
 
-    if (hasClickedOutsidePopOver && !hasClickedThisHighlight) {
-      hidePopover();
-    }
+    if (hasClickedOutsidePopOver && !hasClickedThisHighlight) hidePopover();
   };
 
   const hidePopover = () => {
@@ -187,7 +186,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   <NextIcon />
                 </div>
               )}
-
               <div
                 className='wittyworks-popover-nav-btn'
                 onClick={() => {
@@ -203,8 +201,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         <hr className='wittyworks-popover-separator' />
 
         <div className='wittyworks-popover-row'>
-          <div
+          <a
             className='wittyworks-popover-row-explanation'
+            onClick={() => {
+              analytics.popoverLogs(data.alert, 'learning_bites');
+            }}
+            href={data.alert.data.explanation.url}
+            target='_blank'
             style={{
               backgroundColor: isHovered
                 ? getColor(data.alert.data.gravity).hover
@@ -222,23 +225,21 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             </div>
             <div className='wittyworks-popover-row-explanation-text'>
               {data.alert.data.explanation.text}
+              {data.alert.data.explanation.context && (
+                <span className='wittyworks-popover-row-explanation-context'>
+                  &nbsp;({data.alert.data.explanation.context})
+                </span>
+              )}
               {data.alert.data.explanation.url && (
-                <a
-                  className='wittyworks-popover-row-explanation-url'
-                  onClick={() => {
-                    analytics.popoverLogs(data.alert, 'learning_bites');
-                  }}
-                  href={data.alert.data.explanation.url}
-                  target='_blank'
-                >
+                <div className='wittyworks-popover-row-explanation-url'>
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
                   <ArrowIcon play={isHovered} />
-                </a>
+                </div>
               )}
             </div>
-          </div>
+          </a>
         </div>
 
         {data.alert.data.alternatives.length > 0 && (
@@ -288,18 +289,18 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     )
                   )}
               </div>
-              <div className='wittyworks-popover-row-ignore-container'>
-                <div
-                  className='wittyworks-popover-ignore-btn'
-                  onClick={() => clickIgnoreTerm()}
-                >
-                  <IgnoreIcon />
-                  <span>{t('ignoreTerm')}</span>
-                </div>
-              </div>
             </div>
           </>
         )}
+        <div className='wittyworks-popover-row-ignore-container'>
+          <div
+            className='wittyworks-popover-ignore-btn'
+            onClick={() => clickIgnoreTerm()}
+          >
+            <IgnoreIcon />
+            <span>{t('ignoreTerm')}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

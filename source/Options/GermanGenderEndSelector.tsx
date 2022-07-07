@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import { sendErrorToSentry } from '../shared/errorUtils';
-import Dropdown from '../shared/components/Dropdown/Dropdown';
-import { OptionProp } from '../shared/components/Dropdown/Dropdown';
+import Dropdown, { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { GermanGenderEndings, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
@@ -21,34 +20,35 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
   selectedValue,
   resetSettings = false,
 }: SelectorProps) => {
-  const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
+  const dropdownOptions = Object.keys(GermanGenderEndings).map(
+    (key: string) => ({
+      key,
+      value: GermanGenderEndings[key as keyof typeof GermanGenderEndings],
+    })
+  );
   const [selectedOption, setSelectedOption] = useState<string>('');
   const { t } = useTranslation(namespaces.pages.options);
   const log = useLog('GermanGenderEndSelector');
 
   useEffect(() => {
-    const dropdownOptions: OptionProp[] = Object.keys(GermanGenderEndings).map(
-      (key: string) => ({
-        key,
-        value: GermanGenderEndings[key as keyof typeof GermanGenderEndings],
-      })
-    );
-
     if (locked && userIsLoggedIn) {
-      const lockedKeyValuePair = dropdownOptions.find(
+      const keyValuePair = dropdownOptions.find(
         (option: OptionProp) => option.value === selectedValue
       );
-      if (lockedKeyValuePair) {
-        setDropdownOptions([lockedKeyValuePair]);
-        setSelectedOption(selectedValue);
-      }
+      if (!keyValuePair) return;
+      setSelectedOption(keyValuePair.key);
     } else {
-      setDropdownOptions(dropdownOptions);
       browser.storage.local
         .get(StorageKeys.GERMAN_GENDER_ENDING)
         .then((result) => {
-          if (result[StorageKeys.GERMAN_GENDER_ENDING])
-            setSelectedOption(result[StorageKeys.GERMAN_GENDER_ENDING]);
+          if (result[StorageKeys.GERMAN_GENDER_ENDING]) {
+            const keyValuePair = dropdownOptions.find(
+              (option: OptionProp) =>
+                option.value === result[StorageKeys.GERMAN_GENDER_ENDING].value
+            );
+            if (!keyValuePair) return;
+            setSelectedOption(keyValuePair.key);
+          }
         })
         .catch(onError);
     }
@@ -60,18 +60,26 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
   };
 
   useEffect(() => {
-    const selectedKey = dropdownOptions.find(
-      (option: OptionProp) => option.value === selectedValue
-    );
-    handleDropdownChange(selectedKey?.key as string);
+    if (resetSettings) {
+      const selectedKey = dropdownOptions.find(
+        (option: OptionProp) => option.value === selectedValue
+      );
+      handleDropdownChange(selectedKey?.key as string);
+    }
   }, [resetSettings]);
 
   const handleDropdownChange = (value: string) => {
     setSelectedOption(value);
+    const keyValuePair = dropdownOptions.find(
+      (option: OptionProp) => option.key === value
+    );
+    if (!keyValuePair) return;
     browser.storage.local
-      .set({ [StorageKeys.GERMAN_GENDER_ENDING]: value })
+      .set({
+        [StorageKeys.GERMAN_GENDER_ENDING]: { value: keyValuePair.value },
+      })
       .then(() => {
-        log(`New German Gender Ending ${value} saved`);
+        log(`New German Gender Ending ${keyValuePair.value} saved`);
       })
       .catch(onError);
   };

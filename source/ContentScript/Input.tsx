@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import defaultConfig from '../witty.config.json';
 import * as Sentry from '@sentry/react';
-
+import ReactDOM from 'react-dom';
+import defaultConfig from '../witty.config.json';
+import { WTags } from '../shared/constants';
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -11,9 +12,10 @@ import {
   CustomInputElement,
   IAlert,
   INodeWithAlerts,
-  ScrollPos,
+  Position,
 } from '../shared/types';
-import { isTextArea, isInputText, storeInLocalStorage } from '../shared/utils';
+import { storeInLocalStorage } from '../shared/utils';
+import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
@@ -31,29 +33,19 @@ import Toast from '../shared/components/Toast/Toast';
 
 const Input: React.FC<{
   element: CustomInputElement;
-  bodyScroll: ScrollPos;
-  parentScroll: ScrollPos;
-}> = ({ element, bodyScroll, parentScroll }) => {
+}> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
-  let elementRect = useResizeObserver(element);
-  let elementOffsetParentRect = useResizeObserver(
-    element.offsetParent as HTMLElement
-  );
-
+  const elementRect = useResizeObserver(element);
   const [alerts, setAlerts] = useState<IAlert[]>([]);
-  const [observedElement, setObservedElement] = useState<HTMLElement>(element);
-  const [observedElementRect, setObservedElementRect] = useState<DOMRect>(
-    element.getBoundingClientRect()
-  );
-  const [elementScroll, setElementScroll] = useState<ScrollPos>({
+  const [elementScroll, setElementScroll] = useState<Position>({
     top: 0,
     left: 0,
-  } as ScrollPos);
+  } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
@@ -141,20 +133,6 @@ const Input: React.FC<{
     docTextEvaluation(element);
   }, [element]);
 
-  useEffect(() => {
-    const ele: { element: HTMLElement; rect: DOMRect } =
-      elementOffsetParentRect.width < elementRect.width ||
-      elementOffsetParentRect.height < elementRect.height
-        ? {
-            element: element.offsetParent as HTMLElement,
-            rect: elementOffsetParentRect,
-          }
-        : { element: element, rect: elementRect };
-
-    setObservedElement(ele.element);
-    setObservedElementRect(ele.rect);
-  }, [elementRect, elementOffsetParentRect]);
-
   const handleMouseoverEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(true);
   };
@@ -199,13 +177,18 @@ const Input: React.FC<{
     }
   };
 
+  const ErrorBoundaryFallback = () => (
+    <Toast message='Please reload the website' type='error' />
+  );
+
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
     setTextToCheck(text);
   }, debounceDelay);
-  const handleElementScrollEvent = debounce(() => {
+
+  const handleElementScrollEvent = () => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
-  }, 500);
+  };
 
   const handleSubmitFormEvent = () => {
     //It's assumed that when user sends info through a form, text will disappear.
@@ -229,7 +212,7 @@ const Input: React.FC<{
     setClone(newClone);
   };
 
-  const hidePopover = () => {
+  const resetPopover = () => {
     if (popoverData) {
       setPopoverData(null);
       setSelectedAlert(null);
@@ -345,7 +328,16 @@ const Input: React.FC<{
       const nodeText = oneNodeWithAlerts.node;
       range.setStart(nodeText, selectedAlert.startOffset);
       range.setEnd(nodeText, selectedAlert.endOffset);
-      const clickedRect = range.getClientRects()[0];
+      const rect = range.getClientRects()[0];
+      const clickedRect = {
+        ...rect,
+        width: rect.width,
+        height: rect.height,
+        left: rect.left,
+        x: rect.left,
+        top: range.getClientRects()[0].top - elementScroll.top,
+        y: range.getClientRects()[0].top - elementScroll.top,
+      };
 
       const currentAlertIndex = nodesWithAlertsRef.current
         .slice(0, selectedNodeWithAlertsIndex + 1)
@@ -384,9 +376,8 @@ const Input: React.FC<{
     );
 
     const apiConfig = checkEndpointResponse.organization_config;
-    if (apiConfig) {
-      console.log('apiConfig', apiConfig);
-      storeInLocalStorage(StorageKeys.NAME, apiConfig.name);
+    if (apiConfig && apiConfig.id) {
+      storeInLocalStorage(StorageKeys.TEAM_NAME, apiConfig.name);
       storeInLocalStorage(StorageKeys.PLAN, apiConfig.plan);
 
       //TODO: refactored (had type issues)
@@ -395,54 +386,71 @@ const Input: React.FC<{
           console.warn(`${key.toUpperCase()} is not a valid storage key`);
           return;
         }
-        if (key == 'gendered_roles_format') {
+        if (
+          key == 'gendered_roles_format' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.GENDERED_ROLES_FORMAT,
             apiConfig.config[key]
           );
-        } else if (key == 'german_gender_ending') {
+        } else if (
+          key == 'german_gender_ending' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.GERMAN_GENDER_ENDING,
             apiConfig.config[key]
           );
-        } else if (key == 'inclusive') {
+        } else if (
+          key == 'inclusive' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(StorageKeys.INCLUSIVE, apiConfig.config[key]);
-        } else if (key == 'maximum_importance') {
+        } else if (
+          key == 'maximum_importance' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.MAXIMUM_IMPORTANCE,
             apiConfig.config[key]
           );
-        } else if (key == 'orthography') {
+        } else if (
+          key == 'orthography' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(StorageKeys.ORTHOGRAPHY, apiConfig.config[key]);
-        } else if (key == 'preferred_variants') {
+        } else if (
+          key == 'preferred_variants' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.PREFERRED_VARIANTS,
             apiConfig.config[key]
           );
-        } else if (key == 'show_inspiration_alternatives') {
+        } else if (
+          key == 'show_inspiration_alternatives' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(
             StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
             apiConfig.config[key]
           );
-        } else if (key == 'singular_they') {
+        } else if (
+          key == 'singular_they' &&
+          apiConfig.config[key].status == 'force'
+        ) {
           storeInLocalStorage(StorageKeys.SINGULAR_THEY, apiConfig.config[key]);
         }
         // else if (key == 'store_context') {
         //   storeInLocalStorage(StorageKeys.STORE_CONTEXT, apiConfig.config[key]);
         // }
-        else if (key == 'style') {
+        else if (key == 'style' && apiConfig.config[key].status == 'force') {
           storeInLocalStorage(StorageKeys.STYLE, apiConfig.config[key]);
         }
-        // else if (key == 'preferred_languages') {
-        //   storeInLocalStorage(
-        //     StorageKeys.PREFERRED_LANGUAGES,
-        //     apiConfig.config[key]
-        //   );
-        // }
       });
     } else {
-      //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken
-      console.log('there is no config');
+      //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken OR user is not logged in
     }
 
     const alerts: IAlert[] = checkEndpointResponse.results
@@ -451,9 +459,11 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId: checkEndpointResponse.organization_config
-          ? checkEndpointResponse.organization_config.id
-          : null,
+        groupId:
+          checkEndpointResponse.organization_config &&
+          checkEndpointResponse.organization_config.id
+            ? checkEndpointResponse.organization_config.id
+            : null,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -540,30 +550,30 @@ const Input: React.FC<{
     const nextText: string = getInputText(element);
 
     let textStartingAbsPosition: number = 0;
-    let textEndAbsPosition: number = 0;
+    let textEndAbsPosition: number = -1;
 
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
 
-      if (
-        node.nodeValue &&
-        node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
-      ) {
-        textStartingAbsPosition = textEndAbsPosition;
+      if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
+        textStartingAbsPosition = textEndAbsPosition + 1;
 
         const nodeValueLength: number = node.nodeValue.length;
 
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
-        // Check if there is a whitespace char after the node's content
+        textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1;
+
+        // Check if there is a new line char after the node's content
         // If so, we +1 to the end position
-        if (nextText.charAt(textEndAbsPosition).match(/\n/gi))
+        if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
           textEndAbsPosition += 1;
+        }
 
         const alertsTemp: IAlert[] = alerts
           .filter(
             (alert: IAlert) =>
               node.nodeValue && node.nodeValue.includes(alert.data.text)
           )
+
           .filter(
             (alert: IAlert) =>
               alert.startOffset >= textStartingAbsPosition &&
@@ -616,7 +626,7 @@ const Input: React.FC<{
     const newText: string = getInputText(element);
     setTextToCheck(newText);
 
-    hidePopover();
+    resetPopover();
   };
 
   useEffect(() => {
@@ -648,58 +658,71 @@ const Input: React.FC<{
     }
   }, [checkEndpointError]);
 
-  const ErrorBoundaryFallback = () => (
-    <Toast message='Please reload the website' type='error' />
-  );
-
-  return (
-    <div className='canvas-container'>
-      <StateIndicatorIcon
-        elementReference={element}
-        iconType={activeIcon}
-        isHovered={isHovered}
-      />
-      {isTextArea(element) && (
-        <TextAreaClone
-          element={element}
-          elementRect={elementRect}
-          elementScroll={elementScroll}
-          updateClone={updateCloneData}
-        />
-      )}
-      {isInputText(element) && (
-        <InputTextClone
-          element={element}
-          elementRect={elementRect}
-          updateClone={updateCloneData}
-        />
-      )}
-      {popoverData && (
+  useEffect(() => {
+    //Show/Hide the popover
+    if (popoverData) {
+      ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
             element={element}
             data={popoverData}
-            hide={hidePopover}
+            hide={resetPopover}
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
             movePopoverNextOrPrev={movePopoverNextOrPrev}
           />
-        </Sentry.ErrorBoundary>
+        </Sentry.ErrorBoundary>,
+        document.querySelector(WTags.WW_POPOVER)
+      );
+    } else {
+      const popoverElement = document.querySelector(WTags.WW_POPOVER);
+      if (popoverElement && popoverElement.childNodes.length > 0) {
+        ReactDOM.unmountComponentAtNode(popoverElement);
+      }
+    }
+  }, [popoverData]);
+
+  return (
+    <>
+      <WTags.WW_ACTIVITY_INDICATOR>
+        <StateIndicatorIcon
+          element={element}
+          iconType={activeIcon}
+          isHovered={isHovered}
+        />
+      </WTags.WW_ACTIVITY_INDICATOR>
+
+      {isTextArea(element) && (
+        <WTags.WW_CLONE>
+          <TextAreaClone
+            element={element}
+            elementRect={elementRect}
+            elementScroll={elementScroll}
+            updateClone={updateCloneData}
+          />
+        </WTags.WW_CLONE>
       )}
-      {nodesWithAlerts.length > 0 && (
+      {isInputText(element) && (
+        <WTags.WW_CLONE>
+          <InputTextClone
+            element={element}
+            elementRect={elementRect}
+            updateClone={updateCloneData}
+          />
+        </WTags.WW_CLONE>
+      )}
+      <WTags.WW_HIGHLIGHTS>
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <Highlights
-            bodyScroll={bodyScroll}
-            parentScroll={parentScroll}
             elementScroll={elementScroll}
-            elementRect={observedElementRect}
             nodesWithAlerts={nodesWithAlerts}
-            element={observedElement}
+            element={element}
+            elementRect={elementRect}
             selectedAlert={selectedAlert}
           />
         </Sentry.ErrorBoundary>
-      )}
-    </div>
+      </WTags.WW_HIGHLIGHTS>
+    </>
   );
 };
 

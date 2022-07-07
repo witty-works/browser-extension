@@ -158,45 +158,15 @@ const scanTabsToDetectStatus = () => {
   });
 };
 
-//TODO specify changes type
-const storageChange = (changes: any) => {
+const storageChange = (changes: { [key: string]: any }) => {
   const changedItems = Object.keys(changes);
-  for (let item of changedItems) {
-    switch (item) {
-      case StorageKeys.DISABLED_SITES:
-        browser.tabs
-          .query({ active: true, currentWindow: true })
-          .then((tabs) => {
-            if (tabs.length != 0 && tabs[0].url) {
-              const domain = getDomainWithoutSubdomain(
-                new URL(tabs[0].url).hostname
-              );
-
-              browser.browserAction.setIcon(
-                (changes[item].newValue.length > 0 &&
-                  changes[item].newValue.includes(domain)) ||
-                  !defaultConfig.ACTIVE_SITES.includes(domain)
-                  ? WittyIconInactive
-                  : WittyIconActive
-              );
-            } else if (
-              defaultConfig.CHROME_AND_FIREFOX_SITES.includes(
-                window.location.protocol
-              )
-            ) {
-              browser.browserAction.setIcon(WittyIconActive);
-            } else {
-              browser.browserAction.setIcon(WittyIconInactive);
-            }
-          });
-
-        break;
-      case StorageKeys.ENABLE_WITTY_EVERYWHERE:
-        changes[item].newValue
-          ? browser.browserAction.setIcon(WittyIconActive)
-          : browser.browserAction.setIcon(WittyIconInactive);
+  changedItems.forEach((key) => {
+    if (key === StorageKeys.ENABLE_WITTY_EVERYWHERE) {
+      changes[key].newValue
+        ? browser.browserAction.setIcon(WittyIconActive)
+        : browser.browserAction.setIcon(WittyIconInactive);
     }
-  }
+  });
 };
 
 browser.tabs.onCreated.addListener(scanTabsToDetectStatus);

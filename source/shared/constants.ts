@@ -14,8 +14,6 @@ export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
   APP_ID = 'id',
   DISABLED_SITES = 'disabledSites',
-  PRIMARY_LANGUAGE = 'primaryLanguage',
-  PREFERRED_LANGUAGES = 'preferredLanguages',
   PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
@@ -32,7 +30,7 @@ export enum StorageKeys {
   REFRESH_TOKEN = 'refreshToken',
   CURRENT_DOMAIN = 'currentDomain',
   ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
-  NAME = 'name', //team name
+  TEAM_NAME = 'teamName',
   PLAN = 'plan',
 }
 
@@ -69,6 +67,17 @@ export enum ConfigPropertyStatus {
   SUGGESTION = 'suggestion',
 }
 
+//HTML element's tags
+export enum WTags {
+  WW_CONTAINER = 'ww-container',
+  WW_HIGHLIGHTS = 'ww-highlights',
+  WW_MOUSEOVER_INDICATOR = 'ww-mo-indicator',
+  WW_ACTIVITY_INDICATOR = 'ww-activity-indicator',
+  WW_CLONE = 'ww-clone',
+  WW_POPOVER = 'ww-popover',
+}
+
+//Colors
 export enum Colors {
   red = '#F06464',
   magenta = '#F277D0',
@@ -117,14 +126,15 @@ export const getColor = (gravity: number): IHighlightColors => {
 
 //German Gender Endings
 export enum GermanGenderEndings {
-  colon_in = ':in',
   asterisk_in = '*in',
+  colon_in = ':in',
   underscore_in = '_in',
   slash_dash_in = '/-in',
   slash_in = '/in',
   uppercase_in = 'In',
 }
 
+//Icons
 export const WittyIconActive = {
   path: {
     '16': 'assets/icons/icon16.png',

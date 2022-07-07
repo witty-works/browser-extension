@@ -21,6 +21,12 @@ a {
 
 header {
   padding: 0 1rem 1.2rem 1rem;
+  display: flex;
+  justify-content: space-between;
+
+  svg {
+    cursor: pointer;
+  }
 }
 
 section {
@@ -41,6 +47,9 @@ section {
     line-height: 14px;
     color: $black;
     opacity: 0.5;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 }
 

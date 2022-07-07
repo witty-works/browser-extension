@@ -1,34 +1,63 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Highlight, IAlert, INodeWithAlerts, ScrollPos } from '../shared/types';
-import { getColor } from '../shared/constants';
-import { nodeExistsInDOM } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
+import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
+import { getColor } from '../shared/constants';
+import { isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
 import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
+import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
 
 interface HighlightsProps {
-  bodyScroll: ScrollPos;
-  parentScroll: ScrollPos;
-  elementScroll: ScrollPos;
-  elementRect: DOMRect;
+  elementScroll: Position;
   nodesWithAlerts: INodeWithAlerts[];
   element: HTMLElement;
+  elementRect: DOMRect;
   selectedAlert: IAlert | null;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
-  bodyScroll,
-  parentScroll,
   elementScroll,
-  elementRect,
   nodesWithAlerts,
   element,
+  elementRect,
   selectedAlert,
 }: HighlightsProps) => {
+  const doc = document.documentElement || document.body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
+  const correctedPosition = usePositionCorrection(
+    element,
+    canvasRef.current.parentElement
+  );
+
+  const canvasSize = {
+    width: elementRect.width,
+    height: elementRect.height,
+  };
+
+  // useEffect(() => {
+  //   document.addEventListener('scroll', handleScrollEvent, true);
+  //   return () => {
+  //     document.removeEventListener('scroll', handleScrollEvent);
+  //   };
+  // }, []);
+
+  // const handleScrollEvent = (event: Event) => {
+  //   //TODO add throttle
+  //   if ((event.target as HTMLElement).nodeName === '#document') {
+  //     //nothing todo
+  //   } else {
+  //     const target = event.target as HTMLElement;
+  //     console.log('target = ', target);
+  //     console.log('target scrollTop = ', target.scrollTop);
+  //     console.log('target scrollHeight = ', target.scrollHeight);
+  //     console.log('target clientHeight = ', target.clientHeight);
+  //   }
+  // };
+
   useEffect(() => {
+    // console.log('highlights correctedPosition = ', correctedPosition);
     const highlights: Highlight[] = [];
     if (nodesWithAlerts.length === 0) setHighlights([]);
 
@@ -42,7 +71,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           } catch (error) {
             sendErrorToSentry(error);
           }
-
           const rects: DOMRect[] = Array.from(range.getClientRects()).map(
             (rect: DOMRect) => {
               return {
@@ -51,8 +79,14 @@ const Highlights: React.FC<HighlightsProps> = ({
                 height: rect.height,
                 left: rect.left,
                 x: rect.left,
-                top: rect.top + bodyScroll.top,
-                y: rect.top,
+                top:
+                  rect.top +
+                  doc.scrollTop -
+                  (isTextArea(element) ? elementScroll.top : 0),
+                y:
+                  rect.top +
+                  doc.scrollTop -
+                  (isTextArea(element) ? elementScroll.top : 0),
               };
             }
           );
@@ -72,17 +106,15 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
 
     setHighlights(highlights);
-  }, [nodesWithAlerts, parentScroll, elementScroll, elementRect]);
+  }, [nodesWithAlerts, elementScroll, elementRect]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     //makes the canvas ratio correct, needed to make text clear
     const ratio = window.devicePixelRatio;
-    canvas.width = elementRect.width * ratio;
-    canvas.height = elementRect.height * ratio;
-    canvas.style.width = elementRect.width + 'px';
-    canvas.style.height = elementRect.height + 'px';
+    canvas.width = canvasSize.width * ratio;
+    canvas.height = canvasSize.height * ratio;
     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
     if (!context) return;
 
@@ -90,6 +122,8 @@ const Highlights: React.FC<HighlightsProps> = ({
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     highlights.forEach((highlight) => {
+      if (highlight.rects.length === 0) return;
+
       const [rect] = highlight.rects;
       const hoverColor = `${getColor(highlight.data.gravity).default}`;
       const highlightColor = `${getColor(highlight.data.gravity).hover}`;
@@ -118,26 +152,25 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawLine(params, hoverColor, dashedLine);
       }
     });
-  }, [highlights, selectedAlert]);
+  }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        style={
-          {
-            position: 'absolute',
-            top: `${elementRect.top}px`,
-            left: `${elementRect.left}px`,
-            width: `${elementRect.width}px`,
-            height: `${elementRect.height}px`,
-            overflow: 'auto',
-            zIndex: 99999999,
-            pointerEvents: 'none',
-          } as React.CSSProperties
-        }
-      ></canvas>
-    </>
+    <canvas
+      ref={canvasRef}
+      style={
+        {
+          position: 'absolute',
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
+          width: `${canvasSize.width}px`,
+          height: `${canvasSize.height}px`,
+          overflow: 'auto',
+          pointerEvents: 'none',
+          // mixBlendMode: 'normal',   //TODO Explorer this property
+          // backgroundColor: 'rgba(0,0,150,0.3)',
+        } as React.CSSProperties
+      }
+    ></canvas>
   );
 };
 

@@ -8,10 +8,10 @@ import EditorButton from '../assets/icons/popup/editor-button.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
-import Settings from '../assets/icons/popup/settings.svg';
 import ArrowIcon from '../shared/animations/Arrow';
 import { storeInLocalStorage } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
+import PopupHeader from './PopupHeader';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
@@ -34,32 +34,36 @@ const PopupDomainDeactivated: React.FC = () => {
   }, []);
 
   return (
-    <div className='domain-not-supported'>
-      <div className='domain-not-supported-title-wrapper'>
-        <SadFace className='domain-not-supported-icon' />
-        <div className='domain-not-supported-title'>{t('noSupport')}</div>
+    <>
+      <PopupHeader />
+      <div className='domain-not-supported'>
+        <div className='domain-not-supported-title-wrapper'>
+          <SadFace className='domain-not-supported-icon' />
+          <div className='domain-not-supported-title'>{t('noSupport')}</div>
+        </div>
+
+        <div
+          className='domain-not-supported-container'
+          onClick={() => {
+            analytics.voteForUrlLog(currentTab, appId);
+            setHasVoted(true);
+          }}
+        >
+          <UpvoteButton />
+          <div>{!hasVoted ? t('vote') : t('thanks')}</div>
+        </div>
+
+        <div
+          className='domain-not-supported-container'
+          onClick={() =>
+            browser.tabs.create({ url: 'https://www.witty.works/form' })
+          }
+        >
+          <EditorButton />
+          <div>{t('editor')}</div>
+        </div>
       </div>
 
-      <div
-        className='domain-not-supported-container'
-        onClick={() => {
-          analytics.voteForUrlLog(currentTab, appId);
-          setHasVoted(true);
-        }}
-      >
-        <UpvoteButton />
-        <div>{!hasVoted ? t('vote') : t('thanks')}</div>
-      </div>
-
-      <div
-        className='domain-not-supported-container'
-        onClick={() =>
-          browser.tabs.create({ url: 'https://www.witty.works/form' })
-        }
-      >
-        <EditorButton />
-        <div>{t('editor')}</div>
-      </div>
       <footer>
         <div
           className='enable-witty'
@@ -70,14 +74,8 @@ const PopupDomainDeactivated: React.FC = () => {
           <ArrowIcon play={true} />
           {t('overrideRecomendedSites')}
         </div>
-        <Settings
-          onClick={
-            //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
-            () => browser.runtime.openOptionsPage().then(() => window.close())
-          }
-        />
       </footer>
-    </div>
+    </>
   );
 };
 

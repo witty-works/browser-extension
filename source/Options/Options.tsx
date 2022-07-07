@@ -17,9 +17,8 @@ import {
   maximumImportanceToBoolean,
   changeMaximumImportance,
 } from '../shared/utils';
-// import LanguageSelector from '../Popup/LanguageSelector';
 import GermanGenderEndSelector from './GermanGenderEndSelector';
-import PreferedLanguagesSelector from './PreferedLanguagesSelector';
+import PreferedLanguagesSelector from './PreferredLanguagesSelector';
 import WittyLogo from '../assets/icons/options/witty-logo.svg';
 import ArrowDown from '../assets/icons/options/arrow-down.svg';
 import ArrowUp from '../assets/icons/options/arrow-up.svg';
@@ -38,6 +37,7 @@ const Options: React.FC = () => {
     namespaces.pages.options,
     namespaces.pages.popup,
   ]);
+
   // const [languagesTabOpen, setLanguagesTabOpen] = useState<boolean>(false);
   const [rulesTabOpen, setRulesTabOpen] = useState<boolean>(false);
   const [disableTabOpen, setDisableTabOpen] = useState<boolean>(false);
@@ -71,8 +71,10 @@ const Options: React.FC = () => {
   const [germanGenderEnding, setGermanGenderEnding] = useState<ConfigProperty>(
     defaultConfig.GERMAN_GENDER_ENDING
   );
-  const [teamName, setTeamName] = useState<string>('');
-  const [subscriptionPlan, setSubscriptionPlan] = useState<string>('');
+  const [teamName, setTeamName] = useState<string>(defaultConfig.TEAM_NAME);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string>(
+    defaultConfig.PLAN
+  );
 
   const [username, setUsername] = useState<string>('');
   const [accessToken, setAccessToken] = useState<string>('');
@@ -106,7 +108,7 @@ const Options: React.FC = () => {
       setUsername(result[StorageKeys.USERNAME]);
       setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
       setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-      setTeamName(result[StorageKeys.NAME]);
+      setTeamName(result[StorageKeys.TEAM_NAME]);
       setSubscriptionPlan(result[StorageKeys.PLAN]);
 
       result[StorageKeys.ACCESS_TOKEN] == ''
@@ -202,7 +204,7 @@ const Options: React.FC = () => {
   }, [refreshToken]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.NAME, teamName);
+    storeInLocalStorage(StorageKeys.TEAM_NAME, teamName);
   }, [teamName]);
 
   useEffect(() => {
@@ -221,75 +223,95 @@ const Options: React.FC = () => {
       for (let key in authResponse.config) {
         switch (key) {
           case 'german_gender_ending':
-            setGermanGenderEnding(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setGermanGenderEnding(authResponse.config[key]);
+            } else {
+              setGermanGenderEnding({
+                value: germanGenderEnding.value,
+                status: authResponse.config[key].status,
+              });
+            }
             break;
           case 'inclusive':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setInclusiveLanguage(authResponse.config[key] as ConfigProperty);
+              setInclusiveLanguage(authResponse.config[key]);
             } else {
               setInclusiveLanguage({
                 ...inclusiveLanguage,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'maximum_importance':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setMaximumImportance(authResponse.config[key] as ConfigProperty);
+              setMaximumImportance(authResponse.config[key]);
             } else {
               setMaximumImportance({
                 ...maximumImportance,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'orthography':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setOrthography(authResponse.config[key] as ConfigProperty);
+              setOrthography(authResponse.config[key]);
             } else {
               setOrthography({
                 ...orthography,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'show_inspiration_alternatives':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setInspirationalAlternatives(
-                authResponse.config[key] as ConfigProperty
-              );
+              setInspirationalAlternatives(authResponse.config[key]);
             } else {
               setInspirationalAlternatives({
                 ...inspirationalAlternatives,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'singular_they':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setSingularThey(authResponse.config[key] as ConfigProperty);
+              setSingularThey(authResponse.config[key]);
             } else {
               setSingularThey({
                 ...singularThey,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'style':
             if (authResponse.config[key].status == 'force' || resetSettings) {
-              setStyleCorrections(authResponse.config[key] as ConfigProperty);
+              setStyleCorrections(authResponse.config[key]);
             } else {
               setStyleCorrections({
                 ...styleCorrections,
                 status: authResponse.config[key].status,
-              } as ConfigProperty);
+              });
             }
             break;
           case 'gendered_roles_format':
-            setGenderRolesFormat(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setGenderRolesFormat(authResponse.config[key]);
+            } else {
+              setGenderRolesFormat({
+                value: genderRolesFormat.value,
+                status: authResponse.config[key].status,
+              });
+            }
+
             break;
           case 'preferred_variants':
-            setPreferredVariants(authResponse.config[key] as ConfigProperty);
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setPreferredVariants(authResponse.config[key]);
+            } else {
+              setPreferredVariants({
+                value: preferredVariants.value,
+                status: authResponse.config[key].status,
+              });
+            }
             break;
         }
       }
@@ -298,7 +320,9 @@ const Options: React.FC = () => {
   }, [authResponse, resetSettings]);
 
   useEffect(() => {
-    console.log('authErrorResponse', authErrorResponse);
+    if (authErrorResponse?.status == 403) {
+      logOut();
+    }
   }, [authErrorResponse]);
 
   const logIn = async () => {
@@ -313,6 +337,10 @@ const Options: React.FC = () => {
     setUserIsLoggedIn(false);
     setTeamName('');
     setSubscriptionPlan('');
+    setMaximumImportance({
+      status: 'suggestion',
+      value: 2,
+    });
     //reload the page to update everything
     window.location.reload();
   };
@@ -322,6 +350,7 @@ const Options: React.FC = () => {
       <div className='wittyworks-options-header'>
         <div className='wittyworks-options-header-content'>
           <WittyLogo
+            id='witty-logo-white'
             onClick={() => {
               window.open('https://www.witty.works/', '_blank');
             }}
@@ -352,7 +381,10 @@ const Options: React.FC = () => {
             <div
               className='wittyworks-upgrade-banner-button'
               onClick={() => {
-                window.open('https://www.witty.works/pricing', '_blank');
+                window.open(
+                  'https://www.witty.works/witty-for-teams',
+                  '_blank'
+                );
               }}
             >
               {t('getMoreButton')}
@@ -384,13 +416,31 @@ const Options: React.FC = () => {
               <span className='wittyworks-options-login-cursiva'>
                 {username}{' '}
               </span>
+              {userIsLoggedIn && !teamName && (
+                <div
+                  className='wittyworks-options-team-link'
+                  onClick={() => {
+                    window.open(
+                      `${BaseUrls[urls].dashboard}${
+                        browser.i18n.getUILanguage().split('-')[0]
+                      }/team/create`,
+                      '_blank'
+                    );
+                  }}
+                >
+                  {t('createATeam')}
+                </div>
+              )}
               {teamName !== '' &&
                 teamName &&
                 subscriptionPlan &&
                 subscriptionPlan !== '' && (
                   <div>
                     {t('greetingTeam')}{' '}
-                    <span className='wittyworks-options-login-cursiva'>
+                    <span
+                      className='wittyworks-options-login-cursiva'
+                      id='team-name'
+                    >
                       {teamName}{' '}
                     </span>
                     {t('greetingPlan')}{' '}
@@ -408,7 +458,10 @@ const Options: React.FC = () => {
           </section>
         )}
 
-        <section className='wittyworks-options-content-section'>
+        <section
+          className='wittyworks-options-content-section'
+          id='wittyworks-options-content-section-configure-rules'
+        >
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
@@ -439,7 +492,7 @@ const Options: React.FC = () => {
                       setSingularThey({
                         ...singularThey,
                         value:
-                          singularThey.status != 'force'
+                          singularThey.status != 'force' || !userIsLoggedIn
                             ? changeSingularThey(
                                 !singularTheyToBoolean(
                                   singularThey.value as string
@@ -500,30 +553,23 @@ const Options: React.FC = () => {
                                   maximumImportance.value as number
                                 )
                               )
-                            : maximumImportanceToBoolean(
-                                maximumImportance.value as number
+                            : changeMaximumImportance(
+                                maximumImportanceToBoolean(
+                                  maximumImportance.value as number
+                                )
                               ),
                       });
                     }}
                     color={Colors.green}
                     scale={0.35}
                     label={t('expertMode')}
-                    locked={
-                      maximumImportance.status == 'force' || !hasWittyTeams
-                    }
+                    locked={maximumImportance.status == 'force'}
                     hasWittyTeams={hasWittyTeams}
                     userIsLoggedIn={userIsLoggedIn}
                   />
 
                   <div className='wittyworks-options-content-section-container-subtitle'>
                     {t('expertModeExplanation')}
-                    <a
-                      className='wittyworks-options-content-section-container-link'
-                      href={t('expertModeExplanationUrl')}
-                      target='_blank'
-                    >
-                      {t('learnMore')}
-                    </a>
                   </div>
                 </div>
 
@@ -543,11 +589,8 @@ const Options: React.FC = () => {
                     color={Colors.green}
                     scale={0.35}
                     label={t('inspirationAlternatives')}
-                    locked={
-                      inspirationalAlternatives.status == 'force' ||
-                      !hasWittyTeams
-                    }
                     hasWittyTeams={hasWittyTeams}
+                    locked={inspirationalAlternatives.status == 'force'}
                     userIsLoggedIn={userIsLoggedIn}
                   />
                   <div className='wittyworks-options-content-section-container-subtitle'>
@@ -562,7 +605,7 @@ const Options: React.FC = () => {
                       setInclusiveLanguage({
                         ...inclusiveLanguage,
                         value:
-                          inclusiveLanguage.status != 'force'
+                          inclusiveLanguage.status != 'force' || !userIsLoggedIn
                             ? !inclusiveLanguage.value
                             : inclusiveLanguage.value,
                       });
@@ -592,7 +635,7 @@ const Options: React.FC = () => {
                       setStyleCorrections({
                         ...styleCorrections,
                         value:
-                          styleCorrections.status != 'force'
+                          styleCorrections.status != 'force' || !userIsLoggedIn
                             ? !styleCorrections.value
                             : styleCorrections.value,
                       });
@@ -624,7 +667,7 @@ const Options: React.FC = () => {
                       setOrthography({
                         ...orthography,
                         value:
-                          orthography.status != 'force'
+                          orthography.status != 'force' || !userIsLoggedIn
                             ? !orthography.value
                             : orthography.value,
                       });
@@ -653,7 +696,10 @@ const Options: React.FC = () => {
           </div>
         </section>
 
-        <section className='wittyworks-options-content-section'>
+        <section
+          className='wittyworks-options-content-section'
+          id='wittyworks-options-content-section-disable-witty'
+        >
           <div
             className='wittyworks-options-content-section-title'
             onClick={() => {
