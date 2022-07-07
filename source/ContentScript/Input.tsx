@@ -625,6 +625,9 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointError) {
+      if (checkEndpointError.status === 422) {
+        setNodesWithAlerts([]);
+      }
       //gets new access token using the refresh token if the access token has expired
       if (checkEndpointError.status == 403) {
         browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
