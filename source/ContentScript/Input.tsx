@@ -624,35 +624,33 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    if (checkEndpointError) {
-      if (checkEndpointError.status === 422) {
-        setNodesWithAlerts([]);
-      }
-      //gets new access token using the refresh token if the access token has expired
-      if (checkEndpointError.status == 403) {
-        browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
-          if (result[StorageKeys.REFRESH_TOKEN] == '') return;
-          setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-          if (refreshTokenError || !refreshTokenResponse) return;
-          storeInLocalStorage(
-            StorageKeys.ACCESS_TOKEN,
-            refreshTokenResponse.access_token
-          );
-          storeInLocalStorage(
-            StorageKeys.REFRESH_TOKEN,
-            refreshTokenResponse.refresh_token
-          );
-          storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
-
-          setTextToCheck('');
-          setTextToCheck(currentTextToCheck);
-        });
-        log(
-          `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
-          logTypes.ERROR
-        );
-      }
+    if (checkEndpointError?.status === 422) {
+      setNodesWithAlerts([]);
     }
+    //gets new access token using the refresh token if the access token has expired
+    else if (checkEndpointError?.status == 403) {
+      browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
+        if (result[StorageKeys.REFRESH_TOKEN] == '') return;
+        setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
+        if (refreshTokenError || !refreshTokenResponse) return;
+        storeInLocalStorage(
+          StorageKeys.ACCESS_TOKEN,
+          refreshTokenResponse.access_token
+        );
+        storeInLocalStorage(
+          StorageKeys.REFRESH_TOKEN,
+          refreshTokenResponse.refresh_token
+        );
+        storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
+
+        setTextToCheck('');
+        setTextToCheck(currentTextToCheck);
+      });
+    }
+    log(
+      `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
+      logTypes.ERROR
+    );
   }, [checkEndpointError]);
 
   useEffect(() => {
