@@ -23,26 +23,26 @@ const IconController: React.FC<IconControllerProps> = ({
     ref.current.parentElement
   );
   const elementRect = element.getBoundingClientRect();
-  const iconPadding: number = 8;
 
   const textareaStyle = {
-    display: 'flex',
     position: 'absolute',
-    top: `${elementRect.height + correctedPosition.top - 21 - iconPadding}px`,
-    left: `${elementRect.width + correctedPosition.left - 25 - iconPadding}px`,
+    marginTop: '5px',
+    left: `${elementRect.width + correctedPosition.left - 30}px`,
   };
 
   const contenteditableStyle = {
     position: 'fixed',
-    top: `${elementRect.bottom - elementRect.top + 21 + iconPadding}px`,
-    right: `${window.innerWidth - elementRect.right + iconPadding}px`,
+    marginTop: `10px`,
+    marginRight: `10px`,
+    right: `${window.innerWidth - elementRect.right}px`,
   };
 
   return (
     <div
       ref={ref}
       style={
-        element.tagName === 'TEXTAREA'
+        //twitter never has a scrollbar, so it can be treated as textarea
+        element.tagName === 'TEXTAREA' || location.hostname == 'twitter.com'
           ? (textareaStyle as React.CSSProperties)
           : (contenteditableStyle as React.CSSProperties)
       }
