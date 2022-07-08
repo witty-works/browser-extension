@@ -57,7 +57,6 @@ const Highlights: React.FC<HighlightsProps> = ({
   // };
 
   useEffect(() => {
-    // console.log('highlights correctedPosition = ', correctedPosition);
     const highlights: Highlight[] = [];
     if (nodesWithAlerts.length === 0) setHighlights([]);
 
