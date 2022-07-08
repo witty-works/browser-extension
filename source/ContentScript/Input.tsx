@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import ReactDOM from 'react-dom';
+import { browser } from 'webextension-polyfill-ts';
 
+import * as Sentry from '@sentry/react';
+import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
 import { WTags } from '../shared/constants';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../i18n/i18n.constants';
+
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -25,9 +30,9 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
+import Toast from '../shared/components/Toast/Toast';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -75,7 +80,7 @@ const Input: React.FC<{
   );
 
   useMutationObserver(element, onElementMutation);
-
+  const { t } = useTranslation([namespaces.errors]);
   const log = useLog('Input');
 
   useEffect(() => {
@@ -624,46 +629,53 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    if (checkEndpointError) {
-      //gets new access token using the refresh token if the access token has expired
-      if (checkEndpointError.status == 403) {
-        browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
-          if (result[StorageKeys.REFRESH_TOKEN] == '') return;
-          setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-          if (refreshTokenError || !refreshTokenResponse) return;
-          storeInLocalStorage(
-            StorageKeys.ACCESS_TOKEN,
-            refreshTokenResponse.access_token
-          );
-          storeInLocalStorage(
-            StorageKeys.REFRESH_TOKEN,
-            refreshTokenResponse.refresh_token
-          );
-          storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
-
-          setTextToCheck('');
-          setTextToCheck(currentTextToCheck);
-        });
-        log(
-          `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
-          logTypes.ERROR
-        );
-      }
+    if (checkEndpointError?.status === 422) {
+      setNodesWithAlerts([]);
     }
+    //gets new access token using the refresh token if the access token has expired
+    else if (checkEndpointError?.status == 403) {
+      browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
+        if (result[StorageKeys.REFRESH_TOKEN] == '') return;
+        setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
+        if (refreshTokenError || !refreshTokenResponse) return;
+        storeInLocalStorage(
+          StorageKeys.ACCESS_TOKEN,
+          refreshTokenResponse.access_token
+        );
+        storeInLocalStorage(
+          StorageKeys.REFRESH_TOKEN,
+          refreshTokenResponse.refresh_token
+        );
+        storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
+
+        setTextToCheck('');
+        setTextToCheck(currentTextToCheck);
+      });
+    }
+    log(
+      `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
+      logTypes.ERROR
+    );
   }, [checkEndpointError]);
+
+  const ErrorBoundaryFallback = () => (
+    <Toast message={t('reloadWebsite')} type='error' />
+  );
 
   useEffect(() => {
     //Show/Hide the popover
     if (popoverData) {
       ReactDOM.render(
-        <HighlightPopover
-          element={element}
-          data={popoverData}
-          hide={resetPopover}
-          updateTextWithAlternative={updateTextWithAlternative}
-          addIgnoredTerm={addIgnoredTerm}
-          movePopoverNextOrPrev={movePopoverNextOrPrev}
-        />,
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopover
+            element={element}
+            data={popoverData}
+            hide={resetPopover}
+            updateTextWithAlternative={updateTextWithAlternative}
+            addIgnoredTerm={addIgnoredTerm}
+            movePopoverNextOrPrev={movePopoverNextOrPrev}
+          />
+        </Sentry.ErrorBoundary>,
         document.querySelector(WTags.WW_POPOVER)
       );
     } else {
@@ -704,13 +716,15 @@ const Input: React.FC<{
         </WTags.WW_CLONE>
       )}
       <WTags.WW_HIGHLIGHTS>
-        <Highlights
-          elementScroll={elementScroll}
-          nodesWithAlerts={nodesWithAlerts}
-          element={element}
-          elementRect={elementRect}
-          selectedAlert={selectedAlert}
-        />
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <Highlights
+            elementScroll={elementScroll}
+            nodesWithAlerts={nodesWithAlerts}
+            element={element}
+            elementRect={elementRect}
+            selectedAlert={selectedAlert}
+          />
+        </Sentry.ErrorBoundary>
       </WTags.WW_HIGHLIGHTS>
     </>
   );

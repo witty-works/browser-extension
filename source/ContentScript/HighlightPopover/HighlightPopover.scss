@@ -6,12 +6,11 @@
   background-color: $white;
   color: $black;
   z-index: 999999;
-  padding: 0 0.5em;
+  padding: 0 8px;
   box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
   border-radius: 5px;
   font-family: $lato !important;
-  min-width: 17em;
-  max-width: 20em;
+  min-width: 272px;
 }
 
 #wittyworks-popover-content {
@@ -50,6 +49,7 @@
 .wittyworks-popover-alternative-btn-container {
   display: flex;
   flex-direction: row;
+  align-items: center;
   margin: 4px 0px;
 
   &:hover {
@@ -69,6 +69,7 @@
   padding: 2px 8px;
   margin: 4px 0px 4px 0px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .wittyworks-popover-alternative-btn {
@@ -128,6 +129,7 @@
   margin-top: 0.2em;
   margin-bottom: 0.2em;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .wittyworks-popover-row-explanation-emoji {
@@ -139,6 +141,12 @@
 .wittyworks-popover-row-explanation-text {
   font-weight: 700;
   line-height: 110%;
+  max-width: 20em;
+  color: $black;
+
+  &:hover {
+    color: $black;
+  }
 }
 
 .wittyworks-popover-row-explanation-context {

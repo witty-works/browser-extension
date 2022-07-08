@@ -1,0 +1,44 @@
+require('dotenv').config();
+const { test: base, chromium, expect } = require('@playwright/test') //add firefox
+
+const extensionId = process.env.EXTENSION_ID_DEV;
+
+const test = base.extend({
+    context: async ({ browserName }, use) => {
+        const browserTypes = { chromium } //add firefox
+        // const pathToExtension = '/home/runner/work/browser-extension/extension/chrome'; //for GA
+        const pathToExtension = ('./extension/chrome');
+
+        const launchOptions = {
+            devtools: false,
+            headless: false,
+            viewport: {
+                width: 1400,
+                height: 700
+            },
+            args: [
+                `--no-sandbox`,
+                `--disable-setuid-sandbox`,
+                `--disable-extensions-except=${pathToExtension}`,
+                `--load-extension=${pathToExtension}`
+            ],
+        }
+        const context = await browserTypes[browserName].launchPersistentContext(
+            '',
+            launchOptions
+        )
+        await use(context)
+        await context.close()
+    }
+})
+// test.use({ trace: 'on' })
+
+test.describe('Options', () => {
+    test('witty-is-installed tag is present', async ({ page }) => {
+        await page.goto(`https://www.witty.works/editor`)
+        const wittyIsInstalledTag = await page.evaluate(() => {
+            return document.querySelector('witty-is-installed')
+        })
+        expect(wittyIsInstalledTag).toBeTruthy()
+    });
+});

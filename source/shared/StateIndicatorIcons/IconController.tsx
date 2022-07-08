@@ -39,6 +39,10 @@ const IconController: React.FC<IconControllerProps> = ({
           elementRect.width + correctedPosition.left - 25 - iconPadding
         }px`,
       }}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }}
     >
       {iconType == 'loading' && <LoadingIcon />}
       {iconType == 'active' && <ActiveIcon />}

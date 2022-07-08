@@ -1,19 +1,21 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
+import * as Sentry from '@sentry/react';
+import { BrowserTracing } from '@sentry/tracing';
 import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys, WTags } from '../shared/constants';
 import ContentScriptApp from './ContentScriptApp';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
 import { getDomainWithoutSubdomain } from '../shared/utils';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 const log = useLog('ContentScript index');
 
-//purpose of witty-code tag with extension-id is so that we can check if the extension has been installed
-document.body.appendChild(document.createElement('witty-code'));
-const wittyCodeElement = document.querySelector('witty-code');
-wittyCodeElement &&
-  wittyCodeElement.setAttribute('extension-id', browser.runtime.id);
+document.body.appendChild(document.createElement('witty-is-installed'));
+const wittyIsInstalledElement = document.querySelector('witty-is-installed');
+wittyIsInstalledElement &&
+  wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
 
 const customRender = (enabled: boolean) => {
   if (!document.querySelector(WTags.WW_POPOVER)) {
@@ -50,6 +52,7 @@ browser.storage.local
   })
   .catch((error: string) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
   });
 
 //TODO define changes type
@@ -84,5 +87,13 @@ const storageChange = (changes: any) => {
 };
 
 browser.storage.onChanged.addListener(storageChange);
+
+Sentry.init({
+  dsn: 'https://41a158eff71044a3ad021f381e0f0349@o512991.ingest.sentry.io/6223342',
+  release: 'witty@' + browser.runtime.getManifest().version,
+  integrations: [new BrowserTracing()],
+  sampleRate: 0.1,
+  tracesSampleRate: 0.00001,
+});
 
 export {};
