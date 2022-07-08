@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
+import { sendErrorToSentry } from '../shared/errorUtils';
 import Dropdown, { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { GermanGenderEndings, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
@@ -53,8 +54,9 @@ const GermanGenderEndSelector: React.FC<SelectorProps> = ({
     }
   }, []);
 
-  const onError = (error: string) => {
+  const onError = (error: unknown) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
   };
 
   useEffect(() => {

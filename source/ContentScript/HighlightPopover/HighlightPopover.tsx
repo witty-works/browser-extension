@@ -231,12 +231,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 </span>
               )}
               {data.alert.data.explanation.url && (
-                <a className='wittyworks-popover-row-explanation-url'>
+                <div className='wittyworks-popover-row-explanation-url'>
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
                   <ArrowIcon play={isHovered} />
-                </a>
+                </div>
               )}
             </div>
           </a>

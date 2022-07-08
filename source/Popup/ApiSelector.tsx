@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
+import { sendErrorToSentry } from '../shared/errorUtils';
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 import { OptionProp } from '../shared/components/Dropdown/Dropdown';
 import { BaseUrls, DefaultBaseUrlKey, StorageKeys } from '../shared/constants';
@@ -31,10 +32,6 @@ const ApiSelector: React.FC = () => {
       .catch(onError);
   }, []);
 
-  const onError = (error: string) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-  };
-
   const handleDropdownChange = (value: string) => {
     browser.storage.local
       .set({
@@ -44,6 +41,11 @@ const ApiSelector: React.FC = () => {
         log(`New api endpoint ${value} saved`);
       })
       .catch(onError);
+  };
+
+  const onError = (error: unknown) => {
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
   };
 
   return (

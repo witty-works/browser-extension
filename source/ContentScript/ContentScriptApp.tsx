@@ -17,6 +17,7 @@ import {
   nodeExistsInDOM,
   elementIsVisible,
 } from '../shared/DOMutils';
+import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 
@@ -81,7 +82,10 @@ const ContentScriptApp: React.FC = () => {
         };
         setReqConfig(reqConfig);
       })
-      .catch(onBrowserStorageError);
+      .catch((error: unknown) => {
+        log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+        sendErrorToSentry(error);
+      });
 
     browser.storage.onChanged.addListener(storageChange);
     document.addEventListener('focusin', handleFocusinElement, true);
@@ -204,10 +208,6 @@ const ContentScriptApp: React.FC = () => {
   useEffect(() => {
     setRequestConfig(reqConfig);
   }, [reqConfig]);
-
-  const onBrowserStorageError = (error: string) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-  };
 
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
