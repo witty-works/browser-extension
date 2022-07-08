@@ -15,7 +15,9 @@ export const usePositionCorrection = (
     const newPosition =
       parentElement && !isObjectEmpty(parentElement)
         ? {
-            top: elementRect.top - parentElement.getBoundingClientRect().top,
+            top: navigator.userAgent.match(/firefox|fxios/i)
+              ? 0
+              : elementRect.top - parentElement.getBoundingClientRect().top,
             left: elementRect.left - parentElement.getBoundingClientRect().left,
           }
         : {
