@@ -56,7 +56,7 @@ const PopupDomainDeactivated: React.FC = () => {
         <div
           className='domain-not-supported-container'
           onClick={() =>
-            browser.tabs.create({ url: 'https://www.witty.works/form' })
+            browser.tabs.create({ url: 'https://www.witty.works/editor' })
           }
         >
           <EditorButton />
