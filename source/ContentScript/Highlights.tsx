@@ -58,13 +58,19 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   useEffect(() => {
     const highlights: Highlight[] = [];
-    if (nodesWithAlerts.length === 0) setHighlights([]);
+    if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
           const range = document.createRange();
           try {
+            if (
+              node.textContent &&
+              (alert.endOffset > node.textContent.length ||
+                alert.startOffset > node.textContent.length)
+            )
+              return;
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
           } catch (error) {
@@ -121,7 +127,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     highlights.forEach((highlight) => {
-      if (highlight.rects.length === 0) return;
+      if (highlight.rects && highlight.rects.length === 0) return;
 
       const [rect] = highlight.rects;
       const hoverColor = `${getColor(highlight.data.gravity).default}`;

@@ -140,13 +140,15 @@ const scanTabsToDetectStatus = () => {
           (result[StorageKeys.DISABLED_SITES] &&
             result[StorageKeys.DISABLED_SITES].length > 0 &&
             result[StorageKeys.DISABLED_SITES].includes(domain)) ||
-            (!defaultConfig.ACTIVE_SITES.includes(domain) &&
+            (defaultConfig.ACTIVE_SITES &&
+              !defaultConfig.ACTIVE_SITES.includes(domain) &&
               !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
             ? WittyIconInactive
             : WittyIconActive
         );
       });
     } else if (
+      defaultConfig.CHROME_AND_FIREFOX_SITES &&
       defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
     ) {
       browser.browserAction.setIcon(WittyIconActive);
