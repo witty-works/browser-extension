@@ -31,6 +31,8 @@ const customRender = (enabled: boolean) => {
 
   //if more than one container is found, remove all of except the first one. If witty disabled, remove all.
   const containers = document.querySelectorAll(WTags.WW_CONTAINER);
+  if (!containers) return;
+
   for (let i = enabled ? 1 : 0; i < containers.length; i++) {
     containers[i].remove();
   }
@@ -41,8 +43,10 @@ browser.storage.local
   .get(null)
   .then((result) => {
     if (
-      result[StorageKeys.DISABLED_SITES].includes(domain) ||
-      (!defaultConfig.ACTIVE_SITES.includes(domain) &&
+      (result[StorageKeys.DISABLED_SITES] &&
+        result[StorageKeys.DISABLED_SITES].includes(domain)) ||
+      (defaultConfig.ACTIVE_SITES &&
+        !defaultConfig.ACTIVE_SITES.includes(domain) &&
         !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
     ) {
       customRender(false);
@@ -62,12 +66,14 @@ const storageChange = (changes: any) => {
     switch (item) {
       case StorageKeys.ENABLE_WITTY_EVERYWHERE:
         if (
-          StorageKeys.DISABLED_SITES.includes(
-            window.location.hostname.replace('www.', '')
-          ) ||
-          (!defaultConfig.ACTIVE_SITES.includes(
-            window.location.hostname.replace('www.', '')
-          ) &&
+          (StorageKeys.DISABLED_SITES &&
+            StorageKeys.DISABLED_SITES.includes(
+              window.location.hostname.replace('www.', '')
+            )) ||
+          (defaultConfig.ACTIVE_SITES &&
+            !defaultConfig.ACTIVE_SITES.includes(
+              window.location.hostname.replace('www.', '')
+            ) &&
             !changes[item].newValue)
         ) {
           customRender(false);
