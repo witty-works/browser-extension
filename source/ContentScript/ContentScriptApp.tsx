@@ -62,23 +62,34 @@ const ContentScriptApp: React.FC = () => {
           german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value
             ? result[StorageKeys.GERMAN_GENDER_ENDING].value
             : result[StorageKeys.GERMAN_GENDER_ENDING],
-          preferred_variants: result[StorageKeys.PREFERRED_VARIANTS].value,
+          preferred_variants: result[StorageKeys.PREFERRED_VARIANTS].value
+            ? result[StorageKeys.PREFERRED_VARIANTS].value
+            : result[StorageKeys.PREFERRED_VARIANTS],
           disabled_categories: [
             result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
             result[StorageKeys.INCLUSIVE].value === true ? '' : 'inclusive',
             result[StorageKeys.STYLE].value === true ? '' : 'style',
+            result[StorageKeys.CASING_SITES] &&
             result[StorageKeys.CASING_SITES].includes(
               window.location.hostname.replace('www.', '')
             )
               ? 'casing'
               : '',
           ].filter((category) => category !== ''),
-          maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE].value,
-          singular_they: result[StorageKeys.SINGULAR_THEY].value,
-          show_inspiration_alternatives:
-            result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES].value,
-          gendered_roles_format:
-            result[StorageKeys.GENDERED_ROLES_FORMAT].value,
+          maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE].value
+            ? result[StorageKeys.MAXIMUM_IMPORTANCE].value
+            : result[StorageKeys.MAXIMUM_IMPORTANCE],
+          singular_they: result[StorageKeys.SINGULAR_THEY].value
+            ? result[StorageKeys.SINGULAR_THEY].value
+            : result[StorageKeys.SINGULAR_THEY],
+          show_inspiration_alternatives: result[
+            StorageKeys.SHOW_INSPIRATION_ALTERNATIVES
+          ].value
+            ? result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES].value
+            : result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES],
+          gendered_roles_format: result[StorageKeys.GENDERED_ROLES_FORMAT].value
+            ? result[StorageKeys.GENDERED_ROLES_FORMAT].value
+            : result[StorageKeys.GENDERED_ROLES_FORMAT],
         };
         setReqConfig(reqConfig);
       })
@@ -227,7 +238,7 @@ const ContentScriptApp: React.FC = () => {
     if (
       !isInputElement(target) ||
       target.tagName === 'P' ||
-      inputsRef.current.length > 0
+      (inputsRef.current && inputsRef.current.length > 0)
     )
       return;
 
@@ -283,7 +294,7 @@ const ContentScriptApp: React.FC = () => {
     }
   };
   useEffect(() => {
-    if (inputs.length > 0) {
+    if (inputs && inputs.length > 0) {
       log(
         `Analyzed inputs:`,
         logTypes.INFO,

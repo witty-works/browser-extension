@@ -50,7 +50,10 @@ const GenderRoleFormatSelector: React.FC<SelectorProps> = ({
       browser.storage.local
         .get(StorageKeys.GENDERED_ROLES_FORMAT)
         .then((result) => {
-          if (result[StorageKeys.GENDERED_ROLES_FORMAT])
+          if (
+            result[StorageKeys.GENDERED_ROLES_FORMAT] &&
+            result[StorageKeys.GENDERED_ROLES_FORMAT].value
+          )
             setSelectedOption(result[StorageKeys.GENDERED_ROLES_FORMAT].value);
         })
         .catch(onError);

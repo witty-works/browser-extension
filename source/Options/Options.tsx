@@ -31,6 +31,7 @@ import './styles.scss';
 import { setBaseUrls, setToken } from '../shared/ApiServices/requests';
 import GenderRoleFormatSelector from './GenderRoleFormatSelector';
 import LoadingIcon from '../shared/StateIndicatorIcons/LoadingIcon';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 const Options: React.FC = () => {
   const { t } = useTranslation([
@@ -144,15 +145,19 @@ const Options: React.FC = () => {
   }, [urls]);
 
   const onOptionsLoad = (event: Event) => {
-    const searchParams = new URLSearchParams(
-      (event.currentTarget as Window).location.search
-    );
+    try {
+      const searchParams = new URLSearchParams(
+        (event.currentTarget as Window).location.search
+      );
 
-    if ([...searchParams].length > 0) {
-      setUsername(searchParams.get('email') as string);
-      setAccessToken(searchParams.get('access_token') as string);
-      setRefreshToken(searchParams.get('refresh_token') as string);
-      window.open(browser.runtime.getURL('options.html'), '_self');
+      if ([...searchParams].length > 0) {
+        setUsername(searchParams.get('email') as string);
+        setAccessToken(searchParams.get('access_token') as string);
+        setRefreshToken(searchParams.get('refresh_token') as string);
+        window.open(browser.runtime.getURL('options.html'), '_self');
+      }
+    } catch (error) {
+      sendErrorToSentry(error);
     }
   };
 

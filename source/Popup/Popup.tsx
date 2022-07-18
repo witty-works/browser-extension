@@ -82,7 +82,8 @@ const Popup: React.FC = () => {
               );
               setCurrentDomain(newCurrentDomain);
 
-              !defaultConfig.ACTIVE_SITES.includes(newCurrentDomain) &&
+              defaultConfig.ACTIVE_SITES &&
+                !defaultConfig.ACTIVE_SITES.includes(newCurrentDomain) &&
                 setShowBackToRecomendedSites(true);
 
               if (
@@ -144,7 +145,7 @@ const Popup: React.FC = () => {
   const handleEnableToggle = () => {
     setEnabled(!enabled);
 
-    if (currentDomain.length > 0)
+    if (currentDomain && currentDomain.length > 0)
       setDisabledSites(
         enabled
           ? [...disabledSites, currentDomain]
@@ -155,7 +156,7 @@ const Popup: React.FC = () => {
   const handleCasingToggle = () => {
     setCasing(!casing);
 
-    if (currentDomain.length > 0)
+    if (currentDomain && currentDomain.length > 0)
       setCasingSites(
         casing
           ? [...casingSites, currentDomain]
@@ -166,7 +167,7 @@ const Popup: React.FC = () => {
   return (
     <>
       <PopupHeader />
-      {currentDomain.length > 0 && (
+      {currentDomain && currentDomain.length > 0 && (
         <section className='wittyworks-toggles website-settings'>
           <h2>{t('websiteSettings', { domain: currentDomain })}</h2>
           <Toggle
