@@ -57,7 +57,8 @@ const Input: React.FC<{
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedNodeWithAlertsIndex, setSelectedNodeWithAlertsIndex] =
     useState<number>(-1);
-  const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
+  const [selectedAlertIndex, setSelectedAlertIndex, prevSelectedAlertIndex] =
+    useStateRef<number>(-1);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   const [popoverData, setPopoverData] = useState<PopoverData | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
@@ -155,6 +156,8 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = (event?: Event) => {
+    if (prevSelectedAlertIndex.current != -1) resetPopover();
+
     browser.storage.local.get(StorageKeys.ORTHOGRAPHY).then((result) => {
       element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
     });
@@ -212,12 +215,10 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
-    if (popoverData) {
-      setPopoverData(null);
-      setSelectedAlert(null);
-      setSelectedNodeWithAlertsIndex(-1);
-      setSelectedAlertIndex(-1);
-    }
+    setPopoverData(null);
+    setSelectedAlert(null);
+    setSelectedNodeWithAlertsIndex(-1);
+    setSelectedAlertIndex(-1);
   };
 
   const getInputText = (element: CustomInputElement) =>
@@ -275,8 +276,13 @@ const Input: React.FC<{
               }
             );
 
-            if (selectedAlertIndex > -1)
-              setSelectedAlertIndex(selectedAlertIndex);
+            if (selectedAlertIndex === -1) return;
+            if (prevSelectedAlertIndex.current === selectedAlertIndex) {
+              resetPopover();
+              return;
+            }
+
+            setSelectedAlertIndex(selectedAlertIndex);
           }
         }
       }, 400);
@@ -311,6 +317,7 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
+    prevSelectedAlertIndex.current = selectedAlertIndex;
     if (
       nodesWithAlertsRef.current.length > 0 &&
       selectedNodeWithAlertsIndex > -1 &&
