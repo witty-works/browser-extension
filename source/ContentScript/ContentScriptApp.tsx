@@ -82,11 +82,11 @@ const ContentScriptApp: React.FC = () => {
           singular_they: result[StorageKeys.SINGULAR_THEY].value
             ? result[StorageKeys.SINGULAR_THEY].value
             : result[StorageKeys.SINGULAR_THEY],
-          show_inspiration_alternatives: result[
-            StorageKeys.SHOW_INSPIRATION_ALTERNATIVES
-          ].value
-            ? result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES].value
-            : result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES],
+          show_inspiration_alternatives:
+            typeof result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES].value !=
+            undefined
+              ? result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES].value
+              : result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES],
           gendered_roles_format: result[StorageKeys.GENDERED_ROLES_FORMAT].value
             ? result[StorageKeys.GENDERED_ROLES_FORMAT].value
             : result[StorageKeys.GENDERED_ROLES_FORMAT],
