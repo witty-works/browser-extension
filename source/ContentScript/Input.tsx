@@ -486,6 +486,34 @@ const Input: React.FC<{
         return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
       });
 
+    const alertsWithSamePositionAndGravity = [] as IAlert[];
+    alerts.filter((alert, index, array) => {
+      if (
+        index < array.length - 1 &&
+        alert.endOffset === array[index + 1].endOffset &&
+        alert.data.gravity === array[index + 1].data.gravity
+      ) {
+        alertsWithSamePositionAndGravity.push(alert);
+        alertsWithSamePositionAndGravity.push(array[index + 1]);
+      }
+    });
+
+    const alertWithSamePositionAndGravityToBeRemoved =
+      alertsWithSamePositionAndGravity.length >= 2
+        ? alertsWithSamePositionAndGravity.reduce(
+            (acc, currentAlert) =>
+              acc.startOffset > currentAlert.startOffset ? acc : currentAlert,
+            alertsWithSamePositionAndGravity[0]
+          )
+        : null;
+
+    if (alertWithSamePositionAndGravityToBeRemoved) {
+      alerts.splice(
+        alerts.indexOf(alertWithSamePositionAndGravityToBeRemoved),
+        1
+      );
+    }
+
     setAlerts([...alerts]);
   }, [checkEndpointResponse]);
 
