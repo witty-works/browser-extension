@@ -17,7 +17,7 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import { storeInLocalStorage } from '../shared/utils';
+import { storeInLocalStorage, getFirstTextDiff } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -39,6 +39,7 @@ const Input: React.FC<{
 }> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
+  const [, , previousTextToCheckRef] = useStateRef('');
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
@@ -161,11 +162,26 @@ const Input: React.FC<{
     browser.storage.local.get(StorageKeys.ORTHOGRAPHY).then((result) => {
       element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
     });
-    const nextText: string = getInputText(element);
-    handleTextAndIcon(nextText, event);
+
+    let nextText: string = getInputText(element);
+
+    const fistTextDiff = getFirstTextDiff(
+      previousTextToCheckRef.current,
+      nextText
+    );
+    if (fistTextDiff < nextText.length) {
+      previousTextToCheckRef.current = nextText;
+      nextText = nextText.substring(0, fistTextDiff);
+      handleTextAndIcon(nextText, event, true);
+    }
+    handleTextAndIcon(nextText, event, false);
   };
 
-  const handleTextAndIcon = (text: string, event?: Event) => {
+  const handleTextAndIcon = (
+    text: string,
+    event?: Event,
+    noDelay?: boolean
+  ) => {
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -173,7 +189,7 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      if (event && event.type == 'keyup') {
+      if (event && event.type == 'keyup' && !noDelay) {
         debouncedSetTextToCheck(text);
         setActiveIcon('loading');
       } else {
