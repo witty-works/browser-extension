@@ -486,44 +486,42 @@ const Input: React.FC<{
         return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
       });
 
-    const alertsWithSamePositionAndGravity = [] as IAlert[];
-    alerts.filter((alert, index, array) => {
-      if (
-        index < array.length - 1 &&
-        alert.endOffset === array[index + 1].endOffset &&
-        alert.data.gravity === array[index + 1].data.gravity
-      ) {
-        alertsWithSamePositionAndGravity.push(alert);
-        alertsWithSamePositionAndGravity.push(array[index + 1]);
-      }
-    });
-
-    const alertWithSamePositionAndGravityToBeRemoved =
-      alertsWithSamePositionAndGravity.length >= 2
-        ? alertsWithSamePositionAndGravity.reduce(
-            (acc, currentAlert) =>
-              acc.startOffset > currentAlert.startOffset ? acc : currentAlert,
-            alertsWithSamePositionAndGravity[0]
-          )
-        : null;
-
-    if (alertWithSamePositionAndGravityToBeRemoved) {
-      alerts.splice(
-        alerts.indexOf(alertWithSamePositionAndGravityToBeRemoved),
-        1
-      );
-    }
-
     setAlerts([...alerts]);
   }, [checkEndpointResponse]);
 
   useEffect(() => {
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
+      //handle the case where a word has multiple alerts of same gravity
+      const alertsWithSamePositionAndGravity = [] as IAlert[][];
+      const alertsWithSamePositionAndGravityToBeRemoved = [] as IAlert[];
+      alerts.forEach((alert, index, array) => {
+        if (
+          index < array.length - 1 &&
+          alert.endOffset === array[index + 1].endOffset &&
+          alert.data.gravity === array[index + 1].data.gravity
+        ) {
+          alertsWithSamePositionAndGravity.push([alert, array[index + 1]]);
+        }
+      });
+      console.log(alertsWithSamePositionAndGravity);
+
+      alertsWithSamePositionAndGravity.forEach((alertPair) => {
+        alertPair[0].endOffset - alertPair[0].startOffset >
+        alertPair[1].endOffset - alertPair[1].startOffset
+          ? alertsWithSamePositionAndGravityToBeRemoved.push(alertPair[1])
+          : alertsWithSamePositionAndGravityToBeRemoved.push(alertPair[0]);
+      });
+
+      alertsWithSamePositionAndGravityToBeRemoved.forEach((alert) => {
+        alerts.splice(alerts.indexOf(alert), 1);
+      });
+
       const alertsWithoutIgnoredTerms: IAlert[] = alerts.filter(
         (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
       );
 
+      //handle case where a word has multiple alerts of different gravity
       const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
         return [alert0, ...alerts]
           .filter(Boolean)
