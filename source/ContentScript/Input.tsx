@@ -265,16 +265,35 @@ const Input: React.FC<{
             nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
 
           if (oneNodeWithAlerts) {
-            // If so, then find out if an alert that has been clicked
-            const selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
+            const caretPos = caret.position;
+
+            let selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
               (alert: IAlert) => {
-                const caretPos = caret.position as number;
                 //If alert is a one character word, take in consideration clicking the position before or after the char
                 return alert.data.text.length === 1
                   ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
                   : alert.startOffset < caretPos && alert.endOffset > caretPos;
               }
             );
+
+            const selectedAlerts = oneNodeWithAlerts.alerts.filter(
+              (alert: IAlert) =>
+                alert.startOffset <= caretPos && alert.endOffset >= caretPos
+            );
+            if (selectedAlerts.length > 1) {
+              const alertWithLargestStartoffset = selectedAlerts.reduce(
+                (prev: IAlert, current: IAlert) => {
+                  return prev.startOffset > current.startOffset
+                    ? prev
+                    : current;
+                }
+              );
+
+              selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
+                (alert: IAlert) =>
+                  alert.startOffset === alertWithLargestStartoffset.startOffset
+              );
+            }
 
             if (selectedAlertIndex === -1) return;
             if (prevSelectedAlertIndex.current === selectedAlertIndex) {
@@ -492,31 +511,6 @@ const Input: React.FC<{
   useEffect(() => {
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
-      //handle the case where a word has multiple alerts of same gravity
-      const alertsWithSamePositionAndGravity = [] as IAlert[][];
-      const alertsWithSamePositionAndGravityToBeRemoved = [] as IAlert[];
-      alerts.forEach((alert, index, array) => {
-        if (
-          index < array.length - 1 &&
-          alert.endOffset === array[index + 1].endOffset &&
-          alert.data.gravity === array[index + 1].data.gravity
-        ) {
-          alertsWithSamePositionAndGravity.push([alert, array[index + 1]]);
-        }
-      });
-      console.log(alertsWithSamePositionAndGravity);
-
-      alertsWithSamePositionAndGravity.forEach((alertPair) => {
-        alertPair[0].endOffset - alertPair[0].startOffset >
-        alertPair[1].endOffset - alertPair[1].startOffset
-          ? alertsWithSamePositionAndGravityToBeRemoved.push(alertPair[1])
-          : alertsWithSamePositionAndGravityToBeRemoved.push(alertPair[0]);
-      });
-
-      alertsWithSamePositionAndGravityToBeRemoved.forEach((alert) => {
-        alerts.splice(alerts.indexOf(alert), 1);
-      });
-
       const alertsWithoutIgnoredTerms: IAlert[] = alerts.filter(
         (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
       );
