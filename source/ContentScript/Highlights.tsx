@@ -152,9 +152,6 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawHighlight(params, highlightColor);
         drawLine(params, hoverColor, dashedLine);
         redrawText(params);
-      } else {
-        drawHighlight(params, 'transparent');
-        drawLine(params, hoverColor, dashedLine);
       }
     });
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);

@@ -265,16 +265,35 @@ const Input: React.FC<{
             nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
 
           if (oneNodeWithAlerts) {
-            // If so, then find out if an alert that has been clicked
-            const selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
+            const caretPos = caret.position;
+
+            let selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
               (alert: IAlert) => {
-                const caretPos = caret.position as number;
                 //If alert is a one character word, take in consideration clicking the position before or after the char
                 return alert.data.text.length === 1
                   ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
                   : alert.startOffset < caretPos && alert.endOffset > caretPos;
               }
             );
+
+            const selectedAlerts = oneNodeWithAlerts.alerts.filter(
+              (alert: IAlert) =>
+                alert.startOffset <= caretPos && alert.endOffset >= caretPos
+            );
+            if (selectedAlerts.length > 1) {
+              const alertWithLargestStartoffset = selectedAlerts.reduce(
+                (prev: IAlert, current: IAlert) => {
+                  return prev.startOffset > current.startOffset
+                    ? prev
+                    : current;
+                }
+              );
+
+              selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
+                (alert: IAlert) =>
+                  alert.startOffset === alertWithLargestStartoffset.startOffset
+              );
+            }
 
             if (selectedAlertIndex === -1) return;
             if (prevSelectedAlertIndex.current === selectedAlertIndex) {
@@ -496,6 +515,7 @@ const Input: React.FC<{
         (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
       );
 
+      //handle case where a word has multiple alerts of different gravity
       const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
         return [alert0, ...alerts]
           .filter(Boolean)
