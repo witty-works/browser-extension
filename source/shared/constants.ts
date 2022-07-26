@@ -118,9 +118,8 @@ const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
 
 export const getColor = (gravity: number): IHighlightColors => {
   if (!gravity) return inclusiveGreen;
-  if (gravity == 1) return openlyDiscriminatingAndGrammarRed;
-  if (gravity == 2) return unconsciousBiasAndGenderedOrange;
-  if (gravity == 3) return styleYellow;
+  if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
+  if (gravity > 2.5) return styleYellow;
   return unconsciousBiasAndGenderedOrange;
 };
 
