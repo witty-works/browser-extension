@@ -66,6 +66,18 @@ const maximumImportanceToBoolean = (value: number) =>
 
 const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
+const getFirstTextDiff = (previousText: string, nextText: string) => {
+  let i = 0;
+  while (
+    i < previousText.length &&
+    i < nextText.length &&
+    previousText[i] == nextText[i]
+  ) {
+    i++;
+  }
+  return i;
+};
+
 export {
   isObjectEmpty,
   isFunction,
@@ -75,4 +87,5 @@ export {
   changeSingularThey,
   maximumImportanceToBoolean,
   changeMaximumImportance,
+  getFirstTextDiff,
 };

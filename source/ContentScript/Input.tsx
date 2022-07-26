@@ -17,7 +17,7 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import { storeInLocalStorage } from '../shared/utils';
+import { storeInLocalStorage, getFirstTextDiff } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -39,6 +39,7 @@ const Input: React.FC<{
 }> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
+  const [, , previousTextToCheckRef] = useStateRef('');
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
@@ -161,7 +162,33 @@ const Input: React.FC<{
     browser.storage.local.get(StorageKeys.ORTHOGRAPHY).then((result) => {
       element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
     });
-    const nextText: string = getInputText(element);
+
+    let nextText: string = getInputText(element);
+    const fistTextDiff = getFirstTextDiff(
+      previousTextToCheckRef.current,
+      nextText
+    );
+
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (alert) => alert.startOffset < fistTextDiff
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    } else {
+      const nextTextAtFistTextDiff = nextText.substring(
+        fistTextDiff,
+        nextText.length
+      );
+
+      if (nextTextAtFistTextDiff.length > 3) {
+        setAlerts([]);
+      }
+    }
+
+    previousTextToCheckRef.current = nextText;
+
     handleTextAndIcon(nextText, event);
   };
 
