@@ -6,6 +6,7 @@ import { logTypes, useLog } from '../shared/customHooks/useLog';
 import Dropdown from '../shared/components/Dropdown/Dropdown';
 const log = useLog('Popup');
 import defaultConfig from '../witty.config.json';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 export interface OptionProp {
   key: string;
@@ -35,6 +36,7 @@ const DelaySelector: React.FC = () => {
 
   const onError = (error: string) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
   };
 
   const dropdownOptions = [

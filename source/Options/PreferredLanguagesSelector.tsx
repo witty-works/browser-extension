@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import Lock from '../assets/icons/options/lock.svg';
+import { sendErrorToSentry } from '../shared/errorUtils';
 interface SelectorProps {
   locked?: boolean;
   userIsLoggedIn?: boolean;
@@ -63,6 +64,7 @@ const PreferredLanguagesSelector: React.FC<SelectorProps> = ({
 
   const onError = (error: string) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
   };
 
   useEffect(() => {
