@@ -164,24 +164,35 @@ const Input: React.FC<{
     });
 
     let nextText: string = getInputText(element);
-
     const fistTextDiff = getFirstTextDiff(
       previousTextToCheckRef.current,
       nextText
     );
-    if (fistTextDiff < nextText.length) {
-      previousTextToCheckRef.current = nextText;
-      nextText = nextText.substring(0, fistTextDiff);
-      handleTextAndIcon(nextText, event, true);
+
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (alert) => alert.startOffset < fistTextDiff
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    } else {
+      const nextTextAtFistTextDiff = nextText.substring(
+        fistTextDiff,
+        nextText.length
+      );
+
+      if (nextTextAtFistTextDiff.length > 3) {
+        setAlerts([]);
+      }
     }
-    handleTextAndIcon(nextText, event, false);
+
+    previousTextToCheckRef.current = nextText;
+
+    handleTextAndIcon(nextText, event);
   };
 
-  const handleTextAndIcon = (
-    text: string,
-    event?: Event,
-    noDelay?: boolean
-  ) => {
+  const handleTextAndIcon = (text: string, event?: Event) => {
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -189,7 +200,7 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
       setTextToCheck('');
     } else {
-      if (event && event.type == 'keyup' && !noDelay) {
+      if (event && event.type == 'keyup') {
         debouncedSetTextToCheck(text);
         setActiveIcon('loading');
       } else {
