@@ -33,6 +33,7 @@ import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import Toast from '../shared/components/Toast/Toast';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -86,9 +87,14 @@ const Input: React.FC<{
   const log = useLog('Input');
 
   useEffect(() => {
-    browser.storage.local.get(StorageKeys.API_DELAY).then((result) => {
-      setDebounceDelay(result[StorageKeys.API_DELAY] as number);
-    });
+    browser.storage.local
+      .get(StorageKeys.API_DELAY)
+      .then((result) => {
+        setDebounceDelay(result[StorageKeys.API_DELAY] as number);
+      })
+      .catch((error: unknown) => {
+        sendErrorToSentry(error);
+      });
 
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
@@ -159,9 +165,14 @@ const Input: React.FC<{
   const handleKeyupEvent = (event?: Event) => {
     if (prevSelectedAlertIndex.current != -1) resetPopover();
 
-    browser.storage.local.get(StorageKeys.ORTHOGRAPHY).then((result) => {
-      element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
-    });
+    browser.storage.local
+      .get(StorageKeys.ORTHOGRAPHY)
+      .then((result) => {
+        element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
+      })
+      .catch((error: unknown) => {
+        sendErrorToSentry(error);
+      });
 
     let nextText: string = getInputText(element);
     const fistTextDiff = getFirstTextDiff(
@@ -378,6 +389,13 @@ const Input: React.FC<{
 
       const range = document.createRange();
       const nodeText = oneNodeWithAlerts.node;
+      if (
+        nodeText.textContent &&
+        (selectedAlert.endOffset > nodeText.textContent.length ||
+          selectedAlert.startOffset > nodeText.textContent.length)
+      )
+        return;
+
       range.setStart(nodeText, selectedAlert.startOffset);
       range.setEnd(nodeText, selectedAlert.endOffset);
       const rect = range.getClientRects()[0];
@@ -688,23 +706,28 @@ const Input: React.FC<{
     }
     //gets new access token using the refresh token if the access token has expired
     else if (checkEndpointError?.status == 403) {
-      browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
-        if (result[StorageKeys.REFRESH_TOKEN] == '') return;
-        setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-        if (refreshTokenError || !refreshTokenResponse) return;
-        storeInLocalStorage(
-          StorageKeys.ACCESS_TOKEN,
-          refreshTokenResponse.access_token
-        );
-        storeInLocalStorage(
-          StorageKeys.REFRESH_TOKEN,
-          refreshTokenResponse.refresh_token
-        );
-        storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
+      browser.storage.local
+        .get(StorageKeys.REFRESH_TOKEN)
+        .then((result) => {
+          if (result[StorageKeys.REFRESH_TOKEN] == '') return;
+          setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
+          if (refreshTokenError || !refreshTokenResponse) return;
+          storeInLocalStorage(
+            StorageKeys.ACCESS_TOKEN,
+            refreshTokenResponse.access_token
+          );
+          storeInLocalStorage(
+            StorageKeys.REFRESH_TOKEN,
+            refreshTokenResponse.refresh_token
+          );
+          storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
 
-        setTextToCheck('');
-        setTextToCheck(currentTextToCheck);
-      });
+          setTextToCheck('');
+          setTextToCheck(currentTextToCheck);
+        })
+        .catch((error: unknown) => {
+          sendErrorToSentry(error);
+        });
     }
     log(
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
