@@ -142,11 +142,3 @@ export const WittyIconActive = {
     '48': 'assets/icons/icon48.png',
   },
 };
-
-export const WittyIconInactive = {
-  path: {
-    '16': 'assets/icons/icon16_disabled.png',
-    '32': 'assets/icons/icon32_disabled.png',
-    '48': 'assets/icons/icon48_disabled.png',
-  },
-};

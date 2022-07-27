@@ -6,12 +6,14 @@ import { ConfigProperty } from '../shared/types';
 import {
   StorageKeys,
   Colors,
-  WittyIconActive,
-  WittyIconInactive,
   DefaultBaseUrlKey,
   DEV_ENV,
 } from '../shared/constants';
-import { storeInLocalStorage } from '../shared/utils';
+import {
+  addInactiveLabel,
+  removeInactiveLabel,
+  storeInLocalStorage,
+} from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { namespaces } from '../i18n/i18n.constants';
 import '../i18n/i18n';
@@ -139,7 +141,7 @@ const Popup: React.FC = () => {
   };
 
   const setWittyIcon = (state: boolean) => {
-    browser.browserAction.setIcon(state ? WittyIconActive : WittyIconInactive);
+    state ? removeInactiveLabel() : addInactiveLabel();
   };
 
   const handleEnableToggle = () => {
