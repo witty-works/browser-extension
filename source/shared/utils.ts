@@ -78,6 +78,17 @@ const getFirstTextDiff = (previousText: string, nextText: string) => {
   return i;
 };
 
+const addInactiveLabel = () => {
+  browser.browserAction.setBadgeBackgroundColor({
+    color: [190, 190, 190, 230],
+  });
+  browser.browserAction.setBadgeText({ text: 'OFF' });
+};
+
+const removeInactiveLabel = () => {
+  browser.browserAction.setBadgeText({ text: '' });
+};
+
 export {
   isObjectEmpty,
   isFunction,
@@ -88,4 +99,6 @@ export {
   maximumImportanceToBoolean,
   changeMaximumImportance,
   getFirstTextDiff,
+  addInactiveLabel,
+  removeInactiveLabel,
 };
