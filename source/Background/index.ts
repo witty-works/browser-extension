@@ -34,15 +34,13 @@ Sentry.init({
 });
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
+  browser.browserAction.setIcon(WittyIconActive);
   if (!DEV_ENV)
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
 
   if (details.reason === 'install') {
     //Set default settings
     setSettings();
-
-    //Set icon to active
-    browser.browserAction.setIcon(WittyIconActive);
 
     //Log install event to posthog
     analytics.extensionStatusLog('install', getBrowserId());
