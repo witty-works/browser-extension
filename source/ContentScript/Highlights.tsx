@@ -4,7 +4,7 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
 import { isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
-import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
+import { drawHighlight, drawLine } from './highlightsUtils';
 import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
 
 interface HighlightsProps {
@@ -35,26 +35,6 @@ const Highlights: React.FC<HighlightsProps> = ({
     width: elementRect.width,
     height: elementRect.height,
   };
-
-  // useEffect(() => {
-  //   document.addEventListener('scroll', handleScrollEvent, true);
-  //   return () => {
-  //     document.removeEventListener('scroll', handleScrollEvent);
-  //   };
-  // }, []);
-
-  // const handleScrollEvent = (event: Event) => {
-  //   //TODO add throttle
-  //   if ((event.target as HTMLElement).nodeName === '#document') {
-  //     //nothing todo
-  //   } else {
-  //     const target = event.target as HTMLElement;
-  //     console.log('target = ', target);
-  //     console.log('target scrollTop = ', target.scrollTop);
-  //     console.log('target scrollHeight = ', target.scrollHeight);
-  //     console.log('target clientHeight = ', target.clientHeight);
-  //   }
-  // };
 
   useEffect(() => {
     const highlights: Highlight[] = [];
@@ -151,7 +131,6 @@ const Highlights: React.FC<HighlightsProps> = ({
       if (selectedAlert && selectedAlert.id === highlight.id) {
         drawHighlight(params, highlightColor);
         drawLine(params, hoverColor, dashedLine);
-        redrawText(params);
       }
     });
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);

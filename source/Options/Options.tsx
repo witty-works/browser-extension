@@ -89,36 +89,41 @@ const Options: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [resetSettings, setResetSettings] = useState<boolean>(false);
   useEffect(() => {
-    browser.storage.local.get(null).then((result) => {
-      //Set the API/Dashboard urls
-      setUrls(
-        result[StorageKeys.API_ENDPOINT_KEY]
-          ? result[StorageKeys.API_ENDPOINT_KEY]
-          : DefaultBaseUrlKey
-      );
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        //Set the API/Dashboard urls
+        setUrls(
+          result[StorageKeys.API_ENDPOINT_KEY]
+            ? result[StorageKeys.API_ENDPOINT_KEY]
+            : DefaultBaseUrlKey
+        );
 
-      setOrthography(result[StorageKeys.ORTHOGRAPHY]);
-      setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
-      setStyleCorrections(result[StorageKeys.STYLE]);
-      setMaximumImportance(result[StorageKeys.MAXIMUM_IMPORTANCE]);
-      setSingularThey(result[StorageKeys.SINGULAR_THEY]);
-      setInspirationalAlternatives(
-        result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES]
-      );
-      setDisabledSites(result[StorageKeys.DISABLED_SITES]);
-      setUsername(result[StorageKeys.USERNAME]);
-      setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
-      setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-      setTeamName(result[StorageKeys.TEAM_NAME]);
-      setSubscriptionPlan(result[StorageKeys.PLAN]);
+        setOrthography(result[StorageKeys.ORTHOGRAPHY]);
+        setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
+        setStyleCorrections(result[StorageKeys.STYLE]);
+        setMaximumImportance(result[StorageKeys.MAXIMUM_IMPORTANCE]);
+        setSingularThey(result[StorageKeys.SINGULAR_THEY]);
+        setInspirationalAlternatives(
+          result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES]
+        );
+        setDisabledSites(result[StorageKeys.DISABLED_SITES]);
+        setUsername(result[StorageKeys.USERNAME]);
+        setAccessToken(result[StorageKeys.ACCESS_TOKEN]);
+        setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
+        setTeamName(result[StorageKeys.TEAM_NAME]);
+        setSubscriptionPlan(result[StorageKeys.PLAN]);
 
-      result[StorageKeys.ACCESS_TOKEN] == ''
-        ? setUserIsLoggedIn(false)
-        : setUserIsLoggedIn(true);
-      result[StorageKeys.PLAN] == 'witty_teams'
-        ? setHasWittyTeams(true)
-        : setHasWittyTeams(false);
-    });
+        result[StorageKeys.ACCESS_TOKEN] == ''
+          ? setUserIsLoggedIn(false)
+          : setUserIsLoggedIn(true);
+        result[StorageKeys.PLAN] == 'witty_teams'
+          ? setHasWittyTeams(true)
+          : setHasWittyTeams(false);
+      })
+      .catch((error: unknown) => {
+        sendErrorToSentry(error);
+      });
 
     window.addEventListener('load', onOptionsLoad);
     browser.storage.onChanged.addListener(storageChange);

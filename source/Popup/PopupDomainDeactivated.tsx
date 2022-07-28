@@ -12,6 +12,7 @@ import ArrowIcon from '../shared/animations/Arrow';
 import { storeInLocalStorage } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 import PopupHeader from './PopupHeader';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);
@@ -23,14 +24,24 @@ const PopupDomainDeactivated: React.FC = () => {
   useEffect(() => {
     setHasVoted(false);
 
-    browser.storage.local.get(null).then((result) => {
-      setAppId(result[StorageKeys.APP_ID]);
-    });
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        setAppId(result[StorageKeys.APP_ID]);
+      })
+      .catch((error: unknown) => {
+        sendErrorToSentry(error);
+      });
 
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      if (tabs.length != 0 && tabs[0].url)
-        setCurrentTab(new URL(tabs[0].url).hostname);
-    });
+    browser.tabs
+      .query({ active: true, currentWindow: true })
+      .then((tabs) => {
+        if (tabs.length != 0 && tabs[0].url)
+          setCurrentTab(new URL(tabs[0].url).hostname);
+      })
+      .catch((error: unknown) => {
+        sendErrorToSentry(error);
+      });
   }, []);
 
   return (

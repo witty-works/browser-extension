@@ -95,32 +95,31 @@ interface IHighlightColors {
 const inclusiveGreen: IHighlightColors = {
   default: '#BCD485',
   highlight: '#D3E4AC',
-  hover: '#C9DF7F',
+  hover: '#BCD485',
 };
 
 const styleYellow: IHighlightColors = {
   default: '#F6EC6B',
   highlight: '#FFFFD3',
-  hover: '#FFF7A4',
+  hover: '#F6EC6B',
 };
 
 const unconsciousBiasAndGenderedOrange: IHighlightColors = {
   default: '#EB9F46',
   highlight: '#F8E7CB',
-  hover: '#F8D29F',
+  hover: '#EB9F46',
 };
 
 const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
   default: '#E6635A',
   highlight: '#F7D4D4',
-  hover: '#F8BEBB',
+  hover: '#E6635A',
 };
 
 export const getColor = (gravity: number): IHighlightColors => {
   if (!gravity) return inclusiveGreen;
-  if (gravity == 1) return openlyDiscriminatingAndGrammarRed;
-  if (gravity == 2) return unconsciousBiasAndGenderedOrange;
-  if (gravity == 3) return styleYellow;
+  if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
+  if (gravity > 2.5) return styleYellow;
   return unconsciousBiasAndGenderedOrange;
 };
 
@@ -140,13 +139,5 @@ export const WittyIconActive = {
     '16': 'assets/icons/icon16.png',
     '32': 'assets/icons/icon32.png',
     '48': 'assets/icons/icon48.png',
-  },
-};
-
-export const WittyIconInactive = {
-  path: {
-    '16': 'assets/icons/icon16_disabled.png',
-    '32': 'assets/icons/icon32_disabled.png',
-    '48': 'assets/icons/icon48_disabled.png',
   },
 };

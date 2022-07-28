@@ -66,6 +66,29 @@ const maximumImportanceToBoolean = (value: number) =>
 
 const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
+const getFirstTextDiff = (previousText: string, nextText: string) => {
+  let i = 0;
+  while (
+    i < previousText.length &&
+    i < nextText.length &&
+    previousText[i] == nextText[i]
+  ) {
+    i++;
+  }
+  return i;
+};
+
+const addInactiveLabel = () => {
+  browser.browserAction.setBadgeBackgroundColor({
+    color: [190, 190, 190, 230],
+  });
+  browser.browserAction.setBadgeText({ text: 'OFF' });
+};
+
+const removeInactiveLabel = () => {
+  browser.browserAction.setBadgeText({ text: '' });
+};
+
 export {
   isObjectEmpty,
   isFunction,
@@ -75,4 +98,7 @@ export {
   changeSingularThey,
   maximumImportanceToBoolean,
   changeMaximumImportance,
+  getFirstTextDiff,
+  addInactiveLabel,
+  removeInactiveLabel,
 };

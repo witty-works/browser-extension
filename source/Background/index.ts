@@ -2,13 +2,13 @@ import { browser } from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 
+import { StorageKeys, DEV_ENV, WittyIconActive } from '../shared/constants';
 import {
-  StorageKeys,
-  DEV_ENV,
-  WittyIconActive,
-  WittyIconInactive,
-} from '../shared/constants';
-import { getDomainWithoutSubdomain, isFunction } from '../shared/utils';
+  addInactiveLabel,
+  getDomainWithoutSubdomain,
+  isFunction,
+  removeInactiveLabel,
+} from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import defaultConfig from '../witty.config.json';
 import { useLog } from '../shared/customHooks/useLog';
@@ -34,15 +34,13 @@ Sentry.init({
 });
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
+  browser.browserAction.setIcon(WittyIconActive);
   if (!DEV_ENV)
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
 
   if (details.reason === 'install') {
     //Set default settings
     setSettings();
-
-    //Set icon to active
-    browser.browserAction.setIcon(WittyIconActive);
 
     //Log install event to posthog
     analytics.extensionStatusLog('install', getBrowserId());
@@ -131,29 +129,38 @@ const setSettings = () => {
   setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
 };
 
+const addEventListeners = () => {
+  browser.tabs.onCreated.addListener(scanTabsToDetectStatus);
+  browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
+  browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
+  browser.storage.onChanged.addListener(storageChange);
+};
+
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs.length != 0 && tabs[0].url) {
       const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
       browser.storage.local.get(null).then((result) => {
-        browser.browserAction.setIcon(
+        if (
           (result[StorageKeys.DISABLED_SITES] &&
             result[StorageKeys.DISABLED_SITES].length > 0 &&
             result[StorageKeys.DISABLED_SITES].includes(domain)) ||
-            (defaultConfig.ACTIVE_SITES &&
-              !defaultConfig.ACTIVE_SITES.includes(domain) &&
-              !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
-            ? WittyIconInactive
-            : WittyIconActive
-        );
+          (defaultConfig.ACTIVE_SITES &&
+            !defaultConfig.ACTIVE_SITES.includes(domain) &&
+            !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
+        ) {
+          addInactiveLabel();
+        } else {
+          removeInactiveLabel();
+        }
       });
     } else if (
       defaultConfig.CHROME_AND_FIREFOX_SITES &&
       defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
     ) {
-      browser.browserAction.setIcon(WittyIconActive);
+      removeInactiveLabel();
     } else {
-      browser.browserAction.setIcon(WittyIconInactive);
+      addInactiveLabel();
     }
   });
 };
@@ -162,16 +169,10 @@ const storageChange = (changes: { [key: string]: any }) => {
   const changedItems = Object.keys(changes);
   changedItems.forEach((key) => {
     if (key === StorageKeys.ENABLE_WITTY_EVERYWHERE) {
-      changes[key].newValue
-        ? browser.browserAction.setIcon(WittyIconActive)
-        : browser.browserAction.setIcon(WittyIconInactive);
+      changes[key].newValue ? removeInactiveLabel() : addInactiveLabel();
     }
   });
 };
 
-browser.tabs.onCreated.addListener(scanTabsToDetectStatus);
-browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
-browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
-browser.storage.onChanged.addListener(storageChange);
-
+addEventListeners();
 //TODO Remove Listeners
