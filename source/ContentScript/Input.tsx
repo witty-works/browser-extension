@@ -158,8 +158,8 @@ const Input: React.FC<{
   };
 
   const handleFocusoutEvent = () => {
-    const nextText: string = getInputText(element);
-    if (nextText == '\n' || nextText.length == 0) setActiveIcon('passive');
+    setActiveIcon('passive');
+    setTextToCheck('');
   };
 
   const handleKeyupEvent = (event?: Event) => {
