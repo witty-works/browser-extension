@@ -38,6 +38,68 @@ exports.loginOptionsPageWhenAlreadyLoggedInDashboard = async function (page) {
     return page;
 }
 
+exports.loginLinkedin = async function (email, password, page) {
+    await page.goto('https://www.linkedin.com/login?fromSignIn=true&trk=guest_homepage-basic_nav-header-signin');
+    await page.click('#username');
+    await page.type('#username', email);
+    await page.click('#password');
+    await page.type('#password', password);
+    await page.click('#organic-div > form > div.login__form_action_container > button');
+    await page.waitForTimeout(2000);
+    return page;
+}
+
+exports.loginTwitter = async function (email, password, page) {
+    await page.goto('https://twitter.com/login');
+    await page.waitForTimeout(2000);
+    await page.click('.r-30o5oe');
+    await page.type('.r-30o5oe', email);
+    await page.keyboard.press('Enter');
+
+    await page.waitForTimeout(2000);
+    //because twitter asks for username when suspicious behavior is detected
+    if (await page.$('[data-testid=ocfEnterTextTextInput]')) {
+        await page.click('[data-testid=ocfEnterTextTextInput]');
+        await page.type('[data-testid=ocfEnterTextTextInput]', 'test_user_ww');
+        await page.keyboard.press('Enter');
+    }
+
+    await page.click('.r-homxoj');
+    await page.type('.r-homxoj', password);
+    await page.click('.r-1inkyih > .css-901oao');
+    await page.waitForTimeout(2000);
+    return page;
+}
+
+exports.loginGithub = async function (email, password, page) {
+    await page.goto('https://github.com/login');
+    await page.waitForTimeout(2000);
+    await page.click('#login_field');
+    await page.type('#login_field', email);
+    await page.click('#password');
+    await page.type('#password', password);
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(2000);
+    return page;
+}
+
+// exports.loginGmail = async function (email, password, page) {
+// await page.goto('https://accounts.google.com/signin/v2/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&service=mail&sacu=1&rip=1&ifkv=AQN2RmVSKBRduno3H3r8dltSOH6cTX3XQQJDr6_LhAGMvMJUiQkvwh7DCdb-rNRDmd9EsKIz8MqB&flowName=GlifWebSignIn&flowEntry=ServiceLogin');
+
+// await page.waitForTimeout(2000);
+// await page.click('#identifierId');
+// await page.type('#identifierId', email);
+// await page.keyboard.press('Enter');
+
+// await page.waitForTimeout(2000);
+// await page.click('#password .whsOnd');
+// await page.type('#password .whsOnd', password);
+// await page.keyboard.press('Enter');
+
+// await page.waitForTimeout(2000);
+// return page;
+// }
+
 exports.evaluateToggleBackgroundBeforeAndAfterClick = async function (page, toggleSelector, toggleButtonSelector, locked) {
     const toggle = await page.waitForSelector(toggleSelector);
     const toggleBackgroundBefore = await toggle.evaluate((el) => {

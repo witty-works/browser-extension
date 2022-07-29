@@ -68,3 +68,6 @@ dist/
 !.yarn/releases
 !.yarn/plugins
 .pnp.*
+
+#test results
+test-results/
