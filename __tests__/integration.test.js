@@ -30,11 +30,11 @@ const test = base.extend({
 })
 
 test.describe('Integration', () => {
-    test('witty-is-installed tag is present', async ({ page }) => {
-        await page.goto(`https://www.witty.works/editor`)
-        const wittyIsInstalledTag = await page.evaluate(() => {
-            return document.querySelector('witty-is-installed')
-        })
-        expect(wittyIsInstalledTag).toBeTruthy()
-    });
+    // test('witty-is-installed tag is present', async ({ page }) => {
+    //     await page.goto(`https://www.witty.works/editor`)
+    //     const wittyIsInstalledTag = await page.evaluate(() => {
+    //         return document.querySelector('witty-is-installed')
+    //     })
+    //     expect(wittyIsInstalledTag).toBeTruthy()
+    // });
 });

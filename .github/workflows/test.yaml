@@ -27,15 +27,15 @@ jobs:
         run: |
           yarn install
 
-      # - name: Build artifacts
-      #   run: |
-      #     yarn run build:chrome
+      - name: Build artifacts
+        run: |
+          yarn run build:chrome
 
-      # - name: Install Playwright
-      #   run: npx playwright install --with-deps
+      - name: Install Playwright
+        run: npx playwright install --with-deps
 
-      # - name: Run tests
-      #   run: xvfb-run npx playwright test
+      - name: Run tests
+        run: xvfb-run npx playwright test
 
       # - name: Upload test results
       #   if: always()
