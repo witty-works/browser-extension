@@ -8,8 +8,8 @@ const testTextShort = ' Hey guys, we\'re excited to announce a new front-end dev
 const test = base.extend({
     context: async ({ browserName }, use) => {
         const browserTypes = { chromium } //add firefox
-        const pathToExtension = ('./extension/chrome');
-
+        // const pathToExtension = ('./extension/chrome');
+        const pathToExtension = '/home/runner/work/browser-extension/extension/chrome'; //for GA
         const launchOptions = {
             devtools: false,
             headless: false,
