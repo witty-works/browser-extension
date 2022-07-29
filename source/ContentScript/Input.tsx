@@ -534,6 +534,11 @@ const Input: React.FC<{
           checkEndpointResponse.organization_config.id
             ? checkEndpointResponse.organization_config.id
             : null,
+        plan:
+          checkEndpointResponse.organization_config &&
+          checkEndpointResponse.organization_config.plan
+            ? checkEndpointResponse.organization_config.plan
+            : null,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
