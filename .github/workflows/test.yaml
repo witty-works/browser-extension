@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-10.15
 
     steps:
       - uses: actions/checkout@v2
@@ -35,14 +35,15 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run tests
-        run: xvfb-run npx playwright test
+        # run: xvfb-run npx playwright test
+        run: npx playwright test
 
-      # - name: Upload test results
-      #   if: always()
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: playwright-report
-      #     path: playwright-report
+      - name: Upload test results
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: test-results
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
