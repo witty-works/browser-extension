@@ -15,7 +15,7 @@ const test = base.extend({
             headless: false,
             viewport: {
                 width: 1400,
-                height: 800
+                height: 700
             },
             args: [
                 `--no-sandbox`,
@@ -48,25 +48,25 @@ test.describe('Highlights', () => {
         // await page.type('#witty-test', 'a');
         await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-        // expect(await page.screenshot({
-        //     clip: {
-        //         x: 280,
-        //         y: 105,
-        //         width: 845,
-        //         height: 585,
-        //     },
-        // })).toMatchSnapshot('witty-form.png', {
-        //     maxDiffPixels: 36000,
-        //     maxDiffPixelRatio: 0.05
-        // });
-
-        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('witty-form.png', {
-                maxDiffPixels: 36000,
-                maxDiffPixelRatio: 0.05,
-                scale: 'device'
-            })
+        expect(await page.screenshot({
+            clip: {
+                x: 280,
+                y: 115,
+                width: 845,
+                height: 575,
+            },
+        })).toMatchSnapshot('witty-form.png', {
+            maxDiffPixels: 36000,
+            maxDiffPixelRatio: 0.05
         });
+
+        // await page.locator('#witty-test').screenshot().then(async (screenshot) => {
+        //     expect(screenshot).toMatchSnapshot('witty-form.png', {
+        //         maxDiffPixels: 36000,
+        //         maxDiffPixelRatio: 0.05,
+        //         scale: 'device'
+        //     })
+        // });
     });
 
     // test('linkedin post', async ({ page }) => {
