@@ -60,10 +60,11 @@ test.describe('Highlights', () => {
         //     maxDiffPixelRatio: 0.05
         // });
 
-        await page.locator('#hs_cos_wrapper_widget_1654778045147').screenshot().then(async (screenshot) => {
+        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot('witty-form.png', {
                 maxDiffPixels: 36000,
-                maxDiffPixelRatio: 0.05
+                maxDiffPixelRatio: 0.05,
+                scale: 'device'
             })
         });
     });
