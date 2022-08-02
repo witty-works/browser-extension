@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     # container: mcr.microsoft.com/playwright:v1.24.2-focal
-    container: mcr.microsoft.com/playwright:v1.25.0-alpha-aug-1-2022-focal
+    # container: mcr.microsoft.com/playwright:v1.25.0-alpha-aug-1-2022-focal
 
     steps:
       - uses: actions/checkout@v3
@@ -31,8 +31,9 @@ jobs:
       - name: Build artifacts
         run: yarn build:chrome
 
-      # - name: Install Playwright
-      #   run: npx playwright install --with-deps
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+
       - name: Run tests
         run: xvfb-run yarn test
         # run: npx playwright test
