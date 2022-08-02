@@ -1805,13 +1805,13 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@playwright/test@1.24.2":
-  version "1.24.2"
-  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.24.2.tgz#283ea8cc497f9742037458659bf235f4776cf1f0"
-  integrity sha512-Q4X224pRHw4Dtkk5PoNJplZCokLNvVbXD9wDQEMrHcEuvWpJWEQDeJ9gEwkZ3iCWSFSWBshIX177B231XW4wOQ==
+"@playwright/test@1.25.0-alpha-aug-1-2022":
+  version "1.25.0-alpha-aug-1-2022"
+  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.25.0-alpha-aug-1-2022.tgz#a3ab15929755ae8d3a1c44f091e8fc84dd8df45a"
+  integrity sha512-QgONfFLAUXGMVF2LppRmYOaYDQS14+iHfMi6Y9X37tkMGkGlDQi1Q2hLyN3xGksip2cyk+/n4SNboU53vx0B2A==
   dependencies:
     "@types/node" "*"
-    playwright-core "1.24.2"
+    playwright-core "1.25.0-alpha-aug-1-2022"
 
 "@react-spring/animated@~9.4.3-beta.0":
   version "9.4.3"
@@ -7797,10 +7797,10 @@ pkg-up@^2.0.0:
   dependencies:
     find-up "^2.1.0"
 
-playwright-core@1.24.2:
-  version "1.24.2"
-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.24.2.tgz#47bc5adf3dcfcc297a5a7a332449c9009987db26"
-  integrity sha512-zfAoDoPY/0sDLsgSgLZwWmSCevIg1ym7CppBwllguVBNiHeixZkc1AdMuYUPZC6AdEYc4CxWEyLMBTw2YcmRrA==
+playwright-core@1.25.0-alpha-aug-1-2022:
+  version "1.25.0-alpha-aug-1-2022"
+  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.25.0-alpha-aug-1-2022.tgz#9f6c0ab9a5e68a4458fc4144fb5a2929cdff9706"
+  integrity sha512-eUIhDIf+oli5rOSgf9pqgYCdkHgOcRDj6z4n7N0+R6t6QBh0ZBONOjNUOn/UWPjq6/WC5rxLeSi9xlCGxcwtjQ==
 
 posix-character-classes@^0.1.0:
   version "0.1.1"
