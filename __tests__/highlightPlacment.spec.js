@@ -14,7 +14,7 @@ const test = base.extend({
             devtools: false,
             headless: false,
             viewport: {
-                width: 1450,
+                width: 1400,
                 height: 700
             },
             args: [
@@ -45,14 +45,9 @@ test.describe('Highlights', () => {
         await page.click('#witty-test');
         await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-        expect(await page.screenshot({
-            clip: {
-                x: 220,
-                y: 125,
-                width: 845,
-                height: 590,
-            },
-        })).toMatchSnapshot('witty-form.png');
+        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
+            expect(screenshot).toMatchSnapshot('witty-form.png');
+        });
     });
 
     // test('linkedin post', async ({ page }) => {
