@@ -46,9 +46,13 @@ test.describe('Highlights', () => {
         await page.waitForTimeout(3000); //wait for api to respond with highlights
 
         await page.locator('#witty-test').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('witty-form.png', { maxDiffPixels: 100 })
-        });//pixelRatio: 30
+            expect(screenshot).toMatchSnapshot('witty-form.png', {
+                threshold: 0.5,
+            })
+        });
     });
+
+
 
     // test('linkedin post', async ({ page }) => {
     //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
