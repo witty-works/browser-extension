@@ -27,6 +27,12 @@ export const useAnalytics = () => {
           requestConfig.german_gender_ending,
         request__replaced: logResponse.data.text,
         request__alternative: alternative,
+        response__id: logResponse.id,
+        response__startOffset: logResponse.startOffset,
+        response__endOffset: logResponse.endOffset,
+        response__popOverIsOpen: logResponse.popOverIsOpen,
+        response__groupId: logResponse.groupId,
+        response__plan: logResponse.plan,
       };
 
       if (logResponse.groupId) {
@@ -57,6 +63,9 @@ export const useAnalytics = () => {
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
         request__text__length: inputLength,
+        response__groupId: logResponse.organization_config.id,
+        response__name: logResponse.organization_config.name,
+        response__plan: logResponse.organization_config.plan,
       };
 
       if (logResponse.organization_config) {
@@ -87,6 +96,12 @@ export const useAnalytics = () => {
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
         request__ignored: logResponse.data.text,
+        response__id: logResponse.id,
+        response__startOffset: logResponse.startOffset,
+        response__endOffset: logResponse.endOffset,
+        response__popOverIsOpen: logResponse.popOverIsOpen,
+        response__groupId: logResponse.groupId,
+        response__plan: logResponse.plan,
       };
 
       if (logResponse.groupId) {
@@ -103,14 +118,6 @@ export const useAnalytics = () => {
           response: logResponse,
         });
       }
-    },
-
-    async extensionStatusLog(status: string, appID: string) {
-      ph.session.distinctId = appID;
-      ph.capture(status, {
-        request__id: appID,
-        request__client: wittyVersion,
-      });
     },
 
     async popoverLogs(logResponse: IAlert, logType: string) {
@@ -124,6 +131,12 @@ export const useAnalytics = () => {
         request__config__preferred_variants: requestConfig.preferred_variants,
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
+        response__id: logResponse.id,
+        response__startOffset: logResponse.startOffset,
+        response__endOffset: logResponse.endOffset,
+        response__popOverIsOpen: logResponse.popOverIsOpen,
+        response__groupId: logResponse.groupId,
+        response__plan: logResponse.plan,
       };
 
       if (logResponse.groupId) {
@@ -140,6 +153,14 @@ export const useAnalytics = () => {
           response: logResponse,
         });
       }
+    },
+
+    async extensionStatusLog(status: string, appID: string) {
+      ph.session.distinctId = appID;
+      ph.capture(status, {
+        request__id: appID,
+        request__client: wittyVersion,
+      });
     },
 
     async voteForUrlLog(url: string, appID: string) {
