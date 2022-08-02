@@ -5,7 +5,8 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-20.04
-    container: mcr.microsoft.com/playwright:v1.25.0-focal
+    # container: mcr.microsoft.com/playwright:v1.24.2-focal
+    container: mcr.microsoft.com/playwright:v1.25.0-alpha-aug-1-2022-focal
 
     steps:
       - uses: actions/checkout@v3
