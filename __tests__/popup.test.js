@@ -1,6 +1,6 @@
+const { test: base, chromium, expect } = require('@playwright/test') //add firefox
 require('dotenv').config();
 const utils = require('./utils');
-const { test: base, chromium, expect } = require('@playwright/test') //add firefox
 
 const extensionId = process.env.EXTENSION_ID_DEV;
 const userEmail = process.env.TEST_USER_EMAIL;
@@ -34,12 +34,14 @@ const test = base.extend({
         await context.close()
     }
 })
-// test.use({ trace: 'on' })
+
+test.setTimeout(120000); //probably not needed here
 
 test.describe('Popup', () => {
     // // User not logged in
     test('clicking logo opens a page in another window', async ({ page, context }) => {
-        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/popup.html`);
+        await page.waitForSelector('#witty-logo');
         await page.click('#witty-logo');
         await page.waitForLoadState('networkidle')
         let pages = await context.pages();
@@ -48,7 +50,7 @@ test.describe('Popup', () => {
 
     test('popup contains three toggles with labels', async ({ page }) => {
         //it is 3 toggles, not 5, because it is a chrome page (we dont show the site specific settings)
-        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/popup.html`);
         await page.waitForLoadState('networkidle')
         let toggles = await page.$$('.toggle-encloser');
         expect(toggles.length).toBe(3);
