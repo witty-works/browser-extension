@@ -33,9 +33,8 @@ jobs:
         run: |
           yarn run build:chrome
 
-      - name: Install Playwright
-        run: npx playwright install --with-deps
-
+      # - name: Install Playwright
+      #   run: npx playwright install --with-deps
       - name: Run tests
         run: xvfb-run npx playwright test
         # run: npx playwright test
