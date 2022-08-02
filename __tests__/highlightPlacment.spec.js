@@ -47,7 +47,7 @@ test.describe('Highlights', () => {
 
         await page.locator('#witty-test').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot('witty-form.png', {
-                threshold: 0.5,
+                maxDiffPixels: 100,
             })
         });
     });
