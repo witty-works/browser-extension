@@ -45,7 +45,6 @@ exports.loginLinkedin = async function (email, password, page) {
     await page.click('#password');
     await page.type('#password', password);
     await page.click('#organic-div > form > div.login__form_action_container > button');
-    await page.waitForTimeout(2000);
     return page;
 }
 

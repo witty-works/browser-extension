@@ -35,29 +35,31 @@ const test = base.extend({
 test.setTimeout(120000)
 
 test.describe('Highlights', () => {
-    test('witty form', async ({ page }) => {
-        await page.goto('https://www.witty.works/editor');
-        await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.waitForSelector('#witty-test');
-        await page.click('#witty-test');
-        await page.waitForTimeout(3000); //wait for api to respond with highlights
+    // test('witty form', async ({ page }) => {
+    //     await page.goto('https://www.witty.works/editor');
+    //     await page.waitForLoadState('networkidle')
+    //     await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.waitForSelector('#witty-test');
+    //     await page.click('#witty-test');
+    //     await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-        expect(await page.screenshot({
-            clip: {
-                x: 250,
-                y: 0,
-                width: 900,
-                height: 700
-            }
-        })).toMatchSnapshot('witty-form.png');
-    });
+    //     expect(await page.screenshot({
+    //         clip: {
+    //             x: 250,
+    //             y: 0,
+    //             width: 900,
+    //             height: 700
+    //         },
+    //     })).toMatchSnapshot('witty-form.png');
+    // });
 
     // test('linkedin post', async ({ page }) => {
     //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
 
+    //     await page.waitForSelector('#ember27');
     //     await page.click('#ember27');
+    //     await page.waitForSelector('.ql-editor > p');
     //     await page.click('.ql-editor > p');
     //     await page.type('.ql-editor > p', testText);
     //     await page.waitForTimeout(3000);
@@ -72,23 +74,24 @@ test.describe('Highlights', () => {
     //     })).toMatchSnapshot('linkedin-post.png');
     // });
 
-    // test('linkedin message', async ({ page }) => {
-    //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
+    test('linkedin message', async ({ page }) => {
+        await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
 
-    //     await page.goto('https://www.linkedin.com/messaging/thread/new/');
-    //     await page.click('.msg-form__contenteditable');
-    //     await page.type('.msg-form__contenteditable', testText);
-    //     await page.waitForTimeout(3000);
+        await page.goto('https://www.linkedin.com/messaging/thread/new/');
+        await page.waitForSelector('.msg-form__contenteditable');
+        await page.click('.msg-form__contenteditable');
+        await page.type('.msg-form__contenteditable', testText);
+        await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-    //     expect(await page.screenshot({
-    //         clip: {
-    //             x: 430,
-    //             y: 500,
-    //             width: 500,
-    //             height: 250
-    //         }
-    //     })).toMatchSnapshot('linkedin-message.png');
-    // });
+        expect(await page.screenshot({
+            clip: {
+                x: 430,
+                y: 500,
+                width: 500,
+                height: 250
+            }
+        })).toMatchSnapshot('linkedin-message.png');
+    });
 
     // test('twitter writing post', async ({ page }) => {
     //     await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
