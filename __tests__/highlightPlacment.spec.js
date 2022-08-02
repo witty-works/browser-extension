@@ -43,11 +43,12 @@ test.describe('Highlights', () => {
         await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
         await page.waitForSelector('#witty-test');
         await page.click('#witty-test');
+        // await page.type('#witty-test', 'a');
         await page.waitForTimeout(3000); //wait for api to respond with highlights
 
         await page.locator('#witty-test').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot('witty-form.png', {
-                maxDiffPixels: 100,
+                maxDiffPixels: 50,
             })
         });
     });
