@@ -33,7 +33,7 @@ jobs:
       # - name: Install Playwright
       #   run: npx playwright install --with-deps
       - name: Run tests
-        run: xvfb-run yarn test
+        run: xvfb-run --auto-servernum -- yarn test
         # run: npx playwright test
 
       - name: Upload test results
