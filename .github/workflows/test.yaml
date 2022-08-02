@@ -5,8 +5,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-20.04
-    container:
-      image: mcr.microsoft.com/playwright:v1.24.2-focal
+    container: mcr.microsoft.com/playwright:v1.24.2-focal
 
     steps:
       - uses: actions/checkout@v3
@@ -26,12 +25,10 @@ jobs:
 
       - name: Install dependencies
         # if: steps.cache-yarn.outputs.cache-hit != 'true'
-        run: |
-          yarn install
+        run: yarn install
 
       - name: Build artifacts
-        run: |
-          yarn run build:chrome
+        run: yarn build:chrome
 
       # - name: Install Playwright
       #   run: npx playwright install --with-deps
