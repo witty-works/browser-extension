@@ -29,8 +29,8 @@ Sentry.init({
   dsn: 'https://41a158eff71044a3ad021f381e0f0349@o512991.ingest.sentry.io/6223342',
   release: 'witty@' + browser.runtime.getManifest().version,
   integrations: [new BrowserTracing()],
-  sampleRate: 0.1,
-  tracesSampleRate: 0.0001,
+  sampleRate: 0.0,
+  tracesSampleRate: 0.001,
 });
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
