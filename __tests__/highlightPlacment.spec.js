@@ -1,6 +1,7 @@
 const { test: base, chromium, expect } = require('@playwright/test') //add firefox
 require('dotenv').config();
 const utils = require('./utils');
+
 const premiumUserEmail = process.env.PREMIUM_TEST_USER_EMAIL;
 const premiumUserPassword = process.env.PREMIUM_TEST_USER_PASSWORD;
 const testText = 'The basics: Witty highlights biased and gendered language in orange: Hey guys, we\'re excited to announce a new front-end developer will assume the leadership role. Taylor has extensive expertise and a strong technical background. Witty highlights inclusive terms in green: We are a creative team. Witty corrects grammar and spelling mistakes. They are highlighted in red: This is a spelling mistacke. Wait... there is more. Witty highlights style issues in yellow: This is actually a very long meeting.'
@@ -12,10 +13,6 @@ const test = base.extend({
         const launchOptions = {
             devtools: false,
             headless: false,
-            viewport: {
-                width: 1400,
-                height: 700
-            },
             args: [
                 `--no-sandbox`,
                 `--disable-setuid-sandbox`,
@@ -35,24 +32,24 @@ const test = base.extend({
 test.setTimeout(120000)
 
 test.describe('Highlights', () => {
-    // test('witty form', async ({ page }) => {
-    //     await page.goto('https://www.witty.works/editor');
-    //     await page.waitForLoadState('networkidle')
-    //     await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-    //     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-    //     await page.waitForSelector('#witty-test');
-    //     await page.click('#witty-test');
-    //     await page.waitForTimeout(3000); //wait for api to respond with highlights
+    test('witty form', async ({ page }) => {
+        await page.goto('https://www.witty.works/editor');
+        await page.waitForLoadState('networkidle')
+        await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+        await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+        await page.waitForSelector('#witty-test');
+        await page.click('#witty-test');
+        await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-    //     expect(await page.screenshot({
-    //         clip: {
-    //             x: 250,
-    //             y: 0,
-    //             width: 900,
-    //             height: 700
-    //         },
-    //     })).toMatchSnapshot('witty-form.png');
-    // });
+        expect(await page.screenshot({
+            clip: {
+                x: 220,
+                y: 125,
+                width: 845,
+                height: 590,
+            },
+        })).toMatchSnapshot('witty-form.png');
+    });
 
     // test('linkedin post', async ({ page }) => {
     //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
