@@ -31,14 +31,18 @@ const test = base.extend({
         await context.close()
     }
 })
+
+test.setTimeout(120000)
+
 test.describe('Highlights', () => {
     test('witty form', async ({ page }) => {
         await page.goto('https://www.witty.works/editor');
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState('networkidle')
+        await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
         await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.waitForTimeout(2000);
+        await page.waitForSelector('#witty-test');
         await page.click('#witty-test');
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(3000); //wait for api to respond with highlights
 
         expect(await page.screenshot({
             clip: {
