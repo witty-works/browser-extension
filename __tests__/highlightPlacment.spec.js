@@ -13,8 +13,10 @@ const test = base.extend({
         const launchOptions = {
             devtools: false,
             headless: false,
-            viewport: { width: 1280, height: 720 },
-            video: 'on-first-retry',
+            viewport: {
+                width: 1450,
+                height: 700
+            },
             args: [
                 `--no-sandbox`,
                 `--disable-setuid-sandbox`,
