@@ -5,14 +5,14 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-20.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.24.2-focal
 
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
-      container:
-        image: mcr.microsoft.com/playwright:v1.24.2-focal
 
       # - name: Install yarn
       #   run: |
