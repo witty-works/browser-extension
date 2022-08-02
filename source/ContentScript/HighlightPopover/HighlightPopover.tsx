@@ -15,7 +15,6 @@ import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
-import '../../i18n/i18n';
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 export interface PopoverData {
@@ -150,7 +149,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   return (
-    <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
+    <div
+      id='wittyworks-popover'
+      ref={floating}
+      style={PopoverStyling}
+      onMouseDown={(e) => e.preventDefault()}
+    >
       <div id='wittyworks-popover-content'>
         <div className='wittyworks-popover-row'>
           <div className='wittyworks-popover-nav'>
