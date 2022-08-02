@@ -48,15 +48,20 @@ test.describe('Highlights', () => {
         // await page.type('#witty-test', 'a');
         await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
+        await page.locator('#witty-test').screenshot({
+            clip: {
+                x: 0,
+                y: 0,
+                width: 860,
+                height: 601
+            }
+        }).then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot('witty-form.png', {
                 maxDiffPixels: 36000,
                 maxDiffPixelRatio: 0.05
             })
         });
     });
-
-
 
     // test('linkedin post', async ({ page }) => {
     //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
