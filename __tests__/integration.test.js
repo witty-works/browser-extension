@@ -1,7 +1,4 @@
-require('dotenv').config();
 const { test: base, chromium, expect } = require('@playwright/test') //add firefox
-
-const extensionId = process.env.EXTENSION_ID_DEV;
 
 const test = base.extend({
     context: async ({ browserName }, use) => {
@@ -31,9 +28,8 @@ const test = base.extend({
         await context.close()
     }
 })
-// test.use({ trace: 'on' })
 
-test.describe('Options', () => {
+test.describe('Integration', () => {
     test('witty-is-installed tag is present', async ({ page }) => {
         await page.goto(`https://www.witty.works/editor`)
         const wittyIsInstalledTag = await page.evaluate(() => {

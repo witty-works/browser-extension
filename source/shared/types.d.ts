@@ -38,8 +38,10 @@ export interface IAlert {
   id: string;
   startOffset: number;
   endOffset: number;
+  popOverIsOpen: boolean;
   data: IAlertContentData;
   groupId?: string | null;
+  plan: string | null;
 }
 export interface IAlertContentData {
   text: string;
@@ -121,6 +123,12 @@ export interface ILogRequest {
   request__client: string;
   request__config__preferred_variants: string;
   request__config__german_gender_ending: string;
+  response__id?: string;
+  response__startOffset?: number;
+  response__endOffset?: number;
+  response__popOverIsOpen?: boolean;
+  response__groupId?: string | null | undefined;
+  response__plan?: string | null | undefined;
 }
 export interface IAlternativeLogRequest extends ILogRequest {
   request__replaced: string;
@@ -131,6 +139,7 @@ export interface IIgnoreLogRequest extends ILogRequest {
 }
 export interface ICheckLogRequest extends ILogRequest {
   request__text__length: number;
+  response__name: string;
 }
 
 export type ILogResponse = ICheckResponse;
