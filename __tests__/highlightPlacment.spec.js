@@ -11,12 +11,15 @@ const test = base.extend({
         const browserTypes = { chromium } //add firefox
         const pathToExtension = ('./extension/chrome');
         const launchOptions = {
+            trace: 'on',
+            screenshot: 'on', // Capture screenshot after each test failure.
             devtools: false,
             headless: false,
             viewport: {
                 width: 1280,
                 height: 720
             },
+
             args: [
                 `--no-sandbox`,
                 `--disable-setuid-sandbox`,
@@ -34,6 +37,7 @@ const test = base.extend({
 })
 
 test.setTimeout(120000)
+test.use({ screenshot: 'on' })
 
 test.describe('Highlights', () => {
     test('witty form', async ({ page }) => {
@@ -52,32 +56,32 @@ test.describe('Highlights', () => {
     });
 
 
-    // test('linkedin post', async ({ page }) => {
-    //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
-    //     await page.click('#main > div:nth-child(1) > div > div.display-flex.align-items-center.mt2.mr4.ml4 > button');
-    //     await page.click('.ql-editor');
-    //     await page.type('.ql-editor', testText);
-    //     await page.waitForTimeout(3000);
-
-    //     await page.locator('.ql-editor > p').screenshot().then(async (screenshot) => {
-    //         expect(screenshot).toMatchSnapshot('linkedin-post.png')
-    //     });
-    // });
-
-
-
-    test('linkedin message', async ({ page }) => {
+    test('linkedin post', async ({ page }) => {
         await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
-        await page.goto('https://www.linkedin.com/messaging/thread/new/');
-        await page.waitForSelector('.msg-form__contenteditable');
-        await page.click('.msg-form__contenteditable');
-        await page.type('.msg-form__contenteditable', testText);
-        await page.waitForTimeout(3000); //wait for api to respond with highlights
+        await page.click('#main > div:nth-child(1) > div > div.display-flex.align-items-center.mt2.mr4.ml4 > button');
+        await page.click('.ql-editor');
+        await page.type('.ql-editor', testText);
+        await page.waitForTimeout(3000);
 
-        await page.locator('.msg-form__contenteditable').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('linkedin-message.png')
+        await page.locator('.ql-editor > p').screenshot().then(async (screenshot) => {
+            expect(screenshot).toMatchSnapshot('linkedin-post.png')
         });
     });
+
+
+
+    // test('linkedin message', async ({ page }) => {
+    //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
+    //     await page.goto('https://www.linkedin.com/messaging/thread/new/');
+    //     await page.waitForSelector('.msg-form__contenteditable');
+    //     await page.click('.msg-form__contenteditable');
+    //     await page.type('.msg-form__contenteditable', testText);
+    //     await page.waitForTimeout(3000); //wait for api to respond with highlights
+
+    //     await page.locator('.msg-form__contenteditable').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('linkedin-message.png')
+    //     });
+    // });
 
     // test('twitter writing post', async ({ page }) => {
     //     await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
@@ -108,8 +112,8 @@ test.describe('Highlights', () => {
     test('github comment', async ({ page }) => {
         await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
         await page.goto('https://github.com/premiumUserWW/test/issues/1');
-        // await page.waitForLoadState('networkidle')
-        // await page.waitForSelector('#new_comment_field');
+        await page.waitForLoadState('networkidle')
+        await page.waitForSelector('#new_comment_field');
         await page.click('#new_comment_field');
         await page.type('#new_comment_field', testText);
         await page.waitForTimeout(3000);
