@@ -44,13 +44,15 @@ exports.loginLinkedin = async function (email, password, page) {
     await page.type('#username', email);
     await page.click('#password');
     await page.type('#password', password);
-    await page.click('#organic-div > form > div.login__form_action_container > button');
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('#global-nav')
     return page;
 }
 
 exports.loginTwitter = async function (email, password, page) {
     await page.goto('https://twitter.com/login');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('.r-30o5oe');
     await page.click('.r-30o5oe');
     await page.type('.r-30o5oe', email);
     await page.keyboard.press('Enter');
@@ -66,7 +68,7 @@ exports.loginTwitter = async function (email, password, page) {
     await page.click('.r-homxoj');
     await page.type('.r-homxoj', password);
     await page.click('.r-1inkyih > .css-901oao');
-    await page.waitForTimeout(2000);
+    await page.waitForSelector('#react-root')
     return page;
 }
 

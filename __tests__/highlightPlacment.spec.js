@@ -36,123 +36,102 @@ const test = base.extend({
 test.setTimeout(120000)
 
 test.describe('Highlights', () => {
-    test('witty form', async ({ page }) => {
-        await page.goto('https://www.witty.works/editor');
-        await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.waitForSelector('#witty-test');
-        await page.click('#witty-test');
-        await page.waitForTimeout(3000); //wait for api to respond with highlights
+    // test('witty form', async ({ page }) => {
+    //     await page.goto('https://www.witty.works/editor');
+    //     await page.waitForLoadState('networkidle')
+    //     await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.waitForSelector('#witty-test');
+    //     await page.click('#witty-test');
+    //     await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
-            //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
-            expect(screenshot).toMatchSnapshot('witty-form.png')
+    //     await page.locator('#witty-test').screenshot().then(async (screenshot) => {
+    //         //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
+    //         expect(screenshot).toMatchSnapshot('witty-form.png')
+    //     });
+    // });
+
+
+    test('linkedin post', async ({ page }) => {
+        await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
+        await page.click('#main > div:nth-child(1) > div > div.display-flex.align-items-center.mt2.mr4.ml4 > button');
+        await page.click('.ql-editor');
+        await page.type('.ql-editor', testText);
+        await page.waitForTimeout(3000);
+
+        await page.locator('.ql-editor > p').screenshot().then(async (screenshot) => {
+            expect(screenshot).toMatchSnapshot('linkedin-post.png')
         });
     });
 
 
-    // test('linkedin post', async ({ page }) => {
-    //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
 
-    //     await page.waitForSelector('#ember27');
-    //     await page.click('#ember27');
-    //     await page.waitForSelector('.ql-editor > p');
-    //     await page.click('.ql-editor > p');
-    //     await page.type('.ql-editor > p', testText);
-    //     await page.waitForTimeout(3000);
+    test('linkedin message', async ({ page }) => {
+        await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
+        await page.goto('https://www.linkedin.com/messaging/thread/new/');
+        await page.waitForSelector('.msg-form__contenteditable');
+        await page.click('.msg-form__contenteditable');
+        await page.type('.msg-form__contenteditable', testText);
+        await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-    //     expect(await page.screenshot({
-    //         clip: {
-    //             x: 430,
-    //             y: 0,
-    //             width: 550,
-    //             height: 450
-    //         }
-    //     })).toMatchSnapshot('linkedin-post.png');
-    // });
-
-    // test('linkedin message', async ({ page }) => {
-    //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
-
-    //     await page.goto('https://www.linkedin.com/messaging/thread/new/');
-    //     await page.waitForSelector('.msg-form__contenteditable');
-    //     await page.click('.msg-form__contenteditable');
-    //     await page.type('.msg-form__contenteditable', testText);
-    //     await page.waitForTimeout(3000); //wait for api to respond with highlights
-
-    //     expect(await page.screenshot({
-    //         clip: {
-    //             x: 430,
-    //             y: 500,
-    //             width: 500,
-    //             height: 250
-    //         }
-    //     })).toMatchSnapshot('linkedin-message.png');
-    // });
+        await page.locator('.msg-form__contenteditable').screenshot().then(async (screenshot) => {
+            expect(screenshot).toMatchSnapshot('linkedin-message.png')
+        });
+    });
 
     // test('twitter writing post', async ({ page }) => {
     //     await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
-
-    //     await page.click('.public-DraftStyleDefault-block');
-    //     await page.type('.public-DraftStyleDefault-block', testTextShort);
+    //     await page.waitForSelector('.r-z2wwpe');
+    //     await page.click('.r-z2wwpe');
+    //     await page.type('.r-z2wwpe', testTextShort);
     //     await page.waitForTimeout(3000);
 
-    //     expect(await page.screenshot({
-    //         clip: {
-    //             x: 370,
-    //             y: 0,
-    //             width: 600,
-    //             height: 300
-    //         }
-    //     })).toMatchSnapshot('twitter-post.png');
+    //     await page.locator('.r-z2wwpe').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('twitter-post.png')
+    //     });
     // });
 
     // test('twitter writing comment', async ({ page }) => {
     //     await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
-
+    //     await page.waitForSelector('.r-z2wwpe');
     //     await page.goto('https://twitter.com/lsmith/status/1481306915695210501?s=21');
-    //     await page.click('.public-DraftStyleDefault-block');
-    //     await page.type('.public-DraftStyleDefault-block', testTextShort);
+    //     await page.waitForSelector('.r-z2wwpe');
+    //     await page.click('.r-z2wwpe');
+    //     await page.type('.r-z2wwpe', testTextShort);
     //     await page.waitForTimeout(3000);
 
-    //     expect(await page.screenshot({
-    //         clip: {
-    //             x: 350,
-    //             y: 400,
-    //             width: 600,
-    //             height: 250
-    //         }
-    //     })).toMatchSnapshot('twitter-comment.png');
+    //     await page.locator('.r-z2wwpe').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('twitter-comment.png')
+    //     });
     // });
 
-    test('github comment', async ({ page }) => {
-        await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
-        await page.goto('https://github.com/premiumUserWW/test/issues/1');
-        await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#new_comment_field');
-        await page.click('#new_comment_field');
-        await page.type('#new_comment_field', testText);
-        await page.waitForTimeout(3000);
+    // test('github comment', async ({ page }) => {
+    //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
+    //     await page.goto('https://github.com/premiumUserWW/test/issues/1');
+    //     await page.waitForLoadState('networkidle')
+    //     await page.waitForSelector('#new_comment_field');
+    //     await page.click('#new_comment_field');
+    //     await page.type('#new_comment_field', testText);
+    //     await page.waitForTimeout(3000);
 
-        await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('github-comment.png')
-        });
-    });
+    //     await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('github-comment.png')
+    //     });
+    // });
 
-    test('github create issue', async ({ page }) => {
-        await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
-        await page.goto('https://github.com/premiumUserWW/test/issues/new');
-        await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#issue_title');
-        await page.click('#issue_body');
-        await page.type('#issue_body', testText);
-        await page.waitForTimeout(3000);
+    // test('github create issue', async ({ page }) => {
+    //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
+    //     await page.goto('https://github.com/premiumUserWW/test/issues/new');
+    //     await page.waitForLoadState('networkidle')
+    //     await page.waitForSelector('#issue_title');
+    //     await page.click('#issue_body');
+    //     await page.type('#issue_body', testText);
+    //     await page.waitForTimeout(3000);
 
-        await page.locator('#issue_body').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('github-create-issue.png')
-        });
-    });
+    //     await page.locator('#issue_body').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('github-create-issue.png')
+    //     });
+    // });
 
     // // test('gmail writing an email', async ({ page }) => {
     // //     await utils.loginGmail(premiumUserEmail, premiumUserPassword, page);
