@@ -12,9 +12,6 @@ jobs:
     # container: mcr.microsoft.com/playwright:v1.24.2-focal //try this again when v1.25.0 comes out
 
     steps:
-      - name: testing env
-        run: echo "The PREMIUM_TEST_USER_EMAIL is:${{env.PREMIUM_TEST_USER_EMAIL}} the EXTENSION_ID_DEV is:${{env.EXTENSION_ID_DEV}} "
-
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:

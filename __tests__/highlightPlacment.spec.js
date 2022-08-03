@@ -48,7 +48,7 @@ test.describe('Highlights', () => {
         await page.waitForSelector('#witty-test');
         await page.click('#witty-test');
         await page.type('#witty-test', premiumUserEmail);
-        await page.type('#witty-test', process.env.PREMIUM_TEST_USER_EMAIL);
+        await page.type('#witty-test', premiumUserPassword);
 
         await page.waitForTimeout(3000); //wait for api to respond with highlights
 
@@ -112,19 +112,19 @@ test.describe('Highlights', () => {
     //     });
     // });
 
-    // test('github comment', async ({ page }) => {
-    //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
-    //     await page.goto('https://github.com/premiumUserWW/test/issues/1');
-    //     await page.waitForLoadState('networkidle')
-    //     await page.waitForSelector('#new_comment_field');
-    //     await page.click('#new_comment_field');
-    //     await page.type('#new_comment_field', testText);
-    //     await page.waitForTimeout(3000);
+    test('github comment', async ({ page }) => {
+        await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
+        // await page.goto('https://github.com/premiumUserWW/test/issues/1');
+        // await page.waitForLoadState('networkidle')
+        // await page.waitForSelector('#new_comment_field');
+        // await page.click('#new_comment_field');
+        // await page.type('#new_comment_field', testText);
+        // await page.waitForTimeout(3000);
 
-    //     await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
-    //         expect(screenshot).toMatchSnapshot('github-comment.png')
-    //     });
-    // });
+        // await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
+        //     expect(screenshot).toMatchSnapshot('github-comment.png')
+        // });
+    });
 
     // test('github create issue', async ({ page }) => {
     //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
