@@ -37,6 +37,7 @@ jobs:
         env:
           PREMIUM_TEST_USER_EMAIL: ${{ secrets.PREMIUM_TEST_USER_EMAIL }}
           PREMIUM_TEST_USER_PASSWORD: ${{ secrets.PREMIUM_TEST_USER_PASSWORD }}
+          EXTENSION_ID_DEV: ${{ secrets.EXTENSION_ID_DEV }}
         run: xvfb-run yarn test
 
       - name: Upload test results
