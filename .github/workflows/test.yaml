@@ -4,10 +4,6 @@ on: [push]
 
 jobs:
   build:
-    environment: development
-    env:
-      PREMIUM_TEST_USER_EMAIL: ${{ secrets.PREMIUM_TEST_USER_EMAIL }}
-      PREMIUM_TEST_USER_PASSWORD: ${{ secrets.PREMIUM_TEST_USER_PASSWORD }}
     runs-on: ubuntu-20.04
     # container: mcr.microsoft.com/playwright:v1.24.2-focal //try this again when v1.25.0 comes out
 
@@ -38,6 +34,9 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run tests
+        env:
+          PREMIUM_TEST_USER_EMAIL: ${{ secrets.PREMIUM_TEST_USER_EMAIL }}
+          PREMIUM_TEST_USER_PASSWORD: ${{ secrets.PREMIUM_TEST_USER_PASSWORD }}
         run: xvfb-run yarn test
 
       - name: Upload test results

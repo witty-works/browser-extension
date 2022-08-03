@@ -52,32 +52,32 @@ test.describe('Highlights', () => {
     // });
 
 
-    test('linkedin post', async ({ page }) => {
-        await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
-        await page.click('#main > div:nth-child(1) > div > div.display-flex.align-items-center.mt2.mr4.ml4 > button');
-        await page.click('.ql-editor');
-        await page.type('.ql-editor', testText);
-        await page.waitForTimeout(3000);
+    // test('linkedin post', async ({ page }) => {
+    //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
+    //     await page.click('#main > div:nth-child(1) > div > div.display-flex.align-items-center.mt2.mr4.ml4 > button');
+    //     await page.click('.ql-editor');
+    //     await page.type('.ql-editor', testText);
+    //     await page.waitForTimeout(3000);
 
-        await page.locator('.ql-editor > p').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('linkedin-post.png')
-        });
-    });
+    //     await page.locator('.ql-editor > p').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('linkedin-post.png')
+    //     });
+    // });
 
 
 
-    test('linkedin message', async ({ page }) => {
-        await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
-        await page.goto('https://www.linkedin.com/messaging/thread/new/');
-        await page.waitForSelector('.msg-form__contenteditable');
-        await page.click('.msg-form__contenteditable');
-        await page.type('.msg-form__contenteditable', testText);
-        await page.waitForTimeout(3000); //wait for api to respond with highlights
+    // test('linkedin message', async ({ page }) => {
+    //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
+    //     await page.goto('https://www.linkedin.com/messaging/thread/new/');
+    //     await page.waitForSelector('.msg-form__contenteditable');
+    //     await page.click('.msg-form__contenteditable');
+    //     await page.type('.msg-form__contenteditable', testText);
+    //     await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-        await page.locator('.msg-form__contenteditable').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('linkedin-message.png')
-        });
-    });
+    //     await page.locator('.msg-form__contenteditable').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('linkedin-message.png')
+    //     });
+    // });
 
     // test('twitter writing post', async ({ page }) => {
     //     await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
@@ -105,19 +105,19 @@ test.describe('Highlights', () => {
     //     });
     // });
 
-    // test('github comment', async ({ page }) => {
-    //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
-    //     await page.goto('https://github.com/premiumUserWW/test/issues/1');
-    //     await page.waitForLoadState('networkidle')
-    //     await page.waitForSelector('#new_comment_field');
-    //     await page.click('#new_comment_field');
-    //     await page.type('#new_comment_field', testText);
-    //     await page.waitForTimeout(3000);
+    test('github comment', async ({ page }) => {
+        await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
+        await page.goto('https://github.com/premiumUserWW/test/issues/1');
+        await page.waitForLoadState('networkidle')
+        await page.waitForSelector('#new_comment_field');
+        await page.click('#new_comment_field');
+        await page.type('#new_comment_field', testText);
+        await page.waitForTimeout(3000);
 
-    //     await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
-    //         expect(screenshot).toMatchSnapshot('github-comment.png')
-    //     });
-    // });
+        await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
+            expect(screenshot).toMatchSnapshot('github-comment.png')
+        });
+    });
 
     // test('github create issue', async ({ page }) => {
     //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
