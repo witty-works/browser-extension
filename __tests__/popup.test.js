@@ -39,14 +39,14 @@ test.setTimeout(120000); //probably not needed here
 
 test.describe('Popup', () => {
     // // User not logged in
-    test('clicking logo opens a page in another window', async ({ page, context }) => {
-        await page.goto(`chrome-extension://${extensionId}/popup.html`);
-        await page.waitForSelector('#witty-logo');
-        await page.click('#witty-logo');
-        await page.waitForLoadState('networkidle')
-        let pages = await context.pages();
-        expect(pages.length).toBe(3);
-    });
+    // test('clicking logo opens a page in another window', async ({ page, context }) => {
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.waitForSelector('#witty-logo');
+    //     await page.click('#witty-logo');
+    //     await page.waitForLoadState('networkidle')
+    //     let pages = await context.pages();
+    //     expect(pages.length).toBe(3);
+    // });
 
     // test('popup contains three toggles with labels', async ({ page }) => {
     //     //it is 3 toggles, not 5, because it is a chrome page (we dont show the site specific settings)
