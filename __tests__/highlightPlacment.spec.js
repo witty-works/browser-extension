@@ -45,29 +45,17 @@ test.describe('Highlights', () => {
         await page.click('#witty-test');
 
         //write
-        // await page.type('#witty-test', 'a');
         await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-        // expect(await page.screenshot({
-        //     clip: {
-        //         x: 280,
-        //         y: 115,
-        //         width: 845,
-        //         height: 575,
-        //     },
-        // })).toMatchSnapshot('witty-form.png', {
-        //     maxDiffPixels: 36000,
-        //     maxDiffPixelRatio: 0.05
-        // });
-
         await page.locator('#witty-test').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('witty-form.png', {
-                maxDiffPixels: 36000,
-                maxDiffPixelRatio: 0.05,
-            })
+            expect(screenshot).toMatchSnapshot('witty-form.png')
         });
     });
 
+    // {
+    //     maxDiffPixels: 36000,
+    //     maxDiffPixelRatio: 0.05,
+    // }
     // test('linkedin post', async ({ page }) => {
     //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
 
