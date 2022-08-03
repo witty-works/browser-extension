@@ -5,8 +5,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-20.04
-    # container: mcr.microsoft.com/playwright:v1.24.2-focal
-    # container: mcr.microsoft.com/playwright:v1.25.0-alpha-aug-1-2022-focal
+    # container: mcr.microsoft.com/playwright:v1.24.2-focal //try this again when v1.25.0 comes out
 
     steps:
       - uses: actions/checkout@v3
@@ -36,7 +35,6 @@ jobs:
 
       - name: Run tests
         run: xvfb-run yarn test
-        # run: npx playwright test
 
       - name: Upload test results
         if: ${{ failure() }}

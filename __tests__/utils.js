@@ -72,13 +72,14 @@ exports.loginTwitter = async function (email, password, page) {
 
 exports.loginGithub = async function (email, password, page) {
     await page.goto('https://github.com/login');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('#login_field');
     await page.click('#login_field');
     await page.type('#login_field', email);
     await page.click('#password');
     await page.type('#password', password);
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(2000);
+    await page.waitForSelector('body');
     return page;
 }
 
