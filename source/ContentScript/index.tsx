@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 import { browser } from 'webextension-polyfill-ts';
-import { StorageKeys, WTags } from '../shared/constants';
+import { StorageKeys, wittyVersion, WTags } from '../shared/constants';
 import ContentScriptApp from './ContentScriptApp';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
@@ -96,7 +96,7 @@ browser.storage.onChanged.addListener(storageChange);
 
 Sentry.init({
   dsn: 'https://41a158eff71044a3ad021f381e0f0349@o512991.ingest.sentry.io/6223342',
-  release: 'witty@' + browser.runtime.getManifest().version,
+  release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
   sampleRate: 0.0,
   tracesSampleRate: 0.001,

@@ -1,4 +1,5 @@
 import { browser } from 'webextension-polyfill-ts';
+import { wittyVersion, WTags } from './constants';
 
 import { sendErrorToSentry } from './errorUtils';
 
@@ -15,7 +16,6 @@ const storeInLocalStorage = (key: string, value: any) => {
     .set({ [key]: value })
     .then(() => {
       //TODO bug, some values are not pronted correctly (for example arrays)
-      const wittyVersion = browser.runtime.getManifest().version;
       const componentName = 'Utils';
       const message = value
         ? `${key}(${typeof value}) *${(typeof value === 'object'
@@ -33,7 +33,14 @@ const storeInLocalStorage = (key: string, value: any) => {
       );
     })
     .catch((error: unknown) => {
-      const wittyVersion = browser.runtime.getManifest().version;
+      //this error means that the extension was deactivated or uninstalled, in this case we delete the container
+      if (error == 'Error: Extension context invalidated.') {
+        const container = document.getElementsByTagName(WTags.WW_CONTAINER);
+        if (container.length > 0) {
+          container[0].remove();
+        }
+      }
+
       const componentName = 'Utils';
       const message = `onBrowserStorage Error: ${error}`;
 

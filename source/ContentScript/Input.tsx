@@ -159,6 +159,7 @@ const Input: React.FC<{
 
   const handleFocusoutEvent = () => {
     setActiveIcon('passive');
+    setAlerts([]);
     setTextToCheck('');
   };
 
