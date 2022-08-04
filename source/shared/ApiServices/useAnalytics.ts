@@ -16,7 +16,6 @@ export const useAnalytics = () => {
   return {
     async alternativeLog(logResponse: IAlert, alternative: string) {
       ph.session.distinctId = appID;
-
       const request: IAlternativeLogRequest = {
         request__type: 'alternative',
         request__lang: 'auto',
@@ -63,9 +62,15 @@ export const useAnalytics = () => {
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
         request__text__length: inputLength,
-        response__groupId: logResponse.organization_config.id,
-        response__name: logResponse.organization_config.name,
-        response__plan: logResponse.organization_config.plan,
+        response__groupId: logResponse.organization_config
+          ? logResponse.organization_config.id
+          : null,
+        response__name: logResponse.organization_config
+          ? logResponse.organization_config.name
+          : null,
+        response__plan: logResponse.organization_config
+          ? logResponse.organization_config.plan
+          : null,
       };
 
       if (logResponse.organization_config) {
@@ -73,7 +78,9 @@ export const useAnalytics = () => {
           ...request,
           response: logResponse,
           $groups: {
-            organization: logResponse.organization_config.id,
+            organization: logResponse.organization_config
+              ? logResponse.organization_config.id
+              : null,
           },
         });
       } else {

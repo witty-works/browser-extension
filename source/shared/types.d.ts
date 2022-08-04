@@ -139,7 +139,7 @@ export interface IIgnoreLogRequest extends ILogRequest {
 }
 export interface ICheckLogRequest extends ILogRequest {
   request__text__length: number;
-  response__name: string;
+  response__name: string | null;
 }
 
 export type ILogResponse = ICheckResponse;
