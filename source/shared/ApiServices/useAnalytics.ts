@@ -80,13 +80,24 @@ export const useAnalytics = () => {
         response__groupId: logResponse.organization_config.id,
         response__name: logResponse.organization_config.name,
         response__plan: logResponse.organization_config.plan,
+        // response__groupId: logResponse.organization_config
+        //   ? logResponse.organization_config.id
+        //   : null,
+        // response__name: logResponse.organization_config
+        //   ? logResponse.organization_config.name
+        //   : null,
+        // response__plan: logResponse.organization_config
+        //   ? logResponse.organization_config.plan
+        //   : null,
       };
 
       if (logResponse.organization_config) {
         ph.capture('check', {
           ...checkLogItems,
           $groups: {
-            organization: logResponse.organization_config.id,
+            organization: logResponse.organization_config
+              ? logResponse.organization_config.id
+              : null,
           },
         });
       } else {

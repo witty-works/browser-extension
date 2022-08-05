@@ -159,6 +159,7 @@ const Input: React.FC<{
 
   const handleFocusoutEvent = () => {
     setActiveIcon('passive');
+    setAlerts([]);
     setTextToCheck('');
   };
 
@@ -431,6 +432,9 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
+    //TEMP: solution to trigger browserStorage error when the user is not logged in and uninstalling extension. Will be replaced by auth call.
+    storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+
     setActiveIcon('active');
     analytics.checkLog(
       checkEndpointResponse,

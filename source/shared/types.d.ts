@@ -167,7 +167,7 @@ export interface ICheckLogItems {
   request__text__length: number;
   response__groupId: string | null | undefined;
   response__plan: string | null | undefined;
-  response__name: string;
+  response__name: string | null;
   response__results: ICheckResponseResult[];
   response__language: string;
   response__limit_reached: boolean;
