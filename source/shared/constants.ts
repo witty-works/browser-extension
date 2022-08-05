@@ -32,6 +32,7 @@ export enum StorageKeys {
   ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
   TEAM_NAME = 'teamName',
   PLAN = 'plan',
+  CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 }
 
 //nlp api, dashboard

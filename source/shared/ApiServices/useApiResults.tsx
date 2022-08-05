@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { IEndpointError, IRequest } from '../types';
 import { useLog, logTypes } from '../customHooks/useLog';
 import Ajv, { JSONSchemaType } from 'ajv';
+import { WTags } from '../constants';
 const ajv = new Ajv();
 
 const useApiResult = <TResponse,>(
@@ -23,10 +24,14 @@ const useApiResult = <TResponse,>(
 
   useEffect(() => {
     const ac = new AbortController();
+    const container = document.getElementsByTagName(WTags.WW_CONTAINER);
 
-    //Avoid endpoint calls if config is null
-
-    if (request.config) {
+    //avoid enpoint call if no config or no container (aka plugin disabled)
+    if (request.config && container.length > 0) {
+      //further avoid call to check if no body
+      if (!request.config.body && request.url.includes('check')) {
+        return;
+      }
       request.config = { ...request.config, signal: ac.signal };
 
       log('Request:', logTypes.INFO, request);
