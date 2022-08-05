@@ -3,10 +3,11 @@ import { POSTHOG_API_KEY, wittyVersion } from '../constants';
 import {
   IAlert,
   ILogResponse,
-  ICheckLogRequest,
-  IIgnoreLogRequest,
-  IAlternativeLogRequest,
-  ILogRequest,
+  IVoteLogRequest,
+  IAlternativeLogItems,
+  ICheckLogItems,
+  IIgnoreLogItems,
+  ILogItems,
 } from '../types';
 import { appID, requestConfig } from './requests';
 
@@ -17,7 +18,7 @@ export const useAnalytics = () => {
     async alternativeLog(logResponse: IAlert, alternative: string) {
       ph.session.distinctId = appID;
 
-      const request: IAlternativeLogRequest = {
+      const alternativeLogItems: IAlternativeLogItems = {
         request__type: 'alternative',
         request__lang: 'auto',
         request__id: appID,
@@ -33,20 +34,30 @@ export const useAnalytics = () => {
         response__popOverIsOpen: logResponse.popOverIsOpen,
         response__groupId: logResponse.groupId,
         response__plan: logResponse.plan,
+        response__data__language: logResponse.data.language,
+        response__data__category: logResponse.data.category,
+        response__data__subcategory: logResponse.data.subcategory,
+        response__data__context: logResponse.data.context,
+        response__data_text: logResponse.data.text,
+        response__data__label: logResponse.data.label,
+        response__data__explanation: logResponse.data.explanation,
+        response__data__explanation__text: logResponse.data.explanation.text,
+        response__data__explanation__icon: logResponse.data.explanation.icon,
+        response__data__explanation__url: logResponse.data.explanation.url,
+        response__data__alternatives: logResponse.data.alternatives,
+        response__data__gravity: logResponse.data.gravity,
       };
 
       if (logResponse.groupId) {
         ph.capture('alternative', {
-          ...request,
-          response: logResponse,
+          ...alternativeLogItems,
           $groups: {
             organization: logResponse.groupId,
           },
         });
       } else {
         ph.capture('alternative', {
-          ...request,
-          response: logResponse,
+          ...alternativeLogItems,
         });
       }
     },
@@ -54,7 +65,7 @@ export const useAnalytics = () => {
     async checkLog(logResponse: ILogResponse, inputLength: number) {
       ph.session.distinctId = appID;
 
-      const request: ICheckLogRequest = {
+      const checkLogItems: ICheckLogItems = {
         request__type: 'check',
         request__lang: 'auto',
         request__id: appID,
@@ -63,6 +74,9 @@ export const useAnalytics = () => {
         request__config__german_gender_ending:
           requestConfig.german_gender_ending,
         request__text__length: inputLength,
+        response__results: logResponse.results,
+        response__language: logResponse.language,
+        response__limit_reached: logResponse.limit_reached,
         response__groupId: logResponse.organization_config.id,
         response__name: logResponse.organization_config.name,
         response__plan: logResponse.organization_config.plan,
@@ -70,16 +84,14 @@ export const useAnalytics = () => {
 
       if (logResponse.organization_config) {
         ph.capture('check', {
-          ...request,
-          response: logResponse,
+          ...checkLogItems,
           $groups: {
             organization: logResponse.organization_config.id,
           },
         });
       } else {
         ph.capture('check', {
-          ...request,
-          response: logResponse,
+          ...checkLogItems,
         });
       }
     },
@@ -87,7 +99,7 @@ export const useAnalytics = () => {
     async ignoreLog(logResponse: IAlert) {
       ph.session.distinctId = appID;
 
-      const request: IIgnoreLogRequest = {
+      const ignoreLogItems: IIgnoreLogItems = {
         request__type: 'ignore',
         request__lang: 'auto',
         request__id: appID,
@@ -102,20 +114,30 @@ export const useAnalytics = () => {
         response__popOverIsOpen: logResponse.popOverIsOpen,
         response__groupId: logResponse.groupId,
         response__plan: logResponse.plan,
+        response__data__language: logResponse.data.language,
+        response__data__category: logResponse.data.category,
+        response__data__subcategory: logResponse.data.subcategory,
+        response__data__context: logResponse.data.context,
+        response__data_text: logResponse.data.text,
+        response__data__label: logResponse.data.label,
+        response__data__explanation: logResponse.data.explanation,
+        response__data__explanation__text: logResponse.data.explanation.text,
+        response__data__explanation__icon: logResponse.data.explanation.icon,
+        response__data__explanation__url: logResponse.data.explanation.url,
+        response__data__alternatives: logResponse.data.alternatives,
+        response__data__gravity: logResponse.data.gravity,
       };
 
       if (logResponse.groupId) {
         ph.capture('ignore', {
-          ...request,
-          response: logResponse,
+          ...ignoreLogItems,
           $groups: {
             organization: logResponse.groupId,
           },
         });
       } else {
         ph.capture('ignore', {
-          ...request,
-          response: logResponse,
+          ...ignoreLogItems,
         });
       }
     },
@@ -123,7 +145,7 @@ export const useAnalytics = () => {
     async popoverLogs(logResponse: IAlert, logType: string) {
       ph.session.distinctId = appID;
 
-      const request: ILogRequest = {
+      const popoverLogItems: ILogItems = {
         request__type: logType,
         request__lang: 'auto',
         request__id: appID,
@@ -137,20 +159,30 @@ export const useAnalytics = () => {
         response__popOverIsOpen: logResponse.popOverIsOpen,
         response__groupId: logResponse.groupId,
         response__plan: logResponse.plan,
+        response__data__language: logResponse.data.language,
+        response__data__category: logResponse.data.category,
+        response__data__subcategory: logResponse.data.subcategory,
+        response__data__context: logResponse.data.context,
+        response__data_text: logResponse.data.text,
+        response__data__label: logResponse.data.label,
+        response__data__explanation: logResponse.data.explanation,
+        response__data__explanation__text: logResponse.data.explanation.text,
+        response__data__explanation__icon: logResponse.data.explanation.icon,
+        response__data__explanation__url: logResponse.data.explanation.url,
+        response__data__alternatives: logResponse.data.alternatives,
+        response__data__gravity: logResponse.data.gravity,
       };
 
       if (logResponse.groupId) {
         ph.capture(logType, {
-          ...request,
-          response: logResponse,
+          ...popoverLogItems,
           $groups: {
             organization: logResponse.groupId,
           },
         });
       } else {
         ph.capture(logType, {
-          ...request,
-          response: logResponse,
+          ...popoverLogItems,
         });
       }
     },
@@ -165,7 +197,7 @@ export const useAnalytics = () => {
 
     async voteForUrlLog(url: string, appID: string) {
       ph.session.distinctId = appID;
-      const request: ILogRequest = {
+      const request: IVoteLogRequest = {
         request__type: 'vote',
         request__lang: 'auto',
         request__id: appID,
