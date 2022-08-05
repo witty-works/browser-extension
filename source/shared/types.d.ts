@@ -156,6 +156,7 @@ export interface IVoteLogRequest {
   request__client: string;
   request__config__preferred_variants: string;
   request__config__german_gender_ending: string;
+  vote__url: string;
 }
 export interface ICheckLogItems {
   request__type: string;
