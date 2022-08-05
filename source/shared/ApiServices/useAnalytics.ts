@@ -77,7 +77,11 @@ export const useAnalytics = () => {
       captureEvent(logType, popoverLogItems, logResponse.groupId);
     },
 
-    async extensionStatusLog(status: string, appID: string) {
+    async extensionInstallationAndUpdateLog(status: string, appID: string) {
+      captureEvent(status, getRequestData(appID), null);
+    },
+
+    async extenstionStatusLog(status: string) {
       captureEvent(status, getRequestData(appID), null);
     },
 
