@@ -1,4 +1,5 @@
 import { browser } from 'webextension-polyfill-ts';
+import { useAnalytics } from './ApiServices/useAnalytics';
 import { wittyVersion, WTags } from './constants';
 
 import { sendErrorToSentry } from './errorUtils';
@@ -35,6 +36,7 @@ const storeInLocalStorage = (key: string, value: any) => {
     .catch((error: unknown) => {
       //this error means that the extension was deactivated or uninstalled, in this case we delete the container
       if (error == 'Error: Extension context invalidated.') {
+        useAnalytics().extenstionStatusLog('deactivated');
         const container = document.getElementsByTagName(WTags.WW_CONTAINER);
         if (container.length > 0) {
           container[0].remove();
