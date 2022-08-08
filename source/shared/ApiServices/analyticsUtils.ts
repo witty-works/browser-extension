@@ -39,7 +39,6 @@ export const getResponseData = (logResponse: IAlert) => {
     response__data__context: logResponse.data.context,
     response__data_text: logResponse.data.text,
     response__data__label: logResponse.data.label,
-    response__data__explanation: logResponse.data.explanation,
     response__data__explanation__text: logResponse.data.explanation.text,
     response__data__explanation__icon: logResponse.data.explanation.icon,
     response__data__explanation__url: logResponse.data.explanation.url,

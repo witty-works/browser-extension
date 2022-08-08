@@ -135,7 +135,6 @@ export interface ILogItems {
   response__data__context: string;
   response__data_text: string;
   response__data__label: string;
-  response__data__explanation: object;
   response__data__explanation__text: string;
   response__data__explanation__icon: string;
   response__data__explanation__url: string;
