@@ -1,7 +1,7 @@
 import React from 'react';
 
 import './Toggle.scss';
-import Lock from '../../../assets/icons/options/lock.svg';
+import Lock from '../../../assets/icons/popup/lock.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
 
@@ -26,7 +26,7 @@ const Toggle: React.FC<ToggleProps> = ({
   hasWittyTeams = true,
   userIsLoggedIn = true,
 }: ToggleProps) => {
-  const { t } = useTranslation([namespaces.pages.options]);
+  const { t } = useTranslation([namespaces.pages.popup]);
   return (
     <>
       <div
