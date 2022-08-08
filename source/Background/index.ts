@@ -2,7 +2,12 @@ import { browser } from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { StorageKeys, DEV_ENV, WittyIconActive } from '../shared/constants';
+import {
+  StorageKeys,
+  DEV_ENV,
+  WittyIconActive,
+  wittyVersion,
+} from '../shared/constants';
 import {
   addInactiveLabel,
   getDomainWithoutSubdomain,
@@ -26,14 +31,15 @@ type DefaultConfigValue =
   | (() => string);
 
 Sentry.init({
-  dsn: 'https://41a158eff71044a3ad021f381e0f0349@o512991.ingest.sentry.io/6223342',
-  release: 'witty@' + browser.runtime.getManifest().version,
+  dsn: 'https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342',
+  release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
   sampleRate: 0.0,
   tracesSampleRate: 0.001,
 });
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
+  analytics.extensionInstallationAndUpdateLog(details.reason, getBrowserId());
   browser.browserAction.setIcon(WittyIconActive);
   if (!DEV_ENV)
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
@@ -41,9 +47,6 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'install') {
     //Set default settings
     setSettings();
-
-    //Log install event to posthog
-    analytics.extensionStatusLog('install', getBrowserId());
 
     //Open the welcome page
     if (!DEV_ENV) {
@@ -55,9 +58,6 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'update') {
     //Set icon according to the saved settings
     scanTabsToDetectStatus();
-
-    //Log update event to posthog
-    analytics.extensionStatusLog('update', getBrowserId());
   }
 });
 
