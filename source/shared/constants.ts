@@ -33,6 +33,7 @@ export enum StorageKeys {
   TEAM_NAME = 'teamName',
   PLAN = 'plan',
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
+  IS_PINNED = 'notPinnned',
 }
 
 //nlp api, dashboard

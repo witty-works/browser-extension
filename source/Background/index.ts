@@ -45,6 +45,8 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
 
   if (details.reason === 'install') {
+    //set NOT_PINNED to true
+    setInLocalStorage(StorageKeys.IS_PINNED, false);
     //Set default settings
     setSettings();
 
@@ -56,6 +58,8 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     }
   }
   if (details.reason === 'update') {
+    setInLocalStorage(StorageKeys.IS_PINNED, false);
+
     //Set icon according to the saved settings
     scanTabsToDetectStatus();
   }
