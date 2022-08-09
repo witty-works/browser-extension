@@ -17,7 +17,7 @@ import './styles.scss';
 import { setBaseUrls } from '../shared/ApiServices/requests';
 import PopupHeader from './PopupHeader';
 import Star from '../assets/icons/popup/star.svg';
-import Checkmark from '../assets/icons/popup/Checkmark.svg';
+import Checkmark from '../assets/icons/popup/checkmark.svg';
 
 const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
