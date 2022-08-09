@@ -34,12 +34,15 @@ import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
+import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
+import { setToken } from '../shared/ApiServices/requests';
 
 const Input: React.FC<{
   element: CustomInputElement;
 }> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
+  const [authResponse, authErrorResponse, getConfig] = useAuthEndpoint();
   const [, , previousTextToCheckRef] = useStateRef('');
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
@@ -70,7 +73,6 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
-
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       for (const mutation of mutationsList) {
@@ -87,6 +89,8 @@ const Input: React.FC<{
   const log = useLog('Input');
 
   useEffect(() => {
+    getConfig();
+
     browser.storage.local
       .get(StorageKeys.API_DELAY)
       .then((result) => {
@@ -139,6 +143,90 @@ const Input: React.FC<{
       element.removeEventListener('focusin', handleFocusinEvent);
     };
   }, [debounceDelay]);
+
+  useEffect(() => {
+    if (authResponse) {
+      //TODO: in sync
+      // if (authResponse.config) {
+      //   Object.keys(authResponse.config).forEach((key) => {
+      //     if (!Object.keys(StorageKeys).includes(key.toUpperCase())) {
+      //       console.warn(`${key.toUpperCase()} is not a valid storage key`);
+      //       return;
+      //     }
+      //     if (
+      //       key == 'gendered_roles_format' &&
+      //       authResponse.config[key].status == 'force'
+      //     ) {
+      //       storeInLocalStorage(
+      //         StorageKeys.GENDERED_ROLES_FORMAT,
+      //         authResponse.config[key]
+      //       );
+      //     } else if (
+      //       key == 'german_gender_ending' &&
+      //       authResponse.config[key].status == 'force'
+      //     ) {
+      //       storeInLocalStorage(
+      //         StorageKeys.GERMAN_GENDER_ENDING,
+      //         authResponse.config[key]
+      //       );
+      //     } else if (
+      //       key == 'inclusive' &&
+      //       authResponse.config[key].status == 'force'
+      //     ) {
+      //       storeInLocalStorage(
+      //         StorageKeys.INCLUSIVE,
+      //         authResponse.config[key]
+      //       );
+      //     } else if (
+      //       key == 'maximum_importance' &&
+      //       authResponse.config[key].status == 'force'
+      //     ) {
+      //       storeInLocalStorage(
+      //         StorageKeys.MAXIMUM_IMPORTANCE,
+      //         authResponse.config[key]
+      //       );
+      //     } else if (
+      //       key == 'orthography' &&
+      //       authResponse.config[key].status == 'force'
+      //     ) {
+      //       storeInLocalStorage(
+      //         StorageKeys.ORTHOGRAPHY,
+      //         authResponse.config[key]
+      //       );
+      //     } else if (
+      //       key == 'preferred_variants' &&
+      //       authResponse.config[key].status == 'force'
+      //     ) {
+      //       storeInLocalStorage(
+      //         StorageKeys.PREFERRED_VARIANTS,
+      //         authResponse.config[key]
+      //       );
+      //     } else if (
+      //       key == 'show_inspiration_alternatives' &&
+      //       authResponse.config[key].status == 'force'
+      //     ) {
+      //       storeInLocalStorage(
+      //         StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
+      //         authResponse.config[key]
+      //       );
+      //     } else if (
+      //       key == 'singular_they' &&
+      //       authResponse.config[key].status == 'force'
+      //     ) {
+      //       storeInLocalStorage(
+      //         StorageKeys.SINGULAR_THEY,
+      //         authResponse.config[key]
+      //       );
+      //     } else if (
+      //       key == 'style' &&
+      //       authResponse.config[key].status == 'force'
+      //     ) {
+      //       storeInLocalStorage(StorageKeys.STYLE, authResponse.config[key]);
+      //     }
+      //   });
+      // }
+    }
+  }, [authResponse]);
 
   useEffect(() => {
     docTextEvaluation(element);
@@ -533,11 +621,13 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
+        //TODO: in sync
         groupId:
           checkEndpointResponse.organization_config &&
           checkEndpointResponse.organization_config.id
             ? checkEndpointResponse.organization_config.id
             : null,
+        //TODO: in sync
         plan:
           checkEndpointResponse.organization_config &&
           checkEndpointResponse.organization_config.plan
@@ -714,7 +804,10 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
     }
     //gets new access token using the refresh token if the access token has expired
-    else if (checkEndpointError?.status == 403) {
+    else if (
+      checkEndpointError?.status == 403 ||
+      authErrorResponse?.status === 403
+    ) {
       browser.storage.local
         .get(StorageKeys.REFRESH_TOKEN)
         .then((result) => {
@@ -725,6 +818,8 @@ const Input: React.FC<{
             StorageKeys.ACCESS_TOKEN,
             refreshTokenResponse.access_token
           );
+          setToken(refreshTokenResponse.access_token);
+
           storeInLocalStorage(
             StorageKeys.REFRESH_TOKEN,
             refreshTokenResponse.refresh_token
@@ -742,7 +837,7 @@ const Input: React.FC<{
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
       logTypes.ERROR
     );
-  }, [checkEndpointError]);
+  }, [checkEndpointError, authErrorResponse]);
 
   const ErrorBoundaryFallback = () => (
     <Toast message={t('reloadWebsite')} type='error' />

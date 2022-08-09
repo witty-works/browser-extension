@@ -27,7 +27,7 @@ const renderMainPopup = () => {
 browser.storage.local
   .get(null)
   .then((result) => {
-    if (result[StorageKeys.ACCESS_TOKEN] == '') {
+    if (!result[StorageKeys.ACCESS_TOKEN]) {
       renderUserNotLoggedIn();
       return;
     }
@@ -67,7 +67,7 @@ const storageChange = (changes: any) => {
   for (let item of changedItems) {
     switch (item) {
       case StorageKeys.ACCESS_TOKEN:
-        changes[item].newValue == '' && renderUserNotLoggedIn();
+        !changes[item].newValue && renderUserNotLoggedIn();
         break;
       case StorageKeys.ENABLE_WITTY_EVERYWHERE:
         changes[item].newValue ? renderMainPopup() : renderDomainDeactivated();

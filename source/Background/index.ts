@@ -152,7 +152,8 @@ const scanTabsToDetectStatus = () => {
             result[StorageKeys.DISABLED_SITES].includes(domain)) ||
           (defaultConfig.ACTIVE_SITES &&
             !defaultConfig.ACTIVE_SITES.includes(domain) &&
-            !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
+            !result[StorageKeys.ENABLE_WITTY_EVERYWHERE]) ||
+          !result[StorageKeys.ACCESS_TOKEN]
         ) {
           addInactiveLabel();
         } else {

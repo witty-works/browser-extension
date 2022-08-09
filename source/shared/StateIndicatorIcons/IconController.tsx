@@ -5,6 +5,9 @@ import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
 import { usePositionCorrection } from '../../shared/customHooks/usePositionCorrection';
+import { browser } from 'webextension-polyfill-ts';
+import { StorageKeys } from '../constants';
+import { sendErrorToSentry } from '../errorUtils';
 
 interface IconControllerProps {
   iconType: string;
@@ -24,6 +27,16 @@ const IconController: React.FC<IconControllerProps> = ({
   );
   const elementRect = element.getBoundingClientRect();
   const iconPadding: number = 8;
+  const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
+
+  browser.storage.local
+    .get(StorageKeys.ACCESS_TOKEN)
+    .then((result) => {
+      setUserIsLoggedIn(!result[StorageKeys.ACCESS_TOKEN] ? false : true);
+    })
+    .catch((error: unknown) => {
+      sendErrorToSentry(error);
+    });
 
   return (
     <div
@@ -44,9 +57,9 @@ const IconController: React.FC<IconControllerProps> = ({
         e.preventDefault();
       }}
     >
-      {iconType == 'loading' && <LoadingIcon />}
-      {iconType == 'active' && <ActiveIcon />}
-      {iconType == 'passive' && isHovered && <PassiveIcon />}
+      {userIsLoggedIn && iconType == 'loading' && <LoadingIcon />}
+      {userIsLoggedIn && iconType == 'active' && <ActiveIcon />}
+      {userIsLoggedIn && iconType == 'passive' && isHovered && <PassiveIcon />}
     </div>
   );
 };

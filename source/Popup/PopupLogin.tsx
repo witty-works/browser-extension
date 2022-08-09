@@ -30,9 +30,9 @@ const PopupLogin: React.FC = () => {
   };
 
   const logIn = async () => {
-    const url = `${
-      BaseUrls[urls].dashboard
-    }api/browser-login?redirect_uri=${'https://www.witty.works/editor'}`;
+    const optionsPageUrl =
+      'chrome-extension://' + browser.runtime.id + '/options.html';
+    const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
     window.open(url, '_blank');
   };
 
