@@ -58,7 +58,7 @@ const ContentScriptApp: React.FC = () => {
           : (document.body.spellcheck = true);
 
         //Define API requests config
-        const reqConfig: RequestConfig = {
+        const requestConfig: RequestConfig = {
           german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value
             ? result[StorageKeys.GERMAN_GENDER_ENDING].value
             : result[StorageKeys.GERMAN_GENDER_ENDING],
@@ -90,8 +90,12 @@ const ContentScriptApp: React.FC = () => {
           gendered_roles_format: result[StorageKeys.GENDERED_ROLES_FORMAT].value
             ? result[StorageKeys.GENDERED_ROLES_FORMAT].value
             : result[StorageKeys.GENDERED_ROLES_FORMAT],
+
+          inclusive: result[StorageKeys.INCLUSIVE].value,
+          style: result[StorageKeys.STYLE].value,
+          orthography: result[StorageKeys.ORTHOGRAPHY].value,
         };
-        setReqConfig(reqConfig);
+        setReqConfig(requestConfig);
       })
       .catch((error: unknown) => {
         log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);

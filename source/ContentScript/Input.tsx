@@ -16,7 +16,7 @@ import {
   IAlert,
   INodeWithAlerts,
   Position,
-  RequestConfig,
+  ResponseConfig,
 } from '../shared/types';
 import { storeInLocalStorage, getFirstTextDiff } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
@@ -37,7 +37,6 @@ import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
-import { exists } from 'i18next';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -147,8 +146,8 @@ const Input: React.FC<{
   }, [debounceDelay]);
 
   useEffect(() => {
-    if (!authResponse) return;
     console.log('authResponse', authResponse);
+    if (!authResponse) return;
 
     authResponse.domains &&
       storeInLocalStorage(StorageKeys.DOMAINS, authResponse.domains);
@@ -242,7 +241,7 @@ const Input: React.FC<{
     }
   };
 
-  const updateConfig = (config: RequestConfig) => {
+  const updateConfig = (config: ResponseConfig) => {
     Object.keys(config).forEach((key) => {
       switch (key) {
         case 'gendered_roles_format':
@@ -491,7 +490,9 @@ const Input: React.FC<{
     if (!checkEndpointResponse) return;
     console.log('checkEndpointResponse', checkEndpointResponse);
 
-    if (checkEndpointResponse.config_changed) getConfig();
+    if (checkEndpointResponse.config_changed) {
+      getConfig();
+    }
 
     //TODO: check if this is needed
     storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
@@ -511,14 +512,15 @@ const Input: React.FC<{
         : 'None'
     );
 
-    checkEndpointResponse.domains &&
-      storeInLocalStorage(StorageKeys.DOMAINS, checkEndpointResponse.domains);
-    checkEndpointResponse.domains &&
+    const organizationConfig = checkEndpointResponse.organization_config;
+    organizationConfig &&
+      storeInLocalStorage(StorageKeys.DOMAINS, organizationConfig.domains);
+    organizationConfig &&
       storeInLocalStorage(
         StorageKeys.ORGANIZATION_DOMAINS,
-        checkEndpointResponse.organization_domains
+        organizationConfig.organization_domains
       );
-    updateConfig(checkEndpointResponse.organization_config);
+    organizationConfig && updateConfig(organizationConfig.config);
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
@@ -526,8 +528,8 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId: authResponse ? authResponse.id : null,
-        plan: authResponse ? authResponse.plan : null,
+        groupId: authResponse ? authResponse.id : undefined,
+        plan: authResponse ? authResponse.plan : undefined,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,

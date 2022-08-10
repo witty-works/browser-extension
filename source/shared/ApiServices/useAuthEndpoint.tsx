@@ -5,9 +5,11 @@ import { IRequest, IAuthResponse } from '../types';
 // import { checkResponseOrgConfigSchema } from './validationSchemas';
 
 export const useAuthEndpoint = () => {
-  const [config, setConfig] = useState<boolean>();
+  const [config, setConfig] = useState<number>();
   const getConfig = () => {
-    setConfig(true);
+    //find better way to do this
+    const random = Math.random();
+    setConfig(random);
   };
 
   const request: IRequest = useMemo(() => {

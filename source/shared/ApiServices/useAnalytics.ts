@@ -1,12 +1,12 @@
 import {
   IAlert,
-  ILogResponse,
   IVoteLogRequest,
   IAlternativeLogItems,
   ICheckLogItems,
   IIgnoreLogItems,
   ILogItems,
   IAuthResponse,
+  ICheckResponse,
 } from '../types';
 import {
   captureEvent,
@@ -17,31 +17,27 @@ import { appID } from './requests';
 
 export const useAnalytics = () => {
   return {
-    async checkLog(logResponse: ILogResponse, inputLength: number) {
+    async checkLog(
+      checkResponse: ICheckResponse,
+      authResponse: IAuthResponse | null,
+      inputLength: number
+    ) {
       const checkLogItems: ICheckLogItems = {
         request__type: 'check',
         request__text__length: inputLength,
         ...getRequestData(appID),
-        response__results: logResponse.results,
-        response__language: logResponse.language,
-        response__limit_reached: logResponse.limit_reached,
-        response__groupId: logResponse.organization_config
-          ? logResponse.organization_config.id
-          : null,
-        response__name: logResponse.organization_config
-          ? logResponse.organization_config.name
-          : null,
-        response__plan: logResponse.organization_config
-          ? logResponse.organization_config.plan
-          : null,
+        response__results: checkResponse.results,
+        response__language: checkResponse.language,
+        response__limit_reached: checkResponse.limit_reached,
+        response__groupId: authResponse ? authResponse.id : undefined,
+        response__name: authResponse ? authResponse.name : undefined,
+        response__plan: authResponse ? authResponse.plan : undefined,
       };
 
       captureEvent(
         'check',
         checkLogItems,
-        logResponse.organization_config
-          ? logResponse.organization_config.id
-          : null
+        authResponse ? authResponse.id : null
       );
     },
 
