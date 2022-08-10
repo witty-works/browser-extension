@@ -17,11 +17,7 @@ import { appID } from './requests';
 
 export const useAnalytics = () => {
   return {
-    async checkLog(
-      logResponse: ILogResponse,
-      authResponse: IAuthResponse,
-      inputLength: number
-    ) {
+    async checkLog(logResponse: ILogResponse, inputLength: number) {
       const checkLogItems: ICheckLogItems = {
         request__type: 'check',
         request__text__length: inputLength,
@@ -29,17 +25,23 @@ export const useAnalytics = () => {
         response__results: logResponse.results,
         response__language: logResponse.language,
         response__limit_reached: logResponse.limit_reached,
-        response__groupId: authResponse ? authResponse.id : null,
-        // response__name: logResponse.organization_config
-        //   ? logResponse.organization_config.name
-        //   : null,
-        response__plan: authResponse ? authResponse.plan : null,
+        response__groupId: logResponse.organization_config
+          ? logResponse.organization_config.id
+          : null,
+        response__name: logResponse.organization_config
+          ? logResponse.organization_config.name
+          : null,
+        response__plan: logResponse.organization_config
+          ? logResponse.organization_config.plan
+          : null,
       };
 
       captureEvent(
         'check',
         checkLogItems,
-        authResponse ? authResponse.id : null
+        logResponse.organization_config
+          ? logResponse.organization_config.id
+          : null
       );
     },
 
@@ -76,7 +78,11 @@ export const useAnalytics = () => {
       captureEvent(logType, popoverLogItems, logResponse.groupId);
     },
 
-    async extensionStatusLog(status: string, appID: string) {
+    async extensionInstallationAndUpdateLog(status: string, appID: string) {
+      captureEvent(status, getRequestData(appID), null);
+    },
+
+    async extenstionStatusLog(status: string) {
       captureEvent(status, getRequestData(appID), null);
     },
 
