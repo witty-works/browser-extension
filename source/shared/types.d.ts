@@ -186,3 +186,11 @@ export interface ICheckLogItems {
   response__language: string;
   response__limit_reached: boolean;
 }
+
+export type DefaultConfigValue =
+  | string
+  | boolean
+  | number
+  | string[]
+  | object
+  | (() => string);

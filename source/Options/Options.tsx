@@ -20,7 +20,6 @@ const Options: React.FC = () => {
       const searchParams = new URLSearchParams(
         (event.currentTarget as Window).location.search
       );
-      console.log(searchParams);
 
       if ([...searchParams].length > 0) {
         setAccessToken(searchParams.get('access_token') as string);

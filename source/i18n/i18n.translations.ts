@@ -44,6 +44,9 @@ export const de = {
     signOut: 'Sign out DE',
     register: 'Don’t have an account? DE',
     signUp: ' Sign up DE',
+    domainBlocked: 'This domain is blocked by your organization. DE',
+    domainNotAlloweYet:
+      'This domain is not allowed by your organization yet. DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -101,6 +104,8 @@ export const en = {
     signOut: 'Sign out',
     register: 'Don’t have an account?',
     signUp: ' Sign up',
+    domainBlocked: 'This domain is blocked by your organization.',
+    domainNotAlloweYet: 'This domain is not allowed by your organization yet.',
   },
 
   [namespaces.popover]: {

@@ -7,7 +7,8 @@ let token: string = '';
 export let appID: string = ''; // TODO context hook
 export let requestConfig: RequestConfig = {} as RequestConfig;
 
-const createUrl = (base: string, path: string): string => `${base}${path}`;
+export const createUrl = (base: string, path: string): string =>
+  `${base}${path}`;
 
 export const setBaseUrls = (urlKey: string) => {
   BASE_URL_API = BaseUrls[urlKey].api;

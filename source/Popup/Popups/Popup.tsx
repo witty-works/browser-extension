@@ -2,39 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import { useTranslation } from 'react-i18next';
 
-import { ConfigProperty } from '../shared/types';
+import { ConfigProperty } from '../../shared/types';
 import {
   StorageKeys,
   Colors,
   DefaultBaseUrlKey,
   DEV_ENV,
-} from '../shared/constants';
+} from '../../shared/constants';
 import {
   addInactiveLabel,
   removeInactiveLabel,
   storeInLocalStorage,
-} from '../shared/utils';
-import { sendErrorToSentry } from '../shared/errorUtils';
-import { namespaces } from '../i18n/i18n.constants';
-import '../i18n/i18n';
-import { useLog, logTypes } from '../shared/customHooks/useLog';
-import Toggle from '../shared/components/Toggle/Toggle';
-import ApiSelector from './ApiSelector';
-import DelaySelector from './DelaySelector';
+} from '../../shared/utils';
+import { namespaces } from '../../i18n/i18n.constants';
+import '../../i18n/i18n';
+import Toggle from '../../shared/components/Toggle/Toggle';
+import ApiSelector from '../PopupComponents/ApiSelector';
+import DelaySelector from '../PopupComponents/DelaySelector';
 
-import defaultConfig from '../witty.config.json';
-import './styles.scss';
+import defaultConfig from '../../witty.config.json';
+import '../styles.scss';
 import {
   getBaseUrls,
   setBaseUrls,
   setToken,
-} from '../shared/ApiServices/requests';
-import PopupHeader from './PopupHeader';
+} from '../../shared/ApiServices/requests';
+import PopupHeader from '../PopupComponents/PopupHeader';
+import { onStorageError, onTabsQueryError } from '../PopupUtils';
 
 const Popup: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
-  const log = useLog('Popup');
-
   const [enabled, setEnabled] = useState<boolean>(true);
   const [disabledSites, setDisabledSites] = useState<string[]>(
     defaultConfig.DISABLED_SITES
@@ -135,16 +132,6 @@ const Popup: React.FC = () => {
   useEffect(() => {
     setEnabled(!userIsLoggedIn ? false : true);
   }, [userIsLoggedIn]);
-
-  const onStorageError = (error: unknown) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-    sendErrorToSentry(error);
-  };
-
-  const onTabsQueryError = (error: unknown) => {
-    log(`onTabsQueryError Error: ${error}`, logTypes.ERROR);
-    sendErrorToSentry(error);
-  };
 
   const setWittyIcon = (state: boolean) => {
     state ? removeInactiveLabel() : addInactiveLabel();

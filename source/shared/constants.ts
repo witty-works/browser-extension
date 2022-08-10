@@ -144,3 +144,36 @@ export const WittyIconActive = {
     '48': 'assets/icons/icon48.png',
   },
 };
+
+export const dropdownOptions = [
+  {
+    key: 0,
+    value: '0 seconds',
+  },
+  {
+    key: 500,
+    value: '0.5 seconds',
+  },
+  {
+    key: 1000,
+    value: '1 second',
+  },
+  {
+    key: 1500,
+    value: '1.5 seconds',
+  },
+  {
+    key: 2000,
+    value: '2 seconds',
+  },
+  {
+    key: 2500,
+    value: '2.5 seconds',
+  },
+  {
+    key: 3000,
+    value: '3 seconds',
+  },
+];
+
+export const devAppId = 'DEV_APP_ID';

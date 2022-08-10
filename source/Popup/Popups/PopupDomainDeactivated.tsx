@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
-import '../i18n/i18n';
-import './styles.scss';
-import SadFace from '../assets/icons/popup/sad-face.svg';
-import UpvoteButton from '../assets/icons/popup/upvote-button.svg';
-import EditorButton from '../assets/icons/popup/editor-button.svg';
+import '../../i18n/i18n';
+import '../styles.scss';
 import { useTranslation } from 'react-i18next';
-import { namespaces } from '../i18n/i18n.constants';
-import { useAnalytics } from '../shared/ApiServices/useAnalytics';
-import ArrowIcon from '../shared/animations/Arrow';
-import { storeInLocalStorage } from '../shared/utils';
-import { StorageKeys } from '../shared/constants';
-import PopupHeader from './PopupHeader';
-import { sendErrorToSentry } from '../shared/errorUtils';
+import { namespaces } from '../../i18n/i18n.constants';
+import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import { storeInLocalStorage } from '../../shared/utils';
+import { StorageKeys } from '../../shared/constants';
+import PopupHeader from '../PopupComponents/PopupHeader';
+import { sendErrorToSentry } from '../../shared/errorUtils';
+import SadFace from '../../assets/icons/popup/sad-face.svg';
+import UpvoteButton from '../../assets/icons/popup/upvote-button.svg';
+import EditorButton from '../../assets/icons/popup/editor-button.svg';
+import ArrowIcon from '../../shared/animations/Arrow';
 
 const PopupDomainDeactivated: React.FC = () => {
   const { t } = useTranslation(namespaces.pages.popup);

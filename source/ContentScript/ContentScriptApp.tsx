@@ -7,9 +7,9 @@ import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import { WTags, StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import {
+  setAppID,
   setBaseUrls,
   setRequestConfig,
-  setAppID,
   setToken,
 } from '../shared/ApiServices/requests';
 import {

@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { sendErrorToSentry } from '../shared/errorUtils';
-import Dropdown from '../shared/components/Dropdown/Dropdown';
-import { OptionProp } from '../shared/components/Dropdown/Dropdown';
-import { BaseUrls, DefaultBaseUrlKey, StorageKeys } from '../shared/constants';
-import { useLog, logTypes } from '../shared/customHooks/useLog';
+import Dropdown, {
+  OptionProp,
+} from '../../shared/components/Dropdown/Dropdown';
+import {
+  BaseUrls,
+  DefaultBaseUrlKey,
+  StorageKeys,
+} from '../../shared/constants';
+import { useLog } from '../../shared/customHooks/useLog';
+import { onError } from '../PopupUtils';
 
 const ApiSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
@@ -41,11 +46,6 @@ const ApiSelector: React.FC = () => {
         log(`New api endpoint ${value} saved`);
       })
       .catch(onError);
-  };
-
-  const onError = (error: unknown) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-    sendErrorToSentry(error);
   };
 
   return (

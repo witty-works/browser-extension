@@ -1,14 +1,13 @@
-import * as React from 'react';
-import ReactDOM from 'react-dom';
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 import { browser } from 'webextension-polyfill-ts';
-import { StorageKeys, wittyVersion, WTags } from '../shared/constants';
-import ContentScriptApp from './ContentScriptApp';
+import { BaseUrls, StorageKeys, wittyVersion } from '../shared/constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
 import { getDomainWithoutSubdomain } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
+import { customRender, updateConfig, updateDomains } from './InputUtils';
+import { createUrl } from '../shared/ApiServices/requests';
 
 const log = useLog('ContentScript index');
 
@@ -17,32 +16,43 @@ const wittyIsInstalledElement = document.querySelector('witty-is-installed');
 wittyIsInstalledElement &&
   wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
 
-const customRender = (enabled: boolean) => {
-  if (!document.querySelector(WTags.WW_POPOVER)) {
-    const element = document.createElement(WTags.WW_POPOVER);
-    element.setAttribute('extension-id', browser.runtime.id);
-    document.body.appendChild(element);
-  }
-
-  ReactDOM.render(
-    enabled ? <ContentScriptApp /> : <></>,
-    document.querySelector(WTags.WW_POPOVER)
-  );
-
-  //if more than one container is found, remove all of except the first one. If witty disabled, remove all.
-  const containers = document.querySelectorAll(WTags.WW_CONTAINER);
-  if (!containers) return;
-
-  for (let i = enabled ? 1 : 0; i < containers.length; i++) {
-    containers[i].remove();
-  }
-};
-
 const domain = getDomainWithoutSubdomain(window.location.hostname);
 browser.storage.local
   .get(null)
   .then((result) => {
+    if (result[StorageKeys.ACCESS_TOKEN] && StorageKeys.API_ENDPOINT_KEY) {
+      const config = {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
+        },
+      };
+
+      fetch(
+        createUrl(
+          BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].api,
+          'v2.0/auth'
+        ),
+        config
+      ).then(async (response) => {
+        if (response.ok) {
+          const json = await response.json();
+          updateDomains(json.domains, json.organization_domains);
+          updateConfig(json.config);
+        }
+      });
+    }
+
     if (
+      (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
+      (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+        !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
+    ) {
+      customRender(false);
+    } else if (
       (result[StorageKeys.DISABLED_SITES] &&
         result[StorageKeys.DISABLED_SITES].includes(domain)) ||
       (defaultConfig.ACTIVE_SITES &&
@@ -87,6 +97,22 @@ const storageChange = (changes: any) => {
             window.location.hostname.replace('www.', '')
           )
         );
+        break;
+      case StorageKeys.ORGANIZATION_DOMAINS:
+        if (
+          (changes[item].newValue.type === 'deny' &&
+            changes[item].newValue.list.includes(
+              getDomainWithoutSubdomain(window.location.hostname)
+            )) ||
+          (changes[item].newValue.type === 'allow' &&
+            !changes[item].newValue.list.includes(
+              getDomainWithoutSubdomain(window.location.hostname)
+            ))
+        ) {
+          customRender(false);
+        } else {
+          customRender(true);
+        }
         break;
     }
   }

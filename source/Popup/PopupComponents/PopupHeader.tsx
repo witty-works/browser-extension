@@ -1,11 +1,11 @@
 import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import Settings from '../assets/icons/popup/settings.svg';
-import Logo from '../assets/icons/witty-logo-color.svg';
-import { getBaseUrls } from '../shared/ApiServices/requests';
+import Settings from '../../assets/icons/popup/settings.svg';
+import Logo from '../../assets/icons/witty-logo-color.svg';
+import { getBaseUrls } from '../../shared/ApiServices/requests';
 
-import './styles.scss';
+import '../styles.scss';
 
 const PopupHeader: React.FC = () => {
   return (

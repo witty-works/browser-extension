@@ -1,18 +1,19 @@
 import { browser } from 'webextension-polyfill-ts';
 import { useAnalytics } from './ApiServices/useAnalytics';
-import { wittyVersion, WTags } from './constants';
-
+import { devAppId, DEV_ENV, wittyVersion, WTags } from './constants';
+import { useLog } from './customHooks/useLog';
 import { sendErrorToSentry } from './errorUtils';
+import { DefaultConfigValue } from './types';
 
-const isObjectEmpty = (obj: object) =>
+export const isObjectEmpty = (obj: object) =>
   obj &&
   Object.keys(obj).length === 0 &&
   Object.getPrototypeOf(obj) === Object.prototype;
 
-const isFunction = (functionToCheck: Function) =>
+export const isFunction = (functionToCheck: Function) =>
   functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
-const storeInLocalStorage = (key: string, value: any) => {
+export const storeInLocalStorage = (key: string, value: any) => {
   browser.storage.local
     .set({ [key]: value })
     .then(() => {
@@ -57,25 +58,25 @@ const storeInLocalStorage = (key: string, value: any) => {
     });
 };
 
-const getDomainWithoutSubdomain = (url: string) => {
+export const getDomainWithoutSubdomain = (url: string) => {
   const urlParts = url.split('.');
   return urlParts
     .slice(0)
     .slice(-(urlParts.length === 4 ? 3 : 2))
     .join('.');
 };
-const singularTheyToBoolean = (value: string) =>
+export const singularTheyToBoolean = (value: string) =>
   value === 'he_or_she' ? false : true;
 
-const changeSingularThey = (value: boolean) =>
+export const changeSingularThey = (value: boolean) =>
   value ? 'all_pronouns' : 'he_or_she';
 
-const maximumImportanceToBoolean = (value: number) =>
+export const maximumImportanceToBoolean = (value: number) =>
   value === 3 ? true : false;
 
-const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
+export const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
-const getFirstTextDiff = (previousText: string, nextText: string) => {
+export const getFirstTextDiff = (previousText: string, nextText: string) => {
   let i = 0;
   while (
     i < previousText.length &&
@@ -87,27 +88,48 @@ const getFirstTextDiff = (previousText: string, nextText: string) => {
   return i;
 };
 
-const addInactiveLabel = () => {
+export const addInactiveLabel = () => {
   browser.browserAction.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
   browser.browserAction.setBadgeText({ text: 'OFF' });
 };
 
-const removeInactiveLabel = () => {
+export const removeInactiveLabel = () => {
   browser.browserAction.setBadgeText({ text: '' });
 };
 
-export {
-  isObjectEmpty,
-  isFunction,
-  storeInLocalStorage,
-  getDomainWithoutSubdomain,
-  singularTheyToBoolean,
-  changeSingularThey,
-  maximumImportanceToBoolean,
-  changeMaximumImportance,
-  getFirstTextDiff,
-  addInactiveLabel,
-  removeInactiveLabel,
+export const getRandomToken = () => {
+  const bytes = new Uint8Array(32); //256 bits token
+
+  window.crypto.getRandomValues(bytes);
+
+  // convert byte array to hexademical representation
+  const bytesHex = bytes.reduce(
+    (item, acc) => item + `00${acc.toString(16)}`.slice(-2),
+    ''
+  );
+
+  // convert hexademical value to a decimal string
+  return BigInt('0x' + bytesHex).toString(10);
+};
+
+export const getBrowserId = () => {
+  return DEV_ENV ? devAppId : getRandomToken();
+};
+
+export const onSave = (key: string, value: DefaultConfigValue) => {
+  const log = useLog('Background index');
+  log(
+    `Key *${key}* with value *${(typeof value === 'object'
+      ? JSON.stringify(value)
+      : value
+    ).toString()}* saved correctly in local storage`
+  );
+};
+
+export const onError = (error: string) => {
+  const log = useLog('Background index');
+  log(`Local Storage Error: ${error}`);
+  sendErrorToSentry(error);
 };

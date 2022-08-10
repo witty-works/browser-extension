@@ -16,7 +16,6 @@ import {
   IAlert,
   INodeWithAlerts,
   Position,
-  ResponseConfig,
 } from '../shared/types';
 import { storeInLocalStorage, getFirstTextDiff } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
@@ -37,6 +36,7 @@ import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
+import { getInputText, updateConfig, updateDomains } from './InputUtils';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -90,8 +90,6 @@ const Input: React.FC<{
   const log = useLog('Input');
 
   useEffect(() => {
-    getConfig();
-
     browser.storage.local
       .get(StorageKeys.API_DELAY)
       .then((result) => {
@@ -146,16 +144,9 @@ const Input: React.FC<{
   }, [debounceDelay]);
 
   useEffect(() => {
-    console.log('authResponse', authResponse);
     if (!authResponse) return;
 
-    authResponse.domains &&
-      storeInLocalStorage(StorageKeys.DOMAINS, authResponse.domains);
-    authResponse.domains &&
-      storeInLocalStorage(
-        StorageKeys.ORGANIZATION_DOMAINS,
-        authResponse.organization_domains
-      );
+    updateDomains(authResponse.domains, authResponse.organization_domains);
     updateConfig(authResponse.config);
   }, [authResponse]);
 
@@ -241,43 +232,6 @@ const Input: React.FC<{
     }
   };
 
-  const updateConfig = (config: ResponseConfig) => {
-    Object.keys(config).forEach((key) => {
-      switch (key) {
-        case 'gendered_roles_format':
-          storeInLocalStorage(StorageKeys.GENDERED_ROLES_FORMAT, config[key]);
-          break;
-        case 'german_gender_ending':
-          storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, config[key]);
-          break;
-        case 'inclusive':
-          storeInLocalStorage(StorageKeys.INCLUSIVE, config[key]);
-          break;
-        case 'maximum_importance':
-          storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, config[key]);
-          break;
-        case 'orthography':
-          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, config[key]);
-          break;
-        case 'preferred_variants':
-          storeInLocalStorage(StorageKeys.PREFERRED_VARIANTS, config[key]);
-          break;
-        case 'show_inspiration_alternatives':
-          storeInLocalStorage(
-            StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-            config[key]
-          );
-          break;
-        case 'singular_they':
-          storeInLocalStorage(StorageKeys.SINGULAR_THEY, config[key]);
-          break;
-        case 'style':
-          storeInLocalStorage(StorageKeys.STYLE, config[key]);
-          break;
-      }
-    });
-  };
-
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
     setTextToCheck(text);
@@ -315,11 +269,6 @@ const Input: React.FC<{
     setSelectedNodeWithAlertsIndex(-1);
     setSelectedAlertIndex(-1);
   };
-
-  const getInputText = (element: CustomInputElement) =>
-    isTextArea(element) || isInputText(element)
-      ? element.value
-      : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
@@ -488,7 +437,6 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    console.log('checkEndpointResponse', checkEndpointResponse);
 
     if (checkEndpointResponse.config_changed) {
       getConfig();
@@ -513,11 +461,10 @@ const Input: React.FC<{
     );
 
     const organizationConfig = checkEndpointResponse.organization_config;
+
     organizationConfig &&
-      storeInLocalStorage(StorageKeys.DOMAINS, organizationConfig.domains);
-    organizationConfig &&
-      storeInLocalStorage(
-        StorageKeys.ORGANIZATION_DOMAINS,
+      updateDomains(
+        organizationConfig.domains,
         organizationConfig.organization_domains
       );
     organizationConfig && updateConfig(organizationConfig.config);

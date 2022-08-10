@@ -1,28 +1,14 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
-import PopupDomainDeactivated from './PopupDomainDeactivated';
-import Popup from './Popup';
-import PopupLogin from './PopupLogin';
 import { browser } from 'webextension-polyfill-ts';
 import { getDomainWithoutSubdomain } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 import { sendErrorToSentry } from '../shared/errorUtils';
-
-const renderUserNotLoggedIn = () => {
-  ReactDOM.render(<PopupLogin />, document.getElementById('popup-root'));
-};
-
-const renderDomainDeactivated = () => {
-  ReactDOM.render(
-    <PopupDomainDeactivated />,
-    document.getElementById('popup-root')
-  );
-};
-
-const renderMainPopup = () => {
-  ReactDOM.render(<Popup />, document.getElementById('popup-root'));
-};
+import {
+  renderDomainDeactivated,
+  renderDomainOnListPopup,
+  renderMainPopup,
+  renderUserNotLoggedIn,
+} from './PopupUtils';
 
 browser.storage.local
   .get(null)
@@ -40,18 +26,31 @@ browser.storage.local
             new URL(tabs[0].url).hostname
           );
 
-          defaultConfig.ACTIVE_SITES.includes(domain) ||
-          result[StorageKeys.ENABLE_WITTY_EVERYWHERE]
-            ? renderMainPopup()
-            : renderDomainDeactivated();
-        } else if (
+          if (
+            result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+            result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)
+          ) {
+            renderDomainOnListPopup('deny');
+            return;
+          } else if (
+            result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+            !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)
+          ) {
+            renderDomainOnListPopup('allow');
+            return;
+          } else {
+            defaultConfig.ACTIVE_SITES.includes(domain) ||
+            result[StorageKeys.ENABLE_WITTY_EVERYWHERE]
+              ? renderMainPopup()
+              : renderDomainDeactivated();
+          }
+        } else {
+          //TODO: make sure this is still needed (for firefox)
           defaultConfig.CHROME_AND_FIREFOX_SITES.includes(
             window.location.protocol
           )
-        ) {
-          renderMainPopup();
-        } else {
-          renderDomainDeactivated();
+            ? renderMainPopup()
+            : renderDomainDeactivated();
         }
       })
       .catch((error: unknown) => {
@@ -71,6 +70,20 @@ const storageChange = (changes: any) => {
         break;
       case StorageKeys.ENABLE_WITTY_EVERYWHERE:
         changes[item].newValue ? renderMainPopup() : renderDomainDeactivated();
+        break;
+      case StorageKeys.ORGANIZATION_DOMAINS:
+        if (
+          (changes[item].newValue.type === 'deny' &&
+            changes[item].newValue.list.includes(
+              getDomainWithoutSubdomain(window.location.hostname)
+            )) ||
+          (changes[item].newValue.type === 'allow' &&
+            !changes[item].newValue.list.includes(
+              getDomainWithoutSubdomain(window.location.hostname)
+            ))
+        ) {
+          renderDomainOnListPopup(changes[item].newValue.type);
+        }
         break;
     }
   }

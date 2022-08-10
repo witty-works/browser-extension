@@ -5,41 +5,21 @@ import {
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
-  BaseUrls,
-} from '../shared/constants';
-import { sendErrorToSentry } from '../shared/errorUtils';
-import { namespaces } from '../i18n/i18n.constants';
-import '../i18n/i18n';
-import { useLog, logTypes } from '../shared/customHooks/useLog';
-import ApiSelector from './ApiSelector';
-import DelaySelector from './DelaySelector';
-import './styles.scss';
-import { setBaseUrls } from '../shared/ApiServices/requests';
-import PopupHeader from './PopupHeader';
-import Star from '../assets/icons/popup/star.svg';
-import Checkmark from '../assets/icons/popup/checkmark.svg';
+} from '../../shared/constants';
+import '../../i18n/i18n';
+import '../styles.scss';
+import { namespaces } from '../../i18n/i18n.constants';
+import { setBaseUrls } from '../../shared/ApiServices/requests';
+import { logIn, onStorageError, register } from '../PopupUtils';
+import ApiSelector from '../PopupComponents/ApiSelector';
+import DelaySelector from '../PopupComponents/DelaySelector';
+import PopupHeader from '../PopupComponents/PopupHeader';
+import Star from '../../assets/icons/popup/star.svg';
+import Checkmark from '../../assets/icons/popup/checkmark.svg';
 
 const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
-  const log = useLog('Popup');
   const [urls, setUrls] = useState<string>('Prod');
-
-  const onStorageError = (error: unknown) => {
-    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-    sendErrorToSentry(error);
-  };
-  console.log(`${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=$`);
-  const logIn = async () => {
-    const optionsPageUrl =
-      'chrome-extension://' + browser.runtime.id + '/options.html';
-    const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
-    window.open(url, '_blank');
-  };
-
-  const register = async () => {
-    const url = `${BaseUrls[urls].dashboard}oauth/azureadb2c/register`;
-    window.open(url, '_blank');
-  };
 
   useEffect(() => {
     browser.storage.local
@@ -121,7 +101,7 @@ const PopupLogin: React.FC = () => {
           <div
             className='wittyworks-signin-button'
             onClick={() => {
-              logIn();
+              logIn(urls);
             }}
           >
             {t('signIn')}
@@ -131,7 +111,7 @@ const PopupLogin: React.FC = () => {
             <span
               className='wittyworks-sigin-link'
               onClick={() => {
-                register();
+                register(urls);
               }}
             >
               {t('signUp')}{' '}
