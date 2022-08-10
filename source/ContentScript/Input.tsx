@@ -16,6 +16,7 @@ import {
   IAlert,
   INodeWithAlerts,
   Position,
+  RequestConfig,
 } from '../shared/types';
 import { storeInLocalStorage, getFirstTextDiff } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
@@ -36,6 +37,7 @@ import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
+import { exists } from 'i18next';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -145,87 +147,17 @@ const Input: React.FC<{
   }, [debounceDelay]);
 
   useEffect(() => {
-    if (authResponse) {
-      //TODO: in sync
-      // if (authResponse.config) {
-      //   Object.keys(authResponse.config).forEach((key) => {
-      //     if (!Object.keys(StorageKeys).includes(key.toUpperCase())) {
-      //       console.warn(`${key.toUpperCase()} is not a valid storage key`);
-      //       return;
-      //     }
-      //     if (
-      //       key == 'gendered_roles_format' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.GENDERED_ROLES_FORMAT,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'german_gender_ending' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.GERMAN_GENDER_ENDING,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'inclusive' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.INCLUSIVE,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'maximum_importance' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.MAXIMUM_IMPORTANCE,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'orthography' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.ORTHOGRAPHY,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'preferred_variants' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.PREFERRED_VARIANTS,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'show_inspiration_alternatives' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'singular_they' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.SINGULAR_THEY,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'style' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(StorageKeys.STYLE, authResponse.config[key]);
-      //     }
-      //   });
-      // }
-    }
+    if (!authResponse) return;
+    console.log('authResponse', authResponse);
+
+    authResponse.domains &&
+      storeInLocalStorage(StorageKeys.DOMAINS, authResponse.domains);
+    authResponse.domains &&
+      storeInLocalStorage(
+        StorageKeys.ORGANIZATION_DOMAINS,
+        authResponse.organization_domains
+      );
+    updateConfig(authResponse.config);
   }, [authResponse]);
 
   useEffect(() => {
@@ -308,6 +240,43 @@ const Input: React.FC<{
         setActiveIcon('active');
       }
     }
+  };
+
+  const updateConfig = (config: RequestConfig) => {
+    Object.keys(config).forEach((key) => {
+      switch (key) {
+        case 'gendered_roles_format':
+          storeInLocalStorage(StorageKeys.GENDERED_ROLES_FORMAT, config[key]);
+          break;
+        case 'german_gender_ending':
+          storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, config[key]);
+          break;
+        case 'inclusive':
+          storeInLocalStorage(StorageKeys.INCLUSIVE, config[key]);
+          break;
+        case 'maximum_importance':
+          storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, config[key]);
+          break;
+        case 'orthography':
+          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, config[key]);
+          break;
+        case 'preferred_variants':
+          storeInLocalStorage(StorageKeys.PREFERRED_VARIANTS, config[key]);
+          break;
+        case 'show_inspiration_alternatives':
+          storeInLocalStorage(
+            StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
+            config[key]
+          );
+          break;
+        case 'singular_they':
+          storeInLocalStorage(StorageKeys.SINGULAR_THEY, config[key]);
+          break;
+        case 'style':
+          storeInLocalStorage(StorageKeys.STYLE, config[key]);
+          break;
+      }
+    });
   };
 
   const debouncedSetTextToCheck = debounce((text: string) => {
@@ -520,12 +489,17 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    //TEMP: solution to trigger browserStorage error when the user is not logged in and uninstalling extension. Will be replaced by auth call.
-    storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+    console.log('checkEndpointResponse', checkEndpointResponse);
 
+    if (checkEndpointResponse.config_changed) getConfig();
+
+    //TODO: check if this is needed
+    storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
     setActiveIcon('active');
+
     analytics.checkLog(
       checkEndpointResponse,
+      authResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
     );
 
@@ -537,83 +511,14 @@ const Input: React.FC<{
         : 'None'
     );
 
-    const apiConfig = checkEndpointResponse.organization_config;
-    if (apiConfig && apiConfig.id) {
-      storeInLocalStorage(StorageKeys.TEAM_NAME, apiConfig.name);
-      storeInLocalStorage(StorageKeys.PLAN, apiConfig.plan);
-
-      //TODO: refactored (had type issues)
-      Object.keys(apiConfig.config).forEach((key) => {
-        if (!Object.keys(StorageKeys).includes(key.toUpperCase())) {
-          console.warn(`${key.toUpperCase()} is not a valid storage key`);
-          return;
-        }
-        if (
-          key == 'gendered_roles_format' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.GENDERED_ROLES_FORMAT,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'german_gender_ending' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.GERMAN_GENDER_ENDING,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'inclusive' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(StorageKeys.INCLUSIVE, apiConfig.config[key]);
-        } else if (
-          key == 'maximum_importance' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.MAXIMUM_IMPORTANCE,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'orthography' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, apiConfig.config[key]);
-        } else if (
-          key == 'preferred_variants' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.PREFERRED_VARIANTS,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'show_inspiration_alternatives' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'singular_they' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(StorageKeys.SINGULAR_THEY, apiConfig.config[key]);
-        }
-        // else if (key == 'store_context') {
-        //   storeInLocalStorage(StorageKeys.STORE_CONTEXT, apiConfig.config[key]);
-        // }
-        else if (key == 'style' && apiConfig.config[key].status == 'force') {
-          storeInLocalStorage(StorageKeys.STYLE, apiConfig.config[key]);
-        }
-      });
-    } else {
-      //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken OR user is not logged in
-    }
+    checkEndpointResponse.domains &&
+      storeInLocalStorage(StorageKeys.DOMAINS, checkEndpointResponse.domains);
+    checkEndpointResponse.domains &&
+      storeInLocalStorage(
+        StorageKeys.ORGANIZATION_DOMAINS,
+        checkEndpointResponse.organization_domains
+      );
+    updateConfig(checkEndpointResponse.organization_config);
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
@@ -621,18 +526,8 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        //TODO: in sync
-        groupId:
-          checkEndpointResponse.organization_config &&
-          checkEndpointResponse.organization_config.id
-            ? checkEndpointResponse.organization_config.id
-            : null,
-        //TODO: in sync
-        plan:
-          checkEndpointResponse.organization_config &&
-          checkEndpointResponse.organization_config.plan
-            ? checkEndpointResponse.organization_config.plan
-            : null,
+        groupId: authResponse ? authResponse.id : null,
+        plan: authResponse ? authResponse.plan : null,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,

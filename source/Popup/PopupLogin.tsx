@@ -28,7 +28,7 @@ const PopupLogin: React.FC = () => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
   };
-
+  console.log(`${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=$`);
   const logIn = async () => {
     const optionsPageUrl =
       'chrome-extension://' + browser.runtime.id + '/options.html';

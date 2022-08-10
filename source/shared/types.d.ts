@@ -1,11 +1,14 @@
 export interface RequestConfig {
-  preferred_variants: string;
-  german_gender_ending: string;
-  disabled_categories: string[];
-  maximum_importance: number;
-  singular_they: string;
-  show_inspiration_alternatives: boolean;
-  gendered_roles_format: string;
+  store_context: ConfigProperty;
+  preferred_variants: ConfigProperty;
+  german_gender_ending: ConfigProperty;
+  gendered_roles_format: ConfigProperty;
+  inclusive: ConfigProperty;
+  style: ConfigProperty;
+  orthography: ConfigProperty;
+  singular_they: ConfigProperty;
+  show_inspiration_alternatives: ConfigProperty;
+  maximum_importance: ConfigProperty;
 }
 
 export interface ConfigProperty {
@@ -57,27 +60,20 @@ export interface IAlertContentData {
 
 export interface ICheckResponse {
   results: ICheckResponseResult[];
-  organization_config: IAuthResponse;
+  organization_config: RequestConfig;
   language: string;
   limit_reached: boolean;
-  organization_config: IOrganizationConfig;
+  config_changed: boolean;
+  domains: object;
+  organization_domains: object;
 }
 export interface IAuthResponse {
-  config: {
-    store_context: ConfigProperty;
-    preferred_variants: ConfigProperty;
-    german_gender_ending: ConfigProperty;
-    gendered_roles_format: ConfigProperty;
-    inclusive: ConfigProperty;
-    style: ConfigProperty;
-    orthography: ConfigProperty;
-    singular_they: ConfigProperty;
-    show_inspiration_alternatives: ConfigProperty;
-    maximum_importance: ConfigProperty;
-  };
+  config: RequestConfig;
   id: string;
   name: string;
   plan: string;
+  domains: object;
+  organization_domains: object;
 }
 export interface IRefreshTokenResponse {
   email: string;
@@ -121,8 +117,8 @@ export interface ILogRequest {
   request__lang: string;
   request__id: string;
   request__client: string;
-  request__config__preferred_variants: string;
-  request__config__german_gender_ending: string;
+  request__config__preferred_variants: ConfigProperty;
+  request__config__german_gender_ending: ConfigProperty;
   response__id?: string;
   response__startOffset?: number;
   response__endOffset?: number;
@@ -139,7 +135,7 @@ export interface IIgnoreLogRequest extends ILogRequest {
 }
 export interface ICheckLogRequest extends ILogRequest {
   request__text__length: number;
-  response__name: string | null;
+  // response__name: string | null;
 }
 
 export type ILogResponse = ICheckResponse;

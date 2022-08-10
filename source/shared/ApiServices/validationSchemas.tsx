@@ -72,13 +72,47 @@ export const checkResponseOrgConfigSchema: JSONSchemaType<IAuthResponse> = {
         'style',
       ],
     },
+    domains: {
+      description: 'Defines the personal domain list',
+      type: 'object',
+      properties: {
+        list: {
+          description: 'List of domains',
+          type: 'string',
+        },
+        type: {
+          description: 'Type of the list',
+          type: 'string',
+        },
+      },
+    },
+    organization_domains: {
+      description: 'Defines the organization domain list',
+      type: 'object',
+      properties: {
+        list: {
+          description: 'List of domains',
+          type: 'string',
+        },
+        type: {
+          description: 'Type of the list',
+          type: 'string',
+        },
+      },
+    },
     id: {
+      //REMOVE
+
       type: 'string',
     },
     name: {
+      //REMOVE
+
       type: 'string',
     },
     plan: {
+      //REMOVE
+
       type: 'string',
     },
   },
@@ -202,6 +236,10 @@ export const checkResponseSchema: JSONSchemaType<ICheckResponse> = {
     },
     limit_reached: {
       description: 'whether the limit of the free plan has been reached',
+      type: 'boolean',
+    },
+    config_changed: {
+      description: 'whether the config has changed',
       type: 'boolean',
     },
   },

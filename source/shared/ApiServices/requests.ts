@@ -27,13 +27,13 @@ export const setToken = (tok: string) => (token = tok);
 
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
-    url: createUrl(BASE_URL_API, 'v1.1/check'),
+    url: createUrl(BASE_URL_API, 'v2.0/check'),
     config: {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        Authorization: token !== '' ? `Bearer ${token}` : 'Basic',
+        Authorization: `Bearer ${token}`,
       },
       body: text
         ? JSON.stringify({
@@ -50,18 +50,15 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
 
 export const getConfiguration = (): IRequest => {
   return {
-    url: createUrl(BASE_URL_API, 'auth'),
-    config:
-      BASE_URL_API !== ''
-        ? {
-            method: 'POST',
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        : null,
+    url: createUrl(BASE_URL_API, 'v2.0/auth'),
+    config: {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    },
   };
 };
 

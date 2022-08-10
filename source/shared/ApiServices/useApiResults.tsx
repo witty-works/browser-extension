@@ -26,6 +26,7 @@ const useApiResult = <TResponse,>(
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
       const accessToken = result[StorageKeys.ACCESS_TOKEN];
+      console.log('accessToken', accessToken);
       const ac = new AbortController();
       const container = document.getElementsByTagName(WTags.WW_CONTAINER);
 
