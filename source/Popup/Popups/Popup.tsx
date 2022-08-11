@@ -28,7 +28,8 @@ import {
   setToken,
 } from '../../shared/ApiServices/requests';
 import PopupHeader from '../PopupComponents/PopupHeader';
-import { onStorageError, onTabsQueryError } from '../PopupUtils';
+import { sendErrorToSentry } from '../../shared/errorUtils';
+import { logTypes, useLog } from '../../shared/customHooks/useLog';
 
 const Popup: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
@@ -54,6 +55,17 @@ const Popup: React.FC = () => {
     useState<boolean>(false);
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
   const [currentDomain, setCurrentDomain] = useState<string>('');
+  const log = useLog('Popup');
+
+  const onStorageError = (error: unknown) => {
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
+  };
+
+  const onTabsQueryError = (error: unknown) => {
+    log(`onTabsQueryError Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
+  };
 
   useEffect(() => {
     browser.storage.local

@@ -7,9 +7,7 @@ import {
   wittyVersion,
   WTags,
 } from './constants';
-import { useLog } from './customHooks/useLog';
 import { sendErrorToSentry } from './errorUtils';
-import { DefaultConfigValue } from './types';
 import defaultConfig from '../witty.config.json';
 
 export const isObjectEmpty = (obj: object) =>
@@ -123,22 +121,6 @@ export const getRandomToken = () => {
 
 export const getBrowserId = () => {
   return DEV_ENV ? devAppId : getRandomToken();
-};
-
-export const onSave = (key: string, value: DefaultConfigValue) => {
-  const log = useLog('Background index');
-  log(
-    `Key *${key}* with value *${(typeof value === 'object'
-      ? JSON.stringify(value)
-      : value
-    ).toString()}* saved correctly in local storage`
-  );
-};
-
-export const onError = (error: string) => {
-  const log = useLog('Background index');
-  log(`Local Storage Error: ${error}`);
-  sendErrorToSentry(error);
 };
 
 export const updateLabelChrome = (domain: string) => {

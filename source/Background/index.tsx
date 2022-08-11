@@ -14,16 +14,31 @@ import {
   getBrowserId,
   getDomainWithoutSubdomain,
   isFunction,
-  onError,
-  onSave,
   removeInactiveLabel,
   updateLabelChrome,
 } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { DefaultConfigValue } from '../shared/types';
+import { useLog } from '../shared/customHooks/useLog';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 const analytics = useAnalytics();
+const log = useLog('Background index');
+
+const onSave = (key: string, value: DefaultConfigValue) => {
+  log(
+    `Key *${key}* with value *${(typeof value === 'object'
+      ? JSON.stringify(value)
+      : value
+    ).toString()}* saved correctly in local storage`
+  );
+};
+
+const onError = (error: string) => {
+  log(`Local Storage Error: ${error}`);
+  sendErrorToSentry(error);
+};
 
 Sentry.init({
   dsn: 'https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342',

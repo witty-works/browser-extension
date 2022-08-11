@@ -9,13 +9,18 @@ import {
   DefaultBaseUrlKey,
   StorageKeys,
 } from '../../shared/constants';
-import { useLog } from '../../shared/customHooks/useLog';
-import { onError } from '../PopupUtils';
+import { logTypes, useLog } from '../../shared/customHooks/useLog';
+import { sendErrorToSentry } from '../../shared/errorUtils';
 
 const ApiSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const log = useLog('ApiSelector');
+
+  const onError = (error: unknown) => {
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
+  };
 
   useEffect(() => {
     const dropdownOptionsTemp: OptionProp[] = Object.keys(BaseUrls).map(

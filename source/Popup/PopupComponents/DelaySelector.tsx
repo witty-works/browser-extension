@@ -4,7 +4,8 @@ import { dropdownOptions, StorageKeys } from '../../shared/constants';
 import '../styles.scss';
 import Dropdown from '../../shared/components/Dropdown/Dropdown';
 import defaultConfig from '../../witty.config.json';
-import { handleDropdownChange, onError } from '../PopupUtils';
+import { logTypes, useLog } from '../../shared/customHooks/useLog';
+import { sendErrorToSentry } from '../../shared/errorUtils';
 
 export interface OptionProp {
   key: string;
@@ -13,6 +14,21 @@ export interface OptionProp {
 
 const DelaySelector: React.FC = () => {
   const [delay, setDelay] = useState<number>(defaultConfig.API_DELAY);
+  const log = useLog('DelaySelector');
+
+  const onError = (error: unknown) => {
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
+  };
+
+  const handleDropdownChange = (value: string) => {
+    browser.storage.local
+      .set({ [StorageKeys.API_DELAY]: value })
+      .then(() => {
+        log(`Witty ${StorageKeys.API_DELAY} *${value}* correctly saved`);
+      })
+      .catch(onError);
+  };
 
   useEffect(() => {
     browser.storage.local

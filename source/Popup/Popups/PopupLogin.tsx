@@ -10,16 +10,24 @@ import '../../i18n/i18n';
 import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
 import { setBaseUrls } from '../../shared/ApiServices/requests';
-import { logIn, onStorageError, register } from '../PopupUtils';
+import { logIn, register } from '../PopupUtils';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import Star from '../../assets/icons/popup/star.svg';
 import Checkmark from '../../assets/icons/popup/checkmark.svg';
+import { logTypes, useLog } from '../../shared/customHooks/useLog';
+import { sendErrorToSentry } from '../../shared/errorUtils';
 
 const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
   const [urls, setUrls] = useState<string>('Prod');
+  const log = useLog('PopupLogin');
+
+  const onStorageError = (error: unknown) => {
+    log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
+  };
 
   useEffect(() => {
     browser.storage.local
