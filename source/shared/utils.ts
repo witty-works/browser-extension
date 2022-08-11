@@ -1,9 +1,16 @@
 import { browser } from 'webextension-polyfill-ts';
 import { useAnalytics } from './ApiServices/useAnalytics';
-import { devAppId, DEV_ENV, wittyVersion, WTags } from './constants';
+import {
+  devAppId,
+  DEV_ENV,
+  StorageKeys,
+  wittyVersion,
+  WTags,
+} from './constants';
 import { useLog } from './customHooks/useLog';
 import { sendErrorToSentry } from './errorUtils';
 import { DefaultConfigValue } from './types';
+import defaultConfig from '../witty.config.json';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -132,4 +139,29 @@ export const onError = (error: string) => {
   const log = useLog('Background index');
   log(`Local Storage Error: ${error}`);
   sendErrorToSentry(error);
+};
+
+export const updateLabelChrome = (domain: string) => {
+  browser.storage.local.get(null).then((result) => {
+    if (
+      (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
+      (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+        !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
+    ) {
+      addInactiveLabel();
+    } else if (
+      (result[StorageKeys.DISABLED_SITES] &&
+        result[StorageKeys.DISABLED_SITES].length > 0 &&
+        result[StorageKeys.DISABLED_SITES].includes(domain)) ||
+      (defaultConfig.ACTIVE_SITES &&
+        !defaultConfig.ACTIVE_SITES.includes(domain) &&
+        !result[StorageKeys.ENABLE_WITTY_EVERYWHERE]) ||
+      !result[StorageKeys.ACCESS_TOKEN]
+    ) {
+      addInactiveLabel();
+    } else {
+      removeInactiveLabel();
+    }
+  });
 };

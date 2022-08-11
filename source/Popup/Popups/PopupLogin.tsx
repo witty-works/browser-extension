@@ -46,10 +46,8 @@ const PopupLogin: React.FC = () => {
   const storageChange = (changes: any) => {
     let changedItems = Object.keys(changes);
     for (let item of changedItems) {
-      switch (item) {
-        case StorageKeys.API_ENDPOINT_KEY:
-          setUrls(changes[item].newValue);
-          break;
+      if (item === StorageKeys.API_ENDPOINT_KEY) {
+        setUrls(changes[item].newValue);
       }
     }
   };

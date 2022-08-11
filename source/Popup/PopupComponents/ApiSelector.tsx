@@ -18,14 +18,14 @@ const ApiSelector: React.FC = () => {
   const log = useLog('ApiSelector');
 
   useEffect(() => {
-    const dropdownOptions: OptionProp[] = Object.keys(BaseUrls).map(
+    const dropdownOptionsTemp: OptionProp[] = Object.keys(BaseUrls).map(
       (key: string) => ({
         key,
         value: key,
       })
     );
 
-    setDropdownOptions(dropdownOptions);
+    setDropdownOptions(dropdownOptionsTemp);
 
     browser.storage.local
       .get(StorageKeys.API_ENDPOINT_KEY)

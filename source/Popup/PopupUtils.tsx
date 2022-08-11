@@ -21,14 +21,14 @@ export const register = async (urls: string) => {
   window.open(url, '_blank');
 };
 
-const log = useLog('Popup');
-
 export const onStorageError = (error: unknown) => {
+  const log = useLog('Popup');
   log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   sendErrorToSentry(error);
 };
 
 export const onTabsQueryError = (error: unknown) => {
+  const log = useLog('Popup');
   log(`onTabsQueryError Error: ${error}`, logTypes.ERROR);
   sendErrorToSentry(error);
 };
@@ -56,11 +56,13 @@ export const renderDomainOnListPopup = (listType: string) => {
 };
 
 export const onError = (error: unknown) => {
+  const log = useLog();
   log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
   sendErrorToSentry(error);
 };
 
 export const handleDropdownChange = (value: string) => {
+  const log = useLog();
   browser.storage.local
     .set({ [StorageKeys.API_DELAY]: value })
     .then(() => {

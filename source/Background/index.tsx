@@ -17,6 +17,7 @@ import {
   onError,
   onSave,
   removeInactiveLabel,
+  updateLabelChrome,
 } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
@@ -101,28 +102,7 @@ const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs.length != 0 && tabs[0].url) {
       const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
-      browser.storage.local.get(null).then((result) => {
-        if (
-          (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
-            result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
-          (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
-            !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
-        ) {
-          addInactiveLabel();
-        } else if (
-          (result[StorageKeys.DISABLED_SITES] &&
-            result[StorageKeys.DISABLED_SITES].length > 0 &&
-            result[StorageKeys.DISABLED_SITES].includes(domain)) ||
-          (defaultConfig.ACTIVE_SITES &&
-            !defaultConfig.ACTIVE_SITES.includes(domain) &&
-            !result[StorageKeys.ENABLE_WITTY_EVERYWHERE]) ||
-          !result[StorageKeys.ACCESS_TOKEN]
-        ) {
-          addInactiveLabel();
-        } else {
-          removeInactiveLabel();
-        }
-      });
+      updateLabelChrome(domain);
     } else if (
       defaultConfig.CHROME_AND_FIREFOX_SITES &&
       defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
