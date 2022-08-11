@@ -287,7 +287,8 @@ const Popup: React.FC = () => {
                 onClick={() => {
                   window.open(
                     'https://www.witty.works/witty-for-teams',
-                    '_blank'
+                    '_blank',
+                    'noopener'
                   );
                 }}
               >
