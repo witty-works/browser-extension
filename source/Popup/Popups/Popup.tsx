@@ -85,34 +85,7 @@ const Popup: React.FC = () => {
         setHasWittyTeams(
           result[StorageKeys.PLAN] == 'witty_teams' ? true : false
         );
-        browser.tabs
-          .query({ active: true, currentWindow: true })
-          .then((tabs) => {
-            if (tabs.length > 0 && tabs[0].url) {
-              const newCurrentDomain = new URL(tabs[0].url).hostname.replace(
-                'www.',
-                ''
-              );
-              setCurrentDomain(newCurrentDomain);
-
-              defaultConfig.ACTIVE_SITES &&
-                !defaultConfig.ACTIVE_SITES.includes(newCurrentDomain) &&
-                setShowBackToRecomendedSites(true);
-
-              if (
-                result[StorageKeys.DISABLED_SITES] &&
-                result[StorageKeys.DISABLED_SITES].includes(newCurrentDomain)
-              )
-                setEnabled(false);
-
-              if (
-                result[StorageKeys.CASING_SITES] &&
-                result[StorageKeys.CASING_SITES].includes(newCurrentDomain)
-              )
-                setCasing(false);
-            }
-          })
-          .catch(onTabsQueryError);
+        queryTabs(result);
       })
       .catch(onStorageError);
   }, []);
@@ -148,7 +121,32 @@ const Popup: React.FC = () => {
   const setWittyIcon = (state: boolean) => {
     state ? removeInactiveLabel() : addInactiveLabel();
   };
+  const queryTabs = (result: any) => {
+    browser.tabs
+      .query({ active: true, currentWindow: true })
+      .then((tabs) => {
+        if (tabs.length > 0 && tabs[0].url) {
+          const newCurrentDomain = new URL(tabs[0].url).hostname.replace(
+            'www.',
+            ''
+          );
+          setCurrentDomain(newCurrentDomain);
 
+          defaultConfig.ACTIVE_SITES &&
+            !defaultConfig.ACTIVE_SITES.includes(newCurrentDomain) &&
+            setShowBackToRecomendedSites(true);
+
+          result[StorageKeys.DISABLED_SITES] &&
+            result[StorageKeys.DISABLED_SITES].includes(newCurrentDomain) &&
+            setEnabled(false);
+
+          result[StorageKeys.CASING_SITES] &&
+            result[StorageKeys.CASING_SITES].includes(newCurrentDomain) &&
+            setCasing(false);
+        }
+      })
+      .catch(onTabsQueryError);
+  };
   const handleEnableToggle = () => {
     setEnabled(!enabled);
 

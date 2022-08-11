@@ -51,11 +51,19 @@ export interface ICheckResponseResult {
 //AUTH/REFRESHTOKEN ENDPOINT
 export interface IAuthResponse {
   config: test;
-  id?: string;
-  name?: string;
-  plan?: string;
+  plan: string;
+
+  //private account
+  id: string;
+  name: string;
   domains: object;
+  config_hash: string;
+
+  //organization account
+  organization_id?: string;
+  organization_name?: string;
   organization_domains: object;
+  organization_config_hash: string;
 }
 export interface IRefreshTokenResponse {
   email: string;

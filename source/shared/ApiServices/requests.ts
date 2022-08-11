@@ -4,6 +4,9 @@ import { BaseUrls, wittyVersion } from '../constants';
 let BASE_URL_API: string = '';
 let BASE_URL_DASHBOARD: string = '';
 let token: string = '';
+let configHash: string = '';
+let organizationConfigHash: string = '';
+
 export let appID: string = ''; // TODO context hook
 export let requestConfig: RequestConfig = {} as RequestConfig;
 
@@ -26,6 +29,11 @@ export const setAppID = (id: string) => (appID = id);
 
 export const setToken = (tok: string) => (token = tok);
 
+export const setConfigHash = (hash: string) => (configHash = hash);
+
+export const setOrganizationConfigHash = (hash: string) =>
+  (organizationConfigHash = hash);
+
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
     url: createUrl(BASE_URL_API, 'v2.0/check'),
@@ -43,6 +51,8 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
             id: appID,
             client: wittyVersion,
             config: requestConfig,
+            config_hash: configHash,
+            config_organization_hash: organizationConfigHash,
           })
         : null,
     },

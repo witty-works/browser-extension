@@ -35,6 +35,8 @@ export enum StorageKeys {
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
   DOMAINS = 'domains',
   ORGANIZATION_DOMAINS = 'organizationDomains',
+  CONFIG_HASH = 'configHash',
+  ORGANIZATION_CONFIG_HASH = 'organizationConfigHash',
 }
 
 //nlp api, dashboard

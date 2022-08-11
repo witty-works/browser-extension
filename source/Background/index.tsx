@@ -68,7 +68,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     //Open the welcome page
     if (!DEV_ENV) {
       browser.tabs.create({
-        url: 'http://www.witty.works/welcome',
+        url: 'https://www.witty.works/welcome',
       });
     }
   }

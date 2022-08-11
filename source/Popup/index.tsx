@@ -7,6 +7,7 @@ import {
   renderDomainDeactivated,
   renderDomainOnListPopup,
   renderMainPopup,
+  renderPopupChrome,
   renderUserNotLoggedIn,
 } from './PopupUtils';
 
@@ -25,27 +26,8 @@ browser.storage.local
           const domain = getDomainWithoutSubdomain(
             new URL(tabs[0].url).hostname
           );
-
-          if (
-            result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
-            result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)
-          ) {
-            renderDomainOnListPopup('deny');
-            return;
-          } else if (
-            result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
-            !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)
-          ) {
-            renderDomainOnListPopup('allow');
-            return;
-          } else {
-            defaultConfig.ACTIVE_SITES.includes(domain) ||
-            result[StorageKeys.ENABLE_WITTY_EVERYWHERE]
-              ? renderMainPopup()
-              : renderDomainDeactivated();
-          }
+          renderPopupChrome(domain, result);
         } else {
-          //TODO: make sure this is still needed (for firefox)
           defaultConfig.CHROME_AND_FIREFOX_SITES.includes(
             window.location.protocol
           )

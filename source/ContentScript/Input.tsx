@@ -36,14 +36,15 @@ import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
-import { getInputText, updateConfig, updateDomains } from './InputUtils';
+import { getInputText, updateConfig } from './InputUtils';
 
 const Input: React.FC<{
   element: CustomInputElement;
 }> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
-  const [authResponse, authErrorResponse, getConfig] = useAuthEndpoint();
+  const [authResponse, authErrorResponse, setConfigHasChanged] =
+    useAuthEndpoint();
   const [, , previousTextToCheckRef] = useStateRef('');
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
@@ -145,9 +146,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!authResponse) return;
-
-    updateDomains(authResponse.domains, authResponse.organization_domains);
-    updateConfig(authResponse.config);
+    updateConfig(authResponse);
   }, [authResponse]);
 
   useEffect(() => {
@@ -438,9 +437,7 @@ const Input: React.FC<{
   useEffect(() => {
     if (!checkEndpointResponse) return;
 
-    if (checkEndpointResponse.config_changed) {
-      getConfig();
-    }
+    setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
 
     //TODO: check if this is needed
     storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);

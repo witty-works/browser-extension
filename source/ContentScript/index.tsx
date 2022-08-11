@@ -6,7 +6,12 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
 import { getDomainWithoutSubdomain } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import { customRender, updateConfig, updateDomains } from './InputUtils';
+import {
+  customRender,
+  handleEnableWittyEverywhere,
+  handleOrganizationDomains,
+  updateConfig,
+} from './InputUtils';
 import { createUrl } from '../shared/ApiServices/requests';
 
 const log = useLog('ContentScript index');
@@ -39,8 +44,7 @@ browser.storage.local
       ).then(async (response) => {
         if (response.ok) {
           const json = await response.json();
-          updateDomains(json.domains, json.organization_domains);
-          updateConfig(json.config);
+          updateConfig(json);
         }
       });
     }
@@ -69,27 +73,12 @@ browser.storage.local
     sendErrorToSentry(error);
   });
 
-//TODO define changes type
 const storageChange = (changes: any) => {
   let changedItems = Object.keys(changes);
   for (let item of changedItems) {
     switch (item) {
       case StorageKeys.ENABLE_WITTY_EVERYWHERE:
-        if (
-          (StorageKeys.DISABLED_SITES &&
-            StorageKeys.DISABLED_SITES.includes(
-              window.location.hostname.replace('www.', '')
-            )) ||
-          (defaultConfig.ACTIVE_SITES &&
-            !defaultConfig.ACTIVE_SITES.includes(
-              window.location.hostname.replace('www.', '')
-            ) &&
-            !changes[item].newValue)
-        ) {
-          customRender(false);
-        } else {
-          customRender(true);
-        }
+        handleEnableWittyEverywhere(changes[item].newValue);
         break;
       case StorageKeys.DISABLED_SITES:
         customRender(
@@ -99,20 +88,7 @@ const storageChange = (changes: any) => {
         );
         break;
       case StorageKeys.ORGANIZATION_DOMAINS:
-        if (
-          (changes[item].newValue.type === 'deny' &&
-            changes[item].newValue.list.includes(
-              getDomainWithoutSubdomain(window.location.hostname)
-            )) ||
-          (changes[item].newValue.type === 'allow' &&
-            !changes[item].newValue.list.includes(
-              getDomainWithoutSubdomain(window.location.hostname)
-            ))
-        ) {
-          customRender(false);
-        } else {
-          customRender(true);
-        }
+        handleOrganizationDomains(changes[item].newValue);
         break;
     }
   }

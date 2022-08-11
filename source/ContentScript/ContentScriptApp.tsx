@@ -9,6 +9,8 @@ import { WTags, StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import {
   setAppID,
   setBaseUrls,
+  setConfigHash,
+  setOrganizationConfigHash,
   setRequestConfig,
   setToken,
 } from '../shared/ApiServices/requests';
@@ -51,6 +53,8 @@ const ContentScriptApp: React.FC = () => {
             : DefaultBaseUrlKey
         );
         setToken(result[StorageKeys.ACCESS_TOKEN]);
+        setConfigHash(result[StorageKeys.CONFIG_HASH]);
+        setOrganizationConfigHash(result[StorageKeys.ORGANIZATION_CONFIG_HASH]);
 
         //Enable/disable spellchecker on the website
         document.body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
@@ -127,6 +131,12 @@ const ContentScriptApp: React.FC = () => {
           break;
         case StorageKeys.ACCESS_TOKEN:
           setToken(changes[item].newValue);
+          break;
+        case StorageKeys.CONFIG_HASH:
+          setConfigHash(changes[item].newValue);
+          break;
+        case StorageKeys.ORGANIZATION_CONFIG_HASH:
+          setOrganizationConfigHash(changes[item].newValue);
           break;
         case StorageKeys.PREFERRED_VARIANTS:
           setReqConfig({
@@ -216,6 +226,7 @@ const ContentScriptApp: React.FC = () => {
               ? changes[item].newValue.value
               : changes[item].newValue,
           });
+          break;
       }
     }
   };

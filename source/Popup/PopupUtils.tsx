@@ -1,11 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
-import { BaseUrls } from '../shared/constants';
+import { BaseUrls, StorageKeys } from '../shared/constants';
 import Popup from './Popups/Popup';
 import PopupDomainDeactivated from './Popups/PopupDomainDeactivated';
 import PopupDomainOnList from './Popups/PopupDomainOnList';
 import PopupLogin from './Popups/PopupLogin';
+import defaultConfig from '../witty.config.json';
 
 export const logIn = async (urls: string) => {
   const optionsPageUrl =
@@ -39,4 +40,20 @@ export const renderDomainOnListPopup = (listType: string) => {
     <PopupDomainOnList listType={listType} />,
     document.getElementById('popup-root')
   );
+};
+
+export const renderPopupChrome = (domain: string, result: any) => {
+  if (
+    (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+      result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
+    (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+      !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
+  ) {
+    renderDomainOnListPopup(result[StorageKeys.ORGANIZATION_DOMAINS].type);
+  } else {
+    defaultConfig.ACTIVE_SITES.includes(domain) ||
+    result[StorageKeys.ENABLE_WITTY_EVERYWHERE]
+      ? renderMainPopup()
+      : renderDomainDeactivated();
+  }
 };

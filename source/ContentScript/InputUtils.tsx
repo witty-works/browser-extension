@@ -3,51 +3,76 @@ import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys, WTags } from '../shared/constants';
 import { isInputText, isTextArea } from '../shared/DOMutils';
-import { CustomInputElement, ResponseConfig } from '../shared/types';
-import { storeInLocalStorage } from '../shared/utils';
+import { CustomInputElement, IAuthResponse } from '../shared/types';
+import {
+  getDomainWithoutSubdomain,
+  storeInLocalStorage,
+} from '../shared/utils';
 import ContentScriptApp from './ContentScriptApp';
+import defaultConfig from '../witty.config.json';
 
-export const updateConfig = (config: ResponseConfig) => {
-  Object.keys(config).forEach((key) => {
+export const updateConfig = (response: IAuthResponse) => {
+  response.domains &&
+    storeInLocalStorage(StorageKeys.DOMAINS, response.domains);
+  response.organization_domains &&
+    storeInLocalStorage(
+      StorageKeys.ORGANIZATION_DOMAINS,
+      response.organization_domains
+    );
+  response.config_hash &&
+    storeInLocalStorage(StorageKeys.CONFIG_HASH, response.config_hash);
+
+  response.organization_config_hash &&
+    storeInLocalStorage(
+      StorageKeys.ORGANIZATION_CONFIG_HASH,
+      response.organization_config_hash
+    );
+  Object.keys(response.config).forEach((key) => {
     switch (key) {
       case 'gendered_roles_format':
-        storeInLocalStorage(StorageKeys.GENDERED_ROLES_FORMAT, config[key]);
+        storeInLocalStorage(
+          StorageKeys.GENDERED_ROLES_FORMAT,
+          response.config[key]
+        );
         break;
       case 'german_gender_ending':
-        storeInLocalStorage(StorageKeys.GERMAN_GENDER_ENDING, config[key]);
+        storeInLocalStorage(
+          StorageKeys.GERMAN_GENDER_ENDING,
+          response.config[key]
+        );
         break;
       case 'inclusive':
-        storeInLocalStorage(StorageKeys.INCLUSIVE, config[key]);
+        storeInLocalStorage(StorageKeys.INCLUSIVE, response.config[key]);
         break;
       case 'maximum_importance':
-        storeInLocalStorage(StorageKeys.MAXIMUM_IMPORTANCE, config[key]);
+        storeInLocalStorage(
+          StorageKeys.MAXIMUM_IMPORTANCE,
+          response.config[key]
+        );
         break;
       case 'orthography':
-        storeInLocalStorage(StorageKeys.ORTHOGRAPHY, config[key]);
+        storeInLocalStorage(StorageKeys.ORTHOGRAPHY, response.config[key]);
         break;
       case 'preferred_variants':
-        storeInLocalStorage(StorageKeys.PREFERRED_VARIANTS, config[key]);
+        storeInLocalStorage(
+          StorageKeys.PREFERRED_VARIANTS,
+          response.config[key]
+        );
         break;
       case 'show_inspiration_alternatives':
         storeInLocalStorage(
           StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-          config[key]
+          response.config[key]
         );
         break;
       case 'singular_they':
-        storeInLocalStorage(StorageKeys.SINGULAR_THEY, config[key]);
+        storeInLocalStorage(StorageKeys.SINGULAR_THEY, response.config[key]);
         break;
       case 'style':
-        storeInLocalStorage(StorageKeys.STYLE, config[key]);
+        storeInLocalStorage(StorageKeys.STYLE, response.config[key]);
         break;
     }
   });
-};
-
-export const updateDomains = (domains: object, organizationDomains: object) => {
-  domains && storeInLocalStorage(StorageKeys.DOMAINS, domains);
-  organizationDomains &&
-    storeInLocalStorage(StorageKeys.ORGANIZATION_DOMAINS, organizationDomains);
 };
 
 export const getInputText = (element: CustomInputElement) =>
@@ -73,5 +98,40 @@ export const customRender = (enabled: boolean) => {
 
   for (let i = enabled ? 1 : 0; i < containers.length; i++) {
     containers[i].remove();
+  }
+};
+
+export const handleEnableWittyEverywhere = (newValue: boolean) => {
+  if (
+    (StorageKeys.DISABLED_SITES &&
+      StorageKeys.DISABLED_SITES.includes(
+        window.location.hostname.replace('www.', '')
+      )) ||
+    (defaultConfig.ACTIVE_SITES &&
+      !defaultConfig.ACTIVE_SITES.includes(
+        window.location.hostname.replace('www.', '')
+      ) &&
+      !newValue)
+  ) {
+    customRender(false);
+  } else {
+    customRender(true);
+  }
+};
+
+export const handleOrganizationDomains = (newValue: any) => {
+  if (
+    (newValue.type === 'deny' &&
+      newValue.list.includes(
+        getDomainWithoutSubdomain(window.location.hostname)
+      )) ||
+    (newValue.type === 'allow' &&
+      !newValue.list.includes(
+        getDomainWithoutSubdomain(window.location.hostname)
+      ))
+  ) {
+    customRender(false);
+  } else {
+    customRender(true);
   }
 };
