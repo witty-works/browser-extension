@@ -1,9 +1,4 @@
-import {
-  ICheckResponse,
-  ICheckResponseResult,
-  ConfigProperty,
-  ICheckResponseOrganizationConfig,
-} from '../types';
+import { ICheckResponse, ICheckResponseResult, ConfigProperty } from '../types';
 import { JSONSchemaType } from 'ajv';
 
 export const checkResponseOrgConfigPropertySchema: JSONSchemaType<ConfigProperty> =
@@ -37,72 +32,6 @@ export const checkResponseOrgConfigPropertySchema: JSONSchemaType<ConfigProperty
     },
     required: ['value'],
     additionalProperties: false,
-  };
-
-export const checkResponseOrgConfigSchema: JSONSchemaType<ICheckResponseOrganizationConfig> =
-  {
-    title: 'checkResponseOrgConfig',
-    description: 'config schema',
-    type: 'object',
-    properties: {
-      config: {
-        description: 'Defines the configuration',
-        type: 'object',
-        properties: {
-          gendered_roles_format: checkResponseOrgConfigPropertySchema,
-          german_gender_ending: checkResponseOrgConfigPropertySchema,
-          inclusive: checkResponseOrgConfigPropertySchema,
-          maximum_importance: {
-            type: 'number',
-          },
-          orthography: checkResponseOrgConfigPropertySchema,
-          show_inspiration_alternatives: checkResponseOrgConfigPropertySchema,
-          singular_they: checkResponseOrgConfigPropertySchema,
-          style: checkResponseOrgConfigPropertySchema,
-          preferred_variants: checkResponseOrgConfigPropertySchema,
-        },
-        required: [
-          'gendered_roles_format',
-          'german_gender_ending',
-          'inclusive',
-          'maximum_importance',
-          'orthography',
-          'show_inspiration_alternatives',
-          'singular_they',
-          'style',
-          'preferred_variants',
-        ],
-      },
-      domains: {
-        description: 'Defines the personal domain list',
-        type: 'object',
-        properties: {
-          list: {
-            description: 'List of domains',
-            type: 'string',
-          },
-          type: {
-            description: 'Type of the list',
-            type: 'string',
-          },
-        },
-      },
-      organization_domains: {
-        description: 'Defines the organization domain list',
-        type: 'object',
-        properties: {
-          list: {
-            description: 'List of domains',
-            type: 'string',
-          },
-          type: {
-            description: 'Type of the list',
-            type: 'string',
-          },
-        },
-      },
-    },
-    required: [],
   };
 
 export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
@@ -215,7 +144,6 @@ export const checkResponseSchema: JSONSchemaType<ICheckResponse> = {
       type: 'array',
       items: checkResponseResultSchema,
     },
-    organization_config: checkResponseOrgConfigSchema,
     language: {
       description: 'language used by the user',
       type: 'string',

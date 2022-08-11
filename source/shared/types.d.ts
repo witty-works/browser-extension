@@ -30,17 +30,11 @@ export interface ConfigProperty {
 //CHECK ENDPOINT
 export interface ICheckResponse {
   results: ICheckResponseResult[];
-  organization_config: ICheckResponseOrganizationConfig;
   language: string;
   limit_reached: boolean;
   config_changed: boolean;
 }
 
-export interface ICheckResponseOrganizationConfig {
-  config: ResponseConfig;
-  domains: object;
-  organization_domains: object;
-}
 export interface ICheckResponseResult {
   text: string;
   context: string;

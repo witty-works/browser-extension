@@ -460,15 +460,6 @@ const Input: React.FC<{
         : 'None'
     );
 
-    const organizationConfig = checkEndpointResponse.organization_config;
-
-    organizationConfig &&
-      updateDomains(
-        organizationConfig.domains,
-        organizationConfig.organization_domains
-      );
-    organizationConfig && updateConfig(organizationConfig.config);
-
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
         id: `${result.text}-${result.category}-${result.start}${result.end}`,
