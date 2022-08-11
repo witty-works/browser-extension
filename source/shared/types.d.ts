@@ -196,3 +196,8 @@ export type DefaultConfigValue =
   | string[]
   | object
   | (() => string);
+
+export interface IDomainRequest {
+  domain: string;
+  action: string;
+}
