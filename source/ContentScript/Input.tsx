@@ -37,7 +37,6 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import { getInputText, updateConfig } from './InputUtils';
-import { useDomainEndpoint } from '../shared/ApiServices/useDomainEndpoint';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -76,8 +75,6 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
-  const [addDomainResponse, addDomainErrorResponse, setDomain] =
-    useDomainEndpoint();
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -177,8 +174,6 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    setDomain({ domain: 'witty.works', action: 'remove' });
-
     if (prevSelectedAlertIndex.current != -1) resetPopover();
 
     browser.storage.local
@@ -218,14 +213,6 @@ const Input: React.FC<{
 
     handleTextAndIcon(nextText, event);
   };
-
-  useEffect(() => {
-    console.log('domain added', addDomainResponse);
-  }, [addDomainResponse]);
-
-  useEffect(() => {
-    console.log('domain added error', addDomainErrorResponse);
-  }, [addDomainErrorResponse]);
 
   const handleTextAndIcon = (text: string, event?: Event) => {
     //If there isn't text, there's nothing to highlight

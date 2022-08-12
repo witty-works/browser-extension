@@ -22,33 +22,77 @@ wittyIsInstalledElement &&
   wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
 
 const domain = getDomainWithoutSubdomain(window.location.hostname);
-browser.storage.local
-  .get(null)
-  .then((result) => {
-    if (result[StorageKeys.ACCESS_TOKEN] && StorageKeys.API_ENDPOINT_KEY) {
-      const config = {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
-        },
-      };
 
+const handleDomainToUpdate = () => {
+  browser.storage.local.get(null).then((result) => {
+    if (
+      result[StorageKeys.DOMAIN_TO_UPDATE] &&
+      result[StorageKeys.ACCESS_TOKEN] &&
+      StorageKeys.API_ENDPOINT_KEY
+    ) {
       fetch(
         createUrl(
-          BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].api,
-          'v2.0/auth'
+          BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].dashboard,
+          `api/user/language/domains?` +
+            new URLSearchParams({
+              domain: result[StorageKeys.DOMAIN_TO_UPDATE].domain,
+            })
         ),
-        config
+        {
+          method: result[StorageKeys.DOMAIN_TO_UPDATE].enabled
+            ? 'DELETE'
+            : 'PUT',
+          headers: {
+            Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
+          },
+        }
       ).then(async (response) => {
         if (response.ok) {
-          const json = await response.json();
-          updateConfig(json);
+          await browser.storage.local.set({
+            [StorageKeys.DOMAIN_TO_UPDATE]: null,
+          });
         }
       });
     }
+  });
+};
 
+browser.storage.local.get(null).then((result) => {
+  console.log(
+    result[StorageKeys.ACCESS_TOKEN],
+    result[StorageKeys.API_ENDPOINT_KEY]
+  );
+  if (
+    result[StorageKeys.ACCESS_TOKEN] &&
+    result[StorageKeys.API_ENDPOINT_KEY]
+  ) {
+    const config = {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
+      },
+    };
+
+    fetch(
+      createUrl(
+        BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].api,
+        'v2.0/auth'
+      ),
+      config
+    ).then(async (response) => {
+      if (response.ok) {
+        const json = await response.json();
+        updateConfig(json);
+      }
+    });
+  }
+});
+
+browser.storage.local
+  .get(null)
+  .then((result) => {
     if (
       (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
         result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
@@ -89,6 +133,9 @@ const storageChange = (changes: any) => {
         break;
       case StorageKeys.ORGANIZATION_DOMAINS:
         handleOrganizationDomains(changes[item].newValue);
+        break;
+      case StorageKeys.DOMAIN_TO_UPDATE:
+        handleDomainToUpdate();
         break;
     }
   }

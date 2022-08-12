@@ -99,6 +99,12 @@ const Popup: React.FC = () => {
   }, [casingSites.length]);
 
   useEffect(() => {
+    currentDomain &&
+      storeInLocalStorage(StorageKeys.DOMAIN_TO_UPDATE, {
+        domain: currentDomain,
+        enabled: enabled,
+      });
+
     setWittyIcon(enabled);
   }, [enabled]);
 

@@ -37,6 +37,7 @@ export enum StorageKeys {
   ORGANIZATION_DOMAINS = 'organizationDomains',
   CONFIG_HASH = 'configHash',
   ORGANIZATION_CONFIG_HASH = 'organizationConfigHash',
+  DOMAIN_TO_UPDATE = 'domainToUpdate',
 }
 
 //nlp api, dashboard

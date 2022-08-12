@@ -199,5 +199,5 @@ export type DefaultConfigValue =
 
 export interface IDomainRequest {
   domain: string;
-  action: string;
+  enabled: boolean;
 }
