@@ -24,16 +24,14 @@ const PopupDomainOnList: React.FC<PopupDomainOnListProps> = ({
       <PopupHeader />
       <section>
         <div className='wittyworks-signin-container'>
-          <div className='wittyworks-signin-benefits-list-icon'>
+          <div className='wittyworks-icon-container'>
             <Checkmark />
           </div>
           {listType === 'deny' && (
-            <div className='wittyworks-signin-benefits-list-text-large'>
-              {t('domainBlocked')}
-            </div>
+            <div className='wittyworks-text-large'>{t('domainBlocked')}</div>
           )}
           {listType === 'allow' && (
-            <div className='wittyworks-signin-benefits-list-text-large'>
+            <div className='wittyworks-text-large'>
               {t('domainNotAlloweYet')}
             </div>
           )}

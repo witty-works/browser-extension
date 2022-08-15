@@ -1,12 +1,13 @@
 {
-  "DISABLED_SITES": [],
+  "DISABLED_SITES": ["productboard.com", "notion.so", "airbnb.com"],
   "ACTIVE_SITES": [
     "twitter.com",
     "umantis.com",
     "witty.works",
     "google.com",
     "linkedin.com",
-    "github.com"
+    "github.com",
+    "prospective.ch"
   ],
   "CHROME_AND_FIREFOX_SITES": [
     "chrome:",
@@ -41,9 +42,6 @@
   },
   "CASING_SITES": [],
   "API_DELAY": 500,
-  "USERNAME": "",
   "ACCESS_TOKEN": "",
-  "REFRESH_TOKEN": "",
-  "PLAN": "witty_free",
-  "TEAM_NAME": ""
+  "REFRESH_TOKEN": ""
 }

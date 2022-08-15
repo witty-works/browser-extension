@@ -133,9 +133,6 @@ const storageChange = (changes: { [key: string]: any }) => {
   const changedItems = Object.keys(changes);
 
   changedItems.forEach((key) => {
-    if (key === StorageKeys.ENABLE_WITTY_EVERYWHERE) {
-      changes[key].newValue ? removeInactiveLabel() : addInactiveLabel();
-    }
     if (key === StorageKeys.ORGANIZATION_DOMAINS) {
       if (
         (changes[key].newValue.type === 'deny' &&

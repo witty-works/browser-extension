@@ -8,7 +8,6 @@ import { getDomainWithoutSubdomain } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import {
   customRender,
-  handleEnableWittyEverywhere,
   handleOrganizationDomains,
   updateConfig,
 } from './InputUtils';
@@ -58,10 +57,6 @@ const handleDomainToUpdate = () => {
 };
 
 browser.storage.local.get(null).then((result) => {
-  console.log(
-    result[StorageKeys.ACCESS_TOKEN],
-    result[StorageKeys.API_ENDPOINT_KEY]
-  );
   if (
     result[StorageKeys.ACCESS_TOKEN] &&
     result[StorageKeys.API_ENDPOINT_KEY]
@@ -101,11 +96,9 @@ browser.storage.local
     ) {
       customRender(false);
     } else if (
-      (result[StorageKeys.DISABLED_SITES] &&
-        result[StorageKeys.DISABLED_SITES].includes(domain)) ||
-      (defaultConfig.ACTIVE_SITES &&
-        !defaultConfig.ACTIVE_SITES.includes(domain) &&
-        !result[StorageKeys.ENABLE_WITTY_EVERYWHERE])
+      defaultConfig.DISABLED_SITES.includes(domain) ||
+      result[StorageKeys.DOMAINS_DISABLED_LOCALLY].includes(domain) ||
+      !result[StorageKeys.ACCESS_TOKEN]
     ) {
       customRender(false);
     } else {
@@ -121,16 +114,6 @@ const storageChange = (changes: any) => {
   let changedItems = Object.keys(changes);
   for (let item of changedItems) {
     switch (item) {
-      case StorageKeys.ENABLE_WITTY_EVERYWHERE:
-        handleEnableWittyEverywhere(changes[item].newValue);
-        break;
-      case StorageKeys.DISABLED_SITES:
-        customRender(
-          !changes[item].newValue.includes(
-            window.location.hostname.replace('www.', '')
-          )
-        );
-        break;
       case StorageKeys.ORGANIZATION_DOMAINS:
         handleOrganizationDomains(changes[item].newValue);
         break;

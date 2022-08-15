@@ -65,54 +65,46 @@ const PopupLogin: React.FC = () => {
       <PopupHeader />
       <section>
         <div className='wittyworks-signin-container'>
-          <div className='wittyworks-signin-benefits-list-icon'>
+          <div className='wittyworks-icon-container'>
             <Checkmark />
           </div>
-          <div className='wittyworks-signin-benefits-list-text-large'>
-            {t('loginToUnlock')}
-          </div>
+          <div className='wittyworks-text-large'>{t('loginToUnlock')}</div>
         </div>
-        <div className='wittyworks-signin-list'>
-          <div className='wittyworks-signin-benefits-list-text'>
-            {t('signUpFor')}
-          </div>
+        <div className='wittyworks-flex-column'>
+          <div className='wittyworks-text-medium'>{t('signUpFor')}</div>
           <div className='wittyworks-signin-container'>
-            <div className='wittyworks-signin-benefits-list-icon'>
+            <div className='wittyworks-icon-container'>
               <Star />
             </div>
-            <div className='wittyworks-signin-benefits-list-text'>
-              {t('biasDetection')}
-            </div>
+            <div className='wittyworks-text-medium'>{t('biasDetection')}</div>
           </div>
           <div className='wittyworks-signin-container'>
-            <div className='wittyworks-signin-benefits-list-icon'>
+            <div className='wittyworks-icon-container'>
               <Star />
             </div>
-            <div className='wittyworks-signin-benefits-list-text'>
+            <div className='wittyworks-text-medium'>
               {t('inclusiveAlternatives')}
             </div>
           </div>
           <div className='wittyworks-signin-container'>
-            <div className='wittyworks-signin-benefits-list-icon'>
+            <div className='wittyworks-icon-container'>
               <Star />
             </div>
-            <div className='wittyworks-signin-benefits-list-text'>
-              {t('teamFeatures')}
-            </div>
+            <div className='wittyworks-text-medium'>{t('teamFeatures')}</div>
           </div>
         </div>
       </section>
       <section>
-        <div className='wittyworks-signin'>
+        <div className='wittyworks-container-gradient-background'>
           <div
-            className='wittyworks-signin-button'
+            className='wittyworks-button wittyworks-align-left'
             onClick={() => {
               logIn(urls);
             }}
           >
             {t('signIn')}
           </div>
-          <div className='wittyworks-signin-benefits-list-text-small'>
+          <div className='wittyworks-text-small'>
             {t('register')}
             <span
               className='wittyworks-sigin-link'

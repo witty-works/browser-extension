@@ -9,7 +9,6 @@ import {
   storeInLocalStorage,
 } from '../shared/utils';
 import ContentScriptApp from './ContentScriptApp';
-import defaultConfig from '../witty.config.json';
 
 export const updateConfig = (response: IAuthResponse) => {
   response.domains &&
@@ -98,24 +97,6 @@ export const customRender = (enabled: boolean) => {
 
   for (let i = enabled ? 1 : 0; i < containers.length; i++) {
     containers[i].remove();
-  }
-};
-
-export const handleEnableWittyEverywhere = (newValue: boolean) => {
-  if (
-    (StorageKeys.DISABLED_SITES &&
-      StorageKeys.DISABLED_SITES.includes(
-        window.location.hostname.replace('www.', '')
-      )) ||
-    (defaultConfig.ACTIVE_SITES &&
-      !defaultConfig.ACTIVE_SITES.includes(
-        window.location.hostname.replace('www.', '')
-      ) &&
-      !newValue)
-  ) {
-    customRender(false);
-  } else {
-    customRender(true);
   }
 };
 

@@ -657,8 +657,6 @@ const Input: React.FC<{
             StorageKeys.REFRESH_TOKEN,
             refreshTokenResponse.refresh_token
           );
-          storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
-
           setTextToCheck('');
           setTextToCheck(currentTextToCheck);
         })

@@ -133,12 +133,8 @@ export const updateLabelChrome = (domain: string) => {
     ) {
       addInactiveLabel();
     } else if (
-      (result[StorageKeys.DISABLED_SITES] &&
-        result[StorageKeys.DISABLED_SITES].length > 0 &&
-        result[StorageKeys.DISABLED_SITES].includes(domain)) ||
-      (defaultConfig.ACTIVE_SITES &&
-        !defaultConfig.ACTIVE_SITES.includes(domain) &&
-        !result[StorageKeys.ENABLE_WITTY_EVERYWHERE]) ||
+      defaultConfig.DISABLED_SITES.includes(domain) ||
+      !defaultConfig.ACTIVE_SITES.includes(domain) ||
       !result[StorageKeys.ACCESS_TOKEN]
     ) {
       addInactiveLabel();

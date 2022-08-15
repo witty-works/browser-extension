@@ -8,10 +8,6 @@ body {
   font-size: 88%;
 }
 
-a {
-  color: $black;
-}
-
 #popup-root {
   min-width: 300px;
   display: flex;
@@ -29,6 +25,15 @@ header {
   }
 }
 
+footer {
+  padding: 0 1.3em;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  cursor: pointer;
+  margin-top: 1em;
+}
+
 section {
   padding: 0 1rem 1rem 1rem;
   display: flex;
@@ -38,24 +43,6 @@ section {
   > div:not(:last-child) {
     margin-bottom: 0.8rem;
   }
-
-  h2 {
-    margin-bottom: 2em;
-    text-transform: uppercase;
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 14px;
-    color: $black;
-    opacity: 0.5;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
-}
-
-hr {
-  border: 1px solid $whiteGray;
-  margin: 0;
 }
 
 .wittyworks-toggles {
@@ -71,15 +58,6 @@ hr {
   margin-bottom: 1em;
   border: 0;
   height: 1px;
-}
-
-footer {
-  padding: 0 1.3em;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
-  cursor: pointer;
-  margin-top: 1em;
 }
 
 .domain-not-supported {
@@ -123,35 +101,6 @@ footer {
   cursor: pointer;
 }
 
-.wittyworks-upgrade-banner-popup {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5em;
-  width: 111%;
-  margin-left: -1em;
-  margin-top: -1em;
-  padding-left: 1em;
-
-  background: linear-gradient(
-        96.78deg,
-        #fef7f8 -6.3%,
-        #fbf6fa 35.9%,
-        #e9f2f5 100.12%
-      )
-      padding-box,
-    linear-gradient(
-        114.59deg,
-        #f06464 1.6%,
-        #f277d0 32.79%,
-        #9489db 71.64%,
-        #37d1e5 101.91%,
-        #5acfb9 131.52%
-      )
-      border-box;
-}
-
 .wittyworks-upgrade-banner-popup-text-container {
   color: $wittyPurple;
   display: flex;
@@ -165,56 +114,7 @@ footer {
   text-transform: uppercase;
 }
 
-.wittyworks-upgrade-banner-popup-button {
-  display: flex;
-  height: 22px;
-  margin-right: auto;
-  margin-top: 1em;
-  margin-bottom: 0.5em;
-  padding: 4px 8px;
-  background: $wittyPurple;
-  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
-  border-radius: 4px;
-  color: $white;
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 14px;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.wittyworks-dashboard-button-container {
-  display: flex;
-  justify-content: center;
-}
-.wittyworks-dashboard-button {
-  height: 22px;
-  margin-top: 1em;
-  padding: 4px 8px;
-  background: $wittyPurple;
-  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
-  border-radius: 4px;
-  color: $white;
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 14px;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.enable-witty {
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 400;
-  display: flex;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.wittyworks-signin {
+.wittyworks-container-gradient-background {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -243,9 +143,26 @@ footer {
       border-box;
 }
 
-.wittyworks-signin-button {
+.wittyworks-signin-container {
   display: flex;
-  margin-right: auto;
+  flex-direction: row;
+  justify-content: left;
+  align-items: center;
+  margin-top: 0.5em;
+}
+
+.wittyworks-sigin-link {
+  color: #f06464;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.wittyworks-icon-container {
+  margin-right: 1em;
+}
+
+//BUTTONS
+.wittyworks-button {
   margin-top: 0.5em;
   padding: 6px 12px;
   background: $wittyPurple;
@@ -260,31 +177,38 @@ footer {
   cursor: pointer;
 }
 
-.wittyworks-signin-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: left;
-  align-items: center;
-  margin-top: 0.5em;
+.wittyworks-button-yes {
+  background: #5fca7d;
+  padding: 0.5em 3em;
 }
 
-.wittyworks-signin-list {
-  display: flex;
-  flex-direction: column;
+.wittyworks-button-no {
+  background: #f06464;
+  padding: 0.5em 3em;
 }
 
-.wittyworks-signin-benefits-list-icon {
-  margin-right: 1em;
+//TEXT
+.wittyworks-text-grey {
+  margin-bottom: 2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14px;
+  color: $black;
+  opacity: 0.5;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
-.wittyworks-signin-benefits-list-text {
+.wittyworks-text-medium {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
   font-size: 16px;
+  color: $black;
 }
 
-.wittyworks-signin-benefits-list-text-large {
+.wittyworks-text-large {
   font-family: $lato;
   font-style: normal;
   font-weight: 600;
@@ -293,7 +217,7 @@ footer {
   margin-right: 1em;
 }
 
-.wittyworks-signin-benefits-list-text-small {
+.wittyworks-text-small {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
@@ -303,16 +227,26 @@ footer {
   margin-bottom: 0.5em;
 }
 
-.wittyworks-signin-banner-text {
-  font-family: $lato;
-  font-weight: 600;
-  font-size: 20px;
-  color: $black;
-  margin-bottom: 1em;
+//UTILS
+.wittyworks-flex-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
 }
 
-.wittyworks-sigin-link {
-  color: #f06464;
-  text-decoration: underline;
-  cursor: pointer;
+.wittyworks-flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.wittyworks-align-left {
+  display: flex;
+  margin-right: auto;
+}
+
+.wittyworks-align-center {
+  display: flex;
+  justify-content: center;
 }
