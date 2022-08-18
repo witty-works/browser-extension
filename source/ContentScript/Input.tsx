@@ -17,7 +17,11 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import { storeInLocalStorage, getFirstTextDiff } from '../shared/utils';
+import {
+  storeInLocalStorage,
+  getFirstTextDiff,
+  getDomainWithoutSubdomain,
+} from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -699,13 +703,50 @@ const Input: React.FC<{
 
     const newTextToInsert = nodeText.replace(regex, alternative);
 
-    isTextArea(element) || isInputText(element)
-      ? (element.value = newTextToInsert)
-      : (node.nodeValue = newTextToInsert);
+    if (isTextArea(element) || isInputText(element)) {
+      element.value = newTextToInsert;
+    } else {
+      const domain = getDomainWithoutSubdomain(window.location.hostname);
+      //prevents reverting of text after selecting an alternative
+      if (domain == 'productboard.com') {
+        const deleteWordBackward = new window.InputEvent('beforeinput', {
+          bubbles: true,
+          cancelable: true,
+          inputType: 'deleteWordBackward',
+        });
+        node.dispatchEvent(deleteWordBackward);
+
+        const deleteWordForward = new window.InputEvent('beforeinput', {
+          bubbles: true,
+          cancelable: true,
+          inputType: 'deleteWordForward',
+        });
+        node.dispatchEvent(deleteWordForward);
+
+        if (alternative === '') {
+          console.log('altrenative', alternative);
+          const deleteBackward = new window.InputEvent('beforeinput', {
+            bubbles: true,
+            cancelable: true,
+            inputType: 'deleteContentBackward',
+          });
+          node.dispatchEvent(deleteBackward);
+        } else {
+          const insertText = new window.InputEvent('beforeinput', {
+            bubbles: true,
+            cancelable: true,
+            inputType: 'insertText',
+            data: alternative,
+          });
+          node.dispatchEvent(insertText);
+        }
+      } else {
+        node.nodeValue = newTextToInsert;
+      }
+    }
 
     const newText: string = getInputText(element);
     setTextToCheck(newText);
-
     resetPopover();
   };
 
