@@ -105,7 +105,6 @@ export const getCorrectedPosition = (
   element: HTMLElement
 ) => {
   if (isTextArea(element)) {
-    console.log('is textarea or input');
     elementRect = element.getBoundingClientRect();
   }
 
