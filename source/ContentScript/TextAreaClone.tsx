@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Position } from '../shared/types';
-import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
+import { getCorrectedPosition } from '../shared/utils';
 
 interface TextAreaCloneProps {
   element: HTMLTextAreaElement;
@@ -17,9 +17,10 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
   const elementStyles = window.getComputedStyle(element);
 
-  const correctedPosition = usePositionCorrection(
-    element,
-    cloneRef.current.parentElement
+  const correctedPosition = getCorrectedPosition(
+    elementRect,
+    cloneRef.current.parentElement,
+    element
   );
 
   return (
