@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
-import { StorageKeys, WTags } from '../shared/constants';
+import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
 import { isInputText, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, IAuthResponse } from '../shared/types';
 import {
@@ -9,10 +9,13 @@ import {
   storeInLocalStorage,
 } from '../shared/utils';
 import ContentScriptApp from './ContentScriptApp';
+import { createUrl } from '../shared/ApiServices/requests';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 export const updateConfig = (response: IAuthResponse) => {
   response.domains &&
-    storeInLocalStorage(StorageKeys.DOMAINS, response.domains);
+    storeInLocalStorage(StorageKeys.DOMAINS, response.domains.list);
+
   response.organization_domains &&
     storeInLocalStorage(
       StorageKeys.ORGANIZATION_DOMAINS,
@@ -100,7 +103,7 @@ export const customRender = (enabled: boolean) => {
   }
 };
 
-export const handleOrganizationDomains = (newValue: any) => {
+export const handleDomainsFromDashboard = (newValue: any) => {
   if (
     (newValue.type === 'deny' &&
       newValue.list.includes(
@@ -115,4 +118,39 @@ export const handleOrganizationDomains = (newValue: any) => {
   } else {
     customRender(true);
   }
+};
+
+export const makeAuthRequest = () => {
+  browser.storage.local.get(null).then((result) => {
+    if (
+      result[StorageKeys.ACCESS_TOKEN] &&
+      result[StorageKeys.API_ENDPOINT_KEY]
+    ) {
+      const config = {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
+        },
+      };
+
+      fetch(
+        createUrl(
+          BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].api,
+          'v2.0/auth'
+        ),
+        config
+      )
+        .then(async (response) => {
+          if (response.ok) {
+            const json = await response.json();
+            updateConfig(json);
+          }
+        })
+        .catch((error) => {
+          sendErrorToSentry(error);
+        });
+    }
+  });
 };

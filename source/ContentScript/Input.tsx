@@ -36,7 +36,7 @@ import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
-import { getInputText, updateConfig } from './InputUtils';
+import { getInputText, updateConfig } from './utils';
 
 const Input: React.FC<{
   element: CustomInputElement;

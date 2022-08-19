@@ -44,9 +44,6 @@ export const de = {
     signOut: 'Sign out DE',
     register: 'Don’t have an account? DE',
     signUp: ' Sign up DE',
-    domainBlocked: 'This domain is blocked by your organization. DE',
-    domainNotAlloweYet:
-      'This domain is not allowed by your organization yet. DE',
     doesWittyWork: 'Does Witty work here? DE',
     doesWittyWorkExplanation:
       'You are on a website of which we don’t know if Witty works. We work hard to make Witty function on all web-interfaces, but sometimes we are just not smart enough. 🤷‍♀️ DE',
@@ -63,6 +60,7 @@ export const de = {
     websiteSettingsDeactivated:
       'You previously reported that Witty does not work on {{domain}} DE',
     tryAgainOnThisWebsite: 'Try again on this website DE',
+    lockedInfo: 'locked by org DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -120,8 +118,6 @@ export const en = {
     signOut: 'Sign out',
     register: 'Don’t have an account?',
     signUp: ' Sign up',
-    domainBlocked: 'This domain is blocked by your organization.',
-    domainNotAlloweYet: 'This domain is not allowed by your organization yet.',
     doesWittyWork: 'Does Witty work here?',
     doesWittyWorkExplanation:
       'You are on a website of which we don’t know if Witty works. We work hard to make Witty function on all web-interfaces, but sometimes we are just not smart enough. 🤷‍♀️',
@@ -138,6 +134,7 @@ export const en = {
     websiteSettingsDeactivated:
       'You previously reported that Witty does not work on {{domain}}',
     tryAgainOnThisWebsite: 'Try again on this website',
+    lockedInfo: 'locked by org.',
   },
 
   [namespaces.popover]: {

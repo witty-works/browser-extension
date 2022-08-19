@@ -40,8 +40,6 @@ export enum StorageKeys {
 
   DOMAINS_CONFIRMED_TO_WORK = 'domainsConfirmedToWork',
   DOMAINS_CONFIRMED_TO_NOT_WORK = 'domainsConfirmedNotToWork',
-
-  DOMAINS_DISABLED_LOCALLY = 'domainsDisabledLocally',
 }
 
 //nlp api, dashboard

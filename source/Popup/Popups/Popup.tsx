@@ -40,6 +40,7 @@ interface PopupProps {
   domainIsConfirmedByUser: boolean;
   domainsConfirmedToNotWork: string[];
   domainsConfirmedToWork: string[];
+  isLocked: boolean;
 }
 
 const Popup: React.FC<PopupProps> = ({
@@ -50,12 +51,13 @@ const Popup: React.FC<PopupProps> = ({
   domainIsConfirmedByUser,
   domainsConfirmedToNotWork,
   domainsConfirmedToWork,
+  isLocked,
 }: PopupProps) => {
   const { t } = useTranslation([namespaces.pages.popup]);
-  const [enabled, setEnabled] = useState<boolean>(true);
+  const [enabled, setEnabled] = useState<boolean>(false);
   const [domainsDisabledLocally, setDomainsDisabledLocally] = useState<
     string[]
-  >(defaultConfig.DISABLED_SITES);
+  >([]);
   const [orthography, setOrthography] = useState<ConfigProperty>(
     defaultConfig.ORTHOGRAPHY
   );
@@ -110,7 +112,8 @@ const Popup: React.FC<PopupProps> = ({
             .includes(domain) &&
             !defaultConfig.DISABLED_SITES.includes(domain) &&
             result[StorageKeys.ACCESS_TOKEN] &&
-            !result[StorageKeys.DOMAINS_DISABLED_LOCALLY].includes(domain)
+            !result[StorageKeys.DOMAINS].includes(domain) &&
+            !isLocked
             ? true
             : false
         );
@@ -118,7 +121,7 @@ const Popup: React.FC<PopupProps> = ({
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
-        setDomainsDisabledLocally(result[StorageKeys.DOMAINS_DISABLED_LOCALLY]);
+        setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setCasingSites(result[StorageKeys.CASING_SITES]);
         result[StorageKeys.CASING_SITES] &&
           result[StorageKeys.CASING_SITES].includes(domain) &&
@@ -162,11 +165,16 @@ const Popup: React.FC<PopupProps> = ({
   }, [casingSites.length]);
 
   useEffect(() => {
-    domain &&
+    if (domain) {
       storeInLocalStorage(StorageKeys.DOMAIN_TO_UPDATE, {
         domain: domain,
         enabled: enabled,
       });
+      storeInLocalStorage(StorageKeys.DOMAINS, [
+        ...domainsDisabledLocally,
+        domain,
+      ]);
+    }
     setWittyIcon(enabled);
   }, [enabled]);
 
@@ -183,10 +191,8 @@ const Popup: React.FC<PopupProps> = ({
   }, [styleCorrections]);
 
   useEffect(() => {
-    storeInLocalStorage(
-      StorageKeys.DOMAINS_DISABLED_LOCALLY,
-      domainsDisabledLocally
-    );
+    console.log('domainsDisabledLocally', domainsDisabledLocally);
+    storeInLocalStorage(StorageKeys.DOMAINS, domainsDisabledLocally);
   }, [domainsDisabledLocally.length]);
 
   const setWittyIcon = (state: boolean) => {
@@ -194,6 +200,8 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   const handleEnableToggle = () => {
+    if (isLocked) return;
+
     if (domainIsSetAsNotWorking && !enabled) {
       setDomainIsSetToNotWorking(false);
       setShowSurvey(true);
@@ -248,6 +256,7 @@ const Popup: React.FC<PopupProps> = ({
                 ? t('tryAgainOnThisWebsite')
                 : t('enableWitty')
             }
+            locked={isLocked}
           />
           <div className='toggle-separator' />
           {enabled && (

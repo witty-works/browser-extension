@@ -123,8 +123,6 @@ const scanTabsToDetectStatus = () => {
       defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
     ) {
       removeInactiveLabel();
-    } else {
-      addInactiveLabel();
     }
   });
 };
@@ -148,6 +146,13 @@ const storageChange = (changes: { [key: string]: any }) => {
       } else {
         removeInactiveLabel();
       }
+    }
+    if (key === StorageKeys.DOMAINS) {
+      changes[key].newValue.list.includes(
+        getDomainWithoutSubdomain(window.location.hostname)
+      )
+        ? addInactiveLabel()
+        : removeInactiveLabel();
     }
   });
 };

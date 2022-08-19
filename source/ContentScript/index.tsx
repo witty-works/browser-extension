@@ -8,9 +8,9 @@ import { getDomainWithoutSubdomain } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import {
   customRender,
-  handleOrganizationDomains,
-  updateConfig,
-} from './InputUtils';
+  handleDomainsFromDashboard,
+  makeAuthRequest,
+} from './utils';
 import { createUrl } from '../shared/ApiServices/requests';
 
 const log = useLog('ContentScript index');
@@ -47,57 +47,29 @@ const handleDomainToUpdate = () => {
         }
       ).then(async (response) => {
         if (response.ok) {
-          await browser.storage.local.set({
-            [StorageKeys.DOMAIN_TO_UPDATE]: null,
-          });
+          // await browser.storage.local.set({
+          //   [StorageKeys.DOMAIN_TO_UPDATE]: null,
+          // });
         }
       });
     }
   });
 };
 
-browser.storage.local.get(null).then((result) => {
-  if (
-    result[StorageKeys.ACCESS_TOKEN] &&
-    result[StorageKeys.API_ENDPOINT_KEY]
-  ) {
-    const config = {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
-      },
-    };
-
-    fetch(
-      createUrl(
-        BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].api,
-        'v2.0/auth'
-      ),
-      config
-    ).then(async (response) => {
-      if (response.ok) {
-        const json = await response.json();
-        updateConfig(json);
-      }
-    });
-  }
-});
-
 browser.storage.local
   .get(null)
   .then((result) => {
-    if (
+    const isOnOrgDomainList =
       (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
         result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
       (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
-        !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
-    ) {
-      customRender(false);
-    } else if (
+        !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
+
+    const isOnPersonalDomainList = result[StorageKeys.DOMAINS].includes(domain);
+    if (
+      isOnOrgDomainList ||
+      isOnPersonalDomainList ||
       defaultConfig.DISABLED_SITES.includes(domain) ||
-      result[StorageKeys.DOMAINS_DISABLED_LOCALLY].includes(domain) ||
       !result[StorageKeys.ACCESS_TOKEN]
     ) {
       customRender(false);
@@ -115,15 +87,32 @@ const storageChange = (changes: any) => {
   for (let item of changedItems) {
     switch (item) {
       case StorageKeys.ORGANIZATION_DOMAINS:
-        handleOrganizationDomains(changes[item].newValue);
+        handleDomainsFromDashboard(changes[item].newValue);
         break;
+      case StorageKeys.DOMAINS:
+        if (changes[item].newValue.includes(domain)) {
+          customRender(false);
+        } else {
+          customRender(true);
+        }
+        break;
+
       case StorageKeys.DOMAIN_TO_UPDATE:
         handleDomainToUpdate();
+        break;
+      case StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK:
+        customRender(
+          changes[item].newValue
+            .map((d: string) => d.split('-')[0])
+            .includes(domain)
+            ? false
+            : true
+        );
         break;
     }
   }
 };
-
+makeAuthRequest();
 browser.storage.onChanged.addListener(storageChange);
 
 Sentry.init({

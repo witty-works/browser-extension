@@ -4,7 +4,6 @@ import { browser } from 'webextension-polyfill-ts';
 import { BaseUrls, StorageKeys } from '../shared/constants';
 import Popup from './Popups/Popup';
 import PopupDomainDeactivated from './Popups/PopupDomainDeactivated';
-import PopupDomainOnList from './Popups/PopupDomainOnList';
 import PopupLogin from './Popups/PopupLogin';
 import defaultConfig from '../witty.config.json';
 
@@ -38,7 +37,8 @@ export const renderMainPopup = (
   domainOnActiveOrDisabledList: boolean,
   domainIsConfirmedByUser: boolean,
   domainsConfirmedToNotWork: string[],
-  domainsConfirmedToWork: string[]
+  domainsConfirmedToWork: string[],
+  isLocked: boolean
 ) => {
   ReactDOM.render(
     <Popup
@@ -49,14 +49,8 @@ export const renderMainPopup = (
       domainIsConfirmedByUser={domainIsConfirmedByUser}
       domainsConfirmedToNotWork={domainsConfirmedToNotWork}
       domainsConfirmedToWork={domainsConfirmedToWork}
+      isLocked={isLocked}
     />,
-    document.getElementById('popup-root')
-  );
-};
-
-export const renderDomainOnListPopup = (listType: string) => {
-  ReactDOM.render(
-    <PopupDomainOnList listType={listType} />,
     document.getElementById('popup-root')
   );
 };
@@ -71,18 +65,15 @@ export const renderPopupChrome = (
   domainsConfrimedToWork: string[],
   result: any
 ) => {
-  if (
+  const isLocked =
     (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
       result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
     (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
-      !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
-  ) {
-    renderDomainOnListPopup(result[StorageKeys.ORGANIZATION_DOMAINS].type);
-  } else if (
-    (!defaultConfig.ACTIVE_SITES.includes(domain) &&
-      !defaultConfig.DISABLED_SITES.includes(domain)) ||
-    defaultConfig.ACTIVE_SITES.includes(domain)
-  ) {
+      !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
+
+  if (defaultConfig.DISABLED_SITES.includes(domain)) {
+    renderDomainDeactivated(appId, domain);
+  } else {
     renderMainPopup(
       appId,
       domain,
@@ -90,9 +81,8 @@ export const renderPopupChrome = (
       domainOnActiveOrDisabledList,
       domainIsConfirmedByUser,
       domainsConfirmedToNotWork,
-      domainsConfrimedToWork
+      domainsConfrimedToWork,
+      isLocked
     );
-  } else {
-    renderDomainDeactivated(appId, domain);
   }
 };

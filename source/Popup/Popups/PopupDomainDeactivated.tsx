@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import '../../i18n/i18n';
 import '../styles.scss';
@@ -9,6 +9,9 @@ import PopupHeader from '../PopupComponents/PopupHeader';
 import SadFace from '../../assets/icons/popup/sad-face.svg';
 import UpvoteButton from '../../assets/icons/popup/upvote-button.svg';
 import EditorButton from '../../assets/icons/popup/editor-button.svg';
+import { sendErrorToSentry } from '../../shared/errorUtils';
+import { setBaseUrls } from '../../shared/ApiServices/requests';
+import { DefaultBaseUrlKey, StorageKeys } from '../../shared/constants';
 
 interface domainDeactivatedProps {
   appId: string;
@@ -21,6 +24,22 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
   const { t } = useTranslation(namespaces.pages.popup);
   const [hasVoted, setHasVoted] = useState<boolean>(false);
   const analytics = useAnalytics();
+
+  useEffect(() => {
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        setBaseUrls(
+          result[StorageKeys.API_ENDPOINT_KEY]
+            ? result[StorageKeys.API_ENDPOINT_KEY]
+            : DefaultBaseUrlKey
+        );
+      })
+      .catch((error) => {
+        sendErrorToSentry(error);
+      });
+  }, []);
+
   return (
     <>
       <PopupHeader />

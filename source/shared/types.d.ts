@@ -56,14 +56,19 @@ export interface IAuthResponse {
   //private account
   id: string;
   name: string;
-  domains: object;
+  domains: IDomains;
   config_hash: string;
 
   //organization account
   organization_id?: string;
   organization_name?: string;
-  organization_domains: object;
+  organization_domains: IDomains;
   organization_config_hash: string;
+}
+
+export interface IDomains {
+  list: string[];
+  type: string;
 }
 export interface IRefreshTokenResponse {
   email: string;
