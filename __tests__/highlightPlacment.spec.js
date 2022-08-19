@@ -11,6 +11,11 @@ const test = base.extend({
         const browserTypes = { chromium } //add firefox
         const pathToExtension = ('./extension/chrome');
         const launchOptions = {
+            proxy: {
+                server: process.env.PROXY_SERVER,
+                username: process.env.PROXY_USERNAME,
+                password: process.env.PROXY_PASSWORD,
+            },
             trace: 'on',
             devtools: false,
             headless: false,
@@ -39,24 +44,24 @@ test.setTimeout(120000)
 test.use({ screenshot: 'on' })
 
 test.describe('Highlights', () => {
-    test('witty form', async ({ page }) => {
-        console.log('process.env.PREMIUM_TEST_USER_EMAIL', process.env.PREMIUM_TEST_USER_EMAIL)
-        await page.goto('https://www.witty.works/editor');
-        await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.waitForSelector('#witty-test');
-        await page.click('#witty-test');
-        await page.type('#witty-test', premiumUserEmail);
-        await page.type('#witty-test', premiumUserPassword);
+    // test('witty form', async ({ page }) => {
+    //     console.log('process.env.PREMIUM_TEST_USER_EMAIL', process.env.PREMIUM_TEST_USER_EMAIL)
+    //     await page.goto('https://www.witty.works/editor');
+    //     await page.waitForLoadState('networkidle')
+    //     await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.waitForSelector('#witty-test');
+    //     await page.click('#witty-test');
+    //     await page.type('#witty-test', premiumUserEmail);
+    //     await page.type('#witty-test', premiumUserPassword);
 
-        await page.waitForTimeout(3000); //wait for api to respond with highlights
+    //     await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
-            //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
-            expect(screenshot).toMatchSnapshot('witty-form.png')
-        });
-    });
+    //     await page.locator('#witty-test').screenshot().then(async (screenshot) => {
+    //         //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
+    //         expect(screenshot).toMatchSnapshot('witty-form.png')
+    //     });
+    // });
 
 
     // test('linkedin post', async ({ page }) => {
