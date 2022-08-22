@@ -9,8 +9,9 @@ import {
   DEV_ENV,
 } from '../../shared/constants';
 import {
-  addInactiveLabel,
-  removeInactiveLabel,
+  addInactiveBadge,
+  addNotificationBadge,
+  removeBadge,
   storeInLocalStorage,
 } from '../../shared/utils';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -73,6 +74,8 @@ const Popup: React.FC<PopupProps> = ({
   );
   const [showSurvey, setShowSurvey] = useState<boolean>(false);
   const [surveyResponse, setSurveyResponse] = useState<string>('');
+  const [hasNotificationBadge, setHasNotificationBadge] =
+    useState<boolean>(true);
 
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
   const [domainIsSetAsNotWorking, setDomainIsSetToNotWorking] =
@@ -117,7 +120,8 @@ const Popup: React.FC<PopupProps> = ({
             ? true
             : false
         );
-
+        //TODO
+        setHasNotificationBadge(true);
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
@@ -196,7 +200,11 @@ const Popup: React.FC<PopupProps> = ({
   }, [domainsDisabledLocally.length]);
 
   const setWittyIcon = (state: boolean) => {
-    state ? removeInactiveLabel() : addInactiveLabel();
+    if (state && hasNotificationBadge) {
+      addNotificationBadge();
+    } else {
+      state ? removeBadge() : addInactiveBadge();
+    }
   };
 
   const handleEnableToggle = () => {
@@ -240,7 +248,7 @@ const Popup: React.FC<PopupProps> = ({
 
   return (
     <>
-      <PopupHeader />
+      <PopupHeader hasNotificationBadge={hasNotificationBadge} />
       {domain && domain.length > 0 && (
         <section className='wittyworks-toggles website-settings'>
           <div className='wittyworks-text-grey'>

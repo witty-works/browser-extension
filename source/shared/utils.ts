@@ -93,14 +93,24 @@ export const getFirstTextDiff = (previousText: string, nextText: string) => {
   return i;
 };
 
-export const addInactiveLabel = () => {
+export const addNotificationBadge = () => {
+  browser.browserAction.setBadgeBackgroundColor({
+    color: '#E6635A',
+  });
+
+  browser.browserAction.setBadgeText({
+    text: ' 1 ',
+  });
+};
+
+export const addInactiveBadge = () => {
   browser.browserAction.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
   browser.browserAction.setBadgeText({ text: 'OFF' });
 };
 
-export const removeInactiveLabel = () => {
+export const removeBadge = () => {
   browser.browserAction.setBadgeText({ text: '' });
 };
 
@@ -153,6 +163,8 @@ export const updateLabelChrome = (domain: string) => {
 
     const userLoggedIn = result[StorageKeys.ACCESS_TOKEN];
 
+    //TODO
+    const hasNotification = true;
     if (
       isLocked ||
       isDisabled ||
@@ -160,9 +172,11 @@ export const updateLabelChrome = (domain: string) => {
       domainOnDisabledSitesList ||
       !userLoggedIn
     ) {
-      addInactiveLabel();
+      addInactiveBadge();
+    } else if (hasNotification) {
+      addNotificationBadge();
     } else {
-      removeInactiveLabel();
+      removeBadge();
     }
   });
 };

@@ -10,11 +10,11 @@ import {
   devAppId,
 } from '../shared/constants';
 import {
-  addInactiveLabel,
+  addInactiveBadge,
   getBrowserId,
   getDomainWithoutSubdomain,
   isFunction,
-  removeInactiveLabel,
+  removeBadge,
   updateLabelChrome,
 } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
@@ -122,7 +122,7 @@ const scanTabsToDetectStatus = () => {
       defaultConfig.CHROME_AND_FIREFOX_SITES &&
       defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
     ) {
-      removeInactiveLabel();
+      removeBadge();
     }
   });
 };
@@ -142,17 +142,17 @@ const storageChange = (changes: { [key: string]: any }) => {
             getDomainWithoutSubdomain(window.location.hostname)
           ))
       ) {
-        addInactiveLabel();
+        addInactiveBadge();
       } else {
-        removeInactiveLabel();
+        removeBadge();
       }
     }
     if (key === StorageKeys.DOMAINS) {
       changes[key].newValue.list.includes(
         getDomainWithoutSubdomain(window.location.hostname)
       )
-        ? addInactiveLabel()
-        : removeInactiveLabel();
+        ? addInactiveBadge()
+        : removeBadge();
     }
   });
 };

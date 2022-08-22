@@ -2,12 +2,19 @@ import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
 import Settings from '../../assets/icons/popup/settings.svg';
+import SettingsWithNotification from '../../assets/icons/popup/settingsWithNotification.svg';
 import Logo from '../../assets/icons/witty-logo-color.svg';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
 
 import '../styles.scss';
 
-const PopupHeader: React.FC = () => {
+interface PopupHeaderProps {
+  hasNotificationBadge?: boolean;
+}
+
+const PopupHeader: React.FC<PopupHeaderProps> = ({
+  hasNotificationBadge = false,
+}: PopupHeaderProps) => {
   return (
     <header>
       <Logo
@@ -16,10 +23,18 @@ const PopupHeader: React.FC = () => {
           browser.tabs.create({ url: 'https://www.witty.works/' });
         }}
       />
-      <Settings
-        id='witty-settings'
-        onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
-      />
+      {hasNotificationBadge ? (
+        <SettingsWithNotification
+          id='witty-settings'
+          onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
+          //TODO: remove badge here
+        />
+      ) : (
+        <Settings
+          id='witty-settings'
+          onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
+        />
+      )}
     </header>
   );
 };
