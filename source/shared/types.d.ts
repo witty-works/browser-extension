@@ -64,7 +64,6 @@ export interface ICheckResponse {
 }
 export interface IAuthResponse {
   config: {
-    store_context: ConfigProperty;
     preferred_variants: ConfigProperty;
     german_gender_ending: ConfigProperty;
     gendered_roles_format: ConfigProperty;

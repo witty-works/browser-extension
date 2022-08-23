@@ -515,11 +515,7 @@ const Input: React.FC<{
           apiConfig.config[key].status == 'force'
         ) {
           storeInLocalStorage(StorageKeys.SINGULAR_THEY, apiConfig.config[key]);
-        }
-        // else if (key == 'store_context') {
-        //   storeInLocalStorage(StorageKeys.STORE_CONTEXT, apiConfig.config[key]);
-        // }
-        else if (key == 'style' && apiConfig.config[key].status == 'force') {
+        } else if (key == 'style' && apiConfig.config[key].status == 'force') {
           storeInLocalStorage(StorageKeys.STYLE, apiConfig.config[key]);
         }
       });
