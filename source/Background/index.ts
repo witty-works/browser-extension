@@ -35,7 +35,7 @@ Sentry.init({
   release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
   sampleRate: 0.0,
-  tracesSampleRate: 0.001,
+  tracesSampleRate: 0.01,
 });
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {

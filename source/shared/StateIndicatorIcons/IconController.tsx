@@ -4,7 +4,7 @@ import { CustomInputElement } from '../types';
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
-import { usePositionCorrection } from '../../shared/customHooks/usePositionCorrection';
+import { getCorrectedPosition } from '../utils';
 
 interface IconControllerProps {
   iconType: string;
@@ -18,11 +18,13 @@ const IconController: React.FC<IconControllerProps> = ({
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const correctedPosition = usePositionCorrection(
-    element,
-    ref.current.parentElement
-  );
+
   const elementRect = element.getBoundingClientRect();
+  const correctedPosition = getCorrectedPosition(
+    elementRect,
+    ref.current.parentElement,
+    element
+  );
   const iconPadding: number = 8;
 
   return (

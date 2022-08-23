@@ -5,7 +5,7 @@ import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
 import { isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
-import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
+import { getCorrectedPosition } from '../shared/utils';
 
 interface HighlightsProps {
   elementScroll: Position;
@@ -26,11 +26,11 @@ const Highlights: React.FC<HighlightsProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
-  const correctedPosition = usePositionCorrection(
-    element,
-    canvasRef.current.parentElement
+  const correctedPosition = getCorrectedPosition(
+    elementRect,
+    canvasRef.current.parentElement,
+    element
   );
-
   const canvasSize = {
     width: elementRect.width,
     height: elementRect.height,
@@ -147,8 +147,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           height: `${canvasSize.height}px`,
           overflow: 'auto',
           pointerEvents: 'none',
-          // mixBlendMode: 'normal',   //TODO Explorer this property
-          // backgroundColor: 'rgba(0,0,150,0.3)',
         } as React.CSSProperties
       }
     ></canvas>
