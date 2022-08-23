@@ -702,6 +702,17 @@ const Input: React.FC<{
       document.execCommand('insertText', false, alternative);
     }
 
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (nodeAlert) => nodeAlert.startOffset < alert.startOffset
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    } else {
+      setAlerts([]);
+    }
+
     setTextToCheck(getInputText(element));
   };
 
