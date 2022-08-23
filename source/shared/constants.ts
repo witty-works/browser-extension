@@ -143,7 +143,7 @@ export const WittyIconActive = {
   },
 };
 
-export const whiteListedDomains = [
+export const exposeWittyIdAllowList = [
   'dashboard.lndo.site',
   'dashboard.witty.works',
   'witty.works',

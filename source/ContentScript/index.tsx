@@ -5,7 +5,7 @@ import { BrowserTracing } from '@sentry/tracing';
 import { browser } from 'webextension-polyfill-ts';
 import {
   StorageKeys,
-  whiteListedDomains,
+  exposeWittyIdAllowList,
   wittyVersion,
   WTags,
 } from '../shared/constants';
@@ -18,7 +18,7 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 const log = useLog('ContentScript index');
 const domain = getDomainWithoutSubdomain(window.location.hostname);
 
-if (whiteListedDomains.includes(domain)) {
+if (exposeWittyIdAllowList.includes(domain)) {
   document.body.appendChild(document.createElement('witty-is-installed'));
   const wittyIsInstalledElement = document.querySelector('witty-is-installed');
   wittyIsInstalledElement &&
