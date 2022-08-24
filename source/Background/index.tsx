@@ -45,7 +45,7 @@ Sentry.init({
   release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
   sampleRate: 0.0,
-  tracesSampleRate: 0.001,
+  tracesSampleRate: 0.01,
 });
 
 const addEventListeners = () => {

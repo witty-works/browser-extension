@@ -603,33 +603,40 @@ const Input: React.FC<{
 
   const updateTextWithAlternative = (alternative: string) => {
     const node = popoverData?.node as Node;
-    const nodeText: string = node.nodeValue as string;
     const alert = selectedAlert as IAlert;
-    const termToBeReplaced: string = nodeText.slice(
-      alert.startOffset,
-      alert.endOffset
-    );
 
-    const regex: RegExp = new RegExp(
-      alternative === ''
-        ? alert.startOffset === 0
-          ? `${termToBeReplaced}[ ,]?`
-          : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}[ ,]?`
-        : alert.startOffset === 0
-        ? `${termToBeReplaced}`
-        : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}`
-    );
+    if (isTextArea(element) || isInputText(element)) {
+      element.selectionStart = alert.startOffset;
+      element.selectionEnd =
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset;
+      //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
+      document.execCommand('insertText', false, alternative);
+    } else {
+      const range = document.createRange();
+      range.setStart(node, alert.startOffset);
+      range.setEnd(
+        node,
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset
+      );
+      const sel = window.getSelection();
+      if (!sel) return;
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.execCommand('insertText', false, alternative);
+    }
 
-    const newTextToInsert = nodeText.replace(regex, alternative);
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (nodeAlert) => nodeAlert.startOffset < alert.startOffset
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    } else {
+      setAlerts([]);
+    }
 
-    isTextArea(element) || isInputText(element)
-      ? (element.value = newTextToInsert)
-      : (node.nodeValue = newTextToInsert);
-
-    const newText: string = getInputText(element);
-    setTextToCheck(newText);
-
-    resetPopover();
+    setTextToCheck(getInputText(element));
   };
 
   useEffect(() => {

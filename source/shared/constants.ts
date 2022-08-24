@@ -182,3 +182,8 @@ export const dropdownOptions = [
 ];
 
 export const devAppId = 'DEV_APP_ID';
+export const exposeWittyIdAllowList = [
+  'dashboard.lndo.site',
+  'dashboard.witty.works',
+  'witty.works',
+];
