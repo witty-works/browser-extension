@@ -33,6 +33,7 @@ export interface ICheckResponse {
   language: string;
   limit_reached: boolean;
   config_changed: boolean;
+  notifications: number;
 }
 
 export interface ICheckResponseResult {

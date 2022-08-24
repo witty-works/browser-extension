@@ -93,13 +93,13 @@ export const getFirstTextDiff = (previousText: string, nextText: string) => {
   return i;
 };
 
-export const addNotificationBadge = () => {
+export const addNotificationBadge = (numberOfNotifications: number) => {
   browser.browserAction.setBadgeBackgroundColor({
     color: '#E6635A',
   });
 
   browser.browserAction.setBadgeText({
-    text: ' 1 ',
+    text: numberOfNotifications.toString(),
   });
 };
 
@@ -163,8 +163,7 @@ export const updateLabelChrome = (domain: string) => {
 
     const userLoggedIn = result[StorageKeys.ACCESS_TOKEN];
 
-    //TODO
-    const hasNotification = true;
+    const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
     if (
       isLocked ||
       isDisabled ||
@@ -173,8 +172,8 @@ export const updateLabelChrome = (domain: string) => {
       !userLoggedIn
     ) {
       addInactiveBadge();
-    } else if (hasNotification) {
-      addNotificationBadge();
+    } else if (numberOfNotifications > 0) {
+      addNotificationBadge(numberOfNotifications);
     } else {
       removeBadge();
     }

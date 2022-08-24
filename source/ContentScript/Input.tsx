@@ -4,7 +4,7 @@ import { browser } from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
 import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
-import { WTags } from '../shared/constants';
+import { WTags, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 
@@ -30,7 +30,6 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
@@ -440,8 +439,12 @@ const Input: React.FC<{
 
     setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
 
-    //TODO: check if this is needed
-    storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+    checkEndpointResponse.notifications &&
+      storeInLocalStorage(
+        StorageKeys.NUMBER_OF_NOTIFICATIONS,
+        checkEndpointResponse.notifications
+      );
+
     setActiveIcon('active');
 
     analytics.checkLog(

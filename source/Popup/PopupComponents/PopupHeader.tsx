@@ -27,7 +27,6 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
         <SettingsWithNotification
           id='witty-settings'
           onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
-          //TODO: remove badge here
         />
       ) : (
         <Settings

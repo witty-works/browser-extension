@@ -74,8 +74,7 @@ const Popup: React.FC<PopupProps> = ({
   );
   const [showSurvey, setShowSurvey] = useState<boolean>(false);
   const [surveyResponse, setSurveyResponse] = useState<string>('');
-  const [hasNotificationBadge, setHasNotificationBadge] =
-    useState<boolean>(true);
+  const [numberOfNotifications, setNumberOfNotifications] = useState<number>(0);
 
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
   const [domainIsSetAsNotWorking, setDomainIsSetToNotWorking] =
@@ -120,8 +119,7 @@ const Popup: React.FC<PopupProps> = ({
             ? true
             : false
         );
-        //TODO
-        setHasNotificationBadge(true);
+        setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
@@ -200,10 +198,11 @@ const Popup: React.FC<PopupProps> = ({
   }, [domainsDisabledLocally.length]);
 
   const setWittyIcon = (state: boolean) => {
-    if (state && hasNotificationBadge) {
-      addNotificationBadge();
+    if (state && numberOfNotifications > 0) {
+      addNotificationBadge(numberOfNotifications);
     } else {
-      state ? removeBadge() : addInactiveBadge();
+      removeBadge();
+      state && addInactiveBadge();
     }
   };
 
@@ -248,7 +247,7 @@ const Popup: React.FC<PopupProps> = ({
 
   return (
     <>
-      <PopupHeader hasNotificationBadge={hasNotificationBadge} />
+      <PopupHeader hasNotificationBadge={numberOfNotifications > 0} />
       {domain && domain.length > 0 && (
         <section className='wittyworks-toggles website-settings'>
           <div className='wittyworks-text-grey'>

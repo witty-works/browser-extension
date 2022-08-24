@@ -11,6 +11,7 @@ import {
 } from '../shared/constants';
 import {
   addInactiveBadge,
+  addNotificationBadge,
   getBrowserId,
   getDomainWithoutSubdomain,
   isFunction,
@@ -153,6 +154,11 @@ const storageChange = (changes: { [key: string]: any }) => {
       )
         ? addInactiveBadge()
         : removeBadge();
+    }
+    if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
+      changes[key].newValue === 0
+        ? removeBadge()
+        : addNotificationBadge(changes[key].newValue);
     }
   });
 };
