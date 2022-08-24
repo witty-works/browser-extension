@@ -24,7 +24,11 @@ const Options: React.FC = () => {
       if ([...searchParams].length > 0) {
         setAccessToken(searchParams.get('access_token') as string);
         setRefreshToken(searchParams.get('refresh_token') as string);
-        window.open('https://www.witty.works/editor', '_self', 'noopener');
+        window.open(
+          'https://www.witty.works/try-out-witty',
+          '_self',
+          'noopener'
+        );
       }
     } catch (error) {
       sendErrorToSentry(error);
