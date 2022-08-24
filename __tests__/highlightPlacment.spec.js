@@ -25,6 +25,7 @@ const test = base.extend({
                 height: 720
             },
 
+
             args: [
                 `--no-sandbox`,
                 `--disable-setuid-sandbox`,
