@@ -80,7 +80,7 @@ const Options: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [accessToken, setAccessToken] = useState<string>('');
   const [refreshToken, setRefreshToken] = useState<string>('');
-  const [authResponse, authErrorResponse, getConfig] = useAuthEndpoint();
+  const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
 
   const [urls, setUrls] = useState<string>('Prod');
   const originalOptionsUri = window.location.href;
@@ -88,6 +88,7 @@ const Options: React.FC = () => {
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [resetSettings, setResetSettings] = useState<boolean>(false);
+
   useEffect(() => {
     browser.storage.local
       .get(null)
@@ -204,9 +205,7 @@ const Options: React.FC = () => {
   useEffect(() => {
     setToken(accessToken);
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, accessToken);
-    if (accessToken != '') {
-      getConfig();
-    }
+    setConfig(accessToken != '' ? true : false);
   }, [accessToken]);
 
   useEffect(() => {
