@@ -25,17 +25,18 @@ const useApiResult = <TResponse,>(
   useEffect(() => {
     const ac = new AbortController();
     const container = document.getElementsByTagName(WTags.WW_CONTAINER);
-
     //avoid enpoint call if no config or no container (aka plugin disabled)
-    if (request.config && container.length > 0) {
+    if (request.config) {
       //further avoid call to check if no body
-      if (!request.config.body && request.url.includes('check')) {
+      if (
+        (!request.config.body && request.url.includes('check')) ||
+        (request.url.includes('check') && container.length == 0) //for auth call on options page
+      ) {
         return;
       }
       request.config = { ...request.config, signal: ac.signal };
 
       log('Request:', logTypes.INFO, request);
-
       fetch(request.url, request.config)
         .then(async (response) => {
           log('Response: ', logTypes.INFO, response);
