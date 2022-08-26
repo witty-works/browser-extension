@@ -136,7 +136,10 @@ const Popup: React.FC<PopupProps> = ({
 
     if (surveyResponse == 'yes') {
       //remove it from the 'not working' list before adding it to the 'working' list
-      domainsConfirmedToNotWork.map((d) => d.split('-')[0]).includes(domain) &&
+      domainsConfirmedToNotWork &&
+        domainsConfirmedToNotWork
+          .map((d) => d.split('-')[0])
+          .includes(domain) &&
         storeInLocalStorage(
           StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK,
           domainsConfirmedToNotWork.filter((d) => d.split('-')[0] !== domain)
@@ -147,7 +150,8 @@ const Popup: React.FC<PopupProps> = ({
         domainWithTimeStamp,
       ]);
     } else if (surveyResponse == 'no') {
-      domainsConfirmedToWork.map((d) => d.split('-')[0]).includes(domain) &&
+      domainsConfirmedToWork &&
+        domainsConfirmedToWork.map((d) => d.split('-')[0]).includes(domain) &&
         storeInLocalStorage(
           StorageKeys.DOMAINS_CONFIRMED_TO_WORK,
           domainsConfirmedToWork.filter((d) => d.split('-')[0] !== domain)
@@ -191,7 +195,6 @@ const Popup: React.FC<PopupProps> = ({
   }, [styleCorrections]);
 
   useEffect(() => {
-    console.log('domainsDisabledLocally', domainsDisabledLocally);
     storeInLocalStorage(StorageKeys.DOMAINS, domainsDisabledLocally);
   }, [domainsDisabledLocally.length]);
 
