@@ -9,6 +9,7 @@ import {
 } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
+import { isTextArea } from './DOMutils';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -178,4 +179,26 @@ export const updateLabelChrome = (domain: string) => {
       removeBadge();
     }
   });
+};
+
+export const getCorrectedPosition = (
+  elementRect: DOMRect,
+  parentElement: HTMLElement | null,
+  element: HTMLElement
+) => {
+  if (isTextArea(element)) {
+    elementRect = element.getBoundingClientRect();
+  }
+
+  return parentElement && !isObjectEmpty(parentElement)
+    ? {
+        top: navigator.userAgent.match(/firefox|fxios/i)
+          ? 0
+          : elementRect.top - parentElement.getBoundingClientRect().top,
+        left: elementRect.left - parentElement.getBoundingClientRect().left,
+      }
+    : {
+        top: elementRect.top,
+        left: elementRect.left,
+      };
 };

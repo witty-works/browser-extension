@@ -1,7 +1,12 @@
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 import { browser } from 'webextension-polyfill-ts';
-import { BaseUrls, StorageKeys, wittyVersion } from '../shared/constants';
+import {
+  BaseUrls,
+  StorageKeys,
+  wittyVersion,
+  exposeWittyIdAllowList,
+} from '../shared/constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
 import { getDomainWithoutSubdomain } from '../shared/utils';
@@ -14,13 +19,14 @@ import {
 import { createUrl } from '../shared/ApiServices/requests';
 
 const log = useLog('ContentScript index');
-
-document.body.appendChild(document.createElement('witty-is-installed'));
-const wittyIsInstalledElement = document.querySelector('witty-is-installed');
-wittyIsInstalledElement &&
-  wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
-
 const domain = getDomainWithoutSubdomain(window.location.hostname);
+
+if (exposeWittyIdAllowList.includes(domain)) {
+  document.body.appendChild(document.createElement('witty-is-installed'));
+  const wittyIsInstalledElement = document.querySelector('witty-is-installed');
+  wittyIsInstalledElement &&
+    wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
+}
 
 const handleDomainToUpdate = () => {
   browser.storage.local.get(null).then((result) => {
@@ -120,7 +126,7 @@ Sentry.init({
   release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
   sampleRate: 0.0,
-  tracesSampleRate: 0.001,
+  tracesSampleRate: 0.01,
 });
 
 export {};
