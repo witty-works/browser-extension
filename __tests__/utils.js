@@ -86,20 +86,20 @@ exports.loginGithub = async function (email, password, page) {
 }
 
 // exports.loginGmail = async function (email, password, page) {
-// await page.goto('https://accounts.google.com/signin/v2/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&service=mail&sacu=1&rip=1&ifkv=AQN2RmVSKBRduno3H3r8dltSOH6cTX3XQQJDr6_LhAGMvMJUiQkvwh7DCdb-rNRDmd9EsKIz8MqB&flowName=GlifWebSignIn&flowEntry=ServiceLogin');
+//     await page.goto('https://accounts.google.com/signin/v2/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&service=mail&sacu=1&rip=1&ifkv=AQN2RmVSKBRduno3H3r8dltSOH6cTX3XQQJDr6_LhAGMvMJUiQkvwh7DCdb-rNRDmd9EsKIz8MqB&flowName=GlifWebSignIn&flowEntry=ServiceLogin');
 
-// await page.waitForTimeout(2000);
-// await page.click('#identifierId');
-// await page.type('#identifierId', email);
-// await page.keyboard.press('Enter');
+//     await page.waitForTimeout(2000);
+//     await page.click('#identifierId');
+//     await page.type('#identifierId', email);
+//     await page.keyboard.press('Enter');
 
-// await page.waitForTimeout(2000);
-// await page.click('#password .whsOnd');
-// await page.type('#password .whsOnd', password);
-// await page.keyboard.press('Enter');
+//     await page.waitForTimeout(2000);
+//     await page.click('#password .whsOnd');
+//     await page.type('#password .whsOnd', password);
+//     await page.keyboard.press('Enter');
 
-// await page.waitForTimeout(2000);
-// return page;
+//     await page.waitForTimeout(2000);
+//     return page;
 // }
 
 exports.evaluateToggleBackgroundBeforeAndAfterClick = async function (page, toggleSelector, toggleButtonSelector, locked) {
