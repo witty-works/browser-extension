@@ -32,6 +32,7 @@ import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import ThinkingEmoji from '../../assets/icons/popup/thinkingEmoji.svg';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
 
 interface PopupProps {
   appId: string;
@@ -253,7 +254,11 @@ const Popup: React.FC<PopupProps> = ({
 
   return (
     <>
-      <PopupHeader hasNotificationBadge={numberOfNotifications > 0} />
+      {numberOfNotifications > 0 ? (
+        <PopupHeaderNotification />
+      ) : (
+        <PopupHeader />
+      )}
       {domain && domain.length > 0 && (
         <section className='wittyworks-toggles website-settings'>
           <div className='wittyworks-text-grey'>

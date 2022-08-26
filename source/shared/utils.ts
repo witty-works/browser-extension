@@ -147,17 +147,19 @@ export const updateLabelChrome = (domain: string) => {
     const domainConfirmedToNotWork = result[
       StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK
     ]
-      .filter((domain: string) => {
-        const domainTimestamp = domain.split('-')[1];
-        const domainDate = new Date(parseInt(domainTimestamp));
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-        return domainDate > threeMonthsAgo;
-      })
-      .map((d: string) => {
-        return d.split('-')[0];
-      })
-      .includes(domain);
+      ? result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK]
+          .filter((domain: string) => {
+            const domainTimestamp = domain.split('-')[1];
+            const domainDate = new Date(parseInt(domainTimestamp));
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+            return domainDate > threeMonthsAgo;
+          })
+          .map((d: string) => {
+            return d.split('-')[0];
+          })
+          .includes(domain)
+      : false;
 
     const domainOnDisabledSitesList =
       defaultConfig.DISABLED_SITES.includes(domain);

@@ -53,9 +53,9 @@ const handleDomainToUpdate = () => {
         }
       ).then(async (response) => {
         if (response.ok) {
-          // await browser.storage.local.set({
-          //   [StorageKeys.DOMAIN_TO_UPDATE]: null,
-          // });
+          await browser.storage.local.set({
+            [StorageKeys.DOMAIN_TO_UPDATE]: null,
+          });
         }
       });
     }
