@@ -439,11 +439,12 @@ const Input: React.FC<{
 
     setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
 
-    checkEndpointResponse.notifications &&
-      storeInLocalStorage(
-        StorageKeys.NUMBER_OF_NOTIFICATIONS,
-        checkEndpointResponse.notifications
-      );
+    checkEndpointResponse.notifications
+      ? storeInLocalStorage(
+          StorageKeys.NUMBER_OF_NOTIFICATIONS,
+          checkEndpointResponse.notifications
+        )
+      : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
 
     setActiveIcon('active');
 

@@ -55,7 +55,7 @@ const Popup: React.FC<PopupProps> = ({
   isLocked,
 }: PopupProps) => {
   const { t } = useTranslation([namespaces.pages.popup]);
-  const [enabled, setEnabled] = useState<boolean>(false);
+  const [enabled, setEnabled] = useState<boolean>(true);
   const [domainsDisabledLocally, setDomainsDisabledLocally] = useState<
     string[]
   >([]);
@@ -74,7 +74,8 @@ const Popup: React.FC<PopupProps> = ({
   );
   const [showSurvey, setShowSurvey] = useState<boolean>(false);
   const [surveyResponse, setSurveyResponse] = useState<string>('');
-  const [numberOfNotifications, setNumberOfNotifications] = useState<number>(1);
+  const [numberOfNotifications, setNumberOfNotifications] =
+    useState<number>(-1);
 
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
   const [domainIsSetAsNotWorking, setDomainIsSetToNotWorking] =
@@ -193,7 +194,6 @@ const Popup: React.FC<PopupProps> = ({
   }, [styleCorrections]);
 
   useEffect(() => {
-    console.log('domainsDisabledLocally', domainsDisabledLocally);
     storeInLocalStorage(StorageKeys.DOMAINS, domainsDisabledLocally);
   }, [domainsDisabledLocally.length]);
 
@@ -202,7 +202,7 @@ const Popup: React.FC<PopupProps> = ({
       addNotificationBadge(numberOfNotifications);
     } else {
       removeBadge();
-      state && addInactiveBadge();
+      !state && addInactiveBadge();
     }
   };
 
@@ -244,6 +244,8 @@ const Popup: React.FC<PopupProps> = ({
     setToken('');
     setUserIsLoggedIn(false);
   };
+
+  console.log('numberOfNotifications', numberOfNotifications);
 
   return (
     <>
