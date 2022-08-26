@@ -74,7 +74,7 @@ const Popup: React.FC<PopupProps> = ({
   );
   const [showSurvey, setShowSurvey] = useState<boolean>(false);
   const [surveyResponse, setSurveyResponse] = useState<string>('');
-  const [numberOfNotifications, setNumberOfNotifications] = useState<number>(0);
+  const [numberOfNotifications, setNumberOfNotifications] = useState<number>(1);
 
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
   const [domainIsSetAsNotWorking, setDomainIsSetToNotWorking] =
@@ -453,6 +453,13 @@ const Popup: React.FC<PopupProps> = ({
               </div>
             </div>
           )}
+        </section>
+      )}
+      {DEV_ENV && (
+        <section>
+          <h2>{t('developmentSettings')}</h2>
+          <ApiSelector />
+          <DelaySelector />
           <div
             className='wittyworks-button wittyworks-align-left'
             onClick={() => {
@@ -461,13 +468,6 @@ const Popup: React.FC<PopupProps> = ({
           >
             {t('signOut')}
           </div>
-        </section>
-      )}
-      {DEV_ENV && (
-        <section>
-          <h2>{t('developmentSettings')}</h2>
-          <ApiSelector />
-          <DelaySelector />
         </section>
       )}
     </>
