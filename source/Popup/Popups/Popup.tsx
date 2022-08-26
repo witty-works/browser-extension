@@ -121,7 +121,10 @@ const Popup: React.FC<PopupProps> = ({
             ? true
             : false
         );
-        setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
+        if (result[StorageKeys.NUMBER_OF_NOTIFICATIONS] > 0) {
+          addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
+          setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
+        }
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
@@ -203,12 +206,8 @@ const Popup: React.FC<PopupProps> = ({
   }, [domainsDisabledLocally.length]);
 
   const setWittyIcon = (state: boolean) => {
-    if (state && numberOfNotifications > 0) {
-      addNotificationBadge(numberOfNotifications);
-    } else {
-      removeBadge();
-      !state && addInactiveBadge();
-    }
+    removeBadge();
+    !state && addInactiveBadge();
   };
 
   const handleEnableToggle = () => {
