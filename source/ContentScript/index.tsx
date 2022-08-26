@@ -33,7 +33,7 @@ const handleDomainToUpdate = () => {
     if (
       result[StorageKeys.DOMAIN_TO_UPDATE] &&
       result[StorageKeys.ACCESS_TOKEN] &&
-      StorageKeys.API_ENDPOINT_KEY
+      result[StorageKeys.API_ENDPOINT_KEY]
     ) {
       fetch(
         createUrl(

@@ -31,23 +31,31 @@ const renderPopup = async (isLocked: boolean = false) => {
 
       const domainsConfrimedToWork = result[
         StorageKeys.DOMAINS_CONFIRMED_TO_WORK
-      ].filter((domain: string) => {
-        const domainTimestamp = domain.split('-')[1];
-        const domainDate = new Date(parseInt(domainTimestamp));
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-        return domainDate > threeMonthsAgo;
-      });
+      ]
+        ? result[StorageKeys.DOMAINS_CONFIRMED_TO_WORK].filter(
+            (domain: string) => {
+              const domainTimestamp = domain.split('-')[1];
+              const domainDate = new Date(parseInt(domainTimestamp));
+              const threeMonthsAgo = new Date();
+              threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+              return domainDate > threeMonthsAgo;
+            }
+          )
+        : [];
 
       const domainsConfirmedToNotWork = result[
         StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK
-      ].filter((domain: string) => {
-        const domainTimestamp = domain.split('-')[1];
-        const domainDate = new Date(parseInt(domainTimestamp));
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-        return domainDate > threeMonthsAgo;
-      });
+      ]
+        ? result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK].filter(
+            (domain: string) => {
+              const domainTimestamp = domain.split('-')[1];
+              const domainDate = new Date(parseInt(domainTimestamp));
+              const threeMonthsAgo = new Date();
+              threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+              return domainDate > threeMonthsAgo;
+            }
+          )
+        : [];
 
       const appId = result[StorageKeys.APP_ID];
 
@@ -67,7 +75,6 @@ const renderPopup = async (isLocked: boolean = false) => {
                   return d.split('-')[0];
                 })
                 .includes(domain);
-
             const domainOnActiveOrDisabledList =
               defaultConfig.ACTIVE_SITES.includes(domain) ||
               defaultConfig.DISABLED_SITES.includes(domain);
@@ -116,8 +123,6 @@ const renderPopup = async (isLocked: boolean = false) => {
     });
 };
 
-renderPopup();
-
 const storageChange = (changes: any) => {
   let changedItems = Object.keys(changes);
   for (let item of changedItems) {
@@ -143,5 +148,6 @@ const storageChange = (changes: any) => {
   }
 };
 
+renderPopup();
 browser.storage.onChanged.addListener(storageChange);
 //TODO call removeListener
