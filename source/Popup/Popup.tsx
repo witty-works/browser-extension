@@ -78,10 +78,13 @@ const Popup: React.FC = () => {
           .query({ active: true, currentWindow: true })
           .then((tabs) => {
             if (tabs.length > 0 && tabs[0].url) {
-              const newCurrentDomain = new URL(tabs[0].url).hostname.replace(
-                'www.',
-                ''
-              );
+              let newCurrentDomain = '';
+              if (tabs[0].url.includes('https://' || 'http://')) {
+                newCurrentDomain = new URL(tabs[0].url).hostname.replace(
+                  'www.',
+                  ''
+                );
+              }
               setCurrentDomain(newCurrentDomain);
 
               defaultConfig.ACTIVE_SITES &&
