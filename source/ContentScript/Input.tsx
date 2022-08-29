@@ -636,7 +636,7 @@ const Input: React.FC<{
 
         const nodeValueLength: number = node.nodeValue.length;
 
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1;
+        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
 
         // Check if there is a new line char after the node's content
         // If so, we +1 to the end position
