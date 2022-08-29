@@ -15,7 +15,6 @@ import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
-import '../../i18n/i18n';
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 export interface PopoverData {
@@ -116,20 +115,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     hide();
   };
 
-  // Dynamically define the max width of the popover, so it does not grow
-  // too much when toggleText is open
-  // useEffect(() => {
-  //   if (refs.floating.current) {
-  //     const thirdOfScreenWidth: number = window.innerWidth * 0.33;
-  //     const popoverWidth: number = refs.floating.current.clientWidth;
-
-  //     refs.floating.current.style.maxWidth =
-  //       popoverWidth < thirdOfScreenWidth
-  //         ? `${thirdOfScreenWidth}px`
-  //         : `${popoverWidth}px`;
-  //   }
-  // }, []);
-
   const PopoverStyling: CSS.Properties = {
     position: strategy,
     top: `${y}px`,
@@ -150,7 +135,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   return (
-    <div id='wittyworks-popover' ref={floating} style={PopoverStyling}>
+    <div
+      id='wittyworks-popover'
+      ref={floating}
+      style={PopoverStyling}
+      onMouseDown={(e) => e.preventDefault()}
+    >
       <div id='wittyworks-popover-content'>
         <div className='wittyworks-popover-row'>
           <div className='wittyworks-popover-nav'>

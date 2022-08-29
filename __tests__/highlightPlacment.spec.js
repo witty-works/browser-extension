@@ -115,33 +115,34 @@ test.describe('Highlights', () => {
         });
     });
 
-    test('github comment', async ({ page }) => {
-        await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
-        await page.goto('https://github.com/premiumUserWW/test/issues/1');
-        await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#new_comment_field');
-        await page.click('#new_comment_field');
-        await page.type('#new_comment_field', testText);
-        await page.waitForTimeout(3000);
+    //MANAGES TO BLOCK PROXY
+    // test('github comment', async ({ page }) => {
+    //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
+    //     await page.goto('https://github.com/premiumUserWW/test/issues/1');
+    //     await page.waitForLoadState('networkidle')
+    //     await page.waitForSelector('#new_comment_field');
+    //     await page.click('#new_comment_field');
+    //     await page.type('#new_comment_field', testText);
+    //     await page.waitForTimeout(3000);
 
-        await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('github-comment.png')
-        });
-    });
+    //     await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('github-comment.png')
+    //     });
+    // });
 
-    test('github create issue', async ({ page }) => {
-        await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
-        await page.goto('https://github.com/premiumUserWW/test/issues/new');
-        await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#issue_title');
-        await page.click('#issue_body');
-        await page.type('#issue_body', testText);
-        await page.waitForTimeout(3000);
+    // test('github create issue', async ({ page }) => {
+    //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
+    //     await page.goto('https://github.com/premiumUserWW/test/issues/new');
+    //     await page.waitForLoadState('networkidle')
+    //     await page.waitForSelector('#issue_title');
+    //     await page.click('#issue_body');
+    //     await page.type('#issue_body', testText);
+    //     await page.waitForTimeout(3000);
 
-        await page.locator('#issue_body').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('github-create-issue.png')
-        });
-    });
+    //     await page.locator('#issue_body').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('github-create-issue.png')
+    //     });
+    // });
 
     // test('gmail writing an email', async ({ page }) => {
     //     await utils.loginGmail(premiumUserEmail, premiumUserPassword, page);

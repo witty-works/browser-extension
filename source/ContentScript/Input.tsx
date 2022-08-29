@@ -4,7 +4,7 @@ import { browser } from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
 import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
-import { WTags } from '../shared/constants';
+import { WTags, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 
@@ -30,16 +30,20 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
+import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
+import { setToken } from '../shared/ApiServices/requests';
+import { getInputText, updateConfig } from './utils';
 
 const Input: React.FC<{
   element: CustomInputElement;
 }> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
+  const [authResponse, authErrorResponse, setConfigHasChanged] =
+    useAuthEndpoint();
   const [, , previousTextToCheckRef] = useStateRef('');
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
@@ -141,6 +145,11 @@ const Input: React.FC<{
   }, [debounceDelay]);
 
   useEffect(() => {
+    if (!authResponse) return;
+    updateConfig(authResponse);
+  }, [authResponse]);
+
+  useEffect(() => {
     docTextEvaluation(element);
   }, [element]);
 
@@ -159,6 +168,7 @@ const Input: React.FC<{
 
   const handleFocusoutEvent = () => {
     setActiveIcon('passive');
+    setAlerts([]);
     setTextToCheck('');
   };
 
@@ -258,11 +268,6 @@ const Input: React.FC<{
     setSelectedNodeWithAlertsIndex(-1);
     setSelectedAlertIndex(-1);
   };
-
-  const getInputText = (element: CustomInputElement) =>
-    isTextArea(element) || isInputText(element)
-      ? element.value
-      : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
@@ -431,9 +436,21 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
+
+    setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
+
+    checkEndpointResponse.notifications
+      ? storeInLocalStorage(
+          StorageKeys.NUMBER_OF_NOTIFICATIONS,
+          checkEndpointResponse.notifications
+        )
+      : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
+
     setActiveIcon('active');
+
     analytics.checkLog(
       checkEndpointResponse,
+      authResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
     );
 
@@ -445,95 +462,14 @@ const Input: React.FC<{
         : 'None'
     );
 
-    const apiConfig = checkEndpointResponse.organization_config;
-    if (apiConfig && apiConfig.id) {
-      storeInLocalStorage(StorageKeys.TEAM_NAME, apiConfig.name);
-      storeInLocalStorage(StorageKeys.PLAN, apiConfig.plan);
-
-      //TODO: refactored (had type issues)
-      Object.keys(apiConfig.config).forEach((key) => {
-        if (!Object.keys(StorageKeys).includes(key.toUpperCase())) {
-          console.warn(`${key.toUpperCase()} is not a valid storage key`);
-          return;
-        }
-        if (
-          key == 'gendered_roles_format' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.GENDERED_ROLES_FORMAT,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'german_gender_ending' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.GERMAN_GENDER_ENDING,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'inclusive' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(StorageKeys.INCLUSIVE, apiConfig.config[key]);
-        } else if (
-          key == 'maximum_importance' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.MAXIMUM_IMPORTANCE,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'orthography' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, apiConfig.config[key]);
-        } else if (
-          key == 'preferred_variants' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.PREFERRED_VARIANTS,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'show_inspiration_alternatives' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'singular_they' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(StorageKeys.SINGULAR_THEY, apiConfig.config[key]);
-        }
-        // else if (key == 'store_context') {
-        //   storeInLocalStorage(StorageKeys.STORE_CONTEXT, apiConfig.config[key]);
-        // }
-        else if (key == 'style' && apiConfig.config[key].status == 'force') {
-          storeInLocalStorage(StorageKeys.STYLE, apiConfig.config[key]);
-        }
-      });
-    } else {
-      //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken OR user is not logged in
-    }
-
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
         id: `${result.text}-${result.category}-${result.start}${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId:
-          checkEndpointResponse.organization_config &&
-          checkEndpointResponse.organization_config.id
-            ? checkEndpointResponse.organization_config.id
-            : null,
+        groupId: authResponse ? authResponse.id : undefined,
+        plan: authResponse ? authResponse.plan : undefined,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -671,33 +607,40 @@ const Input: React.FC<{
 
   const updateTextWithAlternative = (alternative: string) => {
     const node = popoverData?.node as Node;
-    const nodeText: string = node.nodeValue as string;
     const alert = selectedAlert as IAlert;
-    const termToBeReplaced: string = nodeText.slice(
-      alert.startOffset,
-      alert.endOffset
-    );
 
-    const regex: RegExp = new RegExp(
-      alternative === ''
-        ? alert.startOffset === 0
-          ? `${termToBeReplaced}[ ,]?`
-          : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}[ ,]?`
-        : alert.startOffset === 0
-        ? `${termToBeReplaced}`
-        : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}`
-    );
+    if (isTextArea(element) || isInputText(element)) {
+      element.selectionStart = alert.startOffset;
+      element.selectionEnd =
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset;
+      //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
+      document.execCommand('insertText', false, alternative);
+    } else {
+      const range = document.createRange();
+      range.setStart(node, alert.startOffset);
+      range.setEnd(
+        node,
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset
+      );
+      const sel = window.getSelection();
+      if (!sel) return;
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.execCommand('insertText', false, alternative);
+    }
 
-    const newTextToInsert = nodeText.replace(regex, alternative);
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (nodeAlert) => nodeAlert.startOffset < alert.startOffset
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    } else {
+      setAlerts([]);
+    }
 
-    isTextArea(element) || isInputText(element)
-      ? (element.value = newTextToInsert)
-      : (node.nodeValue = newTextToInsert);
-
-    const newText: string = getInputText(element);
-    setTextToCheck(newText);
-
-    resetPopover();
+    setTextToCheck(getInputText(element));
   };
 
   useEffect(() => {
@@ -705,7 +648,10 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
     }
     //gets new access token using the refresh token if the access token has expired
-    else if (checkEndpointError?.status == 403) {
+    else if (
+      checkEndpointError?.status == 403 ||
+      authErrorResponse?.status === 403
+    ) {
       browser.storage.local
         .get(StorageKeys.REFRESH_TOKEN)
         .then((result) => {
@@ -716,12 +662,12 @@ const Input: React.FC<{
             StorageKeys.ACCESS_TOKEN,
             refreshTokenResponse.access_token
           );
+          setToken(refreshTokenResponse.access_token);
+
           storeInLocalStorage(
             StorageKeys.REFRESH_TOKEN,
             refreshTokenResponse.refresh_token
           );
-          storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
-
           setTextToCheck('');
           setTextToCheck(currentTextToCheck);
         })
@@ -733,7 +679,7 @@ const Input: React.FC<{
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
       logTypes.ERROR
     );
-  }, [checkEndpointError]);
+  }, [checkEndpointError, authErrorResponse]);
 
   const ErrorBoundaryFallback = () => (
     <Toast message={t('reloadWebsite')} type='error' />

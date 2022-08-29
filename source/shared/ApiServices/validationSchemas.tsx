@@ -1,9 +1,4 @@
-import {
-  ICheckResponse,
-  ICheckResponseResult,
-  IAuthResponse,
-  ConfigProperty,
-} from '../types';
+import { ICheckResponse, ICheckResponseResult, ConfigProperty } from '../types';
 import { JSONSchemaType } from 'ajv';
 
 export const checkResponseOrgConfigPropertySchema: JSONSchemaType<ConfigProperty> =
@@ -38,52 +33,6 @@ export const checkResponseOrgConfigPropertySchema: JSONSchemaType<ConfigProperty
     required: ['value'],
     additionalProperties: false,
   };
-
-export const checkResponseOrgConfigSchema: JSONSchemaType<IAuthResponse> = {
-  title: 'checkResponseOrgConfig',
-  description: 'config schema',
-  type: 'object',
-  properties: {
-    config: {
-      description: 'Defines the configuration',
-      type: 'object',
-      properties: {
-        gendered_roles_format: checkResponseOrgConfigPropertySchema,
-        german_gender_ending: checkResponseOrgConfigPropertySchema,
-        inclusive: checkResponseOrgConfigPropertySchema,
-        maximum_importance: checkResponseOrgConfigPropertySchema,
-        orthography: checkResponseOrgConfigPropertySchema,
-        preferred_variants: checkResponseOrgConfigPropertySchema,
-        show_inspiration_alternatives: checkResponseOrgConfigPropertySchema,
-        singular_they: checkResponseOrgConfigPropertySchema,
-        store_context: checkResponseOrgConfigPropertySchema,
-        style: checkResponseOrgConfigPropertySchema,
-      },
-      required: [
-        'gendered_roles_format',
-        'german_gender_ending',
-        'inclusive',
-        'maximum_importance',
-        'orthography',
-        'preferred_variants',
-        'show_inspiration_alternatives',
-        'singular_they',
-        'store_context',
-        'style',
-      ],
-    },
-    id: {
-      type: 'string',
-    },
-    name: {
-      type: 'string',
-    },
-    plan: {
-      type: 'string',
-    },
-  },
-  required: [],
-};
 
 export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
   title: 'checkResponseResult',
@@ -195,7 +144,6 @@ export const checkResponseSchema: JSONSchemaType<ICheckResponse> = {
       type: 'array',
       items: checkResponseResultSchema,
     },
-    organization_config: checkResponseOrgConfigSchema,
     language: {
       description: 'language used by the user',
       type: 'string',
@@ -203,6 +151,14 @@ export const checkResponseSchema: JSONSchemaType<ICheckResponse> = {
     limit_reached: {
       description: 'whether the limit of the free plan has been reached',
       type: 'boolean',
+    },
+    config_changed: {
+      description: 'whether the config has changed',
+      type: 'boolean',
+    },
+    notifications: {
+      description: 'number of notifications from the dashboard',
+      type: 'integer',
     },
   },
   required: ['results', 'language'],

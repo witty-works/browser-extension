@@ -46,7 +46,7 @@ const getExtensionFileType = (browser) => {
 };
 
 module.exports = {
-  devtool: 'false', // https://github.com/webpack/webpack/issues/1194#issuecomment-560382342
+  devtool: false, // https://github.com/webpack/webpack/issues/1194#issuecomment-560382342
 
   stats: {
     all: false,
@@ -59,7 +59,7 @@ module.exports = {
 
   entry: {
     manifest: path.join(sourcePath, 'manifest.json'),
-    background: path.join(sourcePath, 'Background', 'index.ts'),
+    background: path.join(sourcePath, 'Background', 'index.tsx'),
     contentScript: path.join(sourcePath, 'ContentScript', 'index.tsx'),
     popup: path.join(sourcePath, 'Popup', 'index.tsx'),
     options: path.join(sourcePath, 'Options', 'index.tsx'),

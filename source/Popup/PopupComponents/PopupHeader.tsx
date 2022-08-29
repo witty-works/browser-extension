@@ -1,10 +1,11 @@
 import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import Settings from '../assets/icons/popup/settings.svg';
-import Logo from '../assets/icons/witty-logo-color.svg';
+import Settings from '../../assets/icons/popup/settings.svg';
+import Logo from '../../assets/icons/witty-logo-color.svg';
+import { getBaseUrls } from '../../shared/ApiServices/requests';
 
-import './styles.scss';
+import '../styles.scss';
 
 const PopupHeader: React.FC = () => {
   return (
@@ -17,10 +18,7 @@ const PopupHeader: React.FC = () => {
       />
       <Settings
         id='witty-settings'
-        onClick={
-          //Is necessary to explicitly close the popup in Firefox. In Chrome is the default behaviour
-          () => browser.runtime.openOptionsPage().then(() => window.close())
-        }
+        onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
       />
     </header>
   );

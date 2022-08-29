@@ -1,17 +1,83 @@
-export interface RequestConfig {
-  preferred_variants: string;
-  german_gender_ending: string;
-  disabled_categories: string[];
-  maximum_importance: number;
-  singular_they: string;
-  show_inspiration_alternatives: boolean;
-  gendered_roles_format: string;
+//API REQUEST/RESPONSE
+export interface IRequest {
+  url: string;
+  config: RequestInit | null;
+}
+export interface IEndpointError {
+  status: number;
+  message: string;
 }
 
+export interface ResponseConfig {
+  gendered_roles_format: ConfigProperty;
+  german_gender_ending: ConfigProperty;
+  inclusive: ConfigProperty;
+  maximum_importance: number;
+  orthography: ConfigProperty;
+  show_inspiration_alternatives: ConfigProperty;
+  singular_they: ConfigProperty;
+  style: ConfigProperty;
+  preferred_variants: ConfigProperty;
+}
+export interface RequestConfig extends ResponseConfig {
+  disabled_categories: string[];
+}
 export interface ConfigProperty {
   value: string | string[] | boolean | number;
   status?: string;
 }
+
+//CHECK ENDPOINT
+export interface ICheckResponse {
+  results: ICheckResponseResult[];
+  language: string;
+  limit_reached: boolean;
+  config_changed: boolean;
+  notifications: number;
+}
+
+export interface ICheckResponseResult {
+  text: string;
+  context: string;
+  category: string;
+  subcategory: string;
+  start: number;
+  end: number;
+  alternatives: IAlternatives[];
+  explanation: IExplanation;
+  label: string;
+  gravity: number;
+}
+
+//AUTH/REFRESHTOKEN ENDPOINT
+export interface IAuthResponse {
+  config: test;
+  plan: string;
+
+  //private account
+  id: string;
+  name: string;
+  domains: IDomains;
+  config_hash: string;
+
+  //organization account
+  organization_id?: string;
+  organization_name?: string;
+  organization_domains: IDomains;
+  organization_config_hash: string;
+}
+
+export interface IDomains {
+  list: string[];
+  type: string;
+}
+export interface IRefreshTokenResponse {
+  email: string;
+  refresh_token: string;
+  access_token: string;
+}
+
+//HIGHLIGHTS
 export interface Position {
   top: number;
   left: number;
@@ -30,6 +96,7 @@ export type CustomInputElement =
   | HTMLInputElement
   | HTMLDivElement;
 
+//ALERTS
 export interface INodeWithAlerts {
   node: Node;
   alerts: IAlert[];
@@ -38,8 +105,10 @@ export interface IAlert {
   id: string;
   startOffset: number;
   endOffset: number;
+  popOverIsOpen: boolean;
   data: IAlertContentData;
-  groupId?: string | null;
+  groupId?: string;
+  plan?: string;
 }
 export interface IAlertContentData {
   text: string;
@@ -53,54 +122,7 @@ export interface IAlertContentData {
   gravity: number;
 }
 
-export interface ICheckResponse {
-  results: ICheckResponseResult[];
-  organization_config: IAuthResponse;
-  language: string;
-  limit_reached: boolean;
-  organization_config: IOrganizationConfig;
-}
-export interface IAuthResponse {
-  config: {
-    store_context: ConfigProperty;
-    preferred_variants: ConfigProperty;
-    german_gender_ending: ConfigProperty;
-    gendered_roles_format: ConfigProperty;
-    inclusive: ConfigProperty;
-    style: ConfigProperty;
-    orthography: ConfigProperty;
-    singular_they: ConfigProperty;
-    show_inspiration_alternatives: ConfigProperty;
-    maximum_importance: ConfigProperty;
-  };
-  id: string;
-  name: string;
-  plan: string;
-}
-export interface IRefreshTokenResponse {
-  email: string;
-  refresh_token: string;
-  access_token: string;
-}
-
-export interface IOrganizationConfig {
-  id: string;
-  name: string;
-  plan: string;
-}
-export interface ICheckResponseResult {
-  text: string;
-  context: string;
-  category: string;
-  subcategory: string;
-  start: number;
-  end: number;
-  alternatives: IAlternatives[];
-  explanation: IExplanation;
-  label: string;
-  gravity: number;
-}
-
+//POPOVER
 export interface IAlternatives {
   text: string;
   remove: boolean;
@@ -114,38 +136,74 @@ export interface IExplanation {
   url: string;
   context: string;
 }
-export interface ILogRequest {
+
+//ANALYTICS
+export interface ILogItems {
   request__type: string;
   request__lang: string;
   request__id: string;
   request__client: string;
-  request__config__preferred_variants: string;
-  request__config__german_gender_ending: string;
+  request__config__preferred_variants: ConfigProperty;
+  request__config__german_gender_ending: ConfigProperty;
+  response__id: string;
+  response__startOffset: number;
+  response__endOffset: number;
+  response__popOverIsOpen: boolean;
+  response__groupId?: string;
+  response__plan?: string;
+  response__data__language: string;
+  response__data__category: string;
+  response__data__subcategory: string;
+  response__data__context: string;
+  response__data_text: string;
+  response__data__label: string;
+  response__data__explanation__text: string;
+  response__data__explanation__icon: string;
+  response__data__explanation__url: string;
+  response__data__alternatives: IAlternatives[];
+  response__data__gravity: number;
 }
-export interface IAlternativeLogRequest extends ILogRequest {
+export interface IAlternativeLogItems extends ILogItems {
   request__replaced: string;
   request__alternative: string;
 }
-export interface IIgnoreLogRequest extends ILogRequest {
+export interface IIgnoreLogItems extends ILogItems {
   request__ignored: string;
 }
-export interface ICheckLogRequest extends ILogRequest {
+export interface IVoteLogRequest {
+  request__type: string;
+  request__lang: string;
+  request__id: string;
+  request__client: string;
+  request__config__preferred_variants: ConfigProperty;
+  request__config__german_gender_ending: ConfigProperty;
+  vote__url: string;
+}
+export interface ICheckLogItems {
+  request__type: string;
+  request__lang: string;
+  request__id: string;
+  request__client: string;
+  request__config__preferred_variants: ConfigProperty;
+  request__config__german_gender_ending: ConfigProperty;
   request__text__length: number;
+  response__groupId?: string;
+  response__plan?: string;
+  response__name?: string;
+  response__results: ICheckResponseResult[];
+  response__language: string;
+  response__limit_reached: boolean;
 }
 
-export type ILogResponse = ICheckResponse;
+export type DefaultConfigValue =
+  | string
+  | boolean
+  | number
+  | string[]
+  | object
+  | (() => string);
 
-export interface IRequest {
-  url: string;
-  config: RequestInit | null;
-}
-
-export interface IEndpointResponseError {
-  loc: string[];
-  msg: string;
-  type: string;
-}
-export interface IEndpointError {
-  status: number;
-  message: string;
+export interface IDomainRequest {
+  domain: string;
+  enabled: boolean;
 }

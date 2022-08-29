@@ -29,11 +29,38 @@ export const de = {
     vote: 'Stimme für diese Webseite ab',
     editor: 'Nutze stattdessen Witty Editor',
     getMoreTitle: 'Witty für dein Team',
-    getMoreText: 'Entdecke Wittys Teamfunktionen kostenlos. Schreibt zusammen inklusiv!',
+    getMoreText:
+      'Entdecke Wittys Teamfunktionen kostenlos. Schreibt zusammen inklusiv!',
     learnMoreButton: 'Kostenlos testen',
     goToDashboard: 'Zum Witty Dashboard',
     overrideRecomendedSites: 'Witty hier dennoch aktivieren',
     backToRecomendedSites: 'Witty nur auf unterstützten Webseiten aktiv',
+    loginToUnlock: 'Witty is installed. Log in to unlock features. DE',
+    signUpFor: 'Sign up for: DE',
+    biasDetection: 'Bias detection in 30+ diversity dimensions DE',
+    inclusiveAlternatives: 'Alternatives for inclusive writing DE',
+    teamFeatures: 'Team features, incl. shared dictionaries DE',
+    signIn: 'Sign in DE',
+    signOut: 'Sign out DE',
+    register: 'Don’t have an account? DE',
+    signUp: ' Sign up DE',
+    doesWittyWork: 'Does Witty work here? DE',
+    doesWittyWorkExplanation:
+      'You are on a website of which we don’t know if Witty works. We work hard to make Witty function on all web-interfaces, but sometimes we are just not smart enough. 🤷‍♀️ DE',
+    fillInSurvey: 'Please fill in the this survey to help us: DE',
+    doesWittyWorkSurvey: 'Does Witty work on this website? DE',
+    surveyButtonYes: 'Ja',
+    surveyButtonNo: 'Nein',
+    resultSurveyPositive: 'YESSS, Witty works! Thanks for helping. DE',
+    resultSurveyNegative:
+      'NOOO, Witty doesn’t work! We deactivate Witty on this website until we can make Witty work here too. DE',
+    finishSurvey: 'Finish survey DE',
+    tryAgain: 'Try again DE',
+    understood: 'Understood DE',
+    websiteSettingsDeactivated:
+      'You previously reported that Witty does not work on {{domain}} DE',
+    tryAgainOnThisWebsite: 'Try again on this website DE',
+    lockedInfo: 'locked by org DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -43,60 +70,6 @@ export const de = {
     whyQuestionMark: 'Warum?',
     alertOftotal: 'von',
     removeSpaces: 'Extra Leerzeichen entfernen',
-  },
-  [namespaces.pages.options]: {
-    greeting: 'Hallo',
-    greetingTeam: 'Du bist eingeloggt im Team',
-    greetingPlan: 'mit einem Abo von',
-    settings: 'Einstellungen',
-    needHelp: 'Brauchst du Hilfe?',
-    getMoreTitle: 'Witty für dein Team',
-    getMoreText:
-      'Entdecke Wittys Teamfunktionen kostenlos. Schreibt zusammen inklusiv!',
-    getMoreButton: 'Kostenlos testen',
-    LoginButton: 'Registrieren / Anmelden',
-    setUpLanguages: 'Spracheinstellungen',
-    configureRules: 'Witty Regeln für mich anpassen',
-    disableWitty: 'Witty auf gewissen Webseiten deaktivieren',
-    expertMode: 'Inklusions-Profi werden',
-    expertModeExplanation:
-      'Wenn eingeschaltet, bietet Witty Vorschläge zu subtileren Fragen der Diversität und Inklusion. Witty würde z.Bsp. Hilfe bei Abkürzungen wie ROI oder SaaS bieten.',
-    inspirationAlternatives:
-      'Inspirationen zur Umformulierung ganzer Sätze vorschlagen',
-    inspirationAlternativesExplanation:
-      'Wenn aktiviert, macht Witty Vorschläge zur Umformulierung ganzer Sätze.',
-    singularThey: 'Im Englischen geschlechtsneutrale Pronomen vorschlagen',
-    singularTheyExplanation:
-      'Wenn aktiviert, schlägt Witty im Englischen geschlechtsneutrale Pronomen vor, z. B. "their" anstelle von "his" oder "her".',
-    addSite: 'https://..',
-    invalidDomain: 'Bitte die Webseite im Format "google.com" eingeben.',
-    addDomain: 'Webseite hinzufügen',
-    inclusiveLanguageExplanation:
-      'Wenn aktiviert, unterstreicht Witty auch inklusive Begriffe. Bei diesen werden keine Alternativen angeboten.',
-    inclusiveLanguageExplanationUrl:
-      'https://www.witty.works/de/kategorien/inklusiv',
-    styleCorrectionExplanation:
-      'Wenn aktiviert, macht Witty Vorschläge, um Ihren Text verständlicher zu machen, oder um ihm Authentizität oder Emotionalität zu verleihen.',
-    genderRoleFormat: 'Wie soll Witty mit dem generischen Maskulinum in Deutsch umgehen?',
-    genderRoleFormatExplanation:
-      'Wähle aus, ob Witty die gewählte Gender-Ending-Form (z.B. "Mitarbeiter*in"), nur die weibliche und männliche Form (z.B. "Mitarbeiterin oder Mitarbeiter"), beides oder nur genderneutrale Alternativen vorschlagen soll.',
-    genderRoleFormatFemaleAndMale: 'Weibliche und männliche Form vorschlagen',
-    genderRoleFormatGermanEnding: 'Gewählte Gender-Endung vorschlagen',
-    genderRoleFormatBoth:
-      'Die gewählte Gender-Endung und die weibliche und männliche Form vorschlagen',
-    genderRoleFormatNone: 'Nur geschlechtsneutrale Alternativen vorschlagen',
-    styleCorrectionExplanationUrl: 'https://www.witty.works/de/kategorien/stil',
-    learnMore: 'Mehr dazu',
-    preferredLanguage: 'Ich bevorzuge',
-    germanGenderEnding: 'Wähle die deutsche Gender-Endung',
-    lockedInfo: 'Team-Vorgabe',
-    resetTeamsSettings: 'Auf Standardwerte zurücksetzen',
-    createATeam: 'Erstelle ein Team',
-    wittyTeamsOnly: 'Nur Witty Teams',
-  },
-  [namespaces.errors]: {
-    errorMessageGenericTitle: 'Ouch! Something went wrong! DE',
-    reloadWebsite: 'Please reload the website DE',
   },
 };
 
@@ -130,11 +103,38 @@ export const en = {
     vote: 'Vote for this website',
     editor: 'Use Witty Editor instead',
     getMoreTitle: 'Witty for your team',
-    getMoreText: 'Explore Witty\'s team features for free. Start writing inclusively together!',
+    getMoreText:
+      "Explore Witty's team features for free. Start writing inclusively together!",
     learnMoreButton: 'Try for free',
     goToDashboard: 'Go to Witty Dashboard',
     overrideRecomendedSites: 'Try Witty here anyway',
     backToRecomendedSites: 'Use Witty only on supported websites',
+    loginToUnlock: 'Witty is installed. Log in to unlock features.',
+    signUpFor: 'Sign up for:',
+    biasDetection: 'Bias detection in 30+ diversity dimensions',
+    inclusiveAlternatives: 'Alternatives for inclusive writing',
+    teamFeatures: 'Team features, incl. shared dictionaries',
+    signIn: 'Sign in',
+    signOut: 'Sign out',
+    register: 'Don’t have an account?',
+    signUp: ' Sign up',
+    doesWittyWork: 'Does Witty work here?',
+    doesWittyWorkExplanation:
+      'You are on a website of which we don’t know if Witty works. We work hard to make Witty function on all web-interfaces, but sometimes we are just not smart enough. 🤷‍♀️',
+    fillInSurvey: 'Please fill in the this survey to help us:',
+    doesWittyWorkSurvey: 'Does Witty work on this website?',
+    surveyButtonYes: 'Yes',
+    surveyButtonNo: 'No',
+    resultSurveyPositive: 'YESSS, Witty works! Thanks for helping.',
+    resultSurveyNegative:
+      'NOOO, Witty doesn’t work! We deactivate Witty on this website until we can make Witty work here too.',
+    finishSurvey: 'Finish survey',
+    tryAgain: 'Try again',
+    understood: 'Understood',
+    websiteSettingsDeactivated:
+      'You previously reported that Witty does not work on {{domain}}',
+    tryAgainOnThisWebsite: 'Try again on this website',
+    lockedInfo: 'locked by org.',
   },
 
   [namespaces.popover]: {
@@ -145,56 +145,6 @@ export const en = {
     whyQuestionMark: 'Why?',
     alertOftotal: 'of',
     removeSpaces: '(Remove extra spaces)',
-  },
-  [namespaces.pages.options]: {
-    greeting: 'Hello',
-    greetingTeam: 'You are logged in to',
-    greetingPlan: 'with the subscription',
-    settings: 'Settings',
-    needHelp: 'Need Help?',
-    getMoreTitle: 'Witty for your team',
-    getMoreText:
-      'Explore Witty\'s team features for free. Start writing inclusively together!',
-    getMoreButton: 'Try for free',
-    LoginButton: 'Register / Login',
-    setUpLanguages: 'Language settings',
-    configureRules: 'Customize Witty for me',
-    disableWitty: 'Disable Witty on some websites',
-    expertMode: 'Become an inclusion pro',
-    expertModeExplanation:
-      'When switched on, Witty highlights more subtle aspects of diversity and inclusion. For example, Witty would highlight acronyms such as ROI or SaaS.',
-    inspirationAlternatives: 'Show inspirations to rephrase entire sentences',
-    inspirationAlternativesExplanation:
-      'When switched on, Witty will make suggestions to rephrase entire sentences.',
-    singularThey: 'Use gender-neutral pronouns in English',
-    singularTheyExplanation:
-      'When switched on, Witty suggests using gender-neutral pronouns such as "their" instead of "his" or "her".',
-    addSite: 'https://..',
-    invalidDomain: 'Please enter the websites in the format "google.com".',
-    addDomain: 'Add Domain',
-    inclusiveLanguageExplanation:
-      'When switched on, Witty highlights inclusive terms. For these, no alternatives are offered.',
-    inclusiveLanguageExplanationUrl:
-      'https://www.witty.works/en/categories/inclusive',
-    styleCorrectionExplanation:
-      'Witty makes suggestions to make your text more understandable, or to give it authenticity or emotionality.',
-    genderRoleFormat: 'How should Witty handle the generic masculine in German?',
-    genderRoleFormatExplanation:
-      'Choose if Witty should suggest the chosen gender ending (e.g. "Mitarbeiter*in"), the female and male form (e.g. "Mitarbeiterin oder Mitarbeiter"), both or only gender-neutral alternatives ("Mitarbeitende").',
-    genderRoleFormatFemaleAndMale: 'Suggest the female and male form',
-    genderRoleFormatGermanEnding: 'Suggest the chosen gender ending',
-    genderRoleFormatBoth:
-      'Suggest both the chosen gender ending and the female and male form',
-    genderRoleFormatNone: 'Suggest only gender-neutral alternatives',
-    styleCorrectionExplanationUrl:
-      'https://www.witty.works/en/categories/style',
-    learnMore: 'Learn more',
-    preferredLanguage: 'I write in',
-    germanGenderEnding: 'Choose the German gender ending',
-    lockedInfo: 'Team presetting',
-    resetTeamsSettings: 'Reset to defaults',
-    createATeam: 'Create a new team',
-    wittyTeamsOnly: 'Witty Teams Only',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',
