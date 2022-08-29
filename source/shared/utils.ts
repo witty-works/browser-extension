@@ -111,6 +111,13 @@ export const addInactiveBadge = () => {
   browser.browserAction.setBadgeText({ text: 'OFF' });
 };
 
+export const addLoginBadge = () => {
+  browser.browserAction.setBadgeBackgroundColor({
+    color: [190, 190, 190, 230],
+  });
+  browser.browserAction.setBadgeText({ text: 'Login' });
+};
+
 export const removeBadge = () => {
   browser.browserAction.setBadgeText({ text: '' });
 };
@@ -136,6 +143,12 @@ export const getBrowserId = () => {
 
 export const updateLabelChrome = (domain: string) => {
   browser.storage.local.get(null).then((result) => {
+    const userLoggedIn = result[StorageKeys.ACCESS_TOKEN];
+    if (!userLoggedIn) {
+      addLoginBadge();
+      return;
+    }
+
     const isLocked =
       (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
         result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
@@ -164,15 +177,12 @@ export const updateLabelChrome = (domain: string) => {
     const domainOnDisabledSitesList =
       defaultConfig.DISABLED_SITES.includes(domain);
 
-    const userLoggedIn = result[StorageKeys.ACCESS_TOKEN];
-
     const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
     if (
       isLocked ||
       isDisabled ||
       domainConfirmedToNotWork ||
-      domainOnDisabledSitesList ||
-      !userLoggedIn
+      domainOnDisabledSitesList
     ) {
       addInactiveBadge();
     } else if (numberOfNotifications > 0) {
