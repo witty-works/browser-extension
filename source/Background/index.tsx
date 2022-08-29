@@ -11,6 +11,7 @@ import {
 } from '../shared/constants';
 import {
   addInactiveBadge,
+  addLoginBadge,
   addNotificationBadge,
   getBrowserId,
   getDomainWithoutSubdomain,
@@ -132,6 +133,11 @@ const storageChange = (changes: { [key: string]: any }) => {
   const changedItems = Object.keys(changes);
 
   changedItems.forEach((key) => {
+    if (key === StorageKeys.ACCESS_TOKEN) {
+      if (!changes[key].newValue) {
+        addLoginBadge();
+      }
+    }
     if (key === StorageKeys.ORGANIZATION_DOMAINS) {
       if (
         (changes[key].newValue.type === 'deny' &&
