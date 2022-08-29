@@ -34,6 +34,7 @@ import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
+import { setToken } from '../shared/ApiServices/requests';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -70,7 +71,6 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
-
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       for (const mutation of mutationsList) {
@@ -529,11 +529,13 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
+        //TODO: in sync
         groupId:
           checkEndpointResponse.organization_config &&
           checkEndpointResponse.organization_config.id
             ? checkEndpointResponse.organization_config.id
             : null,
+        //TODO: in sync
         plan:
           checkEndpointResponse.organization_config &&
           checkEndpointResponse.organization_config.plan
@@ -728,6 +730,8 @@ const Input: React.FC<{
             StorageKeys.ACCESS_TOKEN,
             refreshTokenResponse.access_token
           );
+          setToken(refreshTokenResponse.access_token);
+
           storeInLocalStorage(
             StorageKeys.REFRESH_TOKEN,
             refreshTokenResponse.refresh_token

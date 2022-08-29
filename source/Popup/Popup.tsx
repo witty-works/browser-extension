@@ -24,7 +24,11 @@ import DelaySelector from './DelaySelector';
 
 import defaultConfig from '../witty.config.json';
 import './styles.scss';
-import { getBaseUrls, setBaseUrls } from '../shared/ApiServices/requests';
+import {
+  getBaseUrls,
+  setBaseUrls,
+  setToken,
+} from '../shared/ApiServices/requests';
 import PopupHeader from './PopupHeader';
 
 const Popup: React.FC = () => {
@@ -63,9 +67,7 @@ const Popup: React.FC = () => {
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-        setUserIsLoggedIn(
-          result[StorageKeys.ACCESS_TOKEN] == '' ? false : true
-        );
+        setUserIsLoggedIn(result[StorageKeys.ACCESS_TOKEN] ? true : false);
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
@@ -133,6 +135,10 @@ const Popup: React.FC = () => {
     storeInLocalStorage(StorageKeys.STYLE, styleCorrections);
   }, [styleCorrections]);
 
+  useEffect(() => {
+    setEnabled(!userIsLoggedIn ? false : true);
+  }, [userIsLoggedIn]);
+
   const onStorageError = (error: unknown) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
@@ -167,6 +173,12 @@ const Popup: React.FC = () => {
           ? [...casingSites, currentDomain]
           : casingSites.filter((item: string) => item !== currentDomain)
       );
+  };
+
+  const logOut = () => {
+    browser.storage.local.set({ [StorageKeys.ACCESS_TOKEN]: '' });
+    setToken('');
+    setUserIsLoggedIn(false);
   };
 
   return (
@@ -289,6 +301,14 @@ const Popup: React.FC = () => {
               </div>
             </div>
           )}
+          <div
+            className='wittyworks-signin-button'
+            onClick={() => {
+              logOut();
+            }}
+          >
+            {t('signOut')}
+          </div>
         </section>
       )}
       {DEV_ENV && (
