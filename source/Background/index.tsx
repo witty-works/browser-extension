@@ -7,28 +7,40 @@ import {
   DEV_ENV,
   WittyIconActive,
   wittyVersion,
+  devAppId,
 } from '../shared/constants';
 import {
-  addInactiveLabel,
+  addInactiveBadge,
+  addLoginBadge,
+  addNotificationBadge,
+  getBrowserId,
   getDomainWithoutSubdomain,
   isFunction,
-  removeInactiveLabel,
+  removeBadge,
+  updateLabelChrome,
 } from '../shared/utils';
-import { sendErrorToSentry } from '../shared/errorUtils';
 import defaultConfig from '../witty.config.json';
-import { useLog } from '../shared/customHooks/useLog';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+import { DefaultConfigValue } from '../shared/types';
+import { useLog } from '../shared/customHooks/useLog';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 const analytics = useAnalytics();
 const log = useLog('Background index');
-const devAppId = 'DEV_APP_ID';
-type DefaultConfigValue =
-  | string
-  | boolean
-  | number
-  | string[]
-  | object
-  | (() => string);
+
+const onSave = (key: string, value: DefaultConfigValue) => {
+  log(
+    `Key *${key}* with value *${(typeof value === 'object'
+      ? JSON.stringify(value)
+      : value
+    ).toString()}* saved correctly in local storage`
+  );
+};
+
+const onError = (error: string) => {
+  log(`Local Storage Error: ${error}`);
+  sendErrorToSentry(error);
+};
 
 Sentry.init({
   dsn: 'https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342',
@@ -37,6 +49,13 @@ Sentry.init({
   sampleRate: 0.0,
   tracesSampleRate: 0.01,
 });
+
+const addEventListeners = () => {
+  browser.tabs.onCreated.addListener(scanTabsToDetectStatus);
+  browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
+  browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
+  browser.storage.onChanged.addListener(storageChange);
+};
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   analytics.extensionInstallationAndUpdateLog(details.reason, getBrowserId());
@@ -51,7 +70,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     //Open the welcome page
     if (!DEV_ENV) {
       browser.tabs.create({
-        url: 'http://www.witty.works/welcome',
+        url: 'https://www.witty.works/welcome',
       });
     }
   }
@@ -60,25 +79,6 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     scanTabsToDetectStatus();
   }
 });
-
-const getRandomToken = () => {
-  const bytes = new Uint8Array(32); //256 bits token
-
-  window.crypto.getRandomValues(bytes);
-
-  // convert byte array to hexademical representation
-  const bytesHex = bytes.reduce(
-    (item, acc) => item + `00${acc.toString(16)}`.slice(-2),
-    ''
-  );
-
-  // convert hexademical value to a decimal string
-  return BigInt('0x' + bytesHex).toString(10);
-};
-
-const getBrowserId = () => {
-  return DEV_ENV ? devAppId : getRandomToken();
-};
 
 const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
   //Check if setting is already defined in the local storage
@@ -100,20 +100,6 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
     .catch(onError);
 };
 
-const onSave = (key: string, value: DefaultConfigValue) => {
-  log(
-    `Key *${key}* with value *${(typeof value === 'object'
-      ? JSON.stringify(value)
-      : value
-    ).toString()}* saved correctly in local storage`
-  );
-};
-
-const onError = (error: string) => {
-  log(`Local Storage Error: ${error}`);
-  sendErrorToSentry(error);
-};
-
 const setSettings = () => {
   //Set default settings
   for (let [defaultConfigKey, defaultConfigValue] of Object.entries(
@@ -129,48 +115,56 @@ const setSettings = () => {
   setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
 };
 
-const addEventListeners = () => {
-  browser.tabs.onCreated.addListener(scanTabsToDetectStatus);
-  browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
-  browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
-  browser.storage.onChanged.addListener(storageChange);
-};
-
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs.length != 0 && tabs[0].url) {
       const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
-      browser.storage.local.get(null).then((result) => {
-        if (
-          (result[StorageKeys.DISABLED_SITES] &&
-            result[StorageKeys.DISABLED_SITES].length > 0 &&
-            result[StorageKeys.DISABLED_SITES].includes(domain)) ||
-          (defaultConfig.ACTIVE_SITES &&
-            !defaultConfig.ACTIVE_SITES.includes(domain) &&
-            !result[StorageKeys.ENABLE_WITTY_EVERYWHERE]) ||
-          !result[StorageKeys.ACCESS_TOKEN]
-        ) {
-          addInactiveLabel();
-        } else {
-          removeInactiveLabel();
-        }
-      });
+      updateLabelChrome(domain);
     } else if (
       defaultConfig.CHROME_AND_FIREFOX_SITES &&
       defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
     ) {
-      removeInactiveLabel();
-    } else {
-      addInactiveLabel();
+      removeBadge();
     }
   });
 };
 
 const storageChange = (changes: { [key: string]: any }) => {
   const changedItems = Object.keys(changes);
+
   changedItems.forEach((key) => {
-    if (key === StorageKeys.ENABLE_WITTY_EVERYWHERE) {
-      changes[key].newValue ? removeInactiveLabel() : addInactiveLabel();
+    if (key === StorageKeys.ACCESS_TOKEN) {
+      if (!changes[key].newValue) {
+        addLoginBadge();
+      }
+    }
+    if (key === StorageKeys.ORGANIZATION_DOMAINS) {
+      if (
+        (changes[key].newValue.type === 'deny' &&
+          changes[key].newValue.list.includes(
+            getDomainWithoutSubdomain(window.location.hostname)
+          )) ||
+        (changes[key].newValue.type === 'allow' &&
+          !changes[key].newValue.list.includes(
+            getDomainWithoutSubdomain(window.location.hostname)
+          ))
+      ) {
+        addInactiveBadge();
+      } else {
+        removeBadge();
+      }
+    }
+    if (key === StorageKeys.DOMAINS) {
+      changes[key].newValue.list.includes(
+        getDomainWithoutSubdomain(window.location.hostname)
+      )
+        ? addInactiveBadge()
+        : removeBadge();
+    }
+    if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
+      changes[key].newValue === 0
+        ? removeBadge()
+        : addNotificationBadge(changes[key].newValue);
     }
   });
 };

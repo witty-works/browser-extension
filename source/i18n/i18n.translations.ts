@@ -44,6 +44,24 @@ export const de = {
     signOut: 'Sign out DE',
     register: 'Don’t have an account? DE',
     signUp: ' Sign up DE',
+    doesWittyWork: 'Does Witty work here? DE',
+    doesWittyWorkExplanation:
+      'You are on a website of which we don’t know if Witty works. We work hard to make Witty function on all web-interfaces, but sometimes we are just not smart enough. 🤷‍♀️ DE',
+    fillInSurvey: 'Please fill in the this survey to help us: DE',
+    doesWittyWorkSurvey: 'Does Witty work on this website? DE',
+    surveyButtonYes: 'Ja',
+    surveyButtonNo: 'Nein',
+    resultSurveyPositive: 'YESSS, Witty works! Thanks for helping. DE',
+    resultSurveyNegative:
+      'NOOO, Witty doesn’t work! We deactivate Witty on this website until we can make Witty work here too. DE',
+    finishSurvey: 'Finish survey DE',
+    tryAgain: 'Try again DE',
+    understood: 'Understood DE',
+    websiteSettingsDeactivated:
+      'You previously reported that Witty does not work on {{domain}} DE',
+    tryAgainOnThisWebsite: 'Try again on this website DE',
+    lockedInfo: 'locked by org DE',
+    resetSettings: 'Reset settings DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -101,6 +119,24 @@ export const en = {
     signOut: 'Sign out',
     register: 'Don’t have an account?',
     signUp: ' Sign up',
+    doesWittyWork: 'Does Witty work here?',
+    doesWittyWorkExplanation:
+      'You are on a website of which we don’t know if Witty works. We work hard to make Witty function on all web-interfaces, but sometimes we are just not smart enough. 🤷‍♀️',
+    fillInSurvey: 'Please fill in the this survey to help us:',
+    doesWittyWorkSurvey: 'Does Witty work on this website?',
+    surveyButtonYes: 'Yes',
+    surveyButtonNo: 'No',
+    resultSurveyPositive: 'YESSS, Witty works! Thanks for helping.',
+    resultSurveyNegative:
+      'NOOO, Witty doesn’t work! We deactivate Witty on this website until we can make Witty work here too.',
+    finishSurvey: 'Finish survey',
+    tryAgain: 'Try again',
+    understood: 'Understood',
+    websiteSettingsDeactivated:
+      'You previously reported that Witty does not work on {{domain}}',
+    tryAgainOnThisWebsite: 'Try again on this website',
+    lockedInfo: 'locked by org.',
+    resetSettings: 'Reset settings',
   },
 
   [namespaces.popover]: {

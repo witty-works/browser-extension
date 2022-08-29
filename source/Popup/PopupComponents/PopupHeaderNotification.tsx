@@ -1,13 +1,13 @@
 import React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import Settings from '../assets/icons/popup/settings.svg';
-import Logo from '../assets/icons/witty-logo-color.svg';
-import { getBaseUrls } from '../shared/ApiServices/requests';
+import SettingsWithNotification from '../../assets/icons/popup/settingsWithNotification.svg';
+import Logo from '../../assets/icons/witty-logo-color.svg';
+import { getBaseUrls } from '../../shared/ApiServices/requests';
 
-import './styles.scss';
+import '../styles.scss';
 
-const PopupHeader: React.FC = () => {
+const PopupHeaderNotification: React.FC = () => {
   return (
     <header>
       <Logo
@@ -16,7 +16,7 @@ const PopupHeader: React.FC = () => {
           browser.tabs.create({ url: 'https://www.witty.works/' });
         }}
       />
-      <Settings
+      <SettingsWithNotification
         id='witty-settings'
         onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
       />
@@ -24,4 +24,4 @@ const PopupHeader: React.FC = () => {
   );
 };
 
-export default PopupHeader;
+export default PopupHeaderNotification;
