@@ -52,7 +52,7 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
             client: wittyVersion,
             config: requestConfig,
             config_hash: configHash,
-            config_organization_hash: organizationConfigHash,
+            organization_config_hash: organizationConfigHash,
           })
         : null,
     },
