@@ -82,13 +82,13 @@ export const useAnalytics = () => {
       captureEvent(status, getRequestData(appID), null);
     },
 
-    async voteForUrlLog(url: string, appID: string) {
+    async urlLog(url: string, appID: string, type: string) {
       const voteItems: IVoteLogRequest = {
         request__type: 'vote',
         vote__url: url,
         ...getRequestData(appID),
       };
-      captureEvent('vote', voteItems, null);
+      captureEvent(type, voteItems, null);
     },
   };
 };

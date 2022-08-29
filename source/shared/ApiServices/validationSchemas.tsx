@@ -156,6 +156,10 @@ export const checkResponseSchema: JSONSchemaType<ICheckResponse> = {
       description: 'whether the config has changed',
       type: 'boolean',
     },
+    notifications: {
+      description: 'number of notifications from the dashboard',
+      type: 'integer',
+    },
   },
   required: ['results', 'language'],
 };

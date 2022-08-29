@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
-import { StorageKeys, WTags } from '../shared/constants';
+import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
 import { isInputText, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, IAuthResponse } from '../shared/types';
 import {
@@ -9,11 +9,13 @@ import {
   storeInLocalStorage,
 } from '../shared/utils';
 import ContentScriptApp from './ContentScriptApp';
-import defaultConfig from '../witty.config.json';
+import { createUrl } from '../shared/ApiServices/requests';
+import { sendErrorToSentry } from '../shared/errorUtils';
 
 export const updateConfig = (response: IAuthResponse) => {
   response.domains &&
-    storeInLocalStorage(StorageKeys.DOMAINS, response.domains);
+    storeInLocalStorage(StorageKeys.DOMAINS, response.domains.list);
+
   response.organization_domains &&
     storeInLocalStorage(
       StorageKeys.ORGANIZATION_DOMAINS,
@@ -42,7 +44,8 @@ export const updateConfig = (response: IAuthResponse) => {
         );
         break;
       case 'inclusive':
-        storeInLocalStorage(StorageKeys.INCLUSIVE, response.config[key]);
+        response.config[key].status == 'force' &&
+          storeInLocalStorage(StorageKeys.INCLUSIVE, response.config[key]);
         break;
       case 'maximum_importance':
         storeInLocalStorage(
@@ -51,7 +54,8 @@ export const updateConfig = (response: IAuthResponse) => {
         );
         break;
       case 'orthography':
-        storeInLocalStorage(StorageKeys.ORTHOGRAPHY, response.config[key]);
+        response.config[key].status == 'force' &&
+          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, response.config[key]);
         break;
       case 'preferred_variants':
         storeInLocalStorage(
@@ -69,7 +73,8 @@ export const updateConfig = (response: IAuthResponse) => {
         storeInLocalStorage(StorageKeys.SINGULAR_THEY, response.config[key]);
         break;
       case 'style':
-        storeInLocalStorage(StorageKeys.STYLE, response.config[key]);
+        response.config[key].status == 'force' &&
+          storeInLocalStorage(StorageKeys.STYLE, response.config[key]);
         break;
     }
   });
@@ -101,25 +106,7 @@ export const customRender = (enabled: boolean) => {
   }
 };
 
-export const handleEnableWittyEverywhere = (newValue: boolean) => {
-  if (
-    (StorageKeys.DISABLED_SITES &&
-      StorageKeys.DISABLED_SITES.includes(
-        window.location.hostname.replace('www.', '')
-      )) ||
-    (defaultConfig.ACTIVE_SITES &&
-      !defaultConfig.ACTIVE_SITES.includes(
-        window.location.hostname.replace('www.', '')
-      ) &&
-      !newValue)
-  ) {
-    customRender(false);
-  } else {
-    customRender(true);
-  }
-};
-
-export const handleOrganizationDomains = (newValue: any) => {
+export const handleDomainsFromDashboard = (newValue: any) => {
   if (
     (newValue.type === 'deny' &&
       newValue.list.includes(
@@ -134,4 +121,39 @@ export const handleOrganizationDomains = (newValue: any) => {
   } else {
     customRender(true);
   }
+};
+
+export const makeAuthRequest = () => {
+  browser.storage.local.get(null).then((result) => {
+    if (
+      result[StorageKeys.ACCESS_TOKEN] &&
+      result[StorageKeys.API_ENDPOINT_KEY]
+    ) {
+      const config = {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
+        },
+      };
+
+      fetch(
+        createUrl(
+          BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].api,
+          'v2.0/auth'
+        ),
+        config
+      )
+        .then(async (response) => {
+          if (response.ok) {
+            const json = await response.json();
+            updateConfig(json);
+          }
+        })
+        .catch((error) => {
+          sendErrorToSentry(error);
+        });
+    }
+  });
 };

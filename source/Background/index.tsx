@@ -10,11 +10,13 @@ import {
   devAppId,
 } from '../shared/constants';
 import {
-  addInactiveLabel,
+  addInactiveBadge,
+  addLoginBadge,
+  addNotificationBadge,
   getBrowserId,
   getDomainWithoutSubdomain,
   isFunction,
-  removeInactiveLabel,
+  removeBadge,
   updateLabelChrome,
 } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
@@ -45,7 +47,7 @@ Sentry.init({
   release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
   sampleRate: 0.0,
-  tracesSampleRate: 0.001,
+  tracesSampleRate: 0.01,
 });
 
 const addEventListeners = () => {
@@ -122,9 +124,7 @@ const scanTabsToDetectStatus = () => {
       defaultConfig.CHROME_AND_FIREFOX_SITES &&
       defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
     ) {
-      removeInactiveLabel();
-    } else {
-      addInactiveLabel();
+      removeBadge();
     }
   });
 };
@@ -133,8 +133,10 @@ const storageChange = (changes: { [key: string]: any }) => {
   const changedItems = Object.keys(changes);
 
   changedItems.forEach((key) => {
-    if (key === StorageKeys.ENABLE_WITTY_EVERYWHERE) {
-      changes[key].newValue ? removeInactiveLabel() : addInactiveLabel();
+    if (key === StorageKeys.ACCESS_TOKEN) {
+      if (!changes[key].newValue) {
+        addLoginBadge();
+      }
     }
     if (key === StorageKeys.ORGANIZATION_DOMAINS) {
       if (
@@ -147,10 +149,22 @@ const storageChange = (changes: { [key: string]: any }) => {
             getDomainWithoutSubdomain(window.location.hostname)
           ))
       ) {
-        addInactiveLabel();
+        addInactiveBadge();
       } else {
-        removeInactiveLabel();
+        removeBadge();
       }
+    }
+    if (key === StorageKeys.DOMAINS) {
+      changes[key].newValue.list.includes(
+        getDomainWithoutSubdomain(window.location.hostname)
+      )
+        ? addInactiveBadge()
+        : removeBadge();
+    }
+    if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
+      changes[key].newValue === 0
+        ? removeBadge()
+        : addNotificationBadge(changes[key].newValue);
     }
   });
 };

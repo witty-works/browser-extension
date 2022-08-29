@@ -115,20 +115,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     hide();
   };
 
-  // Dynamically define the max width of the popover, so it does not grow
-  // too much when toggleText is open
-  // useEffect(() => {
-  //   if (refs.floating.current) {
-  //     const thirdOfScreenWidth: number = window.innerWidth * 0.33;
-  //     const popoverWidth: number = refs.floating.current.clientWidth;
-
-  //     refs.floating.current.style.maxWidth =
-  //       popoverWidth < thirdOfScreenWidth
-  //         ? `${thirdOfScreenWidth}px`
-  //         : `${popoverWidth}px`;
-  //   }
-  // }, []);
-
   const PopoverStyling: CSS.Properties = {
     position: strategy,
     top: `${y}px`,
