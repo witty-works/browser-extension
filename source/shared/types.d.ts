@@ -207,3 +207,8 @@ export interface IDomainRequest {
   domain: string;
   enabled: boolean;
 }
+
+export interface EnableWittyToggle {
+  enabled: boolean;
+  updateDashboard: boolean;
+}

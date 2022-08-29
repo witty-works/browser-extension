@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import { useTranslation } from 'react-i18next';
 
-import { ConfigProperty } from '../../shared/types';
+import { ConfigProperty, EnableWittyToggle } from '../../shared/types';
 import {
   StorageKeys,
   DefaultBaseUrlKey,
@@ -56,7 +56,10 @@ const Popup: React.FC<PopupProps> = ({
   isLocked,
 }: PopupProps) => {
   const { t } = useTranslation([namespaces.pages.popup]);
-  const [enabled, setEnabled] = useState<boolean>(true);
+  const [enabled, setEnabled] = useState<EnableWittyToggle>({
+    enabled: true,
+    updateDashboard: false,
+  } as EnableWittyToggle);
   const [domainsDisabledLocally, setDomainsDisabledLocally] = useState<
     string[]
   >([]);
@@ -108,19 +111,22 @@ const Popup: React.FC<PopupProps> = ({
         );
         setUserIsLoggedIn(result[StorageKeys.ACCESS_TOKEN] ? true : false);
 
-        setEnabled(
-          !domainsConfirmedToNotWork
-            .map((domain: string) => {
-              return domain.split('-')[0];
-            })
-            .includes(domain) &&
+        setEnabled({
+          enabled:
+            !domainsConfirmedToNotWork
+              .map((domain: string) => {
+                return domain.split('-')[0];
+              })
+              .includes(domain) &&
             !defaultConfig.DISABLED_SITES.includes(domain) &&
             result[StorageKeys.ACCESS_TOKEN] &&
             !result[StorageKeys.DOMAINS].includes(domain) &&
             !isLocked
-            ? true
-            : false
-        );
+              ? true
+              : false,
+          updateDashboard: false,
+        });
+
         if (result[StorageKeys.NUMBER_OF_NOTIFICATIONS] > 0) {
           addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
           setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
@@ -177,16 +183,19 @@ const Popup: React.FC<PopupProps> = ({
 
   useEffect(() => {
     if (domain) {
-      storeInLocalStorage(StorageKeys.DOMAIN_TO_UPDATE, {
-        domain: domain,
-        enabled: enabled,
-      });
+      console.log(' enabled.updateDashboard', enabled.updateDashboard);
+      enabled.updateDashboard &&
+        storeInLocalStorage(StorageKeys.DOMAIN_TO_UPDATE, {
+          domain: domain,
+          enabled: enabled.enabled,
+        });
+
       storeInLocalStorage(StorageKeys.DOMAINS, [
         ...domainsDisabledLocally,
         domain,
       ]);
     }
-    setWittyIcon(enabled);
+    setWittyIcon(enabled.enabled);
   }, [enabled]);
 
   useEffect(() => {
@@ -213,7 +222,7 @@ const Popup: React.FC<PopupProps> = ({
   const handleEnableToggle = () => {
     if (isLocked) return;
 
-    if (domainIsSetAsNotWorking && !enabled) {
+    if (domainIsSetAsNotWorking && !enabled.enabled) {
       setDomainIsSetToNotWorking(false);
       setShowSurvey(true);
       storeInLocalStorage(
@@ -222,11 +231,11 @@ const Popup: React.FC<PopupProps> = ({
       );
     }
 
-    setEnabled(!enabled);
+    setEnabled({ enabled: !enabled.enabled, updateDashboard: true });
 
     if (domain && domain.length > 0)
       setDomainsDisabledLocally(
-        enabled
+        enabled.enabled
           ? [...domainsDisabledLocally, domain]
           : domainsDisabledLocally.filter((item: string) => item !== domain)
       );
@@ -266,7 +275,7 @@ const Popup: React.FC<PopupProps> = ({
               : t('websiteSettings', { domain: domain })}
           </div>
           <Toggle
-            on={enabled}
+            on={enabled.enabled}
             handleToggle={handleEnableToggle}
             label={
               domainIsSetAsNotWorking
@@ -276,7 +285,7 @@ const Popup: React.FC<PopupProps> = ({
             locked={isLocked}
           />
           <div className='toggle-separator' />
-          {enabled && (
+          {enabled.enabled && (
             <>
               <Toggle
                 on={casing}
@@ -288,7 +297,7 @@ const Popup: React.FC<PopupProps> = ({
           )}
         </section>
       )}
-      {showSurvey && enabled && (
+      {showSurvey && enabled.enabled && (
         <section>
           <div className='wittyworks-signin-container'>
             <div className='wittyworks-icon-container'>
@@ -309,6 +318,7 @@ const Popup: React.FC<PopupProps> = ({
                   className='wittyworks-button wittyworks-button-yes'
                   onClick={() => {
                     setSurveyResponse('yes');
+                    setShowSurvey(false);
                     analytics.urlLog(domain, appId, 'wittyWorksAsExpected');
                   }}
                 >
@@ -329,23 +339,6 @@ const Popup: React.FC<PopupProps> = ({
                 </div>
               </div>
             )}
-            {surveyResponse == 'yes' && (
-              <>
-                <div className='wittyworks-text-small'>
-                  {t('resultSurveyPositive')}
-                </div>
-                <div className='wittyworks-flex-row'>
-                  <div
-                    className='wittyworks-button'
-                    onClick={() => {
-                      setShowSurvey(false);
-                    }}
-                  >
-                    {t('finishSurvey')}
-                  </div>
-                </div>
-              </>
-            )}
             {surveyResponse == 'no' && (
               <>
                 <div className='wittyworks-text-small'>
@@ -363,8 +356,8 @@ const Popup: React.FC<PopupProps> = ({
                   <div
                     className='wittyworks-button'
                     onClick={() => {
+                      setEnabled({ enabled: false, updateDashboard: false });
                       setSurveyResponse('');
-                      setEnabled(false);
                       setDomainIsSetToNotWorking(true);
                     }}
                   >
@@ -376,7 +369,7 @@ const Popup: React.FC<PopupProps> = ({
           </div>
         </section>
       )}
-      {enabled && !showSurvey && (
+      {enabled.enabled && !showSurvey && (
         <section className='wittyworks-toggles global-settings'>
           <h2>{t('globalSettings')}</h2>
           <Toggle
