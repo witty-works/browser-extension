@@ -64,7 +64,6 @@ export interface ICheckResponse {
 }
 export interface IAuthResponse {
   config: {
-    store_context: ConfigProperty;
     preferred_variants: ConfigProperty;
     german_gender_ending: ConfigProperty;
     gendered_roles_format: ConfigProperty;
@@ -116,30 +115,61 @@ export interface IExplanation {
   url: string;
   context: string;
 }
-export interface ILogRequest {
+export interface ILogItems {
   request__type: string;
   request__lang: string;
   request__id: string;
   request__client: string;
   request__config__preferred_variants: string;
   request__config__german_gender_ending: string;
-  response__id?: string;
-  response__startOffset?: number;
-  response__endOffset?: number;
-  response__popOverIsOpen?: boolean;
-  response__groupId?: string | null | undefined;
-  response__plan?: string | null | undefined;
+  response__id: string;
+  response__startOffset: number;
+  response__endOffset: number;
+  response__popOverIsOpen: boolean;
+  response__groupId: string | null | undefined;
+  response__plan: string | null | undefined;
+  response__data__language: string;
+  response__data__category: string;
+  response__data__subcategory: string;
+  response__data__context: string;
+  response__data_text: string;
+  response__data__label: string;
+  response__data__explanation__text: string;
+  response__data__explanation__icon: string;
+  response__data__explanation__url: string;
+  response__data__alternatives: IAlternatives[];
+  response__data__gravity: number;
 }
-export interface IAlternativeLogRequest extends ILogRequest {
+export interface IAlternativeLogItems extends ILogItems {
   request__replaced: string;
   request__alternative: string;
 }
-export interface IIgnoreLogRequest extends ILogRequest {
+export interface IIgnoreLogItems extends ILogItems {
   request__ignored: string;
 }
-export interface ICheckLogRequest extends ILogRequest {
+export interface IVoteLogRequest {
+  request__type: string;
+  request__lang: string;
+  request__id: string;
+  request__client: string;
+  request__config__preferred_variants: string;
+  request__config__german_gender_ending: string;
+  vote__url: string;
+}
+export interface ICheckLogItems {
+  request__type: string;
+  request__lang: string;
+  request__id: string;
+  request__client: string;
+  request__config__preferred_variants: string;
+  request__config__german_gender_ending: string;
   request__text__length: number;
+  response__groupId: string | null | undefined;
+  response__plan: string | null | undefined;
   response__name: string | null;
+  response__results: ICheckResponseResult[];
+  response__language: string;
+  response__limit_reached: boolean;
 }
 
 export type ILogResponse = ICheckResponse;

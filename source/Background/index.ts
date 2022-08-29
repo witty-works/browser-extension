@@ -35,10 +35,11 @@ Sentry.init({
   release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
   sampleRate: 0.0,
-  tracesSampleRate: 0.001,
+  tracesSampleRate: 0.01,
 });
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
+  analytics.extensionInstallationAndUpdateLog(details.reason, getBrowserId());
   browser.browserAction.setIcon(WittyIconActive);
   if (!DEV_ENV)
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
@@ -46,9 +47,6 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'install') {
     //Set default settings
     setSettings();
-
-    //Log install event to posthog
-    analytics.extensionStatusLog('install', getBrowserId());
 
     //Open the welcome page
     if (!DEV_ENV) {
@@ -60,9 +58,6 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'update') {
     //Set icon according to the saved settings
     scanTabsToDetectStatus();
-
-    //Log update event to posthog
-    analytics.extensionStatusLog('update', getBrowserId());
   }
 });
 

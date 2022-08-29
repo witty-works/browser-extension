@@ -142,3 +142,9 @@ export const WittyIconActive = {
     '48': 'assets/icons/icon48.png',
   },
 };
+
+export const exposeWittyIdAllowList = [
+  'dashboard.lndo.site',
+  'dashboard.witty.works',
+  'witty.works',
+];

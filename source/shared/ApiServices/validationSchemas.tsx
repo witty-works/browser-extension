@@ -56,7 +56,6 @@ export const checkResponseOrgConfigSchema: JSONSchemaType<IAuthResponse> = {
         preferred_variants: checkResponseOrgConfigPropertySchema,
         show_inspiration_alternatives: checkResponseOrgConfigPropertySchema,
         singular_they: checkResponseOrgConfigPropertySchema,
-        store_context: checkResponseOrgConfigPropertySchema,
         style: checkResponseOrgConfigPropertySchema,
       },
       required: [
@@ -68,7 +67,6 @@ export const checkResponseOrgConfigSchema: JSONSchemaType<IAuthResponse> = {
         'preferred_variants',
         'show_inspiration_alternatives',
         'singular_they',
-        'store_context',
         'style',
       ],
     },

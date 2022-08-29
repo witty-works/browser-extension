@@ -17,22 +17,23 @@ const useApiResult = <TResponse,>(
   const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
     null
   );
-
   const [endpointError, setEndpointError] = useState<IEndpointError | null>(
     null
   );
   const log = useLog('useApiResult');
 
   useEffect(() => {
+    const container = document.getElementsByTagName(WTags.WW_CONTAINER);
     browser.storage.local.get(null).then((result) => {
       const accessToken = result[StorageKeys.ACCESS_TOKEN];
       const ac = new AbortController();
-      const container = document.getElementsByTagName(WTags.WW_CONTAINER);
-
       //avoid enpoint call if no config or no container (aka plugin disabled)
-      if (accessToken && request.config && container.length > 0) {
+      if (accessToken && request.config) {
         //further avoid call to check if no body
-        if (!request.config.body && request.url.includes('check')) {
+        if (
+          (!request.config.body && request.url.includes('check')) ||
+          (request.url.includes('check') && container.length == 0) //for auth call on options page
+        ) {
           return;
         }
         request.config = { ...request.config, signal: ac.signal };

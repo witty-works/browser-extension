@@ -5,10 +5,7 @@ import { IRequest, IAuthResponse } from '../types';
 // import { checkResponseOrgConfigSchema } from './validationSchemas';
 
 export const useAuthEndpoint = () => {
-  const [config, setConfig] = useState<boolean>();
-  const getConfig = () => {
-    setConfig(true);
-  };
+  const [config, setConfig] = useState<boolean>(false);
 
   const request: IRequest = useMemo(() => {
     return getConfiguration();
@@ -20,5 +17,5 @@ export const useAuthEndpoint = () => {
     null
   );
 
-  return [authResponse, authErrorResponse, getConfig] as const;
+  return [authResponse, authErrorResponse, setConfig] as const;
 };

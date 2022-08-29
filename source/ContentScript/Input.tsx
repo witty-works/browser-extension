@@ -34,7 +34,6 @@ import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 
 const Input: React.FC<{
@@ -42,7 +41,6 @@ const Input: React.FC<{
 }> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
-  const [authResponse, authErrorResponse, getConfig] = useAuthEndpoint();
   const [, , previousTextToCheckRef] = useStateRef('');
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
@@ -89,8 +87,6 @@ const Input: React.FC<{
   const log = useLog('Input');
 
   useEffect(() => {
-    getConfig();
-
     browser.storage.local
       .get(StorageKeys.API_DELAY)
       .then((result) => {
@@ -143,90 +139,6 @@ const Input: React.FC<{
       element.removeEventListener('focusin', handleFocusinEvent);
     };
   }, [debounceDelay]);
-
-  useEffect(() => {
-    if (authResponse) {
-      //TODO: in sync
-      // if (authResponse.config) {
-      //   Object.keys(authResponse.config).forEach((key) => {
-      //     if (!Object.keys(StorageKeys).includes(key.toUpperCase())) {
-      //       console.warn(`${key.toUpperCase()} is not a valid storage key`);
-      //       return;
-      //     }
-      //     if (
-      //       key == 'gendered_roles_format' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.GENDERED_ROLES_FORMAT,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'german_gender_ending' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.GERMAN_GENDER_ENDING,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'inclusive' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.INCLUSIVE,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'maximum_importance' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.MAXIMUM_IMPORTANCE,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'orthography' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.ORTHOGRAPHY,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'preferred_variants' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.PREFERRED_VARIANTS,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'show_inspiration_alternatives' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'singular_they' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(
-      //         StorageKeys.SINGULAR_THEY,
-      //         authResponse.config[key]
-      //       );
-      //     } else if (
-      //       key == 'style' &&
-      //       authResponse.config[key].status == 'force'
-      //     ) {
-      //       storeInLocalStorage(StorageKeys.STYLE, authResponse.config[key]);
-      //     }
-      //   });
-      // }
-    }
-  }, [authResponse]);
 
   useEffect(() => {
     docTextEvaluation(element);
@@ -603,11 +515,7 @@ const Input: React.FC<{
           apiConfig.config[key].status == 'force'
         ) {
           storeInLocalStorage(StorageKeys.SINGULAR_THEY, apiConfig.config[key]);
-        }
-        // else if (key == 'store_context') {
-        //   storeInLocalStorage(StorageKeys.STORE_CONTEXT, apiConfig.config[key]);
-        // }
-        else if (key == 'style' && apiConfig.config[key].status == 'force') {
+        } else if (key == 'style' && apiConfig.config[key].status == 'force') {
           storeInLocalStorage(StorageKeys.STYLE, apiConfig.config[key]);
         }
       });
@@ -730,7 +638,7 @@ const Input: React.FC<{
 
         const nodeValueLength: number = node.nodeValue.length;
 
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1;
+        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
 
         // Check if there is a new line char after the node's content
         // If so, we +1 to the end position
@@ -770,33 +678,40 @@ const Input: React.FC<{
 
   const updateTextWithAlternative = (alternative: string) => {
     const node = popoverData?.node as Node;
-    const nodeText: string = node.nodeValue as string;
     const alert = selectedAlert as IAlert;
-    const termToBeReplaced: string = nodeText.slice(
-      alert.startOffset,
-      alert.endOffset
-    );
 
-    const regex: RegExp = new RegExp(
-      alternative === ''
-        ? alert.startOffset === 0
-          ? `${termToBeReplaced}[ ,]?`
-          : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}[ ,]?`
-        : alert.startOffset === 0
-        ? `${termToBeReplaced}`
-        : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}`
-    );
+    if (isTextArea(element) || isInputText(element)) {
+      element.selectionStart = alert.startOffset;
+      element.selectionEnd =
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset;
+      //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
+      document.execCommand('insertText', false, alternative);
+    } else {
+      const range = document.createRange();
+      range.setStart(node, alert.startOffset);
+      range.setEnd(
+        node,
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset
+      );
+      const sel = window.getSelection();
+      if (!sel) return;
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.execCommand('insertText', false, alternative);
+    }
 
-    const newTextToInsert = nodeText.replace(regex, alternative);
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (nodeAlert) => nodeAlert.startOffset < alert.startOffset
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    } else {
+      setAlerts([]);
+    }
 
-    isTextArea(element) || isInputText(element)
-      ? (element.value = newTextToInsert)
-      : (node.nodeValue = newTextToInsert);
-
-    const newText: string = getInputText(element);
-    setTextToCheck(newText);
-
-    resetPopover();
+    setTextToCheck(getInputText(element));
   };
 
   useEffect(() => {
@@ -804,10 +719,7 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
     }
     //gets new access token using the refresh token if the access token has expired
-    else if (
-      checkEndpointError?.status == 403 ||
-      authErrorResponse?.status === 403
-    ) {
+    else if (checkEndpointError?.status == 403) {
       browser.storage.local
         .get(StorageKeys.REFRESH_TOKEN)
         .then((result) => {
@@ -837,7 +749,7 @@ const Input: React.FC<{
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
       logTypes.ERROR
     );
-  }, [checkEndpointError, authErrorResponse]);
+  }, [checkEndpointError]);
 
   const ErrorBoundaryFallback = () => (
     <Toast message={t('reloadWebsite')} type='error' />
