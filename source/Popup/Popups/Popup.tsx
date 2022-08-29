@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import { useTranslation } from 'react-i18next';
 
-import { ConfigProperty, EnableWittyToggle } from '../../shared/types';
+import {
+  ConfigProperty,
+  EnableWittyToggle,
+  IAuthResponse,
+} from '../../shared/types';
 import {
   StorageKeys,
   DefaultBaseUrlKey,
@@ -33,6 +37,7 @@ import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import ThinkingEmoji from '../../assets/icons/popup/thinkingEmoji.svg';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
+import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
 
 interface PopupProps {
   appId: string;
@@ -80,7 +85,7 @@ const Popup: React.FC<PopupProps> = ({
   const [surveyResponse, setSurveyResponse] = useState<string>('');
   const [numberOfNotifications, setNumberOfNotifications] =
     useState<number>(-1);
-
+  const [accessToken, setAccessToken] = useState<string>('');
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
   const [domainIsSetAsNotWorking, setDomainIsSetToNotWorking] =
     useState<boolean>(
@@ -88,13 +93,18 @@ const Popup: React.FC<PopupProps> = ({
         .map((d: string) => d.split('-')[0])
         .includes(domain)
     );
+  const [resetSettings, setResetSettings] = useState<boolean>(false);
   const log = useLog('Popup');
   const analytics = useAnalytics();
-
+  const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
+  const [localConfigDiffersFromDashboard, setLocalConfigDiffersFromDashboard] =
+    useState<boolean>(false);
   const onStorageError = (error: unknown) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
   };
+  const [authResponseConfig, setAuthResponseConfig] =
+    useState<IAuthResponse | null>(null);
 
   useEffect(() => {
     !domainOnActiveOrDisabledList && !domainIsConfirmedByUser
@@ -110,12 +120,16 @@ const Popup: React.FC<PopupProps> = ({
             : DefaultBaseUrlKey
         );
         setUserIsLoggedIn(result[StorageKeys.ACCESS_TOKEN] ? true : false);
-
+        setAccessToken(
+          result[StorageKeys.ACCESS_TOKEN]
+            ? result[StorageKeys.ACCESS_TOKEN]
+            : ''
+        );
         setEnabled({
           enabled:
             !domainsConfirmedToNotWork
-              .map((domain: string) => {
-                return domain.split('-')[0];
+              .map((d: string) => {
+                return d.split('-')[0];
               })
               .includes(domain) &&
             !defaultConfig.DISABLED_SITES.includes(domain) &&
@@ -126,19 +140,21 @@ const Popup: React.FC<PopupProps> = ({
               : false,
           updateDashboard: false,
         });
+        setCasingSites(result[StorageKeys.CASING_SITES]);
+        result[StorageKeys.CASING_SITES] &&
+          result[StorageKeys.CASING_SITES].includes(domain) &&
+          setCasing(false);
 
         if (result[StorageKeys.NUMBER_OF_NOTIFICATIONS] > 0) {
           addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
           setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
         }
+
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
+
         setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
-        setCasingSites(result[StorageKeys.CASING_SITES]);
-        result[StorageKeys.CASING_SITES] &&
-          result[StorageKeys.CASING_SITES].includes(domain) &&
-          setCasing(false);
       })
 
       .catch(onStorageError);
@@ -183,17 +199,17 @@ const Popup: React.FC<PopupProps> = ({
 
   useEffect(() => {
     if (domain) {
-      console.log(' enabled.updateDashboard', enabled.updateDashboard);
       enabled.updateDashboard &&
         storeInLocalStorage(StorageKeys.DOMAIN_TO_UPDATE, {
           domain: domain,
           enabled: enabled.enabled,
         });
 
-      storeInLocalStorage(StorageKeys.DOMAINS, [
-        ...domainsDisabledLocally,
-        domain,
-      ]);
+      !enabled &&
+        storeInLocalStorage(StorageKeys.DOMAINS, [
+          ...domainsDisabledLocally,
+          domain,
+        ]);
     }
     setWittyIcon(enabled.enabled);
   }, [enabled]);
@@ -209,6 +225,72 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     storeInLocalStorage(StorageKeys.STYLE, styleCorrections);
   }, [styleCorrections]);
+
+  useEffect(() => {
+    setToken(accessToken);
+    setConfig(accessToken != '' ? true : false);
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (authResponse) {
+      setAuthResponseConfig(authResponse);
+      for (let key in authResponse.config) {
+        switch (key) {
+          case 'orthography':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setOrthography(authResponse.config[key]);
+            } else {
+              setOrthography({
+                ...orthography,
+                status: authResponse.config[key].status,
+              });
+            }
+            break;
+          case 'inclusive':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setInclusiveLanguage(authResponse.config[key]);
+            } else {
+              setInclusiveLanguage({
+                ...inclusiveLanguage,
+                status: authResponse.config[key].status,
+              });
+            }
+            break;
+          case 'style':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setStyleCorrections(authResponse.config[key]);
+            } else {
+              setStyleCorrections({
+                ...styleCorrections,
+                status: authResponse.config[key].status,
+              });
+            }
+            break;
+        }
+      }
+      setResetSettings(false);
+    }
+  }, [authResponse, resetSettings]);
+
+  useEffect(() => {
+    if (!authResponseConfig) return;
+    if (
+      authResponseConfig.config['orthography'].value != orthography.value ||
+      authResponseConfig.config['inclusive'].value != inclusiveLanguage.value ||
+      authResponseConfig.config['style'].value != styleCorrections.value
+    ) {
+      setLocalConfigDiffersFromDashboard(true);
+    } else {
+      setLocalConfigDiffersFromDashboard(false);
+    }
+  }, [authResponseConfig, orthography, inclusiveLanguage, styleCorrections]);
+
+  useEffect(() => {
+    console.log('authErrorResponse', authErrorResponse);
+    // if (authErrorResponse?.status == 403) {
+    //   logOut();
+    // }
+  }, [authErrorResponse]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.DOMAINS, domainsDisabledLocally);
@@ -257,8 +339,6 @@ const Popup: React.FC<PopupProps> = ({
     setToken('');
     setUserIsLoggedIn(false);
   };
-
-  console.log('numberOfNotifications', numberOfNotifications);
 
   return (
     <>
@@ -421,6 +501,18 @@ const Popup: React.FC<PopupProps> = ({
             userIsLoggedIn={userIsLoggedIn}
           />
           <div className='toggle-separator' />
+          {localConfigDiffersFromDashboard && (
+            <div className='wittyworks-align-center'>
+              <div
+                className='wittyworks-button'
+                onClick={() => {
+                  setResetSettings(true);
+                }}
+              >
+                {t('resetSettings')}
+              </div>
+            </div>
+          )}
           {hasWittyTeams ? (
             <div className='wittyworks-align-center'>
               <div

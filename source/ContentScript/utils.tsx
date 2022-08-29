@@ -44,7 +44,8 @@ export const updateConfig = (response: IAuthResponse) => {
         );
         break;
       case 'inclusive':
-        storeInLocalStorage(StorageKeys.INCLUSIVE, response.config[key]);
+        response.config[key].status == 'force' &&
+          storeInLocalStorage(StorageKeys.INCLUSIVE, response.config[key]);
         break;
       case 'maximum_importance':
         storeInLocalStorage(
@@ -53,7 +54,8 @@ export const updateConfig = (response: IAuthResponse) => {
         );
         break;
       case 'orthography':
-        storeInLocalStorage(StorageKeys.ORTHOGRAPHY, response.config[key]);
+        response.config[key].status == 'force' &&
+          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, response.config[key]);
         break;
       case 'preferred_variants':
         storeInLocalStorage(
@@ -71,7 +73,8 @@ export const updateConfig = (response: IAuthResponse) => {
         storeInLocalStorage(StorageKeys.SINGULAR_THEY, response.config[key]);
         break;
       case 'style':
-        storeInLocalStorage(StorageKeys.STYLE, response.config[key]);
+        response.config[key].status == 'force' &&
+          storeInLocalStorage(StorageKeys.STYLE, response.config[key]);
         break;
     }
   });
