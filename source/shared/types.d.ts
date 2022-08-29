@@ -33,6 +33,7 @@ export interface ICheckResponse {
   language: string;
   limit_reached: boolean;
   config_changed: boolean;
+  notifications: number;
 }
 
 export interface ICheckResponseResult {
@@ -56,14 +57,19 @@ export interface IAuthResponse {
   //private account
   id: string;
   name: string;
-  domains: object;
+  domains: IDomains;
   config_hash: string;
 
   //organization account
   organization_id?: string;
   organization_name?: string;
-  organization_domains: object;
+  organization_domains: IDomains;
   organization_config_hash: string;
+}
+
+export interface IDomains {
+  list: string[];
+  type: string;
 }
 export interface IRefreshTokenResponse {
   email: string;
@@ -200,4 +206,9 @@ export type DefaultConfigValue =
 export interface IDomainRequest {
   domain: string;
   enabled: boolean;
+}
+
+export interface EnableWittyToggle {
+  enabled: boolean;
+  updateDashboard: boolean;
 }

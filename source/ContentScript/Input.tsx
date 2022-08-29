@@ -4,7 +4,7 @@ import { browser } from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
 import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
-import { WTags } from '../shared/constants';
+import { WTags, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 
@@ -30,13 +30,12 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
-import { getInputText, updateConfig } from './InputUtils';
+import { getInputText, updateConfig } from './utils';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -440,8 +439,13 @@ const Input: React.FC<{
 
     setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
 
-    //TODO: check if this is needed
-    storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+    checkEndpointResponse.notifications
+      ? storeInLocalStorage(
+          StorageKeys.NUMBER_OF_NOTIFICATIONS,
+          checkEndpointResponse.notifications
+        )
+      : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
+
     setActiveIcon('active');
 
     analytics.checkLog(
@@ -603,33 +607,40 @@ const Input: React.FC<{
 
   const updateTextWithAlternative = (alternative: string) => {
     const node = popoverData?.node as Node;
-    const nodeText: string = node.nodeValue as string;
     const alert = selectedAlert as IAlert;
-    const termToBeReplaced: string = nodeText.slice(
-      alert.startOffset,
-      alert.endOffset
-    );
 
-    const regex: RegExp = new RegExp(
-      alternative === ''
-        ? alert.startOffset === 0
-          ? `${termToBeReplaced}[ ,]?`
-          : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}[ ,]?`
-        : alert.startOffset === 0
-        ? `${termToBeReplaced}`
-        : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}`
-    );
+    if (isTextArea(element) || isInputText(element)) {
+      element.selectionStart = alert.startOffset;
+      element.selectionEnd =
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset;
+      //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
+      document.execCommand('insertText', false, alternative);
+    } else {
+      const range = document.createRange();
+      range.setStart(node, alert.startOffset);
+      range.setEnd(
+        node,
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset
+      );
+      const sel = window.getSelection();
+      if (!sel) return;
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.execCommand('insertText', false, alternative);
+    }
 
-    const newTextToInsert = nodeText.replace(regex, alternative);
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (nodeAlert) => nodeAlert.startOffset < alert.startOffset
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    } else {
+      setAlerts([]);
+    }
 
-    isTextArea(element) || isInputText(element)
-      ? (element.value = newTextToInsert)
-      : (node.nodeValue = newTextToInsert);
-
-    const newText: string = getInputText(element);
-    setTextToCheck(newText);
-
-    resetPopover();
+    setTextToCheck(getInputText(element));
   };
 
   useEffect(() => {
@@ -657,8 +668,6 @@ const Input: React.FC<{
             StorageKeys.REFRESH_TOKEN,
             refreshTokenResponse.refresh_token
           );
-          storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
-
           setTextToCheck('');
           setTextToCheck(currentTextToCheck);
         })

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
+import { getCorrectedPosition } from '../shared/utils';
 
-import { usePositionCorrection } from '../shared/customHooks/usePositionCorrection';
 interface InputTextCloneProps {
   element: HTMLInputElement;
   elementRect: DOMRect;
@@ -14,9 +14,10 @@ const InputTextClone: React.FC<InputTextCloneProps> = ({
 }: InputTextCloneProps) => {
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
   const elementStyle = window.getComputedStyle(element);
-  const correctedPosition = usePositionCorrection(
-    element,
-    cloneRef.current.parentElement
+  const correctedPosition = getCorrectedPosition(
+    elementRect,
+    cloneRef.current.parentElement,
+    element
   );
 
   return (

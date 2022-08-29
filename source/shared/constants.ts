@@ -12,8 +12,9 @@ export const POSTHOG_API_KEY = DEV_ENV
 //Storage
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
+  API_DELAY = 'apiDelay',
   APP_ID = 'id',
-  DISABLED_SITES = 'disabledSites',
+
   PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
@@ -23,21 +24,23 @@ export enum StorageKeys {
   SINGULAR_THEY = 'singularThey',
   MAXIMUM_IMPORTANCE = 'maximumImportance',
   CASING_SITES = 'casingSites',
-  API_DELAY = 'apiDelay',
   GENDERED_ROLES_FORMAT = 'genderedRolesFormat',
-  USERNAME = 'username',
+
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',
-  CURRENT_DOMAIN = 'currentDomain',
-  ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
-  TEAM_NAME = 'teamName',
   PLAN = 'plan',
-  CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
+
   DOMAINS = 'domains',
   ORGANIZATION_DOMAINS = 'organizationDomains',
   CONFIG_HASH = 'configHash',
   ORGANIZATION_CONFIG_HASH = 'organizationConfigHash',
   DOMAIN_TO_UPDATE = 'domainToUpdate',
+
+  CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
+
+  DOMAINS_CONFIRMED_TO_WORK = 'domainsConfirmedToWork',
+  DOMAINS_CONFIRMED_TO_NOT_WORK = 'domainsConfirmedNotToWork',
+  NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
 }
 
 //nlp api, dashboard
@@ -180,3 +183,8 @@ export const dropdownOptions = [
 ];
 
 export const devAppId = 'DEV_APP_ID';
+export const exposeWittyIdAllowList = [
+  'dashboard.lndo.site',
+  'dashboard.witty.works',
+  'witty.works',
+];

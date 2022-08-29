@@ -2,16 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
 import { useTranslation } from 'react-i18next';
 
-import { ConfigProperty } from '../../shared/types';
+import {
+  ConfigProperty,
+  EnableWittyToggle,
+  IAuthResponse,
+} from '../../shared/types';
 import {
   StorageKeys,
-  Colors,
   DefaultBaseUrlKey,
   DEV_ENV,
 } from '../../shared/constants';
 import {
-  addInactiveLabel,
-  removeInactiveLabel,
+  addInactiveBadge,
+  addNotificationBadge,
+  removeBadge,
   storeInLocalStorage,
 } from '../../shared/utils';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -30,13 +34,40 @@ import {
 import PopupHeader from '../PopupComponents/PopupHeader';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
+import ThinkingEmoji from '../../assets/icons/popup/thinkingEmoji.svg';
+import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
+import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
 
-const Popup: React.FC = () => {
+interface PopupProps {
+  appId: string;
+  domain: string;
+  hasWittyTeams: boolean;
+  domainOnActiveOrDisabledList: boolean;
+  domainIsConfirmedByUser: boolean;
+  domainsConfirmedToNotWork: string[];
+  domainsConfirmedToWork: string[];
+  isLocked: boolean;
+}
+
+const Popup: React.FC<PopupProps> = ({
+  appId,
+  domain,
+  hasWittyTeams,
+  domainOnActiveOrDisabledList,
+  domainIsConfirmedByUser,
+  domainsConfirmedToNotWork,
+  domainsConfirmedToWork,
+  isLocked,
+}: PopupProps) => {
   const { t } = useTranslation([namespaces.pages.popup]);
-  const [enabled, setEnabled] = useState<boolean>(true);
-  const [disabledSites, setDisabledSites] = useState<string[]>(
-    defaultConfig.DISABLED_SITES
-  );
+  const [enabled, setEnabled] = useState<EnableWittyToggle>({
+    enabled: true,
+    updateDashboard: false,
+  } as EnableWittyToggle);
+  const [domainsDisabledLocally, setDomainsDisabledLocally] = useState<
+    string[]
+  >([]);
   const [orthography, setOrthography] = useState<ConfigProperty>(
     defaultConfig.ORTHOGRAPHY
   );
@@ -50,24 +81,36 @@ const Popup: React.FC = () => {
   const [casingSites, setCasingSites] = useState<string[]>(
     defaultConfig.CASING_SITES
   );
-  const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(false);
-  const [showBackToRecomendedSites, setShowBackToRecomendedSites] =
-    useState<boolean>(false);
+  const [showSurvey, setShowSurvey] = useState<boolean>(false);
+  const [surveyResponse, setSurveyResponse] = useState<string>('');
+  const [numberOfNotifications, setNumberOfNotifications] =
+    useState<number>(-1);
+  const [accessToken, setAccessToken] = useState<string>('');
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
-  const [currentDomain, setCurrentDomain] = useState<string>('');
+  const [domainIsSetAsNotWorking, setDomainIsSetToNotWorking] =
+    useState<boolean>(
+      domainsConfirmedToNotWork
+        .map((d: string) => d.split('-')[0])
+        .includes(domain)
+    );
+  const [resetSettings, setResetSettings] = useState<boolean>(false);
   const log = useLog('Popup');
-
+  const analytics = useAnalytics();
+  const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
+  const [localConfigDiffersFromDashboard, setLocalConfigDiffersFromDashboard] =
+    useState<boolean>(false);
   const onStorageError = (error: unknown) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
   };
-
-  const onTabsQueryError = (error: unknown) => {
-    log(`onTabsQueryError Error: ${error}`, logTypes.ERROR);
-    sendErrorToSentry(error);
-  };
+  const [authResponseConfig, setAuthResponseConfig] =
+    useState<IAuthResponse | null>(null);
 
   useEffect(() => {
+    !domainOnActiveOrDisabledList && !domainIsConfirmedByUser
+      ? setShowSurvey(true)
+      : setShowSurvey(false);
+
     browser.storage.local
       .get(null)
       .then((result) => {
@@ -77,35 +120,98 @@ const Popup: React.FC = () => {
             : DefaultBaseUrlKey
         );
         setUserIsLoggedIn(result[StorageKeys.ACCESS_TOKEN] ? true : false);
+        setAccessToken(
+          result[StorageKeys.ACCESS_TOKEN]
+            ? result[StorageKeys.ACCESS_TOKEN]
+            : ''
+        );
+        setEnabled({
+          enabled:
+            !domainsConfirmedToNotWork
+              .map((d: string) => {
+                return d.split('-')[0];
+              })
+              .includes(domain) &&
+            !defaultConfig.DISABLED_SITES.includes(domain) &&
+            result[StorageKeys.ACCESS_TOKEN] &&
+            !result[StorageKeys.DOMAINS].includes(domain) &&
+            !isLocked
+              ? true
+              : false,
+          updateDashboard: false,
+        });
+        setCasingSites(result[StorageKeys.CASING_SITES]);
+        result[StorageKeys.CASING_SITES] &&
+          result[StorageKeys.CASING_SITES].includes(domain) &&
+          setCasing(false);
+
+        if (result[StorageKeys.NUMBER_OF_NOTIFICATIONS] > 0) {
+          addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
+          setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
+        }
+
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
-        setDisabledSites(result[StorageKeys.DISABLED_SITES]);
-        setCasingSites(result[StorageKeys.CASING_SITES]);
-        setHasWittyTeams(
-          result[StorageKeys.PLAN] == 'witty_teams' ? true : false
-        );
-        queryTabs(result);
+
+        setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
       })
+
       .catch(onStorageError);
   }, []);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.DISABLED_SITES, disabledSites);
-  }, [disabledSites.length]);
+    const domainWithTimeStamp = `${domain}-${new Date().getTime()}`;
+
+    if (surveyResponse == 'yes') {
+      //remove it from the 'not working' list before adding it to the 'working' list
+      domainsConfirmedToNotWork &&
+        domainsConfirmedToNotWork
+          .map((d) => d.split('-')[0])
+          .includes(domain) &&
+        storeInLocalStorage(
+          StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK,
+          domainsConfirmedToNotWork.filter((d) => d.split('-')[0] !== domain)
+        );
+
+      storeInLocalStorage(StorageKeys.DOMAINS_CONFIRMED_TO_WORK, [
+        ...domainsConfirmedToWork,
+        domainWithTimeStamp,
+      ]);
+    } else if (surveyResponse == 'no') {
+      domainsConfirmedToWork &&
+        domainsConfirmedToWork.map((d) => d.split('-')[0]).includes(domain) &&
+        storeInLocalStorage(
+          StorageKeys.DOMAINS_CONFIRMED_TO_WORK,
+          domainsConfirmedToWork.filter((d) => d.split('-')[0] !== domain)
+        );
+
+      storeInLocalStorage(StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK, [
+        ...domainsConfirmedToNotWork,
+        domainWithTimeStamp,
+      ]);
+    }
+  }, [surveyResponse]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.CASING_SITES, casingSites);
   }, [casingSites.length]);
 
   useEffect(() => {
-    currentDomain &&
-      storeInLocalStorage(StorageKeys.DOMAIN_TO_UPDATE, {
-        domain: currentDomain,
-        enabled: enabled,
-      });
+    if (domain) {
+      enabled.updateDashboard &&
+        storeInLocalStorage(StorageKeys.DOMAIN_TO_UPDATE, {
+          domain: domain,
+          enabled: enabled.enabled,
+        });
 
-    setWittyIcon(enabled);
+      !enabled &&
+        storeInLocalStorage(StorageKeys.DOMAINS, [
+          ...domainsDisabledLocally,
+          domain,
+        ]);
+    }
+    setWittyIcon(enabled.enabled);
   }, [enabled]);
 
   useEffect(() => {
@@ -121,57 +227,110 @@ const Popup: React.FC = () => {
   }, [styleCorrections]);
 
   useEffect(() => {
-    setEnabled(!userIsLoggedIn ? false : true);
-  }, [userIsLoggedIn]);
+    setToken(accessToken);
+    setConfig(accessToken != '' ? true : false);
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (authResponse) {
+      setAuthResponseConfig(authResponse);
+      for (let key in authResponse.config) {
+        switch (key) {
+          case 'orthography':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setOrthography(authResponse.config[key]);
+            } else {
+              setOrthography({
+                ...orthography,
+                status: authResponse.config[key].status,
+              });
+            }
+            break;
+          case 'inclusive':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setInclusiveLanguage(authResponse.config[key]);
+            } else {
+              setInclusiveLanguage({
+                ...inclusiveLanguage,
+                status: authResponse.config[key].status,
+              });
+            }
+            break;
+          case 'style':
+            if (authResponse.config[key].status == 'force' || resetSettings) {
+              setStyleCorrections(authResponse.config[key]);
+            } else {
+              setStyleCorrections({
+                ...styleCorrections,
+                status: authResponse.config[key].status,
+              });
+            }
+            break;
+        }
+      }
+      setResetSettings(false);
+    }
+  }, [authResponse, resetSettings]);
+
+  useEffect(() => {
+    if (!authResponseConfig) return;
+    if (
+      authResponseConfig.config['orthography'].value != orthography.value ||
+      authResponseConfig.config['inclusive'].value != inclusiveLanguage.value ||
+      authResponseConfig.config['style'].value != styleCorrections.value
+    ) {
+      setLocalConfigDiffersFromDashboard(true);
+    } else {
+      setLocalConfigDiffersFromDashboard(false);
+    }
+  }, [authResponseConfig, orthography, inclusiveLanguage, styleCorrections]);
+
+  useEffect(() => {
+    console.log('authErrorResponse', authErrorResponse);
+    // if (authErrorResponse?.status == 403) {
+    //   logOut();
+    // }
+  }, [authErrorResponse]);
+
+  useEffect(() => {
+    storeInLocalStorage(StorageKeys.DOMAINS, domainsDisabledLocally);
+  }, [domainsDisabledLocally.length]);
 
   const setWittyIcon = (state: boolean) => {
-    state ? removeInactiveLabel() : addInactiveLabel();
+    removeBadge();
+    !state && addInactiveBadge();
   };
-  const queryTabs = (result: any) => {
-    browser.tabs
-      .query({ active: true, currentWindow: true })
-      .then((tabs) => {
-        if (tabs.length > 0 && tabs[0].url) {
-          const newCurrentDomain = new URL(tabs[0].url).hostname.replace(
-            'www.',
-            ''
-          );
-          setCurrentDomain(newCurrentDomain);
 
-          defaultConfig.ACTIVE_SITES &&
-            !defaultConfig.ACTIVE_SITES.includes(newCurrentDomain) &&
-            setShowBackToRecomendedSites(true);
-
-          result[StorageKeys.DISABLED_SITES] &&
-            result[StorageKeys.DISABLED_SITES].includes(newCurrentDomain) &&
-            setEnabled(false);
-
-          result[StorageKeys.CASING_SITES] &&
-            result[StorageKeys.CASING_SITES].includes(newCurrentDomain) &&
-            setCasing(false);
-        }
-      })
-      .catch(onTabsQueryError);
-  };
   const handleEnableToggle = () => {
-    setEnabled(!enabled);
+    if (isLocked) return;
 
-    if (currentDomain && currentDomain.length > 0)
-      setDisabledSites(
-        enabled
-          ? [...disabledSites, currentDomain]
-          : disabledSites.filter((item: string) => item !== currentDomain)
+    if (domainIsSetAsNotWorking && !enabled.enabled) {
+      setDomainIsSetToNotWorking(false);
+      setShowSurvey(true);
+      storeInLocalStorage(
+        StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK,
+        domainsConfirmedToNotWork.filter((d) => d.split('-')[0] !== domain)
+      );
+    }
+
+    setEnabled({ enabled: !enabled.enabled, updateDashboard: true });
+
+    if (domain && domain.length > 0)
+      setDomainsDisabledLocally(
+        enabled.enabled
+          ? [...domainsDisabledLocally, domain]
+          : domainsDisabledLocally.filter((item: string) => item !== domain)
       );
   };
 
   const handleCasingToggle = () => {
     setCasing(!casing);
 
-    if (currentDomain && currentDomain.length > 0)
+    if (domain && domain.length > 0)
       setCasingSites(
         casing
-          ? [...casingSites, currentDomain]
-          : casingSites.filter((item: string) => item !== currentDomain)
+          ? [...casingSites, domain]
+          : casingSites.filter((item: string) => item !== domain)
       );
   };
 
@@ -183,33 +342,114 @@ const Popup: React.FC = () => {
 
   return (
     <>
-      <PopupHeader />
-      {currentDomain && currentDomain.length > 0 && (
+      {numberOfNotifications > 0 ? (
+        <PopupHeaderNotification />
+      ) : (
+        <PopupHeader />
+      )}
+      {domain && domain.length > 0 && (
         <section className='wittyworks-toggles website-settings'>
-          <h2>{t('websiteSettings', { domain: currentDomain })}</h2>
+          <div className='wittyworks-text-grey'>
+            {domainIsSetAsNotWorking
+              ? t('websiteSettingsDeactivated', { domain: domain })
+              : t('websiteSettings', { domain: domain })}
+          </div>
           <Toggle
-            on={enabled}
+            on={enabled.enabled}
             handleToggle={handleEnableToggle}
-            color={Colors.green}
-            scale={0.35}
-            label={t('enableWitty')}
+            label={
+              domainIsSetAsNotWorking
+                ? t('tryAgainOnThisWebsite')
+                : t('enableWitty')
+            }
+            locked={isLocked}
           />
-          <hr className='toggle-separator' />
-          {enabled && (
+          <div className='toggle-separator' />
+          {enabled.enabled && (
             <>
               <Toggle
                 on={casing}
                 handleToggle={handleCasingToggle}
-                color={Colors.green}
-                scale={0.35}
                 label={t('caseSensitivity')}
               />
-              <hr className='toggle-separator' />
+              <div className='toggle-separator' />
             </>
           )}
         </section>
       )}
-      {enabled && (
+      {showSurvey && enabled.enabled && (
+        <section>
+          <div className='wittyworks-signin-container'>
+            <div className='wittyworks-icon-container'>
+              <ThinkingEmoji />
+            </div>
+            <div className='wittyworks-text-large'>{t('doesWittyWork')}</div>
+          </div>
+
+          <div>{t('doesWittyWorkExplanation')}</div>
+          <div>{t('fillInSurvey')}</div>
+          <div className='wittyworks-container-gradient-background'>
+            <div className='wittyworks-text-medium wittyworks-align-left'>
+              {t('doesWittyWorkSurvey')}
+            </div>
+            {!surveyResponse && (
+              <div className='wittyworks-flex-row'>
+                <div
+                  className='wittyworks-button wittyworks-button-yes'
+                  onClick={() => {
+                    setSurveyResponse('yes');
+                    setShowSurvey(false);
+                    analytics.urlLog(domain, appId, 'wittyWorksAsExpected');
+                  }}
+                >
+                  {t('surveyButtonYes')}
+                </div>
+                <div
+                  className='wittyworks-button wittyworks-button-no'
+                  onClick={() => {
+                    setSurveyResponse('no');
+                    analytics.urlLog(
+                      domain,
+                      appId,
+                      'wittyDoesNotWorkAsExpected'
+                    );
+                  }}
+                >
+                  {t('surveyButtonNo')}
+                </div>
+              </div>
+            )}
+            {surveyResponse == 'no' && (
+              <>
+                <div className='wittyworks-text-small'>
+                  {t('resultSurveyNegative')}
+                </div>
+                <div className='wittyworks-flex-row'>
+                  <div
+                    className='wittyworks-button'
+                    onClick={() => {
+                      setSurveyResponse('');
+                    }}
+                  >
+                    {t('tryAgain')}
+                  </div>
+                  <div
+                    className='wittyworks-button'
+                    onClick={() => {
+                      setEnabled({ enabled: false, updateDashboard: false });
+                      setSurveyResponse('');
+                      setDomainIsSetToNotWorking(true);
+                    }}
+                  >
+                    {t('understood')}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+      {enabled.enabled && !showSurvey && (
         <section className='wittyworks-toggles global-settings'>
           <h2>{t('globalSettings')}</h2>
           <Toggle
@@ -223,14 +463,12 @@ const Popup: React.FC = () => {
                     : orthography.value,
               });
             }}
-            color={Colors.green}
-            scale={0.35}
             label={t('spellChecking')}
             locked={orthography.status == 'force'}
             userIsLoggedIn={userIsLoggedIn}
           />
 
-          <hr className='toggle-separator' />
+          <div className='toggle-separator' />
           <Toggle
             on={inclusiveLanguage.value as boolean}
             handleToggle={() => {
@@ -242,13 +480,11 @@ const Popup: React.FC = () => {
                     : inclusiveLanguage.value,
               });
             }}
-            color={Colors.green}
-            scale={0.35}
             label={t('inclusiveTerms')}
             locked={inclusiveLanguage.status === 'force'}
             userIsLoggedIn={userIsLoggedIn}
           />
-          <hr className='toggle-separator' />
+          <div className='toggle-separator' />
           <Toggle
             on={styleCorrections.value as boolean}
             handleToggle={() => {
@@ -260,17 +496,27 @@ const Popup: React.FC = () => {
                     : styleCorrections.value,
               });
             }}
-            color={Colors.green}
-            scale={0.35}
             label={t('styleCorrections')}
             locked={styleCorrections.status == 'force'}
             userIsLoggedIn={userIsLoggedIn}
           />
-          <hr className='toggle-separator' />
-          {hasWittyTeams ? (
-            <div className='wittyworks-dashboard-button-container'>
+          <div className='toggle-separator' />
+          {localConfigDiffersFromDashboard && (
+            <div className='wittyworks-align-center'>
               <div
-                className='wittyworks-dashboard-button'
+                className='wittyworks-button'
+                onClick={() => {
+                  setResetSettings(true);
+                }}
+              >
+                {t('resetSettings')}
+              </div>
+            </div>
+          )}
+          {hasWittyTeams ? (
+            <div className='wittyworks-align-center'>
+              <div
+                className='wittyworks-button'
                 onClick={() => {
                   window.open(getBaseUrls().dashboard, '_blank');
                 }}
@@ -279,7 +525,7 @@ const Popup: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className='wittyworks-upgrade-banner-popup'>
+            <div className='wittyworks-container-gradient-background'>
               <div className='wittyworks-upgrade-banner-popup-text-container'>
                 <div className='wittyworks-upgrade-banner-popup-title'>
                   {t('getMoreTitle', { domain: 'miro.com' })}
@@ -289,7 +535,7 @@ const Popup: React.FC = () => {
                 </div>
               </div>
               <div
-                className='wittyworks-upgrade-banner-popup-button'
+                className='wittyworks-button wittyworks-align-left'
                 onClick={() => {
                   window.open(
                     'https://www.witty.works/witty-for-teams',
@@ -302,8 +548,15 @@ const Popup: React.FC = () => {
               </div>
             </div>
           )}
+        </section>
+      )}
+      {DEV_ENV && (
+        <section>
+          <h2>{t('developmentSettings')}</h2>
+          <ApiSelector />
+          <DelaySelector />
           <div
-            className='wittyworks-signin-button'
+            className='wittyworks-button wittyworks-align-left'
             onClick={() => {
               logOut();
             }}
@@ -312,25 +565,6 @@ const Popup: React.FC = () => {
           </div>
         </section>
       )}
-      {DEV_ENV && (
-        <section>
-          <h2>{t('developmentSettings')}</h2>
-          <ApiSelector />
-          <DelaySelector />
-        </section>
-      )}
-      <footer>
-        <div
-          className='enable-witty'
-          onClick={() => {
-            storeInLocalStorage(StorageKeys.ENABLE_WITTY_EVERYWHERE, false);
-          }}
-        >
-          {showBackToRecomendedSites && (
-            <span>{t('backToRecomendedSites')}</span>
-          )}
-        </div>
-      </footer>
     </>
   );
 };
