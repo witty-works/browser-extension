@@ -8,7 +8,6 @@ import { getCorrectedPosition } from '../utils';
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-
 interface IconControllerProps {
   iconType: string;
   element: CustomInputElement;
