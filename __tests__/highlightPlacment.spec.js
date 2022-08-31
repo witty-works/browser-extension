@@ -21,8 +21,8 @@ const test = base.extend({
             devtools: false,
             headless: false,
             viewport: {
-                width: 1280,
-                height: 720
+                width: 1920,
+                height: 1080
             },
 
 
@@ -45,12 +45,14 @@ const test = base.extend({
 test.setTimeout(120000)
 test.use({ screenshot: 'on' })
 
+
 test.describe('Highlights', () => {
     test('witty form not logged in', async ({ page }) => {
         await page.goto('https://www.witty.works/editor');
         await page.waitForLoadState('networkidle')
         await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
         await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+
         await page.waitForSelector('#witty-test');
         await page.click('#witty-test');
 
@@ -64,12 +66,12 @@ test.describe('Highlights', () => {
     test('witty form', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.enableAllToggles(page);
         await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
 
         await page.goto('https://www.witty.works/editor');
         await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+
         await page.waitForSelector('#witty-test');
         await page.click('#witty-test');
         await page.waitForTimeout(3000); //wait for api to respond with highlights
@@ -80,7 +82,9 @@ test.describe('Highlights', () => {
         });
     });
 
+    //ASKING FOR reCAPTCHA
     test('twitter writing post', async ({ page, context }) => {
+        test.skip(process.env.CI, 'skip in pipeline');
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
@@ -96,23 +100,24 @@ test.describe('Highlights', () => {
         });
     });
 
-    // test('twitter writing comment', async ({ page, context }) => {
-    //     const extensionId = await utils.getExtensionId(page);
-    //     await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
-    //     await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
+    test('twitter writing comment', async ({ page, context }) => {
+        test.skip(process.env.CI, 'skip in pipeline');
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
 
-    //     await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
-    //     await page.waitForSelector('.r-z2wwpe');
-    //     await page.goto('https://twitter.com/lsmith/status/1481306915695210501?s=21');
-    //     await page.waitForSelector('.r-z2wwpe');
-    //     await page.click('.r-z2wwpe');
-    //     await page.type('.r-z2wwpe', testTextShort);
-    //     await page.waitForTimeout(3000);
+        await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
+        await page.waitForSelector('.r-z2wwpe');
+        await page.goto('https://twitter.com/lsmith/status/1481306915695210501?s=21');
+        await page.waitForSelector('.r-z2wwpe');
+        await page.click('.r-z2wwpe');
+        await page.type('.r-z2wwpe', testTextShort);
+        await page.waitForTimeout(3000);
 
-    //     await page.locator('.r-z2wwpe').screenshot().then(async (screenshot) => {
-    //         expect(screenshot).toMatchSnapshot('twitter-comment.png')
-    //     });
-    // });
+        await page.locator('.r-z2wwpe').screenshot().then(async (screenshot) => {
+            expect(screenshot).toMatchSnapshot('twitter-comment.png')
+        });
+    });
 
     //FONT ISSUE IN PIPELINE
     test('linkedin post', async ({ page }) => {
@@ -130,7 +135,7 @@ test.describe('Highlights', () => {
 
 
     test('linkedin message', async ({ page }) => {
-        // test.skip(process.env.CI, 'skip in pipeline');
+        test.skip(process.env.CI, 'skip in pipeline');
         await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
         await page.goto('https://www.linkedin.com/messaging/thread/new/');
         await page.waitForSelector('.msg-form__contenteditable');
@@ -144,35 +149,35 @@ test.describe('Highlights', () => {
     });
 
     //MANAGES TO BLOCK PROXY
-    // test('github comment', async ({ page }) => {
-    //     test.skip(process.env.CI, 'skip in pipeline');
-    //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
-    //     await page.goto('https://github.com/premiumUserWW/test/issues/1');
-    //     await page.waitForLoadState('networkidle')
-    //     await page.waitForSelector('#new_comment_field');
-    //     await page.click('#new_comment_field');
-    //     await page.type('#new_comment_field', testText);
-    //     await page.waitForTimeout(3000);
+    test('github comment', async ({ page }) => {
+        test.skip(process.env.CI, 'skip in pipeline');
+        await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
+        await page.goto('https://github.com/premiumUserWW/test/issues/1');
+        await page.waitForLoadState('networkidle')
+        await page.waitForSelector('#new_comment_field');
+        await page.click('#new_comment_field');
+        await page.type('#new_comment_field', testText);
+        await page.waitForTimeout(3000);
 
-    //     await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
-    //         expect(screenshot).toMatchSnapshot('github-comment.png')
-    //     });
-    // });
+        await page.locator('#new_comment_field').screenshot().then(async (screenshot) => {
+            expect(screenshot).toMatchSnapshot('github-comment.png')
+        });
+    });
 
-    // test('github create issue', async ({ page }) => {
-    //     test.skip(process.env.CI, 'skip in pipeline');
-    //     await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
-    //     await page.goto('https://github.com/premiumUserWW/test/issues/new');
-    //     await page.waitForLoadState('networkidle')
-    //     await page.waitForSelector('#issue_title');
-    //     await page.click('#issue_body');
-    //     await page.type('#issue_body', testText);
-    //     await page.waitForTimeout(3000);
+    test('github create issue', async ({ page }) => {
+        test.skip(process.env.CI, 'skip in pipeline');
+        await utils.loginGithub(premiumUserEmail, premiumUserPassword, page);
+        await page.goto('https://github.com/premiumUserWW/test/issues/new');
+        await page.waitForLoadState('networkidle')
+        await page.waitForSelector('#issue_title');
+        await page.click('#issue_body');
+        await page.type('#issue_body', testText);
+        await page.waitForTimeout(3000);
 
-    //     await page.locator('#issue_body').screenshot().then(async (screenshot) => {
-    //         expect(screenshot).toMatchSnapshot('github-create-issue.png')
-    //     });
-    // });
+        await page.locator('#issue_body').screenshot().then(async (screenshot) => {
+            expect(screenshot).toMatchSnapshot('github-create-issue.png')
+        });
+    });
 
     // test('gmail writing an email', async ({ page }) => {
     //     await utils.loginGmail(premiumUserEmail, premiumUserPassword, page);

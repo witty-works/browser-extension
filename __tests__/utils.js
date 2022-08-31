@@ -164,3 +164,103 @@ exports.getExtensionId = async function (page) {
     return extensionId;
 }
 
+exports.enableAllToggles = async function (page) {
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+
+    await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+
+    //orthography
+    const inclusiveToggle = await page.waitForSelector('.max-w-7xl:nth-child(6) .px-4 .slider');
+    const backgroundColorInclusive = await inclusiveToggle.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    });
+    if (backgroundColorInclusive === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(6) .px-4 .slider');
+    }
+    const inclusiveToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+    const backgroundColorInclusiveForce = await inclusiveToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    });
+    if (backgroundColorInclusiveForce === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(6) .inline-flex');
+
+    //style
+    const styleToggle = await page.waitForSelector('.max-w-7xl:nth-child(7) .px-4 .slider');
+    const backgroundColorStyle = await styleToggle.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    });
+    if (backgroundColorStyle === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(7) .px-4 .slider');
+    }
+    const styleToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    })
+    if (backgroundColorStyleForce === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(7) .inline-flex');
+
+
+    //orthography
+    const orthographyToggle = await page.waitForSelector('.max-w-7xl:nth-child(8) .px-4 .slider');
+    const backgroundColorOrthography = await orthographyToggle.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    });
+    if (backgroundColorOrthography === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(8) .px-4 .slider');
+    }
+    const orthographyToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    }
+    );
+    if (backgroundColorOrthographyForce === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(8) .inline-flex');
+}
+
+exports.unlockAllToggles = async function (page) {
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+
+    await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+
+    //orthography
+    const inclusiveToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+    const backgroundColorInclusiveForce = await inclusiveToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    });
+    if (backgroundColorInclusiveForce !== 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(6) .inline-flex');
+
+    //style
+    const styleToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    })
+    if (backgroundColorStyleForce !== 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(7) .inline-flex');
+
+
+    //orthography
+    const orthographyToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    }
+    );
+    if (backgroundColorOrthographyForce !== 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(8) .inline-flex');
+}
