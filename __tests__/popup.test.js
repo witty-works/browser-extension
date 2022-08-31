@@ -54,7 +54,7 @@ test.describe('Popup', () => {
         await page.click('#witty-logo');
         await page.waitForLoadState('networkidle')
         let pages = await context.pages();
-        expect(pages.length).toBe(3);
+        expect(pages.length).toBe(2);
     });
 
     test('popup contains three toggles with labels when survey response yes', async ({ page, context }) => {
