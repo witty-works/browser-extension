@@ -2,7 +2,6 @@ const { test: base, chromium, expect } = require('@playwright/test') //add firef
 require('dotenv').config();
 const utils = require('./utils');
 
-const extensionId = process.env.EXTENSION_ID_GA;
 const userEmail = process.env.TEST_USER_EMAIL;
 const userPassword = process.env.TEST_USER_PASSWORD;
 const premiumUserEmail = process.env.PREMIUM_TEST_USER_EMAIL;
@@ -39,32 +38,46 @@ test.setTimeout(120000); //probably not needed here
 
 test.describe('Popup', () => {
     // // User not logged in
-    test('clicking logo opens a page in another window', async ({ page, context }) => {
-        await page.goto('https://www.witty.works/editor');
-        const extensionId2 = await page.evaluate(() => {
-            return document.querySelector('witty-is-installed').getAttribute('extension-id')
-        })
-        await page.waitForTimeout(5000);
-        console.log(extensionId2);
-
-        await page.goto(`chrome-extension://${extensionId}/popup.html`);
-        await page.waitForSelector('#witty-logo');
-        await page.click('#witty-logo');
-        await page.waitForLoadState('networkidle')
-        let pages = await context.pages();
-        await page.waitForTimeout(2000);
-        expect(pages.length).toBe(3);
-    });
-
-    // test('popup contains three toggles with labels', async ({ page }) => {
-    //     //it is 3 toggles, not 5, because it is a chrome page (we dont show the site specific settings)
+    // test('clicking logo opens a page in another window', async ({ page, context }) => {
+    //     const extensionId = await utils.getExtensionId(page);
     //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.waitForSelector('#witty-logo');
+    //     await page.click('#witty-logo');
     //     await page.waitForLoadState('networkidle')
-    //     let toggles = await page.$$('.toggle-encloser');
-    //     expect(toggles.length).toBe(3);
-    //     let labels = await page.$$('.toggle-label');
-    //     expect(labels.length).toBe(3);
+    //     let pages = await context.pages();
+    //     expect(pages.length).toBe(3);
     // });
+
+    test('login popup through dashboard', async ({ page, context }) => {
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.waitForLoadState('networkidle')
+
+        await page.waitForSelector('.wittyworks-button-yes');
+        expect(await page.$('.wittyworks-button-yes')).not.toBeNull();
+    })
+
+    // add survey tests here
+
+    test('popup contains three toggles with labels when survey response yes', async ({ page, context }) => {
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.waitForLoadState('networkidle')
+
+        await page.waitForSelector('.wittyworks-button-yes');
+        await page.click('.wittyworks-button-yes');
+        await page.waitForTimeout(2000);
+
+        let toggles = await page.$$('.toggle-encloser');
+        expect(toggles.length).toBe(3);
+        let labels = await page.$$('.toggle-label');
+        expect(labels.length).toBe(3);
+        await page.waitForTimeout(5000);
+    });
 
     // test('upgrade banner has a button that leads to another page', async ({ page, context }) => {
     //     await page.goto(`chrome-extension://${extensionId}/popup.html`);

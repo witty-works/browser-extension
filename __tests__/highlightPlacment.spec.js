@@ -46,6 +46,8 @@ test.setTimeout(120000)
 test.use({ screenshot: 'on' })
 
 test.describe('Highlights', () => {
+    //    //test that no highlights when not logged in
+
     // test('witty form', async ({ page }) => {
     //     await page.goto('https://www.witty.works/editor');
     //     await page.waitForLoadState('networkidle')

@@ -1,29 +1,30 @@
 const extensionId = process.env.EXTENSION_ID_DEV;
 
-exports.loginOptionsPage = async function (email, password, page) {
+exports.loginPopupPage = async function (email, password, page, extensionId, context) {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await page.waitForLoadState('networkidle')
     await page.selectOption('.dropdown-select', 'Dev');
 
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-button');
-    await page.waitForTimeout(2000);
-    await page.type('#email', email);
-    await page.type('#password', password);
-    await page.click('#next');
-    await page.waitForTimeout(3000);
+    //page is reset to the page that .wittyworks-button redirects to
+    await page.waitForSelector('.wittyworks-button');
+    const [newPage] = await Promise.all([
+        context.waitForEvent('page'),
+        page.click('.wittyworks-button')
+    ]);
+    await newPage.waitForLoadState('networkidle')
+    await newPage.goto(await newPage.url());
+    await newPage.waitForLoadState('networkidle')
+    //close the page
+    await newPage.close();
     return page;
 }
 
 exports.loginDashboard = async function (email, password, page) {
-    await page.goto(`https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en`);
-    await page.waitForSelector('#CybotCookiebotDialog');
-    await page.waitForTimeout(2000);
-    await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-    await page.click('.navigation-wrapper .navigation-link:nth-child(1)');
+    await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en');
     await page.type('#email', email);
     await page.type('#password', password);
     await page.click('#next');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle')
     return page;
 }
 
@@ -154,3 +155,12 @@ exports.evaluateToggleBackgroundBeforeAndAfterClickOptionsToPopupPage = async fu
     });
     return backgroundColorBefore != backgroundColorAfter;
 }
+
+exports.getExtensionId = async function (page) {
+    await page.goto('https://www.witty.works/editor');
+    const extensionId = await page.evaluate(() => {
+        return document.querySelector('witty-is-installed').getAttribute('extension-id')
+    })
+    return extensionId;
+}
+
