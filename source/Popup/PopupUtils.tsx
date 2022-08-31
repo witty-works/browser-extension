@@ -61,9 +61,13 @@ export const renderPopupChrome = (
   result: any
 ) => {
   const isLocked =
-    (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+    (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+      result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+      result[StorageKeys.ORGANIZATION_DOMAINS].list &&
       result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
-    (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+    (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+      result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+      result[StorageKeys.ORGANIZATION_DOMAINS].list &&
       !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
   if (defaultConfig.DISABLED_SITES.includes(domain)) {

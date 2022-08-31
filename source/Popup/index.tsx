@@ -27,9 +27,13 @@ const renderPopup = async (isLocked: boolean = false) => {
       }
 
       if (
-        (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+        (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+          result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+          result[StorageKeys.ORGANIZATION_DOMAINS].list &&
           result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
-        (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+        (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+          result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+          result[StorageKeys.ORGANIZATION_DOMAINS].list &&
           !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
       ) {
         isLocked = true;
