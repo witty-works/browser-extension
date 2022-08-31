@@ -10,7 +10,7 @@ import '../../i18n/i18n';
 import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
 import { setBaseUrls } from '../../shared/ApiServices/requests';
-import { logIn, register } from '../PopupUtils';
+import { logIn } from '../PopupUtils';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
@@ -109,7 +109,7 @@ const PopupLogin: React.FC = () => {
             <span
               className='wittyworks-sigin-link'
               onClick={() => {
-                register(urls);
+                logIn(urls);
               }}
             >
               {t('signUp')}{' '}

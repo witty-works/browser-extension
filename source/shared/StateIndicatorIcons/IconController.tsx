@@ -4,11 +4,10 @@ import { CustomInputElement } from '../types';
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
-import { browser } from 'webextension-polyfill-ts';
-import { StorageKeys } from '../constants';
-import { sendErrorToSentry } from '../errorUtils';
 import { getCorrectedPosition } from '../utils';
-
+import { sendErrorToSentry } from '../errorUtils';
+import { StorageKeys } from '../constants';
+import { browser } from 'webextension-polyfill-ts';
 interface IconControllerProps {
   iconType: string;
   element: CustomInputElement;

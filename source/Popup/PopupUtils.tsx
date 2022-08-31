@@ -14,11 +14,6 @@ export const logIn = async (urls: string) => {
   window.open(url, '_blank');
 };
 
-export const register = async (urls: string) => {
-  const url = `${BaseUrls[urls].dashboard}oauth/azureadb2c/register`;
-  window.open(url, '_blank');
-};
-
 export const renderUserNotLoggedIn = () => {
   ReactDOM.render(<PopupLogin />, document.getElementById('popup-root'));
 };

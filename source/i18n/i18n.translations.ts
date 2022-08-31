@@ -61,6 +61,7 @@ export const de = {
       'You previously reported that Witty does not work on {{domain}} DE',
     tryAgainOnThisWebsite: 'Try again on this website DE',
     lockedInfo: 'locked by org DE',
+    resetSettings: 'Reset settings DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -135,6 +136,7 @@ export const en = {
       'You previously reported that Witty does not work on {{domain}}',
     tryAgainOnThisWebsite: 'Try again on this website',
     lockedInfo: 'locked by org.',
+    resetSettings: 'Reset settings',
   },
 
   [namespaces.popover]: {

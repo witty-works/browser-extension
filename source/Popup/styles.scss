@@ -250,3 +250,111 @@ section {
   display: flex;
   justify-content: center;
 }
+
+.wittyworks-signin-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  align-items: center;
+  margin-top: 0.5em;
+}
+
+.wittyworks-sigin-link {
+  color: #f06464;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.wittyworks-icon-container {
+  margin-right: 1em;
+}
+
+//BUTTONS
+.wittyworks-button {
+  margin-top: 0.5em;
+  padding: 6px 12px;
+  background: $wittyPurple;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
+  border-radius: 4px;
+  color: $white;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.wittyworks-button-yes {
+  background: #5fca7d;
+  padding: 0.5em 3em;
+}
+
+.wittyworks-button-no {
+  background: #f06464;
+  padding: 0.5em 3em;
+}
+
+//TEXT
+.wittyworks-text-grey {
+  margin-bottom: 2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14px;
+  color: $black;
+  opacity: 0.5;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.wittyworks-text-medium {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  color: $black;
+}
+
+.wittyworks-text-large {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 23px;
+  margin-bottom: 0.5em;
+  margin-right: 1em;
+}
+
+.wittyworks-text-small {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  margin-top: 0.5em;
+  margin-right: auto;
+  margin-bottom: 0.5em;
+}
+
+//UTILS
+.wittyworks-flex-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.wittyworks-flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.wittyworks-align-left {
+  display: flex;
+  margin-right: auto;
+}
+
+.wittyworks-align-center {
+  display: flex;
+  justify-content: center;
+}

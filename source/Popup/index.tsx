@@ -19,12 +19,21 @@ const renderPopup = async (isLocked: boolean = false) => {
         return;
       }
       let domain = getDomainWithoutSubdomain(window.location.hostname);
+      if (
+        !window.location.protocol.includes('http') &&
+        !window.location.protocol.includes('https')
+      ) {
+        domain = '';
+      }
 
-      (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
-        result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
+      if (
+        (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+          result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
         (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
-          !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain) &&
-          (isLocked = true));
+          !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
+      ) {
+        isLocked = true;
+      }
 
       const hasWittyTeams =
         result[StorageKeys.PLAN] == 'witty_teams' ? true : false;
