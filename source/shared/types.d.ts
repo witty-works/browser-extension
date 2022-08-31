@@ -51,7 +51,8 @@ export interface ICheckResponseResult {
 
 //AUTH/REFRESHTOKEN ENDPOINT
 export interface IAuthResponse {
-  config: test;
+  config: ResponseConfig;
+  organization_config: ResponseConfig;
   plan: string;
 
   //private account

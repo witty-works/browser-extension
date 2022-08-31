@@ -234,35 +234,44 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     if (authResponse) {
       setAuthResponseConfig(authResponse);
-      for (let key in authResponse.config) {
+      for (let key in authResponse.organization_config) {
         switch (key) {
           case 'orthography':
-            if (authResponse.config[key].status == 'force' || resetSettings) {
-              setOrthography(authResponse.config[key]);
+            if (
+              authResponse.organization_config[key].status == 'force' ||
+              resetSettings
+            ) {
+              setOrthography(authResponse.organization_config[key]);
             } else {
               setOrthography({
                 ...orthography,
-                status: authResponse.config[key].status,
+                status: authResponse.organization_config[key].status,
               });
             }
             break;
           case 'inclusive':
-            if (authResponse.config[key].status == 'force' || resetSettings) {
-              setInclusiveLanguage(authResponse.config[key]);
+            if (
+              authResponse.organization_config[key].status == 'force' ||
+              resetSettings
+            ) {
+              setInclusiveLanguage(authResponse.organization_config[key]);
             } else {
               setInclusiveLanguage({
                 ...inclusiveLanguage,
-                status: authResponse.config[key].status,
+                status: authResponse.organization_config[key].status,
               });
             }
             break;
           case 'style':
-            if (authResponse.config[key].status == 'force' || resetSettings) {
-              setStyleCorrections(authResponse.config[key]);
+            if (
+              authResponse.organization_config[key].status == 'force' ||
+              resetSettings
+            ) {
+              setStyleCorrections(authResponse.organization_config[key]);
             } else {
               setStyleCorrections({
                 ...styleCorrections,
-                status: authResponse.config[key].status,
+                status: authResponse.organization_config[key].status,
               });
             }
             break;
@@ -275,9 +284,12 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     if (!authResponseConfig) return;
     if (
-      authResponseConfig.config['orthography'].value != orthography.value ||
-      authResponseConfig.config['inclusive'].value != inclusiveLanguage.value ||
-      authResponseConfig.config['style'].value != styleCorrections.value
+      authResponseConfig.organization_config['orthography'].value !=
+        orthography.value ||
+      authResponseConfig.organization_config['inclusive'].value !=
+        inclusiveLanguage.value ||
+      authResponseConfig.organization_config['style'].value !=
+        styleCorrections.value
     ) {
       setLocalConfigDiffersFromDashboard(true);
     } else {
