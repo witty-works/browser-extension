@@ -46,74 +46,75 @@ test.setTimeout(120000)
 test.use({ screenshot: 'on' })
 
 test.describe('Highlights', () => {
-    test('witty form', async ({ page }) => {
-        await page.goto('https://www.witty.works/editor');
-        await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.waitForSelector('#witty-test');
-        await page.click('#witty-test');
+    // test('witty form', async ({ page }) => {
+    //     await page.goto('https://www.witty.works/editor');
+    //     await page.waitForLoadState('networkidle')
+    //     await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    //     await page.waitForSelector('#witty-test');
+    //     await page.click('#witty-test');
 
-        await page.waitForTimeout(3000); //wait for api to respond with highlights
+    //     await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
-            //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
-            expect(screenshot).toMatchSnapshot('witty-form.png')
-        });
-    });
-
-
-    test('linkedin post', async ({ page }) => {
-        await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
-        await page.click('#main > div:nth-child(1) > div > div.display-flex.align-items-center.mt2.mr4.ml4 > button');
-        await page.click('.ql-editor');
-        await page.type('.ql-editor', testText);
-        await page.waitForTimeout(3000);
-
-        await page.locator('.ql-editor > p').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('linkedin-post.png')
-        });
-    });
+    //     await page.locator('#witty-test').screenshot().then(async (screenshot) => {
+    //         //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
+    //         expect(screenshot).toMatchSnapshot('witty-form.png')
+    //     });
+    // });
 
 
-    test('linkedin message', async ({ page }) => {
-        await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
-        await page.goto('https://www.linkedin.com/messaging/thread/new/');
-        await page.waitForSelector('.msg-form__contenteditable');
-        await page.click('.msg-form__contenteditable');
-        await page.type('.msg-form__contenteditable', testText);
-        await page.waitForTimeout(3000); //wait for api to respond with highlights
+    //FONT ISSUE
+    // test('linkedin post', async ({ page }) => {
+    //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
+    //     await page.click('#main > div:nth-child(1) > div > div.display-flex.align-items-center.mt2.mr4.ml4 > button');
+    //     await page.click('.ql-editor');
+    //     await page.type('.ql-editor', testText);
+    //     await page.waitForTimeout(3000);
 
-        await page.locator('.msg-form__contenteditable').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('linkedin-message.png')
-        });
-    });
+    //     await page.locator('.ql-editor > p').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('linkedin-post.png')
+    //     });
+    // });
 
-    test('twitter writing post', async ({ page }) => {
-        await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
-        await page.waitForSelector('.r-z2wwpe');
-        await page.click('.r-z2wwpe');
-        await page.type('.r-z2wwpe', testTextShort);
-        await page.waitForTimeout(3000);
 
-        await page.locator('.r-z2wwpe').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('twitter-post.png')
-        });
-    });
+    // test('linkedin message', async ({ page }) => {
+    //     await utils.loginLinkedin(premiumUserEmail, premiumUserPassword, page);
+    //     await page.goto('https://www.linkedin.com/messaging/thread/new/');
+    //     await page.waitForSelector('.msg-form__contenteditable');
+    //     await page.click('.msg-form__contenteditable');
+    //     await page.type('.msg-form__contenteditable', testText);
+    //     await page.waitForTimeout(3000); //wait for api to respond with highlights
 
-    test('twitter writing comment', async ({ page }) => {
-        await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
-        await page.waitForSelector('.r-z2wwpe');
-        await page.goto('https://twitter.com/lsmith/status/1481306915695210501?s=21');
-        await page.waitForSelector('.r-z2wwpe');
-        await page.click('.r-z2wwpe');
-        await page.type('.r-z2wwpe', testTextShort);
-        await page.waitForTimeout(3000);
+    //     await page.locator('.msg-form__contenteditable').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('linkedin-message.png')
+    //     });
+    // });
 
-        await page.locator('.r-z2wwpe').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('twitter-comment.png')
-        });
-    });
+    // test('twitter writing post', async ({ page }) => {
+    //     await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
+    //     await page.waitForSelector('.r-z2wwpe');
+    //     await page.click('.r-z2wwpe');
+    //     await page.type('.r-z2wwpe', testTextShort);
+    //     await page.waitForTimeout(3000);
+
+    //     await page.locator('.r-z2wwpe').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('twitter-post.png')
+    //     });
+    // });
+
+    // test('twitter writing comment', async ({ page }) => {
+    //     await utils.loginTwitter(premiumUserEmail, premiumUserPassword, page);
+    //     await page.waitForSelector('.r-z2wwpe');
+    //     await page.goto('https://twitter.com/lsmith/status/1481306915695210501?s=21');
+    //     await page.waitForSelector('.r-z2wwpe');
+    //     await page.click('.r-z2wwpe');
+    //     await page.type('.r-z2wwpe', testTextShort);
+    //     await page.waitForTimeout(3000);
+
+    //     await page.locator('.r-z2wwpe').screenshot().then(async (screenshot) => {
+    //         expect(screenshot).toMatchSnapshot('twitter-comment.png')
+    //     });
+    // });
 
     //MANAGES TO BLOCK PROXY
     // test('github comment', async ({ page }) => {
