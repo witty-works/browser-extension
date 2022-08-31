@@ -282,7 +282,7 @@ const Popup: React.FC<PopupProps> = ({
   }, [authResponse, resetSettings]);
 
   useEffect(() => {
-    if (!authResponseConfig) return;
+    if (!authResponseConfig?.organization_config) return;
     if (
       authResponseConfig.organization_config['orthography'].value !=
         orthography.value ||
