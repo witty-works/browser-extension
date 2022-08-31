@@ -68,7 +68,7 @@ export const getDomainWithoutSubdomain = (url: string) => {
   const urlParts = url.split('.');
   return urlParts
     .slice(0)
-    .slice(-(urlParts.length === 4 ? 3 : 2))
+    .slice(urlParts.length - 2)
     .join('.');
 };
 export const singularTheyToBoolean = (value: string) =>

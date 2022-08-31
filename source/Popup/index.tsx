@@ -41,23 +41,21 @@ const renderPopup = async (isLocked: boolean = false) => {
       const domainsConfrimedToWork = result[
         StorageKeys.DOMAINS_CONFIRMED_TO_WORK
       ]
-        ? result[StorageKeys.DOMAINS_CONFIRMED_TO_WORK].filter(
-            (domain: string) => {
-              const domainTimestamp = domain.split('-')[1];
-              const domainDate = new Date(parseInt(domainTimestamp));
-              const threeMonthsAgo = new Date();
-              threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-              return domainDate > threeMonthsAgo;
-            }
-          )
+        ? result[StorageKeys.DOMAINS_CONFIRMED_TO_WORK].filter((d: string) => {
+            const domainTimestamp = d.split('-')[1];
+            const domainDate = new Date(parseInt(domainTimestamp));
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+            return domainDate > threeMonthsAgo;
+          })
         : [];
 
       const domainsConfirmedToNotWork = result[
         StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK
       ]
         ? result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK].filter(
-            (domain: string) => {
-              const domainTimestamp = domain.split('-')[1];
+            (d: string) => {
+              const domainTimestamp = d.split('-')[1];
               const domainDate = new Date(parseInt(domainTimestamp));
               const threeMonthsAgo = new Date();
               threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
