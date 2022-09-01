@@ -62,7 +62,7 @@ const PopupLogin: React.FC = () => {
 
   return (
     <>
-      <PopupHeader />
+      <PopupHeader showSettings={false} />
       <section>
         <div className='wittyworks-signin-container'>
           <div className='wittyworks-icon-container'>
@@ -102,17 +102,18 @@ const PopupLogin: React.FC = () => {
               logIn(urls);
             }}
           >
-            {t('signIn')}
+            {t('signUp')}
           </div>
           <div className='wittyworks-text-small'>
-            {t('register')}
+            {t('haveAccount')}
+            &nbsp;
             <span
               className='wittyworks-sigin-link'
               onClick={() => {
                 logIn(urls);
               }}
             >
-              {t('signUp')}{' '}
+              {t('signIn')}{' '}
             </span>
           </div>
         </div>
