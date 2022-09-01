@@ -17,19 +17,12 @@ jobs:
         with:
           node-version: '16'
 
-      # - name: Install yarn
-      #   run: |
-      #     npm install --global yarn
-
-      # - id: cache-yarn
-      #   uses: actions/cache@v1
-      #   with:
-      #     path: ./node_modules
-      #     key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install dependencies
-        # if: steps.cache-yarn.outputs.cache-hit != 'true'
-        run: yarn install
+      - name: Install Yarn Dependencies
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile # optional, --immutable
 
       - name: Build artifacts
         run: yarn build:chrome
