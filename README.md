@@ -104,7 +104,15 @@ See the original [README](https://github.com/abhijithvijayan/wext-manifest-loade
 
 ## Unit Testing
 
-Copy `.env.example` to `.env` and adjust the values accordingly.
+Create a `.env` file and add the following lines:
+
+```
+PREMIUM_TEST_USER_EMAIL = 'witty.works.premium.user@gmail.com'
+PREMIUM_TEST_USER_PASSWORD = '<can be found in 1Password>'
+PROXY_SERVER = '<can be found in 1Password>'
+PROXY_USERNAME = '<can be found in 1Password>'
+PROXY_PASSWORD = '<can be found in 1Password>'
+```
 
 To run locally: From inside the directory just run `yarn run test`
 To run with docker (needed to make linux screenshots for GA):
