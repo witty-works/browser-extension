@@ -28,7 +28,6 @@ export const renderDomainDeactivated = (appId: string, domain: string) => {
 export const renderMainPopup = (
   appId: string,
   domain: string,
-  hasWittyTeams: boolean,
   domainOnActiveOrDisabledList: boolean,
   domainIsConfirmedByUser: boolean,
   domainsConfirmedToNotWork: string[],
@@ -39,7 +38,6 @@ export const renderMainPopup = (
     <Popup
       appId={appId}
       domain={domain}
-      hasWittyTeams={hasWittyTeams}
       domainOnActiveOrDisabledList={domainOnActiveOrDisabledList}
       domainIsConfirmedByUser={domainIsConfirmedByUser}
       domainsConfirmedToNotWork={domainsConfirmedToNotWork}
@@ -53,7 +51,6 @@ export const renderMainPopup = (
 export const renderPopupChrome = (
   appId: string,
   domain: string,
-  hasWittyTeams: boolean,
   domainOnActiveOrDisabledList: boolean,
   domainIsConfirmedByUser: boolean,
   domainsConfirmedToNotWork: string[],
@@ -76,7 +73,6 @@ export const renderPopupChrome = (
     renderMainPopup(
       appId,
       domain,
-      hasWittyTeams,
       domainOnActiveOrDisabledList,
       domainIsConfirmedByUser,
       domainsConfirmedToNotWork,
