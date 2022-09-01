@@ -28,7 +28,6 @@ export const renderDomainDeactivated = (appId: string, domain: string) => {
 export const renderMainPopup = (
   appId: string,
   domain: string,
-  hasWittyTeams: boolean,
   domainOnActiveOrDisabledList: boolean,
   domainIsConfirmedByUser: boolean,
   domainsConfirmedToNotWork: string[],
@@ -39,7 +38,6 @@ export const renderMainPopup = (
     <Popup
       appId={appId}
       domain={domain}
-      hasWittyTeams={hasWittyTeams}
       domainOnActiveOrDisabledList={domainOnActiveOrDisabledList}
       domainIsConfirmedByUser={domainIsConfirmedByUser}
       domainsConfirmedToNotWork={domainsConfirmedToNotWork}
@@ -53,7 +51,6 @@ export const renderMainPopup = (
 export const renderPopupChrome = (
   appId: string,
   domain: string,
-  hasWittyTeams: boolean,
   domainOnActiveOrDisabledList: boolean,
   domainIsConfirmedByUser: boolean,
   domainsConfirmedToNotWork: string[],
@@ -61,9 +58,13 @@ export const renderPopupChrome = (
   result: any
 ) => {
   const isLocked =
-    (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+    (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+      result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+      result[StorageKeys.ORGANIZATION_DOMAINS].list &&
       result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
-    (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+    (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+      result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+      result[StorageKeys.ORGANIZATION_DOMAINS].list &&
       !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
   if (defaultConfig.DISABLED_SITES.includes(domain)) {
@@ -72,7 +73,6 @@ export const renderPopupChrome = (
     renderMainPopup(
       appId,
       domain,
-      hasWittyTeams,
       domainOnActiveOrDisabledList,
       domainIsConfirmedByUser,
       domainsConfirmedToNotWork,

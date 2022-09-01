@@ -28,7 +28,7 @@ const useApiResult = <TResponse,>(
       const accessToken = result[StorageKeys.ACCESS_TOKEN];
       const ac = new AbortController();
       //avoid enpoint call if no config or no container (aka plugin disabled)
-      if (accessToken && request.config) {
+      if (accessToken && request.config && request.url) {
         //further avoid call to check if no body
         if (
           (!request.config.body && request.url.includes('check')) ||
