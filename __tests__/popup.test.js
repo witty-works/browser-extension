@@ -39,7 +39,7 @@ test.describe('Popup', () => {
     test('login popup', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
-        await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
+        await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
 
@@ -60,7 +60,7 @@ test.describe('Popup', () => {
     test('popup contains three toggles with labels when survey response yes', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
-        await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
+        await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
 
@@ -78,7 +78,7 @@ test.describe('Popup', () => {
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
-        await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
+        await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
         await page.click('#witty-settings');
@@ -93,7 +93,7 @@ test.describe('Popup', () => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await utils.unlockAllToggles(page);
-        await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
+        await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
         await page.waitForSelector('.wittyworks-button-yes');
@@ -122,10 +122,10 @@ test.describe('Popup', () => {
         if (backgroundColor === 'rgb(204, 204, 204)') {
             await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
         }
-        await page.click('.max-w-7xl:nth-child(8) .inline-flex');
+        await page.click('.max-w-7xl:nth-child(8) .wittyworks-button');
 
         const extensionId = await utils.getExtensionId(page);
-        await utils.loginPopupPage(premiumUserEmail, premiumUserPassword, page, extensionId, context);
+        await utils.loginPopupPage(page, extensionId, context);
 
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForSelector('.wittyworks-button-yes');

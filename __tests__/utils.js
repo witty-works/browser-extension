@@ -1,4 +1,4 @@
-exports.loginPopupPage = async function (email, password, page, extensionId, context) {
+exports.loginPopupPage = async function (page, extensionId, context) {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.waitForLoadState('networkidle')
     await page.selectOption('.dropdown-select', 'Dev');
@@ -138,7 +138,7 @@ exports.enableAllToggles = async function (page) {
     if (backgroundColorInclusiveForce === 'rgb(204, 204, 204)') {
         await page.click('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(6) .inline-flex');
+    await page.click('.max-w-7xl:nth-child(6) .wittyworks-button');
 
     //style
     const styleToggle = await page.waitForSelector('.max-w-7xl:nth-child(7) .px-4 .slider');
@@ -155,7 +155,7 @@ exports.enableAllToggles = async function (page) {
     if (backgroundColorStyleForce === 'rgb(204, 204, 204)') {
         await page.click('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(7) .inline-flex');
+    await page.click('.max-w-7xl:nth-child(7) .wittyworks-button');
 
 
     //orthography
@@ -174,7 +174,7 @@ exports.enableAllToggles = async function (page) {
     if (backgroundColorOrthographyForce === 'rgb(204, 204, 204)') {
         await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(8) .inline-flex');
+    await page.click('.max-w-7xl:nth-child(8) .wittyworks-button');
 }
 
 exports.unlockAllToggles = async function (page) {
@@ -192,7 +192,7 @@ exports.unlockAllToggles = async function (page) {
     if (backgroundColorInclusiveForce !== 'rgb(204, 204, 204)') {
         await page.click('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(6) .inline-flex');
+    await page.click('.max-w-7xl:nth-child(6) .wittyworks-button');
 
     //style
     const styleToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
@@ -202,7 +202,7 @@ exports.unlockAllToggles = async function (page) {
     if (backgroundColorStyleForce !== 'rgb(204, 204, 204)') {
         await page.click('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(7) .inline-flex');
+    await page.click('.max-w-7xl:nth-child(7) .wittyworks-button');
 
 
     //orthography
@@ -214,5 +214,5 @@ exports.unlockAllToggles = async function (page) {
     if (backgroundColorOrthographyForce !== 'rgb(204, 204, 204)') {
         await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(8) .inline-flex');
+    await page.click('.max-w-7xl:nth-child(8) .wittyworks-button');
 }
