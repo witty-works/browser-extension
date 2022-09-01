@@ -3,7 +3,6 @@ const { test: base, chromium, expect } = require('@playwright/test') //add firef
 const test = base.extend({
     context: async ({ browserName }, use) => {
         const browserTypes = { chromium } //add firefox
-        // const pathToExtension = '/home/runner/work/browser-extension/extension/chrome'; //for GA
         const pathToExtension = ('./extension/chrome');
 
         const launchOptions = {
