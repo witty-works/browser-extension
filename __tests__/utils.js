@@ -1,5 +1,3 @@
-const extensionId = process.env.EXTENSION_ID_DEV;
-
 exports.loginPopupPage = async function (email, password, page, extensionId, context) {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.waitForLoadState('networkidle')
@@ -28,16 +26,6 @@ exports.loginDashboard = async function (email, password, page) {
     return page;
 }
 
-exports.loginOptionsPageWhenAlreadyLoggedInDashboard = async function (page) {
-    await page.goto(`chrome-extension://${extensionId}/popup.html`);
-    await page.selectOption('.dropdown-select', 'Dev');
-    await page.waitForTimeout(1000);
-
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-button');
-    await page.waitForTimeout(3000);
-    return page;
-}
 
 exports.loginLinkedin = async function (email, password, page) {
     await page.goto('https://www.linkedin.com/login?fromSignIn=true&trk=guest_homepage-basic_nav-header-signin');
@@ -118,42 +106,6 @@ exports.evaluateToggleBackgroundBeforeAndAfterClick = async function (page, togg
     } else {
         return toggleBackgroundBefore != toggleBackgroundAfter
     }
-}
-
-exports.evaluateToggleBackgroundBeforeAndAfterClickPopupToOptionsPage = async function (page, toggleSelector, toggleButtonSelector) {
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-content-section-title');
-    let toggle = await page.waitForSelector(toggleSelector);
-    const backgroundColorBefore = await toggle.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    });
-    await page.goto(`chrome-extension://${extensionId}/popup.html`);
-    await page.click(toggleButtonSelector);
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-content-section-title');
-
-    toggle = await page.waitForSelector(toggleSelector);
-    const backgroundColorAfter = await toggle.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    });
-    return backgroundColorBefore != backgroundColorAfter;
-}
-
-exports.evaluateToggleBackgroundBeforeAndAfterClickOptionsToPopupPage = async function (page, toggleSelector, toggleButtonSelector) {
-    let toggle = await page.waitForSelector(toggleSelector);
-    const backgroundColorBefore = await toggle.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    });
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-content-section-title');
-    await page.click(toggleButtonSelector);
-    await page.goto(`chrome-extension://${extensionId}/popup.html`);
-
-    toggle = await page.waitForSelector(toggleSelector);
-    const backgroundColorAfter = await toggle.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    });
-    return backgroundColorBefore != backgroundColorAfter;
 }
 
 exports.getExtensionId = async function (page) {

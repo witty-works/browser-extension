@@ -104,7 +104,7 @@ See the original [README](https://github.com/abhijithvijayan/wext-manifest-loade
 
 ## Unit Testing
 
-Create a `.env` file and add the following lines:
+Copy `.env.example` to `.env` and adjust the values accordingly.
 
 ```
 PREMIUM_TEST_USER_EMAIL = 'witty.works.premium.user@gmail.com'

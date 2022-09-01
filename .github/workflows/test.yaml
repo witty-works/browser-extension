@@ -1,10 +1,6 @@
 name: Run Tests
 
 on: [push]
-env:
-  PREMIUM_TEST_USER_EMAIL: ${{ secrets.PREMIUM_TEST_USER_EMAIL }}
-  PREMIUM_TEST_USER_PASSWORD: ${{ secrets.PREMIUM_TEST_USER_PASSWORD }}
-  EXTENSION_ID_DEV: ${{ secrets.EXTENSION_ID_DEV }}
 
 jobs:
   build:
@@ -34,7 +30,6 @@ jobs:
         env:
           PREMIUM_TEST_USER_EMAIL: ${{ secrets.PREMIUM_TEST_USER_EMAIL }}
           PREMIUM_TEST_USER_PASSWORD: ${{ secrets.PREMIUM_TEST_USER_PASSWORD }}
-          EXTENSION_ID_DEV: ${{ secrets.EXTENSION_ID_DEV }}
           PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
           PROXY_USERNAME: ${{ secrets.PROXY_USERNAME }}
           PROXY_PASSWORD: ${{ secrets.PROXY_PASSWORD }}
