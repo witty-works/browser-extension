@@ -16,6 +16,8 @@ export const updateConfig = (response: IAuthResponse) => {
   response.domains &&
     storeInLocalStorage(StorageKeys.DOMAINS, response.domains.list);
 
+  response.plan && storeInLocalStorage(StorageKeys.PLAN, response.plan);
+
   response.organization_domains &&
     storeInLocalStorage(
       StorageKeys.ORGANIZATION_DOMAINS,

@@ -61,7 +61,7 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
 
 export const getConfiguration = (): IRequest => {
   return {
-    url: createUrl(BASE_URL_API, 'v2.0/auth'),
+    url: BASE_URL_API && createUrl(BASE_URL_API, 'v2.0/auth'),
     config: {
       method: 'POST',
       headers: {

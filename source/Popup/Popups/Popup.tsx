@@ -42,7 +42,6 @@ import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
 interface PopupProps {
   appId: string;
   domain: string;
-  hasWittyTeams: boolean;
   domainOnActiveOrDisabledList: boolean;
   domainIsConfirmedByUser: boolean;
   domainsConfirmedToNotWork: string[];
@@ -53,7 +52,6 @@ interface PopupProps {
 const Popup: React.FC<PopupProps> = ({
   appId,
   domain,
-  hasWittyTeams,
   domainOnActiveOrDisabledList,
   domainIsConfirmedByUser,
   domainsConfirmedToNotWork,
@@ -105,6 +103,7 @@ const Popup: React.FC<PopupProps> = ({
   };
   const [authResponseConfig, setAuthResponseConfig] =
     useState<IAuthResponse | null>(null);
+  const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
 
   useEffect(() => {
     !domainOnActiveOrDisabledList && !domainIsConfirmedByUser
@@ -234,6 +233,8 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     if (authResponse) {
       setAuthResponseConfig(authResponse);
+      setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
+      storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
       for (let key in authResponse.organization_config) {
         switch (key) {
           case 'orthography':

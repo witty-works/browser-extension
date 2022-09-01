@@ -54,10 +54,6 @@ interface IBaseUrls {
 }
 
 export const BaseUrls: IBaseUrls = {
-  Prod: {
-    api: 'https://default.api.witty.works/',
-    dashboard: 'https://dashboard.witty.works/',
-  },
   Dev: {
     api: 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
@@ -69,7 +65,7 @@ export const BaseUrls: IBaseUrls = {
 };
 
 export const DefaultBaseUrlKey: keyof typeof BaseUrls =
-  'Prod' as keyof typeof BaseUrls;
+  'Dev' as keyof typeof BaseUrls;
 
 export enum ConfigPropertyStatus {
   FORCE = 'force',

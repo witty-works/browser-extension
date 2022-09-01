@@ -66,12 +66,18 @@ browser.storage.local
   .get(null)
   .then((result) => {
     const isOnOrgDomainList =
-      (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+      (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list &&
         result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
-      (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+      (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list &&
         !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
-    const isOnPersonalDomainList = result[StorageKeys.DOMAINS].includes(domain);
+    const isOnPersonalDomainList = result[StorageKeys.DOMAINS]
+      ? result[StorageKeys.DOMAINS].includes(domain)
+      : false;
     if (
       isOnOrgDomainList ||
       isOnPersonalDomainList ||

@@ -27,16 +27,17 @@ const renderPopup = async (isLocked: boolean = false) => {
       }
 
       if (
-        (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+        (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+          result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+          result[StorageKeys.ORGANIZATION_DOMAINS].list &&
           result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
-        (result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+        (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+          result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+          result[StorageKeys.ORGANIZATION_DOMAINS].list &&
           !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
       ) {
         isLocked = true;
       }
-
-      const hasWittyTeams =
-        result[StorageKeys.PLAN] == 'witty_teams' ? true : false;
 
       const domainsConfrimedToWork = result[
         StorageKeys.DOMAINS_CONFIRMED_TO_WORK
@@ -88,7 +89,6 @@ const renderPopup = async (isLocked: boolean = false) => {
             renderPopupChrome(
               appId,
               domain,
-              hasWittyTeams,
               domainOnActiveOrDisabledList,
               domainIsConfirmedByUser,
               domainsConfirmedToNotWork,
@@ -110,7 +110,6 @@ const renderPopup = async (isLocked: boolean = false) => {
             renderMainPopup(
               appId,
               domain,
-              hasWittyTeams,
               domainOnActiveOrDisabledList,
               domainIsConfirmedByUser,
               domainsConfirmedToNotWork,
