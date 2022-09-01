@@ -7,7 +7,14 @@ import { getBaseUrls } from '../../shared/ApiServices/requests';
 
 import '../styles.scss';
 
-const PopupHeader: React.FC = () => {
+
+interface PopupHeaderProps {
+  showSettings?: boolean;
+}
+
+const PopupHeader: React.FC<PopupHeaderProps> = ({
+  showSettings = true,
+}: PopupHeaderProps) => {
   return (
     <header>
       <Logo
@@ -16,10 +23,11 @@ const PopupHeader: React.FC = () => {
           browser.tabs.create({ url: 'https://www.witty.works/' });
         }}
       />
+      {showSettings && (
       <Settings
         id='witty-settings'
         onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
-      />
+      />)}
     </header>
   );
 };
