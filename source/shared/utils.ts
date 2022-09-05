@@ -202,7 +202,12 @@ export const getCorrectedPosition = (
   parentElement: HTMLElement | null,
   element: HTMLElement
 ) => {
-  if (isTextArea(element)) {
+  const domain = getDomainWithoutSubdomain(window.location.hostname);
+  const pathContainsMessaging = window.location.pathname.includes('messaging');
+  if (
+    isTextArea(element) ||
+    (domain === 'linkedin.com' && pathContainsMessaging) //exception for linkedin messaging
+  ) {
     elementRect = element.getBoundingClientRect();
   }
 
