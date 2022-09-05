@@ -17,7 +17,11 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import { storeInLocalStorage, getFirstTextDiff } from '../shared/utils';
+import {
+  storeInLocalStorage,
+  getFirstTextDiff,
+  getDomainWithoutSubdomain,
+} from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -567,7 +571,13 @@ const Input: React.FC<{
 
         const nodeValueLength: number = node.nodeValue.length;
 
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+        if (
+          getDomainWithoutSubdomain(window.location.hostname) === 'linkedin.com'
+        ) {
+          textEndAbsPosition = textStartingAbsPosition + nodeValueLength; //solves problem with not highlighting last word
+        } else {
+          textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1; //needed to keep huglights in place for instance on gmail
+        }
 
         // Check if there is a new line char after the node's content
         // If so, we +1 to the end position
@@ -636,11 +646,10 @@ const Input: React.FC<{
         )
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
-    } else {
-      setAlerts([]);
     }
-
     setTextToCheck(getInputText(element));
+    const event = new Event('keyup', { bubbles: true });
+    element.dispatchEvent(event);
   };
 
   useEffect(() => {
