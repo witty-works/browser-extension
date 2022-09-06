@@ -58,6 +58,10 @@ export const BaseUrls: IBaseUrls = {
     api: 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
   },
+  Prod: {
+    api: 'https://default.api.witty.works/',
+    dashboard: 'https://dashboard.witty.works/',
+  },
   Local: {
     api: 'http://127.0.0.1:8000/',
     dashboard: 'https://dashboard.lndo.site/',
