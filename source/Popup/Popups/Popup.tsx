@@ -104,9 +104,10 @@ const Popup: React.FC<PopupProps> = ({
   const [authResponseConfig, setAuthResponseConfig] =
     useState<IAuthResponse | null>(null);
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
+  const domainExists = domain && domain.length > 0;
 
   useEffect(() => {
-    !domainOnActiveOrDisabledList && !domainIsConfirmedByUser
+    !domainOnActiveOrDisabledList && !domainIsConfirmedByUser && domainExists
       ? setShowSurvey(true)
       : setShowSurvey(false);
 
@@ -328,7 +329,7 @@ const Popup: React.FC<PopupProps> = ({
 
     setEnabled({ enabled: !enabled.enabled, updateDashboard: true });
 
-    if (domain && domain.length > 0)
+    if (domainExists)
       setDomainsDisabledLocally(
         enabled.enabled
           ? [...domainsDisabledLocally, domain]
@@ -339,7 +340,7 @@ const Popup: React.FC<PopupProps> = ({
   const handleCasingToggle = () => {
     setCasing(!casing);
 
-    if (domain && domain.length > 0)
+    if (domainExists)
       setCasingSites(
         casing
           ? [...casingSites, domain]
@@ -360,7 +361,7 @@ const Popup: React.FC<PopupProps> = ({
       ) : (
         <PopupHeader />
       )}
-      {domain && domain.length > 0 && (
+      {domainExists && (
         <section className='wittyworks-toggles website-settings'>
           <div className='wittyworks-text-grey'>
             {domainIsSetAsNotWorking
