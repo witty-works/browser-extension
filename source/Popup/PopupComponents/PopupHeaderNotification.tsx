@@ -9,7 +9,7 @@ import '../styles.scss';
 
 const PopupHeaderNotification: React.FC = () => {
   return (
-    <header>
+    <header className='witty-popup-header'>
       <Logo
         id='witty-logo'
         onClick={() => {

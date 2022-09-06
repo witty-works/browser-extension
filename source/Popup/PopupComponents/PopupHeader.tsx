@@ -7,7 +7,6 @@ import { getBaseUrls } from '../../shared/ApiServices/requests';
 
 import '../styles.scss';
 
-
 interface PopupHeaderProps {
   showSettings?: boolean;
 }
@@ -16,7 +15,7 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
   showSettings = true,
 }: PopupHeaderProps) => {
   return (
-    <header>
+    <header className='witty-popup-header'>
       <Logo
         id='witty-logo'
         onClick={() => {
@@ -24,10 +23,11 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
         }}
       />
       {showSettings && (
-      <Settings
-        id='witty-settings'
-        onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
-      />)}
+        <Settings
+          id='witty-settings'
+          onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
+        />
+      )}
     </header>
   );
 };

@@ -104,9 +104,10 @@ const Popup: React.FC<PopupProps> = ({
   const [authResponseConfig, setAuthResponseConfig] =
     useState<IAuthResponse | null>(null);
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
+  const domainExists = domain && domain.length > 0;
 
   useEffect(() => {
-    !domainOnActiveOrDisabledList && !domainIsConfirmedByUser
+    !domainOnActiveOrDisabledList && !domainIsConfirmedByUser && domainExists
       ? setShowSurvey(true)
       : setShowSurvey(false);
 
@@ -328,7 +329,7 @@ const Popup: React.FC<PopupProps> = ({
 
     setEnabled({ enabled: !enabled.enabled, updateDashboard: true });
 
-    if (domain && domain.length > 0)
+    if (domainExists)
       setDomainsDisabledLocally(
         enabled.enabled
           ? [...domainsDisabledLocally, domain]
@@ -339,7 +340,7 @@ const Popup: React.FC<PopupProps> = ({
   const handleCasingToggle = () => {
     setCasing(!casing);
 
-    if (domain && domain.length > 0)
+    if (domainExists)
       setCasingSites(
         casing
           ? [...casingSites, domain]
@@ -360,7 +361,7 @@ const Popup: React.FC<PopupProps> = ({
       ) : (
         <PopupHeader />
       )}
-      {domain && domain.length > 0 && (
+      {domainExists && (
         <section className='wittyworks-toggles website-settings'>
           <div className='wittyworks-text-grey'>
             {domainIsSetAsNotWorking
@@ -378,7 +379,7 @@ const Popup: React.FC<PopupProps> = ({
             locked={isLocked}
           />
           <div className='toggle-separator' />
-          {enabled.enabled && (
+          {enabled.enabled && !showSurvey && (
             <>
               <Toggle
                 on={casing}
@@ -391,80 +392,60 @@ const Popup: React.FC<PopupProps> = ({
         </section>
       )}
       {showSurvey && enabled.enabled && (
-        <section>
+        <section className='wittyworks-container-gradient-background wittyworks-survey-container'>
           <div className='wittyworks-signin-container'>
             <div className='wittyworks-icon-container'>
               <ThinkingEmoji />
             </div>
             <div className='wittyworks-text-large'>{t('doesWittyWork')}</div>
           </div>
-
-          <div>{t('doesWittyWorkExplanation')}</div>
-          <div>{t('fillInSurvey')}</div>
-          <div className='wittyworks-container-gradient-background'>
-            <div className='wittyworks-text-medium wittyworks-align-left'>
-              {t('doesWittyWorkSurvey')}
-            </div>
-            {!surveyResponse && (
-              <div className='wittyworks-flex-row'>
-                <div
-                  className='wittyworks-button wittyworks-button-yes'
-                  onClick={() => {
-                    setSurveyResponse('yes');
-                    setShowSurvey(false);
-                    analytics.urlLog(domain, appId, 'wittyWorksAsExpected');
-                  }}
-                >
-                  {t('surveyButtonYes')}
-                </div>
-                <div
-                  className='wittyworks-button wittyworks-button-no'
-                  onClick={() => {
-                    setSurveyResponse('no');
-                    analytics.urlLog(
-                      domain,
-                      appId,
-                      'wittyDoesNotWorkAsExpected'
-                    );
-                  }}
-                >
-                  {t('surveyButtonNo')}
-                </div>
+          {surveyResponse === '' && (
+            <>
+              <div>{t('doesWittyWorkExplanation')}</div>
+              <div className='wittyworks-text-medium wittyworks-align-left'>
+                {t('doesWittyWorkSurvey')}
               </div>
-            )}
-            {surveyResponse == 'no' && (
-              <>
-                <div className='wittyworks-text-small'>
-                  {t('resultSurveyNegative')}
-                </div>
-                <div className='wittyworks-flex-row'>
-                  <div
-                    className='wittyworks-button'
-                    onClick={() => {
-                      setSurveyResponse('');
-                    }}
-                  >
-                    {t('tryAgain')}
-                  </div>
-                  <div
-                    className='wittyworks-button'
-                    onClick={() => {
-                      setEnabled({ enabled: false, updateDashboard: false });
-                      setSurveyResponse('');
-                      setDomainIsSetToNotWorking(true);
-                    }}
-                  >
-                    {t('understood')}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+            </>
+          )}
+          {!surveyResponse && (
+            <div className='wittyworks-flex-row wittyworks-align-left'>
+              <div
+                className='wittyworks-button wittyworks-button-yes'
+                onClick={() => {
+                  setSurveyResponse('yes');
+                  setShowSurvey(false);
+                  analytics.urlLog(domain, appId, 'wittyWorksAsExpected');
+                }}
+              >
+                {t('surveyButtonYes')}
+              </div>
+              <div
+                className='wittyworks-button wittyworks-button-no'
+                onClick={() => {
+                  setSurveyResponse('no');
+                  // after two seconds remove survey
+                  setTimeout(() => {
+                    setEnabled({ enabled: false, updateDashboard: false });
+                    setSurveyResponse('');
+                    setDomainIsSetToNotWorking(true);
+                  }, 2000);
+                  analytics.urlLog(domain, appId, 'wittyDoesNotWorkAsExpected');
+                }}
+              >
+                {t('surveyButtonNo')}
+              </div>
+            </div>
+          )}
+          {surveyResponse == 'no' && (
+            <div className='wittyworks-text-small'>
+              {t('resultSurveyNegative')}
+            </div>
+          )}
         </section>
       )}
       {enabled.enabled && !showSurvey && (
         <section className='wittyworks-toggles global-settings'>
-          <h2>{t('globalSettings')}</h2>
+          <div className='wittyworks-text-grey'>{t('globalSettings')}</div>
           <Toggle
             on={orthography.value as boolean}
             handleToggle={() => {
