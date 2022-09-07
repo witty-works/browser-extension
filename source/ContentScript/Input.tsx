@@ -4,7 +4,7 @@ import { browser } from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
 import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
-import { WTags } from '../shared/constants';
+import { WTags, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 
@@ -17,7 +17,11 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import { storeInLocalStorage, getFirstTextDiff } from '../shared/utils';
+import {
+  storeInLocalStorage,
+  getFirstTextDiff,
+  getDomainWithoutSubdomain,
+} from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -30,16 +34,20 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
+import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
+import { setToken } from '../shared/ApiServices/requests';
+import { getInputText, updateConfig } from './utils';
 
 const Input: React.FC<{
   element: CustomInputElement;
 }> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
+  const [authResponse, authErrorResponse, setConfigHasChanged] =
+    useAuthEndpoint();
   const [, , previousTextToCheckRef] = useStateRef('');
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
@@ -139,6 +147,11 @@ const Input: React.FC<{
       element.removeEventListener('focusin', handleFocusinEvent);
     };
   }, [debounceDelay]);
+
+  useEffect(() => {
+    if (!authResponse) return;
+    updateConfig(authResponse);
+  }, [authResponse]);
 
   useEffect(() => {
     docTextEvaluation(element);
@@ -259,11 +272,6 @@ const Input: React.FC<{
     setSelectedNodeWithAlertsIndex(-1);
     setSelectedAlertIndex(-1);
   };
-
-  const getInputText = (element: CustomInputElement) =>
-    isTextArea(element) || isInputText(element)
-      ? element.value
-      : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
@@ -432,12 +440,21 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    //TEMP: solution to trigger browserStorage error when the user is not logged in and uninstalling extension. Will be replaced by auth call.
-    storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+
+    setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
+
+    checkEndpointResponse.notifications
+      ? storeInLocalStorage(
+          StorageKeys.NUMBER_OF_NOTIFICATIONS,
+          checkEndpointResponse.notifications
+        )
+      : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
 
     setActiveIcon('active');
+
     analytics.checkLog(
       checkEndpointResponse,
+      authResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
     );
 
@@ -449,96 +466,14 @@ const Input: React.FC<{
         : 'None'
     );
 
-    const apiConfig = checkEndpointResponse.organization_config;
-    if (apiConfig && apiConfig.id) {
-      storeInLocalStorage(StorageKeys.TEAM_NAME, apiConfig.name);
-      storeInLocalStorage(StorageKeys.PLAN, apiConfig.plan);
-
-      //TODO: refactored (had type issues)
-      Object.keys(apiConfig.config).forEach((key) => {
-        if (!Object.keys(StorageKeys).includes(key.toUpperCase())) {
-          console.warn(`${key.toUpperCase()} is not a valid storage key`);
-          return;
-        }
-        if (
-          key == 'gendered_roles_format' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.GENDERED_ROLES_FORMAT,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'german_gender_ending' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.GERMAN_GENDER_ENDING,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'inclusive' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(StorageKeys.INCLUSIVE, apiConfig.config[key]);
-        } else if (
-          key == 'maximum_importance' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.MAXIMUM_IMPORTANCE,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'orthography' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, apiConfig.config[key]);
-        } else if (
-          key == 'preferred_variants' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.PREFERRED_VARIANTS,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'show_inspiration_alternatives' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(
-            StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-            apiConfig.config[key]
-          );
-        } else if (
-          key == 'singular_they' &&
-          apiConfig.config[key].status == 'force'
-        ) {
-          storeInLocalStorage(StorageKeys.SINGULAR_THEY, apiConfig.config[key]);
-        } else if (key == 'style' && apiConfig.config[key].status == 'force') {
-          storeInLocalStorage(StorageKeys.STYLE, apiConfig.config[key]);
-        }
-      });
-    } else {
-      //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken OR user is not logged in
-    }
-
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
         id: `${result.text}-${result.category}-${result.start}${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId:
-          checkEndpointResponse.organization_config &&
-          checkEndpointResponse.organization_config.id
-            ? checkEndpointResponse.organization_config.id
-            : null,
-        plan:
-          checkEndpointResponse.organization_config &&
-          checkEndpointResponse.organization_config.plan
-            ? checkEndpointResponse.organization_config.plan
-            : null,
+        groupId: authResponse ? authResponse.id : undefined,
+        plan: authResponse ? authResponse.plan : undefined,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -636,7 +571,13 @@ const Input: React.FC<{
 
         const nodeValueLength: number = node.nodeValue.length;
 
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
+        if (
+          getDomainWithoutSubdomain(window.location.hostname) === 'linkedin.com'
+        ) {
+          textEndAbsPosition = textStartingAbsPosition + nodeValueLength; //solves problem with not highlighting last word
+        } else {
+          textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1; //needed to keep huglights in place for instance on gmail
+        }
 
         // Check if there is a new line char after the node's content
         // If so, we +1 to the end position
@@ -705,11 +646,10 @@ const Input: React.FC<{
         )
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
-    } else {
-      setAlerts([]);
     }
-
     setTextToCheck(getInputText(element));
+    const event = new Event('keyup', { bubbles: true });
+    element.dispatchEvent(event);
   };
 
   useEffect(() => {
@@ -717,7 +657,10 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
     }
     //gets new access token using the refresh token if the access token has expired
-    else if (checkEndpointError?.status == 403) {
+    else if (
+      checkEndpointError?.status == 403 ||
+      authErrorResponse?.status === 403
+    ) {
       browser.storage.local
         .get(StorageKeys.REFRESH_TOKEN)
         .then((result) => {
@@ -728,12 +671,12 @@ const Input: React.FC<{
             StorageKeys.ACCESS_TOKEN,
             refreshTokenResponse.access_token
           );
+          setToken(refreshTokenResponse.access_token);
+
           storeInLocalStorage(
             StorageKeys.REFRESH_TOKEN,
             refreshTokenResponse.refresh_token
           );
-          storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
-
           setTextToCheck('');
           setTextToCheck(currentTextToCheck);
         })
@@ -745,7 +688,7 @@ const Input: React.FC<{
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
       logTypes.ERROR
     );
-  }, [checkEndpointError]);
+  }, [checkEndpointError, authErrorResponse]);
 
   const ErrorBoundaryFallback = () => (
     <Toast message={t('reloadWebsite')} type='error' />

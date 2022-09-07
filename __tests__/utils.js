@@ -1,42 +1,31 @@
-const extensionId = process.env.EXTENSION_ID_DEV;
-
-exports.loginOptionsPage = async function (email, password, page) {
+exports.loginPopupPage = async function (page, extensionId, context) {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await page.waitForLoadState('networkidle')
     await page.selectOption('.dropdown-select', 'Dev');
 
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-button');
-    await page.waitForTimeout(2000);
-    await page.type('#email', email);
-    await page.type('#password', password);
-    await page.click('#next');
-    await page.waitForTimeout(3000);
+    //page is reset to the page that .wittyworks-button redirects to
+    await page.waitForSelector('.wittyworks-button');
+    const [newPage] = await Promise.all([
+        context.waitForEvent('page'),
+        page.click('.wittyworks-button')
+    ]);
+    await newPage.waitForLoadState('networkidle')
+    await newPage.goto(await newPage.url());
+    await newPage.waitForLoadState('networkidle')
+    //close the page
+    await newPage.close();
     return page;
 }
 
 exports.loginDashboard = async function (email, password, page) {
-    await page.goto(`https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en`);
-    await page.waitForSelector('#CybotCookiebotDialog');
-    await page.waitForTimeout(2000);
-    await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-    await page.click('.navigation-wrapper .navigation-link:nth-child(1)');
+    await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en');
     await page.type('#email', email);
     await page.type('#password', password);
     await page.click('#next');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle')
     return page;
 }
 
-exports.loginOptionsPageWhenAlreadyLoggedInDashboard = async function (page) {
-    await page.goto(`chrome-extension://${extensionId}/popup.html`);
-    await page.selectOption('.dropdown-select', 'Dev');
-    await page.waitForTimeout(1000);
-
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-button');
-    await page.waitForTimeout(3000);
-    return page;
-}
 
 exports.loginLinkedin = async function (email, password, page) {
     await page.goto('https://www.linkedin.com/login?fromSignIn=true&trk=guest_homepage-basic_nav-header-signin');
@@ -44,14 +33,15 @@ exports.loginLinkedin = async function (email, password, page) {
     await page.type('#username', email);
     await page.click('#password');
     await page.type('#password', password);
-    await page.click('#organic-div > form > div.login__form_action_container > button');
-    await page.waitForTimeout(2000);
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('#global-nav')
     return page;
 }
 
 exports.loginTwitter = async function (email, password, page) {
     await page.goto('https://twitter.com/login');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('.r-30o5oe');
     await page.click('.r-30o5oe');
     await page.type('.r-30o5oe', email);
     await page.keyboard.press('Enter');
@@ -67,37 +57,38 @@ exports.loginTwitter = async function (email, password, page) {
     await page.click('.r-homxoj');
     await page.type('.r-homxoj', password);
     await page.click('.r-1inkyih > .css-901oao');
-    await page.waitForTimeout(2000);
+    await page.waitForSelector('#react-root')
     return page;
 }
 
 exports.loginGithub = async function (email, password, page) {
     await page.goto('https://github.com/login');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('#login_field');
     await page.click('#login_field');
     await page.type('#login_field', email);
     await page.click('#password');
     await page.type('#password', password);
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(2000);
+    await page.waitForSelector('body');
     return page;
 }
 
 // exports.loginGmail = async function (email, password, page) {
-// await page.goto('https://accounts.google.com/signin/v2/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&service=mail&sacu=1&rip=1&ifkv=AQN2RmVSKBRduno3H3r8dltSOH6cTX3XQQJDr6_LhAGMvMJUiQkvwh7DCdb-rNRDmd9EsKIz8MqB&flowName=GlifWebSignIn&flowEntry=ServiceLogin');
+//     await page.goto('https://accounts.google.com/signin/v2/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&service=mail&sacu=1&rip=1&ifkv=AQN2RmVSKBRduno3H3r8dltSOH6cTX3XQQJDr6_LhAGMvMJUiQkvwh7DCdb-rNRDmd9EsKIz8MqB&flowName=GlifWebSignIn&flowEntry=ServiceLogin');
 
-// await page.waitForTimeout(2000);
-// await page.click('#identifierId');
-// await page.type('#identifierId', email);
-// await page.keyboard.press('Enter');
+//     await page.waitForTimeout(2000);
+//     await page.click('#identifierId');
+//     await page.type('#identifierId', email);
+//     await page.keyboard.press('Enter');
 
-// await page.waitForTimeout(2000);
-// await page.click('#password .whsOnd');
-// await page.type('#password .whsOnd', password);
-// await page.keyboard.press('Enter');
+//     await page.waitForTimeout(2000);
+//     await page.click('#password .whsOnd');
+//     await page.type('#password .whsOnd', password);
+//     await page.keyboard.press('Enter');
 
-// await page.waitForTimeout(2000);
-// return page;
+//     await page.waitForTimeout(2000);
+//     return page;
 // }
 
 exports.evaluateToggleBackgroundBeforeAndAfterClick = async function (page, toggleSelector, toggleButtonSelector, locked) {
@@ -117,38 +108,111 @@ exports.evaluateToggleBackgroundBeforeAndAfterClick = async function (page, togg
     }
 }
 
-exports.evaluateToggleBackgroundBeforeAndAfterClickPopupToOptionsPage = async function (page, toggleSelector, toggleButtonSelector) {
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-content-section-title');
-    let toggle = await page.waitForSelector(toggleSelector);
-    const backgroundColorBefore = await toggle.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    });
-    await page.goto(`chrome-extension://${extensionId}/popup.html`);
-    await page.click(toggleButtonSelector);
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-content-section-title');
-
-    toggle = await page.waitForSelector(toggleSelector);
-    const backgroundColorAfter = await toggle.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    });
-    return backgroundColorBefore != backgroundColorAfter;
+exports.getExtensionId = async function (page) {
+    await page.goto('https://www.witty.works/editor');
+    const extensionId = await page.evaluate(() => {
+        return document.querySelector('witty-is-installed').getAttribute('extension-id')
+    })
+    return extensionId;
 }
 
-exports.evaluateToggleBackgroundBeforeAndAfterClickOptionsToPopupPage = async function (page, toggleSelector, toggleButtonSelector) {
-    let toggle = await page.waitForSelector(toggleSelector);
-    const backgroundColorBefore = await toggle.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    });
-    await page.goto(`chrome-extension://${extensionId}/options.html`);
-    await page.click('.wittyworks-options-content-section-title');
-    await page.click(toggleButtonSelector);
-    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+exports.enableAllToggles = async function (page) {
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
 
-    toggle = await page.waitForSelector(toggleSelector);
-    const backgroundColorAfter = await toggle.evaluate((el) => {
+    await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+
+    //orthography
+    const inclusiveToggle = await page.waitForSelector('.max-w-7xl:nth-child(6) .px-4 .slider');
+    const backgroundColorInclusive = await inclusiveToggle.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     });
-    return backgroundColorBefore != backgroundColorAfter;
+    if (backgroundColorInclusive === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(6) .px-4 .slider');
+    }
+    const inclusiveToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+    const backgroundColorInclusiveForce = await inclusiveToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    });
+    if (backgroundColorInclusiveForce === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(6) .wittyworks-button');
+
+    //style
+    const styleToggle = await page.waitForSelector('.max-w-7xl:nth-child(7) .px-4 .slider');
+    const backgroundColorStyle = await styleToggle.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    });
+    if (backgroundColorStyle === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(7) .px-4 .slider');
+    }
+    const styleToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    })
+    if (backgroundColorStyleForce === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(7) .wittyworks-button');
+
+
+    //orthography
+    const orthographyToggle = await page.waitForSelector('.max-w-7xl:nth-child(8) .px-4 .slider');
+    const backgroundColorOrthography = await orthographyToggle.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    });
+    if (backgroundColorOrthography === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(8) .px-4 .slider');
+    }
+    const orthographyToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    }
+    );
+    if (backgroundColorOrthographyForce === 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(8) .wittyworks-button');
+}
+
+exports.unlockAllToggles = async function (page) {
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+    await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+
+    await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+
+    //orthography
+    const inclusiveToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+    const backgroundColorInclusiveForce = await inclusiveToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    });
+    if (backgroundColorInclusiveForce !== 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(6) .wittyworks-button');
+
+    //style
+    const styleToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    })
+    if (backgroundColorStyleForce !== 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(7) .wittyworks-button');
+
+
+    //orthography
+    const orthographyToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    }
+    );
+    if (backgroundColorOrthographyForce !== 'rgb(204, 204, 204)') {
+        await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    }
+    await page.click('.max-w-7xl:nth-child(8) .wittyworks-button');
 }

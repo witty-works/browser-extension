@@ -12,8 +12,9 @@ export const POSTHOG_API_KEY = DEV_ENV
 //Storage
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
+  API_DELAY = 'apiDelay',
   APP_ID = 'id',
-  DISABLED_SITES = 'disabledSites',
+
   PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
@@ -23,16 +24,23 @@ export enum StorageKeys {
   SINGULAR_THEY = 'singularThey',
   MAXIMUM_IMPORTANCE = 'maximumImportance',
   CASING_SITES = 'casingSites',
-  API_DELAY = 'apiDelay',
   GENDERED_ROLES_FORMAT = 'genderedRolesFormat',
-  USERNAME = 'username',
+
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',
-  CURRENT_DOMAIN = 'currentDomain',
-  ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
-  TEAM_NAME = 'teamName',
   PLAN = 'plan',
+
+  DOMAINS = 'domains',
+  ORGANIZATION_DOMAINS = 'organizationDomains',
+  CONFIG_HASH = 'configHash',
+  ORGANIZATION_CONFIG_HASH = 'organizationConfigHash',
+  DOMAIN_TO_UPDATE = 'domainToUpdate',
+
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
+
+  DOMAINS_CONFIRMED_TO_WORK = 'domainsConfirmedToWork',
+  DOMAINS_CONFIRMED_TO_NOT_WORK = 'domainsConfirmedNotToWork',
+  NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
 }
 
 //nlp api, dashboard
@@ -46,13 +54,13 @@ interface IBaseUrls {
 }
 
 export const BaseUrls: IBaseUrls = {
-  Prod: {
-    api: 'https://default.api.witty.works/',
-    dashboard: 'https://dashboard.witty.works/',
-  },
   Dev: {
     api: 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
+  },
+  Prod: {
+    api: 'https://default.api.witty.works/',
+    dashboard: 'https://dashboard.witty.works/',
   },
   Local: {
     api: 'http://127.0.0.1:8000/',
@@ -61,7 +69,7 @@ export const BaseUrls: IBaseUrls = {
 };
 
 export const DefaultBaseUrlKey: keyof typeof BaseUrls =
-  'Prod' as keyof typeof BaseUrls;
+  'Dev' as keyof typeof BaseUrls;
 
 export enum ConfigPropertyStatus {
   FORCE = 'force',
@@ -143,6 +151,38 @@ export const WittyIconActive = {
   },
 };
 
+export const dropdownOptions = [
+  {
+    key: 0,
+    value: '0 seconds',
+  },
+  {
+    key: 500,
+    value: '0.5 seconds',
+  },
+  {
+    key: 1000,
+    value: '1 second',
+  },
+  {
+    key: 1500,
+    value: '1.5 seconds',
+  },
+  {
+    key: 2000,
+    value: '2 seconds',
+  },
+  {
+    key: 2500,
+    value: '2.5 seconds',
+  },
+  {
+    key: 3000,
+    value: '3 seconds',
+  },
+];
+
+export const devAppId = 'DEV_APP_ID';
 export const exposeWittyIdAllowList = [
   'dashboard.lndo.site',
   'dashboard.witty.works',

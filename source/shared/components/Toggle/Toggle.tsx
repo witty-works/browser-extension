@@ -1,15 +1,14 @@
 import React from 'react';
 
 import './Toggle.scss';
-import Lock from '../../../assets/icons/options/lock.svg';
+import Lock from '../../../assets/icons/popup/lock.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
+import { Colors } from '../../constants';
 
 interface ToggleProps {
   on: boolean | undefined;
   handleToggle: () => void;
-  color: string;
-  scale: number;
   label: string;
   locked?: boolean;
   hasWittyTeams?: boolean;
@@ -19,14 +18,13 @@ interface ToggleProps {
 const Toggle: React.FC<ToggleProps> = ({
   on,
   handleToggle,
-  color,
-  scale,
   label,
   locked,
   hasWittyTeams = true,
   userIsLoggedIn = true,
 }: ToggleProps) => {
-  const { t } = useTranslation([namespaces.pages.options]);
+  const { t } = useTranslation([namespaces.pages.popup]);
+  const scale = 0.35;
   return (
     <>
       <div
@@ -63,7 +61,7 @@ const Toggle: React.FC<ToggleProps> = ({
 
         <label
           style={{
-            background: (hasWittyTeams && on && color) as string,
+            background: (hasWittyTeams && on && Colors.green) as string,
             transform: `translateX(${scale * 100}%) scale(${scale}, ${scale})`,
           }}
           id={`toggle-encloser-${label.replace(/\s+|&/g, '-').toLowerCase()}`}

@@ -7,9 +7,11 @@ import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import { WTags, StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
 import {
-  setBaseUrls,
-  setRequestConfig,
   setAppID,
+  setBaseUrls,
+  setConfigHash,
+  setOrganizationConfigHash,
+  setRequestConfig,
   setToken,
 } from '../shared/ApiServices/requests';
 import {
@@ -51,6 +53,8 @@ const ContentScriptApp: React.FC = () => {
             : DefaultBaseUrlKey
         );
         setToken(result[StorageKeys.ACCESS_TOKEN]);
+        setConfigHash(result[StorageKeys.CONFIG_HASH]);
+        setOrganizationConfigHash(result[StorageKeys.ORGANIZATION_CONFIG_HASH]);
 
         //Enable/disable spellchecker on the website
         document.body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
@@ -58,7 +62,7 @@ const ContentScriptApp: React.FC = () => {
           : (document.body.spellcheck = true);
 
         //Define API requests config
-        const reqConfig: RequestConfig = {
+        const requestConfig: RequestConfig = {
           german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value
             ? result[StorageKeys.GERMAN_GENDER_ENDING].value
             : result[StorageKeys.GERMAN_GENDER_ENDING],
@@ -90,8 +94,12 @@ const ContentScriptApp: React.FC = () => {
           gendered_roles_format: result[StorageKeys.GENDERED_ROLES_FORMAT].value
             ? result[StorageKeys.GENDERED_ROLES_FORMAT].value
             : result[StorageKeys.GENDERED_ROLES_FORMAT],
+
+          inclusive: result[StorageKeys.INCLUSIVE].value,
+          style: result[StorageKeys.STYLE].value,
+          orthography: result[StorageKeys.ORTHOGRAPHY].value,
         };
-        setReqConfig(reqConfig);
+        setReqConfig(requestConfig);
       })
       .catch((error: unknown) => {
         log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
@@ -123,6 +131,12 @@ const ContentScriptApp: React.FC = () => {
           break;
         case StorageKeys.ACCESS_TOKEN:
           setToken(changes[item].newValue);
+          break;
+        case StorageKeys.CONFIG_HASH:
+          setConfigHash(changes[item].newValue);
+          break;
+        case StorageKeys.ORGANIZATION_CONFIG_HASH:
+          setOrganizationConfigHash(changes[item].newValue);
           break;
         case StorageKeys.PREFERRED_VARIANTS:
           setReqConfig({
@@ -212,6 +226,7 @@ const ContentScriptApp: React.FC = () => {
               ? changes[item].newValue.value
               : changes[item].newValue,
           });
+          break;
       }
     }
   };

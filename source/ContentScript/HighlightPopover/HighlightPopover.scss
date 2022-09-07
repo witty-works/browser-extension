@@ -5,12 +5,12 @@
   display: 'flex';
   background-color: $white;
   color: $black;
-  z-index: 999999;
   padding: 0 8px;
   box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
   border-radius: 5px;
   font-family: $lato !important;
   min-width: 272px;
+  z-index: 9999999;
 }
 
 #wittyworks-popover-content {

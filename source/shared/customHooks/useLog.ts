@@ -6,7 +6,7 @@ export enum logTypes {
 }
 
 export const useLog = (
-  componentName: string
+  componentName?: string
 ): ((message: string, type?: string, data?: any) => void) => {
   const log = (message: string, type?: string, data?: any) => {
     if (DEV_ENV) {

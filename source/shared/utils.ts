@@ -1,9 +1,15 @@
 import { browser } from 'webextension-polyfill-ts';
 import { useAnalytics } from './ApiServices/useAnalytics';
-import { wittyVersion, WTags } from './constants';
-import { isTextArea } from './DOMutils';
-
+import {
+  devAppId,
+  DEV_ENV,
+  StorageKeys,
+  wittyVersion,
+  WTags,
+} from './constants';
 import { sendErrorToSentry } from './errorUtils';
+import defaultConfig from '../witty.config.json';
+import { isTextArea } from './DOMutils';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -62,7 +68,7 @@ export const getDomainWithoutSubdomain = (url: string) => {
   const urlParts = url.split('.');
   return urlParts
     .slice(0)
-    .slice(-(urlParts.length === 4 ? 3 : 2))
+    .slice(urlParts.length - 2)
     .join('.');
 };
 export const singularTheyToBoolean = (value: string) =>
@@ -88,15 +94,107 @@ export const getFirstTextDiff = (previousText: string, nextText: string) => {
   return i;
 };
 
-export const addInactiveLabel = () => {
+export const addNotificationBadge = (numberOfNotifications: number) => {
+  browser.browserAction.setBadgeBackgroundColor({
+    color: '#E6635A',
+  });
+
+  browser.browserAction.setBadgeText({
+    text: numberOfNotifications.toString(),
+  });
+};
+
+export const addInactiveBadge = () => {
   browser.browserAction.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
   browser.browserAction.setBadgeText({ text: 'OFF' });
 };
 
-export const removeInactiveLabel = () => {
+export const addLoginBadge = () => {
+  browser.browserAction.setBadgeBackgroundColor({
+    color: [190, 190, 190, 230],
+  });
+  browser.browserAction.setBadgeText({ text: 'Login' });
+};
+
+export const removeBadge = () => {
   browser.browserAction.setBadgeText({ text: '' });
+};
+
+export const getRandomToken = () => {
+  const bytes = new Uint8Array(32); //256 bits token
+
+  window.crypto.getRandomValues(bytes);
+
+  // convert byte array to hexademical representation
+  const bytesHex = bytes.reduce(
+    (item, acc) => item + `00${acc.toString(16)}`.slice(-2),
+    ''
+  );
+
+  // convert hexademical value to a decimal string
+  return BigInt('0x' + bytesHex).toString(10);
+};
+
+export const getBrowserId = () => {
+  return DEV_ENV ? devAppId : getRandomToken();
+};
+
+export const updateLabelChrome = (domain: string) => {
+  browser.storage.local.get(null).then((result) => {
+    const userLoggedIn = result[StorageKeys.ACCESS_TOKEN];
+    if (!userLoggedIn) {
+      addLoginBadge();
+      return;
+    }
+
+    const isLocked =
+      (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
+      (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list &&
+        !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
+
+    const isDisabled = result[StorageKeys.DOMAINS].includes(domain);
+
+    const domainConfirmedToNotWork = result[
+      StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK
+    ]
+      ? result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK]
+          .filter((domain: string) => {
+            const domainTimestamp = domain.split('-')[1];
+            const domainDate = new Date(parseInt(domainTimestamp));
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+            return domainDate > threeMonthsAgo;
+          })
+          .map((d: string) => {
+            return d.split('-')[0];
+          })
+          .includes(domain)
+      : false;
+
+    const domainOnDisabledSitesList =
+      defaultConfig.DISABLED_SITES.includes(domain);
+
+    const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
+    if (
+      isLocked ||
+      isDisabled ||
+      domainConfirmedToNotWork ||
+      domainOnDisabledSitesList
+    ) {
+      addInactiveBadge();
+    } else if (numberOfNotifications > 0) {
+      addNotificationBadge(numberOfNotifications);
+    } else {
+      removeBadge();
+    }
+  });
 };
 
 export const getCorrectedPosition = (
@@ -104,7 +202,12 @@ export const getCorrectedPosition = (
   parentElement: HTMLElement | null,
   element: HTMLElement
 ) => {
-  if (isTextArea(element)) {
+  const domain = getDomainWithoutSubdomain(window.location.hostname);
+  const pathContainsMessaging = window.location.pathname.includes('messaging');
+  if (
+    isTextArea(element) ||
+    (domain === 'linkedin.com' && pathContainsMessaging) //exception for linkedin messaging
+  ) {
     elementRect = element.getBoundingClientRect();
   }
 
