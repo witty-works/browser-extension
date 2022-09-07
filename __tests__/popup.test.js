@@ -43,8 +43,8 @@ test.describe('Popup', () => {
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
 
-        await page.waitForSelector('.wittyworks-button-yes');
-        expect(await page.$('.wittyworks-button-yes')).not.toBeNull();
+        await page.waitForSelector('.wittyworks-text-grey');
+        expect(await page.$('.wittyworks-text-grey')).not.toBeNull();
     })
 
     test('clicking logo opens a page in another window', async ({ page, context }) => {
@@ -64,10 +64,7 @@ test.describe('Popup', () => {
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
 
-        await page.waitForSelector('.wittyworks-button-yes');
-        await page.click('.wittyworks-button-yes');
-        await page.waitForTimeout(2000);
-
+        await page.waitForSelector('.wittyworks-text-grey');
         let toggles = await page.$$('.toggle-encloser');
         expect(toggles.length).toBe(3);
         let labels = await page.$$('.toggle-label');
@@ -96,8 +93,7 @@ test.describe('Popup', () => {
         await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-        await page.waitForSelector('.wittyworks-button-yes');
-        await page.click('.wittyworks-button-yes');
+        await page.waitForSelector('.wittyworks-text-grey');
         await page.waitForTimeout(2000);
 
         const inclusiveToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-highlight-inclusive-terms', '#toggle-button-highlight-inclusive-terms', false);
@@ -128,9 +124,7 @@ test.describe('Popup', () => {
         await utils.loginPopupPage(page, extensionId, context);
 
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
-        await page.waitForSelector('.wittyworks-button-yes');
-        await page.click('.wittyworks-button-yes');
-        await page.waitForTimeout(2000);
+        await page.waitForSelector('.wittyworks-text-grey');
         const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
         expect(grammarToggle).toBe(true);
     });
