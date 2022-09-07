@@ -1,90 +1,105 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Highlight, IAlert, INodeWithAlerts, ScrollPos } from '../shared/types';
+
+import { sendErrorToSentry } from '../shared/errorUtils';
+import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { nodeExistsInDOM } from '../shared/utils';
-import { drawHighlight, drawLine, redrawText } from './highlightsUtils';
+import { isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
+import { drawHighlight, drawLine } from './highlightsUtils';
+import { getCorrectedPosition } from '../shared/utils';
 
 interface HighlightsProps {
-  bodyScroll: ScrollPos;
-  parentScroll: ScrollPos;
-  elementScroll: ScrollPos;
-  elementRect: DOMRect;
+  elementScroll: Position;
   nodesWithAlerts: INodeWithAlerts[];
-  element: Element;
+  element: HTMLElement;
+  elementRect: DOMRect;
   selectedAlert: IAlert | null;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
-  bodyScroll,
-  parentScroll,
   elementScroll,
-  elementRect,
   nodesWithAlerts,
   element,
+  elementRect,
   selectedAlert,
 }: HighlightsProps) => {
+  const doc = document.documentElement || document.body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
+  const correctedPosition = getCorrectedPosition(
+    elementRect,
+    canvasRef.current.parentElement,
+    element
+  );
+  const canvasSize = {
+    width: elementRect.width,
+    height: elementRect.height,
+  };
+
   useEffect(() => {
     const highlights: Highlight[] = [];
-    if (nodesWithAlerts.length === 0) setHighlights([]);
+    if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
-      //quick fix to avoid error: check if node exists in the DOM
-      //but also filter alerts that have a bigger endOffset than the length of the text
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
-        alerts
-          .filter(
-            (alert: IAlert) =>
-              node.textContent && alert.endOffset <= node.textContent.length
-          )
-          .forEach((alert: IAlert) => {
-            const range = document.createRange();
-
+        alerts.forEach((alert: IAlert) => {
+          const range = document.createRange();
+          try {
+            if (
+              node.textContent &&
+              (alert.endOffset > node.textContent.length ||
+                alert.startOffset > node.textContent.length)
+            )
+              return;
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
+          } catch (error) {
+            sendErrorToSentry(error);
+          }
+          const rects: DOMRect[] = Array.from(range.getClientRects()).map(
+            (rect: DOMRect) => {
+              return {
+                ...rect,
+                width: rect.width,
+                height: rect.height,
+                left: rect.left,
+                x: rect.left,
+                top:
+                  rect.top +
+                  doc.scrollTop -
+                  (isTextArea(element) ? elementScroll.top : 0),
+                y:
+                  rect.top +
+                  doc.scrollTop -
+                  (isTextArea(element) ? elementScroll.top : 0),
+              };
+            }
+          );
 
-            const rects: DOMRect[] = Array.from(range.getClientRects()).map(
-              (rect: DOMRect) => {
-                return {
-                  ...rect,
-                  width: rect.width,
-                  height: rect.height,
-                  left: rect.left,
-                  x: rect.left,
-                  top: rect.top + bodyScroll.top,
-                  y: rect.top,
-                };
-              }
-            );
+          const newHighlight: Highlight = {
+            rects,
+            id: alert.id,
+            data: alert.data,
+            startOffset: alert.startOffset,
+            endOffset: alert.endOffset,
+            node: node,
+          };
 
-            const newHighlight: Highlight = {
-              rects,
-              id: alert.id,
-              data: alert.data,
-              startOffset: alert.startOffset,
-              endOffset: alert.endOffset,
-              node: node,
-            };
-
-            highlights.push(newHighlight);
-          });
+          highlights.push(newHighlight);
+        });
       }
     });
 
     setHighlights(highlights);
-  }, [nodesWithAlerts, parentScroll, elementScroll, elementRect]);
+  }, [nodesWithAlerts, elementScroll, elementRect]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     //makes the canvas ratio correct, needed to make text clear
     const ratio = window.devicePixelRatio;
-    canvas.width = elementRect.width * ratio;
-    canvas.height = elementRect.height * ratio;
-    canvas.style.width = elementRect.width + 'px';
-    canvas.style.height = elementRect.height + 'px';
+    canvas.width = canvasSize.width * ratio;
+    canvas.height = canvasSize.height * ratio;
     const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
     if (!context) return;
 
@@ -92,6 +107,8 @@ const Highlights: React.FC<HighlightsProps> = ({
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     highlights.forEach((highlight) => {
+      if (highlight.rects && highlight.rects.length === 0) return;
+
       const [rect] = highlight.rects;
       const hoverColor = `${getColor(highlight.data.gravity).default}`;
       const highlightColor = `${getColor(highlight.data.gravity).hover}`;
@@ -114,13 +131,9 @@ const Highlights: React.FC<HighlightsProps> = ({
       if (selectedAlert && selectedAlert.id === highlight.id) {
         drawHighlight(params, highlightColor);
         drawLine(params, hoverColor, dashedLine);
-        redrawText(params);
-      } else {
-        drawHighlight(params, 'transparent');
-        drawLine(params, hoverColor, dashedLine);
       }
     });
-  }, [highlights, selectedAlert]);
+  }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
     <canvas
@@ -128,12 +141,11 @@ const Highlights: React.FC<HighlightsProps> = ({
       style={
         {
           position: 'absolute',
-          top: `${elementRect.top}px`,
-          left: `${elementRect.left}px`,
-          width: `${elementRect.width}px`,
-          height: `${elementRect.height}px`,
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
+          width: `${canvasSize.width}px`,
+          height: `${canvasSize.height}px`,
           overflow: 'auto',
-          zIndex: 99999999,
           pointerEvents: 'none',
         } as React.CSSProperties
       }

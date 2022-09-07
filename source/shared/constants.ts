@@ -12,10 +12,9 @@ export const POSTHOG_API_KEY = DEV_ENV
 //Storage
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
+  API_DELAY = 'apiDelay',
   APP_ID = 'id',
-  DISABLED_SITES = 'disabledSites',
-  PRIMARY_LANGUAGE = 'primaryLanguage',
-  PREFERRED_LANGUAGES = 'preferredLanguages',
+
   PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
@@ -25,15 +24,23 @@ export enum StorageKeys {
   SINGULAR_THEY = 'singularThey',
   MAXIMUM_IMPORTANCE = 'maximumImportance',
   CASING_SITES = 'casingSites',
-  API_DELAY = 'apiDelay',
   GENDERED_ROLES_FORMAT = 'genderedRolesFormat',
-  USERNAME = 'username',
+
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',
-  CURRENT_DOMAIN = 'currentDomain',
-  ENABLE_WITTY_EVERYWHERE = 'enableWittyEverywhere',
-  NAME = 'name', //team name
   PLAN = 'plan',
+
+  DOMAINS = 'domains',
+  ORGANIZATION_DOMAINS = 'organizationDomains',
+  CONFIG_HASH = 'configHash',
+  ORGANIZATION_CONFIG_HASH = 'organizationConfigHash',
+  DOMAIN_TO_UPDATE = 'domainToUpdate',
+
+  CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
+
+  DOMAINS_CONFIRMED_TO_WORK = 'domainsConfirmedToWork',
+  DOMAINS_CONFIRMED_TO_NOT_WORK = 'domainsConfirmedNotToWork',
+  NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
 }
 
 //nlp api, dashboard
@@ -47,13 +54,13 @@ interface IBaseUrls {
 }
 
 export const BaseUrls: IBaseUrls = {
-  Prod: {
-    api: 'https://default.api.witty.works/',
-    dashboard: 'https://dashboard.witty.works/',
-  },
   Dev: {
     api: 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
+  },
+  Prod: {
+    api: 'https://default.api.witty.works/',
+    dashboard: 'https://dashboard.witty.works/',
   },
   Local: {
     api: 'http://127.0.0.1:8000/',
@@ -62,13 +69,24 @@ export const BaseUrls: IBaseUrls = {
 };
 
 export const DefaultBaseUrlKey: keyof typeof BaseUrls =
-  'Prod' as keyof typeof BaseUrls;
+  'Dev' as keyof typeof BaseUrls;
 
 export enum ConfigPropertyStatus {
   FORCE = 'force',
   SUGGESTION = 'suggestion',
 }
 
+//HTML element's tags
+export enum WTags {
+  WW_CONTAINER = 'ww-container',
+  WW_HIGHLIGHTS = 'ww-highlights',
+  WW_MOUSEOVER_INDICATOR = 'ww-mo-indicator',
+  WW_ACTIVITY_INDICATOR = 'ww-activity-indicator',
+  WW_CLONE = 'ww-clone',
+  WW_POPOVER = 'ww-popover',
+}
+
+//Colors
 export enum Colors {
   red = '#F06464',
   magenta = '#F277D0',
@@ -86,45 +104,45 @@ interface IHighlightColors {
 const inclusiveGreen: IHighlightColors = {
   default: '#BCD485',
   highlight: '#D3E4AC',
-  hover: '#C9DF7F',
+  hover: '#BCD485',
 };
 
 const styleYellow: IHighlightColors = {
   default: '#F6EC6B',
   highlight: '#FFFFD3',
-  hover: '#FFF7A4',
+  hover: '#F6EC6B',
 };
 
 const unconsciousBiasAndGenderedOrange: IHighlightColors = {
   default: '#EB9F46',
   highlight: '#F8E7CB',
-  hover: '#F8D29F',
+  hover: '#EB9F46',
 };
 
 const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
   default: '#E6635A',
   highlight: '#F7D4D4',
-  hover: '#F8BEBB',
+  hover: '#E6635A',
 };
 
 export const getColor = (gravity: number): IHighlightColors => {
   if (!gravity) return inclusiveGreen;
-  if (gravity == 1) return openlyDiscriminatingAndGrammarRed;
-  if (gravity == 2) return unconsciousBiasAndGenderedOrange;
-  if (gravity == 3) return styleYellow;
+  if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
+  if (gravity > 2.5) return styleYellow;
   return unconsciousBiasAndGenderedOrange;
 };
 
 //German Gender Endings
 export enum GermanGenderEndings {
-  colon_in = ':in',
   asterisk_in = '*in',
+  colon_in = ':in',
   underscore_in = '_in',
   slash_dash_in = '/-in',
   slash_in = '/in',
   uppercase_in = 'In',
 }
 
+//Icons
 export const WittyIconActive = {
   path: {
     '16': 'assets/icons/icon16.png',
@@ -133,10 +151,40 @@ export const WittyIconActive = {
   },
 };
 
-export const WittyIconInactive = {
-  path: {
-    '16': 'assets/icons/icon16_disabled.png',
-    '32': 'assets/icons/icon32_disabled.png',
-    '48': 'assets/icons/icon48_disabled.png',
+export const dropdownOptions = [
+  {
+    key: 0,
+    value: '0 seconds',
   },
-};
+  {
+    key: 500,
+    value: '0.5 seconds',
+  },
+  {
+    key: 1000,
+    value: '1 second',
+  },
+  {
+    key: 1500,
+    value: '1.5 seconds',
+  },
+  {
+    key: 2000,
+    value: '2 seconds',
+  },
+  {
+    key: 2500,
+    value: '2.5 seconds',
+  },
+  {
+    key: 3000,
+    value: '3 seconds',
+  },
+];
+
+export const devAppId = 'DEV_APP_ID';
+export const exposeWittyIdAllowList = [
+  'dashboard.lndo.site',
+  'dashboard.witty.works',
+  'witty.works',
+];

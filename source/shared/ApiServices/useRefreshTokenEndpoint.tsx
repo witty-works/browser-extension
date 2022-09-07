@@ -6,8 +6,6 @@ import { IRequest, IRefreshTokenResponse } from '../types';
 export const useRefreshTokenEndpoint = () => {
   const [refreshToken, setRefreshToken] = useState<string>('');
   if (refreshToken != '') {
-    console.log('useRefreshTokenEndpoint', refreshToken);
-
     const refreshTokenRequest: IRequest = useMemo(() => {
       return getToken(refreshToken);
     }, [refreshToken]);

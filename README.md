@@ -13,7 +13,7 @@ Clone repo `git clone https://github.com/witty-works/browser-extension.git`
 
 Go to project directory `cd browser-extension`
 
-Ensure you are using node 14, fe. via `nvm use 14`.
+Ensure you are using node 16.15.1.
 
 Run `yarn install` to install dependencies.
 
@@ -104,7 +104,23 @@ See the original [README](https://github.com/abhijithvijayan/wext-manifest-loade
 
 ## Unit Testing
 
-From inside the directory just run `yarn run test`
+Copy `.env.example` to `.env` and adjust the values accordingly.
+
+```
+PREMIUM_TEST_USER_EMAIL = 'witty.works.premium.user@gmail.com'
+PREMIUM_TEST_USER_PASSWORD = '<can be found in 1Password>'
+PROXY_SERVER = '<can be found in 1Password>'
+PROXY_USERNAME = '<can be found in 1Password>'
+PROXY_PASSWORD = '<can be found in 1Password>'
+```
+
+To run locally: From inside the directory just run `yarn run test`
+To run with docker (needed to make linux screenshots for GA):
+`docker run -v $PWD:/browser-extension -w /browser-extension --rm -it mcr.microsoft.com/playwright:v1.24.2-focal /bin/bash`
+
+`xvfb-run yarn test`
+
+test-results folder will be created with screenshots for manual debuging
 
 ## Linting & TypeScript Config
 

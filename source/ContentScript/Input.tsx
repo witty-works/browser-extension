@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { browser } from 'webextension-polyfill-ts';
 
+import * as Sentry from '@sentry/react';
+import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
+import { WTags, StorageKeys } from '../shared/constants';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../i18n/i18n.constants';
+
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -8,9 +15,14 @@ import {
   CustomInputElement,
   IAlert,
   INodeWithAlerts,
-  ScrollPos,
+  Position,
 } from '../shared/types';
-import { isTextArea, isInputText, storeInLocalStorage } from '../shared/utils';
+import {
+  storeInLocalStorage,
+  getFirstTextDiff,
+  getDomainWithoutSubdomain,
+} from '../shared/utils';
+import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
@@ -22,34 +34,32 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import { browser } from 'webextension-polyfill-ts';
-import { StorageKeys } from '../shared/constants';
 import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import GoogleDocClone from './GoogleDocClone';
+import Toast from '../shared/components/Toast/Toast';
+import { sendErrorToSentry } from '../shared/errorUtils';
+import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
+import { setToken } from '../shared/ApiServices/requests';
+import { getInputText, updateConfig } from './utils';
 
 const Input: React.FC<{
   element: CustomInputElement;
-  bodyScroll: ScrollPos;
-  parentScroll: ScrollPos;
-}> = ({ element, bodyScroll, parentScroll }) => {
+}> = ({ element }) => {
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
+  const [authResponse, authErrorResponse, setConfigHasChanged] =
+    useAuthEndpoint();
+  const [, , previousTextToCheckRef] = useStateRef('');
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
-  let elementRect = useResizeObserver(element);
-  let elementOffsetParentRect = useResizeObserver(element.offsetParent);
-
+  const elementRect = useResizeObserver(element);
   const [alerts, setAlerts] = useState<IAlert[]>([]);
-  const [observedElement, setObservedElement] = useState<Element>(element);
-  const [observedElementRect, setObservedElementRect] = useState<DOMRect>(
-    element.getBoundingClientRect()
-  );
-  const [elementScroll, setElementScroll] = useState<ScrollPos>({
+  const [elementScroll, setElementScroll] = useState<Position>({
     top: 0,
     left: 0,
-  } as ScrollPos);
+  } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
@@ -58,7 +68,8 @@ const Input: React.FC<{
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedNodeWithAlertsIndex, setSelectedNodeWithAlertsIndex] =
     useState<number>(-1);
-  const [selectedAlertIndex, setSelectedAlertIndex] = useState<number>(-1);
+  const [selectedAlertIndex, setSelectedAlertIndex, prevSelectedAlertIndex] =
+    useStateRef<number>(-1);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   const [popoverData, setPopoverData] = useState<PopoverData | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
@@ -81,13 +92,18 @@ const Input: React.FC<{
   );
 
   useMutationObserver(element, onElementMutation);
-
+  const { t } = useTranslation([namespaces.errors]);
   const log = useLog('Input');
 
   useEffect(() => {
-    browser.storage.local.get(StorageKeys.API_DELAY).then((result) => {
-      setDebounceDelay(result[StorageKeys.API_DELAY] as number);
-    });
+    browser.storage.local
+      .get(StorageKeys.API_DELAY)
+      .then((result) => {
+        setDebounceDelay(result[StorageKeys.API_DELAY] as number);
+      })
+      .catch((error: unknown) => {
+        sendErrorToSentry(error);
+      });
 
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
@@ -135,23 +151,13 @@ const Input: React.FC<{
   }, [debounceDelay]);
 
   useEffect(() => {
-    docTextEvaluation(element);
-  }, [element]);
+    if (!authResponse) return;
+    updateConfig(authResponse);
+  }, [authResponse]);
 
   useEffect(() => {
-    if (
-      element.offsetParent &&
-      elementOffsetParentRect &&
-      (elementOffsetParentRect.width < elementRect.width ||
-        elementOffsetParentRect.height < elementRect.height)
-    ) {
-      setObservedElement(element.offsetParent);
-      setObservedElementRect(elementOffsetParentRect);
-    } else {
-      setObservedElement(element);
-      setObservedElementRect(elementRect);
-    }
-  }, [elementRect, elementOffsetParentRect]);
+    docTextEvaluation(element);
+  }, [element]);
 
   const handleMouseoverEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(true);
@@ -167,15 +173,49 @@ const Input: React.FC<{
   };
 
   const handleFocusoutEvent = () => {
-    const nextText: string = getInputText(element);
-    if (nextText == '\n' || nextText.length == 0) setActiveIcon('passive');
+    setActiveIcon('passive');
+    setAlerts([]);
+    setTextToCheck('');
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    browser.storage.local.get(StorageKeys.ORTHOGRAPHY).then((result) => {
-      element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
-    });
-    const nextText: string = getInputText(element);
+    if (prevSelectedAlertIndex.current != -1) resetPopover();
+
+    browser.storage.local
+      .get(StorageKeys.ORTHOGRAPHY)
+      .then((result) => {
+        element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
+      })
+      .catch((error: unknown) => {
+        sendErrorToSentry(error);
+      });
+
+    let nextText: string = getInputText(element);
+    const fistTextDiff = getFirstTextDiff(
+      previousTextToCheckRef.current,
+      nextText
+    );
+
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (alert) => alert.startOffset < fistTextDiff
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    } else {
+      const nextTextAtFistTextDiff = nextText.substring(
+        fistTextDiff,
+        nextText.length
+      );
+
+      if (nextTextAtFistTextDiff.length > 3) {
+        setAlerts([]);
+      }
+    }
+
+    previousTextToCheckRef.current = nextText;
+
     handleTextAndIcon(nextText, event);
   };
 
@@ -202,9 +242,9 @@ const Input: React.FC<{
     setTextToCheck(text);
   }, debounceDelay);
 
-  const handleElementScrollEvent = debounce(() => {
+  const handleElementScrollEvent = () => {
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
-  }, 500);
+  };
 
   const handleSubmitFormEvent = () => {
     //It's assumed that when user sends info through a form, text will disappear.
@@ -230,36 +270,11 @@ const Input: React.FC<{
     }
   };
 
-  const hidePopover = () => {
-    if (popoverData) {
-      setPopoverData(null);
-      setSelectedAlert(null);
-      setSelectedNodeWithAlertsIndex(-1);
-      setSelectedAlertIndex(-1);
-    }
-  };
-
-  const getInputText = (element: CustomInputElement) => {
-    if (element.tagName == 'g' && element.querySelector('rect')) {
-      const text: string = Array.from(element.children)
-        .map((child) => {
-          if (child.getAttribute('aria-label')) {
-            return child.getAttribute('aria-label');
-          } else {
-            return '';
-          }
-        })
-        .join(' ');
-
-      // const rect = element.querySelector('rect');
-      // if (rect) {
-      //   const text = rect.getAttribute('aria-label');
-      if (text) return text;
-      // }
-    }
-    return isTextArea(element) || isInputText(element)
-      ? element.value
-      : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
+  const resetPopover = () => {
+    setPopoverData(null);
+    setSelectedAlert(null);
+    setSelectedNodeWithAlertsIndex(-1);
+    setSelectedAlertIndex(-1);
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -315,10 +330,10 @@ const Input: React.FC<{
             nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
 
           if (oneNodeWithAlerts) {
-            // If so, then find out if an alert that has been clicked
-            const selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
+            const caretPos = caret.position;
+
+            let selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
               (alert: IAlert) => {
-                const caretPos = caret.position as number;
                 //If alert is a one character word, take in consideration clicking the position before or after the char
                 return alert.data.text.length === 1
                   ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
@@ -326,8 +341,32 @@ const Input: React.FC<{
               }
             );
 
-            if (selectedAlertIndex > -1)
-              setSelectedAlertIndex(selectedAlertIndex);
+            const selectedAlerts = oneNodeWithAlerts.alerts.filter(
+              (alert: IAlert) =>
+                alert.startOffset <= caretPos && alert.endOffset >= caretPos
+            );
+            if (selectedAlerts.length > 1) {
+              const alertWithLargestStartoffset = selectedAlerts.reduce(
+                (prev: IAlert, current: IAlert) => {
+                  return prev.startOffset > current.startOffset
+                    ? prev
+                    : current;
+                }
+              );
+
+              selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
+                (alert: IAlert) =>
+                  alert.startOffset === alertWithLargestStartoffset.startOffset
+              );
+            }
+
+            if (selectedAlertIndex === -1) return;
+            if (prevSelectedAlertIndex.current === selectedAlertIndex) {
+              resetPopover();
+              return;
+            }
+
+            setSelectedAlertIndex(selectedAlertIndex);
           }
         }
       }, 400);
@@ -362,6 +401,7 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
+    prevSelectedAlertIndex.current = selectedAlertIndex;
     if (
       nodesWithAlertsRef.current.length > 0 &&
       selectedNodeWithAlertsIndex > -1 &&
@@ -376,9 +416,25 @@ const Input: React.FC<{
 
       const range = document.createRange();
       const nodeText = oneNodeWithAlerts.node;
+      if (
+        nodeText.textContent &&
+        (selectedAlert.endOffset > nodeText.textContent.length ||
+          selectedAlert.startOffset > nodeText.textContent.length)
+      )
+        return;
+
       range.setStart(nodeText, selectedAlert.startOffset);
       range.setEnd(nodeText, selectedAlert.endOffset);
-      const clickedRect = range.getClientRects()[0];
+      const rect = range.getClientRects()[0];
+      const clickedRect = {
+        ...rect,
+        width: rect.width,
+        height: rect.height,
+        left: rect.left,
+        x: rect.left,
+        top: range.getClientRects()[0].top - elementScroll.top,
+        y: range.getClientRects()[0].top - elementScroll.top,
+      };
 
       const currentAlertIndex = nodesWithAlertsRef.current
         .slice(0, selectedNodeWithAlertsIndex + 1)
@@ -402,9 +458,21 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
+
+    setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
+
+    checkEndpointResponse.notifications
+      ? storeInLocalStorage(
+          StorageKeys.NUMBER_OF_NOTIFICATIONS,
+          checkEndpointResponse.notifications
+        )
+      : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
+
     setActiveIcon('active');
+
     analytics.checkLog(
       checkEndpointResponse,
+      authResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
     );
 
@@ -416,77 +484,14 @@ const Input: React.FC<{
         : 'None'
     );
 
-    const apiConfig = checkEndpointResponse.organization_config;
-    if (apiConfig) {
-      console.log('apiConfig', apiConfig);
-      storeInLocalStorage(StorageKeys.NAME, apiConfig.name);
-      storeInLocalStorage(StorageKeys.PLAN, apiConfig.plan);
-
-      //TODO: refactored (had type issues)
-      Object.keys(apiConfig.config).forEach((key) => {
-        if (!Object.keys(StorageKeys).includes(key.toUpperCase())) {
-          console.warn(`${key.toUpperCase()} is not a valid storage key`);
-          return;
-        }
-        if (key == 'gendered_roles_format') {
-          storeInLocalStorage(
-            StorageKeys.GENDERED_ROLES_FORMAT,
-            apiConfig.config[key]
-          );
-        } else if (key == 'german_gender_ending') {
-          storeInLocalStorage(
-            StorageKeys.GERMAN_GENDER_ENDING,
-            apiConfig.config[key]
-          );
-        } else if (key == 'inclusive') {
-          storeInLocalStorage(StorageKeys.INCLUSIVE, apiConfig.config[key]);
-        } else if (key == 'maximum_importance') {
-          storeInLocalStorage(
-            StorageKeys.MAXIMUM_IMPORTANCE,
-            apiConfig.config[key]
-          );
-        } else if (key == 'orthography') {
-          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, apiConfig.config[key]);
-        } else if (key == 'preferred_variants') {
-          storeInLocalStorage(
-            StorageKeys.PREFERRED_VARIANTS,
-            apiConfig.config[key]
-          );
-        } else if (key == 'show_inspiration_alternatives') {
-          storeInLocalStorage(
-            StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-            apiConfig.config[key]
-          );
-        } else if (key == 'singular_they') {
-          storeInLocalStorage(StorageKeys.SINGULAR_THEY, apiConfig.config[key]);
-        }
-        // else if (key == 'store_context') {
-        //   storeInLocalStorage(StorageKeys.STORE_CONTEXT, apiConfig.config[key]);
-        // }
-        else if (key == 'style') {
-          storeInLocalStorage(StorageKeys.STYLE, apiConfig.config[key]);
-        }
-        // else if (key == 'preferred_languages') {
-        //   storeInLocalStorage(
-        //     StorageKeys.PREFERRED_LANGUAGES,
-        //     apiConfig.config[key]
-        //   );
-        // }
-      });
-    } else {
-      //TODO config is invalid, this means accessToken is wrong, so is needed to use the refresh token to get a new accesToken
-      console.log('there is no config');
-    }
-
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
         id: `${result.text}-${result.category}-${result.start}${result.end}`,
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId: checkEndpointResponse.organization_config
-          ? checkEndpointResponse.organization_config.id
-          : null,
+        groupId: authResponse ? authResponse.id : undefined,
+        plan: authResponse ? authResponse.plan : undefined,
         data: {
           language: checkEndpointResponse.language,
           category: result.category,
@@ -513,6 +518,7 @@ const Input: React.FC<{
         (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
       );
 
+      //handle case where a word has multiple alerts of different gravity
       const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
         return [alert0, ...alerts]
           .filter(Boolean)
@@ -573,30 +579,36 @@ const Input: React.FC<{
     const nextText: string = getInputText(element);
 
     let textStartingAbsPosition: number = 0;
-    let textEndAbsPosition: number = 0;
+    let textEndAbsPosition: number = -1;
 
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
 
-      if (
-        node.nodeValue &&
-        node.nodeValue.match(/(\u00A0)|[a-zA-Z0-9.:;,?!]/i)
-      ) {
-        textStartingAbsPosition = textEndAbsPosition;
+      if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
+        textStartingAbsPosition = textEndAbsPosition + 1;
 
         const nodeValueLength: number = node.nodeValue.length;
 
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength;
-        // Check if there is a whitespace char after the node's content
+        if (
+          getDomainWithoutSubdomain(window.location.hostname) === 'linkedin.com'
+        ) {
+          textEndAbsPosition = textStartingAbsPosition + nodeValueLength; //solves problem with not highlighting last word
+        } else {
+          textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1; //needed to keep huglights in place for instance on gmail
+        }
+
+        // Check if there is a new line char after the node's content
         // If so, we +1 to the end position
-        if (nextText.charAt(textEndAbsPosition).match(/\n/gi))
+        if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
           textEndAbsPosition += 1;
+        }
 
         const alertsTemp: IAlert[] = alerts
           .filter(
             (alert: IAlert) =>
               node.nodeValue && node.nodeValue.includes(alert.data.text)
           )
+
           .filter(
             (alert: IAlert) =>
               alert.startOffset >= textStartingAbsPosition &&
@@ -623,40 +635,53 @@ const Input: React.FC<{
 
   const updateTextWithAlternative = (alternative: string) => {
     const node = popoverData?.node as Node;
-    const nodeText: string = node.nodeValue as string;
     const alert = selectedAlert as IAlert;
-    const termToBeReplaced: string = nodeText.slice(
-      alert.startOffset,
-      alert.endOffset
-    );
 
-    const regex: RegExp = new RegExp(
-      alternative === ''
-        ? alert.startOffset === 0
-          ? `${termToBeReplaced}[ ,]?`
-          : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}[ ,]?`
-        : alert.startOffset === 0
-        ? `${termToBeReplaced}`
-        : `(?<=(.|\n){${alert.startOffset}})${termToBeReplaced}`
-    );
+    if (isTextArea(element) || isInputText(element)) {
+      element.selectionStart = alert.startOffset;
+      element.selectionEnd =
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset;
+      //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
+      document.execCommand('insertText', false, alternative);
+    } else {
+      const range = document.createRange();
+      range.setStart(node, alert.startOffset);
+      range.setEnd(
+        node,
+        alternative == '' ? alert.endOffset + 1 : alert.endOffset
+      );
+      const sel = window.getSelection();
+      if (!sel) return;
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.execCommand('insertText', false, alternative);
+    }
 
-    const newTextToInsert = nodeText.replace(regex, alternative);
-
-    isTextArea(element) || isInputText(element)
-      ? (element.value = newTextToInsert)
-      : (node.nodeValue = newTextToInsert);
-
-    const newText: string = getInputText(element);
-    setTextToCheck(newText);
-
-    hidePopover();
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (nodeAlert) => nodeAlert.startOffset < alert.startOffset
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    }
+    setTextToCheck(getInputText(element));
+    const event = new Event('keyup', { bubbles: true });
+    element.dispatchEvent(event);
   };
 
   useEffect(() => {
-    if (checkEndpointError) {
-      //gets new access token using the refresh token if the access token has expired
-      if (checkEndpointError.status == 403) {
-        browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
+    if (checkEndpointError?.status === 422) {
+      setNodesWithAlerts([]);
+    }
+    //gets new access token using the refresh token if the access token has expired
+    else if (
+      checkEndpointError?.status == 403 ||
+      authErrorResponse?.status === 403
+    ) {
+      browser.storage.local
+        .get(StorageKeys.REFRESH_TOKEN)
+        .then((result) => {
           if (result[StorageKeys.REFRESH_TOKEN] == '') return;
           setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
           if (refreshTokenError || !refreshTokenResponse) return;
@@ -664,44 +689,72 @@ const Input: React.FC<{
             StorageKeys.ACCESS_TOKEN,
             refreshTokenResponse.access_token
           );
+          setToken(refreshTokenResponse.access_token);
+
           storeInLocalStorage(
             StorageKeys.REFRESH_TOKEN,
             refreshTokenResponse.refresh_token
           );
-          storeInLocalStorage(StorageKeys.USERNAME, refreshTokenResponse.email);
-
           setTextToCheck('');
           setTextToCheck(currentTextToCheck);
+        })
+        .catch((error: unknown) => {
+          sendErrorToSentry(error);
         });
-        log(
-          `API Error Status Code ${checkEndpointError.status}: ${checkEndpointError.message}`,
-          logTypes.ERROR
-        );
+    }
+    log(
+      `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
+      logTypes.ERROR
+    );
+  }, [checkEndpointError, authErrorResponse]);
+
+  const ErrorBoundaryFallback = () => (
+    <Toast message={t('reloadWebsite')} type='error' />
+  );
+
+  useEffect(() => {
+    //Show/Hide the popover
+    if (popoverData) {
+      ReactDOM.render(
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopover
+            element={element}
+            data={popoverData}
+            hide={resetPopover}
+            updateTextWithAlternative={updateTextWithAlternative}
+            addIgnoredTerm={addIgnoredTerm}
+            movePopoverNextOrPrev={movePopoverNextOrPrev}
+          />
+        </Sentry.ErrorBoundary>,
+        document.querySelector(WTags.WW_POPOVER)
+      );
+    } else {
+      const popoverElement = document.querySelector(WTags.WW_POPOVER);
+      if (popoverElement && popoverElement.childNodes.length > 0) {
+        ReactDOM.unmountComponentAtNode(popoverElement);
       }
     }
-  }, [checkEndpointError]);
+  }, [popoverData]);
 
   return (
-    <div className='canvas-container'>
-      <StateIndicatorIcon
-        elementReference={element}
-        iconType={activeIcon}
-        isHovered={isHovered}
-      />
+    <>
+      <WTags.WW_ACTIVITY_INDICATOR>
+        <StateIndicatorIcon
+          element={element}
+          iconType={activeIcon}
+          isHovered={isHovered}
+        />
+      </WTags.WW_ACTIVITY_INDICATOR>
+
       {isTextArea(element) && (
-        <TextAreaClone
-          element={element}
-          elementRect={elementRect}
-          elementScroll={elementScroll}
-          updateClone={updateCloneData}
-        />
-      )}
-      {isInputText(element) && (
-        <InputTextClone
-          element={element}
-          elementRect={elementRect}
-          updateClone={updateCloneData}
-        />
+        <WTags.WW_CLONE>
+          <TextAreaClone
+            element={element}
+            elementRect={elementRect}
+            elementScroll={elementScroll}
+            updateClone={updateCloneData}
+          />
+        </WTags.WW_CLONE>
       )}
       {element.tagName === 'g' && (
         <GoogleDocClone
@@ -710,26 +763,27 @@ const Input: React.FC<{
           updateClone={updateCloneData}
         />
       )}
-      {popoverData && (
-        <HighlightPopover
-          element={element}
-          data={popoverData}
-          hide={hidePopover}
-          updateTextWithAlternative={updateTextWithAlternative}
-          addIgnoredTerm={addIgnoredTerm}
-          movePopoverNextOrPrev={movePopoverNextOrPrev}
-        />
+      {isInputText(element) && (
+        <WTags.WW_CLONE>
+          <InputTextClone
+            element={element}
+            elementRect={elementRect}
+            updateClone={updateCloneData}
+          />
+        </WTags.WW_CLONE>
       )}
-      <Highlights
-        bodyScroll={bodyScroll}
-        parentScroll={parentScroll}
-        elementScroll={elementScroll}
-        elementRect={observedElementRect}
-        nodesWithAlerts={nodesWithAlerts}
-        element={observedElement}
-        selectedAlert={selectedAlert}
-      />
-    </div>
+      <WTags.WW_HIGHLIGHTS>
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <Highlights
+            elementScroll={elementScroll}
+            nodesWithAlerts={nodesWithAlerts}
+            element={element}
+            elementRect={elementRect}
+            selectedAlert={selectedAlert}
+          />
+        </Sentry.ErrorBoundary>
+      </WTags.WW_HIGHLIGHTS>
+    </>
   );
 };
 

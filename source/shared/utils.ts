@@ -1,69 +1,36 @@
-import chroma from 'chroma-js';
 import { browser } from 'webextension-polyfill-ts';
+import { useAnalytics } from './ApiServices/useAnalytics';
+import {
+  devAppId,
+  DEV_ENV,
+  StorageKeys,
+  wittyVersion,
+  WTags,
+} from './constants';
+import { sendErrorToSentry } from './errorUtils';
+import defaultConfig from '../witty.config.json';
+import { isTextArea } from './DOMutils';
 
-const isObjectEmpty = (obj: object) =>
+export const isObjectEmpty = (obj: object) =>
   obj &&
   Object.keys(obj).length === 0 &&
   Object.getPrototypeOf(obj) === Object.prototype;
 
-const isFunction = (functionToCheck: Function) =>
+export const isFunction = (functionToCheck: Function) =>
   functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
-const isTextArea = (element: Element): element is HTMLTextAreaElement =>
-  element instanceof HTMLTextAreaElement;
-
-const isInputText = (element: Element): element is HTMLInputElement =>
-  element instanceof HTMLInputElement && element.type === 'text';
-
-const isHTMLElementContentEditable = (
-  element: Element
-): element is HTMLElement =>
-  element instanceof HTMLElement && element.isContentEditable;
-
-//Ignore anything that is not a TextArea, an Input type=text or a contenteditable
-const isInputElement = (element: Element) =>
-  isTextArea(element) ||
-  // isInputText(element) ||      Temporaly disabled as it could capture passwords
-  isHTMLElementContentEditable(element);
-
-const findElement = (node: Node, element: string): boolean => {
-  if (node.nodeName === element) {
-    return true;
-  }
-  for (const child of node.childNodes) {
-    if (findElement(child, element)) {
-      return true;
-    }
-  }
-  return false;
-};
-
-const nodeExistsInDOM = (node: Node): boolean => document.body.contains(node);
-
-const elementIsVisible = (element: Element): boolean => {
-  const rect: DOMRect = element.getBoundingClientRect();
-  return rect.width > 0 && rect.height > 0 ? true : false;
-};
-
-const textIsLight = (color: any) => {
-  const [r, g, b] = chroma(color).rgb();
-  // HSP (Highly Sensitive Poo) equation from http://alienryderflex.com/hsp.html
-  const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
-  // Using the HSP value, determine whether the color is light or dark
-  return hsp > 127.5 ? true : false;
-};
-
-const storeInLocalStorage = (key: string, value: any) => {
+export const storeInLocalStorage = (key: string, value: any) => {
   browser.storage.local
     .set({ [key]: value })
     .then(() => {
       //TODO bug, some values are not pronted correctly (for example arrays)
-      const wittyVersion = browser.runtime.getManifest().version;
       const componentName = 'Utils';
-      const message = `${key}(${typeof value}) *${(typeof value === 'object'
-        ? JSON.stringify(value)
-        : value
-      ).toString()}* correctly saved`;
+      const message = value
+        ? `${key}(${typeof value}) *${(typeof value === 'object'
+            ? JSON.stringify(value)
+            : value
+          ).toString()}* correctly saved`
+        : `value with key: ${key} is undefined`;
       // const data = typeof value === 'object' ? Object.keys(value) : value;
 
       console.log(
@@ -73,8 +40,16 @@ const storeInLocalStorage = (key: string, value: any) => {
         `color: #000`
       );
     })
-    .catch((error: string) => {
-      const wittyVersion = browser.runtime.getManifest().version;
+    .catch((error: unknown) => {
+      //this error means that the extension was deactivated or uninstalled, in this case we delete the container
+      if (error == 'Error: Extension context invalidated.') {
+        useAnalytics().extenstionStatusLog('deactivated');
+        const container = document.getElementsByTagName(WTags.WW_CONTAINER);
+        if (container.length > 0) {
+          container[0].remove();
+        }
+      }
+
       const componentName = 'Utils';
       const message = `onBrowserStorage Error: ${error}`;
 
@@ -84,40 +59,167 @@ const storeInLocalStorage = (key: string, value: any) => {
         `color: #5fca7d`,
         `color: #f00`
       );
+
+      sendErrorToSentry(error);
     });
 };
 
-const getDomainWithoutSubdomain = (url: string) => {
+export const getDomainWithoutSubdomain = (url: string) => {
   const urlParts = url.split('.');
   return urlParts
     .slice(0)
-    .slice(-(urlParts.length === 4 ? 3 : 2))
+    .slice(urlParts.length - 2)
     .join('.');
 };
-const singularTheyToBoolean = (value: string) =>
+export const singularTheyToBoolean = (value: string) =>
   value === 'he_or_she' ? false : true;
 
-const changeSingularThey = (value: boolean) =>
+export const changeSingularThey = (value: boolean) =>
   value ? 'all_pronouns' : 'he_or_she';
 
-const maximumImportanceToBoolean = (value: number) =>
+export const maximumImportanceToBoolean = (value: number) =>
   value === 3 ? true : false;
 
-const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
+export const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
-export {
-  isObjectEmpty,
-  isFunction,
-  isInputElement,
-  isTextArea,
-  isInputText,
-  nodeExistsInDOM,
-  elementIsVisible,
-  textIsLight,
-  storeInLocalStorage,
-  getDomainWithoutSubdomain,
-  singularTheyToBoolean,
-  changeSingularThey,
-  maximumImportanceToBoolean,
-  changeMaximumImportance,
+export const getFirstTextDiff = (previousText: string, nextText: string) => {
+  let i = 0;
+  while (
+    i < previousText.length &&
+    i < nextText.length &&
+    previousText[i] == nextText[i]
+  ) {
+    i++;
+  }
+  return i;
+};
+
+export const addNotificationBadge = (numberOfNotifications: number) => {
+  browser.browserAction.setBadgeBackgroundColor({
+    color: '#E6635A',
+  });
+
+  browser.browserAction.setBadgeText({
+    text: numberOfNotifications.toString(),
+  });
+};
+
+export const addInactiveBadge = () => {
+  browser.browserAction.setBadgeBackgroundColor({
+    color: [190, 190, 190, 230],
+  });
+  browser.browserAction.setBadgeText({ text: 'OFF' });
+};
+
+export const addLoginBadge = () => {
+  browser.browserAction.setBadgeBackgroundColor({
+    color: [190, 190, 190, 230],
+  });
+  browser.browserAction.setBadgeText({ text: 'Login' });
+};
+
+export const removeBadge = () => {
+  browser.browserAction.setBadgeText({ text: '' });
+};
+
+export const getRandomToken = () => {
+  const bytes = new Uint8Array(32); //256 bits token
+
+  window.crypto.getRandomValues(bytes);
+
+  // convert byte array to hexademical representation
+  const bytesHex = bytes.reduce(
+    (item, acc) => item + `00${acc.toString(16)}`.slice(-2),
+    ''
+  );
+
+  // convert hexademical value to a decimal string
+  return BigInt('0x' + bytesHex).toString(10);
+};
+
+export const getBrowserId = () => {
+  return DEV_ENV ? devAppId : getRandomToken();
+};
+
+export const updateLabelChrome = (domain: string) => {
+  browser.storage.local.get(null).then((result) => {
+    const userLoggedIn = result[StorageKeys.ACCESS_TOKEN];
+    if (!userLoggedIn) {
+      addLoginBadge();
+      return;
+    }
+
+    const isLocked =
+      (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
+      (result[StorageKeys.ORGANIZATION_DOMAINS] &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
+        result[StorageKeys.ORGANIZATION_DOMAINS].list &&
+        !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
+
+    const isDisabled = result[StorageKeys.DOMAINS].includes(domain);
+
+    const domainConfirmedToNotWork = result[
+      StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK
+    ]
+      ? result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK]
+          .filter((domain: string) => {
+            const domainTimestamp = domain.split('-')[1];
+            const domainDate = new Date(parseInt(domainTimestamp));
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+            return domainDate > threeMonthsAgo;
+          })
+          .map((d: string) => {
+            return d.split('-')[0];
+          })
+          .includes(domain)
+      : false;
+
+    const domainOnDisabledSitesList =
+      defaultConfig.DISABLED_SITES.includes(domain);
+
+    const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
+    if (
+      isLocked ||
+      isDisabled ||
+      domainConfirmedToNotWork ||
+      domainOnDisabledSitesList
+    ) {
+      addInactiveBadge();
+    } else if (numberOfNotifications > 0) {
+      addNotificationBadge(numberOfNotifications);
+    } else {
+      removeBadge();
+    }
+  });
+};
+
+export const getCorrectedPosition = (
+  elementRect: DOMRect,
+  parentElement: HTMLElement | null,
+  element: HTMLElement
+) => {
+  const domain = getDomainWithoutSubdomain(window.location.hostname);
+  const pathContainsMessaging = window.location.pathname.includes('messaging');
+  if (
+    isTextArea(element) ||
+    (domain === 'linkedin.com' && pathContainsMessaging) //exception for linkedin messaging
+  ) {
+    elementRect = element.getBoundingClientRect();
+  }
+
+  return parentElement && !isObjectEmpty(parentElement)
+    ? {
+        top: navigator.userAgent.match(/firefox|fxios/i)
+          ? 0
+          : elementRect.top - parentElement.getBoundingClientRect().top,
+        left: elementRect.left - parentElement.getBoundingClientRect().left,
+      }
+    : {
+        top: elementRect.top,
+        left: elementRect.left,
+      };
 };

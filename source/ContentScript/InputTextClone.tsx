@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { getCorrectedPosition } from '../shared/utils';
+
 interface InputTextCloneProps {
   element: HTMLInputElement;
   elementRect: DOMRect;
@@ -10,12 +12,19 @@ const InputTextClone: React.FC<InputTextCloneProps> = ({
   elementRect,
   updateClone,
 }: InputTextCloneProps) => {
+  const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
   const elementStyle = window.getComputedStyle(element);
+  const correctedPosition = getCorrectedPosition(
+    elementRect,
+    cloneRef.current.parentElement,
+    element
+  );
 
   return (
     <div
       ref={(ref) => {
         if (ref !== null) {
+          cloneRef.current = ref;
           updateClone(ref);
         }
       }}
@@ -26,29 +35,21 @@ const InputTextClone: React.FC<InputTextCloneProps> = ({
           whiteSpace: 'pre-wrap',
           position: 'absolute',
           overflow: 'auto',
-          top: `${elementRect.top}px`,
-          left: `${elementRect.left}px`,
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
           paddingTop: elementStyle.paddingTop,
           paddingLeft: elementStyle.paddingLeft,
           paddingRight: elementStyle.paddingRight,
           paddingBottom: elementStyle.paddingBottom,
-          width: elementStyle.width,
-          height: elementStyle.height,
+          width: elementRect.width,
+          height: elementRect.height,
           fontSize: elementStyle.fontSize,
           fontWeight: elementStyle.fontWeight,
           lineHeight: elementStyle.lineHeight,
           fontFamily: elementStyle.fontFamily,
           border: `${elementStyle.borderBottomWidth} solid black`,
           visibility: 'hidden',
-          // outline: '5px solid red',
-          // pointerEvents: 'none',
-          // zIndex: 1,
-          // top: `${
-          //   elementBoundingClientRect.top -
-          //   element.scrollTop +
-          //   elementBoundingClientRect.height +
-          //   50
-          // }px`,
+          pointerEvents: 'none',
         } as React.CSSProperties
       }
     >

@@ -1,172 +1,94 @@
-import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
-import { POSTHOG_API_KEY, wittyVersion } from '../constants';
 import {
   IAlert,
-  ILogResponse,
-  ICheckLogRequest,
-  IIgnoreLogRequest,
-  IAlternativeLogRequest,
-  ILogRequest,
+  IVoteLogRequest,
+  IAlternativeLogItems,
+  ICheckLogItems,
+  IIgnoreLogItems,
+  ILogItems,
+  IAuthResponse,
+  ICheckResponse,
 } from '../types';
-import { appID, requestConfig } from './requests';
+import {
+  captureEvent,
+  getRequestData,
+  getResponseData,
+} from './analyticsUtils';
+import { appID } from './requests';
 
 export const useAnalytics = () => {
-  const ph = browserPostHog(POSTHOG_API_KEY);
-
   return {
-    async alternativeLog(logResponse: IAlert, alternative: string) {
-      ph.session.distinctId = appID;
-
-      const request: IAlternativeLogRequest = {
-        request__type: 'alternative',
-        request__lang: 'auto',
-        request__id: appID,
-        request__client: wittyVersion,
-        request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
-        request__config__preferred_variants: requestConfig.preferred_variants,
-        request__config__german_gender_ending:
-          requestConfig.german_gender_ending,
-        request__replaced: logResponse.data.text,
-        request__alternative: alternative,
+    async checkLog(
+      checkResponse: ICheckResponse,
+      authResponse: IAuthResponse | null,
+      inputLength: number
+    ) {
+      const checkLogItems: ICheckLogItems = {
+        request__type: 'check',
+        request__text__length: inputLength,
+        ...getRequestData(appID),
+        response__results: checkResponse.results,
+        response__language: checkResponse.language,
+        response__limit_reached: checkResponse.limit_reached,
+        response__groupId: authResponse ? authResponse.id : undefined,
+        response__name: authResponse ? authResponse.name : undefined,
+        response__plan: authResponse ? authResponse.plan : undefined,
       };
 
-      if (logResponse.groupId) {
-        ph.capture('alternative', {
-          ...request,
-          response: logResponse,
-          $groups: {
-            organization: logResponse.groupId,
-          },
-        });
-      } else {
-        ph.capture('alternative', {
-          ...request,
-          response: logResponse,
-        });
-      }
+      captureEvent(
+        'check',
+        checkLogItems,
+        authResponse ? authResponse.id : null
+      );
     },
 
-    async checkLog(logResponse: ILogResponse, inputLength: number) {
-      ph.session.distinctId = appID;
-
-      const request: ICheckLogRequest = {
-        request__type: 'check',
-        request__lang: 'auto',
-        request__id: appID,
-        request__client: wittyVersion,
-        request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
-        request__config__preferred_variants: requestConfig.preferred_variants,
-        request__config__german_gender_ending:
-          requestConfig.german_gender_ending,
-        request__text__length: inputLength,
+    async alternativeLog(logResponse: IAlert, alternative: string) {
+      const alternativeLogItems: IAlternativeLogItems = {
+        request__type: 'alternative',
+        request__replaced: logResponse.data.text,
+        request__alternative: alternative,
+        ...getRequestData(appID),
+        ...getResponseData(logResponse),
       };
 
-      if (logResponse.organization_config) {
-        ph.capture('check', {
-          ...request,
-          response: logResponse,
-          $groups: {
-            organization: logResponse.organization_config.id,
-          },
-        });
-      } else {
-        ph.capture('check', {
-          ...request,
-          response: logResponse,
-        });
-      }
+      captureEvent('alternative', alternativeLogItems, logResponse.groupId);
     },
 
     async ignoreLog(logResponse: IAlert) {
-      ph.session.distinctId = appID;
-
-      const request: IIgnoreLogRequest = {
+      const ignoreLogItems: IIgnoreLogItems = {
         request__type: 'ignore',
-        request__lang: 'auto',
-        request__id: appID,
-        request__client: wittyVersion,
-        request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
-        request__config__preferred_variants: requestConfig.preferred_variants,
-        request__config__german_gender_ending:
-          requestConfig.german_gender_ending,
         request__ignored: logResponse.data.text,
+        ...getRequestData(appID),
+        ...getResponseData(logResponse),
       };
 
-      if (logResponse.groupId) {
-        ph.capture('ignore', {
-          ...request,
-          response: logResponse,
-          $groups: {
-            organization: logResponse.groupId,
-          },
-        });
-      } else {
-        ph.capture('ignore', {
-          ...request,
-          response: logResponse,
-        });
-      }
-    },
-
-    async extensionStatusLog(status: string, appID: string) {
-      ph.session.distinctId = appID;
-      ph.capture(status, {
-        request__id: appID,
-        request__client: wittyVersion,
-      });
+      captureEvent('ignore', ignoreLogItems, logResponse.groupId);
     },
 
     async popoverLogs(logResponse: IAlert, logType: string) {
-      ph.session.distinctId = appID;
-
-      const request: ILogRequest = {
+      const popoverLogItems: ILogItems = {
         request__type: logType,
-        request__lang: 'auto',
-        request__id: appID,
-        request__client: wittyVersion,
-        request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
-        request__config__preferred_variants: requestConfig.preferred_variants,
-        request__config__german_gender_ending:
-          requestConfig.german_gender_ending,
+        ...getRequestData(appID),
+        ...getResponseData(logResponse),
       };
 
-      if (logResponse.groupId) {
-        ph.capture(logType, {
-          ...request,
-          response: logResponse,
-          $groups: {
-            organization: logResponse.groupId,
-          },
-        });
-      } else {
-        ph.capture(logType, {
-          ...request,
-          response: logResponse,
-        });
-      }
+      captureEvent(logType, popoverLogItems, logResponse.groupId);
     },
 
-    async voteForUrlLog(url: string, appID: string) {
-      ph.session.distinctId = appID;
-      const request: ILogRequest = {
+    async extensionInstallationAndUpdateLog(status: string, appID: string) {
+      captureEvent(status, getRequestData(appID), null);
+    },
+
+    async extenstionStatusLog(status: string) {
+      captureEvent(status, getRequestData(appID), null);
+    },
+
+    async urlLog(url: string, appID: string, type: string) {
+      const voteItems: IVoteLogRequest = {
         request__type: 'vote',
-        request__lang: 'auto',
-        request__id: appID,
-        request__client: wittyVersion,
-        request__config__primary_language: requestConfig.primary_language,
-        request__config__preferred_languages: requestConfig.preferred_languages,
-        request__config__preferred_variants: requestConfig.preferred_variants,
-        request__config__german_gender_ending:
-          requestConfig.german_gender_ending,
+        vote__url: url,
+        ...getRequestData(appID),
       };
-      ph.capture('vote', {
-        ...request,
-        vote_url: url,
-      });
+      captureEvent(type, voteItems, null);
     },
   };
 };

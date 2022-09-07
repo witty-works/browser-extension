@@ -4,10 +4,14 @@ import { BaseUrls, wittyVersion } from '../constants';
 let BASE_URL_API: string = '';
 let BASE_URL_DASHBOARD: string = '';
 let token: string = '';
+let configHash: string = '';
+let organizationConfigHash: string = '';
+
 export let appID: string = ''; // TODO context hook
 export let requestConfig: RequestConfig = {} as RequestConfig;
 
-const createUrl = (base: string, path: string): string => `${base}${path}`;
+export const createUrl = (base: string, path: string): string =>
+  `${base}${path}`;
 
 export const setBaseUrls = (urlKey: string) => {
   BASE_URL_API = BaseUrls[urlKey].api;
@@ -25,15 +29,20 @@ export const setAppID = (id: string) => (appID = id);
 
 export const setToken = (tok: string) => (token = tok);
 
+export const setConfigHash = (hash: string) => (configHash = hash);
+
+export const setOrganizationConfigHash = (hash: string) =>
+  (organizationConfigHash = hash);
+
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
-    url: createUrl(BASE_URL_API, 'v1.1/check'),
+    url: createUrl(BASE_URL_API, 'v2.0/check'),
     config: {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        Authorization: token !== '' ? `Bearer ${token}` : 'Basic',
+        Authorization: `Bearer ${token}`,
       },
       body: text
         ? JSON.stringify({
@@ -42,6 +51,8 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
             id: appID,
             client: wittyVersion,
             config: requestConfig,
+            config_hash: configHash,
+            organization_config_hash: organizationConfigHash,
           })
         : null,
     },
@@ -50,18 +61,15 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
 
 export const getConfiguration = (): IRequest => {
   return {
-    url: createUrl(BASE_URL_API, 'auth'),
-    config:
-      BASE_URL_API !== ''
-        ? {
-            method: 'POST',
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        : null,
+    url: BASE_URL_API && createUrl(BASE_URL_API, 'v2.0/auth'),
+    config: {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    },
   };
 };
 

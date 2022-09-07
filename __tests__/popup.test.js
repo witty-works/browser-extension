@@ -1,117 +1,132 @@
-const puppeteer = require('puppeteer');
-const EXTENSION_PATH = './extension/chrome';
-const extensionName = 'Witty Works'
+const { test: base, chromium, expect } = require('@playwright/test') //add firefox
+require('dotenv').config();
+const utils = require('./utils');
 
-// const getExtensionId = async (browser) => {
-//     const targets = await browser.target();
-//     const extensionTarget = targets.find(({ _targetInfo }) => {
-//         return (
-//             _targetInfo.title === extensionName &&
-//             _targetInfo.type === 'background_page'
-//         );
-//     });
+const premiumUserEmail = process.env.PREMIUM_TEST_USER_EMAIL;
+const premiumUserPassword = process.env.PREMIUM_TEST_USER_PASSWORD;
 
-//     const extensionUrl = extensionTarget._targetInfo.url;
-//     const urlSplit = extensionUrl.split('/');
-//     const extensionId = urlSplit[2];
-//     return extensionId;
-// };
+const test = base.extend({
+    context: async ({ browserName }, use) => {
+        const browserTypes = { chromium } //add firefox
+        const pathToExtension = ('./extension/chrome');
+        const launchOptions = {
+            devtools: false,
+            headless: false,
+            viewport: {
+                width: 1400,
+                height: 700
+            },
+            args: [
+                `--no-sandbox`,
+                `--disable-setuid-sandbox`,
+                `--disable-extensions-except=${pathToExtension}`,
+                `--load-extension=${pathToExtension}`
+            ],
+        }
+        const context = await browserTypes[browserName].launchPersistentContext(
+            '',
+            launchOptions
+        )
+        await use(context)
+        await context.close()
+    }
+})
 
-let browserArray = [];
-describe('Witty Works', () => {
-    // afterAll(async () => {
-    //   console.log('clean up');
-    //   try {
-    //     await Promise.all(
-    //       browserArray.map(async (browser) => {
-    //         try {
-    //           const closeBrowser = await browser.close();
-    //         } catch (error) {
-    //           console.log(error);
-    //         }
-    //       })
-    //     );
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // });
+test.setTimeout(120000);
 
-    // it("test popup icon", async () => {
-    //     // const extensionId = await getExtensionId(browser); //TODO
-    //     const browser = await puppeteer.launch({
-    //         headless: false,
-    //         devtools: true,
-    //         args: [
-    //             `--disable-extensions-except=${EXTENSION_PATH}`,
-    //             `--load-extension=${EXTENSION_PATH}`
-    //         ]
-    //     });
-    //     browserArray.push(browser);
-    //     const page = await browser.newPage();
-    //     await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/popup.html`);
-    //     const pageTarget = page.target();
-    //     await page.click('.icon');
 
-    //     const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
-    //     const newPage = await newTarget.page();
-    //     const url = await newPage.url();
-    //     console.log(url);
-    //     expect(url).toBe('https://www.witty.works/');
-    // });
+test.describe('Popup', () => {
+    test('login popup', async ({ page, context }) => {
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginPopupPage(page, extensionId, context);
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.waitForLoadState('networkidle')
 
-    // it("test popup toggle off", async () => {
-    //     // const extensionId = await getExtensionId(browser); //TODO
-    //     const browser = await puppeteer.launch({
-    //         headless: false,
-    //         devtools: true,
-    //         args: [
-    //             `--disable-extensions-except=${EXTENSION_PATH}`,
-    //             `--load-extension=${EXTENSION_PATH}`
-    //         ]
-    //     });
-    //     browserArray.push(browser);
-    //     const page = await browser.newPage()
+        await page.waitForSelector('.wittyworks-text-grey');
+        expect(await page.$('.wittyworks-text-grey')).not.toBeNull();
+    })
 
-    //     await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/popup.html`);
-    //     await page.bringToFront();
-    //     await page.click('.toggle-button');
+    test('clicking logo opens a page in another window', async ({ page, context }) => {
+        const extensionId = await utils.getExtensionId(page);
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.waitForSelector('#witty-logo');
+        await page.click('#witty-logo');
+        await page.waitForLoadState('networkidle')
+        let pages = await context.pages();
+        expect(pages.length).toBe(2);
+    });
 
-    //     await page.goto("https://www.witty.works/form");
-    //     await page.bringToFront();
-    //     await page.waitForSelector('#witty-test')
-    //     const textarea = await page.$('#witty-test')
-    //     await textarea.focus();
+    test('popup contains three toggles with labels when survey response yes', async ({ page, context }) => {
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginPopupPage(page, extensionId, context);
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.waitForLoadState('networkidle')
 
-    //     const canvasContainer = await page.$('.canvas-container');
-    //     expect(canvasContainer).toBeNull();
-    // });
+        await page.waitForSelector('.wittyworks-text-grey');
+        let toggles = await page.$$('.toggle-encloser');
+        expect(toggles.length).toBe(3);
+        let labels = await page.$$('.toggle-label');
+        expect(labels.length).toBe(3);
+        await page.waitForTimeout(5000);
+    });
 
-    // it("test popup toggle on", async () => {
-    // const extensionId = await getExtensionId(browser); //TODO
-    // const browser = await puppeteer.launch({
-    //     headless: false,
-    //     devtools: true,
-    //     args: [
-    //         `--disable-extensions-except=${EXTENSION_PATH}`,
-    //         `--load-extension=${EXTENSION_PATH}`
-    //     ]
-    // });
-    // browserArray.push(browser);
-    // const page = await browser.newPage();
+    test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginPopupPage(page, extensionId, context);
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.waitForLoadState('networkidle')
+        await page.click('#witty-settings');
+        await page.waitForLoadState('networkidle')
+        await page.waitForTimeout(5000);
+        let pages = await context.pages();
+        expect(await pages[2].url()).toBe('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/user/profile');
+    });
 
-    // await page.goto(`chrome-extension://libbonaaegmcdbmeefoccaecokjgjmab/popup.html`);
-    // await page.click('.toggle-button');
-    // await page.click('.toggle-button');
 
-    // await page.goto("https://www.witty.works/form");
-    // await page.waitForSelector('#witty-test')
-    // const textarea = await page.$('#witty-test')
-    // await textarea.focus();
+    test('clicking unlocked global toggle changes background color', async ({ page, context }) => {
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.unlockAllToggles(page);
+        await utils.loginPopupPage(page, extensionId, context);
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    // const canvasContainer = await page.$('.canvas-container');
-    // console.log(canvasContainer) //this is null for some reason.. 
-    // expect(canvasContainer).not.toBeNull();
+        await page.waitForSelector('.wittyworks-text-grey');
+        await page.waitForTimeout(2000);
 
-    // });
-});
+        const inclusiveToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-highlight-inclusive-terms', '#toggle-button-highlight-inclusive-terms', false);
+        expect(inclusiveToggle).toBe(true);
+
+        const styleIssuesToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-highlight-style-issues', '#toggle-button-highlight-style-issues', false);
+        expect(styleIssuesToggle).toBe(true);
+
+        const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', false);
+        expect(grammarToggle).toBe(true);
+    });
+
+
+    test('locks made by administrators are show', async ({ page, context }) => {
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.unlockAllToggles(page);
+        await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+        const element = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+        const backgroundColor = await element.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('background-color');
+        });
+        if (backgroundColor === 'rgb(204, 204, 204)') {
+            await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+        }
+        await page.click('.max-w-7xl:nth-child(8) .wittyworks-button');
+
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginPopupPage(page, extensionId, context);
+
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.waitForSelector('.wittyworks-text-grey');
+        const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
+        expect(grammarToggle).toBe(true);
+    });
+})
 
