@@ -46,7 +46,7 @@ export const de = {
     signUp: 'Registrieren',
     doesWittyWork: 'Funktioniert Witty hier?',
     doesWittyWorkExplanation:
-      'Wir wissen nicht, ob Witty auf dieser Website korrekt funktioniert. Lass es uns wissen.',
+      'Lass es uns wissen.',
     doesWittyWorkSurvey: 'Funktioniert Witty auf dieser Website korrekt?',
     surveyButtonYes: 'Ja',
     surveyButtonNo: 'Nein',
@@ -120,7 +120,7 @@ export const en = {
     signUp: ' Sign up',
     doesWittyWork: 'Does Witty work here?',
     doesWittyWorkExplanation:
-      'We don’t know if Witty is working correctly on this website. Please help us to find out.',
+      'Please help us to find out.',
     doesWittyWorkSurvey: 'Does Witty work on this website?',
     surveyButtonYes: 'Yes',
     surveyButtonNo: 'No',
