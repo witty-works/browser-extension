@@ -399,14 +399,7 @@ const Popup: React.FC<PopupProps> = ({
             </div>
             <div className='wittyworks-text-large'>{t('doesWittyWork')}</div>
           </div>
-          {surveyResponse === '' && (
-            <>
-              <div>{t('doesWittyWorkExplanation')}</div>
-              <div className='wittyworks-text-medium wittyworks-align-left'>
-                {t('doesWittyWorkSurvey')}
-              </div>
-            </>
-          )}
+          {surveyResponse === '' && <div>{t('doesWittyWorkExplanation')}</div>}
           {!surveyResponse && (
             <div className='wittyworks-flex-row wittyworks-align-left'>
               <div
@@ -423,22 +416,14 @@ const Popup: React.FC<PopupProps> = ({
                 className='wittyworks-button wittyworks-button-no'
                 onClick={() => {
                   setSurveyResponse('no');
-                  // after two seconds remove survey
-                  setTimeout(() => {
-                    setEnabled({ enabled: false, updateDashboard: false });
-                    setSurveyResponse('');
-                    setDomainIsSetToNotWorking(true);
-                  }, 2000);
+                  setEnabled({ enabled: false, updateDashboard: false });
+                  setSurveyResponse('');
+                  setDomainIsSetToNotWorking(true);
                   analytics.urlLog(domain, appId, 'wittyDoesNotWorkAsExpected');
                 }}
               >
                 {t('surveyButtonNo')}
               </div>
-            </div>
-          )}
-          {surveyResponse == 'no' && (
-            <div className='wittyworks-text-small'>
-              {t('resultSurveyNegative')}
             </div>
           )}
         </section>

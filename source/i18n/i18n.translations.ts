@@ -47,7 +47,6 @@ export const de = {
     doesWittyWork: 'Funktioniert Witty hier?',
     doesWittyWorkExplanation:
       'Wir wissen nicht, ob Witty auf dieser Website korrekt funktioniert. Lass es uns wissen.',
-    doesWittyWorkSurvey: 'Funktioniert Witty auf dieser Website korrekt?',
     surveyButtonYes: 'Ja',
     surveyButtonNo: 'Nein',
     resultSurveyPositive: 'JA, Witty funktioniert! Danke für die Hilfe.',
@@ -121,7 +120,6 @@ export const en = {
     doesWittyWork: 'Does Witty work here?',
     doesWittyWorkExplanation:
       'We don’t know if Witty is working correctly on this website. Please help us to find out.',
-    doesWittyWorkSurvey: 'Does Witty work on this website?',
     surveyButtonYes: 'Yes',
     surveyButtonNo: 'No',
     resultSurveyPositive: 'YESSS, Witty works! Thanks for helping.',
