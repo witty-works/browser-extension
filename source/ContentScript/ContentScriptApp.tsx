@@ -236,9 +236,23 @@ const ContentScriptApp: React.FC = () => {
   }, [reqConfig]);
 
   const handleFocusinElement = (event: Event) => {
-    const target = event.target as CustomInputElement;
+    let target = event.target as CustomInputElement;
 
-    if (isInputElement(target) && !inputsRef.current.includes(target)) {
+    const googleDocsHtml = document.querySelectorAll(
+      '#kix-appview > div.kix-appview-editor-container > div > div:nth-child(1) > div.kix-rotatingtilemanager.docs-ui-hit-region-surface > div > div > div:nth-child(3)'
+    );
+
+    console.log('googleDocsHtml', googleDocsHtml);
+
+    // if (googleDocsHtml) {
+    //   target = googleDocsHtml as CustomInputElement;
+    // }
+
+    if (
+      (isInputElement(target) && !inputsRef.current.includes(target)) ||
+      googleDocsHtml
+    ) {
+      console.log('Target', target);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
     }
@@ -316,6 +330,8 @@ const ContentScriptApp: React.FC = () => {
         inputs.length > 0 ? inputs : 'None'
       );
 
+      console.log('Inputs', inputs);
+
       inputs.forEach((input: CustomInputElement) => {
         if (!input.parentElement) return;
 
@@ -331,7 +347,14 @@ const ContentScriptApp: React.FC = () => {
           return;
         }
 
-        input.parentElement.insertBefore(highlightsContainer, input);
+        //get first ancestior that is a div
+        const ancestor = input.closest('div');
+
+        const parentElement =
+          input.tagName === 'rect' ? ancestor : input.parentElement;
+
+        console.log('parentElement', parentElement);
+        parentElement && parentElement.insertBefore(highlightsContainer, input);
         ReactDOM.render(<Input element={input} />, highlightsContainer);
       });
     }

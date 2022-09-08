@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
-import { isInputText, isTextArea } from '../shared/DOMutils';
+import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, IAuthResponse } from '../shared/types';
 import {
   getDomainWithoutSubdomain,
@@ -82,10 +82,23 @@ export const updateConfig = (response: IAuthResponse) => {
   });
 };
 
-export const getInputText = (element: CustomInputElement) =>
-  isTextArea(element) || isInputText(element)
-    ? element.value
-    : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
+export const getInputText = (element: CustomInputElement | any) => {
+  console.log('getInputText', element);
+  //TODO: add propper type for arialabel
+  if (isGoogleDocs()) {
+    //first child with area-label
+    const ariaLabel = element.querySelector('[aria-label]');
+    if (ariaLabel) {
+      return ariaLabel.getAttribute('aria-label');
+    }
+  } else if (isTextArea(element) || isInputText(element)) {
+    return element.value;
+  } else {
+    return element.innerText
+      .replaceAll(/^\n+/g, '')
+      .replaceAll(/\n{2,}/g, '\n');
+  }
+};
 
 export const customRender = (enabled: boolean) => {
   if (!document.querySelector(WTags.WW_POPOVER)) {

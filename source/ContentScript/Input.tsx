@@ -190,6 +190,7 @@ const Input: React.FC<{
 
     let nextText: string = getInputText(element);
     const fistTextDiff = getFirstTextDiff(
+      //HERE!!!
       previousTextToCheckRef.current,
       nextText
     );
@@ -202,6 +203,8 @@ const Input: React.FC<{
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     } else {
+      console.log('nextText', nextText);
+
       const nextTextAtFistTextDiff = nextText.substring(
         fistTextDiff,
         nextText.length
