@@ -101,7 +101,7 @@ export const en = {
     noSupport:
       'We’re sorry! Witty doesn’t yet officially support this website.',
     vote: 'Vote for this website',
-    editor: 'Use Witty Editor instead',
+    editor: 'Use the Witty Editor instead',
     getMoreTitle: 'Witty for your team',
     getMoreText:
       "Explore Witty's team features for free. Start writing inclusively together!",
