@@ -483,7 +483,7 @@ const Popup: React.FC<PopupProps> = ({
           {localConfigDiffersFromDashboard && (
             <div className='wittyworks-align-center'>
               <div
-                className='wittyworks-button'
+                className='wittyworks-button wittyworks-secondary'
                 onClick={() => {
                   setResetSettings(true);
                 }}
@@ -514,7 +514,7 @@ const Popup: React.FC<PopupProps> = ({
                 </div>
               </div>
               <div
-                className='wittyworks-button wittyworks-align-left'
+                className='wittyworks-button wittyworks-primary wittyworks-align-left'
                 onClick={() => {
                   window.open(
                     'https://www.witty.works/witty-for-teams',
