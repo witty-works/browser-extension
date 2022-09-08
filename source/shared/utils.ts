@@ -206,7 +206,8 @@ export const getCorrectedPosition = (
   const pathContainsMessaging = window.location.pathname.includes('messaging');
   if (
     isTextArea(element) ||
-    (domain === 'linkedin.com' && pathContainsMessaging) //exception for linkedin messaging
+    (domain === 'linkedin.com' && pathContainsMessaging) ||
+    domain === 'personio.de' //exception for linkedin messaging and personio
   ) {
     elementRect = element.getBoundingClientRect();
   }

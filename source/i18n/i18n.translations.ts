@@ -45,8 +45,7 @@ export const de = {
     haveAccount: 'Hast du schon ein Konto?',
     signUp: 'Registrieren',
     doesWittyWork: 'Funktioniert Witty hier?',
-    doesWittyWorkExplanation:
-      'Lass es uns wissen.',
+    doesWittyWorkExplanation: 'Lass es uns wissen.',
     surveyButtonYes: 'Ja',
     surveyButtonNo: 'Nein',
     resultSurveyPositive: 'JA, Witty funktioniert! Danke für die Hilfe.',
@@ -100,7 +99,7 @@ export const en = {
     noSupport:
       'We’re sorry! Witty doesn’t yet officially support this website.',
     vote: 'Vote for this website',
-    editor: 'Use Witty Editor instead',
+    editor: 'Use the Witty Editor instead',
     getMoreTitle: 'Witty for your team',
     getMoreText:
       "Explore Witty's team features for free. Start writing inclusively together!",
@@ -118,8 +117,7 @@ export const en = {
     haveAccount: 'Already have an account?',
     signUp: ' Sign up',
     doesWittyWork: 'Does Witty work here?',
-    doesWittyWorkExplanation:
-      'Please help us to find out.',
+    doesWittyWorkExplanation: 'Please help us to find out.',
     surveyButtonYes: 'Yes',
     surveyButtonNo: 'No',
     resultSurveyPositive: 'YESSS, Witty works! Thanks for helping.',

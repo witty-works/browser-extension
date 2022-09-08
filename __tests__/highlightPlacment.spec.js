@@ -59,7 +59,10 @@ test.describe('Highlights', () => {
         await page.waitForTimeout(3000); //wait for api to respond with highlights
 
         await page.locator('#witty-test').screenshot().then(async (screenshot) => {
-            expect(screenshot).toMatchSnapshot('witty-form-not-logged-in.png')
+            expect(screenshot).toMatchSnapshot({
+                maxDiffPixelRatio: 0.01,
+            },
+                'witty-form-not-logged-in.png')
         });
     });
 
