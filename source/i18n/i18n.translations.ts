@@ -131,7 +131,7 @@ export const en = {
     tryAgain: 'Try again',
     understood: 'Understood',
     websiteSettingsDeactivated:
-      'You previously reported that Witty does not work on {{domain}}',
+      'You reported that Witty does not work on {{domain}}',
     tryAgainOnThisWebsite: 'Try again on this website',
     lockedInfo: 'This features is locked by your team admin.',
     resetSettings: 'Reset settings',
