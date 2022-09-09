@@ -188,7 +188,6 @@ section {
   font-style: normal;
   font-weight: 600;
   font-size: 23px;
-  margin-bottom: 0.5em;
   margin-right: 1em;
 }
 
@@ -261,14 +260,41 @@ section {
   cursor: pointer;
 }
 
+/*
+#f06464 1.6%,
+#f277d0 32.79%,
+#9489db 71.64%,
+#37d1e5 101.91%,
+#5acfb9 131.52%);
+*/
+
 .wittyworks-button-yes {
-  background: #5fca7d;
+  background: #5acfb9;
+  color: #000000;
   padding: 0.5em 3em;
+  border: 1px solid;
+  border-color: #000000;
 }
 
 .wittyworks-button-no {
   background: #f06464;
+  color: #000000;
   padding: 0.5em 3em;
+  border: 1px solid;
+  border-color: #000000;
+}
+
+.wittyworks-primary {
+  background: #f06464;
+  color: #ffffff;
+}
+
+.wittyworks-secondary {
+  color: #f06464;
+  background: #ffffff;
+  font-size: 12px; 
+  border: 1px solid;
+  border-color: #f06464;
 }
 
 .wittyworks-survey-container {

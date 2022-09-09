@@ -45,9 +45,7 @@ export const de = {
     haveAccount: 'Hast du schon ein Konto?',
     signUp: 'Registrieren',
     doesWittyWork: 'Funktioniert Witty hier?',
-    doesWittyWorkExplanation:
-      'Lass es uns wissen.',
-    doesWittyWorkSurvey: 'Funktioniert Witty auf dieser Website korrekt?',
+    doesWittyWorkExplanation: 'Lass es uns wissen.',
     surveyButtonYes: 'Ja',
     surveyButtonNo: 'Nein',
     resultSurveyPositive: 'JA, Witty funktioniert! Danke für die Hilfe.',
@@ -119,9 +117,7 @@ export const en = {
     haveAccount: 'Already have an account?',
     signUp: ' Sign up',
     doesWittyWork: 'Does Witty work here?',
-    doesWittyWorkExplanation:
-      'Please help us to find out.',
-    doesWittyWorkSurvey: 'Does Witty work on this website?',
+    doesWittyWorkExplanation: 'Please help us to find out.',
     surveyButtonYes: 'Yes',
     surveyButtonNo: 'No',
     resultSurveyPositive: 'YESSS, Witty works! Thanks for helping.',

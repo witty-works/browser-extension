@@ -47,17 +47,17 @@ test.describe('Popup', () => {
         expect(await page.$('.wittyworks-text-grey')).not.toBeNull();
     })
 
-    test('clicking logo opens a page in another window', async ({ page, context }) => {
-        const extensionId = await utils.getExtensionId(page);
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
-        await utils.loginPopupPage(page, extensionId, context);
-        await page.goto(`chrome-extension://${extensionId}/popup.html`);
-        await page.waitForSelector('#witty-logo');
-        await page.click('#witty-logo');
-        await page.waitForLoadState('networkidle')
-        let pages = await context.pages();
-        expect(pages.length).toBe(3);
-    });
+    // test('clicking logo opens a page in another window', async ({ page, context }) => {
+    //     const extensionId = await utils.getExtensionId(page);
+    //     await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+    //     await utils.loginPopupPage(page, extensionId, context);
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.waitForSelector('#witty-logo');
+    //     await page.click('#witty-logo');
+    //     await page.waitForLoadState('networkidle')
+    //     let pages = await context.pages();
+    //     expect(await pages[2].url()).toBe('https://www.witty.works/');
+    // });
 
     test('popup contains three toggles with labels when survey response yes', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
