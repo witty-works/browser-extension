@@ -60,7 +60,7 @@ test.describe('Highlights', () => {
 
         await page.locator('#witty-test').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot({
-                maxDiffPixelRatio: 0.01,
+                maxDiffPixels: 900,
             },
                 'witty-form-not-logged-in.png')
         });
@@ -81,7 +81,10 @@ test.describe('Highlights', () => {
 
         await page.locator('#witty-test').screenshot().then(async (screenshot) => {
             //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
-            expect(screenshot).toMatchSnapshot('witty-form.png')
+            expect(screenshot).toMatchSnapshot({
+                maxDiffPixels: 300,
+            },
+                'witty-form.png')
         });
     });
 
