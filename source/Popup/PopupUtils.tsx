@@ -8,8 +8,7 @@ import PopupLogin from './Popups/PopupLogin';
 import defaultConfig from '../witty.config.json';
 
 export const logIn = async (urls: string) => {
-  const optionsPageUrl =
-    'chrome-extension://' + browser.runtime.id + '/options.html';
+  const optionsPageUrl = browser.extension.getURL('options.html');
   const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
   window.open(url, '_blank');
 };
