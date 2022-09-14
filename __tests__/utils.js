@@ -23,6 +23,12 @@ exports.loginDashboard = async function (email, password, page) {
     await page.type('#password', password);
     await page.click('#next');
     await page.waitForLoadState('networkidle')
+
+    if (await page.$('#extension_termsOfUseConsentChoice_AgreeToTermsOfUseConsentYes')) {
+        await page.click('#extension_termsOfUseConsentChoice_AgreeToTermsOfUseConsentYes');
+        await page.click('#continue');
+        await page.waitForLoadState('networkidle')
+    }
     return page;
 }
 

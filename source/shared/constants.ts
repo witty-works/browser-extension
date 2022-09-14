@@ -68,8 +68,9 @@ export const BaseUrls: IBaseUrls = {
   },
 };
 
-export const DefaultBaseUrlKey: keyof typeof BaseUrls =
-  'Prod' as keyof typeof BaseUrls;
+export const DefaultBaseUrlKey: keyof typeof BaseUrls = DEV_ENV
+  ? ('Dev' as keyof typeof BaseUrls)
+  : ('Prod' as keyof typeof BaseUrls);
 
 export enum ConfigPropertyStatus {
   FORCE = 'force',
