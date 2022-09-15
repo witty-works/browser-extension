@@ -186,8 +186,12 @@ export const dropdownOptions = [
 ];
 
 export const devAppId = 'DEV_APP_ID';
-export const exposeWittyIdAllowList = [
-  'dashboard.lndo.site',
-  'dashboard.witty.works',
-  'witty.works',
-];
+export const exposeWittyIdAllowList = DEV_ENV
+  ? [
+    'lndo.site',
+    'platformsh.site',
+    'witty.works',
+  ]
+  : [
+    'witty.works',
+  ];
