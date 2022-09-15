@@ -17,7 +17,11 @@ import {
   handleDomainsFromDashboard,
   makeAuthRequest,
 } from './utils';
-import { createUrl } from '../shared/ApiServices/requests';
+import {
+  createUrl,
+  getBaseUrls,
+  setBaseUrls,
+} from '../shared/ApiServices/requests';
 
 const log = useLog('ContentScript index');
 const domain = getDomainWithoutSubdomain(window.location.hostname);
@@ -26,17 +30,32 @@ document.body.appendChild(document.createElement('witty-is-installed'));
 const wittyIsInstalledElement = document.querySelector('witty-is-installed');
 if (exposeWittyIdAllowList.includes(domain)) {
   wittyIsInstalledElement?.setAttribute('extension-id', browser.runtime.id);
+  browser.storage.local.get(null).then((result) => {
+    setBaseUrls(
+      result[StorageKeys.API_ENDPOINT_KEY]
+        ? result[StorageKeys.API_ENDPOINT_KEY]
+        : DefaultBaseUrlKey
+    );
+    if (!result[StorageKeys.ACCESS_TOKEN]) {
+      const optionsPageUrl = browser.extension.getURL('options.html');
+      const urls = result[StorageKeys.API_ENDPOINT_KEY]
+        ? result[StorageKeys.API_ENDPOINT_KEY]
+        : DefaultBaseUrlKey;
+
+      if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
+        const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
+        wittyIsInstalledElement?.setAttribute('login-url', url);
+      } else {
+        const url = `${
+          BaseUrls[urls].dashboard
+        }api/browser-login?redirect_uri=${optionsPageUrl}?target=${
+          getBaseUrls().dashboard
+        }`;
+        wittyIsInstalledElement?.setAttribute('login-url', url);
+      }
+    }
+  });
 }
-browser.storage.local.get(null).then((result) => {
-  if (!result[StorageKeys.ACCESS_TOKEN]) {
-    const optionsPageUrl = browser.extension.getURL('options.html');
-    const urls = result[StorageKeys.API_ENDPOINT_KEY]
-      ? result[StorageKeys.API_ENDPOINT_KEY]
-      : DefaultBaseUrlKey;
-    const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
-    wittyIsInstalledElement?.setAttribute('login-url', url);
-  }
-});
 
 const handleDomainToUpdate = () => {
   browser.storage.local.get(null).then((result) => {

@@ -25,7 +25,12 @@ const Options: React.FC = () => {
         setAccessToken(searchParams.get('access_token') as string);
         setRefreshToken(searchParams.get('refresh_token') as string);
         const target = searchParams.get('target')?.split('?')[0];
-        window.open(target, '_self', 'noopener');
+        storeInLocalStorage(StorageKeys.REDIRECT_URL_LOGIN, target);
+        window.open(
+          target ? target : 'https://www.witty.works/try-out-witty',
+          '_self',
+          'noopener'
+        );
       }
     } catch (error) {
       sendErrorToSentry(error);

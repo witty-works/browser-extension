@@ -6,7 +6,6 @@ import Popup from './Popups/Popup';
 import PopupDomainDeactivated from './Popups/PopupDomainDeactivated';
 import PopupLogin from './Popups/PopupLogin';
 import defaultConfig from '../witty.config.json';
-import { storeInLocalStorage } from '../shared/utils';
 import { getBaseUrls } from '../shared/ApiServices/requests';
 
 export const logIn = async (urls: string) => {
@@ -14,18 +13,9 @@ export const logIn = async (urls: string) => {
 
   browser.storage.local.get(null).then((result) => {
     if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-      storeInLocalStorage(
-        StorageKeys.REDIRECT_URL_LOGIN,
-        'https://www.witty.works/try-out-witty'
-      );
       const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
       window.open(url, '_blank');
     } else {
-      storeInLocalStorage(
-        StorageKeys.REDIRECT_URL_LOGIN,
-        getBaseUrls().dashboard
-      );
-
       const url = `${
         BaseUrls[urls].dashboard
       }api/browser-login?redirect_uri=${optionsPageUrl}?target=${
