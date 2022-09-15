@@ -43,7 +43,7 @@ if (exposeWittyIdAllowList.includes(domain)) {
         : DefaultBaseUrlKey;
 
       if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-        const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
+        const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
         wittyIsInstalledElement?.setAttribute('login-url', url);
       } else {
         const url = `${
