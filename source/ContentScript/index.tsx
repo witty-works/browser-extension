@@ -17,11 +17,7 @@ import {
   handleDomainsFromDashboard,
   makeAuthRequest,
 } from './utils';
-import {
-  createUrl,
-  getBaseUrls,
-  setBaseUrls,
-} from '../shared/ApiServices/requests';
+import { createUrl, setBaseUrls } from '../shared/ApiServices/requests';
 
 const log = useLog('ContentScript index');
 const domain = getDomainWithoutSubdomain(window.location.hostname);
@@ -42,17 +38,8 @@ if (exposeWittyIdAllowList.includes(domain)) {
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
 
-      if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-        const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
-        wittyIsInstalledElement?.setAttribute('login-url', url);
-      } else {
-        const url = `${
-          BaseUrls[urls].dashboard
-        }api/browser-login?redirect_uri=${optionsPageUrl}?target=${
-          getBaseUrls().dashboard
-        }`;
-        wittyIsInstalledElement?.setAttribute('login-url', url);
-      }
+      const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
+      wittyIsInstalledElement?.setAttribute('login-url', url);
     }
   });
 }
