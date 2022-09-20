@@ -6,6 +6,7 @@ import {
   StorageKeys,
   wittyVersion,
   exposeWittyIdAllowList,
+  DefaultBaseUrlKey,
 } from '../shared/constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
@@ -16,16 +17,31 @@ import {
   handleDomainsFromDashboard,
   makeAuthRequest,
 } from './utils';
-import { createUrl } from '../shared/ApiServices/requests';
+import { createUrl, setBaseUrls } from '../shared/ApiServices/requests';
 
 const log = useLog('ContentScript index');
 const domain = getDomainWithoutSubdomain(window.location.hostname);
 
+document.body.appendChild(document.createElement('witty-is-installed'));
+const wittyIsInstalledElement = document.querySelector('witty-is-installed');
 if (exposeWittyIdAllowList.includes(domain)) {
-  document.body.appendChild(document.createElement('witty-is-installed'));
-  const wittyIsInstalledElement = document.querySelector('witty-is-installed');
-  wittyIsInstalledElement &&
-    wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
+  wittyIsInstalledElement?.setAttribute('extension-id', browser.runtime.id);
+  browser.storage.local.get(null).then((result) => {
+    setBaseUrls(
+      result[StorageKeys.API_ENDPOINT_KEY]
+        ? result[StorageKeys.API_ENDPOINT_KEY]
+        : DefaultBaseUrlKey
+    );
+    if (!result[StorageKeys.ACCESS_TOKEN]) {
+      const optionsPageUrl = browser.extension.getURL('options.html');
+      const urls = result[StorageKeys.API_ENDPOINT_KEY]
+        ? result[StorageKeys.API_ENDPOINT_KEY]
+        : DefaultBaseUrlKey;
+
+      const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
+      wittyIsInstalledElement?.setAttribute('login-url', url);
+    }
+  });
 }
 
 const handleDomainToUpdate = () => {

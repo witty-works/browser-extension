@@ -14,6 +14,7 @@ import {
 } from '../../shared/constants';
 import {
   addInactiveBadge,
+  addLoginBadge,
   addNotificationBadge,
   removeBadge,
   storeInLocalStorage,
@@ -352,6 +353,7 @@ const Popup: React.FC<PopupProps> = ({
     browser.storage.local.set({ [StorageKeys.ACCESS_TOKEN]: '' });
     setToken('');
     setUserIsLoggedIn(false);
+    addLoginBadge();
   };
 
   return (
