@@ -21,6 +21,7 @@ import {
   storeInLocalStorage,
   getFirstTextDiff,
   getDomainWithoutSubdomain,
+  addLoginBadge,
 } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
@@ -658,30 +659,19 @@ const Input: React.FC<{
   useEffect(() => {
     if (checkEndpointError?.status === 422) {
       setNodesWithAlerts([]);
-    }
-    //gets new access token using the refresh token if the access token has expired
-    else if (
+    } else if (
       checkEndpointError?.status == 403 ||
       authErrorResponse?.status === 403
     ) {
       browser.storage.local
         .get(StorageKeys.REFRESH_TOKEN)
         .then((result) => {
-          if (result[StorageKeys.REFRESH_TOKEN] == '') return;
+          if (!result[StorageKeys.REFRESH_TOKEN]) {
+            logOut();
+            return;
+          }
+          //gets new token using the refresh token
           setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
-          if (refreshTokenError || !refreshTokenResponse) return;
-          storeInLocalStorage(
-            StorageKeys.ACCESS_TOKEN,
-            refreshTokenResponse.access_token
-          );
-          setToken(refreshTokenResponse.access_token);
-
-          storeInLocalStorage(
-            StorageKeys.REFRESH_TOKEN,
-            refreshTokenResponse.refresh_token
-          );
-          setTextToCheck('');
-          setTextToCheck(currentTextToCheck);
         })
         .catch((error: unknown) => {
           sendErrorToSentry(error);
@@ -692,6 +682,33 @@ const Input: React.FC<{
       logTypes.ERROR
     );
   }, [checkEndpointError, authErrorResponse]);
+
+  const logOut = () => {
+    storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
+    storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
+    addLoginBadge();
+  };
+
+  useEffect(() => {
+    if (refreshTokenError?.status === 403) {
+      logOut();
+      return;
+    }
+    if (!refreshTokenResponse) return;
+
+    storeInLocalStorage(
+      StorageKeys.ACCESS_TOKEN,
+      refreshTokenResponse.access_token
+    );
+    setToken(refreshTokenResponse.access_token);
+    storeInLocalStorage(
+      StorageKeys.REFRESH_TOKEN,
+      refreshTokenResponse.refresh_token
+    );
+
+    setTextToCheck('');
+    setTextToCheck(currentTextToCheck);
+  }, [refreshTokenError, refreshTokenResponse]);
 
   const ErrorBoundaryFallback = () => (
     <Toast message={t('reloadWebsite')} type='error' />

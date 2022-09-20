@@ -82,9 +82,11 @@ export const getToken = (refreshToken: string): IRequest => {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        token: refreshToken,
-      }),
+      body: refreshToken
+        ? JSON.stringify({
+            token: refreshToken,
+          })
+        : null,
     },
   };
 };

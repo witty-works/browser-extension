@@ -14,6 +14,7 @@ import {
 } from '../../shared/constants';
 import {
   addInactiveBadge,
+  addLoginBadge,
   addNotificationBadge,
   removeBadge,
   storeInLocalStorage,
@@ -352,6 +353,7 @@ const Popup: React.FC<PopupProps> = ({
     browser.storage.local.set({ [StorageKeys.ACCESS_TOKEN]: '' });
     setToken('');
     setUserIsLoggedIn(false);
+    addLoginBadge();
   };
 
   return (
@@ -399,14 +401,7 @@ const Popup: React.FC<PopupProps> = ({
             </div>
             <div className='wittyworks-text-large'>{t('doesWittyWork')}</div>
           </div>
-          {surveyResponse === '' && (
-            <>
-              <div>{t('doesWittyWorkExplanation')}</div>
-              <div className='wittyworks-text-medium wittyworks-align-left'>
-                {t('doesWittyWorkSurvey')}
-              </div>
-            </>
-          )}
+          {surveyResponse === '' && <div>{t('doesWittyWorkExplanation')}</div>}
           {!surveyResponse && (
             <div className='wittyworks-flex-row wittyworks-align-left'>
               <div
@@ -423,22 +418,14 @@ const Popup: React.FC<PopupProps> = ({
                 className='wittyworks-button wittyworks-button-no'
                 onClick={() => {
                   setSurveyResponse('no');
-                  // after two seconds remove survey
-                  setTimeout(() => {
-                    setEnabled({ enabled: false, updateDashboard: false });
-                    setSurveyResponse('');
-                    setDomainIsSetToNotWorking(true);
-                  }, 2000);
+                  setEnabled({ enabled: false, updateDashboard: false });
+                  setSurveyResponse('');
+                  setDomainIsSetToNotWorking(true);
                   analytics.urlLog(domain, appId, 'wittyDoesNotWorkAsExpected');
                 }}
               >
                 {t('surveyButtonNo')}
               </div>
-            </div>
-          )}
-          {surveyResponse == 'no' && (
-            <div className='wittyworks-text-small'>
-              {t('resultSurveyNegative')}
             </div>
           )}
         </section>
@@ -498,7 +485,7 @@ const Popup: React.FC<PopupProps> = ({
           {localConfigDiffersFromDashboard && (
             <div className='wittyworks-align-center'>
               <div
-                className='wittyworks-button'
+                className='wittyworks-button wittyworks-secondary'
                 onClick={() => {
                   setResetSettings(true);
                 }}
@@ -529,7 +516,7 @@ const Popup: React.FC<PopupProps> = ({
                 </div>
               </div>
               <div
-                className='wittyworks-button wittyworks-align-left'
+                className='wittyworks-button wittyworks-primary wittyworks-align-left'
                 onClick={() => {
                   window.open(
                     'https://www.witty.works/witty-for-teams',

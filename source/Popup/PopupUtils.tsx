@@ -6,12 +6,24 @@ import Popup from './Popups/Popup';
 import PopupDomainDeactivated from './Popups/PopupDomainDeactivated';
 import PopupLogin from './Popups/PopupLogin';
 import defaultConfig from '../witty.config.json';
+import { getBaseUrls } from '../shared/ApiServices/requests';
 
 export const logIn = async (urls: string) => {
-  const optionsPageUrl =
-    'chrome-extension://' + browser.runtime.id + '/options.html';
-  const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
-  window.open(url, '_blank');
+  const optionsPageUrl = browser.extension.getURL('options.html');
+
+  browser.storage.local.get(null).then((result) => {
+    if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
+      const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
+      window.open(url, '_blank');
+    } else {
+      const url = `${
+        BaseUrls[urls].dashboard
+      }api/browser-login?redirect_uri=${optionsPageUrl}?target=${
+        getBaseUrls().dashboard
+      }`;
+      window.open(url, '_blank');
+    }
+  });
 };
 
 export const renderUserNotLoggedIn = () => {

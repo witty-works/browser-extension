@@ -21,7 +21,7 @@ import { sendErrorToSentry } from '../../shared/errorUtils';
 
 const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
-  const [urls, setUrls] = useState<string>('Dev');
+  const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
   const log = useLog('PopupLogin');
 
   const onStorageError = (error: unknown) => {
