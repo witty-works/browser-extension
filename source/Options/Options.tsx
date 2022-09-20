@@ -24,8 +24,10 @@ const Options: React.FC = () => {
       if ([...searchParams].length > 0) {
         setAccessToken(searchParams.get('access_token') as string);
         setRefreshToken(searchParams.get('refresh_token') as string);
+        const target = searchParams.get('target')?.split('?')[0];
+        storeInLocalStorage(StorageKeys.REDIRECT_URL_LOGIN, target);
         window.open(
-          'https://www.witty.works/try-out-witty',
+          target ? target : 'https://www.witty.works/try-out-witty',
           '_self',
           'noopener'
         );
