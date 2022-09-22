@@ -23,7 +23,7 @@ import {
   getDomainWithoutSubdomain,
   addLoginBadge,
 } from '../shared/utils';
-import { isTextArea, isInputText } from '../shared/DOMutils';
+import { isTextArea, isInputText, isGoogleDocs } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
@@ -41,6 +41,7 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import { getInputText, updateConfig } from './utils';
+import GoogleDocsClone from './GoogleDocsClone';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -204,8 +205,6 @@ const Input: React.FC<{
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     } else {
-      console.log('nextText', nextText);
-
       const nextTextAtFistTextDiff = nextText.substring(
         fistTextDiff,
         nextText.length
@@ -533,10 +532,10 @@ const Input: React.FC<{
       ).sort((a, b) => a.startOffset - b.startOffset);
 
       const nodesWithAlertsTemp: INodeWithAlerts[] =
-        isTextArea(element) || isInputText(element)
+        isTextArea(element) || isInputText(element) || isGoogleDocs()
           ? [
               {
-                node: clone.firstChild as Node,
+                node: clone.firstChild as Node, //CLONE USED HERE
                 alerts: alertsWithoutIgnoredTermsGravityReduced,
               },
             ]
@@ -767,6 +766,12 @@ const Input: React.FC<{
           />
         </WTags.WW_CLONE>
       )}
+      {isGoogleDocs() && (
+        <WTags.WW_CLONE>
+          <GoogleDocsClone element={element} updateClone={updateCloneData} />
+        </WTags.WW_CLONE>
+      )}
+
       <WTags.WW_HIGHLIGHTS>
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <Highlights

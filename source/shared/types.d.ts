@@ -99,7 +99,7 @@ export type CustomInputElement =
 
 //ALERTS
 export interface INodeWithAlerts {
-  node: Node;
+  node: any; //TODO
   alerts: IAlert[];
 }
 export interface IAlert {

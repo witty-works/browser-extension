@@ -39,8 +39,16 @@ const Highlights: React.FC<HighlightsProps> = ({
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
-
+    console.log('nodesWithAlerts', nodesWithAlerts);
     nodesWithAlerts.forEach(({ node, alerts }) => {
+      console.log('node', node);
+
+      //get textnode
+      const textNode = node.childNodes[0] as HTMLElement;
+
+      console.log('textNode', textNode);
+      //if node is div, extract text node
+
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
           const range = document.createRange();
@@ -51,12 +59,18 @@ const Highlights: React.FC<HighlightsProps> = ({
                 alert.startOffset > node.textContent.length)
             )
               return;
+            range.selectNode(node);
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
           } catch (error) {
             sendErrorToSentry(error);
           }
-          const rects: DOMRect[] = Array.from(range.getClientRects()).map(
+
+          const rangeRects = [range.getClientRects()[0]];
+          //if rangerects has moer than one element
+
+          console.log('rangeRects', rangeRects[0]);
+          const rects: DOMRect[] = Array.from(rangeRects).map(
             (rect: DOMRect) => {
               return {
                 ...rect,
@@ -108,6 +122,7 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
+      console.log('highlight', highlight);
 
       const [rect] = highlight.rects;
       const hoverColor = `${getColor(highlight.data.gravity).default}`;

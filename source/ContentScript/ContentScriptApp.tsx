@@ -240,24 +240,73 @@ const ContentScriptApp: React.FC = () => {
 
     const googleDocsHtml = document.querySelectorAll(
       '#kix-appview > div.kix-appview-editor-container > div > div:nth-child(1) > div.kix-rotatingtilemanager.docs-ui-hit-region-surface > div > div > div:nth-child(3)'
-    );
-
-    console.log('googleDocsHtml', googleDocsHtml);
-
-    // if (googleDocsHtml) {
-    //   target = googleDocsHtml as CustomInputElement;
-    // }
+    )[0];
 
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
       googleDocsHtml
     ) {
+      if (googleDocsHtml) {
+        // cloneGoogleDocsElementAsDiv(googleDocsHtml as CustomInputElement);
+        target = googleDocsHtml as CustomInputElement;
+      }
       console.log('Target', target);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
     }
   };
 
+  // const cloneGoogleDocsElementAsDiv = (element: CustomInputElement) => {
+  //   // get first child node
+  //   const innerElement = element.childNodes[0] as CustomInputElement;
+  //   // const cloneAsDiv = document.createElement('div');
+  //   // cloneAsDiv.id = 'witty-google-docs-clone';
+
+  //   for (let i = 0; i < innerElement.childNodes.length; i++) {
+  //     const gElement = innerElement.childNodes[i] as CustomInputElement;
+  //     for (let j = 0; j < gElement.childNodes.length; j++) {
+  //       const rectElement = gElement.childNodes[j] as any; //TODO
+  //       const ariaLabel = gElement.querySelector('[aria-label]');
+
+  //       const textNode = document.createTextNode(
+  //         ariaLabel?.getAttribute('aria-label') || ''
+  //       );
+
+  //       rectElement.appendChild(textNode);
+
+  //       // if (rectElement.nodeName !== 'DIV') {
+  //       // let div = document.createElement('div');
+  //       // div.id = 'witty-google-docs-clone-' + i + '-' + j;
+  //       // // div.style.x = rectElement.attributes.x.value;
+  //       // // div.style.y = rectElement.attributes.y.value;
+  //       // div.style.width = rectElement.attributes.width.value + 'px';
+  //       // div.style.height = rectElement.attributes.height.value + 'px';
+  //       // div.style.fill = rectElement.attributes.fill.value;
+  //       // div.style.transform = rectElement.attributes.transform.value;
+  //       // // div.style.font = rectElement.attributes['data-font-css'];
+  //       // div.style.top = rectElement.attributes.y.value + 'px';
+  //       // div.style.left = rectElement.attributes.x.value + 'px';
+
+  //       // div.textContent = ariaLabel?.getAttribute('aria-label')
+  //       //   ? ariaLabel?.getAttribute('aria-label')
+  //       //   : '';
+
+  //       // if (
+  //       //   !document.getElementById('witty-google-docs-clone-' + i + '-' + j)
+  //       // ) {
+  //       //   gElement.appendChild(div);
+  //       // }
+  //     }
+  //   }
+
+  //   console.log('divClone', element);
+
+  //   // if (!document.getElementById('witty-google-docs-clone')) {
+  //   //   element.appendChild(cloneAsDiv);
+  //   // }
+
+  //   return element;
+  // };
   const handleMouseOver = (event: MouseEvent) => {
     const target = event.target as CustomInputElement;
 
@@ -329,8 +378,6 @@ const ContentScriptApp: React.FC = () => {
         logTypes.INFO,
         inputs.length > 0 ? inputs : 'None'
       );
-
-      console.log('Inputs', inputs);
 
       inputs.forEach((input: CustomInputElement) => {
         if (!input.parentElement) return;
