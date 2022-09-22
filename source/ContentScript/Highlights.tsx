@@ -141,6 +141,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       style={
         {
           position: 'absolute',
+          maxWidth: 'initial',
           top: `${correctedPosition.top}px`,
           left: `${correctedPosition.left}px`,
           width: `${canvasSize.width}px`,

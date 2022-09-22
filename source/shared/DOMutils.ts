@@ -6,6 +6,11 @@ const isTextArea = (element: Element): element is HTMLTextAreaElement =>
 const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
 
+const isCkeEditor = (element: Element): boolean => {
+  const ckeEditor = element.closest('.ck-content');
+  return !!ckeEditor;
+};
+
 const isHTMLElementContentEditable = (
   element: Element
 ): element is HTMLElement =>
@@ -51,4 +56,5 @@ export {
   nodeExistsInDOM,
   elementIsVisible,
   textIsLight,
+  isCkeEditor,
 };
