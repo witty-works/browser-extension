@@ -1,6 +1,8 @@
 {
   "DISABLED_SITES": ["productboard.com", "notion.so", "airbnb.com"],
   "ACTIVE_SITES": [
+    "live.com",
+    "atlassian.net",
     "twitter.com",
     "umantis.com",
     "witty.works",
