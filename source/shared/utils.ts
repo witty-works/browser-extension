@@ -9,7 +9,7 @@ import {
 } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import { isCkeEditor, isTextArea } from './DOMutils';
+import { isCkeEditor, isTextArea, isTinyMceEditor } from './DOMutils';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -208,7 +208,8 @@ export const getCorrectedPosition = (
     isTextArea(element) ||
     (domain === 'linkedin.com' && pathContainsMessaging) ||
     domain === 'personio.de' || //exception for linkedin messaging and personio
-    isCkeEditor(element)
+    isCkeEditor(element) ||
+    isTinyMceEditor(element)
   ) {
     elementRect = element.getBoundingClientRect();
   }

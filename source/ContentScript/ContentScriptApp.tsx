@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
@@ -38,7 +38,23 @@ const ContentScriptApp: React.FC = () => {
 
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
+  const [iframeLoaded, setIframeLoaded] = useState<HTMLElement | null>(null);
 
+  //observes iframes that are added to the DOM
+  const observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      [].filter
+        .call(mutation.addedNodes, function (node: HTMLElement) {
+          return node.nodeName == 'IFRAME';
+        })
+        .forEach(function (node: HTMLElement) {
+          node.addEventListener('load', function () {
+            setIframeLoaded(node);
+          });
+        });
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
@@ -107,6 +123,16 @@ const ContentScriptApp: React.FC = () => {
       });
 
     browser.storage.onChanged.addListener(storageChange);
+    const iframes = document.querySelectorAll('iframe');
+    console.log('iframes', iframes);
+
+    iframes.forEach((iframe: any) => {
+      console.log(iframe.contentDocument.body);
+      iframe.contentDocument.body.addEventListener(
+        'focusin',
+        handleFocusinElement
+      );
+    });
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
@@ -115,8 +141,14 @@ const ContentScriptApp: React.FC = () => {
       document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
+      iframes.forEach((iframe) => {
+        iframe.contentDocument?.body.removeEventListener(
+          'focusin',
+          handleFocusinElement
+        );
+      });
     };
-  }, []);
+  }, [iframeLoaded]);
 
   //TODO specify changes type
   //TODO review all cases
@@ -237,6 +269,7 @@ const ContentScriptApp: React.FC = () => {
 
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
+    console.log('focusin', target);
 
     if (isInputElement(target) && !inputsRef.current.includes(target)) {
       setHoveredElement(null);

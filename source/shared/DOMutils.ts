@@ -11,10 +11,15 @@ const isCkeEditor = (element: Element): boolean => {
   return !!ckeEditor;
 };
 
-const isHTMLElementContentEditable = (
-  element: Element
-): element is HTMLElement =>
-  element instanceof HTMLElement && element.isContentEditable;
+const isTinyMceEditor = (element: Element): boolean => {
+  const tinymceEditor = element.closest('#tinymce'); //might have to find a broader condition
+  return !!tinymceEditor;
+};
+
+const isHTMLElementContentEditable = (element: Element): boolean => {
+  const elementAsHtmlElement = element as HTMLElement;
+  return elementAsHtmlElement.contentEditable === 'true';
+};
 
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
 const isInputElement = (element: Element) =>
@@ -57,4 +62,5 @@ export {
   elementIsVisible,
   textIsLight,
   isCkeEditor,
+  isTinyMceEditor,
 };

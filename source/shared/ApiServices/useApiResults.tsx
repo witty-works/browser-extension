@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { IEndpointError, IRequest } from '../types';
 import { useLog, logTypes } from '../customHooks/useLog';
 import Ajv, { JSONSchemaType } from 'ajv';
-import { StorageKeys, WTags } from '../constants';
+import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 const ajv = new Ajv();
 
@@ -23,7 +23,7 @@ const useApiResult = <TResponse,>(
   const log = useLog('useApiResult');
 
   useEffect(() => {
-    const container = document.getElementsByTagName(WTags.WW_CONTAINER);
+    // const container = document.getElementsByTagName(WTags.WW_CONTAINER); //TODO
     browser.storage.local.get(null).then((result) => {
       const accessToken = result[StorageKeys.ACCESS_TOKEN];
       const refreshToken = result[StorageKeys.REFRESH_TOKEN];
@@ -33,9 +33,9 @@ const useApiResult = <TResponse,>(
         //further avoid call to check if no body
         if (
           (!request.config.body && request.url.includes('check')) ||
-          (request.url.includes('check') &&
-            container &&
-            container.length == 0) || //for auth call on options page
+          // (request.url.includes('check') //TODO
+          // container &&
+          // container.length == 0) || //for auth call on options page
           (request.url.includes('refresh-token') && !request.config.body)
         ) {
           return;
