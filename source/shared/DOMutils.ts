@@ -1,7 +1,11 @@
 import chroma from 'chroma-js';
+import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 
-const isTextArea = (element: Element): element is HTMLTextAreaElement =>
-  element instanceof HTMLTextAreaElement;
+const isTextArea = (element: Element): element is HTMLTextAreaElement => {
+  return (
+    element instanceof HTMLTextAreaElement || findElement(element, 'TEXTAREA')
+  );
+};
 
 const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
@@ -39,7 +43,8 @@ const findElement = (node: Node, element: string): boolean => {
   return false;
 };
 
-const nodeExistsInDOM = (node: Node): boolean => document.body.contains(node);
+const nodeExistsInDOM = (node: Node): boolean =>
+  getActiveDocument().body.contains(node);
 
 const elementIsVisible = (element: Element): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();

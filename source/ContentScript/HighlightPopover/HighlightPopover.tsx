@@ -17,6 +17,7 @@ import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
+import { getActiveDocument } from '../ContentScriptApp';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -83,9 +84,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('input', handleClickOutside as EventListener);
+    getActiveDocument().addEventListener('click', handleClickOutside);
+    getActiveDocument().addEventListener(
+      'input',
+      handleClickOutside as EventListener
+    );
     return () => {
       document.removeEventListener('click', handleClickOutside);
       document.removeEventListener(
+        'input',
+        handleClickOutside as EventListener
+      );
+      getActiveDocument().removeEventListener('click', handleClickOutside);
+      getActiveDocument().removeEventListener(
         'input',
         handleClickOutside as EventListener
       );
@@ -97,7 +108,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       refs.floating.current &&
       !refs.floating.current.contains(event.target as HTMLElement);
 
-    const doc = document.documentElement || document.body;
+    const doc = getActiveDocument().documentElement || getActiveDocument().body;
     const posX = event.pageX + doc.scrollLeft;
     const posY = event.pageY - doc.scrollTop;
 

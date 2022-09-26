@@ -28,6 +28,17 @@ const WW_CONTAINER_STYLE = `z-index: auto !important;float: left !important;disp
 width: 0px !important;height: 0px !important; top: 0px !important;left: 0px !important;
 position: relative !important;visibility: visible !important;overflow: visible !important;`;
 
+let activeDocument = document;
+export const setActiveDocument = (document: Document) => {
+  if (document && document.body) {
+    activeDocument = document;
+  }
+};
+
+export const getActiveDocument = () => {
+  return activeDocument;
+};
+
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
     {} as RequestConfig
@@ -54,11 +65,12 @@ const ContentScriptApp: React.FC = () => {
         });
     });
   });
+
   observer.observe(document.body, { childList: true, subtree: true });
+
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
-    //Init API requests Config
     browser.storage.local
       .get(null)
       .then((result) => {
@@ -73,9 +85,9 @@ const ContentScriptApp: React.FC = () => {
         setOrganizationConfigHash(result[StorageKeys.ORGANIZATION_CONFIG_HASH]);
 
         //Enable/disable spellchecker on the website
-        document.body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
-          ? (document.body.spellcheck = false) //needed here for linkedin, could be removed when we fix focusin issue
-          : (document.body.spellcheck = true);
+        getActiveDocument().body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
+          ? (getActiveDocument().body.spellcheck = false) //needed here for linkedin, could be removed when we fix focusin issue
+          : (getActiveDocument().body.spellcheck = true);
 
         //Define API requests config
         const requestConfig: RequestConfig = {
@@ -124,14 +136,14 @@ const ContentScriptApp: React.FC = () => {
 
     browser.storage.onChanged.addListener(storageChange);
     const iframes = document.querySelectorAll('iframe');
-    console.log('iframes', iframes);
 
     iframes.forEach((iframe: any) => {
-      console.log(iframe.contentDocument.body);
-      iframe.contentDocument.body.addEventListener(
-        'focusin',
-        handleFocusinElement
-      );
+      if (iframe.contentDocument && iframe.contentDocument.body) {
+        iframe.contentDocument.body.addEventListener(
+          'focusin',
+          handleFocusinElement
+        );
+      }
     });
     document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
@@ -269,9 +281,8 @@ const ContentScriptApp: React.FC = () => {
 
   const handleFocusinElement = (event: Event) => {
     const target = event.target as CustomInputElement;
-    console.log('focusin', target);
-
     if (isInputElement(target) && !inputsRef.current.includes(target)) {
+      setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
     }
@@ -307,9 +318,8 @@ const ContentScriptApp: React.FC = () => {
       ) {
         return;
       }
-      const hoveredIndicatorContainer: HTMLElement = document.createElement(
-        WTags.WW_MOUSEOVER_INDICATOR
-      );
+      const hoveredIndicatorContainer: HTMLElement =
+        getActiveDocument().createElement(WTags.WW_MOUSEOVER_INDICATOR);
       hoveredIndicatorContainer.style.cssText = WW_CONTAINER_STYLE;
       hoveredElementRef.current.parentElement?.insertBefore(
         hoveredIndicatorContainer,
@@ -333,7 +343,7 @@ const ContentScriptApp: React.FC = () => {
   }, [hoveredElementRef.current]);
 
   const removeAllHoverIndicators = () => {
-    const indicatorElements = document.querySelectorAll(
+    const indicatorElements = getActiveDocument().querySelectorAll(
       WTags.WW_MOUSEOVER_INDICATOR
     );
     for (let element of indicatorElements) {
@@ -352,9 +362,22 @@ const ContentScriptApp: React.FC = () => {
       inputs.forEach((input: CustomInputElement) => {
         if (!input.parentElement) return;
 
-        const highlightsContainer: HTMLElement = document.createElement(
-          WTags.WW_CONTAINER
-        );
+        //if already has a container, remove them first
+        if (
+          getActiveDocument().querySelectorAll(WTags.WW_CONTAINER).length > 0
+        ) {
+          //remove all containers
+          const containers = getActiveDocument().querySelectorAll(
+            WTags.WW_CONTAINER
+          );
+          for (let container of containers) {
+            ReactDOM.unmountComponentAtNode(container);
+            container.remove();
+          }
+        }
+
+        const highlightsContainer: HTMLElement =
+          getActiveDocument().createElement(WTags.WW_CONTAINER);
         highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
         if (
@@ -383,7 +406,10 @@ const ContentScriptApp: React.FC = () => {
     });
   });
 
-  mutationObserver.observe(document.body, { childList: true, subtree: true });
+  mutationObserver.observe(getActiveDocument().body, {
+    childList: true,
+    subtree: true,
+  });
 
   return <></>;
 };
