@@ -41,6 +41,7 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import { getInputText, updateConfig } from './utils';
+import { getActiveDocument } from './ContentScriptApp';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -253,7 +254,7 @@ const Input: React.FC<{
 
   const docTextEvaluation = (element: HTMLElement) => {
     //Find the text nodes inside element
-    const elementEvaluation: XPathResult = document.evaluate(
+    const elementEvaluation: XPathResult = getActiveDocument().evaluate(
       './/text()',
       element,
       null,
@@ -294,8 +295,10 @@ const Input: React.FC<{
                 element: cloneRef.current,
               }
             : {
-                position: (document.getSelection() as Selection).anchorOffset,
-                element: (document.getSelection() as Selection).anchorNode,
+                position: (getActiveDocument().getSelection() as Selection)
+                  .anchorOffset,
+                element: (getActiveDocument().getSelection() as Selection)
+                  .anchorNode,
               };
 
         if (caret.element && caret.position && caret.position > -1) {
@@ -397,7 +400,7 @@ const Input: React.FC<{
 
       setSelectedAlert(selectedAlert);
 
-      const range = document.createRange();
+      const range = getActiveDocument().createRange();
       const nodeText = oneNodeWithAlerts.node;
       if (
         nodeText.textContent &&
@@ -625,19 +628,19 @@ const Input: React.FC<{
       element.selectionEnd =
         alternative == '' ? alert.endOffset + 1 : alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
-      document.execCommand('insertText', false, alternative);
+      getActiveDocument().execCommand('insertText', false, alternative);
     } else {
-      const range = document.createRange();
+      const range = getActiveDocument().createRange();
       range.setStart(node, alert.startOffset);
       range.setEnd(
         node,
         alternative == '' ? alert.endOffset + 1 : alert.endOffset
       );
-      const sel = window.getSelection();
+      const sel = getActiveDocument().getSelection();
       if (!sel) return;
       sel.removeAllRanges();
       sel.addRange(range);
-      document.execCommand('insertText', false, alternative);
+      getActiveDocument().execCommand('insertText', false, alternative);
     }
 
     if (isTextArea(element)) {

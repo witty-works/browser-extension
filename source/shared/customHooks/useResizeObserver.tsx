@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { getActiveDocument } from '../../ContentScript/ContentScriptApp';
 
 export const useResizeObserver = (element: HTMLElement): DOMRect => {
   const [rect, setRect] = useState<DOMRect>(new DOMRect());
-  const doc = document.documentElement || document.body;
+  const doc = getActiveDocument().documentElement || getActiveDocument().body;
 
   const resizeListener = () => {
     const { width, height, top, left } = element.getBoundingClientRect();
