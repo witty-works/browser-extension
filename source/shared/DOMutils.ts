@@ -1,7 +1,13 @@
 import chroma from 'chroma-js';
+import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 
-export const isTextArea = (element: Element): element is HTMLTextAreaElement =>
-  element instanceof HTMLTextAreaElement;
+export const isTextArea = (
+  element: Element
+): element is HTMLTextAreaElement => {
+  return (
+    element instanceof HTMLTextAreaElement || findElement(element, 'TEXTAREA')
+  );
+};
 
 export const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
@@ -9,10 +15,21 @@ export const isInputText = (element: Element): element is HTMLInputElement =>
 export const isGoogleDocs = (): boolean => {
   return window.location.hostname === 'docs.google.com';
 };
-export const isHTMLElementContentEditable = (
-  element: Element
-): element is HTMLElement =>
-  element instanceof HTMLElement && element.isContentEditable;
+
+export const isCkeEditor = (element: Element): boolean => {
+  const ckeEditor = element.closest('.ck-content');
+  return !!ckeEditor;
+};
+
+export const isTinyMceEditor = (element: Element): boolean => {
+  const tinymceEditor = element.closest('#tinymce'); //might have to find a broader condition
+  return !!tinymceEditor;
+};
+
+export const isHTMLElementContentEditable = (element: Element): boolean => {
+  const elementAsHtmlElement = element as HTMLElement;
+  return elementAsHtmlElement.contentEditable === 'true';
+};
 
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
 export const isInputElement = (element: Element) =>
@@ -33,7 +50,7 @@ export const findElement = (node: Node, element: string): boolean => {
 };
 
 export const nodeExistsInDOM = (node: Node): boolean =>
-  document.body.contains(node);
+  getActiveDocument().body.contains(node);
 
 export const elementIsVisible = (element: Element): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();

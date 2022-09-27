@@ -8,7 +8,7 @@ import {
   getDomainWithoutSubdomain,
   storeInLocalStorage,
 } from '../shared/utils';
-import ContentScriptApp from './ContentScriptApp';
+import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
 import { createUrl } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
 
@@ -121,7 +121,7 @@ export const customRender = (enabled: boolean) => {
   );
 
   //if more than one container is found, remove all of except the first one. If witty disabled, remove all.
-  const containers = document.querySelectorAll(WTags.WW_CONTAINER);
+  const containers = getActiveDocument().querySelectorAll(WTags.WW_CONTAINER);
   if (!containers) return;
 
   for (let i = enabled ? 1 : 0; i < containers.length; i++) {

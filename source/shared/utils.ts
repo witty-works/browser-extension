@@ -9,7 +9,8 @@ import {
 } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import { isTextArea } from './DOMutils';
+import { isCkeEditor, isTextArea, isTinyMceEditor } from './DOMutils';
+import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -44,7 +45,9 @@ export const storeInLocalStorage = (key: string, value: any) => {
       //this error means that the extension was deactivated or uninstalled, in this case we delete the container
       if (error == 'Error: Extension context invalidated.') {
         useAnalytics().extenstionStatusLog('deactivated');
-        const container = document.getElementsByTagName(WTags.WW_CONTAINER);
+        const container = getActiveDocument().getElementsByTagName(
+          WTags.WW_CONTAINER
+        );
         if (container.length > 0) {
           container[0].remove();
         }
@@ -207,7 +210,9 @@ export const getCorrectedPosition = (
   if (
     isTextArea(element) ||
     (domain === 'linkedin.com' && pathContainsMessaging) ||
-    domain === 'personio.de' //exception for linkedin messaging and personio
+    domain === 'personio.de' || //exception for linkedin messaging and personio
+    isCkeEditor(element) ||
+    isTinyMceEditor(element)
   ) {
     elementRect = element.getBoundingClientRect();
   }
