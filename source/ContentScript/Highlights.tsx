@@ -39,17 +39,10 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   useEffect(() => {
     const highlights: Highlight[] = [];
-    if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
     console.log('nodesWithAlerts', nodesWithAlerts);
+    if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
     nodesWithAlerts.forEach(({ node, alerts }) => {
-      console.log('node', node);
-
-      //get textnode
-      const textNode = node.childNodes[0] as HTMLElement;
-
-      console.log('textNode', textNode);
-      //if node is div, extract text node
-
+      console.log('node HIGHLIGHT', node);
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
@@ -70,7 +63,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           const rangeRects = [range.getClientRects()[0]];
           //if rangerects has moer than one element
 
-          console.log('rangeRects', rangeRects[0]);
           const rects: DOMRect[] = Array.from(rangeRects).map(
             (rect: DOMRect) => {
               return {
@@ -99,7 +91,7 @@ const Highlights: React.FC<HighlightsProps> = ({
             endOffset: alert.endOffset,
             node: node,
           };
-
+          console.log('newHighlight', newHighlight);
           highlights.push(newHighlight);
         });
       }
@@ -120,10 +112,10 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
+    console.log('highlights', highlights);
 
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
-      console.log('highlight', highlight);
 
       const [rect] = highlight.rects;
       const hoverColor = `${getColor(highlight.data.gravity).default}`;

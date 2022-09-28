@@ -86,7 +86,7 @@ const Input: React.FC<{
     (mutationsList: MutationRecord[]) => {
       for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
-          docTextEvaluation(element);
+          docTextEvaluation(element, cloneRef.current);
         }
       }
     },
@@ -137,6 +137,8 @@ const Input: React.FC<{
     };
   }, []);
 
+  console.log(cloneRef.current, clone);
+
   useEffect(() => {
     handleKeyupEvent();
     //Listener should be on input, but on Twitter it simply does not fire when deleting
@@ -157,7 +159,7 @@ const Input: React.FC<{
   }, [authResponse]);
 
   useEffect(() => {
-    docTextEvaluation(element);
+    docTextEvaluation(element, cloneRef.current);
   }, [element]);
 
   const handleMouseoverEvent = () => {
@@ -180,6 +182,7 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = (event?: Event) => {
+    console.log('keyup');
     if (prevSelectedAlertIndex.current != -1) resetPopover();
 
     browser.storage.local
@@ -193,7 +196,6 @@ const Input: React.FC<{
 
     let nextText: string = getInputText(element);
     const fistTextDiff = getFirstTextDiff(
-      //HERE!!!
       previousTextToCheckRef.current,
       nextText
     );
@@ -218,6 +220,7 @@ const Input: React.FC<{
 
     previousTextToCheckRef.current = nextText;
 
+    console.log('keyup handleTextAndIcon', nextText);
     handleTextAndIcon(nextText, event);
   };
 
@@ -233,6 +236,7 @@ const Input: React.FC<{
         debouncedSetTextToCheck(text);
         setActiveIcon('loading');
       } else {
+        console.log('text to check: ', text);
         setTextToCheck(text);
         setActiveIcon('active');
       }
@@ -254,11 +258,11 @@ const Input: React.FC<{
     setNodesWithAlerts([]);
   };
 
-  const docTextEvaluation = (element: HTMLElement) => {
+  const docTextEvaluation = (element: HTMLElement, clone: HTMLElement) => {
     //Find the text nodes inside element
     const elementEvaluation: XPathResult = getActiveDocument().evaluate(
       './/text()',
-      element,
+      isGoogleDocs() ? clone : element,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
@@ -267,7 +271,9 @@ const Input: React.FC<{
   };
 
   const updateCloneData = (newClone: HTMLDivElement) => {
+    console.log('updateCloneData', newClone);
     setClone(newClone);
+    handleKeyupEvent();
   };
 
   const resetPopover = () => {
@@ -284,6 +290,7 @@ const Input: React.FC<{
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
+    console.log('click');
     // If user clicks on an element only once...
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
@@ -500,6 +507,7 @@ const Input: React.FC<{
   }, [checkEndpointResponse]);
 
   useEffect(() => {
+    console.log('alerts', alerts);
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
       const alertsWithoutIgnoredTerms: IAlert[] = alerts.filter(
@@ -534,11 +542,16 @@ const Input: React.FC<{
         )
       ).sort((a, b) => a.startOffset - b.startOffset);
 
+      console.log(
+        'alertsWithoutIgnoredTermsGravityReduced',
+        alertsWithoutIgnoredTermsGravityReduced
+      );
+
       const nodesWithAlertsTemp: INodeWithAlerts[] =
-        isTextArea(element) || isInputText(element) || isGoogleDocs()
+        isTextArea(element) || isInputText(element)
           ? [
               {
-                node: clone.firstChild as Node, //CLONE USED HERE
+                node: clone.firstChild,
                 alerts: alertsWithoutIgnoredTermsGravityReduced,
               },
             ]
@@ -547,6 +560,7 @@ const Input: React.FC<{
               elementXPathResult as XPathResult
             );
 
+      console.log('nodesWithAlertsTemp', nodesWithAlertsTemp);
       //Set the total alerts
       const totalAlerts: number = nodesWithAlertsTemp.reduce(
         (total, node) => total + node.alerts.length,
@@ -564,13 +578,34 @@ const Input: React.FC<{
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
 
+    if (isGoogleDocs()) {
+      element = cloneRef.current;
+      // if (!element.firstChild) return [];
+      // elementEvaluation = getActiveDocument().evaluate(
+      //   './/text()',
+      //   element,
+      //   null,
+      //   XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      //   null
+      // );
+      console.log(
+        'elementEvaluation.snapshotLength',
+        elementEvaluation.snapshotLength
+      );
+    }
+
     const nextText: string = getInputText(element);
+    console.log('nextText getNodesWithRecalculatedPositionAlerts', nextText);
 
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = -1;
 
+    console.log('element', element);
+    console.log('elementEvaluation', elementEvaluation);
+
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
+      console.log('node', node);
 
       if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
         textStartingAbsPosition = textEndAbsPosition + 1;
@@ -596,7 +631,6 @@ const Input: React.FC<{
             (alert: IAlert) =>
               node.nodeValue && node.nodeValue.includes(alert.data.text)
           )
-
           .filter(
             (alert: IAlert) =>
               alert.startOffset >= textStartingAbsPosition &&
@@ -609,6 +643,8 @@ const Input: React.FC<{
               endOffset: alert.endOffset - textStartingAbsPosition,
             };
           });
+
+        console.log('alertsTemp', alertsTemp);
 
         if (alertsTemp.length > 0)
           nodesWithAlertsTemp.push({

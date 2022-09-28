@@ -88,16 +88,12 @@ export const getInputText = (element: CustomInputElement | any) => {
     //get element <ww-clone /> from google docs
     const clone = document.querySelector('ww-clone');
     let text = '';
-    console.log('CLONEOOO', clone);
     if (clone && clone.firstChild) {
-      console.log('clone.firstChild', clone.firstChild);
       for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
         const divElement = clone.firstChild.childNodes[i];
-        console.log('divElement', divElement);
         text += divElement.textContent;
       }
     }
-    console.log('text', text);
     return text;
   } else if (isTextArea(element) || isInputText(element)) {
     return element.value;

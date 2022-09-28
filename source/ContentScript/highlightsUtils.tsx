@@ -16,7 +16,6 @@ export const drawLine = (params: any, color: string, dashedLine: boolean) => {
 
 export const drawHighlight = (params: any, color: string) => {
   const { roundedHighlight, context, rect, elementRect } = params;
-  console.log('RECTHIGH', rect);
   //the +/- is to add some padding to the highlight
   let x = rect.left - elementRect.left - 1.5;
   let y = rect.top - elementRect.top + 1;

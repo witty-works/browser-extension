@@ -154,10 +154,12 @@ const ContentScriptApp: React.FC = () => {
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
       iframes.forEach((iframe) => {
-        iframe.contentDocument?.body.removeEventListener(
-          'focusin',
-          handleFocusinElement
-        );
+        if (iframe.contentDocument && iframe.contentDocument.body) {
+          iframe.contentDocument.body.removeEventListener(
+            'focusin',
+            handleFocusinElement
+          );
+        }
       });
     };
   }, [iframeLoaded]);
@@ -294,64 +296,12 @@ const ContentScriptApp: React.FC = () => {
         // cloneGoogleDocsElementAsDiv(googleDocsHtml as CustomInputElement);
         target = googleDocsHtml as CustomInputElement;
       }
-      console.log('Target', target);
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
     }
   };
 
-  // const cloneGoogleDocsElementAsDiv = (element: CustomInputElement) => {
-  //   // get first child node
-  //   const innerElement = element.childNodes[0] as CustomInputElement;
-  //   // const cloneAsDiv = document.createElement('div');
-  //   // cloneAsDiv.id = 'witty-google-docs-clone';
-
-  //   for (let i = 0; i < innerElement.childNodes.length; i++) {
-  //     const gElement = innerElement.childNodes[i] as CustomInputElement;
-  //     for (let j = 0; j < gElement.childNodes.length; j++) {
-  //       const rectElement = gElement.childNodes[j] as any; //TODO
-  //       const ariaLabel = gElement.querySelector('[aria-label]');
-
-  //       const textNode = document.createTextNode(
-  //         ariaLabel?.getAttribute('aria-label') || ''
-  //       );
-
-  //       rectElement.appendChild(textNode);
-
-  //       // if (rectElement.nodeName !== 'DIV') {
-  //       // let div = document.createElement('div');
-  //       // div.id = 'witty-google-docs-clone-' + i + '-' + j;
-  //       // // div.style.x = rectElement.attributes.x.value;
-  //       // // div.style.y = rectElement.attributes.y.value;
-  //       // div.style.width = rectElement.attributes.width.value + 'px';
-  //       // div.style.height = rectElement.attributes.height.value + 'px';
-  //       // div.style.fill = rectElement.attributes.fill.value;
-  //       // div.style.transform = rectElement.attributes.transform.value;
-  //       // // div.style.font = rectElement.attributes['data-font-css'];
-  //       // div.style.top = rectElement.attributes.y.value + 'px';
-  //       // div.style.left = rectElement.attributes.x.value + 'px';
-
-  //       // div.textContent = ariaLabel?.getAttribute('aria-label')
-  //       //   ? ariaLabel?.getAttribute('aria-label')
-  //       //   : '';
-
-  //       // if (
-  //       //   !document.getElementById('witty-google-docs-clone-' + i + '-' + j)
-  //       // ) {
-  //       //   gElement.appendChild(div);
-  //       // }
-  //     }
-  //   }
-
-  //   console.log('divClone', element);
-
-  //   // if (!document.getElementById('witty-google-docs-clone')) {
-  //   //   element.appendChild(cloneAsDiv);
-  //   // }
-
-  //   return element;
-  // };
   const handleMouseOver = (event: MouseEvent) => {
     const target = event.target as CustomInputElement;
 
@@ -457,7 +407,6 @@ const ContentScriptApp: React.FC = () => {
         const parentElement =
           input.tagName === 'rect' ? ancestor : input.parentElement;
 
-        console.log('parentElement', parentElement);
         parentElement && parentElement.insertBefore(highlightsContainer, input);
         ReactDOM.render(<Input element={input} />, highlightsContainer);
       });
