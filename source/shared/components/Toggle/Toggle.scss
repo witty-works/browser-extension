@@ -1,12 +1,5 @@
 @import '../../../styles/variables';
 
-.toggle-container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .toggle-lock {
   display: flex;
   align-items: center;
@@ -23,7 +16,7 @@
       position: absolute;
       width: 30em;
       margin-bottom: 3em;
-      margin-left: -12em;
+      margin-left: -15em;
       font-family: $lato;
       font-style: normal;
       font-weight: 400;

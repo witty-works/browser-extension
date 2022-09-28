@@ -104,7 +104,7 @@ export const en = {
     getMoreText:
       "Explore Witty's team features for free. Start writing inclusively together!",
     learnMoreButton: 'Try for free',
-    goToDashboard: 'Go to Witty Dashboard',
+    goToDashboard: 'Go To Witty Dashboard',
     overrideRecomendedSites: 'Try Witty here anyway',
     backToRecomendedSites: 'Use Witty only on supported websites',
     loginToUnlock: 'Log in to use Witty',
@@ -115,7 +115,7 @@ export const en = {
     signIn: 'Sign in',
     signOut: 'Sign out',
     haveAccount: 'Already have an account?',
-    signUp: ' Sign up',
+    signUp: ' Sign Up',
     doesWittyWork: 'Does Witty work here?',
     doesWittyWorkExplanation: 'Please help us to find out.',
     surveyButtonYes: 'Yes',
