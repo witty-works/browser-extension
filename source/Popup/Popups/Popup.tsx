@@ -105,6 +105,8 @@ const Popup: React.FC<PopupProps> = ({
   const [authResponseConfig, setAuthResponseConfig] =
     useState<IAuthResponse | null>(null);
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
+  const [userName, setUserName] = useState<string>('');
+  const [teamName, setTeamName] = useState<string>('');
   const domainExists = domain && domain.length > 0;
 
   useEffect(() => {
@@ -156,6 +158,8 @@ const Popup: React.FC<PopupProps> = ({
         setStyleCorrections(result[StorageKeys.STYLE]);
 
         setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
+        setUserName(result[StorageKeys.USER_NAME]);
+        setTeamName(result[StorageKeys.TEAM_NAME]);
       })
 
       .catch(onStorageError);
@@ -363,8 +367,17 @@ const Popup: React.FC<PopupProps> = ({
       ) : (
         <PopupHeader />
       )}
+
       {domainExists && (
         <section className='wittyworks-toggles website-settings'>
+          {userName && teamName && (
+            <>
+              <div className='wittyworks-text-small'>
+                {t('loggedInAs', { userName: userName, teamName: teamName })}
+              </div>
+            </>
+          )}
+
           <div className='wittyworks-text-grey'>
             {domainIsSetAsNotWorking
               ? t('websiteSettingsDeactivated', { domain: domain })

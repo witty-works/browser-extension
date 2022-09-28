@@ -29,6 +29,8 @@ export enum StorageKeys {
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',
   PLAN = 'plan',
+  USER_NAME = 'username',
+  TEAM_NAME = 'teamName',
 
   DOMAINS = 'domains',
   ORGANIZATION_DOMAINS = 'organizationDomains',
@@ -187,11 +189,5 @@ export const dropdownOptions = [
 
 export const devAppId = 'DEV_APP_ID';
 export const exposeWittyIdAllowList = DEV_ENV
-  ? [
-    'lndo.site',
-    'platformsh.site',
-    'witty.works',
-  ]
-  : [
-    'witty.works',
-  ];
+  ? ['lndo.site', 'platformsh.site', 'witty.works']
+  : ['witty.works'];

@@ -59,6 +59,7 @@ export const de = {
     tryAgainOnThisWebsite: 'Erneut auf dieser Website versuchen',
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
     resetSettings: 'Einstellungen zurücksetzen',
+    loggedInAs: 'Logged in as {{userName}} to {{teamName}}',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -131,6 +132,7 @@ export const en = {
     tryAgainOnThisWebsite: 'Try again on this website',
     lockedInfo: 'This feature has been locked by your team admin.',
     resetSettings: 'Reset settings',
+    loggedInAs: 'Logged in as {{userName}} to {{teamName}}',
   },
 
   [namespaces.popover]: {
