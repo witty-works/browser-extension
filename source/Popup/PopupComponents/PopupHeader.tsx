@@ -15,20 +15,23 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
   showSettings = true,
 }: PopupHeaderProps) => {
   return (
-    <header>
-      <Logo
-        id='witty-logo'
-        onClick={() => {
-          browser.tabs.create({ url: 'https://www.witty.works/' });
-        }}
-      />
-      {showSettings && (
-        <Settings
-          id='witty-settings'
-          onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
+    <>
+      <header>
+        <Logo
+          id='witty-logo'
+          onClick={() => {
+            browser.tabs.create({ url: 'https://www.witty.works/' });
+          }}
         />
-      )}
-    </header>
+        {showSettings && (
+          <Settings
+            id='witty-settings'
+            onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
+          />
+        )}
+      </header>
+      <div className='separator' />
+    </>
   );
 };
 

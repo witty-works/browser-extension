@@ -397,7 +397,7 @@ const Popup: React.FC<PopupProps> = ({
 
         {enabled.enabled && !showSurvey && (
           <>
-            <div className='toggle-separator' />
+            <div className='separator' />
             <div className='container container-row justify-space-between'>
               <div className='lato-popup-title'>{t('globalSettings')}</div>
             </div>
