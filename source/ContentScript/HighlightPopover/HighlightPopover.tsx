@@ -155,7 +155,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     >
       <div id='wittyworks-popover-content' className='lato-popover-text'>
         {/* HEADER */}
-        <section className='container  container-row justify-space-between'>
+        <section className='container container-row justify-space-between'>
           <a
             className='margin-right cursor-pointer'
             href='https://www.witty.works/'
@@ -163,31 +163,35 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           >
             <WittyLogo />
           </a>
-          <div
-            className={
-              data.index === 1
-                ? 'margin-right lato-popover-text-light-gray'
-                : 'margin-right lato-popover-text-gray cursor-pointer'
+          <div className='container-row' style={{}}>
+            <div
+              className={
+                data.index === 1
+                  ? 'margin-right lato-popover-text-light-gray'
+                  : 'margin-right lato-popover-text-gray cursor-pointer'
+              }
+              onClick={() =>
+                data.index === 1 ? '' : updatePopover('previous')
+              }
+            >
+              <PreviousIcon />
+            </div>
+            <div className='margin-right lato-popover-text-gray margin-right'>{`${
+              data.index
             }
-            onClick={() => (data.index === 1 ? '' : updatePopover('previous'))}
-          >
-            <PreviousIcon />
-          </div>
-          <div className='margin-right lato-popover-text-gray margin-right'>{`${
-            data.index
-          }
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
-          <div
-            className={
-              data.index === data.totalAlerts
-                ? 'margin-right lato-popover-text-light-gray'
-                : 'margin-right lato-popover-text-gray cursor-pointer'
-            }
-            onClick={() =>
-              data.index === data.totalAlerts ? '' : updatePopover('next')
-            }
-          >
-            <NextIcon />
+            <div
+              className={
+                data.index === data.totalAlerts
+                  ? 'margin-right lato-popover-text-light-gray'
+                  : 'margin-right lato-popover-text-gray cursor-pointer'
+              }
+              onClick={() =>
+                data.index === data.totalAlerts ? '' : updatePopover('next')
+              }
+            >
+              <NextIcon />
+            </div>
           </div>
 
           <div
@@ -204,7 +208,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
         {/* LEARNIGN BITES */}
         <a
-          className='container container-row full-padding justify-start margin-top'
+          className='container container-rounded container-row full-padding justify-start margin-top'
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
           }}

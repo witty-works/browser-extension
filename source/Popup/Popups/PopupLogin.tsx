@@ -107,7 +107,7 @@ const PopupLogin: React.FC = () => {
           {t('haveAccount')}
           &nbsp;
           <span
-            className='lato-popup-text-red'
+            className='lato-popup-text-purple'
             onClick={() => {
               logIn(urls);
             }}

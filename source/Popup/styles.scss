@@ -12,22 +12,12 @@
   color: $black;
 }
 
-.lato-paragraph-link {
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 30px; /* or 167% */
-  text-decoration-line: underline;
-  color: $wittyPurple;
-}
-
 .lato-popover-text {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
   font-size: 16px;
-  line-height: 27px; /* or 169% */
+  line-height: 20px; /* or 214% */
   color: $black;
 }
 
@@ -36,7 +26,7 @@
   font-style: normal;
   font-weight: 400;
   font-size: 16px;
-  line-height: 30px; /* or 188% */
+  line-height: 20px; /* or 214% */
   color: $green;
 }
 
@@ -45,7 +35,7 @@
   font-style: normal;
   font-weight: 400;
   font-size: 16px;
-  line-height: 30px; /* or 188% */
+  line-height: 20px; /* or 214% */
   color: $extraDarkGray;
 }
 
@@ -54,27 +44,9 @@
   font-style: normal;
   font-weight: 400;
   font-size: 16px;
-  line-height: 30px; /* or 188% */
+  line-height: 20px; /* or 214% */
   color: $darkGray;
   stroke: $darkGray;
-}
-
-.lato-popover-text-red {
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 30px; /* or 188% */
-  color: $orange;
-}
-
-.lato-popover-text-gray-italic {
-  font-family: $lato;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 30px; /* or 188% */
-  color: $darkGray;
 }
 
 .lato-popup-title {
@@ -82,7 +54,7 @@
   font-style: normal;
   font-weight: 700;
   font-size: 16px;
-  line-height: 30px; /* or 188% */
+  line-height: 20px; /* or 214% */
   color: $black;
 }
 
@@ -91,17 +63,17 @@
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
-  line-height: 30px; /* or 214% */
+  line-height: 20px; /* or 214% */
   color: $black;
 }
 
-.lato-popup-text-red {
+.lato-popup-text-purple {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
-  line-height: 30px; /* or 214% */
-  color: $orange;
+  line-height: 20px; /* or 214% */
+  color: $wittyPurple;
   text-decoration-line: underline;
 }
 
@@ -187,7 +159,11 @@ section {
   flex-direction: column;
   align-items: center;
   padding-bottom: 1em;
+}
+
+.container-rounded {
   border-radius: 8px;
+  max-width: 300px;
 }
 
 .container-row {

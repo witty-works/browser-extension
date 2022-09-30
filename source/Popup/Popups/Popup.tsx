@@ -505,7 +505,7 @@ const Popup: React.FC<PopupProps> = ({
             </div>
           </div>
           {surveyResponse === '' && (
-            <div className='lato-popup-text'>
+            <div className='lato-popup-text' style={{ marginLeft: '3.8em' }}>
               {t('doesWittyWorkExplanation')}
             </div>
           )}
@@ -513,6 +513,7 @@ const Popup: React.FC<PopupProps> = ({
             <div className='container-row justify-start'>
               <div
                 className='button primary-button-purple'
+                style={{ marginLeft: '3.3em' }}
                 onClick={() => {
                   setSurveyResponse('yes');
                   setShowSurvey(false);

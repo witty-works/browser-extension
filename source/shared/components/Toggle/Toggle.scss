@@ -14,13 +14,16 @@
     .toggle-lock-info {
       display: block;
       position: absolute;
-      width: 30em;
-      margin-bottom: 3em;
-      margin-left: -15em;
+      width: 15em;
+      padding: 0.5em;
+      margin-bottom: 5em;
+      margin-left: -8.5em;
       font-family: $lato;
       font-style: normal;
       font-weight: 400;
       font-size: 12px;
+      background-color: $lightGray;
+      border-radius: 8px;
     }
   }
 }

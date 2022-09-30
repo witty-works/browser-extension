@@ -73,7 +73,7 @@ const Toggle: React.FC<ToggleProps> = ({
             id={`toggle-button-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
             className={`toggle-button`}
             style={{
-              marginLeft: on && locked && userIsLoggedIn ? '2.7em' : '0', //TEMP: fix for weird toggle behavior when locked
+              marginLeft: on && locked && userIsLoggedIn ? '3.5em' : '0', //TEMP: fix for weird toggle behavior when locked
             }}
           />
         </label>
