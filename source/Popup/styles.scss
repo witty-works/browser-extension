@@ -88,24 +88,12 @@
   font-size: 16px;
   line-height: 14px;
   margin-right: 1em;
-}
-.primary-button-red {
-  background: $orange;
-  border-radius: 8px;
-  color: $white;
-}
-
-.secondary-button-red {
-  background: $white;
-  border: 1px solid $orange;
-  border-radius: 8px;
-  color: $orange;
+  cursor: pointer;
 }
 
 .primary-button-purple {
   background: $wittyPurple;
   border-radius: 8px;
-
   color: $white;
 }
 
@@ -113,7 +101,6 @@
   background: $white;
   border: 1px solid $wittyPurple;
   border-radius: 8px;
-
   color: $wittyPurple;
 }
 
