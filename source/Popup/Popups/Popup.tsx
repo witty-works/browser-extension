@@ -239,6 +239,8 @@ const Popup: React.FC<PopupProps> = ({
       setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
+      authResponse.organization_name &&
+        setTeamName(authResponse.organization_name);
       for (let key in authResponse.organization_config) {
         switch (key) {
           case 'orthography':
