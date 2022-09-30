@@ -105,6 +105,7 @@ const Popup: React.FC<PopupProps> = ({
   const [authResponseConfig, setAuthResponseConfig] =
     useState<IAuthResponse | null>(null);
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
+  const [teamName, setTeamName] = useState<string>('');
   const domainExists = domain && domain.length > 0;
 
   useEffect(() => {
@@ -156,6 +157,7 @@ const Popup: React.FC<PopupProps> = ({
         setStyleCorrections(result[StorageKeys.STYLE]);
 
         setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
+        setTeamName(result[StorageKeys.TEAM_NAME]);
       })
 
       .catch(onStorageError);
@@ -237,6 +239,8 @@ const Popup: React.FC<PopupProps> = ({
       setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
+      authResponse.organization_name &&
+        setTeamName(authResponse.organization_name);
       for (let key in authResponse.organization_config) {
         switch (key) {
           case 'orthography':
@@ -363,8 +367,17 @@ const Popup: React.FC<PopupProps> = ({
       ) : (
         <PopupHeader />
       )}
+
       {domainExists && (
         <section className='wittyworks-toggles website-settings'>
+          {teamName && (
+            <>
+              <div className='wittyworks-text-small'>
+                {t('loggedInTo', { teamName: teamName })}
+              </div>
+            </>
+          )}
+
           <div className='wittyworks-text-grey'>
             {domainIsSetAsNotWorking
               ? t('websiteSettingsDeactivated', { domain: domain })
