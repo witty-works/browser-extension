@@ -64,60 +64,58 @@ const PopupLogin: React.FC = () => {
     <>
       <PopupHeader showSettings={false} />
       <section>
-        <div className='wittyworks-signin-container'>
-          <div className='wittyworks-icon-container'>
+        <div className='container container-row justify-start'>
+          <div className='margin-right'>
             <Checkmark />
           </div>
-          <div className='wittyworks-text-large'>{t('loginToUnlock')}</div>
+          <div className='lato-small-paragraph-title-h4'>
+            {t('loginToUnlock')}
+          </div>
         </div>
-        <div className='wittyworks-flex-column'>
-          <div className='wittyworks-text-medium'>{t('signUpFor')}</div>
-          <div className='wittyworks-signin-container'>
-            <div className='wittyworks-icon-container'>
-              <Star />
-            </div>
-            <div className='wittyworks-text-medium'>{t('biasDetection')}</div>
+        <div className='container container-row justify-start'>
+          <div className='lato-popover-text'>{t('signUpFor')}</div>
+        </div>
+        <div className='container container-row'>
+          <div className='margin-right'>
+            <Star />
           </div>
-          <div className='wittyworks-signin-container'>
-            <div className='wittyworks-icon-container'>
-              <Star />
-            </div>
-            <div className='wittyworks-text-medium'>
-              {t('inclusiveAlternatives')}
-            </div>
+          <div className='lato-popover-text'>{t('biasDetection')}</div>
+        </div>
+        <div className='container container-row justify-start'>
+          <div className='margin-right'>
+            <Star />
           </div>
-          <div className='wittyworks-signin-container'>
-            <div className='wittyworks-icon-container'>
-              <Star />
-            </div>
-            <div className='wittyworks-text-medium'>{t('teamFeatures')}</div>
+          <div className='lato-popover-text'>{t('inclusiveAlternatives')}</div>
+        </div>
+        <div className='container container-row justify-start'>
+          <div className='margin-right'>
+            <Star />
           </div>
+          <div className='lato-popover-text'>{t('teamFeatures')}</div>
         </div>
       </section>
-      <section>
-        <div className='wittyworks-container-gradient-background'>
-          <div
-            className='wittyworks-button wittyworks-align-left'
+      <div className='container full-padding light-gray-background left'>
+        <div
+          className='button primary-button-purple'
+          onClick={() => {
+            logIn(urls);
+          }}
+        >
+          {t('signUp')}
+        </div>
+        <div className='lato-popup-text'>
+          {t('haveAccount')}
+          &nbsp;
+          <span
+            className='lato-popup-text-purple'
             onClick={() => {
               logIn(urls);
             }}
           >
-            {t('signUp')}
-          </div>
-          <div className='wittyworks-text-small'>
-            {t('haveAccount')}
-            &nbsp;
-            <span
-              className='wittyworks-sigin-link'
-              onClick={() => {
-                logIn(urls);
-              }}
-            >
-              {t('signIn')}{' '}
-            </span>
-          </div>
+            {t('signIn')}{' '}
+          </span>
         </div>
-      </section>
+      </div>
       {DEV_ENV && (
         <section>
           <h2>{t('developmentSettings')}</h2>

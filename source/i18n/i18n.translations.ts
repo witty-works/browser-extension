@@ -116,7 +116,7 @@ export const en = {
     signIn: 'Sign in',
     signOut: 'Sign out',
     haveAccount: 'Already have an account?',
-    signUp: ' Sign up',
+    signUp: ' Sign Up',
     doesWittyWork: 'Does Witty work here?',
     doesWittyWorkExplanation: 'Please help us to find out.',
     surveyButtonYes: 'Yes',

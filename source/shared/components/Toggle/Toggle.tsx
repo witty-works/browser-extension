@@ -1,6 +1,7 @@
 import React from 'react';
 
 import './Toggle.scss';
+import '../../../Popup/styles.scss';
 import Lock from '../../../assets/icons/popup/lock.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
@@ -28,12 +29,12 @@ const Toggle: React.FC<ToggleProps> = ({
   return (
     <>
       <div
-        className='toggle-container'
+        className='container container-row justify-space-between'
         style={{
-          height: `${50 * scale}px`,
+          height: '35px',
         }}
       >
-        <label className='toggle-label'>{label}</label>
+        <label className='lato-popup-text'>{label}</label>
         <input
           className='toggle-checkbox'
           checked={on}
@@ -72,7 +73,7 @@ const Toggle: React.FC<ToggleProps> = ({
             id={`toggle-button-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
             className={`toggle-button`}
             style={{
-              marginLeft: on && locked && userIsLoggedIn ? '2.7em' : '0', //TEMP: fix for weird toggle behavior when locked
+              marginLeft: on && locked && userIsLoggedIn ? '3.5em' : '0', //TEMP: fix for weird toggle behavior when locked
             }}
           />
         </label>
