@@ -32,7 +32,6 @@ export const updateConfig = (response: IAuthResponse) => {
       response.organization_config_hash
     );
 
-  response.name && storeInLocalStorage(StorageKeys.USER_NAME, response.name);
   response.organization_name &&
     storeInLocalStorage(StorageKeys.TEAM_NAME, response.organization_name);
   Object.keys(response.config).forEach((key) => {

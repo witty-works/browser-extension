@@ -105,7 +105,6 @@ const Popup: React.FC<PopupProps> = ({
   const [authResponseConfig, setAuthResponseConfig] =
     useState<IAuthResponse | null>(null);
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
-  const [userName, setUserName] = useState<string>('');
   const [teamName, setTeamName] = useState<string>('');
   const domainExists = domain && domain.length > 0;
 
@@ -158,7 +157,6 @@ const Popup: React.FC<PopupProps> = ({
         setStyleCorrections(result[StorageKeys.STYLE]);
 
         setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
-        setUserName(result[StorageKeys.USER_NAME]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
       })
 
@@ -370,10 +368,10 @@ const Popup: React.FC<PopupProps> = ({
 
       {domainExists && (
         <section className='wittyworks-toggles website-settings'>
-          {userName && teamName && (
+          {teamName && (
             <>
               <div className='wittyworks-text-small'>
-                {t('loggedInAs', { userName: userName, teamName: teamName })}
+                {t('loggedInTo', { teamName: teamName })}
               </div>
             </>
           )}
