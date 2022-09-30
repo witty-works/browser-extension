@@ -1,6 +1,14 @@
 {
-  "DISABLED_SITES": ["productboard.com", "notion.so", "airbnb.com"],
+  "DISABLED_SITES": [
+    "productboard.com",
+    "notion.so",
+    "airbnb.com",
+    "trello.com"
+  ],
   "ACTIVE_SITES": [
+    "holaspirit.com",
+    "personio.com",
+    "personio.de",
     "live.com",
     "atlassian.net",
     "twitter.com",

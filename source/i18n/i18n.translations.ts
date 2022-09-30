@@ -59,6 +59,7 @@ export const de = {
     tryAgainOnThisWebsite: 'Erneut auf dieser Website versuchen',
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
     resetSettings: 'Einstellungen zurücksetzen',
+    loggedInTo: 'Logged in to {{teamName}}',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -115,7 +116,7 @@ export const en = {
     signIn: 'Sign in',
     signOut: 'Sign out',
     haveAccount: 'Already have an account?',
-    signUp: ' Sign up',
+    signUp: ' Sign Up',
     doesWittyWork: 'Does Witty work here?',
     doesWittyWorkExplanation: 'Please help us to find out.',
     surveyButtonYes: 'Yes',
@@ -131,6 +132,7 @@ export const en = {
     tryAgainOnThisWebsite: 'Try again on this website',
     lockedInfo: 'This feature has been locked by your team admin.',
     resetSettings: 'Reset settings',
+    loggedInTo: 'Logged in to {{teamName}}',
   },
 
   [namespaces.popover]: {

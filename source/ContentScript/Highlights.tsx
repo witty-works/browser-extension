@@ -3,9 +3,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
+import { isTextArea } from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
 import { getCorrectedPosition } from '../shared/utils';
+import { getActiveDocument } from './ContentScriptApp';
 
 interface HighlightsProps {
   elementScroll: Position;
@@ -22,7 +23,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   elementRect,
   selectedAlert,
 }: HighlightsProps) => {
-  const doc = document.documentElement || document.body;
+  const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
@@ -41,9 +42,10 @@ const Highlights: React.FC<HighlightsProps> = ({
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
-      if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
+      if (typeof node !== 'undefined') {
+        //&& nodeExistsInDOM(node) //TODO
         alerts.forEach((alert: IAlert) => {
-          const range = document.createRange();
+          const range = getActiveDocument().createRange();
           try {
             if (
               node.textContent &&
@@ -141,6 +143,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       style={
         {
           position: 'absolute',
+          maxWidth: 'initial',
           top: `${correctedPosition.top}px`,
           left: `${correctedPosition.left}px`,
           width: `${canvasSize.width}px`,

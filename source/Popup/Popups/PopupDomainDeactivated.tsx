@@ -43,31 +43,35 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
   return (
     <>
       <PopupHeader />
-      <div className='domain-not-supported'>
-        <div className='domain-not-supported-title-wrapper'>
-          <SadFace className='domain-not-supported-icon' />
-          <div className='domain-not-supported-title'>{t('noSupport')}</div>
+      <section>
+        <div className='container container-row justify-start'>
+          <div className='margin-right'>
+            <SadFace />
+          </div>
+          <div className='lato-small-paragraph-title-h4'>{t('noSupport')}</div>
         </div>
         <div
-          className='domain-not-supported-container'
+          className='container container-row justify-start'
           onClick={() => {
             analytics.urlLog(domain, appId, 'vote');
             setHasVoted(true);
           }}
         >
           <UpvoteButton />
-          <div>{!hasVoted ? t('vote') : t('thanks')}</div>
+          <div className='lato-popup-text'>
+            {!hasVoted ? t('vote') : t('thanks')}
+          </div>
         </div>
         <div
-          className='domain-not-supported-container'
+          className='container container-row justify-start'
           onClick={() =>
             browser.tabs.create({ url: 'https://www.witty.works/editor' })
           }
         >
           <EditorButton />
-          <div>{t('editor')}</div>
+          <div className='lato-popup-text'>{t('editor')}</div>
         </div>
-      </div>
+      </section>
     </>
   );
 };
