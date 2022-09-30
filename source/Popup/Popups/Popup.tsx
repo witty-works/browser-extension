@@ -105,6 +105,7 @@ const Popup: React.FC<PopupProps> = ({
   const [authResponseConfig, setAuthResponseConfig] =
     useState<IAuthResponse | null>(null);
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
+  const [teamName, setTeamName] = useState<string>('');
   const domainExists = domain && domain.length > 0;
 
   useEffect(() => {
@@ -156,6 +157,7 @@ const Popup: React.FC<PopupProps> = ({
         setStyleCorrections(result[StorageKeys.STYLE]);
 
         setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
+        setTeamName(result[StorageKeys.TEAM_NAME]);
       })
 
       .catch(onStorageError);
@@ -237,6 +239,8 @@ const Popup: React.FC<PopupProps> = ({
       setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
+      authResponse.organization_name &&
+        setTeamName(authResponse.organization_name);
       for (let key in authResponse.organization_config) {
         switch (key) {
           case 'orthography':
@@ -373,6 +377,16 @@ const Popup: React.FC<PopupProps> = ({
                   : t('websiteSettings', { domain: domain })}
               </div>
             </div>
+            {teamName && (
+              <>
+                <div
+                  className='lato-popup-text'
+                  style={{ marginBottom: '1em' }}
+                >
+                  {t('loggedInTo', { teamName: teamName })}
+                </div>
+              </>
+            )}
             <Toggle
               on={enabled.enabled}
               handleToggle={handleEnableToggle}
@@ -392,12 +406,12 @@ const Popup: React.FC<PopupProps> = ({
                 />
               </>
             )}
+            <div className='separator' />
           </>
         )}
 
         {enabled.enabled && !showSurvey && (
-          <>
-            <div className='separator' />
+          <div className='margin-top'>
             <div className='container container-row justify-space-between'>
               <div className='lato-popup-title'>{t('globalSettings')}</div>
             </div>
@@ -471,7 +485,7 @@ const Popup: React.FC<PopupProps> = ({
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </section>
       {!hasWittyTeams && !showSurvey && (

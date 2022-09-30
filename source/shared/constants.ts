@@ -29,6 +29,7 @@ export enum StorageKeys {
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',
   PLAN = 'plan',
+  TEAM_NAME = 'teamName',
 
   DOMAINS = 'domains',
   ORGANIZATION_DOMAINS = 'organizationDomains',
