@@ -20,7 +20,6 @@ import {
 import {
   storeInLocalStorage,
   getFirstTextDiff,
-  getDomainWithoutSubdomain,
   addLoginBadge,
 } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
@@ -575,13 +574,7 @@ const Input: React.FC<{
 
         const nodeValueLength: number = node.nodeValue.length;
 
-        if (
-          getDomainWithoutSubdomain(window.location.hostname) === 'linkedin.com'
-        ) {
-          textEndAbsPosition = textStartingAbsPosition + nodeValueLength; //solves problem with not highlighting last word
-        } else {
-          textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1; //needed to keep huglights in place for instance on gmail
-        }
+        textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1; //needed to keep huglights in place
 
         // Check if there is a new line char after the node's content
         // If so, we +1 to the end position

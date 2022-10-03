@@ -370,7 +370,7 @@ const Popup: React.FC<PopupProps> = ({
       <section>
         {domainExists && (
           <>
-            <div className='container container-row justify-space-between'>
+            <div className='wittyworks-container container-row justify-space-between'>
               <div className='lato-popup-title'>
                 {domainIsSetAsNotWorking
                   ? t('websiteSettingsDeactivated', { domain: domain })
@@ -412,7 +412,7 @@ const Popup: React.FC<PopupProps> = ({
 
         {enabled.enabled && !showSurvey && (
           <div className='margin-top'>
-            <div className='container container-row justify-space-between'>
+            <div className='wittyworks-container container-row justify-space-between'>
               <div className='lato-popup-title'>{t('globalSettings')}</div>
             </div>
             <Toggle
@@ -462,7 +462,7 @@ const Popup: React.FC<PopupProps> = ({
               userIsLoggedIn={userIsLoggedIn}
             />
             {localConfigDiffersFromDashboard && (
-              <div className='container left'>
+              <div className='wittyworks-container left'>
                 <div
                   className='button secondary-button-purple'
                   onClick={() => {
@@ -489,7 +489,7 @@ const Popup: React.FC<PopupProps> = ({
         )}
       </section>
       {!hasWittyTeams && !showSurvey && (
-        <div className='container full-padding light-gray-background left'>
+        <div className='wittyworks-container full-padding light-gray-background left'>
           <div className='lato-popup-title'>
             {t('getMoreTitle', { domain: 'miro.com' })}
           </div>
@@ -509,7 +509,7 @@ const Popup: React.FC<PopupProps> = ({
         </div>
       )}
       {showSurvey && enabled.enabled && (
-        <div className='container full-padding light-gray-background left'>
+        <div className='wittyworks-container full-padding light-gray-background left'>
           <div className='container-row justify-start'>
             <div className='margin-right'>
               <ThinkingEmoji />

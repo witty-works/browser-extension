@@ -29,7 +29,7 @@ const Toggle: React.FC<ToggleProps> = ({
   return (
     <>
       <div
-        className='container container-row justify-space-between'
+        className='wittyworks-container container-row justify-space-between'
         style={{
           height: '35px',
         }}
