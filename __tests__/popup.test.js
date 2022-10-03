@@ -43,8 +43,8 @@ test.describe('Popup', () => {
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
 
-        await page.waitForSelector('.wittyworks-text-grey');
-        expect(await page.$('.wittyworks-text-grey')).not.toBeNull();
+        await page.waitForSelector('.lato-popup-title');
+        expect(await page.$('.lato-popup-title')).not.toBeNull();
     })
 
     // test('clicking logo opens a page in another window', async ({ page, context }) => {
@@ -66,12 +66,11 @@ test.describe('Popup', () => {
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
 
-        await page.waitForSelector('.wittyworks-text-grey');
+        await page.waitForSelector('.lato-popup-title');
         let toggles = await page.$$('.toggle-encloser');
         expect(toggles.length).toBe(3);
-        let labels = await page.$$('.toggle-label');
+        let labels = await page.$$('.lato-popup-text');
         expect(labels.length).toBe(3);
-        await page.waitForTimeout(5000);
     });
 
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
@@ -95,7 +94,7 @@ test.describe('Popup', () => {
         await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-        await page.waitForSelector('.wittyworks-text-grey');
+        await page.waitForSelector('.lato-popup-title');
         await page.waitForTimeout(2000);
 
         const inclusiveToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-highlight-inclusive-terms', '#toggle-button-highlight-inclusive-terms', false);
@@ -126,7 +125,7 @@ test.describe('Popup', () => {
         await utils.loginPopupPage(page, extensionId, context);
 
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
-        await page.waitForSelector('.wittyworks-text-grey');
+        await page.waitForSelector('.lato-popup-title');
         const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
         expect(grammarToggle).toBe(true);
     });
