@@ -4,10 +4,10 @@ exports.loginPopupPage = async function (page, extensionId, context) {
     await page.selectOption('.dropdown-select', 'Dev');
 
     //page is reset to the page that .wittyworks-button redirects to
-    await page.waitForSelector('.wittyworks-button');
+    await page.waitForSelector('.button');
     const [newPage] = await Promise.all([
         context.waitForEvent('page'),
-        page.click('.wittyworks-button')
+        page.click('.button')
     ]);
     await newPage.waitForLoadState('networkidle')
     await newPage.goto(await newPage.url());
