@@ -64,7 +64,7 @@ const PopupLogin: React.FC = () => {
     <>
       <PopupHeader showSettings={false} />
       <section>
-        <div className='container container-row justify-start'>
+        <div className='wittyworks-container container-row justify-start'>
           <div className='margin-right'>
             <Checkmark />
           </div>
@@ -72,29 +72,29 @@ const PopupLogin: React.FC = () => {
             {t('loginToUnlock')}
           </div>
         </div>
-        <div className='container container-row justify-start'>
+        <div className='wittyworks-container container-row justify-start'>
           <div className='lato-popover-text'>{t('signUpFor')}</div>
         </div>
-        <div className='container container-row'>
+        <div className='wittyworks-container container-row'>
           <div className='margin-right'>
             <Star />
           </div>
           <div className='lato-popover-text'>{t('biasDetection')}</div>
         </div>
-        <div className='container container-row justify-start'>
+        <div className='wittyworks-container container-row justify-start'>
           <div className='margin-right'>
             <Star />
           </div>
           <div className='lato-popover-text'>{t('inclusiveAlternatives')}</div>
         </div>
-        <div className='container container-row justify-start'>
+        <div className='wittyworks-container container-row justify-start'>
           <div className='margin-right'>
             <Star />
           </div>
           <div className='lato-popover-text'>{t('teamFeatures')}</div>
         </div>
       </section>
-      <div className='container full-padding light-gray-background left'>
+      <div className='wittyworks-container full-padding light-gray-background left'>
         <div
           className='button primary-button-purple'
           onClick={() => {
