@@ -155,7 +155,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     >
       <div id='wittyworks-popover-content' className='lato-popover-text'>
         {/* HEADER */}
-        <section className='container container-row justify-space-between'>
+        <section className='wittyworks-container container-row justify-space-between'>
           <a
             className='margin-right cursor-pointer'
             href='https://www.witty.works/'
@@ -207,13 +207,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         <div className='separator' />
 
         {/* LEARNIGN BITES */}
-        <a
-          className='container container-rounded container-row full-padding justify-start margin-top'
+        <div
+          className='wittyworks-container container-rounded container-row full-padding justify-start margin-top'
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
+            window.open(data.alert.data.explanation.url, '_blank');
           }}
-          href={data.alert.data.explanation.url}
-          target='_blank'
           style={{
             backgroundColor: isHovered
               ? getColor(data.alert.data.gravity).hover
@@ -239,7 +238,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             )}
             {data.alert.data.explanation.url && (
               <div
-                className='container container-row lato-popover-text-gray cursor-pointer '
+                className='wittyworks-container container-row lato-popover-text-gray cursor-pointer '
                 style={{ padding: 0 }}
               >
                 <div className='margin-right'>
@@ -251,12 +250,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               </div>
             )}
           </div>
-        </a>
+        </div>
 
         {/* TRY INSTEAD */}
         {data.alert.data.alternatives.length > 0 && (
           <>
-            <hr className='wittyworks-popover-separator' />
+            <div
+              className='separator'
+              style={{ marginBottom: '1em', marginTop: '1em' }}
+            />
             <div className='wittyworks-popover-row'>
               <div className='wittyworks-popover-alternative-btn-container'>
                 {t('insteadTry')}
@@ -311,7 +313,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       {/* FOOTER */}
       <section
         onClick={() => clickIgnoreTerm()}
-        className='container container-row justify-start ignore-color-transformer'
+        className='wittyworks-container container-row justify-start ignore-color-transformer'
       >
         <span className='margin-right cursor-pointer'>
           <IgnoreIcon />

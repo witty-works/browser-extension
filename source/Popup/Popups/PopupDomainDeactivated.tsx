@@ -44,14 +44,14 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
     <>
       <PopupHeader />
       <section>
-        <div className='container container-row justify-start'>
+        <div className='wittyworks-container container-row justify-start'>
           <div className='margin-right'>
             <SadFace />
           </div>
           <div className='lato-small-paragraph-title-h4'>{t('noSupport')}</div>
         </div>
         <div
-          className='container container-row justify-start'
+          className='wittyworks-container container-row justify-start'
           onClick={() => {
             analytics.urlLog(domain, appId, 'vote');
             setHasVoted(true);
@@ -63,7 +63,7 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
           </div>
         </div>
         <div
-          className='container container-row justify-start'
+          className='wittyworks-container container-row justify-start'
           onClick={() =>
             browser.tabs.create({ url: 'https://www.witty.works/editor' })
           }

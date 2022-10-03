@@ -54,6 +54,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           visibility: 'hidden',
           pointerEvents: 'none',
           boxSizing: elementStyles.boxSizing,
+          letterSpacing: elementStyles.letterSpacing,
         } as React.CSSProperties
       }
     >
