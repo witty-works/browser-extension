@@ -16,7 +16,6 @@ import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
 
 import './HighlightPopover.scss';
-import '../../Popup/styles.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 export interface PopoverData {
@@ -208,7 +207,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
         {/* LEARNIGN BITES */}
         <div
-          className='wittyworks-container container-rounded container-row full-padding justify-start margin-top'
+          className='wittyworks-container container-rounded container-row full-padding justify-start margin-top cursor-pointer'
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
             window.open(data.alert.data.explanation.url, '_blank');

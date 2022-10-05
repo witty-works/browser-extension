@@ -96,7 +96,7 @@ const PopupLogin: React.FC = () => {
       </section>
       <div className='wittyworks-container full-padding light-gray-background left'>
         <div
-          className='button primary-button-purple'
+          className='button primary-button-red'
           onClick={() => {
             logIn(urls);
           }}
@@ -107,7 +107,7 @@ const PopupLogin: React.FC = () => {
           {t('haveAccount')}
           &nbsp;
           <span
-            className='lato-popup-text-purple'
+            className='lato-popup-text-purple cursor-pointer'
             onClick={() => {
               logIn(urls);
             }}
