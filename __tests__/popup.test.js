@@ -69,8 +69,6 @@ test.describe('Popup', () => {
         await page.waitForSelector('.lato-popup-title');
         let toggles = await page.$$('.toggle-encloser');
         expect(toggles.length).toBe(3);
-        let labels = await page.$$('.lato-popup-text');
-        expect(labels.length).toBe(3);
     });
 
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
