@@ -91,17 +91,17 @@
   cursor: pointer;
 }
 
-.primary-button-purple {
-  background: $wittyPurple;
+.primary-button-red {
+  background: $orange;
   border-radius: 8px;
   color: $white;
 }
 
-.secondary-button-purple {
+.secondary-button-red {
   background: $white;
-  border: 1px solid $wittyPurple;
+  border: 1px solid $orange;
   border-radius: 8px;
-  color: $wittyPurple;
+  color: $orange;
 }
 
 //Backgrounds
