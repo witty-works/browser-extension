@@ -377,16 +377,6 @@ const Popup: React.FC<PopupProps> = ({
                   : t('websiteSettings', { domain: domain })}
               </div>
             </div>
-            {teamName && (
-              <>
-                <div
-                  className='lato-popup-text'
-                  style={{ marginBottom: '1em' }}
-                >
-                  {t('loggedInTo', { teamName: teamName })}
-                </div>
-              </>
-            )}
             <Toggle
               on={enabled.enabled}
               handleToggle={handleEnableToggle}
@@ -464,7 +454,7 @@ const Popup: React.FC<PopupProps> = ({
             {localConfigDiffersFromDashboard && (
               <div className='wittyworks-container left'>
                 <div
-                  className='button secondary-button-purple'
+                  className='button secondary-button-red'
                   onClick={() => {
                     setResetSettings(true);
                   }}
@@ -476,7 +466,7 @@ const Popup: React.FC<PopupProps> = ({
             {hasWittyTeams && (
               <div className='left'>
                 <div
-                  className='button primary-button-purple'
+                  className='button primary-button-red'
                   onClick={() => {
                     window.open(getBaseUrls().dashboard, '_blank');
                   }}
@@ -493,9 +483,9 @@ const Popup: React.FC<PopupProps> = ({
           <div className='lato-popup-title'>
             {t('getMoreTitle', { domain: 'miro.com' })}
           </div>
-          <div className='lato-popup-text'>{t('getMoreText')}</div>
+          <div className='lato-popup-text margin-top'>{t('getMoreText')}</div>
           <div
-            className='button primary-button-purple'
+            className='button primary-button-red margin-top'
             onClick={() => {
               window.open(
                 'https://www.witty.works/witty-for-teams',
@@ -508,6 +498,19 @@ const Popup: React.FC<PopupProps> = ({
           </div>
         </div>
       )}
+      {teamName && (
+        <section>
+          <div
+            className='lato-popup-text'
+            style={{
+              marginTop:
+                localConfigDiffersFromDashboard || hasWittyTeams ? '-0.5em' : 0,
+            }}
+          >
+            {t('loggedInTo', { teamName: teamName })}
+          </div>
+        </section>
+      )}
       {showSurvey && enabled.enabled && (
         <div className='wittyworks-container full-padding light-gray-background left'>
           <div className='container-row justify-start'>
@@ -519,14 +522,17 @@ const Popup: React.FC<PopupProps> = ({
             </div>
           </div>
           {surveyResponse === '' && (
-            <div className='lato-popup-text' style={{ marginLeft: '3.8em' }}>
+            <div
+              className='lato-popup-text margin-top'
+              style={{ marginLeft: '3.8em' }}
+            >
               {t('doesWittyWorkExplanation')}
             </div>
           )}
           {!surveyResponse && (
-            <div className='container-row justify-start'>
+            <div className='container-row justify-start margin-top'>
               <div
-                className='button primary-button-purple'
+                className='button primary-button-red'
                 style={{ marginLeft: '3.3em' }}
                 onClick={() => {
                   setSurveyResponse('yes');
@@ -537,7 +543,7 @@ const Popup: React.FC<PopupProps> = ({
                 {t('surveyButtonYes')}
               </div>
               <div
-                className='button secondary-button-purple'
+                className='button secondary-button-red'
                 onClick={() => {
                   setSurveyResponse('no');
                   setEnabled({ enabled: false, updateDashboard: false });
@@ -559,7 +565,7 @@ const Popup: React.FC<PopupProps> = ({
           <DelaySelector />
           <div className='left'>
             <div
-              className='button primary-button-purple'
+              className='button primary-button-red'
               onClick={() => {
                 logOut();
               }}

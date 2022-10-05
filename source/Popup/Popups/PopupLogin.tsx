@@ -96,7 +96,7 @@ const PopupLogin: React.FC = () => {
       </section>
       <div className='wittyworks-container full-padding light-gray-background left'>
         <div
-          className='button primary-button-purple'
+          className='button primary-button-red'
           onClick={() => {
             logIn(urls);
           }}
