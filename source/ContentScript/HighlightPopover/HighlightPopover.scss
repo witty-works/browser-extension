@@ -55,3 +55,239 @@
     color: $orange;
   }
 }
+
+// FONTS
+.lato-small-paragraph-title-h4 {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 28px; /* or 127% */
+  color: $black;
+}
+
+.lato-popover-text {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $black;
+}
+
+.lato-popover-text-green {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $green;
+}
+
+.lato-popover-text-gray {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $extraDarkGray;
+}
+
+.lato-popover-text-light-gray {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $darkGray;
+  stroke: $darkGray;
+}
+
+.lato-popup-title {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $black;
+}
+
+.lato-popup-text {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px; /* or 214% */
+  color: $black;
+}
+
+.lato-popup-text-purple {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px; /* or 214% */
+  color: $wittyPurple;
+  text-decoration-line: underline;
+}
+
+//BUTTONS
+.button {
+  display: flex;
+  padding: 10px 15px;
+  gap: 10px;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 14px;
+  margin-right: 1em;
+  cursor: pointer;
+}
+
+.primary-button-purple {
+  background: $wittyPurple;
+  border-radius: 8px;
+  color: $white;
+}
+
+.secondary-button-purple {
+  background: $white;
+  border: 1px solid $wittyPurple;
+  border-radius: 8px;
+  color: $wittyPurple;
+}
+
+//Backgrounds
+.strong-gradient-background {
+  background: linear-gradient(
+        96.78deg,
+        #fef7f8 -6.3%,
+        #fbf6fa 35.9%,
+        #e9f2f5 100.12%
+      )
+      padding-box,
+    linear-gradient(
+        114.59deg,
+        #f06464 1.6%,
+        #f277d0 32.79%,
+        #9489db 71.64%,
+        #37d1e5 101.91%,
+        #5acfb9 131.52%
+      )
+      border-box;
+}
+
+.light-gray-background {
+  background: $lightGray;
+}
+
+.dark-gray-background {
+  background: $darkGray;
+}
+
+//Containers
+section {
+  padding: 1em !important;
+  padding-bottom: 0em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.wittyworks-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 1em;
+}
+
+.container-rounded {
+  border-radius: 8px;
+  max-width: 300px;
+}
+
+.container-row {
+  display: flex;
+  flex-direction: row !important;
+}
+
+//Alignments
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-space-between {
+  justify-content: space-between;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.full-padding {
+  padding: 1em;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.margin-right {
+  display: flex;
+  margin-right: 1em;
+}
+
+.margin-top {
+  margin-top: 1em;
+}
+
+//general
+body {
+  font-family: $lato;
+  color: $black;
+}
+
+#popup-root {
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 1em;
+  display: flex;
+  justify-content: space-between;
+
+  svg {
+    cursor: pointer;
+  }
+}
+
+footer {
+  padding: 1em;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  cursor: pointer;
+  margin-top: 1em;
+}
+
+.separator {
+  background-color: $whiteGray;
+  border: 0;
+  height: 1px;
+  width: 110%;
+  margin-left: -1em;
+  overflow: hidden;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
