@@ -454,7 +454,7 @@ const Popup: React.FC<PopupProps> = ({
             {localConfigDiffersFromDashboard && (
               <div className='wittyworks-container left'>
                 <div
-                  className='button secondary-button-red'
+                  className='witty-button secondary-button-red'
                   onClick={() => {
                     setResetSettings(true);
                   }}
@@ -466,7 +466,7 @@ const Popup: React.FC<PopupProps> = ({
             {hasWittyTeams && (
               <div className='left'>
                 <div
-                  className='button primary-button-red'
+                  className='witty-button primary-button-red'
                   onClick={() => {
                     window.open(getBaseUrls().dashboard, '_blank');
                   }}
@@ -485,7 +485,7 @@ const Popup: React.FC<PopupProps> = ({
           </div>
           <div className='lato-popup-text margin-top'>{t('getMoreText')}</div>
           <div
-            className='button primary-button-red margin-top'
+            className='witty-button primary-button-red margin-top'
             onClick={() => {
               window.open(
                 'https://www.witty.works/witty-for-teams',
@@ -532,7 +532,7 @@ const Popup: React.FC<PopupProps> = ({
           {!surveyResponse && (
             <div className='container-row justify-start margin-top'>
               <div
-                className='button primary-button-red'
+                className='witty-button primary-button-red'
                 style={{ marginLeft: '3.3em' }}
                 onClick={() => {
                   setSurveyResponse('yes');
@@ -543,7 +543,7 @@ const Popup: React.FC<PopupProps> = ({
                 {t('surveyButtonYes')}
               </div>
               <div
-                className='button secondary-button-red'
+                className='witty-button secondary-button-red'
                 onClick={() => {
                   setSurveyResponse('no');
                   setEnabled({ enabled: false, updateDashboard: false });
@@ -565,7 +565,7 @@ const Popup: React.FC<PopupProps> = ({
           <DelaySelector />
           <div className='left'>
             <div
-              className='button primary-button-red'
+              className='witty-button primary-button-red'
               onClick={() => {
                 logOut();
               }}

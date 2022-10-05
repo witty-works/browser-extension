@@ -41,6 +41,7 @@ import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import { getInputText, updateConfig } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
+import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -80,6 +81,8 @@ const Input: React.FC<{
     defaultConfig.API_DELAY
   );
 
+  const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
+
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       for (const mutation of mutationsList) {
@@ -97,9 +100,10 @@ const Input: React.FC<{
 
   useEffect(() => {
     browser.storage.local
-      .get(StorageKeys.API_DELAY)
+      .get(null)
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
+        setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
       })
       .catch((error: unknown) => {
         sendErrorToSentry(error);
@@ -653,8 +657,8 @@ const Input: React.FC<{
     if (checkEndpointError?.status === 422) {
       setNodesWithAlerts([]);
     } else if (
-      checkEndpointError?.status == 403 ||
-      authErrorResponse?.status === 403
+      checkEndpointError?.status == 403
+      // authErrorResponse?.status === 403
     ) {
       browser.storage.local
         .get(StorageKeys.REFRESH_TOKEN)
@@ -709,7 +713,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     //Show/Hide the popover
-    if (popoverData) {
+    if (popoverData && userIsSignedIn) {
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
@@ -719,6 +723,17 @@ const Input: React.FC<{
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
             movePopoverNextOrPrev={movePopoverNextOrPrev}
+          />
+        </Sentry.ErrorBoundary>,
+        document.querySelector(WTags.WW_POPOVER)
+      );
+    } else if (popoverData && !userIsSignedIn) {
+      ReactDOM.render(
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopoverNotSignedIn
+            element={element}
+            data={popoverData}
+            hide={resetPopover}
           />
         </Sentry.ErrorBoundary>,
         document.querySelector(WTags.WW_POPOVER)

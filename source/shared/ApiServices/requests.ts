@@ -36,13 +36,13 @@ export const setOrganizationConfigHash = (hash: string) =>
 
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
-    url: createUrl(BASE_URL_API, 'v2.0/check'),
+    url: createUrl(BASE_URL_API, 'v2.1/check'),
     config: {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: token ? `Bearer ${token}` : '',
       },
       body: text
         ? JSON.stringify({

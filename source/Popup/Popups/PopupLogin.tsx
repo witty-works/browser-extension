@@ -96,7 +96,7 @@ const PopupLogin: React.FC = () => {
       </section>
       <div className='wittyworks-container full-padding light-gray-background left'>
         <div
-          className='button primary-button-red'
+          className='witty-button primary-button-red'
           onClick={() => {
             logIn(urls);
           }}
@@ -112,7 +112,7 @@ const PopupLogin: React.FC = () => {
               logIn(urls);
             }}
           >
-            {t('signIn')}{' '}
+            {t('signIn')}
           </span>
         </div>
       </div>
