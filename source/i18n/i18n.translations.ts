@@ -31,7 +31,7 @@ export const de = {
     getMoreTitle: 'Witty für dein Team',
     getMoreText:
       'Entdecke Wittys Teamfunktionen kostenlos. Schreibt zusammen inklusiv!',
-    learnMoreButton: 'Kostenlos testen',
+    learnMoreButton: 'Team Einladen',
     goToDashboard: 'Zum Witty Dashboard',
     overrideRecomendedSites: 'Witty hier dennoch aktivieren',
     backToRecomendedSites: 'Witty nur auf unterstützten Webseiten aktiv',
@@ -104,7 +104,7 @@ export const en = {
     getMoreTitle: 'Witty for your team',
     getMoreText:
       "Explore Witty's team features for free. Start writing inclusively together!",
-    learnMoreButton: 'Try for free',
+    learnMoreButton: 'Invite Team Members',
     goToDashboard: 'Go to Witty Dashboard',
     overrideRecomendedSites: 'Try Witty here anyway',
     backToRecomendedSites: 'Use Witty only on supported websites',
