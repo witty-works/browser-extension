@@ -30,7 +30,7 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
           />
         )}
       </header>
-      <div className='separator' />
+      <div className='witty-works-ext-separator' />
     </>
   );
 };

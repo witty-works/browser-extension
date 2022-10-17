@@ -34,7 +34,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   return (
     <select
-      className='dropdown-select'
+      className='witty-works-ext-dropdown-select'
       onChange={handleOptionChange}
       value={selected}
     >

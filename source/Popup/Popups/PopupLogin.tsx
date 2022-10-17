@@ -64,50 +64,58 @@ const PopupLogin: React.FC = () => {
     <>
       <PopupHeader showSettings={false} />
       <section>
-        <div className='wittyworks-container container-row justify-start'>
-          <div className='margin-right'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-margin-right'>
             <Checkmark />
           </div>
-          <div className='lato-small-paragraph-title-h4'>
+          <div className='witty-works-ext-lato-small-paragraph-title-h4'>
             {t('loginToUnlock')}
           </div>
         </div>
-        <div className='wittyworks-container container-row justify-start'>
-          <div className='lato-popover-text'>{t('signUpFor')}</div>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-lato-popover-text'>
+            {t('signUpFor')}
+          </div>
         </div>
-        <div className='wittyworks-container container-row'>
-          <div className='margin-right'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row'>
+          <div className='witty-works-ext-margin-right'>
             <Star />
           </div>
-          <div className='lato-popover-text'>{t('biasDetection')}</div>
+          <div className='witty-works-ext-lato-popover-text'>
+            {t('biasDetection')}
+          </div>
         </div>
-        <div className='wittyworks-container container-row justify-start'>
-          <div className='margin-right'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-margin-right'>
             <Star />
           </div>
-          <div className='lato-popover-text'>{t('inclusiveAlternatives')}</div>
+          <div className='witty-works-ext-lato-popover-text'>
+            {t('inclusiveAlternatives')}
+          </div>
         </div>
-        <div className='wittyworks-container container-row justify-start'>
-          <div className='margin-right'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-margin-right'>
             <Star />
           </div>
-          <div className='lato-popover-text'>{t('teamFeatures')}</div>
+          <div className='witty-works-ext-lato-popover-text'>
+            {t('teamFeatures')}
+          </div>
         </div>
       </section>
-      <div className='wittyworks-container full-padding light-gray-background left'>
+      <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
         <div
-          className='button primary-button-red'
+          className='witty-works-ext-button witty-works-ext-primary-button-red'
           onClick={() => {
             logIn(urls);
           }}
         >
           {t('signUp')}
         </div>
-        <div className='lato-popup-text'>
+        <div className='witty-works-ext-lato-popup-text'>
           {t('haveAccount')}
           &nbsp;
           <span
-            className='lato-popup-text-purple cursor-pointer'
+            className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
             onClick={() => {
               logIn(urls);
             }}

@@ -370,8 +370,8 @@ const Popup: React.FC<PopupProps> = ({
       <section>
         {domainExists && (
           <>
-            <div className='wittyworks-container container-row justify-space-between'>
-              <div className='lato-popup-title'>
+            <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
+              <div className='witty-works-ext-lato-popup-title'>
                 {domainIsSetAsNotWorking
                   ? t('websiteSettingsDeactivated', { domain: domain })
                   : t('websiteSettings', { domain: domain })}
@@ -396,14 +396,16 @@ const Popup: React.FC<PopupProps> = ({
                 />
               </>
             )}
-            <div className='separator' />
+            <div className='witty-works-ext-separator' />
           </>
         )}
 
         {enabled.enabled && !showSurvey && (
-          <div className='margin-top'>
-            <div className='wittyworks-container container-row justify-space-between'>
-              <div className='lato-popup-title'>{t('globalSettings')}</div>
+          <div className='witty-works-ext-margin-top'>
+            <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
+              <div className='witty-works-ext-lato-popup-title'>
+                {t('globalSettings')}
+              </div>
             </div>
             <Toggle
               on={orthography.value as boolean}
@@ -452,9 +454,9 @@ const Popup: React.FC<PopupProps> = ({
               userIsLoggedIn={userIsLoggedIn}
             />
             {localConfigDiffersFromDashboard && (
-              <div className='wittyworks-container left'>
+              <div className='witty-works-ext-wittyworks-container witty-works-ext-left'>
                 <div
-                  className='button secondary-button-red'
+                  className='witty-works-ext-button witty-works-ext-secondary-button-red'
                   onClick={() => {
                     setResetSettings(true);
                   }}
@@ -464,9 +466,9 @@ const Popup: React.FC<PopupProps> = ({
               </div>
             )}
             {hasWittyTeams && (
-              <div className='left'>
+              <div className='witty-works-ext-left'>
                 <div
-                  className='button primary-button-red'
+                  className='witty-works-ext-button witty-works-ext-primary-button-red'
                   onClick={() => {
                     window.open(getBaseUrls().dashboard, '_blank');
                   }}
@@ -479,13 +481,15 @@ const Popup: React.FC<PopupProps> = ({
         )}
       </section>
       {!hasWittyTeams && !showSurvey && (
-        <div className='wittyworks-container full-padding light-gray-background left'>
-          <div className='lato-popup-title'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
+          <div className='witty-works-ext-lato-popup-title'>
             {t('getMoreTitle', { domain: 'miro.com' })}
           </div>
-          <div className='lato-popup-text margin-top'>{t('getMoreText')}</div>
+          <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'>
+            {t('getMoreText')}
+          </div>
           <div
-            className='button primary-button-red margin-top'
+            className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
             onClick={() => {
               window.open(
                 'https://www.witty.works/witty-for-teams',
@@ -501,7 +505,7 @@ const Popup: React.FC<PopupProps> = ({
       {teamName && (
         <section>
           <div
-            className='lato-popup-text'
+            className='witty-works-ext-lato-popup-text'
             style={{
               marginTop:
                 localConfigDiffersFromDashboard || hasWittyTeams ? '-0.5em' : 0,
@@ -512,27 +516,27 @@ const Popup: React.FC<PopupProps> = ({
         </section>
       )}
       {showSurvey && enabled.enabled && (
-        <div className='wittyworks-container full-padding light-gray-background left'>
-          <div className='container-row justify-start'>
-            <div className='margin-right'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
+          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-margin-right'>
               <ThinkingEmoji />
             </div>
-            <div className='lato-small-paragraph-title-h4'>
+            <div className='witty-works-ext-lato-small-paragraph-title-h4'>
               {t('doesWittyWork')}
             </div>
           </div>
           {surveyResponse === '' && (
             <div
-              className='lato-popup-text margin-top'
+              className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'
               style={{ marginLeft: '3.8em' }}
             >
               {t('doesWittyWorkExplanation')}
             </div>
           )}
           {!surveyResponse && (
-            <div className='container-row justify-start margin-top'>
+            <div className='witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
               <div
-                className='button primary-button-red'
+                className='witty-works-ext-button witty-works-ext-primary-button-red'
                 style={{ marginLeft: '3.3em' }}
                 onClick={() => {
                   setSurveyResponse('yes');
@@ -543,7 +547,7 @@ const Popup: React.FC<PopupProps> = ({
                 {t('surveyButtonYes')}
               </div>
               <div
-                className='button secondary-button-red'
+                className='witty-works-ext-button witty-works-ext-secondary-button-red'
                 onClick={() => {
                   setSurveyResponse('no');
                   setEnabled({ enabled: false, updateDashboard: false });
@@ -563,9 +567,9 @@ const Popup: React.FC<PopupProps> = ({
           <h2>{t('developmentSettings')}</h2>
           <ApiSelector />
           <DelaySelector />
-          <div className='left'>
+          <div className='witty-works-ext-left'>
             <div
-              className='button primary-button-red'
+              className='witty-works-ext-button witty-works-ext-primary-button-red'
               onClick={() => {
                 logOut();
               }}
