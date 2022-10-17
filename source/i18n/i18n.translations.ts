@@ -60,6 +60,9 @@ export const de = {
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
     resetSettings: 'Einstellungen zurücksetzen',
     loggedInTo: 'Logged in to {{teamName}}',
+    popupsBlocked: 'Popups are blocked DE',
+    popupsBlockedText:
+      'Please allow popups or sign in by copying the following link into your browser: DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -133,6 +136,9 @@ export const en = {
     lockedInfo: 'This feature has been locked by your team admin.',
     resetSettings: 'Reset settings',
     loggedInTo: 'Logged in to {{teamName}}',
+    popupsBlocked: 'Popups are blocked',
+    popupsBlockedText:
+      'Please allow popups or sign in by copying the following link into your browser:',
   },
 
   [namespaces.popover]: {
