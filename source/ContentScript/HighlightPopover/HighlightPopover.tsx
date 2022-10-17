@@ -157,7 +157,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         className='witty-works-ext-lato-popover-text'
       >
         {/* HEADER */}
-        <section className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
+        <div className='witty-works-ext-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
           <a
             className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'
             href='https://www.witty.works/'
@@ -204,7 +204,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           >
             <CloseIcon />
           </div>
-        </section>
+        </div>
 
         <div className='witty-works-ext-separator' />
 
@@ -319,9 +319,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       />
 
       {/* FOOTER */}
-      <section
+      <div
         onClick={() => clickIgnoreTerm()}
-        className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
+        className='witty-works-ext-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
       >
         <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
           <IgnoreIcon />
@@ -329,7 +329,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         <span className='witty-works-ext-lato-popover-text-gray'>
           {t('ignoreTerm')}
         </span>
-      </section>
+      </div>
     </div>
   );
 };

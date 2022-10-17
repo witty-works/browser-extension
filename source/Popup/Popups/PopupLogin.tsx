@@ -63,7 +63,7 @@ const PopupLogin: React.FC = () => {
   return (
     <>
       <PopupHeader showSettings={false} />
-      <section>
+      <div className='witty-works-ext-section'>
         <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
           <div className='witty-works-ext-margin-right'>
             <Checkmark />
@@ -101,7 +101,7 @@ const PopupLogin: React.FC = () => {
             {t('teamFeatures')}
           </div>
         </div>
-      </section>
+      </div>
       <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
         <div
           className='witty-works-ext-button witty-works-ext-primary-button-red'
@@ -125,11 +125,11 @@ const PopupLogin: React.FC = () => {
         </div>
       </div>
       {DEV_ENV && (
-        <section>
+        <div className='witty-works-ext-section'>
           <h2>{t('developmentSettings')}</h2>
           <ApiSelector />
           <DelaySelector />
-        </section>
+        </div>
       )}
     </>
   );

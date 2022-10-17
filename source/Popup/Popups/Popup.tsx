@@ -367,7 +367,7 @@ const Popup: React.FC<PopupProps> = ({
       ) : (
         <PopupHeader />
       )}
-      <section>
+      <div className='witty-works-ext-section'>
         {domainExists && (
           <>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
@@ -479,7 +479,7 @@ const Popup: React.FC<PopupProps> = ({
             )}
           </div>
         )}
-      </section>
+      </div>
       {!hasWittyTeams && !showSurvey && (
         <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
           <div className='witty-works-ext-lato-popup-title'>
@@ -503,7 +503,7 @@ const Popup: React.FC<PopupProps> = ({
         </div>
       )}
       {teamName && (
-        <section>
+        <div className='witty-works-ext-section'>
           <div
             className='witty-works-ext-lato-popup-text'
             style={{
@@ -513,7 +513,7 @@ const Popup: React.FC<PopupProps> = ({
           >
             {t('loggedInTo', { teamName: teamName })}
           </div>
-        </section>
+        </div>
       )}
       {showSurvey && enabled.enabled && (
         <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
@@ -563,7 +563,7 @@ const Popup: React.FC<PopupProps> = ({
         </div>
       )}
       {DEV_ENV && (
-        <section>
+        <div className='witty-works-ext-section'>
           <h2>{t('developmentSettings')}</h2>
           <ApiSelector />
           <DelaySelector />
@@ -577,7 +577,7 @@ const Popup: React.FC<PopupProps> = ({
               {t('signOut')}
             </div>
           </div>
-        </section>
+        </div>
       )}
     </>
   );

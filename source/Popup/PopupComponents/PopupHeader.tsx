@@ -16,7 +16,7 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
 }: PopupHeaderProps) => {
   return (
     <>
-      <header>
+      <header className='witty-works-ext-header'>
         <Logo
           id='witty-logo'
           onClick={() => {

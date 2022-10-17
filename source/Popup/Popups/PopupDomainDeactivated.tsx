@@ -43,7 +43,7 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
   return (
     <>
       <PopupHeader />
-      <section>
+      <div className='witty-works-ext-section'>
         <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
           <div className='witty-works-ext-margin-right'>
             <SadFace />
@@ -73,7 +73,7 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
           <EditorButton />
           <div className='witty-works-ext-lato-popup-text'>{t('editor')}</div>
         </div>
-      </section>
+      </div>
     </>
   );
 };
