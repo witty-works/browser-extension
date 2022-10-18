@@ -98,7 +98,6 @@ browser.storage.local
       isOnOrgDomainList ||
       isOnPersonalDomainList ||
       defaultConfig.DISABLED_SITES.includes(domain)
-      // !result[StorageKeys.ACCESS_TOKEN]
     ) {
       customRender(false);
     } else {
