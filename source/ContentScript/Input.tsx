@@ -723,6 +723,7 @@ const Input: React.FC<{
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
             movePopoverNextOrPrev={movePopoverNextOrPrev}
+            userIsSignedIn={userIsSignedIn}
           />
         </Sentry.ErrorBoundary>,
         document.querySelector(WTags.WW_POPOVER)
@@ -783,6 +784,7 @@ const Input: React.FC<{
             element={element}
             elementRect={elementRect}
             selectedAlert={selectedAlert}
+            userIsSignedIn={userIsSignedIn}
           />
         </Sentry.ErrorBoundary>
       </WTags.WW_HIGHLIGHTS>

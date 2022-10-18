@@ -123,13 +123,23 @@ const unconsciousBiasAndGenderedOrange: IHighlightColors = {
   hover: '#EB9F46',
 };
 
+const disabledGrey: IHighlightColors = {
+  default: '#BEBEBE',
+  highlight: '#BEBEBE',
+  hover: '#BEBEBE',
+};
+
 const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
   default: '#E6635A',
   highlight: '#F7D4D4',
   hover: '#E6635A',
 };
 
-export const getColor = (gravity: number): IHighlightColors => {
+export const getColor = (
+  gravity: number,
+  userIsSignedIn: boolean
+): IHighlightColors => {
+  if (!gravity && !userIsSignedIn) return disabledGrey;
   if (!gravity) return inclusiveGreen;
   if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
   if (gravity > 2.5) return styleYellow;
