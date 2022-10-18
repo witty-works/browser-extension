@@ -43,35 +43,37 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
   return (
     <>
       <PopupHeader />
-      <section>
-        <div className='wittyworks-container container-row justify-start'>
-          <div className='margin-right'>
+      <div className='witty-works-ext-section'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-margin-right'>
             <SadFace />
           </div>
-          <div className='lato-small-paragraph-title-h4'>{t('noSupport')}</div>
+          <div className='witty-works-ext-lato-small-paragraph-title-h4'>
+            {t('noSupport')}
+          </div>
         </div>
         <div
-          className='wittyworks-container container-row justify-start'
+          className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'
           onClick={() => {
             analytics.urlLog(domain, appId, 'vote');
             setHasVoted(true);
           }}
         >
           <UpvoteButton />
-          <div className='lato-popup-text'>
+          <div className='witty-works-ext-lato-popup-text'>
             {!hasVoted ? t('vote') : t('thanks')}
           </div>
         </div>
         <div
-          className='wittyworks-container container-row justify-start'
+          className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'
           onClick={() =>
             browser.tabs.create({ url: 'https://www.witty.works/editor' })
           }
         >
           <EditorButton />
-          <div className='lato-popup-text'>{t('editor')}</div>
+          <div className='witty-works-ext-lato-popup-text'>{t('editor')}</div>
         </div>
-      </section>
+      </div>
     </>
   );
 };

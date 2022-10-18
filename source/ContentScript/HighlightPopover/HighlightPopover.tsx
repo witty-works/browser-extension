@@ -152,22 +152,25 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       style={PopoverStyling}
       onMouseDown={(e) => e.preventDefault()}
     >
-      <div id='wittyworks-popover-content' className='lato-popover-text'>
+      <div
+        id='wittyworks-popover-content'
+        className='witty-works-ext-lato-popover-text'
+      >
         {/* HEADER */}
-        <section className='wittyworks-container container-row justify-space-between'>
+        <div className='witty-works-ext-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
           <a
-            className='margin-right cursor-pointer'
+            className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'
             href='https://www.witty.works/'
             target='_blank'
           >
             <WittyLogo />
           </a>
-          <div className='container-row' style={{}}>
+          <div className='witty-works-ext-container-row' style={{}}>
             <div
               className={
                 data.index === 1
-                  ? 'margin-right lato-popover-text-light-gray'
-                  : 'margin-right lato-popover-text-gray cursor-pointer'
+                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray'
+                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
               }
               onClick={() =>
                 data.index === 1 ? '' : updatePopover('previous')
@@ -175,15 +178,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             >
               <PreviousIcon />
             </div>
-            <div className='margin-right lato-popover-text-gray margin-right'>{`${
+            <div className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>{`${
               data.index
             }
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
             <div
               className={
                 data.index === data.totalAlerts
-                  ? 'margin-right lato-popover-text-light-gray'
-                  : 'margin-right lato-popover-text-gray cursor-pointer'
+                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray'
+                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
               }
               onClick={() =>
                 data.index === data.totalAlerts ? '' : updatePopover('next')
@@ -194,20 +197,20 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
 
           <div
-            className='lato-popover-text-gray cursor-pointer'
+            className='witty-works-ext-lato-popover-text-gray cursor-pointer'
             onClick={() => {
               hidePopover();
             }}
           >
             <CloseIcon />
           </div>
-        </section>
+        </div>
 
-        <div className='separator' />
+        <div className='witty-works-ext-separator' />
 
         {/* LEARNIGN BITES */}
         <div
-          className='wittyworks-container container-rounded container-row full-padding justify-start margin-top cursor-pointer'
+          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer'
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
             window.open(data.alert.data.explanation.url, '_blank');
@@ -225,10 +228,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           }}
         >
           {/* controls icon size */}
-          <div className='margin-right' style={{ fontSize: '2em' }}>
+          <div
+            className='witty-works-ext-margin-right'
+            style={{ fontSize: '2em' }}
+          >
             {data.alert.data.explanation.icon}
           </div>
-          <div className='lato-popover-text'>
+          <div className='witty-works-ext-lato-popover-text'>
             {data.alert.data.explanation.text}
             {data.alert.data.explanation.context && (
               <span className=''>
@@ -237,10 +243,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             )}
             {data.alert.data.explanation.url && (
               <div
-                className='wittyworks-container container-row lato-popover-text-gray cursor-pointer '
+                className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
                 style={{ padding: 0 }}
               >
-                <div className='margin-right'>
+                <div className='witty-works-ext-margin-right'>
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
@@ -255,11 +261,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         {data.alert.data.alternatives.length > 0 && (
           <>
             <div
-              className='separator'
+              className='witty-works-ext-separator'
               style={{ marginBottom: '1em', marginTop: '1em' }}
             />
-            <div className='wittyworks-popover-row'>
-              <div className='wittyworks-popover-alternative-btn-container'>
+            <div className='witty-works-ext-wittyworks-popover-row'>
+              <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
                 {t('insteadTry')}
               </div>
               <div>
@@ -268,7 +274,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   .map((alternative, index) =>
                     alternative.remove ? (
                       <div
-                        className='wittyworks-popover-alternative-btn lato-popover-text-green remove-text'
+                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text'
                         key={`${index}-remove-it`}
                         onClick={() => clickAlternative('')}
                       >
@@ -276,11 +282,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       </div>
                     ) : (
                       <div
-                        className='wittyworks-popover-alternative-btn-container'
+                        className='witty-works-ext-wittyworks-popover-alternative-btn-container'
                         key={`${index}-${alternative}-container`}
                       >
                         <div
-                          className='wittyworks-popover-alternative-btn lato-popover-text-green'
+                          className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green'
                           onClick={() =>
                             clickAlternative(
                               data.alert.data.alternatives[index].text
@@ -294,7 +300,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           )}
                         </div>
                         {alternative.context && (
-                          <div className='wittyworks-popover-alternative-context'>
+                          <div className='witty-works-ext-wittyworks-popover-alternative-context'>
                             {alternative.context}
                           </div>
                         )}
@@ -307,18 +313,23 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         )}
       </div>
 
-      <div className='separator' style={{ marginTop: '0.5em' }} />
+      <div
+        className='witty-works-ext-separator'
+        style={{ marginTop: '0.5em' }}
+      />
 
       {/* FOOTER */}
-      <section
+      <div
         onClick={() => clickIgnoreTerm()}
-        className='wittyworks-container container-row justify-start ignore-color-transformer'
+        className='witty-works-ext-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
       >
-        <span className='margin-right cursor-pointer'>
+        <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
           <IgnoreIcon />
         </span>
-        <span className='lato-popover-text-gray'>{t('ignoreTerm')}</span>
-      </section>
+        <span className='witty-works-ext-lato-popover-text-gray'>
+          {t('ignoreTerm')}
+        </span>
+      </div>
     </div>
   );
 };

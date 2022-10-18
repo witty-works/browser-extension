@@ -1,13 +1,13 @@
 exports.loginPopupPage = async function (page, extensionId, context) {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
     await page.waitForLoadState('networkidle')
-    await page.selectOption('.dropdown-select', 'Dev');
+    await page.selectOption('.witty-works-ext-dropdown-select', 'Dev');
 
     //page is reset to the page that .wittyworks-button redirects to
-    await page.waitForSelector('.button');
+    await page.waitForSelector('.witty-works-ext-button');
     const [newPage] = await Promise.all([
         context.waitForEvent('page'),
-        page.click('.button')
+        page.click('.witty-works-ext-button')
     ]);
     await newPage.waitForLoadState('networkidle')
     await newPage.goto(await newPage.url());
@@ -29,6 +29,7 @@ exports.loginDashboard = async function (email, password, page) {
         await page.click('#continue');
         await page.waitForLoadState('networkidle')
     }
+
     return page;
 }
 
@@ -130,57 +131,58 @@ exports.enableAllToggles = async function (page) {
     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
 
     //orthography
-    const inclusiveToggle = await page.waitForSelector('.max-w-7xl:nth-child(6) .px-4 .slider');
+    const inclusiveToggle = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-form-section .slider');
     const backgroundColorInclusive = await inclusiveToggle.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     });
     if (backgroundColorInclusive === 'rgb(204, 204, 204)') {
-        await page.click('.max-w-7xl:nth-child(6) .px-4 .slider');
+        await page.click('.max-w-7xl:nth-child(6) .guidelines-form-section .slider');
     }
-    const inclusiveToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+
+    const inclusiveToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorInclusiveForce = await inclusiveToggleForce.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     });
     if (backgroundColorInclusiveForce === 'rgb(204, 204, 204)') {
-        await page.click('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+        await page.click('.max-w-7xl:nth-child(6) .guidelines-form-section--apply-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(6) .wittyworks-button');
+    await page.click('.max-w-7xl:nth-child(6) .button');
 
     //style
-    const styleToggle = await page.waitForSelector('.max-w-7xl:nth-child(7) .px-4 .slider');
+    const styleToggle = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorStyle = await styleToggle.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     });
     if (backgroundColorStyle === 'rgb(204, 204, 204)') {
-        await page.click('.max-w-7xl:nth-child(7) .px-4 .slider');
+        await page.click('.max-w-7xl:nth-child(7) .guidelines-form-section--apply-for-all .slider');
     }
-    const styleToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    const styleToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     })
     if (backgroundColorStyleForce === 'rgb(204, 204, 204)') {
-        await page.click('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+        await page.click('.max-w-7xl:nth-child(7) .guidelines-form-section--apply-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(7) .wittyworks-button');
+    await page.click('.max-w-7xl:nth-child(7) .button');
 
 
     //orthography
-    const orthographyToggle = await page.waitForSelector('.max-w-7xl:nth-child(8) .px-4 .slider');
+    const orthographyToggle = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorOrthography = await orthographyToggle.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     });
     if (backgroundColorOrthography === 'rgb(204, 204, 204)') {
-        await page.click('.max-w-7xl:nth-child(8) .px-4 .slider');
+        await page.click('.max-w-7xl:nth-child(8) .guidelines-form-section--apply-for-all .slider');
     }
-    const orthographyToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    const orthographyToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     }
     );
     if (backgroundColorOrthographyForce === 'rgb(204, 204, 204)') {
-        await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+        await page.click('.max-w-7xl:nth-child(8) .guidelines-form-section--apply-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(8) .wittyworks-button');
+    await page.click('.max-w-7xl:nth-child(8) .button');
 }
 
 exports.unlockAllToggles = async function (page) {
@@ -191,34 +193,34 @@ exports.unlockAllToggles = async function (page) {
     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
 
     //orthography
-    const inclusiveToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+    const inclusiveToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorInclusiveForce = await inclusiveToggleForce.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     });
     if (backgroundColorInclusiveForce !== 'rgb(204, 204, 204)') {
-        await page.click('.max-w-7xl:nth-child(6) .guidelines-enable-for-all .slider');
+        await page.click('.max-w-7xl:nth-child(6) .guidelines-form-section--apply-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(6) .wittyworks-button');
+    await page.click('.max-w-7xl:nth-child(6) .button');
 
     //style
-    const styleToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+    const styleToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(7) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     })
     if (backgroundColorStyleForce !== 'rgb(204, 204, 204)') {
-        await page.click('.max-w-7xl:nth-child(7) .guidelines-enable-for-all .slider');
+        await page.click('.max-w-7xl:nth-child(7) .guidelines-form-section--apply-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(7) .wittyworks-button');
+    await page.click('.max-w-7xl:nth-child(7) .button');
 
 
     //orthography
-    const orthographyToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+    const orthographyToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     }
     );
     if (backgroundColorOrthographyForce !== 'rgb(204, 204, 204)') {
-        await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+        await page.click('.max-w-7xl:nth-child(8) .guidelines-form-section--apply-for-all .slider');
     }
-    await page.click('.max-w-7xl:nth-child(8) .wittyworks-button');
+    await page.click('.max-w-7xl:nth-child(8) .button');
 }
