@@ -60,10 +60,10 @@ export const de = {
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
     resetSettings: 'Einstellungen zurücksetzen',
     loggedInTo: 'Logged in to {{teamName}}',
-    popupsBlocked: 'Popups are blocked DE',
+    popupsBlocked: 'Popups sind blockiert',
     popupsBlockedText:
-      'Please allow popups or sign in by copying the following link into your browser: DE',
-    copyLink: 'Copy Link DE',
+      'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
+    copyLink: 'Link kopieren',
     copiedConfirmation: 'Copied! DE',
   },
   [namespaces.popover]: {
@@ -140,7 +140,7 @@ export const en = {
     loggedInTo: 'Logged in to {{teamName}}',
     popupsBlocked: 'Popups are blocked',
     popupsBlockedText:
-      'Please allow popups or sign in by copying the following link into your browser:',
+      'Please copy and paste the link into your browser URL bar.',
     copyLink: 'Copy Link',
     copiedConfirmation: 'Copied!',
   },
