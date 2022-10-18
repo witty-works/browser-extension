@@ -64,7 +64,7 @@ export const de = {
     popupsBlockedText:
       'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
     copyLink: 'Link kopieren',
-    copiedConfirmation: 'Copied! DE',
+    copiedConfirmation: 'URL Kopiert',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -142,7 +142,7 @@ export const en = {
     popupsBlockedText:
       'Please copy and paste the link into your browser URL bar.',
     copyLink: 'Copy Link',
-    copiedConfirmation: 'Copied!',
+    copiedConfirmation: 'link Copied',
   },
 
   [namespaces.popover]: {
