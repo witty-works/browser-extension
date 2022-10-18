@@ -7,13 +7,16 @@ import PopupLogin from './Popups/PopupLogin';
 import defaultConfig from '../witty.config.json';
 
 export const renderUserNotLoggedIn = () => {
-  ReactDOM.render(<PopupLogin />, document.getElementById('popup-root'));
+  ReactDOM.render(
+    <PopupLogin />,
+    document.getElementById('witty-works-ext-popup-root')
+  );
 };
 
 export const renderDomainDeactivated = (appId: string, domain: string) => {
   ReactDOM.render(
     <PopupDomainDeactivated appId={appId} domain={domain} />,
-    document.getElementById('popup-root')
+    document.getElementById('witty-works-ext-popup-root')
   );
 };
 
@@ -36,7 +39,7 @@ export const renderMainPopup = (
       domainsConfirmedToWork={domainsConfirmedToWork}
       isLocked={isLocked}
     />,
-    document.getElementById('popup-root')
+    document.getElementById('witty-works-ext-popup-root')
   );
 };
 
