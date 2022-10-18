@@ -44,7 +44,6 @@ export const useAnalytics = () => {
     async alternativeLog(logResponse: IAlert, alternative: string) {
       const alternativeLogItems: IAlternativeLogItems = {
         request__type: 'alternative',
-        request__replaced: logResponse.data.text,
         request__alternative: alternative,
         ...getRequestData(appID),
         ...getResponseData(logResponse),
@@ -56,7 +55,6 @@ export const useAnalytics = () => {
     async ignoreLog(logResponse: IAlert) {
       const ignoreLogItems: IIgnoreLogItems = {
         request__type: 'ignore',
-        request__ignored: logResponse.data.text,
         ...getRequestData(appID),
         ...getResponseData(logResponse),
       };

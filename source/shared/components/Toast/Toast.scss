@@ -1,7 +1,7 @@
 @import '../../../styles/fonts';
 @import '../../../styles/variables';
 
-.witty-toast {
+.witty-works-ext-witty-toast {
   position: fixed;
   z-index: 9999999;
   top: 1rem;
@@ -22,12 +22,12 @@
     color: $white;
   }
 
-  .witty-toast-title {
+  .witty-works-ext-witty-toast-title {
     font-weight: 700;
   }
 }
 
-@keyframes toast-slide {
+@keyframes witty-works-ext-toast-slide {
   from {
     transform: translateX(100%);
   }

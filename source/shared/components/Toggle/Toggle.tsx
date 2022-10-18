@@ -29,23 +29,23 @@ const Toggle: React.FC<ToggleProps> = ({
   return (
     <>
       <div
-        className='wittyworks-container container-row justify-space-between'
+        className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'
         style={{
           height: '35px',
         }}
       >
-        <label className='lato-popup-text'>{label}</label>
+        <label className='witty-works-ext-lato-popup-text'>{label}</label>
         <input
-          className='toggle-checkbox'
+          className='witty-works-ext-toggle-checkbox'
           checked={on}
           onChange={handleToggle}
           id={`toggle-${label}`}
           type='checkbox'
         />
         {!hasWittyTeams && (
-          <div className='toggle-premium-only'>
+          <div className='witty-works-ext-toggle-premium-only'>
             <a
-              className='witty-teams-only-link'
+              className='witty-works-ext-witty-teams-only-link'
               href='https://www.witty.works/witty-for-teams'
               target='_blank'
             >
@@ -54,9 +54,11 @@ const Toggle: React.FC<ToggleProps> = ({
           </div>
         )}
         {userIsLoggedIn && locked && hasWittyTeams && (
-          <div className='toggle-lock'>
+          <div className='witty-works-ext-toggle-lock'>
             <Lock />
-            <div className='toggle-lock-info'> {t('lockedInfo')} </div>
+            <div className='witty-works-ext-toggle-lock-info'>
+              {t('lockedInfo')}
+            </div>
           </div>
         )}
 
@@ -66,12 +68,12 @@ const Toggle: React.FC<ToggleProps> = ({
             transform: `translateX(${scale * 100}%) scale(${scale}, ${scale})`,
           }}
           id={`toggle-encloser-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
-          className='toggle-encloser'
+          className='witty-works-ext-toggle-encloser'
           htmlFor={`toggle-${label}`}
         >
           <span
             id={`toggle-button-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
-            className={`toggle-button`}
+            className={`witty-works-ext-toggle-button`}
             style={{
               marginLeft: on && locked && userIsLoggedIn ? '3.5em' : '0', //TEMP: fix for weird toggle behavior when locked
             }}

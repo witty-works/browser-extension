@@ -11,9 +11,11 @@ const Toast: React.FC<{ message: string; type: string }> = ({
   const { t } = useTranslation([namespaces.errors]);
 
   return (
-    <div className={`witty-toast ${type}`}>
-      <div className='witty-toast-title'>{t('errorMessageGenericTitle')}</div>
-      <div className='witty-toast-message'>{message}</div>
+    <div className={`witty-works-ext-witty-toast ${type}`}>
+      <div className='witty-works-ext-witty-toast-title'>
+        {t('errorMessageGenericTitle')}
+      </div>
+      <div className='witty-works-ext-witty-toast-message'>{message}</div>
     </div>
   );
 };
