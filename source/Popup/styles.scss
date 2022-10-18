@@ -1,9 +1,8 @@
 @import '../styles/fonts';
-@import '../styles/reset';
 @import '../styles/variables';
 
 // FONTS
-.lato-small-paragraph-title-h4 {
+.witty-works-ext-lato-small-paragraph-title-h4 {
   font-family: $lato;
   font-style: normal;
   font-weight: 600;
@@ -12,7 +11,7 @@
   color: $black;
 }
 
-.lato-popover-text {
+.witty-works-ext-lato-popover-text {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
@@ -21,7 +20,7 @@
   color: $black;
 }
 
-.lato-popover-text-green {
+.witty-works-ext-lato-popover-text-green {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
@@ -30,7 +29,7 @@
   color: $green;
 }
 
-.lato-popover-text-gray {
+.witty-works-ext-lato-popover-text-gray {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
@@ -39,7 +38,7 @@
   color: $extraDarkGray;
 }
 
-.lato-popover-text-light-gray {
+.witty-works-ext-lato-popover-text-light-gray {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
@@ -49,7 +48,7 @@
   stroke: $darkGray;
 }
 
-.lato-popup-title {
+.witty-works-ext-lato-popup-title {
   font-family: $lato;
   font-style: normal;
   font-weight: 700;
@@ -58,7 +57,7 @@
   color: $black;
 }
 
-.lato-popup-text {
+.witty-works-ext-lato-popup-text {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
@@ -67,7 +66,7 @@
   color: $black;
 }
 
-.lato-popup-text-purple {
+.witty-works-ext-lato-popup-text-purple {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
@@ -78,7 +77,7 @@
 }
 
 //BUTTONS
-.button {
+.witty-works-ext-button {
   display: flex;
   padding: 10px 15px;
   gap: 10px;
@@ -91,13 +90,13 @@
   cursor: pointer;
 }
 
-.primary-button-red {
+.witty-works-ext-primary-button-red {
   background: $orange;
   border-radius: 8px;
   color: $white;
 }
 
-.secondary-button-red {
+.witty-works-ext-secondary-button-red {
   background: $white;
   border: 1px solid $orange;
   border-radius: 8px;
@@ -105,7 +104,7 @@
 }
 
 //Backgrounds
-.strong-gradient-background {
+.witty-works-ext-strong-gradient-background {
   background: linear-gradient(
         96.78deg,
         #fef7f8 -6.3%,
@@ -124,16 +123,18 @@
       border-box;
 }
 
-.light-gray-background {
+.witty-works-ext-light-gray-background {
+  width: 100%;
+  margin-left: -1em;
   background: $lightGray;
 }
 
-.dark-gray-background {
+.witty-works-ext-dark-gray-background {
   background: $darkGray;
 }
 
 //Containers
-section {
+.witty-works-ext-section {
   padding: 1em !important;
   padding-bottom: 0em;
   display: flex;
@@ -141,72 +142,72 @@ section {
   justify-content: space-around;
 }
 
-.wittyworks-container {
+.witty-works-ext-wittyworks-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-bottom: 1em;
+  padding-bottom: 0.5em;
 }
 
-.container-rounded {
+.witty-works-ext-container-rounded {
   border-radius: 8px;
   max-width: 300px;
 }
 
-.container-row {
+.witty-works-ext-container-row {
   display: flex;
   flex-direction: row !important;
 }
 
 //Alignments
-.justify-start {
+.witty-works-ext-justify-start {
   justify-content: flex-start;
 }
 
-.justify-space-between {
+.witty-works-ext-justify-space-between {
   justify-content: space-between;
 }
 
-.center {
+.witty-works-ext-center {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
-.full-padding {
+.witty-works-ext-full-padding {
   padding: 1em;
 }
 
-.left {
+.witty-works-ext-left {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
 }
 
-.margin-right {
+.witty-works-ext-margin-right {
   display: flex;
   margin-right: 1em;
 }
 
-.margin-top {
+.witty-works-ext-margin-top {
   margin-top: 1em;
 }
 
 //general
-body {
+.witty-works-ext-body {
   font-family: $lato;
   color: $black;
 }
 
-#popup-root {
+#witty-works-ext-popup-root {
   min-width: 300px;
   display: flex;
   flex-direction: column;
 }
 
-header {
+.witty-works-ext-header {
   padding: 1em;
   display: flex;
   justify-content: space-between;
@@ -216,16 +217,7 @@ header {
   }
 }
 
-footer {
-  padding: 1em;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
-  cursor: pointer;
-  margin-top: 1em;
-}
-
-.separator {
+.witty-works-ext-separator {
   background-color: $whiteGray;
   border: 0;
   height: 1px;
@@ -234,6 +226,6 @@ footer {
   overflow: hidden;
 }
 
-.cursor-pointer {
+.witty-works-ext-cursor-pointer {
   cursor: pointer;
 }

@@ -43,8 +43,8 @@ test.describe('Popup', () => {
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
 
-        await page.waitForSelector('.lato-popup-title');
-        expect(await page.$('.lato-popup-title')).not.toBeNull();
+        await page.waitForSelector('.witty-works-ext-lato-popup-title');
+        expect(await page.$('.witty-works-ext-lato-popup-title')).not.toBeNull();
     })
 
     // test('clicking logo opens a page in another window', async ({ page, context }) => {
@@ -66,8 +66,8 @@ test.describe('Popup', () => {
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
 
-        await page.waitForSelector('.lato-popup-title');
-        let toggles = await page.$$('.toggle-encloser');
+        await page.waitForSelector('.witty-works-ext-lato-popup-title');
+        let toggles = await page.$$('.witty-works-ext-toggle-encloser');
         expect(toggles.length).toBe(3);
     });
 
@@ -92,7 +92,7 @@ test.describe('Popup', () => {
         await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-        await page.waitForSelector('.lato-popup-title');
+        await page.waitForSelector('.witty-works-ext-lato-popup-title');
         await page.waitForTimeout(2000);
 
         const inclusiveToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-highlight-inclusive-terms', '#toggle-button-highlight-inclusive-terms', false);
@@ -110,20 +110,21 @@ test.describe('Popup', () => {
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await utils.unlockAllToggles(page);
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
-        const element = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+
+        const element = await page.waitForSelector('.max-w-7xl:nth-child(8) .guidelines-form-section--apply-for-all .slider');
         const backgroundColor = await element.evaluate((el) => {
             return window.getComputedStyle(el).getPropertyValue('background-color');
         });
         if (backgroundColor === 'rgb(204, 204, 204)') {
-            await page.click('.max-w-7xl:nth-child(8) .guidelines-enable-for-all .slider');
+            await page.click('.max-w-7xl:nth-child(8) .guidelines-form-section--apply-for-all .slider');
         }
-        await page.click('.max-w-7xl:nth-child(8) .wittyworks-button');
+        await page.click('.max-w-7xl:nth-child(8) .button');
 
         const extensionId = await utils.getExtensionId(page);
         await utils.loginPopupPage(page, extensionId, context);
 
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
-        await page.waitForSelector('.lato-popup-title');
+        await page.waitForSelector('.witty-works-ext-lato-popup-title');
         const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
         expect(grammarToggle).toBe(true);
     });
