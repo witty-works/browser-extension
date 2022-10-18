@@ -23,6 +23,7 @@ const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
   const [popupsBlocked, setPopupsBlocked] = useState(false);
   const [loginUrl, setLoginUrl] = useState('');
+  const [displayCopiedMeddage, setDisplayCopiedMessage] = useState(false);
   const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
   const log = useLog('PopupLogin');
 
@@ -156,13 +157,24 @@ const PopupLogin: React.FC = () => {
             {t('popupsBlocked')}
           </div>
           <div className='lato-popup-text'>{t('popupsBlockedText')}</div>
-          <div
-            className='button primary-button-red margin-top'
-            onClick={() => {
-              navigator.clipboard.writeText(loginUrl);
-            }}
-          >
-            {t('copyLink')}
+          <div className='container-row justify-start'>
+            <div
+              className='button primary-button-red margin-top'
+              onClick={() => {
+                navigator.clipboard.writeText(loginUrl);
+                setDisplayCopiedMessage(true);
+                setTimeout(() => {
+                  setDisplayCopiedMessage(false);
+                }, 1500);
+              }}
+            >
+              {t('copyLink')}
+            </div>
+            {displayCopiedMeddage && (
+              <div className='lato-popup-text' style={{ marginTop: '1.5em' }}>
+                {t('copiedConfirmation')}
+              </div>
+            )}
           </div>
         </div>
       )}

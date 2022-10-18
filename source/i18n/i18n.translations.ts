@@ -64,6 +64,7 @@ export const de = {
     popupsBlockedText:
       'Please allow popups or sign in by copying the following link into your browser: DE',
     copyLink: 'Copy Link DE',
+    copiedConfirmation: 'Copied! DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -141,6 +142,7 @@ export const en = {
     popupsBlockedText:
       'Please allow popups or sign in by copying the following link into your browser:',
     copyLink: 'Copy Link',
+    copiedConfirmation: 'Copied!',
   },
 
   [namespaces.popover]: {
