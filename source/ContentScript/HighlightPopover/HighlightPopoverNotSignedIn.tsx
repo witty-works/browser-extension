@@ -6,7 +6,6 @@ import { CustomInputElement, IAlert } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
-import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
@@ -47,9 +46,11 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
 
-  const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
   const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
+  const [popupsBlocked, setPopupsBlocked] = useState(false);
+  const [loginUrl, setLoginUrl] = useState('');
+  const [displayCopiedMessage, setDisplayCopiedMessage] = useState(false);
   const log = useLog('PopupLogin');
 
   const onStorageError = (error: unknown) => {
@@ -64,14 +65,20 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     browser.storage.local.get(null).then((result) => {
       if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
         const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
-        window.open(url, '_blank');
+        if (!window.open(url, '_blank')) {
+          setPopupsBlocked(true);
+          setLoginUrl(url);
+        }
       } else {
         const url = `${
           BaseUrls[urls].dashboard
         }api/browser-login?redirect_uri=${optionsPageUrl}?target=${
           getBaseUrls().dashboard
         }`;
-        window.open(url, '_blank');
+        if (!window.open(url, '_blank')) {
+          setPopupsBlocked(true);
+          setLoginUrl(url);
+        }
       }
     });
   };
@@ -106,10 +113,6 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
       }
     }
   };
-
-  useEffect(() => {
-    analytics.popoverLogs(data.alert, 'popover_open');
-  }, [data]);
 
   useEffect(() => {
     i18n.changeLanguage(data.alert.data.language);
@@ -179,7 +182,6 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   };
 
   const hidePopover = () => {
-    analytics.popoverLogs(data.alert, 'popover_close');
     hide();
   };
 
@@ -196,80 +198,140 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
       style={PopoverStyling}
       onMouseDown={(e) => e.preventDefault()}
     >
-      <div id='wittyworks-popover-content' className='lato-popover-text'>
-        <section className='wittyworks-container container-row justify-space-between'>
+      <div
+        id='wittyworks-popover-content'
+        className='witty-works-ext-lato-popover-text'
+      >
+        <div className='witty-works-ext-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
           <a
-            className='margin-right cursor-pointer'
+            className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'
             href='https://www.witty.works/'
             target='_blank'
           >
             <WittyLogo />
           </a>
           <div
-            className='lato-popover-text-gray cursor-pointer'
+            className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
             onClick={() => {
               hidePopover();
             }}
           >
             <CloseIcon />
           </div>
-        </section>
+        </div>
 
-        <div className='separator' />
+        <div className='witty-works-ext-separator' />
 
-        <div className='wittyworks-container container-rounded container-row full-padding justify-start margin-top cursor-pointer light-gray-background'>
-          <div className='margin-right'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-light-gray-background'>
+          <div className='witty-works-ext-margin-right'>
             <Checkmark />
           </div>
-          <div className='lato-popover-text'>
+          <div className='witty-works-ext-lato-popover-text'>
             {t('loginToUnlock')}
 
             <div
-              className='wittyworks-container container-row lato-popover-text-gray cursor-pointer '
+              className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
               style={{ padding: 0 }}
             >
-              <div className='margin-right'>{t('signedOutText')}</div>
+              <div className='witty-works-ext-margin-right'>
+                {t('signedOutText')}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className='wittyworks-container container-row justify-start'>
-          <div className='lato-popover-text margin-top'>{t('signUpFor')}</div>
-        </div>
-        <div className='wittyworks-container container-row'>
-          <div className='margin-right'>
-            <Star />
+        <div className='witty-works-ext-full-padding'>
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-lato-popover-text'>
+              {t('signUpFor')}
+            </div>
           </div>
-          <div className='lato-popover-text'>{t('biasDetection')}</div>
-        </div>
-        <div className='wittyworks-container container-row justify-start'>
-          <div className='margin-right'>
-            <Star />
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row'>
+            <div className='witty-works-ext-margin-right'>
+              <Star />
+            </div>
+            <div className='witty-works-ext-lato-popover-text'>
+              {t('biasDetection')}
+            </div>
           </div>
-          <div className='lato-popover-text'>{t('inclusiveAlternatives')}</div>
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-margin-right'>
+              <Star />
+            </div>
+            <div className='witty-works-ext-lato-popover-text'>
+              {t('inclusiveAlternatives')}
+            </div>
+          </div>
         </div>
-        <div className='left margin-bottom'>
+
+        <div className='witty-works-ext-left witty-works-ext-margin-bottom'>
           <div
-            className='witty-button primary-button-red margin-bottom'
+            className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
-              logIn(urls);
+              logIn(urls).catch((error) => {
+                log(`logIn Error: ${error}`, logTypes.ERROR);
+                sendErrorToSentry(error);
+                setPopupsBlocked(true);
+              });
             }}
           >
             {t('signUp')}
           </div>
-          <div className='lato-popup-text'>
+          <div className='witty-works-ext-lato-popup-text'>
             {t('haveAccount')}
             &nbsp;
             <span
-              className='lato-popup-text-purple cursor-pointer'
+              className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
               onClick={() => {
-                logIn(urls);
+                logIn(urls).catch((error) => {
+                  log(`logIn Error: ${error}`, logTypes.ERROR);
+                  sendErrorToSentry(error);
+                  setPopupsBlocked(true);
+                });
               }}
             >
               {t('signIn')}
             </span>
           </div>
         </div>
+        {popupsBlocked && (
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-full-padding witty-works-ext-margin-top witty-works-ext-margin-bottom witty-works-ext-cursor-pointer witty-works-ext-light-gray-background'>
+            <div
+              className='witty-works-ext-lato-small-paragraph-title-h4'
+              style={{ marginRight: 'auto' }}
+            >
+              {t('popupsBlocked')}
+            </div>
+            <div className='witty-works-ext-lato-popup-text'>
+              {t('popupsBlockedText')}
+            </div>
+            <div
+              className='witty-works-ext-container-row'
+              style={{ marginRight: 'auto' }}
+            >
+              <div
+                className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
+                onClick={() => {
+                  navigator.clipboard.writeText(loginUrl);
+                  setDisplayCopiedMessage(true);
+                  setTimeout(() => {
+                    setDisplayCopiedMessage(false);
+                  }, 1500);
+                }}
+              >
+                {t('copyLink')}
+              </div>
+              {displayCopiedMessage && (
+                <div
+                  className='witty-works-ext-lato-popup-text'
+                  style={{ marginTop: '1.5em' }}
+                >
+                  {t('copiedConfirmation')}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

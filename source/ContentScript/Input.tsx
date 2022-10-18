@@ -657,8 +657,8 @@ const Input: React.FC<{
     if (checkEndpointError?.status === 422) {
       setNodesWithAlerts([]);
     } else if (
-      checkEndpointError?.status == 403
-      // authErrorResponse?.status === 403
+      checkEndpointError?.status == 403 ||
+      (authErrorResponse?.status === 403 && userIsSignedIn)
     ) {
       browser.storage.local
         .get(StorageKeys.REFRESH_TOKEN)
