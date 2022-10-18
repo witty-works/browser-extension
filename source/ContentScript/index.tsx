@@ -15,7 +15,7 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import {
   customRender,
   handleDomainsFromDashboard,
-  // makeAuthRequest,
+  makeAuthRequest,
 } from './utils';
 import { createUrl, setBaseUrls } from '../shared/ApiServices/requests';
 
@@ -140,7 +140,7 @@ const storageChange = (changes: any) => {
     }
   }
 };
-// makeAuthRequest();
+makeAuthRequest();
 browser.storage.onChanged.addListener(storageChange);
 
 Sentry.init({
