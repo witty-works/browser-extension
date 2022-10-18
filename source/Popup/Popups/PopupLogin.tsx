@@ -160,14 +160,16 @@ const PopupLogin: React.FC = () => {
         </div>
       </div>
       {popupsBlocked && (
-        <div className='wittyworks-container full-padding light-gray-background left margin-top'>
-          <div className='lato-small-paragraph-title-h4'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left witty-works-ext-margin-top'>
+          <div className='witty-works-ext-lato-small-paragraph-title-h4'>
             {t('popupsBlocked')}
           </div>
-          <div className='lato-popup-text'>{t('popupsBlockedText')}</div>
-          <div className='container-row justify-start'>
+          <div className='witty-works-ext-lato-popup-text'>
+            {t('popupsBlockedText')}
+          </div>
+          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
             <div
-              className='button primary-button-red margin-top'
+              className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
               onClick={() => {
                 navigator.clipboard.writeText(loginUrl);
                 setDisplayCopiedMessage(true);
@@ -179,7 +181,10 @@ const PopupLogin: React.FC = () => {
               {t('copyLink')}
             </div>
             {displayCopiedMeddage && (
-              <div className='lato-popup-text' style={{ marginTop: '1.5em' }}>
+              <div
+                className='witty-works-ext-lato-popup-text'
+                style={{ marginTop: '1.5em' }}
+              >
                 {t('copiedConfirmation')}
               </div>
             )}
