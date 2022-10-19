@@ -22,9 +22,11 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
       const rectElement = gElement.childNodes[j] as any; //TODO
       const elementRect = rectElement.getBoundingClientRect();
       const ariaLabel = gElement.querySelector('[aria-label]');
+      const elementStylesFont = gElement.querySelector('[data-font-css]');
 
       //extract style from rectElement
       const elementStyles = window.getComputedStyle(rectElement);
+      console.log('elementStyles', elementStyles.transform);
 
       // const elementRect = useResizeObserver(rectElement);
       const correctedPosition = getCorrectedPosition(
@@ -40,26 +42,35 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
               visibility: 'hidden',
               width: elementRect.width + 'px',
               height: elementRect.height + 'px',
-              fill: 'none',
+              // fill: 'none',
               // transform: elementStyles.transform,
-              fontSize: elementStyles.fontSize,
-              // fontWeight: rectStyle.fontWeight,
+              fontWeight: elementStylesFont
+                ?.getAttribute('data-font-css')
+                ?.split(' ')[0],
+              fontSize: elementStylesFont
+                ?.getAttribute('data-font-css')
+                ?.split(' ')[1],
+              font: elementStylesFont
+                ?.getAttribute('data-font-css')
+                ?.split(' ')[2],
               lineHeight: elementStyles.lineHeight,
               fontFamily: elementStyles.fontFamily,
-              appearance: 'textarea',
-              whiteSpace: 'pre-wrap',
+              // whiteSpace: 'pre-wrap',
               position: 'absolute',
-              overflow: 'auto',
+              // overflow: 'auto',
               top: `${correctedPosition.top}px`,
               left: `${correctedPosition.left}px`,
               paddingTop: elementStyles.paddingTop,
               paddingLeft: elementStyles.paddingLeft,
               paddingRight: elementStyles.paddingRight,
               paddingBottom: elementStyles.paddingBottom,
-              fontWeight: elementStyles.fontWeight,
+
               border: `${elementStyles.borderBottomWidth} solid black`,
-              pointerEvents: 'none',
+              // pointerEvents: 'none',
               boxSizing: elementStyles.boxSizing,
+              letterSpacing: elementStyles.letterSpacing,
+
+              // transform: elementStyles.transform,
             } as React.CSSProperties
           }
         >
@@ -75,6 +86,14 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
           cloneRef.current = ref;
           updateClone(ref);
         }
+      }}
+      style={{
+        position: 'absolute',
+        maxWidth: 'initial',
+        top: '0px',
+        left: '0px',
+        width: '100%',
+        height: '100%',
       }}
     >
       {divs}

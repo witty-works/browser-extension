@@ -18,6 +18,7 @@ import {
   isInputElement,
   nodeExistsInDOM,
   elementIsVisible,
+  isGoogleDocs,
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -287,9 +288,9 @@ const ContentScriptApp: React.FC = () => {
     const googleDocsHtml = document.querySelectorAll(
       '#kix-appview > div.kix-appview-editor-container > div > div:nth-child(1) > div.kix-rotatingtilemanager.docs-ui-hit-region-surface > div > div > div:nth-child(3)'
     )[0];
-
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
+      //inputref.current is the same as target
       googleDocsHtml
     ) {
       if (googleDocsHtml) {
@@ -366,24 +367,36 @@ const ContentScriptApp: React.FC = () => {
     }
   };
   useEffect(() => {
-    if (inputs && inputs.length > 0) {
+    //filter out inputs that are the same
+    let filteredInputs = inputsRef.current.filter(
+      (input, index, self) =>
+        index === self.findIndex((t) => t.isEqualNode(input))
+    );
+
+    //TODO: could be a problem!!
+    if (isGoogleDocs()) {
+      //remove any input that does not contain <g> as a child
+      filteredInputs = inputsRef.current.filter((input) => {
+        const gElements = input.querySelectorAll('g');
+        return gElements.length > 0;
+      });
+    }
+
+    if (filteredInputs && filteredInputs.length > 0) {
       log(
         `Analyzed inputs:`,
         logTypes.INFO,
-        inputs.length > 0 ? inputs : 'None'
+        filteredInputs.length > 0 ? filteredInputs : 'None'
       );
 
-      inputs.forEach((input: CustomInputElement) => {
+      filteredInputs.forEach((input: CustomInputElement) => {
         if (!input.parentElement) return;
 
         //if already has a container, remove them first
-        if (
-          getActiveDocument().querySelectorAll(WTags.WW_CONTAINER).length > 0
-        ) {
+        if (document.getElementsByTagName(WTags.WW_CONTAINER).length > 0) {
           //remove all containers
-          const containers = getActiveDocument().querySelectorAll(
-            WTags.WW_CONTAINER
-          );
+          const containers = document.getElementsByTagName(WTags.WW_CONTAINER);
+
           for (let container of containers) {
             ReactDOM.unmountComponentAtNode(container);
             container.remove();

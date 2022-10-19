@@ -111,6 +111,15 @@ const Input: React.FC<{
     element.addEventListener('mouseout', handleMouseoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleElementClickEvent as EventListener);
+    document.addEventListener(
+      'click',
+      handleDocumentClickEvent as EventListener
+    );
+
+    // document.addEventListener(
+    //   'click',
+    //   handleElementClickEvent as EventListener
+    // );
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
@@ -127,16 +136,80 @@ const Input: React.FC<{
       element.removeEventListener('mouseover', handleMouseoverEvent);
       element.removeEventListener('mouseout', handleMouseoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
+      console.log('removing click event listener', element);
       element.removeEventListener(
         'click',
         handleElementClickEvent as EventListener
       );
+
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
 
-  console.log(cloneRef.current, clone);
+  const handleDocumentClickEvent = () => {
+    if (!isGoogleDocs) return;
+    //get element with id kix-current-user-cursor-caret
+    const googleDocsElementCursor = getActiveDocument().getElementById(
+      'kix-current-user-cursor-caret'
+    );
+    //get position of cursor
+    const googleDocsElementCursorRect =
+      googleDocsElementCursor?.getBoundingClientRect();
+    googleDocsElementCursorRect &&
+      console.log(
+        'googleDocsElementCursorRect',
+        googleDocsElementCursorRect.top,
+        googleDocsElementCursorRect.left
+      );
+
+    console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current);
+    //if cursor is inside a node with alerts, select that node
+    const alertsInRange = [] as IAlert[];
+    let selectedNode = {} as INodeWithAlerts;
+
+    nodesWithAlertsRef.current.forEach((node) => {
+      const alertRects = node.alerts.map((alert) => alert.rect);
+
+      alertRects.forEach((alertRect) => {
+        console.log('alertRect', alertRect);
+        if (
+          googleDocsElementCursorRect &&
+          googleDocsElementCursorRect.top > alertRect.top &&
+          googleDocsElementCursorRect.left > alertRect.left
+        ) {
+          //get alert at alertRect
+          const alert = node.alerts.find(
+            (alert) =>
+              alert.rect.top === alertRect.top &&
+              alert.rect.left === alertRect.left
+          );
+          selectedNode = node.node;
+          alert && alertsInRange.push(alert);
+        }
+      });
+    });
+    const selectedAlert =
+      alertsInRange.length > 1
+        ? alertsInRange[alertsInRange.length - 1]
+        : alertsInRange[0];
+    console.log('the following alert is selected', selectedAlert);
+
+    //get index of selected alert in nodesWithAlertsRef.current
+    const selectedNodeWithAlertsIndex = nodesWithAlertsRef.current.findIndex(
+      (node) => node.node === selectedNode
+    );
+
+    const selectedAlertIndex = nodesWithAlertsRef.current[
+      selectedNodeWithAlertsIndex
+    ].alerts.findIndex((alert) => alert === selectedAlert);
+
+    console.log('selectedNodeWithAlertsIndex', selectedNodeWithAlertsIndex);
+    console.log('selectedAlertIndex', selectedAlertIndex);
+
+    setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
+    setSelectedAlertIndex(selectedAlertIndex);
+  };
 
   useEffect(() => {
     handleKeyupEvent();
@@ -396,6 +469,17 @@ const Input: React.FC<{
 
   useEffect(() => {
     prevSelectedAlertIndex.current = selectedAlertIndex;
+    console.log(
+      'SETTING POPOVER DATA',
+      nodesWithAlertsRef.current.length,
+      selectedNodeWithAlertsIndex,
+      selectedAlertIndex
+      // currentAlertIndex,
+      // totalAlerts
+      // selectedAlert,
+      // clickedRect,
+      // nodeText
+    );
     if (
       nodesWithAlertsRef.current.length > 0 &&
       selectedNodeWithAlertsIndex > -1 &&
@@ -559,15 +643,44 @@ const Input: React.FC<{
               elementXPathResult as XPathResult
             );
 
-      console.log('nodesWithAlertsTemp', nodesWithAlertsTemp);
+      // add getBoundingClientRect to each alert
+      const nodesWithAlertsTempWithRect = nodesWithAlertsTemp.map(
+        (nodeWithAlerts) => {
+          const nodeWithAlertsWithRect = {
+            ...nodeWithAlerts,
+            alerts: nodeWithAlerts.alerts.map((alert) => {
+              const range = getActiveDocument().createRange();
+              range.setStart(nodeWithAlerts.node, alert.startOffset);
+              range.setEnd(nodeWithAlerts.node, alert.endOffset);
+              const rect = range.getClientRects()[0];
+              return {
+                ...alert,
+                rect: {
+                  ...rect,
+                  width: rect.width,
+                  height: rect.height,
+                  left: rect.left,
+                  x: rect.left,
+                  top: range.getClientRects()[0].top - elementScroll.top,
+                  y: range.getClientRects()[0].top - elementScroll.top,
+                },
+              };
+            }),
+          };
+          return nodeWithAlertsWithRect;
+        }
+      );
+
+      console.log('nodesWithAlertsTempWithRect', nodesWithAlertsTempWithRect);
+
       //Set the total alerts
-      const totalAlerts: number = nodesWithAlertsTemp.reduce(
+      const totalAlerts: number = nodesWithAlertsTempWithRect.reduce(
         (total, node) => total + node.alerts.length,
         0
       );
       setTotalAlerts(totalAlerts);
 
-      setNodesWithAlerts(nodesWithAlertsTemp);
+      setNodesWithAlerts(nodesWithAlertsTempWithRect);
     }
   }, [alerts, ignoredTerms, elementXPathResult]);
 
@@ -799,7 +912,17 @@ const Input: React.FC<{
         </WTags.WW_CLONE>
       )}
       {isGoogleDocs() && (
-        <WTags.WW_CLONE>
+        <WTags.WW_CLONE
+          style={
+            {
+              position: 'absolute',
+              maxWidth: 'initial',
+              width: `${elementRect.width}px`,
+              height: `${elementRect.height}px`,
+              overflow: 'auto',
+            } as React.CSSProperties
+          }
+        >
           <GoogleDocsClone element={element} updateClone={updateCloneData} />
         </WTags.WW_CLONE>
       )}

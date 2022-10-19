@@ -110,6 +110,7 @@ export interface IAlert {
   data: IAlertContentData;
   groupId?: string;
   plan?: string;
+  rect?: any;
 }
 export interface IAlertContentData {
   text: string;
@@ -167,8 +168,7 @@ export interface ILogItems {
 export interface IAlternativeLogItems extends ILogItems {
   request__alternative: string;
 }
-export interface IIgnoreLogItems extends ILogItems {
-}
+export interface IIgnoreLogItems extends ILogItems {}
 export interface IVoteLogRequest {
   request__type: string;
   request__lang: string;

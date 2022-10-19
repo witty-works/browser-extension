@@ -32,6 +32,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     canvasRef.current.parentElement,
     element
   );
+
   const canvasSize = {
     width: elementRect.width,
     height: elementRect.height,
