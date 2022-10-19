@@ -31,7 +31,7 @@ export const de = {
     getMoreTitle: 'Witty für dein Team',
     getMoreText:
       'Entdecke Wittys Teamfunktionen kostenlos. Schreibt zusammen inklusiv!',
-    learnMoreButton: 'Kostenlos testen',
+    learnMoreButton: 'Team Einladen',
     goToDashboard: 'Zum Witty Dashboard',
     overrideRecomendedSites: 'Witty hier dennoch aktivieren',
     backToRecomendedSites: 'Witty nur auf unterstützten Webseiten aktiv',
@@ -59,6 +59,12 @@ export const de = {
     tryAgainOnThisWebsite: 'Erneut auf dieser Website versuchen',
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
     resetSettings: 'Einstellungen zurücksetzen',
+    loggedInTo: 'Logged in to {{teamName}}',
+    popupsBlocked: 'Popups sind blockiert',
+    popupsBlockedText:
+      'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
+    copyLink: 'Link kopieren',
+    copiedConfirmation: 'URL Kopiert',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -103,7 +109,7 @@ export const en = {
     getMoreTitle: 'Witty for your team',
     getMoreText:
       "Explore Witty's team features for free. Start writing inclusively together!",
-    learnMoreButton: 'Try for free',
+    learnMoreButton: 'Invite Team Members',
     goToDashboard: 'Go to Witty Dashboard',
     overrideRecomendedSites: 'Try Witty here anyway',
     backToRecomendedSites: 'Use Witty only on supported websites',
@@ -115,7 +121,7 @@ export const en = {
     signIn: 'Sign in',
     signOut: 'Sign out',
     haveAccount: 'Already have an account?',
-    signUp: ' Sign up',
+    signUp: ' Sign Up',
     doesWittyWork: 'Does Witty work here?',
     doesWittyWorkExplanation: 'Please help us to find out.',
     surveyButtonYes: 'Yes',
@@ -131,6 +137,12 @@ export const en = {
     tryAgainOnThisWebsite: 'Try again on this website',
     lockedInfo: 'This feature has been locked by your team admin.',
     resetSettings: 'Reset settings',
+    loggedInTo: 'Logged in to {{teamName}}',
+    popupsBlocked: 'Popups are blocked',
+    popupsBlockedText:
+      'Please copy and paste the link into your browser URL bar.',
+    copyLink: 'Copy Link',
+    copiedConfirmation: 'link Copied',
   },
 
   [namespaces.popover]: {

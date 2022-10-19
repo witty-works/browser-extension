@@ -165,11 +165,9 @@ export interface ILogItems {
   response__data__gravity: number;
 }
 export interface IAlternativeLogItems extends ILogItems {
-  request__replaced: string;
   request__alternative: string;
 }
 export interface IIgnoreLogItems extends ILogItems {
-  request__ignored: string;
 }
 export interface IVoteLogRequest {
   request__type: string;

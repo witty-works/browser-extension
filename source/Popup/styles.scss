@@ -1,133 +1,110 @@
 @import '../styles/fonts';
-@import '../styles/reset';
 @import '../styles/variables';
 
-body {
+// FONTS
+.witty-works-ext-lato-small-paragraph-title-h4 {
   font-family: $lato;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 28px; /* or 127% */
   color: $black;
-  font-size: 88%;
 }
 
-#popup-root {
-  min-width: 300px;
-  display: flex;
-  flex-direction: column;
-}
-
-header {
-  padding: 1.2em 1em 1.2em 1em;
-  display: flex;
-  justify-content: space-between;
-
-  svg {
-    cursor: pointer;
-  }
-}
-
-footer {
-  padding: 0 1.3em;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
-  cursor: pointer;
-  margin-top: 1em;
-}
-
-section {
-  padding: 0 1em 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-
-  > div:not(:last-child) {
-    margin-bottom: 0.8rem;
-  }
-}
-
-.wittyworks-toggles {
+.witty-works-ext-lato-popover-text {
   font-family: $lato;
   font-style: normal;
   font-weight: 400;
-  line-height: 19px;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
   color: $black;
 }
 
-.toggle-separator {
-  background-color: $whiteGray;
-  margin-bottom: 1em;
-  border: 0;
-  height: 1px;
+.witty-works-ext-lato-popover-text-green {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $green;
 }
 
-.domain-not-supported {
+.witty-works-ext-lato-popover-text-gray {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $extraDarkGray;
+}
+
+.witty-works-ext-lato-popover-text-light-gray {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $darkGray;
+  stroke: $darkGray;
+}
+
+.witty-works-ext-lato-popup-title {
   font-family: $lato;
   font-style: normal;
   font-weight: 700;
   font-size: 16px;
-}
-
-.domain-not-supported-title-wrapper {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  align-items: center;
-  line-height: 20px;
+  line-height: 20px; /* or 214% */
   color: $black;
-  margin-bottom: 1em;
 }
 
-.domain-not-supported-title {
-  width: 70%;
+.witty-works-ext-lato-popup-text {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px; /* or 214% */
+  color: $black;
 }
 
-.domain-not-supported-icon {
+.witty-works-ext-lato-popup-text-purple {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px; /* or 214% */
+  color: $wittyPurple;
+  text-decoration-line: underline;
+}
+
+//BUTTONS
+.witty-works-ext-button {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.5em;
-}
-
-.domain-not-supported-container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  line-height: 17px;
-  color: #55b8e9;
-  padding-top: 0.5em;
-  box-shadow: 0px -1px 0px #f1f2f2;
+  padding: 10px 15px;
+  gap: 10px;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 14px;
+  margin-right: 1em;
   cursor: pointer;
 }
 
-.witty-popup-header {
-  margin-bottom: 1em;
-  border-bottom: 1px solid $whiteGray;
+.witty-works-ext-primary-button-red {
+  background: $orange;
+  border-radius: 8px;
+  color: $white;
 }
 
-.wittyworks-upgrade-banner-popup-text-container {
-  color: $wittyPurple;
-  display: flex;
-  flex-direction: column;
-  margin-right: auto;
+.witty-works-ext-secondary-button-red {
+  background: $white;
+  border: 1px solid $orange;
+  border-radius: 8px;
+  color: $orange;
 }
 
-.wittyworks-upgrade-banner-popup-title {
-  font-weight: 700;
-  margin-top: 0.5em;
-  margin-bottom: 0.2em;
-  text-transform: uppercase;
-}
-
-.wittyworks-container-gradient-background {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  width: 111%;
-  margin-left: -1em;
-  padding: 0.5em 1em 0.5em 1em;
-
+//Backgrounds
+.witty-works-ext-strong-gradient-background {
   background: linear-gradient(
         96.78deg,
         #fef7f8 -6.3%,
@@ -146,157 +123,110 @@ section {
       border-box;
 }
 
-.wittyworks-signin-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: left;
-  align-items: center;
-  margin-top: 0.5em;
-}
-
-.wittyworks-sigin-link {
-  color: #f06464;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.wittyworks-icon-container {
-  margin-right: 1em;
-}
-
-//TEXT
-.wittyworks-text-grey {
-  margin-bottom: 2em;
-  font-weight: 600;
-  font-size: 16px;
-  color: $black;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
-.wittyworks-text-medium {
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 16px;
-  color: $black;
-}
-
-.wittyworks-text-large {
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 23px;
-  margin-right: 1em;
-}
-
-.wittyworks-text-small {
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 14px;
-  margin-top: 0.5em;
-  margin-right: auto;
-  margin-bottom: 0.5em;
-}
-
-//UTILS
-.wittyworks-flex-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
+.witty-works-ext-light-gray-background {
   width: 100%;
+  margin-left: -1em;
+  background: $lightGray;
 }
 
-.wittyworks-flex-column {
+.witty-works-ext-dark-gray-background {
+  background: $darkGray;
+}
+
+//Containers
+.witty-works-ext-section {
+  padding: 1em !important;
+  padding-bottom: 0em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.witty-works-ext-wittyworks-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 0.5em;
+}
+
+.witty-works-ext-container-rounded {
+  border-radius: 8px;
+  max-width: 300px;
+}
+
+.witty-works-ext-container-row {
+  display: flex;
+  flex-direction: row !important;
+}
+
+//Alignments
+.witty-works-ext-justify-start {
+  justify-content: flex-start;
+}
+
+.witty-works-ext-justify-space-between {
+  justify-content: space-between;
+}
+
+.witty-works-ext-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.witty-works-ext-full-padding {
+  padding: 1em;
+}
+
+.witty-works-ext-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.witty-works-ext-margin-right {
+  display: flex;
+  margin-right: 1em;
+}
+
+.witty-works-ext-margin-top {
+  margin-top: 1em;
+}
+
+//general
+.witty-works-ext-body {
+  font-family: $lato;
+  color: $black;
+}
+
+#witty-works-ext-popup-root {
+  min-width: 300px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
 }
 
-.wittyworks-align-left {
+.witty-works-ext-header {
+  padding: 1em;
   display: flex;
-  margin-right: auto;
   justify-content: space-between;
+
+  svg {
+    cursor: pointer;
+  }
 }
 
-.wittyworks-align-center {
-  display: flex;
-  justify-content: center;
+.witty-works-ext-separator {
+  background-color: $whiteGray;
+  border: 0;
+  height: 1px;
+  width: 110%;
+  margin-left: -1em;
+  overflow: hidden;
 }
 
-.wittyworks-signin-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: left;
-  align-items: center;
-  margin-top: 0.5em;
-}
-
-.wittyworks-sigin-link {
-  color: #f06464;
-  text-decoration: underline;
+.witty-works-ext-cursor-pointer {
   cursor: pointer;
-}
-
-.wittyworks-icon-container {
-  margin-right: 1em;
-}
-
-//BUTTONS
-.wittyworks-button {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  padding: 6px 12px;
-  background: $wittyPurple;
-  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.14);
-  border-radius: 4px;
-  color: $white;
-  font-family: $lato;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 16px;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-/*
-#f06464 1.6%,
-#f277d0 32.79%,
-#9489db 71.64%,
-#37d1e5 101.91%,
-#5acfb9 131.52%);
-*/
-
-.wittyworks-button-yes {
-  background: #5acfb9;
-  color: #000000;
-  padding: 0.5em 3em;
-  border: 1px solid;
-  border-color: #000000;
-}
-
-.wittyworks-button-no {
-  background: #f06464;
-  color: #000000;
-  padding: 0.5em 3em;
-  border: 1px solid;
-  border-color: #000000;
-}
-
-.wittyworks-primary {
-  background: #f06464;
-  color: #ffffff;
-}
-
-.wittyworks-secondary {
-  color: #f06464;
-  background: #ffffff;
-  font-size: 12px;
-  border: 1px solid;
-  border-color: #f06464;
-}
-
-.wittyworks-survey-container {
-  padding: 0em 2em 1em 2em;
 }

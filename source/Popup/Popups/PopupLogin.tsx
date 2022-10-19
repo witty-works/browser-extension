@@ -5,12 +5,12 @@ import {
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
+  BaseUrls,
 } from '../../shared/constants';
 import '../../i18n/i18n';
 import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
-import { setBaseUrls } from '../../shared/ApiServices/requests';
-import { logIn } from '../PopupUtils';
+import { getBaseUrls, setBaseUrls } from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
@@ -21,6 +21,9 @@ import { sendErrorToSentry } from '../../shared/errorUtils';
 
 const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
+  const [popupsBlocked, setPopupsBlocked] = useState(false);
+  const [loginUrl, setLoginUrl] = useState('');
+  const [displayCopiedMeddage, setDisplayCopiedMessage] = useState(false);
   const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
   const log = useLog('PopupLogin');
 
@@ -60,70 +63,140 @@ const PopupLogin: React.FC = () => {
     }
   };
 
+  const logIn = async (urls: string) => {
+    const optionsPageUrl = browser.extension.getURL('options.html');
+
+    browser.storage.local.get(null).then((result) => {
+      if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
+        const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
+        if (!window.open(url, '_blank')) {
+          setPopupsBlocked(true);
+          setLoginUrl(url);
+        }
+      } else {
+        const url = `${
+          BaseUrls[urls].dashboard
+        }api/browser-login?redirect_uri=${optionsPageUrl}?target=${
+          getBaseUrls().dashboard
+        }`;
+        if (!window.open(url, '_blank')) {
+          setPopupsBlocked(true);
+          setLoginUrl(url);
+        }
+      }
+    });
+  };
+
   return (
     <>
       <PopupHeader showSettings={false} />
-      <section>
-        <div className='wittyworks-signin-container'>
-          <div className='wittyworks-icon-container'>
+      <div className='witty-works-ext-section'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-margin-right'>
             <Checkmark />
           </div>
-          <div className='wittyworks-text-large'>{t('loginToUnlock')}</div>
-        </div>
-        <div className='wittyworks-flex-column'>
-          <div className='wittyworks-text-medium'>{t('signUpFor')}</div>
-          <div className='wittyworks-signin-container'>
-            <div className='wittyworks-icon-container'>
-              <Star />
-            </div>
-            <div className='wittyworks-text-medium'>{t('biasDetection')}</div>
-          </div>
-          <div className='wittyworks-signin-container'>
-            <div className='wittyworks-icon-container'>
-              <Star />
-            </div>
-            <div className='wittyworks-text-medium'>
-              {t('inclusiveAlternatives')}
-            </div>
-          </div>
-          <div className='wittyworks-signin-container'>
-            <div className='wittyworks-icon-container'>
-              <Star />
-            </div>
-            <div className='wittyworks-text-medium'>{t('teamFeatures')}</div>
+          <div className='witty-works-ext-lato-small-paragraph-title-h4'>
+            {t('loginToUnlock')}
           </div>
         </div>
-      </section>
-      <section>
-        <div className='wittyworks-container-gradient-background'>
-          <div
-            className='wittyworks-button wittyworks-align-left'
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-lato-popover-text'>
+            {t('signUpFor')}
+          </div>
+        </div>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row'>
+          <div className='witty-works-ext-margin-right'>
+            <Star />
+          </div>
+          <div className='witty-works-ext-lato-popover-text'>
+            {t('biasDetection')}
+          </div>
+        </div>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-margin-right'>
+            <Star />
+          </div>
+          <div className='witty-works-ext-lato-popover-text'>
+            {t('inclusiveAlternatives')}
+          </div>
+        </div>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-margin-right'>
+            <Star />
+          </div>
+          <div className='witty-works-ext-lato-popover-text'>
+            {t('teamFeatures')}
+          </div>
+        </div>
+      </div>
+      <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
+        <div
+          className='witty-works-ext-button witty-works-ext-primary-button-red'
+          onClick={() => {
+            logIn(urls).catch((error) => {
+              log(`logIn Error: ${error}`, logTypes.ERROR);
+              sendErrorToSentry(error);
+              setPopupsBlocked(true);
+            });
+          }}
+        >
+          {t('signUp')}
+        </div>
+        <div className='witty-works-ext-lato-popup-text'>
+          {t('haveAccount')}
+          &nbsp;
+          <span
+            className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
             onClick={() => {
-              logIn(urls);
+              logIn(urls).catch((error) => {
+                log(`logIn Error: ${error}`, logTypes.ERROR);
+                sendErrorToSentry(error);
+                setPopupsBlocked(true);
+              });
             }}
           >
-            {t('signUp')}
+            {t('signIn')}{' '}
+          </span>
+        </div>
+      </div>
+      {popupsBlocked && (
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left witty-works-ext-margin-top'>
+          <div className='witty-works-ext-lato-small-paragraph-title-h4'>
+            {t('popupsBlocked')}
           </div>
-          <div className='wittyworks-text-small'>
-            {t('haveAccount')}
-            &nbsp;
-            <span
-              className='wittyworks-sigin-link'
+          <div className='witty-works-ext-lato-popup-text'>
+            {t('popupsBlockedText')}
+          </div>
+          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div
+              className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
               onClick={() => {
-                logIn(urls);
+                navigator.clipboard.writeText(loginUrl);
+                setDisplayCopiedMessage(true);
+                setTimeout(() => {
+                  setDisplayCopiedMessage(false);
+                }, 1500);
               }}
             >
-              {t('signIn')}{' '}
-            </span>
+              {t('copyLink')}
+            </div>
+            {displayCopiedMeddage && (
+              <div
+                className='witty-works-ext-lato-popup-text'
+                style={{ marginTop: '1.5em' }}
+              >
+                {t('copiedConfirmation')}
+              </div>
+            )}
           </div>
         </div>
-      </section>
+      )}
       {DEV_ENV && (
-        <section>
+        <div className='witty-works-ext-section'>
           <h2>{t('developmentSettings')}</h2>
           <ApiSelector />
           <DelaySelector />
-        </section>
+        </div>
       )}
     </>
   );

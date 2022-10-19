@@ -152,111 +152,129 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       style={PopoverStyling}
       onMouseDown={(e) => e.preventDefault()}
     >
-      <div id='wittyworks-popover-content'>
-        <div className='wittyworks-popover-row'>
-          <div className='wittyworks-popover-nav'>
-            <div className='wittyworks-popover-nav-www-logo'>
-              <a href='https://www.witty.works/' target='_blank'>
-                <WittyLogo />
-              </a>
+      <div
+        id='wittyworks-popover-content'
+        className='witty-works-ext-lato-popover-text'
+      >
+        {/* HEADER */}
+        <div className='witty-works-ext-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
+          <a
+            className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'
+            href='https://www.witty.works/'
+            target='_blank'
+          >
+            <WittyLogo />
+          </a>
+          <div className='witty-works-ext-container-row' style={{}}>
+            <div
+              className={
+                data.index === 1
+                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray'
+                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+              }
+              onClick={() =>
+                data.index === 1 ? '' : updatePopover('previous')
+              }
+            >
+              <PreviousIcon />
             </div>
-            <div className='wittyworks-popover-nav-counter'>{`${data.index}
+            <div className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>{`${
+              data.index
+            }
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
-            <div className='wittyworks-popover-nav-buttons'>
-              {data.index === 1 ? (
-                <div className='wittyworks-popover-nav-btn disabled'>
-                  <PreviousIcon />
-                </div>
-              ) : (
-                <div
-                  className='wittyworks-popover-nav-btn'
-                  onClick={() => updatePopover('previous')}
-                >
-                  <PreviousIcon />
-                </div>
-              )}
-              {data.index === data.totalAlerts ? (
-                <div className='wittyworks-popover-nav-btn disabled'>
-                  <NextIcon />
-                </div>
-              ) : (
-                <div
-                  className='wittyworks-popover-nav-btn'
-                  onClick={() => updatePopover('next')}
-                >
-                  <NextIcon />
-                </div>
-              )}
-              <div
-                className='wittyworks-popover-nav-btn'
-                onClick={() => {
-                  hidePopover();
-                }}
-              >
-                <CloseIcon />
-              </div>
+            <div
+              className={
+                data.index === data.totalAlerts
+                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray'
+                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+              }
+              onClick={() =>
+                data.index === data.totalAlerts ? '' : updatePopover('next')
+              }
+            >
+              <NextIcon />
             </div>
+          </div>
+
+          <div
+            className='witty-works-ext-lato-popover-text-gray cursor-pointer'
+            onClick={() => {
+              hidePopover();
+            }}
+          >
+            <CloseIcon />
           </div>
         </div>
 
-        <hr className='wittyworks-popover-separator' />
+        <div className='witty-works-ext-separator' />
 
-        <div className='wittyworks-popover-row'>
-          <a
-            className='wittyworks-popover-row-explanation'
-            onClick={() => {
-              analytics.popoverLogs(data.alert, 'learning_bites');
-            }}
-            href={data.alert.data.explanation.url}
-            target='_blank'
-            style={{
-              backgroundColor: isHovered
-                ? getColor(data.alert.data.gravity).hover
-                : getColor(data.alert.data.gravity).highlight,
-            }}
-            onMouseEnter={() => {
-              setIsHovered(true);
-            }}
-            onMouseLeave={() => {
-              setIsHovered(false);
-            }}
+        {/* LEARNIGN BITES */}
+        <div
+          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer'
+          onClick={() => {
+            analytics.popoverLogs(data.alert, 'learning_bites');
+            window.open(data.alert.data.explanation.url, '_blank');
+          }}
+          style={{
+            backgroundColor: isHovered
+              ? getColor(data.alert.data.gravity).hover
+              : getColor(data.alert.data.gravity).highlight,
+          }}
+          onMouseEnter={() => {
+            setIsHovered(true);
+          }}
+          onMouseLeave={() => {
+            setIsHovered(false);
+          }}
+        >
+          {/* controls icon size */}
+          <div
+            className='witty-works-ext-margin-right'
+            style={{ fontSize: '2em' }}
           >
-            <div className='wittyworks-popover-row-explanation-emoji'>
-              {data.alert.data.explanation.icon}
-            </div>
-            <div className='wittyworks-popover-row-explanation-text'>
-              {data.alert.data.explanation.text}
-              {data.alert.data.explanation.context && (
-                <span className='wittyworks-popover-row-explanation-context'>
-                  &nbsp;({data.alert.data.explanation.context})
-                </span>
-              )}
-              {data.alert.data.explanation.url && (
-                <div className='wittyworks-popover-row-explanation-url'>
+            {data.alert.data.explanation.icon}
+          </div>
+          <div className='witty-works-ext-lato-popover-text'>
+            {data.alert.data.explanation.text}
+            {data.alert.data.explanation.context && (
+              <span className=''>
+                &nbsp;({data.alert.data.explanation.context})
+              </span>
+            )}
+            {data.alert.data.explanation.url && (
+              <div
+                className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
+                style={{ padding: 0 }}
+              >
+                <div className='witty-works-ext-margin-right'>
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
-                  <ArrowIcon play={isHovered} />
                 </div>
-              )}
-            </div>
-          </a>
+                <ArrowIcon play={isHovered} />
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* TRY INSTEAD */}
         {data.alert.data.alternatives.length > 0 && (
           <>
-            <hr className='wittyworks-popover-separator' />
-            <div className='wittyworks-popover-row'>
-              <div className='wittyworks-popover-row-title-alternative'>
+            <div
+              className='witty-works-ext-separator'
+              style={{ marginBottom: '1em', marginTop: '1em' }}
+            />
+            <div className='witty-works-ext-wittyworks-popover-row'>
+              <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
                 {t('insteadTry')}
               </div>
-              <div className='wittyworks-popover-row-alternatives-container'>
+              <div>
                 {data.alert.data.alternatives
                   .slice(0, 5)
                   .map((alternative, index) =>
                     alternative.remove ? (
                       <div
-                        className='wittyworks-popover-alternative-btn remove-text'
+                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text'
                         key={`${index}-remove-it`}
                         onClick={() => clickAlternative('')}
                       >
@@ -264,11 +282,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       </div>
                     ) : (
                       <div
-                        className='wittyworks-popover-alternative-btn-container'
+                        className='witty-works-ext-wittyworks-popover-alternative-btn-container'
                         key={`${index}-${alternative}-container`}
                       >
                         <div
-                          className='wittyworks-popover-alternative-btn'
+                          className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green'
                           onClick={() =>
                             clickAlternative(
                               data.alert.data.alternatives[index].text
@@ -282,7 +300,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           )}
                         </div>
                         {alternative.context && (
-                          <div className='wittyworks-popover-alternative-context'>
+                          <div className='witty-works-ext-wittyworks-popover-alternative-context'>
                             {alternative.context}
                           </div>
                         )}
@@ -293,15 +311,24 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             </div>
           </>
         )}
-        <div className='wittyworks-popover-row-ignore-container'>
-          <div
-            className='wittyworks-popover-ignore-btn'
-            onClick={() => clickIgnoreTerm()}
-          >
-            <IgnoreIcon />
-            <span>{t('ignoreTerm')}</span>
-          </div>
-        </div>
+      </div>
+
+      <div
+        className='witty-works-ext-separator'
+        style={{ marginTop: '0.5em' }}
+      />
+
+      {/* FOOTER */}
+      <div
+        onClick={() => clickIgnoreTerm()}
+        className='witty-works-ext-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
+      >
+        <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
+          <IgnoreIcon />
+        </span>
+        <span className='witty-works-ext-lato-popover-text-gray'>
+          {t('ignoreTerm')}
+        </span>
       </div>
     </div>
   );

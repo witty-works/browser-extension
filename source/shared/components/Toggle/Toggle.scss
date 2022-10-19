@@ -1,50 +1,46 @@
 @import '../../../styles/variables';
 
-.toggle-container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.toggle-lock {
+.witty-works-ext-toggle-lock {
   display: flex;
   align-items: center;
   margin-left: auto;
   margin-right: -3rem;
 
-  .toggle-lock-info {
+  .witty-works-ext-toggle-lock-info {
     display: none;
   }
 
   &:hover {
-    .toggle-lock-info {
+    .witty-works-ext-toggle-lock-info {
       display: block;
       position: absolute;
-      width: 30em;
-      margin-bottom: 3em;
-      margin-left: -12em;
+      width: 15em;
+      padding: 0.5em;
+      margin-bottom: 5em;
+      margin-left: -8.5em;
       font-family: $lato;
       font-style: normal;
       font-weight: 400;
       font-size: 12px;
+      background-color: $lightGray;
+      border-radius: 8px;
     }
   }
 }
 
-.toggle-premium-only {
+.witty-works-ext-toggle-premium-only {
   display: flex;
   align-items: center;
   margin-right: auto;
 }
 
-.toggle-checkbox {
+.witty-works-ext-toggle-checkbox {
   height: 0;
   width: 0;
   visibility: hidden;
 }
 
-.toggle-encloser {
+.witty-works-ext-toggle-encloser {
   cursor: pointer;
   width: 100px;
   height: 60px;
@@ -54,7 +50,7 @@
   transition: background-color 0.2s;
 }
 
-.toggle-button {
+.witty-works-ext-toggle-button {
   content: '';
   position: absolute;
   top: 8px;
@@ -66,7 +62,9 @@
   box-shadow: 0 0 2px 0 rgba(10, 10, 10, 0.29);
 }
 
-.toggle-checkbox:checked + .toggle-encloser .toggle-button {
+.witty-works-ext-toggle-checkbox:checked
+  + .witty-works-ext-toggle-encloser
+  .witty-works-ext-toggle-button {
   left: calc(100% - 6px);
   transform: translateX(-100%);
 }

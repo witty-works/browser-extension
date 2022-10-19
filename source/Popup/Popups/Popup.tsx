@@ -105,6 +105,7 @@ const Popup: React.FC<PopupProps> = ({
   const [authResponseConfig, setAuthResponseConfig] =
     useState<IAuthResponse | null>(null);
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
+  const [teamName, setTeamName] = useState<string>('');
   const domainExists = domain && domain.length > 0;
 
   useEffect(() => {
@@ -156,6 +157,7 @@ const Popup: React.FC<PopupProps> = ({
         setStyleCorrections(result[StorageKeys.STYLE]);
 
         setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
+        setTeamName(result[StorageKeys.TEAM_NAME]);
       })
 
       .catch(onStorageError);
@@ -237,6 +239,8 @@ const Popup: React.FC<PopupProps> = ({
       setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
+      authResponse.organization_name &&
+        setTeamName(authResponse.organization_name);
       for (let key in authResponse.organization_config) {
         switch (key) {
           case 'orthography':
@@ -363,49 +367,177 @@ const Popup: React.FC<PopupProps> = ({
       ) : (
         <PopupHeader />
       )}
-      {domainExists && (
-        <section className='wittyworks-toggles website-settings'>
-          <div className='wittyworks-text-grey'>
-            {domainIsSetAsNotWorking
-              ? t('websiteSettingsDeactivated', { domain: domain })
-              : t('websiteSettings', { domain: domain })}
+      <div className='witty-works-ext-section'>
+        {domainExists && (
+          <>
+            <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
+              <div className='witty-works-ext-lato-popup-title'>
+                {domainIsSetAsNotWorking
+                  ? t('websiteSettingsDeactivated', { domain: domain })
+                  : t('websiteSettings', { domain: domain })}
+              </div>
+            </div>
+            <Toggle
+              on={enabled.enabled}
+              handleToggle={handleEnableToggle}
+              label={
+                domainIsSetAsNotWorking
+                  ? t('tryAgainOnThisWebsite')
+                  : t('enableWitty')
+              }
+              locked={isLocked}
+            />
+            {enabled.enabled && !showSurvey && (
+              <>
+                <Toggle
+                  on={casing}
+                  handleToggle={handleCasingToggle}
+                  label={t('caseSensitivity')}
+                />
+              </>
+            )}
+            <div className='witty-works-ext-separator' />
+          </>
+        )}
+
+        {enabled.enabled && !showSurvey && (
+          <div className='witty-works-ext-margin-top'>
+            <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
+              <div className='witty-works-ext-lato-popup-title'>
+                {t('globalSettings')}
+              </div>
+            </div>
+            <Toggle
+              on={orthography.value as boolean}
+              handleToggle={() => {
+                setOrthography({
+                  ...orthography,
+                  value:
+                    orthography.status != 'force' || !userIsLoggedIn
+                      ? !orthography.value
+                      : orthography.value,
+                });
+              }}
+              label={t('spellChecking')}
+              locked={orthography.status == 'force'}
+              userIsLoggedIn={userIsLoggedIn}
+            />
+
+            <Toggle
+              on={inclusiveLanguage.value as boolean}
+              handleToggle={() => {
+                setInclusiveLanguage({
+                  ...inclusiveLanguage,
+                  value:
+                    inclusiveLanguage.status != 'force' || !userIsLoggedIn
+                      ? !inclusiveLanguage.value
+                      : inclusiveLanguage.value,
+                });
+              }}
+              label={t('inclusiveTerms')}
+              locked={inclusiveLanguage.status === 'force'}
+              userIsLoggedIn={userIsLoggedIn}
+            />
+            <Toggle
+              on={styleCorrections.value as boolean}
+              handleToggle={() => {
+                setStyleCorrections({
+                  ...styleCorrections,
+                  value:
+                    styleCorrections.status != 'force' || !userIsLoggedIn
+                      ? !styleCorrections.value
+                      : styleCorrections.value,
+                });
+              }}
+              label={t('styleCorrections')}
+              locked={styleCorrections.status == 'force'}
+              userIsLoggedIn={userIsLoggedIn}
+            />
+            {localConfigDiffersFromDashboard && (
+              <div className='witty-works-ext-wittyworks-container witty-works-ext-left'>
+                <div
+                  className='witty-works-ext-button witty-works-ext-secondary-button-red'
+                  onClick={() => {
+                    setResetSettings(true);
+                  }}
+                >
+                  {t('resetSettings')}
+                </div>
+              </div>
+            )}
+            {hasWittyTeams && (
+              <div className='witty-works-ext-left'>
+                <div
+                  className='witty-works-ext-button witty-works-ext-primary-button-red'
+                  onClick={() => {
+                    window.open(getBaseUrls().dashboard, '_blank');
+                  }}
+                >
+                  {t('goToDashboard')}
+                </div>
+              </div>
+            )}
           </div>
-          <Toggle
-            on={enabled.enabled}
-            handleToggle={handleEnableToggle}
-            label={
-              domainIsSetAsNotWorking
-                ? t('tryAgainOnThisWebsite')
-                : t('enableWitty')
-            }
-            locked={isLocked}
-          />
-          <div className='toggle-separator' />
-          {enabled.enabled && !showSurvey && (
-            <>
-              <Toggle
-                on={casing}
-                handleToggle={handleCasingToggle}
-                label={t('caseSensitivity')}
-              />
-              <div className='toggle-separator' />
-            </>
-          )}
-        </section>
+        )}
+      </div>
+      {!hasWittyTeams && !showSurvey && (
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
+          <div className='witty-works-ext-lato-popup-title'>
+            {t('getMoreTitle', { domain: 'miro.com' })}
+          </div>
+          <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'>
+            {t('getMoreText')}
+          </div>
+          <div
+            className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
+            onClick={() => {
+              window.open(
+                'https://www.witty.works/witty-for-teams',
+                '_blank',
+                'noopener'
+              );
+            }}
+          >
+            {t('learnMoreButton')}
+          </div>
+        </div>
+      )}
+      {teamName && (
+        <div className='witty-works-ext-section'>
+          <div
+            className='witty-works-ext-lato-popup-text'
+            style={{
+              marginTop:
+                localConfigDiffersFromDashboard || hasWittyTeams ? '-0.5em' : 0,
+            }}
+          >
+            {t('loggedInTo', { teamName: teamName })}
+          </div>
+        </div>
       )}
       {showSurvey && enabled.enabled && (
-        <section className='wittyworks-container-gradient-background wittyworks-survey-container'>
-          <div className='wittyworks-signin-container'>
-            <div className='wittyworks-icon-container'>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
+          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-margin-right'>
               <ThinkingEmoji />
             </div>
-            <div className='wittyworks-text-large'>{t('doesWittyWork')}</div>
+            <div className='witty-works-ext-lato-small-paragraph-title-h4'>
+              {t('doesWittyWork')}
+            </div>
           </div>
-          {surveyResponse === '' && <div>{t('doesWittyWorkExplanation')}</div>}
+          {surveyResponse === '' && (
+            <div
+              className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'
+              style={{ marginLeft: '3.8em' }}
+            >
+              {t('doesWittyWorkExplanation')}
+            </div>
+          )}
           {!surveyResponse && (
-            <div className='wittyworks-flex-row wittyworks-align-left'>
+            <div className='witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
               <div
-                className='wittyworks-button wittyworks-button-yes'
+                className='witty-works-ext-button witty-works-ext-primary-button-red'
+                style={{ marginLeft: '3.3em' }}
                 onClick={() => {
                   setSurveyResponse('yes');
                   setShowSurvey(false);
@@ -415,7 +547,7 @@ const Popup: React.FC<PopupProps> = ({
                 {t('surveyButtonYes')}
               </div>
               <div
-                className='wittyworks-button wittyworks-button-no'
+                className='witty-works-ext-button witty-works-ext-secondary-button-red'
                 onClick={() => {
                   setSurveyResponse('no');
                   setEnabled({ enabled: false, updateDashboard: false });
@@ -428,123 +560,24 @@ const Popup: React.FC<PopupProps> = ({
               </div>
             </div>
           )}
-        </section>
-      )}
-      {enabled.enabled && !showSurvey && (
-        <section className='wittyworks-toggles global-settings'>
-          <div className='wittyworks-text-grey'>{t('globalSettings')}</div>
-          <Toggle
-            on={orthography.value as boolean}
-            handleToggle={() => {
-              setOrthography({
-                ...orthography,
-                value:
-                  orthography.status != 'force' || !userIsLoggedIn
-                    ? !orthography.value
-                    : orthography.value,
-              });
-            }}
-            label={t('spellChecking')}
-            locked={orthography.status == 'force'}
-            userIsLoggedIn={userIsLoggedIn}
-          />
-
-          <div className='toggle-separator' />
-          <Toggle
-            on={inclusiveLanguage.value as boolean}
-            handleToggle={() => {
-              setInclusiveLanguage({
-                ...inclusiveLanguage,
-                value:
-                  inclusiveLanguage.status != 'force' || !userIsLoggedIn
-                    ? !inclusiveLanguage.value
-                    : inclusiveLanguage.value,
-              });
-            }}
-            label={t('inclusiveTerms')}
-            locked={inclusiveLanguage.status === 'force'}
-            userIsLoggedIn={userIsLoggedIn}
-          />
-          <div className='toggle-separator' />
-          <Toggle
-            on={styleCorrections.value as boolean}
-            handleToggle={() => {
-              setStyleCorrections({
-                ...styleCorrections,
-                value:
-                  styleCorrections.status != 'force' || !userIsLoggedIn
-                    ? !styleCorrections.value
-                    : styleCorrections.value,
-              });
-            }}
-            label={t('styleCorrections')}
-            locked={styleCorrections.status == 'force'}
-            userIsLoggedIn={userIsLoggedIn}
-          />
-          <div className='toggle-separator' />
-          {localConfigDiffersFromDashboard && (
-            <div className='wittyworks-align-center'>
-              <div
-                className='wittyworks-button wittyworks-secondary'
-                onClick={() => {
-                  setResetSettings(true);
-                }}
-              >
-                {t('resetSettings')}
-              </div>
-            </div>
-          )}
-          {hasWittyTeams ? (
-            <div className='wittyworks-align-center'>
-              <div
-                className='wittyworks-button'
-                onClick={() => {
-                  window.open(getBaseUrls().dashboard, '_blank');
-                }}
-              >
-                {t('goToDashboard')}
-              </div>
-            </div>
-          ) : (
-            <div className='wittyworks-container-gradient-background'>
-              <div className='wittyworks-upgrade-banner-popup-text-container'>
-                <div className='wittyworks-upgrade-banner-popup-title'>
-                  {t('getMoreTitle', { domain: 'miro.com' })}
-                </div>
-                <div className='wittyworks-upgrade-banner-popup-text'>
-                  {t('getMoreText')}
-                </div>
-              </div>
-              <div
-                className='wittyworks-button wittyworks-primary wittyworks-align-left'
-                onClick={() => {
-                  window.open(
-                    'https://www.witty.works/witty-for-teams',
-                    '_blank',
-                    'noopener'
-                  );
-                }}
-              >
-                {t('learnMoreButton')}
-              </div>
-            </div>
-          )}
-        </section>
+        </div>
       )}
       {DEV_ENV && (
-        <section>
+        <div className='witty-works-ext-section'>
           <h2>{t('developmentSettings')}</h2>
           <ApiSelector />
           <DelaySelector />
-          <div
-            className='wittyworks-button wittyworks-align-left'
-            onClick={() => {
-              logOut();
-            }}
-          >
-            {t('signOut')}
+          <div className='witty-works-ext-left'>
+            <div
+              className='witty-works-ext-button witty-works-ext-primary-button-red'
+              onClick={() => {
+                logOut();
+              }}
+            >
+              {t('signOut')}
+            </div>
           </div>
-        </section>
+        </div>
       )}
     </>
   );

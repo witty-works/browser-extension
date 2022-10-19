@@ -31,6 +31,9 @@ export const updateConfig = (response: IAuthResponse) => {
       StorageKeys.ORGANIZATION_CONFIG_HASH,
       response.organization_config_hash
     );
+
+  response.organization_name &&
+    storeInLocalStorage(StorageKeys.TEAM_NAME, response.organization_name);
   Object.keys(response.config).forEach((key) => {
     switch (key) {
       case 'gendered_roles_format':
