@@ -618,7 +618,9 @@ const Input: React.FC<{
 
     if (isTextArea(element) || isInputText(element)) {
       element.selectionStart =
-        alternative == ' ' ? alert.startOffset - 1 : alert.startOffset;
+        alternative == ' ' && alert.startOffset !== 0
+          ? alert.startOffset - 1
+          : alert.startOffset;
       element.selectionEnd =
         alternative == ' ' ? alert.endOffset + 1 : alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
@@ -627,7 +629,9 @@ const Input: React.FC<{
       const range = getActiveDocument().createRange();
       range.setStart(
         node,
-        alternative == ' ' ? alert.startOffset - 1 : alert.startOffset
+        alternative == ' ' && alert.startOffset !== 0
+          ? alert.startOffset - 1
+          : alert.startOffset
       );
       range.setEnd(
         node,
