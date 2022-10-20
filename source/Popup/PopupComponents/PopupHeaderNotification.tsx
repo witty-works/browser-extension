@@ -18,7 +18,12 @@ const PopupHeaderNotification: React.FC = () => {
       />
       <SettingsWithNotification
         id='witty-settings'
-        onClick={() => window.open(getBaseUrls().dashboard, '_blank')}
+        onClick={() =>
+          window.open(
+            getBaseUrls().dashboard + 'en/user/language/language-settings',
+            '_blank'
+          )
+        }
       />
     </header>
   );
