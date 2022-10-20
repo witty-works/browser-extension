@@ -276,7 +276,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       <div
                         className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text'
                         key={`${index}-remove-it`}
-                        onClick={() => clickAlternative('')}
+                        //string can not be empty because of replacement issue on firefox
+                        onClick={() => clickAlternative(' ')}
                       >
                         {data.alert.data.text}
                       </div>
