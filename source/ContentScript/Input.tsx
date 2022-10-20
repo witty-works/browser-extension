@@ -111,15 +111,18 @@ const Input: React.FC<{
     element.addEventListener('mouseout', handleMouseoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleElementClickEvent as EventListener);
-    document.addEventListener(
-      'click',
-      handleDocumentClickEvent as EventListener
-    );
 
-    // document.addEventListener(
-    //   'click',
-    //   handleElementClickEvent as EventListener
-    // );
+    if (isGoogleDocs()) {
+      // document.addEventListener('focusout', handleFocusoutEvent);
+      // document.addEventListener('mouseover', handleMouseoverEvent);
+      // document.addEventListener('mouseout', handleMouseoutEvent);
+
+      document.addEventListener('scroll', handleElementScrollEvent, true);
+      document.addEventListener(
+        'click',
+        handleDocumentClickEvent as EventListener
+      );
+    }
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
@@ -142,6 +145,18 @@ const Input: React.FC<{
         handleElementClickEvent as EventListener
       );
 
+      if (isGoogleDocs()) {
+        // document.removeEventListener('focusout', handleFocusoutEvent);
+        // document.removeEventListener('mouseover', handleMouseoverEvent);
+        // document.removeEventListener('mouseout', handleMouseoutEvent);
+
+        document.removeEventListener('scroll', handleElementScrollEvent, true);
+        document.removeEventListener(
+          'click',
+          handleDocumentClickEvent as EventListener
+        );
+      }
+
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
@@ -156,14 +171,7 @@ const Input: React.FC<{
     //get position of cursor
     const googleDocsElementCursorRect =
       googleDocsElementCursor?.getBoundingClientRect();
-    googleDocsElementCursorRect &&
-      console.log(
-        'googleDocsElementCursorRect',
-        googleDocsElementCursorRect.top,
-        googleDocsElementCursorRect.left
-      );
 
-    console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current);
     //if cursor is inside a node with alerts, select that node
     const alertsInRange = [] as IAlert[];
     let selectedNode = {} as INodeWithAlerts;
@@ -172,7 +180,6 @@ const Input: React.FC<{
       const alertRects = node.alerts.map((alert) => alert.rect);
 
       alertRects.forEach((alertRect) => {
-        console.log('alertRect', alertRect);
         if (
           googleDocsElementCursorRect &&
           googleDocsElementCursorRect.top > alertRect.top &&
@@ -193,7 +200,6 @@ const Input: React.FC<{
       alertsInRange.length > 1
         ? alertsInRange[alertsInRange.length - 1]
         : alertsInRange[0];
-    console.log('the following alert is selected', selectedAlert);
 
     //get index of selected alert in nodesWithAlertsRef.current
     const selectedNodeWithAlertsIndex = nodesWithAlertsRef.current.findIndex(
@@ -203,9 +209,6 @@ const Input: React.FC<{
     const selectedAlertIndex = nodesWithAlertsRef.current[
       selectedNodeWithAlertsIndex
     ].alerts.findIndex((alert) => alert === selectedAlert);
-
-    console.log('selectedNodeWithAlertsIndex', selectedNodeWithAlertsIndex);
-    console.log('selectedAlertIndex', selectedAlertIndex);
 
     setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
     setSelectedAlertIndex(selectedAlertIndex);
@@ -218,10 +221,14 @@ const Input: React.FC<{
     element.addEventListener('keyup', handleKeyupEvent);
     element.addEventListener('focusin', handleFocusinEvent);
 
+    isGoogleDocs() && document.addEventListener('focusin', handleFocusinEvent);
+
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
       element.removeEventListener('focusin', handleFocusinEvent);
+      isGoogleDocs() &&
+        document.removeEventListener('focusin', handleFocusinEvent);
     };
   }, [debounceDelay]);
 
@@ -243,6 +250,7 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = (event: Event) => {
+    console.log('focusin');
     const nextText: string = getInputText(element);
     handleTextAndIcon(nextText, event);
   };
@@ -254,7 +262,6 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = (event?: Event) => {
-    console.log('keyup');
     if (prevSelectedAlertIndex.current != -1) resetPopover();
 
     browser.storage.local
@@ -292,7 +299,6 @@ const Input: React.FC<{
 
     previousTextToCheckRef.current = nextText;
 
-    console.log('keyup handleTextAndIcon', nextText);
     handleTextAndIcon(nextText, event);
   };
 
@@ -321,6 +327,8 @@ const Input: React.FC<{
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
+    console.log('element scroll', element.scrollTop);
+    console.log('clone scroll', cloneRef.current.scrollTop);
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   };
 
@@ -343,7 +351,6 @@ const Input: React.FC<{
   };
 
   const updateCloneData = (newClone: HTMLDivElement) => {
-    console.log('updateCloneData', newClone);
     setClone(newClone);
     handleKeyupEvent();
   };
@@ -362,7 +369,6 @@ const Input: React.FC<{
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
-    console.log('click');
     // If user clicks on an element only once...
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
@@ -469,17 +475,6 @@ const Input: React.FC<{
 
   useEffect(() => {
     prevSelectedAlertIndex.current = selectedAlertIndex;
-    console.log(
-      'SETTING POPOVER DATA',
-      nodesWithAlertsRef.current.length,
-      selectedNodeWithAlertsIndex,
-      selectedAlertIndex
-      // currentAlertIndex,
-      // totalAlerts
-      // selectedAlert,
-      // clickedRect,
-      // nodeText
-    );
     if (
       nodesWithAlertsRef.current.length > 0 &&
       selectedNodeWithAlertsIndex > -1 &&
@@ -509,9 +504,7 @@ const Input: React.FC<{
         width: rect.width,
         height: rect.height,
         left: rect.left,
-        x: rect.left,
-        top: range.getClientRects()[0].top - elementScroll.top,
-        y: range.getClientRects()[0].top - elementScroll.top,
+        top: rect.top - elementScroll.top,
       };
 
       const currentAlertIndex = nodesWithAlertsRef.current
@@ -590,7 +583,6 @@ const Input: React.FC<{
   }, [checkEndpointResponse]);
 
   useEffect(() => {
-    console.log('alerts', alerts);
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
       const alertsWithoutIgnoredTerms: IAlert[] = alerts.filter(
@@ -625,11 +617,6 @@ const Input: React.FC<{
         )
       ).sort((a, b) => a.startOffset - b.startOffset);
 
-      console.log(
-        'alertsWithoutIgnoredTermsGravityReduced',
-        alertsWithoutIgnoredTermsGravityReduced
-      );
-
       const nodesWithAlertsTemp: INodeWithAlerts[] =
         isTextArea(element) || isInputText(element)
           ? [
@@ -660,9 +647,7 @@ const Input: React.FC<{
                   width: rect.width,
                   height: rect.height,
                   left: rect.left,
-                  x: rect.left,
-                  top: range.getClientRects()[0].top - elementScroll.top,
-                  y: range.getClientRects()[0].top - elementScroll.top,
+                  top: rect.top - elementScroll.top,
                 },
               };
             }),
@@ -670,8 +655,6 @@ const Input: React.FC<{
           return nodeWithAlertsWithRect;
         }
       );
-
-      console.log('nodesWithAlertsTempWithRect', nodesWithAlertsTempWithRect);
 
       //Set the total alerts
       const totalAlerts: number = nodesWithAlertsTempWithRect.reduce(
@@ -692,32 +675,15 @@ const Input: React.FC<{
 
     if (isGoogleDocs()) {
       element = cloneRef.current;
-      // if (!element.firstChild) return [];
-      // elementEvaluation = getActiveDocument().evaluate(
-      //   './/text()',
-      //   element,
-      //   null,
-      //   XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-      //   null
-      // );
-      console.log(
-        'elementEvaluation.snapshotLength',
-        elementEvaluation.snapshotLength
-      );
     }
 
     const nextText: string = getInputText(element);
-    console.log('nextText getNodesWithRecalculatedPositionAlerts', nextText);
 
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = -1;
 
-    console.log('element', element);
-    console.log('elementEvaluation', elementEvaluation);
-
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
-      console.log('node', node);
 
       if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
         textStartingAbsPosition = textEndAbsPosition + 1;
@@ -749,8 +715,6 @@ const Input: React.FC<{
               endOffset: alert.endOffset - textStartingAbsPosition,
             };
           });
-
-        console.log('alertsTemp', alertsTemp);
 
         if (alertsTemp.length > 0)
           nodesWithAlertsTemp.push({
@@ -912,17 +876,7 @@ const Input: React.FC<{
         </WTags.WW_CLONE>
       )}
       {isGoogleDocs() && (
-        <WTags.WW_CLONE
-          style={
-            {
-              position: 'absolute',
-              maxWidth: 'initial',
-              width: `${elementRect.width}px`,
-              height: `${elementRect.height}px`,
-              overflow: 'auto',
-            } as React.CSSProperties
-          }
-        >
+        <WTags.WW_CLONE>
           <GoogleDocsClone element={element} updateClone={updateCloneData} />
         </WTags.WW_CLONE>
       )}

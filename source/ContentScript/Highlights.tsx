@@ -43,7 +43,6 @@ const Highlights: React.FC<HighlightsProps> = ({
     console.log('nodesWithAlerts', nodesWithAlerts);
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
     nodesWithAlerts.forEach(({ node, alerts }) => {
-      console.log('node HIGHLIGHT', node);
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
@@ -62,8 +61,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           }
 
           const rangeRects = [range.getClientRects()[0]];
-          //if rangerects has moer than one element
-
           const rects: DOMRect[] = Array.from(rangeRects).map(
             (rect: DOMRect) => {
               return {
@@ -71,12 +68,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                 width: rect.width,
                 height: rect.height,
                 left: rect.left,
-                x: rect.left,
                 top:
-                  rect.top +
-                  doc.scrollTop -
-                  (isTextArea(element) ? elementScroll.top : 0),
-                y:
                   rect.top +
                   doc.scrollTop -
                   (isTextArea(element) ? elementScroll.top : 0),
