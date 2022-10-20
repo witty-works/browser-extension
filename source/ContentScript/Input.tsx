@@ -625,7 +625,10 @@ const Input: React.FC<{
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-      range.setStart(node, alert.startOffset);
+      range.setStart(
+        node,
+        alternative == ' ' ? alert.startOffset - 1 : alert.startOffset
+      );
       range.setEnd(
         node,
         alternative == ' ' ? alert.endOffset + 1 : alert.endOffset
