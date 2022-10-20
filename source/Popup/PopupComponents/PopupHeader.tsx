@@ -28,7 +28,7 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
             id='witty-settings'
             onClick={() =>
               window.open(
-                getBaseUrls().dashboard + 'en/user/language/language-settings',
+                getBaseUrls().dashboard + 'user/language/language-settings',
                 '_blank'
               )
             }
