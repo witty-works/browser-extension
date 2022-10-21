@@ -113,10 +113,9 @@ const Input: React.FC<{
     element.addEventListener('click', handleElementClickEvent as EventListener);
 
     if (isGoogleDocs()) {
-      // document.addEventListener('focusout', handleFocusoutEvent);
+      document.addEventListener('focusout', handleFocusoutEvent);
       // document.addEventListener('mouseover', handleMouseoverEvent);
       // document.addEventListener('mouseout', handleMouseoutEvent);
-
       document.addEventListener('scroll', handleElementScrollEvent, true);
       document.addEventListener(
         'click',
@@ -136,8 +135,8 @@ const Input: React.FC<{
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('focusout', handleFocusoutEvent);
-      element.removeEventListener('mouseover', handleMouseoverEvent);
-      element.removeEventListener('mouseout', handleMouseoutEvent);
+      // element.removeEventListener('mouseover', handleMouseoverEvent);
+      // element.removeEventListener('mouseout', handleMouseoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       console.log('removing click event listener', element);
       element.removeEventListener(
@@ -145,8 +144,9 @@ const Input: React.FC<{
         handleElementClickEvent as EventListener
       );
 
+      //TODO: figure out how to use element listerner instead of document
       if (isGoogleDocs()) {
-        // document.removeEventListener('focusout', handleFocusoutEvent);
+        document.removeEventListener('focusout', handleFocusoutEvent);
         // document.removeEventListener('mouseover', handleMouseoverEvent);
         // document.removeEventListener('mouseout', handleMouseoutEvent);
 
@@ -356,6 +356,7 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
+    console.log('reset popover');
     setPopoverData(null);
     setSelectedAlert(null);
     setSelectedNodeWithAlertsIndex(-1);
@@ -449,6 +450,16 @@ const Input: React.FC<{
   };
 
   const movePopoverNextOrPrev = (direction: string): void => {
+    console.log(
+      'MOVE',
+      direction,
+      selectedAlertIndex,
+      selectedNodeWithAlertsIndex,
+      'nodesWithAlertsRef.current',
+      nodesWithAlertsRef.current,
+      'nodesWithAlerts',
+      nodesWithAlerts
+    );
     if (direction === 'previous') {
       if (selectedAlertIndex === 0) {
         setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex - 1);
@@ -475,6 +486,11 @@ const Input: React.FC<{
 
   useEffect(() => {
     prevSelectedAlertIndex.current = selectedAlertIndex;
+    console.log(
+      nodesWithAlertsRef.current.length,
+      selectedNodeWithAlertsIndex,
+      selectedAlertIndex
+    );
     if (
       nodesWithAlertsRef.current.length > 0 &&
       selectedNodeWithAlertsIndex > -1 &&
@@ -504,7 +520,9 @@ const Input: React.FC<{
         width: rect.width,
         height: rect.height,
         left: rect.left,
+        x: rect.left,
         top: rect.top - elementScroll.top,
+        y: rect.top - elementScroll.top,
       };
 
       const currentAlertIndex = nodesWithAlertsRef.current
@@ -647,7 +665,9 @@ const Input: React.FC<{
                   width: rect.width,
                   height: rect.height,
                   left: rect.left,
+                  x: rect.left,
                   top: rect.top - elementScroll.top,
+                  y: rect.top - elementScroll.top,
                 },
               };
             }),
