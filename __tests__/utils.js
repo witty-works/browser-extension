@@ -129,6 +129,7 @@ exports.enableAllToggles = async function (page) {
     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
 
     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+    await page.click('.leadinModal-close');
 
     //orthography
     const inclusiveToggle = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-form-section .slider');
@@ -189,8 +190,8 @@ exports.unlockAllToggles = async function (page) {
     await page.waitForLoadState('networkidle')
     await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
     await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-
     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+    await page.click('.leadinModal-close');
 
     //orthography
     const inclusiveToggleForce = await page.waitForSelector('.max-w-7xl:nth-child(6) .guidelines-form-section--apply-for-all .slider');
