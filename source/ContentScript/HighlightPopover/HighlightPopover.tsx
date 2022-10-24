@@ -33,6 +33,7 @@ interface PopoverProps {
   updateTextWithAlternative: (alternative: string) => void;
   addIgnoredTerm: (term: string) => void;
   movePopoverNextOrPrev: (direction: string) => void;
+  userIsSignedIn: boolean;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -42,6 +43,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   updateTextWithAlternative,
   addIgnoredTerm,
   movePopoverNextOrPrev: updatePopover,
+  userIsSignedIn,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
 
@@ -147,13 +149,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   return (
     <div
-      id='wittyworks-popover'
+      id='witty-works-ext-popover'
       ref={floating}
       style={PopoverStyling}
       onMouseDown={(e) => e.preventDefault()}
     >
       <div
-        id='wittyworks-popover-content'
+        id='witty-works-ext-popover-content'
         className='witty-works-ext-lato-popover-text'
       >
         {/* HEADER */}
@@ -217,8 +219,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           }}
           style={{
             backgroundColor: isHovered
-              ? getColor(data.alert.data.gravity).hover
-              : getColor(data.alert.data.gravity).highlight,
+              ? getColor(data.alert.data.gravity, userIsSignedIn).hover
+              : getColor(data.alert.data.gravity, userIsSignedIn).highlight,
           }}
           onMouseEnter={() => {
             setIsHovered(true);
