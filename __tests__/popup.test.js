@@ -81,7 +81,7 @@ test.describe('Popup', () => {
         await page.waitForLoadState('networkidle')
         await page.waitForTimeout(5000);
         let pages = await context.pages();
-        expect(await pages[2].url()).toBe('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+        expect(await pages[2].url()).toBe('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/user/language/language-settings');
     });
 
 
