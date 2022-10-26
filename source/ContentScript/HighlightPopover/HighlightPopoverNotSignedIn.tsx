@@ -24,6 +24,7 @@ import { browser } from 'webextension-polyfill-ts';
 import { getBaseUrls, setBaseUrls } from '../../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
+import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 
 export interface PopoverData {
   index: number;
@@ -45,6 +46,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   hide,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
+  const analytics = useAnalytics();
 
   const { t, i18n } = useTranslation(namespaces.popover);
   const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
@@ -58,6 +60,10 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
   };
+
+  useEffect(() => {
+    analytics.popoverLogs(data.alert, 'popover_open');
+  }, [data]);
 
   const logIn = async (urls: string) => {
     const optionsPageUrl = browser.extension.getURL('options.html');
@@ -182,6 +188,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   };
 
   const hidePopover = () => {
+    analytics.popoverLogs(data.alert, 'popover_close');
     hide();
   };
 
