@@ -621,17 +621,25 @@ const Input: React.FC<{
     const alert = selectedAlert as IAlert;
 
     if (isTextArea(element) || isInputText(element)) {
-      element.selectionStart = alert.startOffset;
+      element.selectionStart =
+        alternative == ' ' && alert.startOffset !== 0
+          ? alert.startOffset - 1
+          : alert.startOffset;
       element.selectionEnd =
-        alternative == '' ? alert.endOffset + 1 : alert.endOffset;
+        alternative == ' ' ? alert.endOffset + 1 : alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-      range.setStart(node, alert.startOffset);
+      range.setStart(
+        node,
+        alternative == ' ' && alert.startOffset !== 0
+          ? alert.startOffset - 1
+          : alert.startOffset
+      );
       range.setEnd(
         node,
-        alternative == '' ? alert.endOffset + 1 : alert.endOffset
+        alternative == ' ' ? alert.endOffset + 1 : alert.endOffset
       );
       const sel = getActiveDocument().getSelection();
       if (!sel) return;

@@ -1,7 +1,7 @@
 @import '../../styles/variables';
 @import '../../styles/fonts';
 
-#wittyworks-popover {
+#witty-works-ext-popover {
   display: 'flex';
   background-color: $white;
   padding: 0 8px;
@@ -11,7 +11,7 @@
   z-index: 9999999;
 }
 
-#wittyworks-popover-content {
+#witty-works-ext-popover-content {
   display: flex;
   flex-direction: column;
 }
@@ -40,7 +40,7 @@
   cursor: pointer;
   white-space: nowrap;
 
-  &.remove-text {
+  &.witty-works-ext-remove-text {
     text-decoration: line-through !important;
   }
 }

@@ -75,7 +75,7 @@ export const de = {
     alertOftotal: 'von',
     removeSpaces: 'Extra Leerzeichen entfernen',
     loginToUnlock: 'Witty ist installiert.',
-    signedOutText: 'You are missing out DE',
+    signedOutText: 'Dir entgeht was',
     signUpFor: 'Registriere dich jetzt für:',
     biasDetection: 'Erkennung von über 30 Diversitätskategorieren',
     inclusiveAlternatives: 'Inklusive Alternativvorschläge',

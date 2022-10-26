@@ -193,13 +193,13 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 
   return (
     <div
-      id='wittyworks-popover'
+      id='witty-works-ext-popover'
       ref={floating}
       style={PopoverStyling}
       onMouseDown={(e) => e.preventDefault()}
     >
       <div
-        id='wittyworks-popover-content'
+        id='witty-works-ext-popover-content'
         className='witty-works-ext-lato-popover-text'
       >
         <div className='witty-works-ext-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
