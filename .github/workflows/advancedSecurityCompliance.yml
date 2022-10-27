@@ -1,0 +1,23 @@
+name: Licensing Compliance
+
+on: [push]
+
+jobs:
+  licensing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Advance Security Compliance Action
+        uses: GeekMasher/advanced-security-compliance@v1.6.3
+        with:
+          # The owner/repo of where the policy is stored
+          policy: witty-works/advanced-security-compliance
+          # The local (within the workspace) or repository
+          policy-path: default.yml
+          # The branch you want to target
+          policy-branch: main
+          # We'll need an access token that can call the GraphQL GitHub API to get
+          #  all the of the licensing data.
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Disable everything else to check for and focus on licensing
+          argvs: "--disable-dependabot --disable-secret-scanning --disable-code-scanning"
