@@ -74,6 +74,7 @@ export const de = {
     whyQuestionMark: 'Warum?',
     alertOftotal: 'von',
     removeSpaces: 'Extra Leerzeichen entfernen',
+<<<<<<< HEAD
     loginToUnlock: 'Witty ist installiert.',
     signedOutText: 'Dir entgeht was',
     signUpFor: 'Registriere dich jetzt für:',
@@ -88,6 +89,9 @@ export const de = {
       'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
     copyLink: 'Link kopieren',
     copiedConfirmation: 'URL Kopiert',
+=======
+    customizeSuggestions: 'Vorschläge anpassen',
+>>>>>>> 83b777b (feat(popover): dashboard button)
   },
 };
 
@@ -167,6 +171,7 @@ export const en = {
     whyQuestionMark: 'Why?',
     alertOftotal: 'of',
     removeSpaces: '(Remove extra spaces)',
+<<<<<<< HEAD
     loginToUnlock: 'Log in to use Witty',
     signedOutText: 'You are missing out',
     signUpFor: 'Sign up now for:',
@@ -180,6 +185,9 @@ export const en = {
       'Please copy and paste the link into your browser URL bar.',
     copyLink: 'Copy Link',
     copiedConfirmation: 'link Copied',
+=======
+    customizeSuggestions: 'Customize Suggestions',
+>>>>>>> 83b777b (feat(popover): dashboard button)
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',

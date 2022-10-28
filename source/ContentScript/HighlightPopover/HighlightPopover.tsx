@@ -18,6 +18,7 @@ import PreviousIcon from '../../assets/icons/popover/previous.svg';
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
+import { getBaseUrls } from '../../shared/ApiServices/requests';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -314,8 +315,25 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             </div>
           </>
         )}
+        {data.alert.plan == 'witty_free' && (
+          <div
+            className={'witty-works-ext-left'}
+            style={!data.alert.data.gravity ? { marginTop: '0.5em' } : {}}
+          >
+            <div
+              className='witty-works-ext-button witty-works-ext-primary-button-red'
+              onClick={() => {
+                window.open(
+                  getBaseUrls().dashboard + 'user/language/language-settings',
+                  '_blank'
+                );
+              }}
+            >
+              {t('customizeSuggestions')}
+            </div>
+          </div>
+        )}
       </div>
-
 
       {/* FOOTER */}
       <div

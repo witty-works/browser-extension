@@ -147,6 +147,12 @@
   cursor: pointer;
 }
 
+.witty-works-ext-primary-button-red {
+  background: $orange;
+  border-radius: 8px;
+  color: $white;
+}
+
 .witty-works-ext-primary-button-purple {
   background: $wittyPurple;
   border-radius: 8px;
@@ -209,7 +215,6 @@
   flex-direction: column;
   justify-content: space-around;
 }
-
 
 .witty-works-ext-wittyworks-container {
   display: flex;
