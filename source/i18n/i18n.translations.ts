@@ -74,6 +74,7 @@ export const de = {
     whyQuestionMark: 'Warum?',
     alertOftotal: 'von',
     removeSpaces: 'Extra Leerzeichen entfernen',
+    customizeSuggestions: 'Vorschläge anpassen',
   },
 };
 
@@ -153,6 +154,7 @@ export const en = {
     whyQuestionMark: 'Why?',
     alertOftotal: 'of',
     removeSpaces: '(Remove extra spaces)',
+    customizeSuggestions: 'Customize Suggestions',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',
