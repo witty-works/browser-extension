@@ -512,12 +512,15 @@ const Input: React.FC<{
         return [alert0, ...alerts]
           .filter(Boolean)
           .reduce((minAlert, currentAlert) =>
-            minAlert.data.gravity === currentAlert.data.gravity
-              ? minAlert
-              : (minAlert.data.gravity || Infinity) <
-                (currentAlert.data.gravity || Infinity)
-              ? minAlert
-              : currentAlert
+            minAlert.data.category === 'orthography' && currentAlert.data.category !== 'orthography'
+              ? currentAlert
+              : minAlert.data.category !== 'orthography' && currentAlert.data.category === 'orthography'
+                ? minAlert
+                : minAlert.data.gravity === currentAlert.data.gravity
+                  ? minAlert
+                  : (minAlert.data.gravity || Infinity) < (currentAlert.data.gravity || Infinity)
+                    ? minAlert
+                    : currentAlert
           );
       };
 

@@ -15,7 +15,6 @@ import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import Star from '../../assets/icons/popup/star.svg';
-import Checkmark from '../../assets/icons/popup/checkmark.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 
@@ -92,9 +91,7 @@ const PopupLogin: React.FC = () => {
       <PopupHeader showSettings={false} />
       <div className='witty-works-ext-section'>
         <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-          <div className='witty-works-ext-margin-right'>
-            <Checkmark />
-          </div>
+
           <div className='witty-works-ext-lato-small-paragraph-title-h4'>
             {t('loginToUnlock')}
           </div>

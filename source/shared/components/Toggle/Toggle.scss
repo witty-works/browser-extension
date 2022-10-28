@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   margin-left: auto;
-  margin-right: -3rem;
+  margin-right: -3.7rem;
 
   .witty-works-ext-toggle-lock-info {
     display: none;
@@ -15,15 +15,15 @@
       display: block;
       position: absolute;
       width: 15em;
-      padding: 0.5em;
-      margin-bottom: 5em;
-      margin-left: -8.5em;
+      padding: 1em;
+      margin-bottom: 0em;
+      margin-left: -18em;
       font-family: $lato;
       font-style: normal;
       font-weight: 400;
       font-size: 12px;
       background-color: $lightGray;
-      border-radius: 8px;
+      border-radius: 4px;
     }
   }
 }

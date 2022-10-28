@@ -59,7 +59,7 @@ export const de = {
     tryAgainOnThisWebsite: 'Erneut auf dieser Website versuchen',
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
     resetSettings: 'Einstellungen zurücksetzen',
-    loggedInTo: 'Logged in to {{teamName}}',
+    loggedInTo: 'Logged in to "{{teamName}}"',
     popupsBlocked: 'Popups sind blockiert',
     popupsBlockedText:
       'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
@@ -151,7 +151,7 @@ export const en = {
     tryAgainOnThisWebsite: 'Try again on this website',
     lockedInfo: 'This feature has been locked by your team admin.',
     resetSettings: 'Reset settings',
-    loggedInTo: 'Logged in to {{teamName}}',
+    loggedInTo: 'Logged in to "{{teamName}}"',
     popupsBlocked: 'Popups are blocked',
     popupsBlockedText:
       'Please copy and paste the link into your browser URL bar.',
