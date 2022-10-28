@@ -109,6 +109,8 @@ const Input: React.FC<{
         sendErrorToSentry(error);
       });
 
+    browser.storage.onChanged.addListener(storageChange);
+
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
@@ -512,15 +514,18 @@ const Input: React.FC<{
         return [alert0, ...alerts]
           .filter(Boolean)
           .reduce((minAlert, currentAlert) =>
-            minAlert.data.category === 'orthography' && currentAlert.data.category !== 'orthography'
+            minAlert.data.category === 'orthography' &&
+            currentAlert.data.category !== 'orthography'
               ? currentAlert
-              : minAlert.data.category !== 'orthography' && currentAlert.data.category === 'orthography'
-                ? minAlert
-                : minAlert.data.gravity === currentAlert.data.gravity
-                  ? minAlert
-                  : (minAlert.data.gravity || Infinity) < (currentAlert.data.gravity || Infinity)
-                    ? minAlert
-                    : currentAlert
+              : minAlert.data.category !== 'orthography' &&
+                currentAlert.data.category === 'orthography'
+              ? minAlert
+              : minAlert.data.gravity === currentAlert.data.gravity
+              ? minAlert
+              : (minAlert.data.gravity || Infinity) <
+                (currentAlert.data.gravity || Infinity)
+              ? minAlert
+              : currentAlert
           );
       };
 
@@ -721,6 +726,21 @@ const Input: React.FC<{
   const ErrorBoundaryFallback = () => (
     <Toast message={t('reloadWebsite')} type='error' />
   );
+
+  const storageChange = (changes: any) => {
+    let changedItems = Object.keys(changes);
+    for (let item of changedItems) {
+      switch (item) {
+        case StorageKeys.ACCESS_TOKEN:
+          console.log('ACCESS_TOKEN changed', changes[item].newValue);
+          setUserIsSignedIn(changes[item].newValue == '' ? false : true);
+          setConfigHasChanged(changes[item].newValue == '' ? false : true);
+          setTextToCheck('');
+          setTextToCheck(currentTextToCheck);
+          break;
+      }
+    }
+  };
 
   useEffect(() => {
     //Show/Hide the popover

@@ -354,7 +354,8 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   const logOut = () => {
-    browser.storage.local.set({ [StorageKeys.ACCESS_TOKEN]: '' });
+    storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
+    storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
     setToken('');
     setUserIsLoggedIn(false);
     addLoginBadge();
@@ -516,7 +517,7 @@ const Popup: React.FC<PopupProps> = ({
           {surveyResponse === '' && (
             <div
               className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'
-              style={{  }}
+              style={{}}
             >
               {t('doesWittyWorkExplanation')}
             </div>
@@ -525,7 +526,7 @@ const Popup: React.FC<PopupProps> = ({
             <div className='witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
               <div
                 className='witty-works-ext-button witty-works-ext-primary-button-red'
-                style={{  }}
+                style={{}}
                 onClick={() => {
                   setSurveyResponse('yes');
                   setShowSurvey(false);

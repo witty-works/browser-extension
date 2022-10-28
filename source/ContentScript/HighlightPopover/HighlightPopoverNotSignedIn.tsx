@@ -74,6 +74,8 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
         if (!window.open(url, '_blank')) {
           setPopupsBlocked(true);
           setLoginUrl(url);
+        } else {
+          hide();
         }
       } else {
         const url = `${
@@ -84,6 +86,8 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
         if (!window.open(url, '_blank')) {
           setPopupsBlocked(true);
           setLoginUrl(url);
+        } else {
+          hide();
         }
       }
     });
