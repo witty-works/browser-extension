@@ -1,7 +1,7 @@
 @import '../../styles/variables';
 @import '../../styles/fonts';
 
-#wittyworks-popover {
+#witty-works-ext-popover {
   display: 'flex';
   background-color: $white;
   padding: 0 8px;
@@ -11,7 +11,7 @@
   z-index: 9999999;
 }
 
-#wittyworks-popover-content {
+#witty-works-ext-popover-content {
   display: flex;
   flex-direction: column;
   margin-bottom: 0.5em;
@@ -155,11 +155,16 @@
 
 .witty-works-ext-secondary-button-purple {
   background: $white;
-  border: 1px solid $wittyPurple;
+  border: 1px solid $orange;
   border-radius: 8px;
-  color: $wittyPurple;
+  color: $orange;
 }
 
+.witty-works-ext-primary-button-red {
+  background: $orange;
+  border-radius: 8px;
+  color: $white;
+}
 //Backgrounds
 .witty-works-ext-strong-gradient-background {
   background: linear-gradient(
@@ -241,6 +246,7 @@
 
 .witty-works-ext-full-padding {
   padding: 1em;
+  max-width: 300px;
 }
 
 .witty-works-ext-left {
@@ -257,6 +263,10 @@
 
 .witty-works-ext-margin-top {
   margin-top: 1em;
+}
+
+.witty-works-ext-margin-bottom {
+  margin-bottom: 1em;
 }
 
 //general

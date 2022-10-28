@@ -22,7 +22,7 @@ const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
   const [popupsBlocked, setPopupsBlocked] = useState(false);
   const [loginUrl, setLoginUrl] = useState('');
-  const [displayCopiedMeddage, setDisplayCopiedMessage] = useState(false);
+  const [displayCopiedMessage, setDisplayCopiedMessage] = useState(false);
   const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
   const log = useLog('PopupLogin');
 
@@ -152,7 +152,7 @@ const PopupLogin: React.FC = () => {
               });
             }}
           >
-            {t('signIn')}{' '}
+            {t('signIn')}
           </span>
         </div>
       </div>
@@ -177,7 +177,7 @@ const PopupLogin: React.FC = () => {
             >
               {t('copyLink')}
             </div>
-            {displayCopiedMeddage && (
+            {displayCopiedMessage && (
               <div
                 className='witty-works-ext-lato-popup-text'
                 style={{ marginTop: '1.5em' }}

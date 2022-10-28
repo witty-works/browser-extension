@@ -41,6 +41,7 @@ import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import { getInputText, updateConfig } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
+import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -80,6 +81,8 @@ const Input: React.FC<{
     defaultConfig.API_DELAY
   );
 
+  const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
+
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       for (const mutation of mutationsList) {
@@ -97,13 +100,16 @@ const Input: React.FC<{
 
   useEffect(() => {
     browser.storage.local
-      .get(StorageKeys.API_DELAY)
+      .get(null)
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
+        setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
       })
       .catch((error: unknown) => {
         sendErrorToSentry(error);
       });
+
+    browser.storage.onChanged.addListener(storageChange);
 
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
@@ -508,15 +514,18 @@ const Input: React.FC<{
         return [alert0, ...alerts]
           .filter(Boolean)
           .reduce((minAlert, currentAlert) =>
-            minAlert.data.category === 'orthography' && currentAlert.data.category !== 'orthography'
+            minAlert.data.category === 'orthography' &&
+            currentAlert.data.category !== 'orthography'
               ? currentAlert
-              : minAlert.data.category !== 'orthography' && currentAlert.data.category === 'orthography'
-                ? minAlert
-                : minAlert.data.gravity === currentAlert.data.gravity
-                  ? minAlert
-                  : (minAlert.data.gravity || Infinity) < (currentAlert.data.gravity || Infinity)
-                    ? minAlert
-                    : currentAlert
+              : minAlert.data.category !== 'orthography' &&
+                currentAlert.data.category === 'orthography'
+              ? minAlert
+              : minAlert.data.gravity === currentAlert.data.gravity
+              ? minAlert
+              : (minAlert.data.gravity || Infinity) <
+                (currentAlert.data.gravity || Infinity)
+              ? minAlert
+              : currentAlert
           );
       };
 
@@ -665,7 +674,7 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
     } else if (
       checkEndpointError?.status == 403 ||
-      authErrorResponse?.status === 403
+      (authErrorResponse?.status === 403 && userIsSignedIn)
     ) {
       browser.storage.local
         .get(StorageKeys.REFRESH_TOKEN)
@@ -718,9 +727,24 @@ const Input: React.FC<{
     <Toast message={t('reloadWebsite')} type='error' />
   );
 
+  const storageChange = (changes: any) => {
+    let changedItems = Object.keys(changes);
+    for (let item of changedItems) {
+      switch (item) {
+        case StorageKeys.ACCESS_TOKEN:
+          console.log('ACCESS_TOKEN changed', changes[item].newValue);
+          setUserIsSignedIn(changes[item].newValue == '' ? false : true);
+          setConfigHasChanged(changes[item].newValue == '' ? false : true);
+          setTextToCheck('');
+          setTextToCheck(currentTextToCheck);
+          break;
+      }
+    }
+  };
+
   useEffect(() => {
     //Show/Hide the popover
-    if (popoverData) {
+    if (popoverData && userIsSignedIn) {
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
@@ -730,6 +754,18 @@ const Input: React.FC<{
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
             movePopoverNextOrPrev={movePopoverNextOrPrev}
+            userIsSignedIn={userIsSignedIn}
+          />
+        </Sentry.ErrorBoundary>,
+        document.querySelector(WTags.WW_POPOVER)
+      );
+    } else if (popoverData && !userIsSignedIn) {
+      ReactDOM.render(
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopoverNotSignedIn
+            element={element}
+            data={popoverData}
+            hide={resetPopover}
           />
         </Sentry.ErrorBoundary>,
         document.querySelector(WTags.WW_POPOVER)
@@ -779,6 +815,7 @@ const Input: React.FC<{
             element={element}
             elementRect={elementRect}
             selectedAlert={selectedAlert}
+            userIsSignedIn={userIsSignedIn}
           />
         </Sentry.ErrorBoundary>
       </WTags.WW_HIGHLIGHTS>
