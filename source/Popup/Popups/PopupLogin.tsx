@@ -15,7 +15,6 @@ import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import Star from '../../assets/icons/popup/star.svg';
-import Checkmark from '../../assets/icons/popup/checkmark.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 
@@ -23,7 +22,7 @@ const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
   const [popupsBlocked, setPopupsBlocked] = useState(false);
   const [loginUrl, setLoginUrl] = useState('');
-  const [displayCopiedMeddage, setDisplayCopiedMessage] = useState(false);
+  const [displayCopiedMessage, setDisplayCopiedMessage] = useState(false);
   const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
   const log = useLog('PopupLogin');
 
@@ -92,9 +91,7 @@ const PopupLogin: React.FC = () => {
       <PopupHeader showSettings={false} />
       <div className='witty-works-ext-section'>
         <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-          <div className='witty-works-ext-margin-right'>
-            <Checkmark />
-          </div>
+
           <div className='witty-works-ext-lato-small-paragraph-title-h4'>
             {t('loginToUnlock')}
           </div>
@@ -155,7 +152,7 @@ const PopupLogin: React.FC = () => {
               });
             }}
           >
-            {t('signIn')}{' '}
+            {t('signIn')}
           </span>
         </div>
       </div>
@@ -180,7 +177,7 @@ const PopupLogin: React.FC = () => {
             >
               {t('copyLink')}
             </div>
-            {displayCopiedMeddage && (
+            {displayCopiedMessage && (
               <div
                 className='witty-works-ext-lato-popup-text'
                 style={{ marginTop: '1.5em' }}

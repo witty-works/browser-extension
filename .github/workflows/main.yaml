@@ -7,8 +7,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '16'
           cache: 'npm'
@@ -18,7 +18,7 @@ jobs:
           npm install --global yarn
 
       - id: cache-yarn
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ./node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -33,7 +33,7 @@ jobs:
           yarn run build:chrome
 
       - name: Store Chrome Development artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: chrome-dev
           path: |

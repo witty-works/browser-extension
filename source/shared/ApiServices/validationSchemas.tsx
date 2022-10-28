@@ -122,16 +122,7 @@ export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
       type: 'number',
     },
   },
-  required: [
-    'text',
-    'category',
-    'subcategory',
-    'start',
-    'end',
-    'alternatives',
-    'label',
-    'explanation',
-  ],
+  required: ['text', 'start', 'end'],
 };
 
 export const checkResponseSchema: JSONSchemaType<ICheckResponse> = {

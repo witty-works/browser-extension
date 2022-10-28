@@ -59,7 +59,7 @@ export const de = {
     tryAgainOnThisWebsite: 'Erneut auf dieser Website versuchen',
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
     resetSettings: 'Einstellungen zurücksetzen',
-    loggedInTo: 'Logged in to {{teamName}}',
+    loggedInTo: 'Logged in to "{{teamName}}"',
     popupsBlocked: 'Popups sind blockiert',
     popupsBlockedText:
       'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
@@ -74,6 +74,20 @@ export const de = {
     whyQuestionMark: 'Warum?',
     alertOftotal: 'von',
     removeSpaces: 'Extra Leerzeichen entfernen',
+    loginToUnlock: 'Witty ist installiert.',
+    signedOutText: 'Dir entgeht was',
+    signUpFor: 'Registriere dich jetzt für:',
+    biasDetection: 'Erkennung von über 30 Diversitätskategorieren',
+    inclusiveAlternatives: 'Inklusive Alternativvorschläge',
+    teamFeatures: 'Teamfunktionen, inkl. eines geteilten Wörterbuches',
+    signIn: 'Anmelden',
+    haveAccount: 'Hast du schon ein Konto?',
+    signUp: 'Registrieren',
+    popupsBlocked: 'Popups sind blockiert',
+    popupsBlockedText:
+      'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
+    copyLink: 'Link kopieren',
+    copiedConfirmation: 'URL Kopiert',
   },
 };
 
@@ -137,7 +151,7 @@ export const en = {
     tryAgainOnThisWebsite: 'Try again on this website',
     lockedInfo: 'This feature has been locked by your team admin.',
     resetSettings: 'Reset settings',
-    loggedInTo: 'Logged in to {{teamName}}',
+    loggedInTo: 'Logged in to "{{teamName}}"',
     popupsBlocked: 'Popups are blocked',
     popupsBlockedText:
       'Please copy and paste the link into your browser URL bar.',
@@ -153,6 +167,19 @@ export const en = {
     whyQuestionMark: 'Why?',
     alertOftotal: 'of',
     removeSpaces: '(Remove extra spaces)',
+    loginToUnlock: 'Log in to use Witty',
+    signedOutText: 'You are missing out',
+    signUpFor: 'Sign up now for:',
+    biasDetection: 'Bias detection in 30+ diversity dimensions',
+    inclusiveAlternatives: 'Alternatives for inclusive writing',
+    signIn: 'Sign in',
+    haveAccount: 'Already have an account?',
+    signUp: ' Sign Up',
+    popupsBlocked: 'Popups are blocked',
+    popupsBlockedText:
+      'Please copy and paste the link into your browser URL bar.',
+    copyLink: 'Copy Link',
+    copiedConfirmation: 'link Copied',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',

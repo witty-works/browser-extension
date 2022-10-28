@@ -354,7 +354,8 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   const logOut = () => {
-    browser.storage.local.set({ [StorageKeys.ACCESS_TOKEN]: '' });
+    storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
+    storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
     setToken('');
     setUserIsLoggedIn(false);
     addLoginBadge();
@@ -502,19 +503,7 @@ const Popup: React.FC<PopupProps> = ({
           </div>
         </div>
       )}
-      {teamName && (
-        <div className='witty-works-ext-section'>
-          <div
-            className='witty-works-ext-lato-popup-text'
-            style={{
-              marginTop:
-                localConfigDiffersFromDashboard || hasWittyTeams ? '-0.5em' : 0,
-            }}
-          >
-            {t('loggedInTo', { teamName: teamName })}
-          </div>
-        </div>
-      )}
+
       {showSurvey && enabled.enabled && (
         <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
           <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
@@ -528,7 +517,7 @@ const Popup: React.FC<PopupProps> = ({
           {surveyResponse === '' && (
             <div
               className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'
-              style={{ marginLeft: '3.8em' }}
+              style={{}}
             >
               {t('doesWittyWorkExplanation')}
             </div>
@@ -537,7 +526,7 @@ const Popup: React.FC<PopupProps> = ({
             <div className='witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
               <div
                 className='witty-works-ext-button witty-works-ext-primary-button-red'
-                style={{ marginLeft: '3.3em' }}
+                style={{}}
                 onClick={() => {
                   setSurveyResponse('yes');
                   setShowSurvey(false);
@@ -562,6 +551,21 @@ const Popup: React.FC<PopupProps> = ({
           )}
         </div>
       )}
+
+      {teamName && (
+        <div className='witty-works-ext-section'>
+          <div
+            className='witty-works-ext-lato-popup-text'
+            style={{
+              marginTop:
+                localConfigDiffersFromDashboard || hasWittyTeams ? '-0.5em' : 0,
+            }}
+          >
+            {t('loggedInTo', { teamName: teamName })}
+          </div>
+        </div>
+      )}
+
       {DEV_ENV && (
         <div className='witty-works-ext-section'>
           <h2>{t('developmentSettings')}</h2>
