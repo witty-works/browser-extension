@@ -206,9 +206,11 @@ const Input: React.FC<{
       (node) => node.node === selectedNode
     );
 
-    const selectedAlertIndex = nodesWithAlertsRef.current[
-      selectedNodeWithAlertsIndex
-    ].alerts.findIndex((alert) => alert === selectedAlert);
+    const selectedAlertIndex =
+      nodesWithAlertsRef.current[selectedNodeWithAlertsIndex] &&
+      nodesWithAlertsRef.current[selectedNodeWithAlertsIndex].alerts.findIndex(
+        (alert) => alert === selectedAlert
+      );
 
     setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
     setSelectedAlertIndex(selectedAlertIndex);
@@ -356,11 +358,13 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
-    console.log('reset popover');
-    setPopoverData(null);
-    setSelectedAlert(null);
-    setSelectedNodeWithAlertsIndex(-1);
-    setSelectedAlertIndex(-1);
+    if (selectedNodeWithAlertsIndex >= 0 && selectedAlertIndex >= 0) {
+      console.log('reset popover');
+      setPopoverData(null);
+      setSelectedAlert(null);
+      setSelectedNodeWithAlertsIndex(-1);
+      setSelectedAlertIndex(-1);
+    }
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -406,14 +410,14 @@ const Input: React.FC<{
           if (oneNodeWithAlerts) {
             const caretPos = caret.position;
 
-            let selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
-              (alert: IAlert) => {
+            let selectedAlertIndex =
+              oneNodeWithAlerts &&
+              oneNodeWithAlerts.alerts.findIndex((alert: IAlert) => {
                 //If alert is a one character word, take in consideration clicking the position before or after the char
                 return alert.data.text.length === 1
                   ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
                   : alert.startOffset < caretPos && alert.endOffset > caretPos;
-              }
-            );
+              });
 
             const selectedAlerts = oneNodeWithAlerts.alerts.filter(
               (alert: IAlert) =>
@@ -428,10 +432,13 @@ const Input: React.FC<{
                 }
               );
 
-              selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
-                (alert: IAlert) =>
-                  alert.startOffset === alertWithLargestStartoffset.startOffset
-              );
+              selectedAlertIndex =
+                oneNodeWithAlerts &&
+                oneNodeWithAlerts.alerts.findIndex(
+                  (alert: IAlert) =>
+                    alert.startOffset ===
+                    alertWithLargestStartoffset.startOffset
+                );
             }
 
             if (selectedAlertIndex === -1) return;
@@ -612,15 +619,18 @@ const Input: React.FC<{
         return [alert0, ...alerts]
           .filter(Boolean)
           .reduce((minAlert, currentAlert) =>
-            minAlert.data.category === 'orthography' && currentAlert.data.category !== 'orthography'
+            minAlert.data.category === 'orthography' &&
+            currentAlert.data.category !== 'orthography'
               ? currentAlert
-              : minAlert.data.category !== 'orthography' && currentAlert.data.category === 'orthography'
-                ? minAlert
-                : minAlert.data.gravity === currentAlert.data.gravity
-                  ? minAlert
-                  : (minAlert.data.gravity || Infinity) < (currentAlert.data.gravity || Infinity)
-                    ? minAlert
-                    : currentAlert
+              : minAlert.data.category !== 'orthography' &&
+                currentAlert.data.category === 'orthography'
+              ? minAlert
+              : minAlert.data.gravity === currentAlert.data.gravity
+              ? minAlert
+              : (minAlert.data.gravity || Infinity) <
+                (currentAlert.data.gravity || Infinity)
+              ? minAlert
+              : currentAlert
           );
       };
 
@@ -754,6 +764,64 @@ const Input: React.FC<{
     const node = popoverData?.node as Node;
     const alert = selectedAlert as IAlert;
 
+    // if (isGoogleDocs()) {
+    //   //insert text using google docs api
+    //   const svg = element.firstChild as SVGSVGElement;
+    //   //for each g element in svg, look if aria-label text in node
+    //   const gElements = svg.querySelectorAll('g');
+    //   console.log(gElements);
+    //   gElements.forEach((gElement: any) => {
+    //     console.log(
+    //       'gElement aria-label',
+    //       gElement.firstChild.getAttribute('aria-label')
+    //     );
+    //     console.log('node', node.nodeValue);
+    //     if (gElement.firstChild.getAttribute('aria-label') === node.nodeValue) {
+    //       const newSentence = gElement.firstChild
+    //         .getAttribute('aria-label')
+    //         .replace(alert.data.text, alternative);
+    //       gElement.firstChild.setAttribute('aria-label', newSentence);
+
+    //       const insertText = new window.InputEvent('beforeinput', {
+    //         bubbles: true,
+    //         cancelable: true,
+    //         inputType: 'insertText',
+    //         data: alternative,
+    //       });
+    //       element.dispatchEvent(insertText);
+
+    //       // window.requestAnimationFrame(() => {
+    //       // });
+
+    //       console.log('document', document);
+
+    //       // const event = new Event('synthetic-keyup');
+    //       // document.dispatchEvent(event);
+
+    //       // const event2 = new Event('keyup');
+    //       // document.dispatchEvent(event2);
+
+    //       // const event3 = new Event('change');
+    //       // document.dispatchEvent(event3);
+    //     }
+
+    //     //event synthetic-keyup
+
+    //     // const t = new Event('visibilitychange');
+    //     // getActiveDocument().dispatchEvent(t);
+    //     // const e = new Event('webkitvisibilitychange');
+    //     // getActiveDocument().dispatchEvent(e);
+
+    //     // const t1 = new Event('visibilitychange');
+    //     // document.dispatchEvent(t1);
+    //     // const e1 = new Event('webkitvisibilitychange');
+    //     // document.dispatchEvent(e1);
+
+    //     // const t2 = new Event('visibilitychange');
+    //     // element.dispatchEvent(t2);
+    //     // const e2 = new Event('webkitvisibilitychange');
+    //     // element.dispatchEvent(e2);
+    //   });
     if (isTextArea(element) || isInputText(element)) {
       element.selectionStart =
         alternative == ' ' && alert.startOffset !== 0
@@ -776,6 +844,8 @@ const Input: React.FC<{
         alternative == ' ' ? alert.endOffset + 1 : alert.endOffset
       );
       const sel = getActiveDocument().getSelection();
+      console.log('active document', getActiveDocument());
+      console.log('sel', sel);
       if (!sel) return;
       sel.removeAllRanges();
       sel.addRange(range);
