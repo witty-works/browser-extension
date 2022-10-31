@@ -7,6 +7,7 @@ import {
   ILogItems,
   IAuthResponse,
   ICheckResponse,
+  IDashboardLogRequest,
 } from '../types';
 import {
   captureEvent,
@@ -87,6 +88,15 @@ export const useAnalytics = () => {
         ...getRequestData(appID),
       };
       captureEvent(type, voteItems, null);
+    },
+
+    async dashboardLog(location: string, appID: string) {
+      const dashboardItems: IDashboardLogRequest = {
+        request__type: 'dashboard',
+        dashboard__location: location,
+        ...getRequestData(appID),
+      };
+      captureEvent('dashboard', dashboardItems, null);
     },
   };
 };
