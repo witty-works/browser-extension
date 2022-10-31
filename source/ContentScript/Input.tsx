@@ -14,6 +14,7 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
+  IgnoredTerm,
   INodeWithAlerts,
   Position,
 } from '../shared/types';
@@ -42,6 +43,7 @@ import { setToken } from '../shared/ApiServices/requests';
 import { getInputText, updateConfig } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
+import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -80,6 +82,9 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
+  const [ignoredTermsFromStorage, setIgnoredTermsFromStorage] = useState<
+    IgnoredTerm[]
+  >([]);
 
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
 
@@ -104,7 +109,26 @@ const Input: React.FC<{
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
         setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
+
+        if (result[StorageKeys.PLAN] === 'witty_free') {
+          setIgnoredTermsFromStorage(
+            result[StorageKeys.IGNORED_TERMS] as IgnoredTerm[]
+          );
+          const filteredIgnoredTerms = (
+            result[StorageKeys.IGNORED_TERMS] as IgnoredTerm[]
+          )
+            .filter((term) => {
+              const now = new Date();
+              const termDate = new Date(term.timestamp);
+              const diffTime = Math.abs(now.getTime() - termDate.getTime());
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              return diffDays < 7;
+            })
+            .map((term) => term.term);
+          setIgnoredTerms(filteredIgnoredTerms);
+        }
       })
+
       .catch((error: unknown) => {
         sendErrorToSentry(error);
       });
@@ -280,7 +304,25 @@ const Input: React.FC<{
     setSelectedAlertIndex(-1);
   };
 
-  const addIgnoredTerm = (term: string): void => {
+  const addIgnoredTerm = (
+    term: string,
+    storeTermInLocalStorage?: boolean
+  ): void => {
+    if (storeTermInLocalStorage) {
+      const currentTime = new Date().getTime();
+      const newIgnoredTerm: IgnoredTerm = {
+        term: term,
+        timestamp: currentTime,
+      };
+
+      const newIgnoredTerms: IgnoredTerm[] = [
+        ...ignoredTermsFromStorage,
+        newIgnoredTerm,
+      ];
+
+      storeInLocalStorage(StorageKeys.IGNORED_TERMS, newIgnoredTerms);
+      setIgnoredTermsFromStorage(newIgnoredTerms);
+    }
     setIgnoredTerms([...ignoredTerms, term]);
   };
 
@@ -732,7 +774,6 @@ const Input: React.FC<{
     for (let item of changedItems) {
       switch (item) {
         case StorageKeys.ACCESS_TOKEN:
-          console.log('ACCESS_TOKEN changed', changes[item].newValue);
           setUserIsSignedIn(changes[item].newValue == '' ? false : true);
           setConfigHasChanged(changes[item].newValue == '' ? false : true);
           setTextToCheck('');
@@ -744,7 +785,24 @@ const Input: React.FC<{
 
   useEffect(() => {
     //Show/Hide the popover
-    if (popoverData && userIsSignedIn) {
+    if (
+      popoverData &&
+      userIsSignedIn &&
+      popoverData.alert.plan === 'witty_free' &&
+      (!popoverData.alert.data.explanation || !popoverData.alert.data.gravity) //if no explanation returned, its a premium feature, if no gravity it is inclusive (also premium)
+    ) {
+      ReactDOM.render(
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopoverUpgrade
+            element={element}
+            data={popoverData}
+            hide={resetPopover}
+            addIgnoredTerm={addIgnoredTerm}
+          />
+        </Sentry.ErrorBoundary>,
+        document.querySelector(WTags.WW_POPOVER)
+      );
+    } else if (popoverData && userIsSignedIn) {
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover

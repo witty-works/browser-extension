@@ -83,6 +83,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           const newHighlight: Highlight = {
             rects,
             id: alert.id,
+            plan: alert.plan,
             data: alert.data,
             startOffset: alert.startOffset,
             endOffset: alert.endOffset,
@@ -112,13 +113,22 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
-
       const [rect] = highlight.rects;
       const hoverColor = `${
-        getColor(highlight.data.gravity, userIsSignedIn).default
+        getColor(
+          highlight.data.gravity,
+          userIsSignedIn,
+          highlight.data.explanation,
+          highlight.plan
+        ).default
       }`;
       const highlightColor = `${
-        getColor(highlight.data.gravity, userIsSignedIn).hover
+        getColor(
+          highlight.data.gravity,
+          userIsSignedIn,
+          highlight.data.explanation,
+          highlight.plan
+        ).hover
       }`;
       const dashedLine = highlight.data.category == 'orthography';
       const roundedHighlight = new Path2D();

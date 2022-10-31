@@ -90,6 +90,7 @@ export interface Highlight {
   startOffset: number;
   endOffset: number;
   node: Node;
+  plan?: string;
 }
 
 export type CustomInputElement =
@@ -167,8 +168,7 @@ export interface ILogItems {
 export interface IAlternativeLogItems extends ILogItems {
   request__alternative: string;
 }
-export interface IIgnoreLogItems extends ILogItems {
-}
+export interface IIgnoreLogItems extends ILogItems {}
 export interface IVoteLogRequest {
   request__type: string;
   request__lang: string;
@@ -210,4 +210,9 @@ export interface IDomainRequest {
 export interface EnableWittyToggle {
   enabled: boolean;
   updateDashboard: boolean;
+}
+
+export interface IgnoredTerm {
+  term: string;
+  timestamp: number;
 }
