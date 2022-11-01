@@ -42,7 +42,7 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
 
   return (
     <>
-      <PopupHeader />
+      <PopupHeader appId={appId} />
       <div className='witty-works-ext-section'>
         <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
           <div className='witty-works-ext-margin-right'>

@@ -88,6 +88,7 @@ export const de = {
       'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
     copyLink: 'Link kopieren',
     copiedConfirmation: 'URL Kopiert',
+    customizeSuggestions: 'Vorschläge anpassen',
   },
 };
 
@@ -180,6 +181,7 @@ export const en = {
       'Please copy and paste the link into your browser URL bar.',
     copyLink: 'Copy Link',
     copiedConfirmation: 'link Copied',
+    customizeSuggestions: 'Customize Suggestions',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',
