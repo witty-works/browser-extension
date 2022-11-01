@@ -45,7 +45,7 @@ export enum StorageKeys {
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
 
   REDIRECT_URL_LOGIN = 'redirectUrlLogin',
-  IGNORED_TERMS = 'ignoredTerms',
+  IGNORED_CATEGORIES = 'ignoredCategories',
 }
 
 //nlp api, dashboard

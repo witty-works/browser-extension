@@ -14,7 +14,8 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
-  IgnoredTerm,
+  IExplanation,
+  IgnoredCategory,
   INodeWithAlerts,
   Position,
 } from '../shared/types';
@@ -82,10 +83,8 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
-  const [ignoredTermsFromStorage, setIgnoredTermsFromStorage] = useState<
-    IgnoredTerm[]
-  >([]);
-
+  const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
+    useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
 
   const onElementMutation = useCallback(
@@ -110,25 +109,22 @@ const Input: React.FC<{
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
         setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
 
-        if (result[StorageKeys.PLAN] === 'witty_free') {
-          setIgnoredTermsFromStorage(
-            result[StorageKeys.IGNORED_TERMS] as IgnoredTerm[]
-          );
-          const filteredIgnoredTerms = (
-            result[StorageKeys.IGNORED_TERMS] as IgnoredTerm[]
-          )
-            .filter((term) => {
-              const now = new Date();
-              const termDate = new Date(term.timestamp);
-              const diffTime = Math.abs(now.getTime() - termDate.getTime());
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              return diffDays < 7;
-            })
-            .map((term) => term.term);
-          setIgnoredTerms(filteredIgnoredTerms);
+        if (
+          result[StorageKeys.PLAN] === 'witty_free' &&
+          result[StorageKeys.IGNORED_CATEGORIES]
+        ) {
+          const filteredIgnoredCategories = (
+            result[StorageKeys.IGNORED_CATEGORIES] as IgnoredCategory[]
+          ).filter((term) => {
+            const now = new Date();
+            const termDate = new Date(term.timestamp);
+            const diffTime = Math.abs(now.getTime() - termDate.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays < 7;
+          });
+          setIgnoredCategoriesFromStorage(filteredIgnoredCategories);
         }
       })
-
       .catch((error: unknown) => {
         sendErrorToSentry(error);
       });
@@ -304,26 +300,30 @@ const Input: React.FC<{
     setSelectedAlertIndex(-1);
   };
 
-  const addIgnoredTerm = (
-    term: string,
-    storeTermInLocalStorage?: boolean
-  ): void => {
-    if (storeTermInLocalStorage) {
-      const currentTime = new Date().getTime();
-      const newIgnoredTerm: IgnoredTerm = {
-        term: term,
-        timestamp: currentTime,
-      };
-
-      const newIgnoredTerms: IgnoredTerm[] = [
-        ...ignoredTermsFromStorage,
-        newIgnoredTerm,
-      ];
-
-      storeInLocalStorage(StorageKeys.IGNORED_TERMS, newIgnoredTerms);
-      setIgnoredTermsFromStorage(newIgnoredTerms);
-    }
+  const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
+  };
+
+  const addIgnoredCategory = (
+    gravity: number,
+    explanation: IExplanation
+  ): void => {
+    let category = 'inclusive';
+    if (gravity && !explanation) {
+      category = 'premiumFeature';
+    }
+    const currentTime = new Date().getTime();
+    const newIgnoredCategory: IgnoredCategory = {
+      category: category,
+      timestamp: currentTime,
+    };
+
+    const newIgnoredCategories: IgnoredCategory[] = [
+      ...ignoredCategoriesFromStorage,
+      newIgnoredCategory,
+    ];
+    storeInLocalStorage(StorageKeys.IGNORED_CATEGORIES, newIgnoredCategories);
+    setIgnoredCategoriesFromStorage(newIgnoredCategories);
   };
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
@@ -516,6 +516,25 @@ const Input: React.FC<{
         ? checkEndpointResponse.results
         : 'None'
     );
+
+    //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
+    ignoredCategoriesFromStorage.forEach((item) =>
+      item.category === 'inclusive'
+        ? (checkEndpointResponse.results = checkEndpointResponse.results.filter(
+            (result) => result.gravity !== undefined
+          ))
+        : null
+    );
+
+    console.log(
+      'ignoredCategoriesFromStorage.length ',
+      ignoredCategoriesFromStorage.length
+    );
+    if (ignoredCategoriesFromStorage.length > 1) {
+      checkEndpointResponse.results = checkEndpointResponse.results.filter(
+        (result) => result.explanation !== undefined
+      );
+    }
 
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
@@ -797,7 +816,7 @@ const Input: React.FC<{
             element={element}
             data={popoverData}
             hide={resetPopover}
-            addIgnoredTerm={addIgnoredTerm}
+            addIgnoredCategory={addIgnoredCategory}
           />
         </Sentry.ErrorBoundary>,
         document.querySelector(WTags.WW_POPOVER)

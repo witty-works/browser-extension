@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import CSS from 'csstype';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
-import { CustomInputElement, IAlert } from '../../shared/types';
+import { CustomInputElement, IAlert, IExplanation } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -37,14 +37,14 @@ interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
   hide: () => void;
-  addIgnoredTerm: (term: string, storeInLocalStorage: boolean) => void;
+  addIgnoredCategory: (gravity: number, explanation: IExplanation) => void;
 }
 
 const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   element,
   data,
   hide,
-  addIgnoredTerm,
+  addIgnoredCategory,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
@@ -162,7 +162,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 
   const hidePopover = () => {
     analytics.popoverLogs(data.alert, 'popover_close');
-    addIgnoredTerm(data.alert.data.text, true);
+    addIgnoredCategory(data.alert.data.gravity, data.alert.data.explanation);
     hide();
   };
 
