@@ -200,7 +200,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
 
           <div
-            className='witty-works-ext-lato-popover-text-gray cursor-pointer'
+            className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
             onClick={() => {
               hidePopover();
             }}
