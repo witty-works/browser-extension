@@ -22,6 +22,13 @@ export interface ResponseConfig {
 export interface RequestConfig extends ResponseConfig {
   disabled_categories: string[];
 }
+
+export interface FilteredRequestConfig {
+  style: ConfigProperty;
+  orthography: ConfigProperty;
+  inclusive: ConfigProperty;
+  disabled_categories: string[];
+}
 export interface ConfigProperty {
   value: string | string[] | boolean | number;
   status?: string;
