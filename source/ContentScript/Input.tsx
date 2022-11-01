@@ -517,21 +517,6 @@ const Input: React.FC<{
         : 'None'
     );
 
-    //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
-    ignoredCategoriesFromStorage.forEach((item) =>
-      item.category === 'inclusive'
-        ? (checkEndpointResponse.results = checkEndpointResponse.results.filter(
-            (result) => result.gravity !== undefined
-          ))
-        : null
-    );
-
-    if (ignoredCategoriesFromStorage.length > 1) {
-      checkEndpointResponse.results = checkEndpointResponse.results.filter(
-        (result) => result.explanation !== undefined
-      );
-    }
-
     const alerts: IAlert[] = checkEndpointResponse.results
       .map((result) => ({
         id: `${result.text}-${result.category}-${result.start}${result.end}`,
@@ -562,9 +547,32 @@ const Input: React.FC<{
   useEffect(() => {
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
-      const alertsWithoutIgnoredTerms: IAlert[] = alerts.filter(
-        (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
-      );
+      let alertsWithoutIgnoredCategories = alerts;
+      //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
+      if (
+        ignoredCategoriesFromStorage
+          .map((item) => item.category)
+          .includes('inclusive')
+      ) {
+        alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
+          (alert) => alert.data.gravity !== undefined
+        );
+      }
+
+      if (
+        ignoredCategoriesFromStorage
+          .map((item) => item.category)
+          .includes('premiumFeature')
+      ) {
+        alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
+          (alert) => alert.data.explanation !== undefined
+        );
+      }
+
+      const alertsWithoutIgnoredTerms: IAlert[] =
+        alertsWithoutIgnoredCategories.filter(
+          (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
+        );
 
       //handle case where a word has multiple alerts of different gravity
       const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
@@ -622,7 +630,7 @@ const Input: React.FC<{
 
       setNodesWithAlerts(nodesWithAlertsTemp);
     }
-  }, [alerts, ignoredTerms, elementXPathResult]);
+  }, [alerts, ignoredTerms, elementXPathResult, ignoredCategoriesFromStorage]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
