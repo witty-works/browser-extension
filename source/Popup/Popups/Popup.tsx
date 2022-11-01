@@ -366,7 +366,7 @@ const Popup: React.FC<PopupProps> = ({
       {numberOfNotifications > 0 ? (
         <PopupHeaderNotification />
       ) : (
-        <PopupHeader />
+        <PopupHeader appId={appId} />
       )}
       <div className='witty-works-ext-section'>
         {domainExists && (
@@ -515,10 +515,7 @@ const Popup: React.FC<PopupProps> = ({
             </div>
           </div>
           {surveyResponse === '' && (
-            <div
-              className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'
-              style={{}}
-            >
+            <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'>
               {t('doesWittyWorkExplanation')}
             </div>
           )}
@@ -526,7 +523,6 @@ const Popup: React.FC<PopupProps> = ({
             <div className='witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
               <div
                 className='witty-works-ext-button witty-works-ext-primary-button-red'
-                style={{}}
                 onClick={() => {
                   setSurveyResponse('yes');
                   setShowSurvey(false);

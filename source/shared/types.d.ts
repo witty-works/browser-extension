@@ -22,6 +22,13 @@ export interface ResponseConfig {
 export interface RequestConfig extends ResponseConfig {
   disabled_categories: string[];
 }
+
+export interface FilteredRequestConfig {
+  style: ConfigProperty;
+  orthography: ConfigProperty;
+  inclusive: ConfigProperty;
+  disabled_categories: string[];
+}
 export interface ConfigProperty {
   value: string | string[] | boolean | number;
   status?: string;
@@ -90,6 +97,7 @@ export interface Highlight {
   startOffset: number;
   endOffset: number;
   node: Node;
+  plan?: string;
 }
 
 export type CustomInputElement =
@@ -167,8 +175,7 @@ export interface ILogItems {
 export interface IAlternativeLogItems extends ILogItems {
   request__alternative: string;
 }
-export interface IIgnoreLogItems extends ILogItems {
-}
+export interface IIgnoreLogItems extends ILogItems {}
 export interface IVoteLogRequest {
   request__type: string;
   request__lang: string;
@@ -177,6 +184,16 @@ export interface IVoteLogRequest {
   request__config__preferred_variants: ConfigProperty;
   request__config__german_gender_ending: ConfigProperty;
   vote__url: string;
+}
+
+export interface IDashboardLogRequest {
+  request__type: string;
+  request__lang: string;
+  request__id: string;
+  request__client: string;
+  request__config__preferred_variants: ConfigProperty;
+  request__config__german_gender_ending: ConfigProperty;
+  dashboard__location: string;
 }
 export interface ICheckLogItems {
   request__type: string;
@@ -210,4 +227,9 @@ export interface IDomainRequest {
 export interface EnableWittyToggle {
   enabled: boolean;
   updateDashboard: boolean;
+}
+
+export interface IgnoredCategory {
+  category: string;
+  timestamp: number;
 }

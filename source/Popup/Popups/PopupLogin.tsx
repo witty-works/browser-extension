@@ -10,7 +10,11 @@ import {
 import '../../i18n/i18n';
 import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
-import { getBaseUrls, setBaseUrls } from '../../shared/ApiServices/requests';
+import {
+  appID,
+  getBaseUrls,
+  setBaseUrls,
+} from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
@@ -88,10 +92,9 @@ const PopupLogin: React.FC = () => {
 
   return (
     <>
-      <PopupHeader showSettings={false} />
+      <PopupHeader showSettings={false} appId={appID} />
       <div className='witty-works-ext-section'>
         <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-
           <div className='witty-works-ext-lato-small-paragraph-title-h4'>
             {t('loginToUnlock')}
           </div>
