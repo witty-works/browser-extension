@@ -178,6 +178,16 @@ export interface IVoteLogRequest {
   request__config__german_gender_ending: ConfigProperty;
   vote__url: string;
 }
+
+export interface IDashboardLogRequest {
+  request__type: string;
+  request__lang: string;
+  request__id: string;
+  request__client: string;
+  request__config__preferred_variants: ConfigProperty;
+  request__config__german_gender_ending: ConfigProperty;
+  dashboard__location: string;
+}
 export interface ICheckLogItems {
   request__type: string;
   request__lang: string;

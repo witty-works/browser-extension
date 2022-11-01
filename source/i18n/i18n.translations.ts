@@ -96,6 +96,7 @@ export const de = {
     bulletPointOne: 'Some bullet point DE',
     bulletPointTwo: 'Another bullet point DE',
     upgrade: 'Upgrade DE',
+    customizeSuggestions: 'Vorschläge anpassen',
   },
 };
 
@@ -196,6 +197,7 @@ export const en = {
     bulletPointOne: 'Some bullet point',
     bulletPointTwo: 'Another bullet point',
     upgrade: 'Upgrade',
+    customizeSuggestions: 'Customize Suggestions',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',
