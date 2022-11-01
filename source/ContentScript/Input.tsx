@@ -526,10 +526,6 @@ const Input: React.FC<{
         : null
     );
 
-    console.log(
-      'ignoredCategoriesFromStorage.length ',
-      ignoredCategoriesFromStorage.length
-    );
     if (ignoredCategoriesFromStorage.length > 1) {
       checkEndpointResponse.results = checkEndpointResponse.results.filter(
         (result) => result.explanation !== undefined
