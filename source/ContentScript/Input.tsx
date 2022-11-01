@@ -14,6 +14,8 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
+  IExplanation,
+  IgnoredCategory,
   INodeWithAlerts,
   Position,
 } from '../shared/types';
@@ -42,6 +44,7 @@ import { setToken } from '../shared/ApiServices/requests';
 import { getInputText, updateConfig } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
+import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -80,7 +83,8 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
-
+  const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
+    useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
 
   const onElementMutation = useCallback(
@@ -104,6 +108,22 @@ const Input: React.FC<{
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
         setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
+
+        if (
+          result[StorageKeys.PLAN] === 'witty_free' &&
+          result[StorageKeys.IGNORED_CATEGORIES]
+        ) {
+          const filteredIgnoredCategories = (
+            result[StorageKeys.IGNORED_CATEGORIES] as IgnoredCategory[]
+          ).filter((term) => {
+            const now = new Date();
+            const termDate = new Date(term.timestamp);
+            const diffTime = Math.abs(now.getTime() - termDate.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays < 7;
+          });
+          setIgnoredCategoriesFromStorage(filteredIgnoredCategories);
+        }
       })
       .catch((error: unknown) => {
         sendErrorToSentry(error);
@@ -282,6 +302,28 @@ const Input: React.FC<{
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
+  };
+
+  const addIgnoredCategory = (
+    gravity: number,
+    explanation: IExplanation
+  ): void => {
+    let category = 'inclusive';
+    if (gravity && !explanation) {
+      category = 'premiumFeature';
+    }
+    const currentTime = new Date().getTime();
+    const newIgnoredCategory: IgnoredCategory = {
+      category: category,
+      timestamp: currentTime,
+    };
+
+    const newIgnoredCategories: IgnoredCategory[] = [
+      ...ignoredCategoriesFromStorage,
+      newIgnoredCategory,
+    ];
+    storeInLocalStorage(StorageKeys.IGNORED_CATEGORIES, newIgnoredCategories);
+    setIgnoredCategoriesFromStorage(newIgnoredCategories);
   };
 
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
@@ -505,9 +547,32 @@ const Input: React.FC<{
   useEffect(() => {
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
-      const alertsWithoutIgnoredTerms: IAlert[] = alerts.filter(
-        (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
-      );
+      let alertsWithoutIgnoredCategories = alerts;
+      //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
+      if (
+        ignoredCategoriesFromStorage
+          .map((item) => item.category)
+          .includes('inclusive')
+      ) {
+        alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
+          (alert) => alert.data.gravity !== undefined
+        );
+      }
+
+      if (
+        ignoredCategoriesFromStorage
+          .map((item) => item.category)
+          .includes('premiumFeature')
+      ) {
+        alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
+          (alert) => alert.data.explanation !== undefined
+        );
+      }
+
+      const alertsWithoutIgnoredTerms: IAlert[] =
+        alertsWithoutIgnoredCategories.filter(
+          (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
+        );
 
       //handle case where a word has multiple alerts of different gravity
       const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
@@ -565,7 +630,7 @@ const Input: React.FC<{
 
       setNodesWithAlerts(nodesWithAlertsTemp);
     }
-  }, [alerts, ignoredTerms, elementXPathResult]);
+  }, [alerts, ignoredTerms, elementXPathResult, ignoredCategoriesFromStorage]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
@@ -732,7 +797,6 @@ const Input: React.FC<{
     for (let item of changedItems) {
       switch (item) {
         case StorageKeys.ACCESS_TOKEN:
-          console.log('ACCESS_TOKEN changed', changes[item].newValue);
           setUserIsSignedIn(changes[item].newValue == '' ? false : true);
           setConfigHasChanged(changes[item].newValue == '' ? false : true);
           setTextToCheck('');
@@ -744,7 +808,24 @@ const Input: React.FC<{
 
   useEffect(() => {
     //Show/Hide the popover
-    if (popoverData && userIsSignedIn) {
+    if (
+      popoverData &&
+      userIsSignedIn &&
+      popoverData.alert.plan === 'witty_free' &&
+      (!popoverData.alert.data.explanation || !popoverData.alert.data.gravity) //if no explanation returned, its a premium feature, if no gravity it is inclusive (also premium)
+    ) {
+      ReactDOM.render(
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopoverUpgrade
+            element={element}
+            data={popoverData}
+            hide={resetPopover}
+            addIgnoredCategory={addIgnoredCategory}
+          />
+        </Sentry.ErrorBoundary>,
+        document.querySelector(WTags.WW_POPOVER)
+      );
+    } else if (popoverData && userIsSignedIn) {
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover

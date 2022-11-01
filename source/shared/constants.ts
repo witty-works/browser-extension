@@ -1,4 +1,5 @@
 import { browser } from 'webextension-polyfill-ts';
+import { IExplanation } from './types';
 
 export const wittyVersion = browser.runtime.getManifest().version;
 
@@ -44,6 +45,7 @@ export enum StorageKeys {
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
 
   REDIRECT_URL_LOGIN = 'redirectUrlLogin',
+  IGNORED_CATEGORIES = 'ignoredCategories',
 }
 
 //nlp api, dashboard
@@ -137,13 +139,17 @@ const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
 
 export const getColor = (
   gravity: number,
-  userIsSignedIn: boolean
+  userIsSignedIn: boolean,
+  hasExplanation?: IExplanation,
+  plan?: string
 ): IHighlightColors => {
-  if (!gravity && !userIsSignedIn) return disabledGrey;
-  if (!gravity) return inclusiveGreen;
-  if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
-  if (gravity > 2.5) return styleYellow;
-  return unconsciousBiasAndGenderedOrange;
+  if (!userIsSignedIn) return disabledGrey;
+  else if ((!gravity || !hasExplanation) && plan === 'witty_free')
+    return disabledGrey;
+  else if (!gravity) return inclusiveGreen;
+  else if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
+  else if (gravity > 2.5) return styleYellow;
+  else return unconsciousBiasAndGenderedOrange;
 };
 
 //German Gender Endings

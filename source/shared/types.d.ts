@@ -97,6 +97,7 @@ export interface Highlight {
   startOffset: number;
   endOffset: number;
   node: Node;
+  plan?: string;
 }
 
 export type CustomInputElement =
@@ -226,4 +227,9 @@ export interface IDomainRequest {
 export interface EnableWittyToggle {
   enabled: boolean;
   updateDashboard: boolean;
+}
+
+export interface IgnoredCategory {
+  category: string;
+  timestamp: number;
 }
