@@ -7,7 +7,6 @@ import {
   DEV_ENV,
   WittyIconActive,
   wittyVersion,
-  devAppId,
 } from '../shared/constants';
 import {
   addInactiveBadge,
@@ -87,6 +86,7 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
     .get()
     .then((result) => {
       let savedValue: DefaultConfigValue = result[key];
+      const devAppId = result[StorageKeys.APP_ID];
       if (!savedValue || savedValue == devAppId || DEV_ENV) {
         let valueToSave = isFunction(value as Function)
           ? (value as Function)()
