@@ -80,6 +80,10 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
+  const [paragraphStartIndex] = useState<number>(0);
+  const [paragraphsWhithinMaxCharLength, setParagraphsWhithinMaxCharLength] =
+    useState<string[]>([]);
+  const maxCharLength = 300;
 
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
 
@@ -173,8 +177,62 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = (event: Event) => {
+    console.log('focusin');
     const nextText: string = getInputText(element);
-    handleTextAndIcon(nextText, event);
+
+    if (nextText.length > maxCharLength) {
+      const textDividedByParagraph = nextText.split('\n');
+      const paragraphsWithinMaxCharLength = getParagraphsWhithinMaxCharLength(
+        textDividedByParagraph,
+        maxCharLength,
+        paragraphStartIndex
+      );
+      //calculate top position of the first paragraph in paragraphsWithinMaxCharLength
+      // const topPosition = getTopPositionOfFirstParagraph(
+      //   textDividedByParagraph,
+      //   element,
+      //   paragraphStartIndex
+      // );
+
+      // console.log('topPosition', topPosition);
+
+      const textWithinMaxCharLength = paragraphsWithinMaxCharLength.join('\n');
+      handleTextAndIcon(textWithinMaxCharLength, event);
+    } else {
+      handleTextAndIcon(nextText, event);
+    }
+  };
+
+  // const getTopPositionOfFirstParagraph = (
+  //   textDividedByParagraph: string[],
+  //   element: CustomInputElement,
+  //   paragraphStartIndex: number
+  // ) => {
+  //   //get position of textDividedByParagraph[paragraphStartIndex]
+
+  // };
+
+  const getParagraphsWhithinMaxCharLength = (
+    textDividedByParagraph: string[],
+    maxCharLength: number,
+    paragraphStartIndex: number
+  ) => {
+    //cut textDividedByParagraph at paragraphStart
+    const textDividedByParagraphCut =
+      textDividedByParagraph.slice(paragraphStartIndex);
+    //get all paragraphs that are within the max char length (added together)
+    const paragraphsWithinMaxCharLength = [];
+    let charsLeft = maxCharLength;
+    for (let i = 0; i < textDividedByParagraphCut.length; i++) {
+      const paragraph = textDividedByParagraphCut[i];
+      if (paragraph.length <= charsLeft) {
+        paragraphsWithinMaxCharLength.push(paragraph);
+        charsLeft -= paragraph.length;
+      } else {
+        break;
+      }
+    }
+    return paragraphsWithinMaxCharLength;
   };
 
   const handleFocusoutEvent = () => {
@@ -306,6 +364,64 @@ const Input: React.FC<{
                   .anchorNode,
               };
 
+        if (getInputText(element).length > maxCharLength) {
+          const textDividedByParagraph = getInputText(element).split('\n');
+
+          // const paragraphsWithinMaxCharLength =
+          //   getParagraphsWhithinMaxCharLength(
+          //     textDividedByParagraph,
+          //     maxCharLength,
+          //     paragraphStartIndex
+          //   );
+
+          //calculate top position of the first paragraph in paragraphsWithinMaxCharLength
+          // const topPosition = getTopPositionOfFirstParagraph(
+          //   textDividedByParagraph,
+          //   element,
+          //   paragraphStartIndex
+          // );
+
+          // console.log('topPosition', topPosition);
+          let clickedParagraph = caret.element?.textContent;
+          if (isTextArea(element) || isInputText(element)) {
+            clickedParagraph = getParagraphFromCaretPosition(
+              caret.position,
+              caret.element,
+              textDividedByParagraph
+            );
+          }
+
+          console.log('clickedParagraph', clickedParagraph);
+
+          const allParagraphs = getInputText(element).split('\n');
+
+          let newParagraphStartIndex = 0;
+          for (let i = 0; i < allParagraphs.length; i++) {
+            const paragraph = allParagraphs[i];
+            if (paragraph === clickedParagraph) {
+              newParagraphStartIndex = i;
+              break;
+            }
+          }
+          //check that clicked paragraph is not within paragraphsWhithinMaxCharLength
+          // if (!paragraphsWhithinMaxCharLength.includes(clickedParagraph)) {
+
+          const newParagraphsWithinMaxCharLength =
+            getParagraphsWhithinMaxCharLength(
+              textDividedByParagraph,
+              maxCharLength,
+              newParagraphStartIndex
+            );
+          setParagraphsWhithinMaxCharLength(newParagraphsWithinMaxCharLength);
+          const textWithinMaxCharLength =
+            newParagraphsWithinMaxCharLength.join('\n');
+          console.log('textWithinMaxCharLength', textWithinMaxCharLength);
+          handleTextAndIcon(textWithinMaxCharLength, event);
+
+          // setParagraphStartIndex(newParagraphStartIndex);
+          // }
+        }
+
         if (caret.element && caret.position && caret.position > -1) {
           // Find out if the clicked element has alerts
           const selectedNodeWithAlertsIndex: number =
@@ -364,6 +480,35 @@ const Input: React.FC<{
     } else {
       clearTimeout(singleClickTimeOut);
     }
+  };
+
+  const getParagraphFromCaretPosition = (
+    caretPosition: number | null,
+    caretElement: Node | null,
+    textDividedByParagraph: string[]
+  ): string => {
+    //find index of caretElement in textDividedByParagraph
+
+    if (!caretPosition) return '';
+    let paragraphStartIndex = 0;
+    let paragraphEndIndex = 0;
+    let paragraph = '';
+    console.log('#textDividedByParagraph', textDividedByParagraph);
+    console.log('caretPosition', caretPosition);
+    console.log('caretElement', caretElement);
+
+    for (let i = 0; i < textDividedByParagraph.length; i++) {
+      paragraphEndIndex += textDividedByParagraph[i].length;
+      if (
+        caretPosition >= paragraphStartIndex &&
+        caretPosition <= paragraphEndIndex
+      ) {
+        paragraph = textDividedByParagraph[i];
+        break;
+      }
+      paragraphStartIndex += textDividedByParagraph[i].length;
+    }
+    return paragraph;
   };
 
   const movePopoverNextOrPrev = (direction: string): void => {
@@ -580,12 +725,24 @@ const Input: React.FC<{
 
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
+      //ignore nodes that are not in paragraphsWhithinMaxCharLength
+      console.log(
+        '$$$paragraphsWhithinMaxCharLength',
+        paragraphsWhithinMaxCharLength
+      );
+
+      //TODO: or partially includes
+      if (
+        node.nodeValue &&
+        !paragraphsWhithinMaxCharLength.includes(node.nodeValue)
+      ) {
+        console.log('ignoreing node:', node.nodeValue);
+        continue;
+      }
 
       if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
         textStartingAbsPosition = textEndAbsPosition + 1;
-
         const nodeValueLength: number = node.nodeValue.length;
-
         textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1; //needed to keep huglights in place
 
         // Check if there is a new line char after the node's content
@@ -599,7 +756,7 @@ const Input: React.FC<{
             (alert: IAlert) =>
               node.nodeValue && node.nodeValue.includes(alert.data.text)
           )
-
+          //PROBLEM IS HERE
           .filter(
             (alert: IAlert) =>
               alert.startOffset >= textStartingAbsPosition &&
@@ -620,6 +777,7 @@ const Input: React.FC<{
           });
       }
     }
+    console.log('nodesWithAlertsTemp', nodesWithAlertsTemp);
 
     return nodesWithAlertsTemp;
   };

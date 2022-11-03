@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { isTextArea } from '../shared/DOMutils';
+// import { isTextArea } from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
 import { getCorrectedPosition } from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
@@ -25,7 +25,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   selectedAlert,
   userIsSignedIn,
 }: HighlightsProps) => {
-  const doc = getActiveDocument().documentElement || getActiveDocument().body;
+  // const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
@@ -42,6 +42,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
+    console.log('nodesWithAlerts', nodesWithAlerts);
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined') {
@@ -49,17 +50,23 @@ const Highlights: React.FC<HighlightsProps> = ({
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
           try {
-            if (
-              node.textContent &&
-              (alert.endOffset > node.textContent.length ||
-                alert.startOffset > node.textContent.length)
-            )
-              return;
+            // if (
+            //   node.textContent &&
+            //   (alert.endOffset > node.textContent.length ||
+            //     alert.startOffset > node.textContent.length)
+            // )
+            //   return;
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
           } catch (error) {
             sendErrorToSentry(error);
           }
+          console.log(
+            'range.getClientRects()',
+            alert.data.text,
+            node,
+            range.getClientRects()
+          );
           const rects: DOMRect[] = Array.from(range.getClientRects()).map(
             (rect: DOMRect) => {
               return {
@@ -68,14 +75,14 @@ const Highlights: React.FC<HighlightsProps> = ({
                 height: rect.height,
                 left: rect.left,
                 x: rect.left,
-                top:
-                  rect.top +
-                  doc.scrollTop -
-                  (isTextArea(element) ? elementScroll.top : 0),
-                y:
-                  rect.top +
-                  doc.scrollTop -
-                  (isTextArea(element) ? elementScroll.top : 0),
+                top: rect.top,
+                // +
+                // doc.scrollTop -
+                // (isTextArea(element) ? elementScroll.top : 0),
+                y: rect.top,
+                //  +
+                // doc.scrollTop -
+                // (isTextArea(element) ? elementScroll.top : 0),
               };
             }
           );
@@ -98,6 +105,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [nodesWithAlerts, elementScroll, elementRect]);
 
   useEffect(() => {
+    console.log('highlights', highlights);
     const canvas = canvasRef.current;
     if (!canvas) return;
     //makes the canvas ratio correct, needed to make text clear
