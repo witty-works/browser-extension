@@ -1,11 +1,14 @@
 {
   "DISABLED_SITES": [
+    "whatsapp.com",
     "productboard.com",
     "notion.so",
     "airbnb.com",
     "trello.com"
   ],
   "ACTIVE_SITES": [
+    "instagram.com",
+    "facebook.com",
     "camunda.io",
     "camunda.com",
     "leapsome.com",
