@@ -144,7 +144,7 @@ export const getColor = (
   plan?: string
 ): IHighlightColors => {
   if (!userIsSignedIn) return disabledGrey;
-  else if ((!gravity || !hasExplanation) && plan === 'witty_free')
+  else if (!hasExplanation && plan === 'witty_free')
     return disabledGrey;
   else if (!gravity) return inclusiveGreen;
   else if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
