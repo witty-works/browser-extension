@@ -812,7 +812,7 @@ const Input: React.FC<{
       popoverData &&
       userIsSignedIn &&
       popoverData.alert.plan === 'witty_free' &&
-      (!popoverData.alert.data.explanation || !popoverData.alert.data.gravity) //if no explanation returned, its a premium feature, if no gravity it is inclusive (also premium)
+      (!popoverData.alert.data.explanation) //if no explanation returned, its a premium feature
     ) {
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
