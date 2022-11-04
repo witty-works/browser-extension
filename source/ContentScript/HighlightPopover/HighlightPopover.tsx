@@ -213,12 +213,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
         {/* LEARNIGN BITES */}
         <div
-          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer'
+          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
-            window.open(data.alert.data.explanation.url, '_blank');
+            data.alert.data.explanation.url &&
+              window.open(data.alert.data.explanation.url, '_blank');
           }}
           style={{
+            cursor: data.alert.data.explanation.url ? 'pointer' : 'default',
             backgroundColor: isHovered
               ? getColor(data.alert.data.gravity, userIsSignedIn).hover
               : getColor(data.alert.data.gravity, userIsSignedIn).highlight,
