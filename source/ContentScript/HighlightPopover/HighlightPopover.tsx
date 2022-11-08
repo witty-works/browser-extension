@@ -216,11 +216,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
-            data.alert.data.explanation.url &&
+            data.alert.data.explanation &&
+              data.alert.data.explanation.url &&
               window.open(data.alert.data.explanation.url, '_blank');
           }}
           style={{
-            cursor: data.alert.data.explanation.url ? 'pointer' : 'default',
+            cursor:
+              data.alert.data.explanation && data.alert.data.explanation.url
+                ? 'pointer'
+                : 'default',
             backgroundColor: isHovered
               ? getColor(data.alert.data.gravity, userIsSignedIn).hover
               : getColor(data.alert.data.gravity, userIsSignedIn).highlight,
@@ -246,7 +250,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 &nbsp;({data.alert.data.explanation.context})
               </span>
             )}
-            {data.alert.data.explanation.url && (
+            {data.alert.data.explanation && data.alert.data.explanation.url && (
               <div
                 className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
                 style={{ padding: '0.5em 0 0 0' }}
