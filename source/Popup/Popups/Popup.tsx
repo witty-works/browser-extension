@@ -557,7 +557,7 @@ const Popup: React.FC<PopupProps> = ({
                 localConfigDiffersFromDashboard || hasWittyTeams ? '-0.5em' : 0,
             }}
           >
-            {t('loggedInTo', { teamName: teamName })}
+            {t('loggedInTo') + ' "' + teamName + '"'}
           </div>
         </div>
       )}
