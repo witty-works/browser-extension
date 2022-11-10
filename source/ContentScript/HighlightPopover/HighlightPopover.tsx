@@ -168,16 +168,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           >
             <WittyLogo />
           </a>
-          <div className='witty-works-ext-container-row' style={{}}>
+          <div className='witty-works-ext-container-row'>
             <div
               className={
-                data.index === 1
-                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray witty-works-ext-margin-auto'
-                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
+                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
-              onClick={() =>
-                data.index === 1 ? '' : updatePopover('previous')
-              }
+              onClick={() => updatePopover('previous')}
             >
               <PreviousIcon />
             </div>
@@ -187,13 +183,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
             <div
               className={
-                data.index === data.totalAlerts
-                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray witty-works-ext-margin-auto'
-                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
+                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
-              onClick={() =>
-                data.index === data.totalAlerts ? '' : updatePopover('next')
-              }
+              onClick={() => updatePopover('next')}
             >
               <NextIcon />
             </div>
