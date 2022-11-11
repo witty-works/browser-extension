@@ -30,7 +30,7 @@ export const useAnalytics = () => {
         response__results: checkResponse.results,
         response__language: checkResponse.language,
         response__limit_reached: checkResponse.limit_reached,
-        response__groupId: authResponse
+        response__organizationId: authResponse
           ? authResponse.organization_id
           : undefined,
         response__name: authResponse ? authResponse.name : undefined,
@@ -52,7 +52,11 @@ export const useAnalytics = () => {
         ...getResponseData(logResponse),
       };
 
-      captureEvent('alternative', alternativeLogItems, logResponse.groupId);
+      captureEvent(
+        'alternative',
+        alternativeLogItems,
+        logResponse.organizationId
+      );
     },
 
     async ignoreLog(logResponse: IAlert) {
@@ -62,7 +66,7 @@ export const useAnalytics = () => {
         ...getResponseData(logResponse),
       };
 
-      captureEvent('ignore', ignoreLogItems, logResponse.groupId);
+      captureEvent('ignore', ignoreLogItems, logResponse.organizationId);
     },
 
     async popoverLogs(logResponse: IAlert, logType: string) {
@@ -72,7 +76,7 @@ export const useAnalytics = () => {
         ...getResponseData(logResponse),
       };
 
-      captureEvent(logType, popoverLogItems, logResponse.groupId);
+      captureEvent(logType, popoverLogItems, logResponse.organizationId);
     },
 
     async extensionInstallationAndUpdateLog(status: string, appID: string) {
