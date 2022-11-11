@@ -30,7 +30,9 @@ export const useAnalytics = () => {
         response__results: checkResponse.results,
         response__language: checkResponse.language,
         response__limit_reached: checkResponse.limit_reached,
-        response__groupId: authResponse ? authResponse.id : undefined,
+        response__groupId: authResponse
+          ? authResponse.organization_id
+          : undefined,
         response__name: authResponse ? authResponse.name : undefined,
         response__plan: authResponse ? authResponse.plan : undefined,
       };
