@@ -129,24 +129,10 @@ const PopupLogin: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
-        <div
-          className='witty-works-ext-button witty-works-ext-primary-button-red'
-          onClick={() => {
-            logIn(urls).catch((error) => {
-              log(`logIn Error: ${error}`, logTypes.ERROR);
-              sendErrorToSentry(error);
-              setPopupsBlocked(true);
-            });
-          }}
-        >
-          {t('signUp')}
-        </div>
-        <div className='witty-works-ext-lato-popup-text'>
-          {t('haveAccount')}
-          &nbsp;
-          <span
-            className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
+      {!popupsBlocked && (
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
+          <div
+            className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
               logIn(urls).catch((error) => {
                 log(`logIn Error: ${error}`, logTypes.ERROR);
@@ -155,10 +141,26 @@ const PopupLogin: React.FC = () => {
               });
             }}
           >
-            {t('signIn')}
-          </span>
+            {t('signUp')}
+          </div>
+          <div className='witty-works-ext-lato-popup-text'>
+            {t('haveAccount')}
+            &nbsp;
+            <span
+              className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
+              onClick={() => {
+                logIn(urls).catch((error) => {
+                  log(`logIn Error: ${error}`, logTypes.ERROR);
+                  sendErrorToSentry(error);
+                  setPopupsBlocked(true);
+                });
+              }}
+            >
+              {t('signIn')}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
       {popupsBlocked && (
         <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left witty-works-ext-margin-top'>
           <div className='witty-works-ext-lato-small-paragraph-title-h4'>
