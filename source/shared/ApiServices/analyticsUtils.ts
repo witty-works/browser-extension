@@ -9,13 +9,13 @@ const ph = browserPostHog(POSTHOG_API_KEY);
 export const captureEvent = (
   eventName: string,
   eventData: object,
-  groupId: string | null | undefined
+  organizationId: string | null | undefined
 ) => {
-  if (groupId) {
+  if (organizationId) {
     ph.capture(eventName, {
       ...eventData,
       $groups: {
-        organization: groupId,
+        organization: organizationId,
       },
     });
   } else {
@@ -31,7 +31,7 @@ export const getResponseData = (logResponse: IAlert) => {
     response__startOffset: logResponse.startOffset,
     response__endOffset: logResponse.endOffset,
     response__popOverIsOpen: logResponse.popOverIsOpen,
-    response__groupId: logResponse.groupId,
+    response__organizationId: logResponse.organizationId,
     response__plan: logResponse.plan,
     response__data__language: logResponse.data.language,
     response__data__category: logResponse.data.category,
