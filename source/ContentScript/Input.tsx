@@ -53,7 +53,9 @@ const Input: React.FC<{
     useCheckEndpoint();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
-  const [, , previousTextToCheckRef] = useStateRef('');
+  const [, , previousTextToCheckRef] = useStateRef<string>('');
+  const [, , previousElementToCheckRef] =
+    useStateRef<CustomInputElement | null>(null);
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
@@ -205,6 +207,15 @@ const Input: React.FC<{
 
   const handleKeyupEvent = (event?: Event) => {
     if (prevSelectedAlertIndex.current != -1) resetPopover();
+    /////////////////////////////////
+    const newElement = element;
+
+    console.log('NEW element: ', newElement);
+    //previous element
+    console.log('PREVIOUS elemetn: ', previousElementToCheckRef.current);
+
+    previousElementToCheckRef.current = newElement;
+    /////////////////////////////////
 
     browser.storage.local
       .get(StorageKeys.ORTHOGRAPHY)
@@ -216,6 +227,8 @@ const Input: React.FC<{
       });
 
     let nextText: string = getInputText(element);
+    console.log('NEW nextText: ', nextText);
+    console.log('PREVIOUS nextText: ', previousTextToCheckRef.current);
     const fistTextDiff = getFirstTextDiff(
       previousTextToCheckRef.current,
       nextText
@@ -812,7 +825,7 @@ const Input: React.FC<{
       popoverData &&
       userIsSignedIn &&
       popoverData.alert.plan === 'witty_free' &&
-      (!popoverData.alert.data.explanation) //if no explanation returned, its a premium feature
+      !popoverData.alert.data.explanation //if no explanation returned, its a premium feature
     ) {
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
