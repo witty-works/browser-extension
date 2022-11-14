@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
-import { BaseUrls, StorageKeys, WTags, DEV_ENV } from '../shared/constants';
+import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
 import { isInputText, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, IAuthResponse } from '../shared/types';
 import {
@@ -13,6 +13,10 @@ import { createUrl } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
 
 export const updateConfig = (response: IAuthResponse) => {
+  response.organization_id &&
+    storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response.organization_id);
+  response.id && storeInLocalStorage(StorageKeys.USER_ID, response.id);
+
   response.domains &&
     storeInLocalStorage(StorageKeys.DOMAINS, response.domains.list);
 
@@ -31,10 +35,6 @@ export const updateConfig = (response: IAuthResponse) => {
       StorageKeys.ORGANIZATION_CONFIG_HASH,
       response.organization_config_hash
     );
-
-  response.id &&
-    DEV_ENV &&
-    storeInLocalStorage(StorageKeys.APP_ID, response.id);
 
   response.organization_name &&
     storeInLocalStorage(StorageKeys.TEAM_NAME, response.organization_name);

@@ -62,7 +62,8 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   };
 
   useEffect(() => {
-    analytics.popoverLogs(data.alert, 'popover_open');
+    analytics.popoverLogs(data.alert, 'popover_open', true);
+    analytics.popoverLogs(data.alert, 'popover_open', false);
   }, [data]);
 
   const logIn = async (urls: string) => {
@@ -192,7 +193,8 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   };
 
   const hidePopover = () => {
-    analytics.popoverLogs(data.alert, 'popover_close');
+    analytics.popoverLogs(data.alert, 'popover_close', true);
+    analytics.popoverLogs(data.alert, 'popover_close', false);
     hide();
   };
 

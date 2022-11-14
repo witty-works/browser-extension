@@ -503,7 +503,15 @@ const Input: React.FC<{
     analytics.checkLog(
       checkEndpointResponse,
       authResponse,
-      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
+      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
+      false
+    );
+
+    analytics.checkLog(
+      checkEndpointResponse,
+      authResponse,
+      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
+      true
     );
 
     log(
@@ -520,7 +528,8 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId: authResponse ? authResponse.id : undefined,
+        organizationId: authResponse ? authResponse.organization_id : undefined,
+        userId: authResponse ? authResponse.id : undefined,
         plan: authResponse ? authResponse.plan : undefined,
         data: {
           language: checkEndpointResponse.language,

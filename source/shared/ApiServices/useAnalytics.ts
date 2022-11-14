@@ -14,89 +14,98 @@ import {
   getRequestData,
   getResponseData,
 } from './analyticsUtils';
-import { appID } from './requests';
 
 export const useAnalytics = () => {
   return {
     async checkLog(
       checkResponse: ICheckResponse,
       authResponse: IAuthResponse | null,
-      inputLength: number
+      inputLength: number,
+      isEuInstance: boolean
     ) {
       const checkLogItems: ICheckLogItems = {
         request__type: 'check',
         request__text__length: inputLength,
-        ...getRequestData(appID),
+        ...getRequestData(),
         response__results: checkResponse.results,
         response__language: checkResponse.language,
         response__limit_reached: checkResponse.limit_reached,
-        response__groupId: authResponse ? authResponse.id : undefined,
+        response__organizationId: authResponse
+          ? authResponse.organization_id
+          : undefined,
         response__name: authResponse ? authResponse.name : undefined,
         response__plan: authResponse ? authResponse.plan : undefined,
       };
 
-      captureEvent(
-        'check',
-        checkLogItems,
-        authResponse ? authResponse.id : null
-      );
+      captureEvent('check', checkLogItems, isEuInstance);
     },
 
-    async alternativeLog(logResponse: IAlert, alternative: string) {
+    async alternativeLog(
+      logResponse: IAlert,
+      alternative: string,
+      isEuInstance: boolean
+    ) {
       const alternativeLogItems: IAlternativeLogItems = {
         request__type: 'alternative',
         request__alternative: alternative,
-        ...getRequestData(appID),
+        ...getRequestData(),
         ...getResponseData(logResponse),
       };
 
-      captureEvent('alternative', alternativeLogItems, logResponse.groupId);
+      captureEvent('alternative', alternativeLogItems, isEuInstance);
     },
 
-    async ignoreLog(logResponse: IAlert) {
+    async ignoreLog(logResponse: IAlert, isEuInstance: boolean) {
       const ignoreLogItems: IIgnoreLogItems = {
         request__type: 'ignore',
-        ...getRequestData(appID),
+        ...getRequestData(),
         ...getResponseData(logResponse),
       };
 
-      captureEvent('ignore', ignoreLogItems, logResponse.groupId);
+      captureEvent('ignore', ignoreLogItems, isEuInstance);
     },
 
-    async popoverLogs(logResponse: IAlert, logType: string) {
+    async popoverLogs(
+      logResponse: IAlert,
+      logType: string,
+      isEuInstance: boolean
+    ) {
       const popoverLogItems: ILogItems = {
         request__type: logType,
-        ...getRequestData(appID),
+        ...getRequestData(),
         ...getResponseData(logResponse),
       };
 
-      captureEvent(logType, popoverLogItems, logResponse.groupId);
+      captureEvent(logType, popoverLogItems, isEuInstance);
     },
 
-    async extensionInstallationAndUpdateLog(status: string, appID: string) {
-      captureEvent(status, getRequestData(appID), null);
+    async extenstionStatusLog(status: string, isEuInstance: boolean) {
+      captureEvent(status, getRequestData(), isEuInstance);
     },
 
-    async extenstionStatusLog(status: string) {
-      captureEvent(status, getRequestData(appID), null);
-    },
-
-    async urlLog(url: string, appID: string, type: string) {
+    async urlLog(url: string, type: string, isEuInstance: boolean) {
       const voteItems: IVoteLogRequest = {
         request__type: 'vote',
         vote__url: url,
-        ...getRequestData(appID),
+        ...getRequestData(),
       };
-      captureEvent(type, voteItems, null);
+      captureEvent(type, voteItems, isEuInstance);
     },
 
-    async dashboardLog(location: string, appID: string) {
+    async dashboardLog(location: string, isEuInstance: boolean) {
       const dashboardItems: IDashboardLogRequest = {
         request__type: 'dashboard',
         dashboard__location: location,
-        ...getRequestData(appID),
+        ...getRequestData(),
       };
-      captureEvent('dashboard', dashboardItems, null);
+      captureEvent('dashboard', dashboardItems, isEuInstance);
+    },
+
+    async extensionInstallationAndUpdateLog(
+      status: string,
+      isEuInstance: boolean
+    ) {
+      captureEvent(status, getRequestData(), isEuInstance);
     },
   };
 };

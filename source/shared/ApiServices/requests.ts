@@ -8,6 +8,7 @@ let configHash: string = '';
 let organizationConfigHash: string = '';
 
 export let appID: string = ''; // TODO context hook
+
 export let requestConfig: RequestConfig = {} as RequestConfig;
 let filteredRequestConfig = {} as FilteredRequestConfig;
 
