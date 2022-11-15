@@ -526,8 +526,7 @@ const Popup: React.FC<PopupProps> = ({
                 onClick={() => {
                   setSurveyResponse('yes');
                   setShowSurvey(false);
-                  analytics.urlLog(domain, 'wittyWorksAsExpected', true);
-                  analytics.urlLog(domain, 'wittyWorksAsExpected', false);
+                  analytics.urlLog(domain, 'wittyWorksAsExpected');
                 }}
               >
                 {t('surveyButtonYes')}
@@ -539,8 +538,7 @@ const Popup: React.FC<PopupProps> = ({
                   setEnabled({ enabled: false, updateDashboard: false });
                   setSurveyResponse('');
                   setDomainIsSetToNotWorking(true);
-                  analytics.urlLog(domain, 'wittyDoesNotWorkAsExpected', true);
-                  analytics.urlLog(domain, 'wittyDoesNotWorkAsExpected', false);
+                  analytics.urlLog(domain, 'wittyDoesNotWorkAsExpected');
                 }}
               >
                 {t('surveyButtonNo')}

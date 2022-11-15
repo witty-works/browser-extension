@@ -59,8 +59,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   };
 
   useEffect(() => {
-    analytics.popoverLogs(data.alert, 'popover_open', true);
-    analytics.popoverLogs(data.alert, 'popover_open', false);
+    analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
 
   useEffect(() => {
@@ -162,8 +161,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   };
 
   const hidePopover = () => {
-    analytics.popoverLogs(data.alert, 'popover_close', true);
-    analytics.popoverLogs(data.alert, 'popover_close', false);
+    analytics.popoverLogs(data.alert, 'popover_close');
     addIgnoredCategory(data.alert.data.gravity, data.alert.data.explanation);
     hide();
   };

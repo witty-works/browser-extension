@@ -55,8 +55,7 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
         <div
           className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'
           onClick={() => {
-            analytics.urlLog(domain, 'vote', true);
-            analytics.urlLog(domain, 'vote', false);
+            analytics.urlLog(domain, 'vote');
             setHasVoted(true);
           }}
         >

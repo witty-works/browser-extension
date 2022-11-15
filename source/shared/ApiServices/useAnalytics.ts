@@ -20,8 +20,7 @@ export const useAnalytics = () => {
     async checkLog(
       checkResponse: ICheckResponse,
       authResponse: IAuthResponse | null,
-      inputLength: number,
-      isEuInstance: boolean
+      inputLength: number
     ) {
       const checkLogItems: ICheckLogItems = {
         request__type: 'check',
@@ -37,14 +36,10 @@ export const useAnalytics = () => {
         response__plan: authResponse ? authResponse.plan : undefined,
       };
 
-      captureEvent('check', checkLogItems, isEuInstance);
+      captureEvent('check', checkLogItems);
     },
 
-    async alternativeLog(
-      logResponse: IAlert,
-      alternative: string,
-      isEuInstance: boolean
-    ) {
+    async alternativeLog(logResponse: IAlert, alternative: string) {
       const alternativeLogItems: IAlternativeLogItems = {
         request__type: 'alternative',
         request__alternative: alternative,
@@ -52,60 +47,53 @@ export const useAnalytics = () => {
         ...getResponseData(logResponse),
       };
 
-      captureEvent('alternative', alternativeLogItems, isEuInstance);
+      captureEvent('alternative', alternativeLogItems);
     },
 
-    async ignoreLog(logResponse: IAlert, isEuInstance: boolean) {
+    async ignoreLog(logResponse: IAlert) {
       const ignoreLogItems: IIgnoreLogItems = {
         request__type: 'ignore',
         ...getRequestData(),
         ...getResponseData(logResponse),
       };
 
-      captureEvent('ignore', ignoreLogItems, isEuInstance);
+      captureEvent('ignore', ignoreLogItems);
     },
 
-    async popoverLogs(
-      logResponse: IAlert,
-      logType: string,
-      isEuInstance: boolean
-    ) {
+    async popoverLogs(logResponse: IAlert, logType: string) {
       const popoverLogItems: ILogItems = {
         request__type: logType,
         ...getRequestData(),
         ...getResponseData(logResponse),
       };
 
-      captureEvent(logType, popoverLogItems, isEuInstance);
+      captureEvent(logType, popoverLogItems);
     },
 
-    async extenstionStatusLog(status: string, isEuInstance: boolean) {
-      captureEvent(status, getRequestData(), isEuInstance);
+    async extenstionStatusLog(status: string) {
+      captureEvent(status, getRequestData());
     },
 
-    async urlLog(url: string, type: string, isEuInstance: boolean) {
+    async urlLog(url: string, type: string) {
       const voteItems: IVoteLogRequest = {
         request__type: 'vote',
         vote__url: url,
         ...getRequestData(),
       };
-      captureEvent(type, voteItems, isEuInstance);
+      captureEvent(type, voteItems);
     },
 
-    async dashboardLog(location: string, isEuInstance: boolean) {
+    async dashboardLog(location: string) {
       const dashboardItems: IDashboardLogRequest = {
         request__type: 'dashboard',
         dashboard__location: location,
         ...getRequestData(),
       };
-      captureEvent('dashboard', dashboardItems, isEuInstance);
+      captureEvent('dashboard', dashboardItems);
     },
 
-    async extensionInstallationAndUpdateLog(
-      status: string,
-      isEuInstance: boolean
-    ) {
-      captureEvent(status, getRequestData(), isEuInstance);
+    async extensionInstallationAndUpdateLog(status: string) {
+      captureEvent(status, getRequestData());
     },
   };
 };

@@ -44,8 +44,7 @@ export const storeInLocalStorage = (key: string, value: any) => {
     .catch((error: unknown) => {
       //this error means that the extension was deactivated or uninstalled, in this case we delete the container
       if (error == 'Error: Extension context invalidated.') {
-        useAnalytics().extenstionStatusLog('deactivated', true);
-        useAnalytics().extenstionStatusLog('deactivated', false);
+        useAnalytics().extenstionStatusLog('deactivated');
         const container = getActiveDocument().getElementsByTagName(
           WTags.WW_CONTAINER
         );

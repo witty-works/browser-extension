@@ -57,8 +57,7 @@ const addEventListeners = () => {
 };
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
-  analytics.extensionInstallationAndUpdateLog(details.reason, true);
-  analytics.extensionInstallationAndUpdateLog(details.reason, false);
+  analytics.extensionInstallationAndUpdateLog(details.reason);
   browser.browserAction.setIcon(WittyIconActive);
   if (!DEV_ENV)
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');

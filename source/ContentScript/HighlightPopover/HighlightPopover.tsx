@@ -53,8 +53,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
   useEffect(() => {
-    analytics.popoverLogs(data.alert, 'popover_open', true);
-    analytics.popoverLogs(data.alert, 'popover_open', false);
+    analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
 
   useEffect(() => {
@@ -126,8 +125,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   const hidePopover = () => {
-    analytics.popoverLogs(data.alert, 'popover_close', true);
-    analytics.popoverLogs(data.alert, 'popover_close', false);
+    analytics.popoverLogs(data.alert, 'popover_close');
     hide();
   };
 
@@ -139,15 +137,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const clickAlternative = (alternative: string) => {
     //Log the clicked alternative
-    analytics.alternativeLog(data.alert, alternative, true);
-    analytics.alternativeLog(data.alert, alternative, false);
+    analytics.alternativeLog(data.alert, alternative);
     updateTextWithAlternative(alternative);
   };
 
   const clickIgnoreTerm = () => {
     //Log when user chooses to ignore a term
-    analytics.ignoreLog(data.alert, true);
-    analytics.ignoreLog(data.alert, false);
+    analytics.ignoreLog(data.alert);
     addIgnoredTerm(data.alert.data.text);
     hide();
   };
@@ -211,8 +207,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         <div
           className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
           onClick={() => {
-            analytics.popoverLogs(data.alert, 'learning_bites', true);
-            analytics.popoverLogs(data.alert, 'learning_bites', false);
+            analytics.popoverLogs(data.alert, 'learning_bites');
             data.alert.data.explanation &&
               data.alert.data.explanation.url &&
               window.open(data.alert.data.explanation.url, '_blank');
@@ -335,8 +330,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
-              analytics.dashboardLog('popover', true);
-              analytics.dashboardLog('popover', false);
+              analytics.dashboardLog('popover');
               window.open(
                 getBaseUrls().dashboard + 'user/language/language-settings',
                 '_blank'

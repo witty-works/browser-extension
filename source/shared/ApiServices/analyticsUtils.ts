@@ -1,35 +1,58 @@
 import { IAlert } from '../types';
-import { appID, requestConfig } from './requests';
+import { requestConfig } from './requests';
 import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
-import {
-  POSTHOG_API_KEY_EU,
-  POSTHOG_API_KEY_US,
-  StorageKeys,
-  wittyVersion,
-} from '../constants';
+import { POSTHOG_API_KEY_EU, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
+import { sendErrorToSentry } from '../errorUtils';
+import { storeInLocalStorage } from '../utils';
 
-export const captureEvent = (
-  eventName: string,
-  eventData: object,
-  isEuInstance: boolean
-) => {
+export const aliasId = async (userId: string, appId: string) => {
+  const request = {
+    api_key: POSTHOG_API_KEY_EU,
+    properties: {
+      distinct_id: appId,
+      alias: userId,
+    },
+    timestamp: new Date().toISOString(),
+    context: '{}',
+    type: 'alias',
+    event: '$create_alias',
+  };
+
+  const response = await fetch('https://eu.posthog.com/capture/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  }).catch((error) => {
+    sendErrorToSentry(error);
+  });
+
+  if (response && response.status === 200) {
+    storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, true);
+  }
+};
+
+export const captureEvent = (eventName: string, eventData: object) => {
   browser.storage.local.get().then((result) => {
     const userId = result[StorageKeys.USER_ID];
     const organizationId = result[StorageKeys.ORGANIZATION_ID];
-    const apiKey = getApiKeyByInstance(isEuInstance);
+    const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];
+    const appId = result[StorageKeys.APP_ID];
 
-    const ph = browserPostHog(apiKey ? apiKey : '', {
-      apiHost: isEuInstance
-        ? 'https://eu.posthog.com'
-        : 'https://app.posthog.com',
+    !idWasAliased && userId && aliasId(userId, appId);
+
+    const ph = browserPostHog(POSTHOG_API_KEY_EU, {
+      apiHost: 'https://eu.posthog.com',
     });
 
-    ph.session.distinctId = isEuInstance ? userId : appID;
+    ph.session.distinctId = userId ? userId : appId;
 
-    if (organizationId && isEuInstance) {
+    if (organizationId) {
       ph.capture(eventName, {
         ...eventData,
+        request__app_id: appId,
         $groups: {
           organization: organizationId,
         },
@@ -40,11 +63,6 @@ export const captureEvent = (
       });
     }
   });
-};
-
-export const getApiKeyByInstance = (isEuInstance: boolean) => {
-  const apiKey = isEuInstance ? POSTHOG_API_KEY_EU : POSTHOG_API_KEY_US;
-  return apiKey;
 };
 
 export const getResponseData = (logResponse: IAlert) => {
