@@ -171,10 +171,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div className='witty-works-ext-container-row'>
             <div
               className={
-                data.index !== 1
-                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
-                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-auto'
+                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
+              style={data.index === 1 ? { display: 'none' } : {}}
               onClick={() => data.index !== 1 && updatePopover('previous')}
             >
               <PreviousIcon />
@@ -185,10 +184,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
             <div
               className={
-                data.index !== data.totalAlerts
-                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
-                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-auto'
+                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
+              style={data.index === data.totalAlerts ? { display: 'none' } : {}}
               onClick={() =>
                 data.index !== data.totalAlerts && updatePopover('next')
               }
