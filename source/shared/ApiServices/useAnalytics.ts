@@ -40,7 +40,7 @@ export const useAnalytics = () => {
       captureEvent(
         'check',
         checkLogItems,
-        authResponse ? authResponse.id : null
+        authResponse ? authResponse.organization_id : null
       );
     },
 
