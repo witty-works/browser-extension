@@ -7,7 +7,7 @@ export const wittyVersion = browser.runtime.getManifest().version;
 export const DEV_ENV = true;
 
 export const POSTHOG_API_KEY = DEV_ENV
-  ? 'phc_o3cjCKKkO7rn3CTBUJNmehFoa6vPc3zYavfnGj7WyqK'
+  ? 'phc_QiISRw0yFAsndXqYD0HmfGvHaOBMxb57ZRIxlimvR64'
   : 'phc_tmJbApENFHLXMjwG1hHMYO4Md8qR4XAGRforELIiDwp';
 
 //Storage
@@ -144,8 +144,7 @@ export const getColor = (
   plan?: string
 ): IHighlightColors => {
   if (!userIsSignedIn) return disabledGrey;
-  else if (!hasExplanation && plan === 'witty_free')
-    return disabledGrey;
+  else if (!hasExplanation && plan === 'witty_free') return disabledGrey;
   else if (!gravity) return inclusiveGreen;
   else if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
   else if (gravity > 2.5) return styleYellow;
