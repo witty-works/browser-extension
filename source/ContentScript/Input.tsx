@@ -411,8 +411,10 @@ const Input: React.FC<{
   const movePopoverNextOrPrev = (direction: string): void => {
     if (direction === 'previous') {
       if (selectedAlertIndex === 0) {
+        setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex - 1);
         setSelectedAlertIndex(
-          nodesWithAlerts[selectedNodeWithAlertsIndex].alerts.length - 1
+          nodesWithAlertsRef.current[selectedNodeWithAlertsIndex - 1].alerts
+            .length - 1
         );
       } else {
         setSelectedAlertIndex(selectedAlertIndex - 1);
@@ -423,6 +425,7 @@ const Input: React.FC<{
         nodesWithAlertsRef.current[selectedNodeWithAlertsIndex].alerts.length -
           1
       ) {
+        setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex + 1);
         setSelectedAlertIndex(0);
       } else {
         setSelectedAlertIndex(selectedAlertIndex + 1);
