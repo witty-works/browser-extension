@@ -173,7 +173,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               className={
                 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
-              onClick={() => updatePopover('previous')}
+              style={data.index === 1 ? { display: 'none' } : {}}
+              onClick={() => data.index !== 1 && updatePopover('previous')}
             >
               <PreviousIcon />
             </div>
@@ -185,7 +186,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               className={
                 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
-              onClick={() => updatePopover('next')}
+              style={data.index === data.totalAlerts ? { display: 'none' } : {}}
+              onClick={() =>
+                data.index !== data.totalAlerts && updatePopover('next')
+              }
             >
               <NextIcon />
             </div>
