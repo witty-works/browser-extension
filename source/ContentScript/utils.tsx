@@ -97,7 +97,6 @@ export const getInputText = (element: CustomInputElement) =>
 export const customRender = (enabled: boolean) => {
   if (!document.querySelector(WTags.WW_POPOVER)) {
     const element = document.createElement(WTags.WW_POPOVER);
-    element.setAttribute('extension-id', browser.runtime.id);
     document.body.appendChild(element);
   }
 
