@@ -12,8 +12,8 @@ import {
   addInactiveBadge,
   addLoginBadge,
   addNotificationBadge,
-  getBrowserId,
   getDomainWithoutSubdomain,
+  getRandomToken,
   isFunction,
   removeBadge,
   updateLabelChrome,
@@ -86,8 +86,8 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
     .get()
     .then((result) => {
       let savedValue: DefaultConfigValue = result[key];
-      const devAppId = result[StorageKeys.APP_ID];
-      if (!savedValue || savedValue == devAppId || DEV_ENV) {
+      const appId = result[StorageKeys.APP_ID];
+      if (!savedValue || savedValue == appId || DEV_ENV) {
         let valueToSave = isFunction(value as Function)
           ? (value as Function)()
           : value;
@@ -112,7 +112,7 @@ const setSettings = () => {
     }
   }
   //Set browser id
-  setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
+  setInLocalStorage(StorageKeys.APP_ID, getRandomToken());
 };
 
 const scanTabsToDetectStatus = () => {
