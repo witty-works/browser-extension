@@ -275,7 +275,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               </div>
               <div>
                 {data.alert.data.alternatives
-                  .slice(0, 5)
                   .map((alternative, index) =>
                     alternative.remove ? (
                       <div
