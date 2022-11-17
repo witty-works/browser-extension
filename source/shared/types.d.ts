@@ -116,7 +116,7 @@ export interface IAlert {
   endOffset: number;
   popOverIsOpen: boolean;
   data: IAlertContentData;
-  groupId?: string;
+  organizationId?: string;
   plan?: string;
 }
 export interface IAlertContentData {
@@ -158,7 +158,7 @@ export interface ILogItems {
   response__startOffset: number;
   response__endOffset: number;
   response__popOverIsOpen: boolean;
-  response__groupId?: string;
+  response__organizationId?: string;
   response__plan?: string;
   response__data__language: string;
   response__data__category: string;
@@ -203,7 +203,7 @@ export interface ICheckLogItems {
   request__config__preferred_variants: ConfigProperty;
   request__config__german_gender_ending: ConfigProperty;
   request__text__length: number;
-  response__groupId?: string;
+  response__organizationId?: string;
   response__plan?: string;
   response__name?: string;
   response__results: ICheckResponseResult[];

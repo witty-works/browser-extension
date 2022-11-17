@@ -275,24 +275,10 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
           </div>
         </div>
 
-        <div className='witty-works-ext-left witty-works-ext-margin-bottom'>
-          <div
-            className='witty-works-ext-button witty-works-ext-primary-button-red'
-            onClick={() => {
-              logIn(urls).catch((error) => {
-                log(`logIn Error: ${error}`, logTypes.ERROR);
-                sendErrorToSentry(error);
-                setPopupsBlocked(true);
-              });
-            }}
-          >
-            {t('signUp')}
-          </div>
-          <div className='witty-works-ext-lato-popup-text'>
-            {t('haveAccount')}
-            &nbsp;
-            <span
-              className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
+        {!popupsBlocked && (
+          <div className='witty-works-ext-left witty-works-ext-margin-bottom'>
+            <div
+              className='witty-works-ext-button witty-works-ext-primary-button-red'
               onClick={() => {
                 logIn(urls).catch((error) => {
                   log(`logIn Error: ${error}`, logTypes.ERROR);
@@ -301,12 +287,28 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
                 });
               }}
             >
-              {t('signIn')}
-            </span>
+              {t('signUp')}
+            </div>
+            <div className='witty-works-ext-lato-popup-text'>
+              {t('haveAccount')}
+              &nbsp;
+              <span
+                className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
+                onClick={() => {
+                  logIn(urls).catch((error) => {
+                    log(`logIn Error: ${error}`, logTypes.ERROR);
+                    sendErrorToSentry(error);
+                    setPopupsBlocked(true);
+                  });
+                }}
+              >
+                {t('signIn')}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
         {popupsBlocked && (
-          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-full-padding witty-works-ext-margin-top witty-works-ext-margin-bottom witty-works-ext-cursor-pointer witty-works-ext-light-gray-background'>
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-full-padding witty-works-ext-margin-bottom witty-works-ext-cursor-pointer witty-works-ext-light-gray-background'>
             <div
               className='witty-works-ext-lato-small-paragraph-title-h4'
               style={{ marginRight: 'auto' }}

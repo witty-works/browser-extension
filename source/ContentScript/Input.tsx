@@ -536,7 +536,7 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId: authResponse ? authResponse.id : undefined,
+        organizationId: authResponse ? authResponse.organization_id : undefined,
         plan: authResponse ? authResponse.plan : undefined,
         data: {
           language: checkEndpointResponse.language,
