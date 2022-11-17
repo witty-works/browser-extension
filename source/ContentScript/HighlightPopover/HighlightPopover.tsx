@@ -18,7 +18,7 @@ import PreviousIcon from '../../assets/icons/popover/previous.svg';
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
-import { appID, getBaseUrls } from '../../shared/ApiServices/requests';
+import { getBaseUrls } from '../../shared/ApiServices/requests';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -334,7 +334,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
-              analytics.dashboardLog('popover', appID);
+              analytics.dashboardLog('popover');
               window.open(
                 getBaseUrls().dashboard + 'user/language/language-settings',
                 '_blank'

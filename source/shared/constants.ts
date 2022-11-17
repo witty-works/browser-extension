@@ -1,14 +1,13 @@
 import { browser } from 'webextension-polyfill-ts';
 import { IExplanation } from './types';
-
 export const wittyVersion = browser.runtime.getManifest().version;
 
 //Development
 export const DEV_ENV = true;
 
-export const POSTHOG_API_KEY = DEV_ENV
-  ? 'phc_QiISRw0yFAsndXqYD0HmfGvHaOBMxb57ZRIxlimvR64'
-  : 'phc_tmJbApENFHLXMjwG1hHMYO4Md8qR4XAGRforELIiDwp';
+export const POSTHOG_API_KEY_EU = DEV_ENV
+  ? 'phc_DUofw8HC9GUENhXmZ8Wan7DGAvmWFrFnNCxoViLmuhx'
+  : 'phc_i1tlvuh1iecIOSEr0QmTEIklrsSJGhULpUwUlf8fkkl';
 
 //Storage
 export enum StorageKeys {
@@ -46,6 +45,11 @@ export enum StorageKeys {
 
   REDIRECT_URL_LOGIN = 'redirectUrlLogin',
   IGNORED_CATEGORIES = 'ignoredCategories',
+
+  USER_ID = 'userId',
+  ORGANIZATION_ID = 'organizationId',
+
+  ID_WAS_ALIASED = 'idWasAliased',
 }
 
 //nlp api, dashboard
@@ -201,7 +205,6 @@ export const dropdownOptions = [
   },
 ];
 
-export const devAppId = 'DEV_APP_ID';
 export const exposeWittyIdAllowList = DEV_ENV
   ? ['lndo.site', 'platformsh.site', 'witty.works']
   : ['witty.works'];
