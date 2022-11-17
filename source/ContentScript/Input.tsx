@@ -23,6 +23,7 @@ import {
   storeInLocalStorage,
   getFirstTextDiff,
   addLoginBadge,
+  getFirstTextDiffElement,
 } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
@@ -207,15 +208,11 @@ const Input: React.FC<{
 
   const handleKeyupEvent = (event?: Event) => {
     if (prevSelectedAlertIndex.current != -1) resetPopover();
-    /////////////////////////////////
-    const newElement = element;
-
-    console.log('NEW element: ', newElement);
-    //previous element
-    console.log('PREVIOUS elemetn: ', previousElementToCheckRef.current);
-
-    previousElementToCheckRef.current = newElement;
-    /////////////////////////////////
+    const result = getFirstTextDiffElement(
+      element,
+      previousElementToCheckRef.current
+    );
+    console.log(result);
 
     browser.storage.local
       .get(StorageKeys.ORTHOGRAPHY)
@@ -227,13 +224,12 @@ const Input: React.FC<{
       });
 
     let nextText: string = getInputText(element);
-    console.log('NEW nextText: ', nextText);
-    console.log('PREVIOUS nextText: ', previousTextToCheckRef.current);
     const fistTextDiff = getFirstTextDiff(
       previousTextToCheckRef.current,
       nextText
     );
 
+    console.log('fistTextDiff', fistTextDiff);
     if (isTextArea(element)) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
