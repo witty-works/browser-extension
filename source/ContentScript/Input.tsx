@@ -23,7 +23,6 @@ import {
   storeInLocalStorage,
   getFirstTextDiff,
   addLoginBadge,
-  getFirstTextDiffElement,
 } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
@@ -42,7 +41,7 @@ import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
-import { getInputText, updateConfig } from './utils';
+import { getInputText, getTextDividedByNodes, updateConfig } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
 import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
@@ -55,8 +54,7 @@ const Input: React.FC<{
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
   const [, , previousTextToCheckRef] = useStateRef<string>('');
-  const [, , previousElementToCheckRef] =
-    useStateRef<CustomInputElement | null>(null);
+  const [, , previousElementStateRef] = useStateRef<string[]>([]);
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
@@ -208,11 +206,6 @@ const Input: React.FC<{
 
   const handleKeyupEvent = (event?: Event) => {
     if (prevSelectedAlertIndex.current != -1) resetPopover();
-    const result = getFirstTextDiffElement(
-      element,
-      previousElementToCheckRef.current
-    );
-    console.log(result);
 
     browser.storage.local
       .get(StorageKeys.ORTHOGRAPHY)
@@ -223,33 +216,38 @@ const Input: React.FC<{
         sendErrorToSentry(error);
       });
 
-    let nextText: string = getInputText(element);
+    const nextTextDividedByNodes = getTextDividedByNodes(element);
+
     const fistTextDiff = getFirstTextDiff(
-      previousTextToCheckRef.current,
-      nextText
+      nextTextDividedByNodes,
+      previousElementStateRef.current
     );
 
-    console.log('fistTextDiff', fistTextDiff);
-    if (isTextArea(element)) {
+    previousElementStateRef.current = nextTextDividedByNodes;
+
+    let nextText: string = getInputText(element);
+
+    if (isTextArea(element) && fistTextDiff) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
-          (alert) => alert.startOffset < fistTextDiff
+          (alert) => alert.startOffset < fistTextDiff.position
         )
       );
-      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
-    } else {
-      const nextTextAtFistTextDiff = nextText.substring(
-        fistTextDiff,
-        nextText.length
+      unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
+    } else if (fistTextDiff) {
+      const unchangedNodes = nextTextDividedByNodes.slice(0, fistTextDiff.node);
+      const unchangedNodesWithAlerts = nodesWithAlertsRef.current.filter(
+        (nodeWithAlerts) =>
+          nodeWithAlerts.node.nodeValue &&
+          unchangedNodes.includes(nodeWithAlerts.node.nodeValue)
       );
 
-      if (nextTextAtFistTextDiff.length > 3) {
-        setAlerts([]);
-      }
+      setNodesWithAlerts(unchangedNodesWithAlerts);
     }
 
     previousTextToCheckRef.current = nextText;
 
+    //TODO: only send text that was changed
     handleTextAndIcon(nextText, event);
   };
 

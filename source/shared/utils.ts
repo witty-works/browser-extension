@@ -11,7 +11,6 @@ import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import { isCkeEditor, isTextArea, isTinyMceEditor } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
-import { CustomInputElement } from './types';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -86,32 +85,15 @@ export const maximumImportanceToBoolean = (value: number) =>
 
 export const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
-export const getFirstTextDiff = (previousText: string, nextText: string) => {
-  console.log('getFirstTextDiff previousText', previousText);
-  console.log('getFirstTextDiff nextText', nextText);
-  let i = 0;
-  while (
-    i < previousText.length &&
-    i < nextText.length &&
-    previousText[i] == nextText[i]
-  ) {
-    i++;
-  }
-  return i;
-};
-
-export const getFirstTextDiffElement = (
-  previousElement: CustomInputElement,
-  nextElement: CustomInputElement | null
+export const getFirstTextDiff = (
+  previousTextArray: string[],
+  newTextArray: string[]
 ) => {
-  if (!nextElement) return 0;
+  if (!newTextArray) return 0;
   //in what node the diff is
-  let node = 0;
-  for (let i = 0; i < previousElement.childNodes.length; i++) {
-    if (
-      previousElement.childNodes[i].textContent !==
-      nextElement.childNodes[i].textContent
-    ) {
+  let node = 1;
+  for (let i = 0; i < previousTextArray.length; i++) {
+    if (previousTextArray[i] !== newTextArray[i]) {
       node = i;
       break;
     }
@@ -119,8 +101,8 @@ export const getFirstTextDiffElement = (
 
   //in what position in the node the diff is
   let position = 0;
-  const previousText = previousElement.childNodes[node].textContent;
-  const nextText = nextElement.childNodes[node].textContent;
+  const previousText = previousTextArray[node];
+  const nextText = newTextArray[node];
   if (!previousText || !nextText) return;
   while (
     position < previousText.length &&
