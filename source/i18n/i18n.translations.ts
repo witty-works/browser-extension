@@ -163,7 +163,7 @@ export const en = {
     loggedInTo: 'Logged in to',
     popupsBlocked: 'Popups are blocked',
     popupsBlockedText:
-      'Please copy and paste the link into your browser URL bar.',
+      'To log in, please copy and paste the link into your browser\'s URL bar.',
     copyLink: 'Copy Link',
     copiedConfirmation: 'link Copied',
   },
