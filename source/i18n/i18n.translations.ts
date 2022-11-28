@@ -62,7 +62,7 @@ export const de = {
     loggedInTo: 'Logged in to',
     popupsBlocked: 'Popups sind blockiert',
     popupsBlockedText:
-      'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
+      'Um dich anzumelden, kopiere bitte den Link in die Adressleiste deines Browsers.',
     copyLink: 'Link kopieren',
     copiedConfirmation: 'URL Kopiert',
   },
@@ -85,7 +85,7 @@ export const de = {
     signUp: 'Registrieren',
     popupsBlocked: 'Popups sind blockiert',
     popupsBlockedText:
-      'Bitte kopiere die URL und füge sie in die Browser-Adresszeile ein.',
+      'Um dich anzumelden, kopiere bitte den Link in die Adressleiste deines Browsers.',
     copyLink: 'Link kopieren',
     copiedConfirmation: 'URL Kopiert',
     upgradeToTeams: 'Zu Witty Teams upgraden',
@@ -163,7 +163,7 @@ export const en = {
     loggedInTo: 'Logged in to',
     popupsBlocked: 'Popups are blocked',
     popupsBlockedText:
-      'Please copy and paste the link into your browser URL bar.',
+      'To log in, please copy and paste the link into your browser\'s URL bar.',
     copyLink: 'Copy Link',
     copiedConfirmation: 'link Copied',
   },
