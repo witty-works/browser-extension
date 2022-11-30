@@ -92,21 +92,21 @@ export const getTextDividedByNodes = (element: CustomInputElement) => {
   if (isTextArea(element) || isInputText(element)) {
     return [element.value];
   } else {
-    const textNodes = [];
-    for (let i = 0; i < element.childNodes.length; i++) {
-      const node = element.childNodes[i] as HTMLElement;
-      if (node.childNodes.length > 0) {
-        for (let j = 0; j < node.childNodes.length; j++) {
-          const childNode = node.childNodes[j] as HTMLElement;
-          if (childNode.textContent) {
-            textNodes.push(childNode.textContent);
-          }
-        }
-      } else if (node.textContent) {
-        textNodes.push(node.textContent);
+    const elementEvaluation = getActiveDocument().evaluate(
+      './/text()',
+      element,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    );
+
+    const nodes = [] as string[];
+    for (let i = 0; i < elementEvaluation.snapshotLength; i++) {
+      if (elementEvaluation.snapshotItem(i)?.textContent) {
+        nodes.push(elementEvaluation.snapshotItem(i)?.textContent as string);
       }
     }
-    return textNodes;
+    return nodes;
   }
 };
 
