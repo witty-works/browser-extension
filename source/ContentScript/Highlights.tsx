@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-// import { isTextArea } from '../shared/DOMutils';
+import { isTextArea } from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
 import { getCorrectedPosition } from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
@@ -25,7 +25,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   selectedAlert,
   userIsSignedIn,
 }: HighlightsProps) => {
-  // const doc = getActiveDocument().documentElement || getActiveDocument().body;
+  const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
@@ -61,12 +61,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           } catch (error) {
             sendErrorToSentry(error);
           }
-          console.log(
-            'range.getClientRects()',
-            alert.data.text,
-            node,
-            range.getClientRects()
-          );
           const rects: DOMRect[] = Array.from(range.getClientRects()).map(
             (rect: DOMRect) => {
               return {
@@ -75,14 +69,14 @@ const Highlights: React.FC<HighlightsProps> = ({
                 height: rect.height,
                 left: rect.left,
                 x: rect.left,
-                top: rect.top,
-                // +
-                // doc.scrollTop -
-                // (isTextArea(element) ? elementScroll.top : 0),
-                y: rect.top,
-                //  +
-                // doc.scrollTop -
-                // (isTextArea(element) ? elementScroll.top : 0),
+                top:
+                  rect.top +
+                  doc.scrollTop -
+                  (isTextArea(element) ? elementScroll.top : 0),
+                y:
+                  rect.top +
+                  doc.scrollTop -
+                  (isTextArea(element) ? elementScroll.top : 0),
               };
             }
           );
