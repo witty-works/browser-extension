@@ -7,14 +7,13 @@ import {
   DEV_ENV,
   WittyIconActive,
   wittyVersion,
-  devAppId,
 } from '../shared/constants';
 import {
   addInactiveBadge,
   addLoginBadge,
   addNotificationBadge,
-  getBrowserId,
   getDomainWithoutSubdomain,
+  getRandomToken,
   isFunction,
   removeBadge,
   updateLabelChrome,
@@ -47,7 +46,7 @@ Sentry.init({
   release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
   sampleRate: 0.0,
-  tracesSampleRate: 0.01,
+  tracesSampleRate: 0.005,
 });
 
 const addEventListeners = () => {
@@ -58,7 +57,7 @@ const addEventListeners = () => {
 };
 
 browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
-  analytics.extensionInstallationAndUpdateLog(details.reason, getBrowserId());
+  analytics.extensionInstallationAndUpdateLog(details.reason);
   browser.browserAction.setIcon(WittyIconActive);
   if (!DEV_ENV)
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
@@ -87,7 +86,8 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
     .get()
     .then((result) => {
       let savedValue: DefaultConfigValue = result[key];
-      if (!savedValue || savedValue == devAppId || DEV_ENV) {
+      const appId = result[StorageKeys.APP_ID];
+      if (!savedValue || savedValue == appId || DEV_ENV) {
         let valueToSave = isFunction(value as Function)
           ? (value as Function)()
           : value;
@@ -112,7 +112,7 @@ const setSettings = () => {
     }
   }
   //Set browser id
-  setInLocalStorage(StorageKeys.APP_ID, getBrowserId);
+  setInLocalStorage(StorageKeys.APP_ID, getRandomToken());
 };
 
 const scanTabsToDetectStatus = () => {

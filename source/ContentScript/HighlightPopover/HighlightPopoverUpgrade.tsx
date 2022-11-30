@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import CSS from 'csstype';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
-import { CustomInputElement, IAlert } from '../../shared/types';
+import { CustomInputElement, IAlert, IExplanation } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -15,7 +15,6 @@ import Star from '../../assets/icons/popup/star.svg';
 import './HighlightPopover.scss';
 import { getActiveDocument } from '../ContentScriptApp';
 import {
-  BaseUrls,
   DefaultBaseUrlKey,
   DEV_ENV,
   StorageKeys,
@@ -38,23 +37,21 @@ interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
   hide: () => void;
+  addIgnoredCategory: (gravity: number, explanation: IExplanation) => void;
 }
 
 const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   element,
   data,
   hide,
+  addIgnoredCategory,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
 
   const { t, i18n } = useTranslation(namespaces.popover);
   const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
-  const [popupsBlocked, setPopupsBlocked] = useState(false);
-  const [loginUrl, setLoginUrl] = useState('');
-  const [displayCopiedMessage, setDisplayCopiedMessage] = useState(false);
   const log = useLog('PopupLogin');
-
   const onStorageError = (error: unknown) => {
     console.log(`onBrowserStorage Error: ${error}`);
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
@@ -64,34 +61,6 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   useEffect(() => {
     analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
-
-  const logIn = async (urls: string) => {
-    const optionsPageUrl = browser.extension.getURL('options.html');
-
-    browser.storage.local.get(null).then((result) => {
-      if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-        const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        } else {
-          hide();
-        }
-      } else {
-        const url = `${
-          BaseUrls[urls].dashboard
-        }api/browser-login?redirect_uri=${optionsPageUrl}?target=${
-          getBaseUrls().dashboard
-        }`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        } else {
-          hide();
-        }
-      }
-    });
-  };
 
   useEffect(() => {
     browser.storage.local
@@ -193,6 +162,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 
   const hidePopover = () => {
     analytics.popoverLogs(data.alert, 'popover_close');
+    addIgnoredCategory(data.alert.data.gravity, data.alert.data.explanation);
     hide();
   };
 
@@ -201,6 +171,16 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     top: `${y}px`,
     left: `${x}px`,
   };
+
+  const inclusiveBulletPoints = [
+    'inclusiveBulletPointOne',
+    'inclusiveBulletPointTwo',
+  ];
+  let bulletPoints = ['bulletPointOne', 'bulletPointTwo'];
+
+  if (!data.alert.data.gravity) {
+    bulletPoints = inclusiveBulletPoints;
+  }
 
   return (
     <div
@@ -238,14 +218,14 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             <SadFace />
           </div>
           <div className='witty-works-ext-lato-popover-text witty-works-ext-margin-left'>
-            {t('loginToUnlock')}
+            {t('upgradeToTeams')}
 
             <div
               className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
               style={{ padding: 0 }}
             >
               <div className='witty-works-ext-margin-right'>
-                {t('signedOutText')}
+                {t('missingOut')}
               </div>
             </div>
           </div>
@@ -254,97 +234,41 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
         <div className='witty-works-ext-full-padding'>
           <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
             <div className='witty-works-ext-lato-popover-text'>
-              {t('signUpFor')}
+              {t('upgradeFor')}
             </div>
           </div>
-          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row'>
-            <div className='witty-works-ext-margin-right'>
-              <Star />
-            </div>
-            <div className='witty-works-ext-lato-popover-text'>
-              {t('biasDetection')}
-            </div>
-          </div>
-          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-            <div className='witty-works-ext-margin-right'>
-              <Star />
-            </div>
-            <div className='witty-works-ext-lato-popover-text'>
-              {t('inclusiveAlternatives')}
-            </div>
-          </div>
+          {bulletPoints.map((point) => {
+            return (
+              t(point) !== point && (
+                <div
+                  key={point}
+                  className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'
+                >
+                  <div className='witty-works-ext-margin-right'>
+                    <Star />
+                  </div>
+                  <div className='witty-works-ext-lato-popover-text'>
+                    {t(point)}
+                  </div>
+                </div>
+              )
+            );
+          })}
         </div>
 
-        {!popupsBlocked && (
-          <div className='witty-works-ext-left witty-works-ext-margin-bottom'>
-            <div
-              className='witty-works-ext-button witty-works-ext-primary-button-red'
-              onClick={() => {
-                logIn(urls).catch((error) => {
-                  log(`logIn Error: ${error}`, logTypes.ERROR);
-                  sendErrorToSentry(error);
-                  setPopupsBlocked(true);
-                });
-              }}
-            >
-              {t('signUp')}
-            </div>
-            <div className='witty-works-ext-lato-popup-text'>
-              {t('haveAccount')}
-              &nbsp;
-              <span
-                className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
-                onClick={() => {
-                  logIn(urls).catch((error) => {
-                    log(`logIn Error: ${error}`, logTypes.ERROR);
-                    sendErrorToSentry(error);
-                    setPopupsBlocked(true);
-                  });
-                }}
-              >
-                {t('signIn')}
-              </span>
-            </div>
+        <div className='witty-works-ext-left witty-works-ext-margin-bottom'>
+          <div
+            className='witty-works-ext-button witty-works-ext-primary-button-red'
+            onClick={() => {
+              window.open(
+                getBaseUrls().dashboard + 'team/subscription',
+                '_blank'
+              );
+            }}
+          >
+            {t('upgrade')}
           </div>
-        )}
-        {popupsBlocked && (
-          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-full-padding witty-works-ext-margin-bottom witty-works-ext-cursor-pointer witty-works-ext-light-gray-background'>
-            <div
-              className='witty-works-ext-lato-small-paragraph-title-h4'
-              style={{ marginRight: 'auto' }}
-            >
-              {t('popupsBlocked')}
-            </div>
-            <div className='witty-works-ext-lato-popup-text'>
-              {t('popupsBlockedText')}
-            </div>
-            <div
-              className='witty-works-ext-container-row'
-              style={{ marginRight: 'auto' }}
-            >
-              <div
-                className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
-                onClick={() => {
-                  navigator.clipboard.writeText(loginUrl);
-                  setDisplayCopiedMessage(true);
-                  setTimeout(() => {
-                    setDisplayCopiedMessage(false);
-                  }, 1500);
-                }}
-              >
-                {t('copyLink')}
-              </div>
-              {displayCopiedMessage && (
-                <div
-                  className='witty-works-ext-lato-popup-text'
-                  style={{ marginTop: '1.5em' }}
-                >
-                  {t('copiedConfirmation')}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

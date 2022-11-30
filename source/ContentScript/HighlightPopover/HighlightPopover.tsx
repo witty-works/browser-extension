@@ -18,7 +18,7 @@ import PreviousIcon from '../../assets/icons/popover/previous.svg';
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
-import { appID, getBaseUrls } from '../../shared/ApiServices/requests';
+import { getBaseUrls } from '../../shared/ApiServices/requests';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -168,16 +168,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           >
             <WittyLogo />
           </a>
-          <div className='witty-works-ext-container-row' style={{}}>
+          <div className='witty-works-ext-container-row'>
             <div
               className={
-                data.index === 1
-                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray witty-works-ext-margin-auto'
-                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
+                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
-              onClick={() =>
-                data.index === 1 ? '' : updatePopover('previous')
-              }
+              style={data.index === 1 ? { display: 'none' } : {}}
+              onClick={() => data.index !== 1 && updatePopover('previous')}
             >
               <PreviousIcon />
             </div>
@@ -187,12 +184,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
             <div
               className={
-                data.index === data.totalAlerts
-                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray witty-works-ext-margin-auto'
-                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
+                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
+              style={data.index === data.totalAlerts ? { display: 'none' } : {}}
               onClick={() =>
-                data.index === data.totalAlerts ? '' : updatePopover('next')
+                data.index !== data.totalAlerts && updatePopover('next')
               }
             >
               <NextIcon />
@@ -200,7 +196,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
 
           <div
-            className='witty-works-ext-lato-popover-text-gray cursor-pointer'
+            className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
             onClick={() => {
               hidePopover();
             }}
@@ -213,12 +209,18 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
         {/* LEARNIGN BITES */}
         <div
-          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer'
+          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
-            window.open(data.alert.data.explanation.url, '_blank');
+            data.alert.data.explanation &&
+              data.alert.data.explanation.url &&
+              window.open(data.alert.data.explanation.url, '_blank');
           }}
           style={{
+            cursor:
+              data.alert.data.explanation && data.alert.data.explanation.url
+                ? 'pointer'
+                : 'default',
             backgroundColor: isHovered
               ? getColor(data.alert.data.gravity, userIsSignedIn).hover
               : getColor(data.alert.data.gravity, userIsSignedIn).highlight,
@@ -244,7 +246,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 &nbsp;({data.alert.data.explanation.context})
               </span>
             )}
-            {data.alert.data.explanation.url && (
+            {data.alert.data.explanation && data.alert.data.explanation.url && (
               <div
                 className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
                 style={{ padding: '0.5em 0 0 0' }}
@@ -273,7 +275,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               </div>
               <div>
                 {data.alert.data.alternatives
-                  .slice(0, 5)
                   .map((alternative, index) =>
                     alternative.remove ? (
                       <div
@@ -332,7 +333,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
-              analytics.dashboardLog('popover', appID);
+              analytics.dashboardLog('popover');
               window.open(
                 getBaseUrls().dashboard + 'user/language/language-settings',
                 '_blank'

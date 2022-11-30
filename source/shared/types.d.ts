@@ -97,6 +97,7 @@ export interface Highlight {
   startOffset: number;
   endOffset: number;
   node: Node;
+  plan?: string;
 }
 
 export type CustomInputElement =
@@ -115,7 +116,8 @@ export interface IAlert {
   endOffset: number;
   popOverIsOpen: boolean;
   data: IAlertContentData;
-  groupId?: string;
+  organizationId?: string;
+  userId?: string;
   plan?: string;
 }
 export interface IAlertContentData {
@@ -149,7 +151,6 @@ export interface IExplanation {
 export interface ILogItems {
   request__type: string;
   request__lang: string;
-  request__id: string;
   request__client: string;
   request__config__preferred_variants: ConfigProperty;
   request__config__german_gender_ending: ConfigProperty;
@@ -157,7 +158,6 @@ export interface ILogItems {
   response__startOffset: number;
   response__endOffset: number;
   response__popOverIsOpen: boolean;
-  response__groupId?: string;
   response__plan?: string;
   response__data__language: string;
   response__data__category: string;
@@ -178,7 +178,6 @@ export interface IIgnoreLogItems extends ILogItems {}
 export interface IVoteLogRequest {
   request__type: string;
   request__lang: string;
-  request__id: string;
   request__client: string;
   request__config__preferred_variants: ConfigProperty;
   request__config__german_gender_ending: ConfigProperty;
@@ -188,7 +187,6 @@ export interface IVoteLogRequest {
 export interface IDashboardLogRequest {
   request__type: string;
   request__lang: string;
-  request__id: string;
   request__client: string;
   request__config__preferred_variants: ConfigProperty;
   request__config__german_gender_ending: ConfigProperty;
@@ -197,12 +195,11 @@ export interface IDashboardLogRequest {
 export interface ICheckLogItems {
   request__type: string;
   request__lang: string;
-  request__id: string;
   request__client: string;
   request__config__preferred_variants: ConfigProperty;
   request__config__german_gender_ending: ConfigProperty;
   request__text__length: number;
-  response__groupId?: string;
+  response__organizationId?: string;
   response__plan?: string;
   response__name?: string;
   response__results: ICheckResponseResult[];
@@ -226,4 +223,9 @@ export interface IDomainRequest {
 export interface EnableWittyToggle {
   enabled: boolean;
   updateDashboard: boolean;
+}
+
+export interface IgnoredCategory {
+  category: string;
+  timestamp: number;
 }

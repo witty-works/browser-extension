@@ -15,7 +15,6 @@ interface PopupHeaderProps {
 
 const PopupHeader: React.FC<PopupHeaderProps> = ({
   showSettings = true,
-  appId,
 }: PopupHeaderProps) => {
   const analytics = useAnalytics();
 
@@ -32,7 +31,7 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
           <Settings
             id='witty-settings'
             onClick={() => {
-              analytics.dashboardLog('popup', appId);
+              analytics.dashboardLog('popup');
               window.open(
                 getBaseUrls().dashboard + 'user/language/language-settings',
                 '_blank'
