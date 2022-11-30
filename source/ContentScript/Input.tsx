@@ -23,6 +23,7 @@ import {
   storeInLocalStorage,
   getFirstTextDiff,
   addLoginBadge,
+  getRandomToken,
 } from '../shared/utils';
 import { isTextArea, isInputText } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
@@ -531,6 +532,7 @@ const Input: React.FC<{
         endOffset: result.end,
         popOverIsOpen: false,
         organizationId: authResponse ? authResponse.organization_id : undefined,
+        userId: authResponse ? authResponse.id : undefined,
         plan: authResponse ? authResponse.plan : undefined,
         data: {
           language: checkEndpointResponse.language,
@@ -769,6 +771,9 @@ const Input: React.FC<{
   }, [checkEndpointError, authErrorResponse]);
 
   const logOut = () => {
+    storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
+    storeInLocalStorage(StorageKeys.USER_ID, '');
+    storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
     addLoginBadge();

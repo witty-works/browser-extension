@@ -1,12 +1,6 @@
 import { browser } from 'webextension-polyfill-ts';
 import { useAnalytics } from './ApiServices/useAnalytics';
-import {
-  devAppId,
-  DEV_ENV,
-  StorageKeys,
-  wittyVersion,
-  WTags,
-} from './constants';
+import { StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import { isCkeEditor, isTextArea, isTinyMceEditor } from './DOMutils';
@@ -156,10 +150,6 @@ export const getRandomToken = () => {
 
   // convert hexademical value to a decimal string
   return BigInt('0x' + bytesHex).toString(10);
-};
-
-export const getBrowserId = () => {
-  return DEV_ENV ? devAppId : getRandomToken();
 };
 
 export const updateLabelChrome = (domain: string) => {
