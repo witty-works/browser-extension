@@ -88,6 +88,27 @@ export const updateConfig = (response: IAuthResponse) => {
     }
   });
 };
+export const getTextDividedByNodes = (element: CustomInputElement) => {
+  if (isTextArea(element) || isInputText(element)) {
+    return [element.value];
+  } else {
+    const elementEvaluation = getActiveDocument().evaluate(
+      './/text()',
+      element,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    );
+
+    const nodes = [] as string[];
+    for (let i = 0; i < elementEvaluation.snapshotLength; i++) {
+      if (elementEvaluation.snapshotItem(i)?.textContent) {
+        nodes.push(elementEvaluation.snapshotItem(i)?.textContent as string);
+      }
+    }
+    return nodes;
+  }
+};
 
 export const getInputText = (element: CustomInputElement) =>
   isTextArea(element) || isInputText(element)

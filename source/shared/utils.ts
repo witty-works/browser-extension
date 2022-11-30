@@ -79,16 +79,34 @@ export const maximumImportanceToBoolean = (value: number) =>
 
 export const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
-export const getFirstTextDiff = (previousText: string, nextText: string) => {
-  let i = 0;
-  while (
-    i < previousText.length &&
-    i < nextText.length &&
-    previousText[i] == nextText[i]
-  ) {
-    i++;
+export const getFirstTextDiff = (
+  previousTextArray: string[],
+  newTextArray: string[]
+) => {
+  if (!newTextArray) return 0;
+  //in what node the diff is
+  let node = 1;
+  for (let i = 0; i < previousTextArray.length; i++) {
+    if (previousTextArray[i] !== newTextArray[i]) {
+      node = i;
+      break;
+    }
   }
-  return i;
+
+  //in what position in the node the diff is
+  let position = 0;
+  const previousText = previousTextArray[node];
+  const nextText = newTextArray[node];
+  if (!previousText || !nextText) return;
+  while (
+    position < previousText.length &&
+    position < nextText.length &&
+    previousText[position] == nextText[position]
+  ) {
+    position++;
+  }
+
+  return { node, position };
 };
 
 export const addNotificationBadge = (numberOfNotifications: number) => {
