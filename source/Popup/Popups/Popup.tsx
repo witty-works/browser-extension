@@ -471,6 +471,7 @@ const Popup: React.FC<PopupProps> = ({
                 <div
                   className='witty-works-ext-button witty-works-ext-primary-button-red'
                   onClick={() => {
+                    analytics.dashboardLog('button_popup');
                     window.open(getBaseUrls().dashboard, '_blank');
                   }}
                 >
