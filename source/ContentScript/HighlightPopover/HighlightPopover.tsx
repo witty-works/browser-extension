@@ -274,44 +274,43 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 {t('insteadTry')}
               </div>
               <div>
-                {data.alert.data.alternatives
-                  .map((alternative, index) =>
-                    alternative.remove ? (
+                {data.alert.data.alternatives.map((alternative, index) =>
+                  alternative.remove ? (
+                    <div
+                      className='witty-works-ext-wittyworks-popover-alternative-btn-container witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text'
+                      key={`${index}-remove-it`}
+                      //string can not be empty because of replacement issue on firefox
+                      onClick={() => clickAlternative(' ')}
+                    >
+                      {data.alert.data.text}
+                    </div>
+                  ) : (
+                    <div
+                      className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                      key={`${index}-${alternative}-container`}
+                    >
                       <div
-                        className='witty-works-ext-wittyworks-popover-alternative-btn-container witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text'
-                        key={`${index}-remove-it`}
-                        //string can not be empty because of replacement issue on firefox
-                        onClick={() => clickAlternative(' ')}
+                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green'
+                        onClick={() =>
+                          clickAlternative(
+                            data.alert.data.alternatives[index].text
+                          )
+                        }
                       >
-                        {data.alert.data.text}
-                      </div>
-                    ) : (
-                      <div
-                        className='witty-works-ext-wittyworks-popover-alternative-btn-container'
-                        key={`${index}-${alternative}-container`}
-                      >
-                        <div
-                          className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green'
-                          onClick={() =>
-                            clickAlternative(
-                              data.alert.data.alternatives[index].text
-                            )
-                          }
-                        >
-                          {alternative.text === ' ' ? (
-                            <i>{t('removeSpaces')}</i>
-                          ) : (
-                            alternative.text
-                          )}
-                        </div>
-                        {alternative.context && (
-                          <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                            {alternative.context}
-                          </div>
+                        {alternative.text === ' ' ? (
+                          <i>{t('removeSpaces')}</i>
+                        ) : (
+                          alternative.text
                         )}
                       </div>
-                    )
-                  )}
+                      {alternative.context && (
+                        <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                          {alternative.context}
+                        </div>
+                      )}
+                    </div>
+                  )
+                )}
               </div>
             </div>
           </>
@@ -333,7 +332,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
-              analytics.dashboardLog('popover');
+              analytics.dashboardLog('button_popover');
               window.open(
                 getBaseUrls().dashboard + 'user/language/language-settings',
                 '_blank'

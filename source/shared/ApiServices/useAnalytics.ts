@@ -83,13 +83,13 @@ export const useAnalytics = () => {
       captureEvent(type, voteItems);
     },
 
-    async dashboardLog(location: string) {
+    async dashboardLog(buttonLocation: string) {
       const dashboardItems: IDashboardLogRequest = {
-        request__type: 'dashboard',
-        dashboard__location: location,
+        request__type: 'dashboard_open',
+        button__location: buttonLocation,
         ...getRequestData(),
       };
-      captureEvent('dashboard', dashboardItems);
+      captureEvent('dashboard_open', dashboardItems);
     },
 
     async extensionInstallationAndUpdateLog(status: string) {
