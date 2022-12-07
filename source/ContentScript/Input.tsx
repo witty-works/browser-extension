@@ -86,6 +86,10 @@ const Input: React.FC<{
     defaultConfig.API_DELAY
   );
 
+  const [, , nodesWhithinMaxCharLengthRef] = useStateRef<
+    { node: string; index: number }[]
+  >([]);
+
   const maxCharLength = 300;
 
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
@@ -200,7 +204,7 @@ const Input: React.FC<{
   const handleFocusinEvent = (event: Event) => {
     const nextText: string = getInputText(element);
 
-    if (nextText.length > maxCharLength) {
+    if (nextText.length > maxCharLength && !isTextArea(element)) {
       const textDividedByNodes = getTextDividedByNodes(element);
 
       let totalChars = 0;
@@ -210,6 +214,7 @@ const Input: React.FC<{
       });
 
       const textWithinMaxCharLength = nodesWhithinMaxCharLength.join('\n');
+      console.log('textWithinMaxCharLength', textWithinMaxCharLength);
       handleTextAndIcon(textWithinMaxCharLength, event);
     } else {
       handleTextAndIcon(nextText, event);
@@ -260,12 +265,33 @@ const Input: React.FC<{
           unchangedNodes.includes(nodeWithAlerts.node.nodeValue)
       );
 
-      setNodesWithAlerts(unchangedNodesWithAlerts);
+      //merge nodesWithAlertsRef.current with unchangedNodesWithAlerts
+      const mergedNodesWithAlerts = nodesWithAlertsRef.current.map(
+        (nodeWithAlerts) => {
+          const unchangedNodeWithAlerts = unchangedNodesWithAlerts.find(
+            (unchangedNodeWithAlerts) =>
+              unchangedNodeWithAlerts.nodeIndex === nodeWithAlerts.nodeIndex
+          );
+          if (unchangedNodeWithAlerts) {
+            return {
+              ...nodeWithAlerts,
+              alerts: [
+                ...unchangedNodeWithAlerts.alerts,
+                ...nodeWithAlerts.alerts,
+              ],
+            };
+          }
+          return nodeWithAlerts;
+        }
+      );
+      nodesWithAlertsRef.current = mergedNodesWithAlerts;
+
+      console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current);
+      setNodesWithAlerts(mergedNodesWithAlerts);
     }
 
     previousTextToCheckRef.current = nextText;
 
-    //TODO: only send text that was changed
     handleTextAndIcon(nextText, event);
   };
 
@@ -356,6 +382,7 @@ const Input: React.FC<{
   const handleElementClickEvent = (event: MouseEvent) => {
     // If user clicks on an element only once...
     if (event.detail === 1) {
+      console.log('CLICK');
       singleClickTimeOut = setTimeout(function () {
         const target = event.target as CustomInputElement;
 
@@ -373,49 +400,55 @@ const Input: React.FC<{
                   .anchorNode,
               };
 
-        if (getInputText(element).length > maxCharLength) {
-          const textDividedByNodes = getTextDividedByNodes(element);
+        // if (getInputText(element).length > maxCharLength) {
+        const textDividedByNodes = getTextDividedByNodes(element);
 
-          let clickedNode = caret.element?.textContent;
+        let clickedNode = caret.element?.textContent;
 
-          //TODO
-          if (isTextArea(element) || isInputText(element)) {
-            // //max char length from clicked node
-            // clickedNode = textDividedByNodes[caret.position];
-          }
-
+        //TODO: do it for textarea as well?
+        if (!isTextArea(element)) {
           if (!clickedNode) return;
 
-          let totalChars = 0;
-          const nodesWhithinMaxCharLength = textDividedByNodes.filter(
-            (node) => {
-              totalChars += node.length;
-              return totalChars <= maxCharLength;
-            }
-          );
-
-          //if clickedNode is not in nodesWhithinMaxCharLength set new text
-          if (!nodesWhithinMaxCharLength.includes(clickedNode)) {
-            //could be a mismatch here
-            const nodesWhithinMaxCharLengthStartingAtClickedNode =
-              textDividedByNodes.slice(textDividedByNodes.indexOf(clickedNode));
-
-            totalChars = 0;
-            const nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength =
-              nodesWhithinMaxCharLengthStartingAtClickedNode.filter((node) => {
-                totalChars += node.length;
-                return totalChars <= maxCharLength;
+          const nodesWhithinMaxCharLengthStartingAtClickedNode =
+            textDividedByNodes
+              .slice(textDividedByNodes.indexOf(clickedNode))
+              .map((node) => {
+                return { node: node, index: textDividedByNodes.indexOf(node) };
               });
 
-            const textWithinMaxCharLength =
-              nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength.join(
-                '\n'
+          let totalChars = 0;
+          const nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength =
+            nodesWhithinMaxCharLengthStartingAtClickedNode.filter((node) => {
+              totalChars += node.node.length;
+              return totalChars <= maxCharLength;
+            });
+
+          //merge nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength and nodesWhithinMaxCharLengthRef.current
+          nodesWhithinMaxCharLengthRef.current =
+            nodesWhithinMaxCharLengthRef.current
+              .filter(
+                (node) =>
+                  !nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength.some(
+                    (node2) => node2.index === node.index
+                  )
+              )
+              .concat(
+                nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength
               );
 
-            console.log('textWithinMaxCharLength', textWithinMaxCharLength);
-            handleTextAndIcon(textWithinMaxCharLength, event);
-          }
+          console.log(
+            'nodesWhithinMaxCharLengthRef.current',
+            nodesWhithinMaxCharLengthRef.current
+          );
+
+          const textWithinMaxCharLength =
+            nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength
+              .map((node) => node.node)
+              .join('\n');
+
+          handleTextAndIcon(textWithinMaxCharLength, event);
         }
+        // }
 
         if (caret.element && caret.position && caret.position > -1) {
           // Find out if the clicked element has alerts
@@ -698,7 +731,28 @@ const Input: React.FC<{
       );
       setTotalAlerts(totalAlerts);
 
-      setNodesWithAlerts(nodesWithAlertsTemp);
+      //merge nodesWithAlerts and nodesWithAlertsTemp with winque nodeIndex
+      const nodesWithAlertsMerged: INodeWithAlerts[] = nodesWithAlertsTemp.map(
+        (nodeWithAlertsTemp) => {
+          const nodeWithAlerts = nodesWithAlerts.find(
+            (nodeWithAlerts) =>
+              nodeWithAlerts.nodeIndex === nodeWithAlertsTemp.nodeIndex
+          );
+          if (nodeWithAlerts) {
+            return {
+              ...nodeWithAlerts,
+              alerts: nodeWithAlertsTemp.alerts,
+            };
+          } else {
+            return nodeWithAlertsTemp;
+          }
+        }
+      );
+
+      //make this into Ref?
+      console.log('nodesWithAlertsMerged', nodesWithAlertsMerged);
+
+      setNodesWithAlerts(nodesWithAlertsMerged);
     }
   }, [alerts, ignoredTerms, elementXPathResult, ignoredCategoriesFromStorage]);
 
@@ -708,44 +762,29 @@ const Input: React.FC<{
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
 
-    const nextText: string = getInputText(element);
-
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = -1;
+
+    console.log(
+      'nodesWhithinMaxCharLengthRef.current',
+      nodesWhithinMaxCharLengthRef.current
+    );
 
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
 
       if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
         textStartingAbsPosition = textEndAbsPosition + 1;
-        console.log('textStartingAbsPosition', textStartingAbsPosition);
-        const nodeValueLength: number = node.nodeValue.length;
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1; //needed to keep huglights in place
 
-        // Check if there is a new line char after the node's content
-        // If so, we +1 to the end position
-        if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
-          textEndAbsPosition += 1;
+        if (
+          !nodesWhithinMaxCharLengthRef.current.some(
+            (nodeWithAlertsRef) => nodeWithAlertsRef.index === index
+          )
+        ) {
+          continue;
         }
-        console.log('alerts before filter', alerts);
 
-        //print alert.startOffset and textStartingAbsPosition for each alert
-        alerts.forEach((alert) => {
-          console.log(
-            `alert.startOffset: ${
-              alert.startOffset
-            } textStartingAbsPosition: ${textStartingAbsPosition} ${
-              alert.startOffset >= textStartingAbsPosition
-            }`
-          );
-          console.log(
-            `alert.endOffset: ${
-              alert.endOffset
-            } textEndAbsPosition: ${textEndAbsPosition} ${
-              alert.endOffset <= textEndAbsPosition
-            }`
-          );
-        });
+        textEndAbsPosition = textStartingAbsPosition + node.nodeValue.length;
 
         const alertsTemp: IAlert[] = alerts
           .filter(
@@ -769,6 +808,7 @@ const Input: React.FC<{
           nodesWithAlertsTemp.push({
             node: node,
             alerts: alertsTemp,
+            nodeIndex: index,
           });
       }
     }

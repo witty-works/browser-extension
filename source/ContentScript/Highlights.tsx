@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { isTextArea } from '../shared/DOMutils';
+import { isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
 import { getCorrectedPosition } from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
@@ -42,20 +42,18 @@ const Highlights: React.FC<HighlightsProps> = ({
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
-    console.log('nodesWithAlerts', nodesWithAlerts);
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
-      if (typeof node !== 'undefined') {
-        //&& nodeExistsInDOM(node) //TODO
+      if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
           try {
-            // if (
-            //   node.textContent &&
-            //   (alert.endOffset > node.textContent.length ||
-            //     alert.startOffset > node.textContent.length)
-            // )
-            //   return;
+            if (
+              node.textContent &&
+              (alert.endOffset > node.textContent.length ||
+                alert.startOffset > node.textContent.length)
+            )
+              return;
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
           } catch (error) {
