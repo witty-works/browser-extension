@@ -353,14 +353,40 @@ const Popup: React.FC<PopupProps> = ({
       );
   };
 
-  const logOut = () => {
+  function logOut() {
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
     setToken('');
     setUserIsLoggedIn(false);
     addLoginBadge();
-  };
+  }
 
+  function handleClickSurveyResponseYes() {
+    setSurveyResponse('yes');
+    setShowSurvey(false);
+    analytics.urlLog(domain, 'wittyWorksAsExpected');
+  }
+
+  function handleClickSurveyResponseNo() {
+    setSurveyResponse('no');
+    setEnabled({ enabled: false, updateDashboard: false });
+    setSurveyResponse('');
+    setDomainIsSetToNotWorking(true);
+    analytics.urlLog(domain, 'wittyDoesNotWorkAsExpected');
+  }
+
+  function handleClickDashboard() {
+    analytics.dashboardLog('button_popup');
+    window.open(getBaseUrls().dashboard, '_blank');
+  }
+
+  function handleClickLearnMore() {
+    window.open(
+      'https://www.witty.works/witty-for-teams',
+      '_blank',
+      'noopener'
+    );
+  }
   return (
     <>
       {numberOfNotifications > 0 ? (
@@ -470,10 +496,7 @@ const Popup: React.FC<PopupProps> = ({
               <div className='witty-works-ext-left'>
                 <div
                   className='witty-works-ext-button witty-works-ext-primary-button-red'
-                  onClick={() => {
-                    analytics.dashboardLog('button_popup');
-                    window.open(getBaseUrls().dashboard, '_blank');
-                  }}
+                  onClick={handleClickDashboard}
                 >
                   {t('goToDashboard')}
                 </div>
@@ -492,13 +515,7 @@ const Popup: React.FC<PopupProps> = ({
           </div>
           <div
             className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
-            onClick={() => {
-              window.open(
-                'https://www.witty.works/witty-for-teams',
-                '_blank',
-                'noopener'
-              );
-            }}
+            onClick={handleClickLearnMore}
           >
             {t('learnMoreButton')}
           </div>
@@ -524,23 +541,13 @@ const Popup: React.FC<PopupProps> = ({
             <div className='witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
               <div
                 className='witty-works-ext-button witty-works-ext-primary-button-red'
-                onClick={() => {
-                  setSurveyResponse('yes');
-                  setShowSurvey(false);
-                  analytics.urlLog(domain, 'wittyWorksAsExpected');
-                }}
+                onClick={handleClickSurveyResponseYes}
               >
                 {t('surveyButtonYes')}
               </div>
               <div
                 className='witty-works-ext-button witty-works-ext-secondary-button-red'
-                onClick={() => {
-                  setSurveyResponse('no');
-                  setEnabled({ enabled: false, updateDashboard: false });
-                  setSurveyResponse('');
-                  setDomainIsSetToNotWorking(true);
-                  analytics.urlLog(domain, 'wittyDoesNotWorkAsExpected');
-                }}
+                onClick={handleClickSurveyResponseNo}
               >
                 {t('surveyButtonNo')}
               </div>
@@ -571,9 +578,7 @@ const Popup: React.FC<PopupProps> = ({
           <div className='witty-works-ext-left'>
             <div
               className='witty-works-ext-button witty-works-ext-primary-button-red'
-              onClick={() => {
-                logOut();
-              }}
+              onClick={logOut}
             >
               {t('signOut')}
             </div>

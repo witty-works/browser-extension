@@ -18,26 +18,24 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
 }: PopupHeaderProps) => {
   const analytics = useAnalytics();
 
+  function handleClickLogo() {
+    browser.tabs.create({ url: 'https://www.witty.works/' });
+  }
+
+  function handleClickSettings() {
+    analytics.dashboardLog('cogwheel_popup');
+    window.open(
+      getBaseUrls().dashboard + 'user/language/language-settings',
+      '_blank'
+    );
+  }
+
   return (
     <>
       <header className='witty-works-ext-header'>
-        <Logo
-          id='witty-logo'
-          onClick={() => {
-            browser.tabs.create({ url: 'https://www.witty.works/' });
-          }}
-        />
+        <Logo id='witty-logo' onClick={handleClickLogo} />
         {showSettings && (
-          <Settings
-            id='witty-settings'
-            onClick={() => {
-              analytics.dashboardLog('cogwheel_popup');
-              window.open(
-                getBaseUrls().dashboard + 'user/language/language-settings',
-                '_blank'
-              );
-            }}
-          />
+          <Settings id='witty-settings' onClick={handleClickSettings} />
         )}
       </header>
       <div className='witty-works-ext-separator' />
