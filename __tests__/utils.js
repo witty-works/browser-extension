@@ -194,34 +194,34 @@ exports.unlockAllToggles = async function (page) {
     // await page.click('.leadinModal-close');
 
     //orthography
-    const inclusiveToggleForce = await page.waitForSelector('.py-10:nth-child(6) .guidelines-form-section--apply-for-all .slider');
+    const inclusiveToggleForce = await page.waitForSelector('.py-10:nth-child(7) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorInclusiveForce = await inclusiveToggleForce.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     });
     if (backgroundColorInclusiveForce !== 'rgb(204, 204, 204)') {
-        await page.click('.py-10:nth-child(6) .guidelines-form-section--apply-for-all .slider');
-    }
-    await page.click('.py-10:nth-child(6) .button');
-
-    //style
-    const styleToggleForce = await page.waitForSelector('.py-10:nth-child(7) .guidelines-form-section--apply-for-all .slider');
-    const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    })
-    if (backgroundColorStyleForce !== 'rgb(204, 204, 204)') {
         await page.click('.py-10:nth-child(7) .guidelines-form-section--apply-for-all .slider');
     }
     await page.click('.py-10:nth-child(7) .button');
 
+    //style
+    const styleToggleForce = await page.waitForSelector('.py-10:nth-child(8) .guidelines-form-section--apply-for-all .slider');
+    const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    })
+    if (backgroundColorStyleForce !== 'rgb(204, 204, 204)') {
+        await page.click('.py-10:nth-child(8) .guidelines-form-section--apply-for-all .slider');
+    }
+    await page.click('.py-10:nth-child(8) .button');
+
 
     //orthography
-    const orthographyToggleForce = await page.waitForSelector('.py-10:nth-child(8) .guidelines-form-section--apply-for-all .slider');
+    const orthographyToggleForce = await page.waitForSelector('.py-10:nth-child(9) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     }
     );
     if (backgroundColorOrthographyForce !== 'rgb(204, 204, 204)') {
-        await page.click('.py-10:nth-child(8) .guidelines-form-section--apply-for-all .slider');
+        await page.click('.py-10:nth-child(9) .guidelines-form-section--apply-for-all .slider');
     }
-    await page.click('.py-10:nth-child(8) .button');
+    await page.click('.py-10:nth-child(9) .button');
 }
