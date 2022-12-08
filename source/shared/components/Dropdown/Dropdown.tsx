@@ -3,22 +3,24 @@ import React, { useState, useEffect, ChangeEvent } from 'react';
 import './styles.scss';
 
 export interface OptionProp {
-  key: string;
+  key: string | number;
   value: string;
 }
 
 export interface DropdownProps {
   onDropdownChange: (value: string) => void;
   options: OptionProp[];
-  selectedOption: string;
+  selectedOption: string | number;
+  locked?: boolean;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
   onDropdownChange,
   options,
   selectedOption,
+  locked,
 }: DropdownProps) => {
-  const [selected, setSelected] = useState<string>('');
+  const [selected, setSelected] = useState<string | number>('');
 
   useEffect(() => {
     setSelected(selectedOption);
@@ -32,15 +34,13 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   return (
     <select
-      className='dropdown-select'
+      className='witty-works-ext-dropdown-select'
       onChange={handleOptionChange}
       value={selected}
     >
       {options.map((option) => (
-        <option key={option.key} value={option.key}>
-          {option.value.length > 42
-            ? option.value.slice(0, 40).concat('...')
-            : option.value}
+        <option key={option.key} value={option.key} disabled={locked}>
+          {option.value}
         </option>
       ))}
     </select>

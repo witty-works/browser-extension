@@ -1,51 +1,232 @@
-@import "../styles/fonts";
-@import "../styles/reset";
-@import "../styles/variables";
+@import '../styles/fonts';
+@import '../styles/variables';
 
+// FONTS
+.witty-works-ext-lato-small-paragraph-title-h4 {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 28px; /* or 127% */
+  color: $black;
+}
 
-body {
+.witty-works-ext-lato-popover-text {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $black;
+}
+
+.witty-works-ext-lato-popover-text-green {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $green;
+}
+
+.witty-works-ext-lato-popover-text-gray {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $extraDarkGray;
+}
+
+.witty-works-ext-lato-popover-text-light-gray {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $darkGray;
+  stroke: $darkGray;
+}
+
+.witty-works-ext-lato-popup-title {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $black;
+}
+
+.witty-works-ext-lato-popup-text {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px; /* or 214% */
+  color: $black;
+}
+
+.witty-works-ext-lato-popup-text-purple {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px; /* or 214% */
+  color: $wittyPurple;
+  text-decoration-line: underline;
+}
+
+//BUTTONS
+.witty-works-ext-button {
+  display: flex;
+  padding: 10px 15px;
+  gap: 10px;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 14px;
+  margin-right: 1em;
+  cursor: pointer;
+}
+
+.witty-works-ext-primary-button-red {
+  background: $orange;
+  border-radius: 8px;
+  color: $white;
+}
+
+.witty-works-ext-secondary-button-red {
+  background: $white;
+  border: 1px solid $orange;
+  border-radius: 8px;
+  color: $orange;
+}
+
+//Backgrounds
+.witty-works-ext-strong-gradient-background {
+  background: linear-gradient(
+        96.78deg,
+        #fef7f8 -6.3%,
+        #fbf6fa 35.9%,
+        #e9f2f5 100.12%
+      )
+      padding-box,
+    linear-gradient(
+        114.59deg,
+        #f06464 1.6%,
+        #f277d0 32.79%,
+        #9489db 71.64%,
+        #37d1e5 101.91%,
+        #5acfb9 131.52%
+      )
+      border-box;
+}
+
+.witty-works-ext-light-gray-background {
+  width: 100%;
+  margin-left: -1em;
+  background: $lightGray;
+}
+
+.witty-works-ext-dark-gray-background {
+  background: $darkGray;
+}
+
+//Containers
+.witty-works-ext-section {
+  padding: 1em !important;
+  padding-bottom: 0em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.witty-works-ext-wittyworks-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 1em;
+}
+
+.witty-works-ext-container-rounded {
+  border-radius: 8px;
+  max-width: 300px;
+}
+
+.witty-works-ext-container-row {
+  display: flex;
+  flex-direction: row !important;
+}
+
+//Alignments
+.witty-works-ext-justify-start {
+  justify-content: flex-start;
+}
+
+.witty-works-ext-justify-space-between {
+  justify-content: space-between;
+}
+
+.witty-works-ext-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.witty-works-ext-full-padding {
+  padding: 1.5em 2.2em;
+}
+
+.witty-works-ext-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.witty-works-ext-margin-right {
+  display: flex;
+  margin-right: 1em;
+}
+
+.witty-works-ext-margin-top {
+  margin-top: 1em;
+}
+
+//general
+.witty-works-ext-body {
   font-family: $lato;
   color: $black;
 }
 
-a {
-  color: $black;
-}
-
-#popup-root {
+#witty-works-ext-popup-root {
   min-width: 300px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
-  justify-content:space-around;
 }
 
-header {
-  padding: 1rem 1rem 0 1rem;
-}
-
-section {
-  padding: 1rem;
+.witty-works-ext-header {
+  padding: 1em;
   display: flex;
-  flex-direction: column;
-  justify-content:space-around;
+  justify-content: space-between;
 
-  > div:not(:last-child) {
-    margin-bottom: 0.8rem;
-  }
-
-  h2 {
-    font-weight: 700;
-    margin-bottom: 1rem;
+  svg {
+    cursor: pointer;
   }
 }
 
-hr {
-  border: 1px solid $greyWhite;
-  margin: 0;
+.witty-works-ext-separator {
+  background-color: $whiteGray;
+  border: 0;
+  height: 1px;
+  width: 110%;
+  margin-left: -1em;
+  overflow: hidden;
 }
 
-footer{
-  padding: 1rem;
-  background-color: $greyWhite;
+.witty-works-ext-cursor-pointer {
+  cursor: pointer;
 }
-

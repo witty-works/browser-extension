@@ -1,7 +1,72 @@
 {
-  "APP_ENABLED": true,
-  "APP_ID_ENABLED": false,
-  "PRIMARY_LANGUAGE": "de-DE",
-  "PREFERRED_LANGUAGES": ["de-DE","en-GB"],
-  "GERMAN_GENDER_ENDING":"colon_in"
+  "DISABLED_SITES": [
+    "whatsapp.com",
+    "productboard.com",
+    "notion.so",
+    "airbnb.com",
+    "trello.com"
+  ],
+  "ACTIVE_SITES": [
+    "joomla.org",
+    "joomla.com",
+    "drupal.org",
+    "sulu.io",
+    "sulu.rocks",
+    "typo3.org",
+    "wix.com",
+    "onlyfy.com",
+    "instagram.com",
+    "facebook.com",
+    "camunda.io",
+    "camunda.com",
+    "leapsome.com",
+    "blaze.today",
+    "holaspirit.com",
+    "personio.com",
+    "personio.de",
+    "live.com",
+    "atlassian.net",
+    "twitter.com",
+    "umantis.com",
+    "witty.works",
+    "google.com",
+    "linkedin.com",
+    "github.com",
+    "prospective.ch"
+  ],
+  "CHROME_AND_FIREFOX_SITES": [
+    "chrome:",
+    "chrome-extension:",
+    "about:",
+    "moz-extension:"
+  ],
+  "PREFERRED_VARIANTS": { "value": ["de-DE", "en-US"] },
+  "GERMAN_GENDER_ENDING": {
+    "value": "*in"
+  },
+  "MAXIMUM_IMPORTANCE": {
+    "value": 2
+  },
+  "ORTHOGRAPHY": {
+    "value": true
+  },
+  "STYLE": {
+    "value": true
+  },
+  "INCLUSIVE": {
+    "value": true
+  },
+  "SHOW_INSPIRATION_ALTERNATIVES": {
+    "value": false
+  },
+  "GENDERED_ROLES_FORMAT": {
+    "value": "both"
+  },
+  "SINGULAR_THEY": {
+    "value": "he_or_she"
+  },
+  "CASING_SITES": [],
+  "API_DELAY": 500,
+  "ACCESS_TOKEN": "",
+  "REFRESH_TOKEN": ""
 }

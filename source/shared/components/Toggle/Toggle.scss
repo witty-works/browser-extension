@@ -1,31 +1,60 @@
-.toggle-container {
+@import '../../../styles/variables';
+
+.witty-works-ext-toggle-lock {
   display: flex;
-  flex-direction: row;
-  align-items:center;
-  justify-content: space-between;
+  align-items: center;
+  margin-left: auto;
+  margin-right: -3.7rem;
+
+  .witty-works-ext-toggle-lock-info {
+    display: none;
+  }
+
+  &:hover {
+    .witty-works-ext-toggle-lock-info {
+      display: block;
+      position: absolute;
+      width: 15em;
+      padding: 1em;
+      margin-bottom: 0em;
+      margin-left: -18em;
+      font-family: $lato;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 12px;
+      background-color: $lightGray;
+      border-radius: 4px;
+    }
+  }
 }
 
-.toggle-checkbox {
+.witty-works-ext-toggle-premium-only {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+}
+
+.witty-works-ext-toggle-checkbox {
   height: 0;
   width: 0;
   visibility: hidden;
 }
 
-.toggle-encloser {
+.witty-works-ext-toggle-encloser {
   cursor: pointer;
   width: 100px;
-  height: 50px;
+  height: 60px;
   background: grey;
   border-radius: 100px;
   position: relative;
-  transition: background-color .2s;
+  transition: background-color 0.2s;
 }
 
-.toggle-encloser .toggle-button {
+.witty-works-ext-toggle-button {
   content: '';
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 8px;
+  left: 6px;
   width: 45px;
   height: 45px;
   border-radius: 45px;
@@ -33,11 +62,9 @@
   box-shadow: 0 0 2px 0 rgba(10, 10, 10, 0.29);
 }
 
-.toggle-checkbox:checked+.toggle-encloser .toggle-button {
-  left: calc(100% - 2px);
+.witty-works-ext-toggle-checkbox:checked
+  + .witty-works-ext-toggle-encloser
+  .witty-works-ext-toggle-button {
+  left: calc(100% - 6px);
   transform: translateX(-100%);
-}
-
-.toggle-encloser:active .toggle-button {
-  width: 60px;
 }

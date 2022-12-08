@@ -1,4 +1,4 @@
-name: Build extension
+name: Build dev extension
 
 on: [push]
 
@@ -7,10 +7,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: '14'
+          node-version: '16'
           cache: 'npm'
 
       - name: Install yarn
@@ -18,7 +18,7 @@ jobs:
           npm install --global yarn
 
       - id: cache-yarn
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ./node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -28,50 +28,12 @@ jobs:
         run: |
           yarn install
 
-      - name: Disable development mode
-        run: |
-          sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
-          mv constants.ts source/shared/constants.ts
-
-      - name: Enable ID generation
-        run: |
-          sed 's/"APP_ID_ENABLED": false,/"APP_ID_ENABLED": true,/' source/witty.config.json > witty.config.json
-          mv witty.config.json source/witty.config.json
-
-      - name: Build artifacts
-        run: |
-          yarn run build
-
-      - name: Store Chrome artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: chrome
-          path: |
-            extension/chrome
-
-      - name: Store Firefox artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: firefox
-          path: |
-            extension/firefox.xpi
-
-      - name: Enable development mode
-        run: |
-          sed 's/export const DEV_ENV = .*$/export const DEV_ENV = true;/' source/shared/constants.ts > constants.ts
-          mv constants.ts source/shared/constants.ts
-
-      - name: Disable ID generation
-        run: |
-          sed 's/"APP_ID_ENABLED": true,/"APP_ID_ENABLED": false,/' source/witty.config.json > witty.config.json
-          mv witty.config.json source/witty.config.json
-
       - name: Build artifacts
         run: |
           yarn run build:chrome
 
       - name: Store Chrome Development artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: chrome-dev
           path: |

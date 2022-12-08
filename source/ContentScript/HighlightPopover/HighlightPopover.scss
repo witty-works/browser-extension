@@ -1,0 +1,320 @@
+@import '../../styles/variables';
+@import '../../styles/fonts';
+
+#witty-works-ext-popover {
+  display: 'flex';
+  background-color: $white;
+  padding: 0 8px;
+  box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
+  border-radius: 5px;
+  min-width: 272px;
+  z-index: 9999999;
+}
+
+#witty-works-ext-popover-content {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5em;
+}
+
+.witty-works-ext-wittyworks-popover-alternative-btn-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0.5em;
+
+  &:hover {
+    .witty-works-ext-wittyworks-popover-alternative-btn {
+      background-color: $opaqueGreen;
+    }
+    .witty-works-ext-wittyworks-popover-alternative-context {
+      color: $green;
+    }
+  }
+}
+
+.witty-works-ext-wittyworks-popover-alternative-btn {
+  background-color: $lightGreen;
+  display: table;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &.witty-works-ext-remove-text {
+    text-decoration: line-through !important;
+  }
+}
+
+.witty-works-ext-ignore-color-transformer {
+  filter: invert(38%) sepia(2%) saturate(0%) hue-rotate(73deg) brightness(100%)
+    contrast(89%);
+
+  &:hover {
+    filter: invert(39%) sepia(86%) saturate(747%) hue-rotate(323deg)
+      brightness(109%) contrast(80%);
+    color: $orange;
+    cursor: pointer;
+  }
+}
+
+// FONTS
+.witty-works-ext-lato-small-paragraph-title-h4 {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 28px; /* or 127% */
+  color: $black;
+}
+
+.witty-works-ext-lato-popover-text {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $black;
+}
+
+.witty-works-ext-lato-popover-text-green {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $green;
+}
+
+.witty-works-ext-lato-popover-text-gray {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $extraDarkGray;
+}
+
+.witty-works-ext-lato-popover-text-light-gray {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $darkGray;
+  stroke: $darkGray;
+}
+
+.witty-works-ext-lato-popup-title {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 20px; /* or 214% */
+  color: $black;
+}
+
+.witty-works-ext-lato-popup-text {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px; /* or 214% */
+  color: $black;
+}
+
+.witty-works-ext-lato-popup-text-purple {
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px; /* or 214% */
+  color: $wittyPurple;
+  text-decoration-line: underline;
+}
+
+//BUTTONS
+.witty-works-ext-button {
+  display: flex;
+  padding: 10px 15px;
+  gap: 10px;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 14px;
+  margin-right: 1em;
+  cursor: pointer;
+}
+
+.witty-works-ext-primary-button-red {
+  background: $orange;
+  border-radius: 8px;
+  color: $white;
+}
+
+.witty-works-ext-primary-button-purple {
+  background: $wittyPurple;
+  border-radius: 8px;
+  color: $white;
+}
+
+.witty-works-ext-secondary-button-purple {
+  background: $white;
+  border: 1px solid $orange;
+  border-radius: 8px;
+  color: $orange;
+}
+
+.witty-works-ext-primary-button-red {
+  background: $orange;
+  border-radius: 8px;
+  color: $white;
+}
+//Backgrounds
+.witty-works-ext-strong-gradient-background {
+  background: linear-gradient(
+        96.78deg,
+        #fef7f8 -6.3%,
+        #fbf6fa 35.9%,
+        #e9f2f5 100.12%
+      )
+      padding-box,
+    linear-gradient(
+        114.59deg,
+        #f06464 1.6%,
+        #f277d0 32.79%,
+        #9489db 71.64%,
+        #37d1e5 101.91%,
+        #5acfb9 131.52%
+      )
+      border-box;
+}
+
+.witty-works-ext-light-gray-background {
+  background: $lightGray;
+}
+
+.witty-works-ext-dark-gray-background {
+  background: $darkGray;
+}
+
+//Containers
+.witty-works-ext-section {
+  padding: 1em !important;
+  padding-bottom: 0em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.witty-works-ext-ignore-section {
+  padding: 0em 0 1em 0.3em !important;
+  padding-bottom: 0em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.witty-works-ext-wittyworks-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 0.5em;
+}
+
+.witty-works-ext-container-rounded {
+  border-radius: 8px;
+  max-width: 300px;
+}
+
+.witty-works-ext-container-row {
+  display: flex;
+  flex-direction: row !important;
+}
+
+//Alignments
+.witty-works-ext-justify-start {
+  justify-content: flex-start;
+}
+
+.witty-works-ext-justify-space-between {
+  justify-content: space-between;
+}
+
+.witty-works-ext-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.witty-works-ext-full-padding {
+  padding: 1em;
+  max-width: 300px;
+}
+
+.witty-works-ext-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.witty-works-ext-margin-right {
+  display: flex;
+  margin-right: 0.5em;
+}
+
+.witty-works-ext-margin-left {
+  margin-left: 0.5em;
+}
+
+.witty-works-ext-margin-top {
+  margin-top: 1em;
+}
+
+.witty-works-ext-margin-bottom {
+  margin-bottom: 1em;
+}
+
+//general
+.witty-works-ext-body {
+  font-family: $lato;
+  color: $black;
+}
+
+#witty-works-ext-popup-root {
+  min-width: 300px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.witty-works-ext-header {
+  padding: 1em 1em 1.3em 1em;
+  display: flex;
+  justify-content: space-between;
+
+  svg {
+    cursor: pointer;
+  }
+}
+
+.witty-works-ext-separator {
+  background-color: $whiteGray;
+  border: 0;
+  height: 1px;
+  width: 110%;
+  margin-left: -1em;
+  overflow: hidden;
+}
+
+.witty-works-ext-cursor-pointer {
+  cursor: pointer;
+}
+
+.witty-works-ext-margin-auto {
+  margin-top: auto;
+  margin-bottom: auto;
+}

@@ -1,15 +1,14 @@
 import React from 'react';
 
-export const useStateRef = (defaultValue: any) => {
-  //TODO define type
-  const [state, setState] = React.useState(defaultValue);
+export const useStateRef = <T,>(defaultValue: T) => {
+  const [state, setState] = React.useState<T>(defaultValue);
   const ref = React.useRef(state);
 
-  const dispatch = React.useCallback(function (val) {
+  const dispatch = React.useCallback(function (val: T) {
     ref.current = typeof val === 'function' ? val(ref.current) : val;
 
     setState(ref.current);
   }, []);
 
-  return [state, dispatch, ref];
+  return [state, dispatch, ref] as const;
 };

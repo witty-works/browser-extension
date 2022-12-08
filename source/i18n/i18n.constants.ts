@@ -3,7 +3,8 @@ export const namespaces = {
     popup: 'pages.popup',
   },
   common: 'common',
-  modal: 'modal'
+  popover: 'popover',
+  errors: 'errors',
 };
 
 export const languages = {

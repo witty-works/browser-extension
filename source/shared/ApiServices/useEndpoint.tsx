@@ -1,35 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
-import { getAnalyzedTextResults, logAction } from './requests';
-import { IRequest, ILog } from '../types';
+import { getAnalyzedTextResults } from './requests';
+import { IRequest, ICheckResponse } from '../types';
+import { checkResponseSchema } from './validationSchemas';
 
 export const useCheckEndpoint = () => {
   const [textToAnalyze, setTextToAnalyse] = useState<string>('');
+  const request: IRequest = useMemo(() => {
+    return getAnalyzedTextResults(textToAnalyze);
+  }, [textToAnalyze]);
 
-  useEffect(() => {
-    return () => {
-      setTextToAnalyse('');
-    };
-  }, []);
-
-  const request: IRequest = useMemo(
-    () => getAnalyzedTextResults(textToAnalyze),
-    [textToAnalyze]
+  const [checkResponse, errorResponse] = useApiResults<ICheckResponse>(
+    request,
+    checkResponseSchema
   );
 
-  return useApiResults(request, setTextToAnalyse);
-};
-
-export const useLogEndpoint = () => {
-  const [log, setLog] = useState<ILog>({} as ILog);
-
-  useEffect(() => {
-    return () => {
-      setLog({} as ILog);
-    };
-  }, []);
-
-  const request: IRequest = useMemo(() => logAction(log), [log]);
-
-  return useApiResults(request, setLog);
+  return [checkResponse, errorResponse, setTextToAnalyse] as const;
 };

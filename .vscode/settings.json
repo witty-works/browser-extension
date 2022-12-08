@@ -1,0 +1,9 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "witty-works",
+    "projectKey": "witty-works_browser-extension"
+  }
+}

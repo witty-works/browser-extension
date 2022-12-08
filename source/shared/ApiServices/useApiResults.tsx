@@ -1,23 +1,41 @@
 import { useState, useEffect } from 'react';
 
-import { IEndpointResponseError, IRequest } from '../types';
+import { IEndpointError, IRequest } from '../types';
 import { useLog, logTypes } from '../customHooks/useLog';
+import Ajv, { JSONSchemaType } from 'ajv';
+import { WTags } from '../constants';
+import { getActiveDocument } from '../../ContentScript/ContentScriptApp';
+const ajv = new Ajv();
 
-const useApiResult = (request: IRequest, sendData: any) => {
-  const [endpointResponse, setEndpointResponse] = useState<any>(null); //TODO update type any
-  const [endpointError, setEndpointError] = useState<IEndpointResponseError>({
-    detail: [],
-  });
-  const [loading, setLoading] = useState<boolean>(false);
+const useApiResult = <TResponse,>(
+  request: IRequest,
+  responseSchema: JSONSchemaType<TResponse> | null
+): [TResponse | null, IEndpointError | null] => {
+  const validateResponse =
+    responseSchema === null ? null : ajv.compile(responseSchema);
+
+  const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
+    null
+  );
+  const [endpointError, setEndpointError] = useState<IEndpointError | null>(
+    null
+  );
   const log = useLog('useApiResult');
 
   useEffect(() => {
+    const container = getActiveDocument().getElementsByTagName(
+      WTags.WW_CONTAINER
+    );
     const ac = new AbortController();
-
-    //Avoid endpoint calls if body is null
-    if (request.config.body) {
-      setLoading(true);
-
+    //avoid enpoint call if no config or no container (aka plugin disabled)
+    if (request.config && request.url) {
+      if (
+        (!request.config.body && request.url.includes('check')) ||
+        (request.url.includes('check') && container && container.length == 0) || //for auth call on options page
+        (request.url.includes('refresh-token') && !request.config.body)
+      ) {
+        return;
+      }
       request.config = { ...request.config, signal: ac.signal };
 
       log('Request:', logTypes.INFO, request);
@@ -26,43 +44,48 @@ const useApiResult = (request: IRequest, sendData: any) => {
         .then(async (response) => {
           log('Response: ', logTypes.INFO, response);
 
-          setLoading(false);
-
-          if (response.ok) {
-            const responseResults = await response.json();
-
-            log(
-              `Results: Language is ${responseResults.language.toUpperCase()} and the relevant terms are: `,
-              logTypes.INFO,
-              responseResults.results.length > 0
-                ? responseResults.results
-                : 'None'
-            );
-            setEndpointResponse(responseResults);
-            setEndpointError({ detail: [] });
-          } else {
-            setEndpointError(await response.json());
+          if (!response.ok) {
+            setEndpointError({
+              status: response.status,
+              message: response.statusText,
+            });
+            return;
           }
+          const responseResults: any = await response.json();
+
+          if (
+            validateResponse &&
+            !validateResponse(responseResults) &&
+            validateResponse.errors
+          ) {
+            console.log('validateResponse.errors', validateResponse.errors);
+            log(
+              `JSON Schema Error: ${validateResponse.errors.join(', ')}`,
+              logTypes.ERROR
+            );
+            return;
+          }
+
+          setEndpointResponse(responseResults);
+          setEndpointError(null);
         })
-        .catch((error) => {
+
+        .catch((error: Error) => {
           // AbortError is created when a request is aborted.
           // We don't need to shown an error message in this case
           if (error.name !== 'AbortError') {
-            log(error, logTypes.ERROR);
-            // setError(error); //TODO FIX, this is not received outside
+            log(error.message, logTypes.ERROR);
           }
-        })
-        .finally(() => {
-          setLoading(false);
         });
     }
 
     return () => {
       ac.abort(); // Abort fetch on unmount
     };
-  }, [request.config.body]);
+    // });
+  }, [request]);
 
-  return [loading, endpointResponse, endpointError, sendData];
+  return [endpointResponse, endpointError];
 };
 
 export default useApiResult;

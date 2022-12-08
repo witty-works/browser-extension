@@ -1,21 +1,15 @@
 import { useState, useEffect } from 'react';
+import { getActiveDocument } from '../../ContentScript/ContentScriptApp';
 
-export const useResizeObserver = (
-  element: HTMLElement
-): DOMRect => {
+export const useResizeObserver = (element: HTMLElement): DOMRect => {
   const [rect, setRect] = useState<DOMRect>(new DOMRect());
-  const doc = document.documentElement || document.body;
+  const doc = getActiveDocument().documentElement || getActiveDocument().body;
 
   const resizeListener = () => {
     const { width, height, top, left } = element.getBoundingClientRect();
 
     setRect(
-      new DOMRect(
-        left + doc.scrollLeft,
-        top + doc.scrollTop,
-        width,
-        height
-      )
+      new DOMRect(left + doc.scrollLeft, top + doc.scrollTop, width, height)
     );
   };
 
@@ -24,6 +18,8 @@ export const useResizeObserver = (
   useEffect(() => {
     resizeObserver.disconnect();
     resizeObserver.observe(element);
+    resizeObserver.observe(doc);
+
     return () => {
       resizeObserver.disconnect();
     };

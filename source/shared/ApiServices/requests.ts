@@ -1,55 +1,101 @@
-import { IRequest, ILog, RequestConfig } from '../types';
-import { BaseUrls} from '../constants';
-import { browser } from 'webextension-polyfill-ts';
+import { FilteredRequestConfig, IRequest, RequestConfig } from '../types';
+import { BaseUrls, wittyVersion } from '../constants';
 
-let BASE_URL: string = '';
-let appID:string = '';
-let requestConfig:RequestConfig = {} as RequestConfig;
+let BASE_URL_API: string = '';
+let BASE_URL_DASHBOARD: string = '';
+let token: string = '';
+let configHash: string = '';
+let organizationConfigHash: string = '';
 
-const wittyVersion = browser.runtime.getManifest().version;
+export let appID: string = ''; // TODO context hook
 
-const createUrl = (base: string, path: string): string => `${base}${path}`;
+export let requestConfig: RequestConfig = {} as RequestConfig;
+let filteredRequestConfig = {} as FilteredRequestConfig;
 
-export const setBaseURL = (urlKey: string) => BASE_URL = BaseUrls[urlKey as keyof typeof BaseUrls];
-export const setRequestConfig = (reqConfig:RequestConfig) => requestConfig = reqConfig;
-export const setAppID = (id: string) => appID = id;
+export const createUrl = (base: string, path: string): string =>
+  `${base}${path}`;
 
-export const getAnalyzedTextResults = (text: string):IRequest => {
-  return {
-    url: createUrl(BASE_URL, 'check'),
-    config:{
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: text ? JSON.stringify({text: text, lang: 'auto', id:appID, client: wittyVersion, config: requestConfig}) : null
-    }
-  }
+export const setBaseUrls = (urlKey: string) => {
+  BASE_URL_API = BaseUrls[urlKey].api;
+  BASE_URL_DASHBOARD = BaseUrls[urlKey].dashboard;
 };
 
-export const logAction = (log: ILog) => {
+export const getBaseUrls = () => {
+  return { api: BASE_URL_API, dashboard: BASE_URL_DASHBOARD };
+};
+
+export const setRequestConfig = (reqConfig: RequestConfig) => {
+  requestConfig = reqConfig;
+  filteredRequestConfig = {
+    style: reqConfig.style,
+    orthography: reqConfig.orthography,
+    inclusive: reqConfig.inclusive,
+    disabled_categories: reqConfig.disabled_categories,
+  };
+};
+
+export const setAppID = (id: string) => (appID = id);
+
+export const setToken = (tok: string) => (token = tok);
+
+export const setConfigHash = (hash: string) => (configHash = hash);
+
+export const setOrganizationConfigHash = (hash: string) =>
+  (organizationConfigHash = hash);
+
+export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
-    url: createUrl(BASE_URL, 'log'),
+    url: createUrl(BASE_URL_API, 'v2.1/check'),
     config: {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : '',
       },
-      body: log.text ? JSON.stringify({
-        text: log.text,
-        lang: log.language,
-        id: appID,
-        client: wittyVersion,
-        config: requestConfig,
-        type:log.type,
-        context: log.context,
-        start: log.start,
-        end: log.end,
-        details: log.details,
-      })
-      : null
-    }
-  }
-}
+      body: text
+        ? JSON.stringify({
+            text: text,
+            lang: 'auto',
+            id: appID,
+            client: wittyVersion,
+            config: filteredRequestConfig,
+            config_hash: configHash,
+            organization_config_hash: organizationConfigHash,
+          })
+        : null,
+    },
+  };
+};
+
+export const getConfiguration = (): IRequest => {
+  return {
+    url: BASE_URL_API && createUrl(BASE_URL_API, 'v2.0/auth'),
+    config: {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  };
+};
+
+export const getToken = (refreshToken: string): IRequest => {
+  return {
+    url: createUrl(BASE_URL_DASHBOARD, 'api/refresh-token'),
+    config: {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: refreshToken
+        ? JSON.stringify({
+            token: refreshToken,
+          })
+        : null,
+    },
+  };
+};
