@@ -35,7 +35,7 @@ if (exposeWittyIdAllowList.includes(domain)) {
         : DefaultBaseUrlKey
     );
     if (!result[StorageKeys.ACCESS_TOKEN]) {
-      const optionsPageUrl = browser.extension.getURL('options.html');
+      const optionsPageUrl = browser.extension.getURL('options.html'); //DEPRECATED
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;

@@ -67,7 +67,7 @@ const PopupLogin: React.FC = () => {
   };
 
   const logIn = async (urls: string) => {
-    const optionsPageUrl = browser.extension.getURL('options.html');
+    const optionsPageUrl = browser.extension.getURL('options.html'); //DEPRECATED
 
     browser.storage.local.get(null).then((result) => {
       if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
