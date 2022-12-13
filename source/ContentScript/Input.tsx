@@ -171,7 +171,7 @@ const Input: React.FC<{
   }, []);
 
   useEffect(() => {
-    handleKeyupEvent();
+    // handleKeyupEvent(); //TODO
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
@@ -204,6 +204,8 @@ const Input: React.FC<{
   const handleFocusinEvent = (event: Event) => {
     const nextText: string = getInputText(element);
 
+    //PART 1: FOCUSIN: send text within max char length to API
+    console.log('Part 1 focusin text', nextText.length, maxCharLength);
     if (nextText.length > maxCharLength && !isTextArea(element)) {
       const textDividedByNodes = getTextDividedByNodes(element);
 
@@ -214,7 +216,6 @@ const Input: React.FC<{
       });
 
       const textWithinMaxCharLength = nodesWhithinMaxCharLength.join('\n');
-      console.log('textWithinMaxCharLength', textWithinMaxCharLength);
       handleTextAndIcon(textWithinMaxCharLength, event);
     } else {
       handleTextAndIcon(nextText, event);
@@ -258,44 +259,44 @@ const Input: React.FC<{
       );
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
     } else if (fistTextDiff) {
-      const unchangedNodes = nextTextDividedByNodes.slice(0, fistTextDiff.node);
+      //contenteditable
+      //if change is at the end of the node, we need to keep the alerts behind the change
+      const firstDiffNode =
+        nextTextDividedByNodes[fistTextDiff.node].length <=
+        fistTextDiff.position + 5 //problem with space
+          ? fistTextDiff.node + 1
+          : fistTextDiff.node;
+      const unchangedNodes = nextTextDividedByNodes.slice(0, firstDiffNode);
       const unchangedNodesWithAlerts = nodesWithAlertsRef.current.filter(
         (nodeWithAlerts) =>
           nodeWithAlerts.node.nodeValue &&
           unchangedNodes.includes(nodeWithAlerts.node.nodeValue)
       );
 
-      //merge nodesWithAlertsRef.current with unchangedNodesWithAlerts
-      const mergedNodesWithAlerts = nodesWithAlertsRef.current.map(
-        (nodeWithAlerts) => {
-          const unchangedNodeWithAlerts = unchangedNodesWithAlerts.find(
-            (unchangedNodeWithAlerts) =>
-              unchangedNodeWithAlerts.nodeIndex === nodeWithAlerts.nodeIndex
-          );
-          if (unchangedNodeWithAlerts) {
-            return {
-              ...nodeWithAlerts,
-              alerts: [
-                ...unchangedNodeWithAlerts.alerts,
-                ...nodeWithAlerts.alerts,
-              ],
-            };
-          }
-          return nodeWithAlerts;
-        }
-      );
-      nodesWithAlertsRef.current = mergedNodesWithAlerts;
-
-      console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current);
-      setNodesWithAlerts(mergedNodesWithAlerts);
+      //IS THIS NEEDED?
+      upsertNodesWithAlerts(unchangedNodesWithAlerts);
     }
 
     previousTextToCheckRef.current = nextText;
 
-    handleTextAndIcon(nextText, event);
+    //Send text within max char length to API
+    if (
+      nextText.length > maxCharLength &&
+      !isTextArea(element) &&
+      fistTextDiff
+    ) {
+      const textWithinMaxCharLength = getTextWithinMaxCharLength(
+        fistTextDiff.node
+      );
+      handleTextAndIcon(textWithinMaxCharLength, event);
+    } else {
+      console.log('bingo');
+      handleTextAndIcon(nextText, event);
+    }
   };
 
   const handleTextAndIcon = (text: string, event?: Event) => {
+    console.log('handleTextAndIcon', text);
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -311,6 +312,39 @@ const Input: React.FC<{
         setActiveIcon('active');
       }
     }
+  };
+
+  const getTextWithinMaxCharLength = (currentNode: number) => {
+    const textDividedByNodes = getTextDividedByNodes(element);
+
+    const nodesWhithinMaxCharLengthStartingAtNode = textDividedByNodes
+      .slice(currentNode)
+      .map((node) => {
+        return { node: node, index: textDividedByNodes.indexOf(node) };
+      });
+
+    let totalChars = 0;
+    const nodesWhithinMaxCharLengthStartingAtNodeUntilMaxCharLength =
+      nodesWhithinMaxCharLengthStartingAtNode.filter((node) => {
+        totalChars += node.node.length;
+        return totalChars <= maxCharLength;
+      });
+
+    nodesWhithinMaxCharLengthRef.current = nodesWhithinMaxCharLengthRef.current
+      .filter(
+        (node) =>
+          !nodesWhithinMaxCharLengthStartingAtNodeUntilMaxCharLength.some(
+            (node2) => node2.index === node.index
+          )
+      )
+      .concat(nodesWhithinMaxCharLengthStartingAtNodeUntilMaxCharLength);
+
+    const textWithinMaxCharLength =
+      nodesWhithinMaxCharLengthStartingAtNodeUntilMaxCharLength
+        .map((node) => node.node)
+        .join('\n');
+
+    return textWithinMaxCharLength;
   };
 
   const debouncedSetTextToCheck = debounce((text: string) => {
@@ -382,7 +416,6 @@ const Input: React.FC<{
   const handleElementClickEvent = (event: MouseEvent) => {
     // If user clicks on an element only once...
     if (event.detail === 1) {
-      console.log('CLICK');
       singleClickTimeOut = setTimeout(function () {
         const target = event.target as CustomInputElement;
 
@@ -400,55 +433,24 @@ const Input: React.FC<{
                   .anchorNode,
               };
 
-        // if (getInputText(element).length > maxCharLength) {
-        const textDividedByNodes = getTextDividedByNodes(element);
+        //PART 3: CLICK: figure out of next section of text to get highlightes
+        if (getInputText(element).length > maxCharLength) {
+          const textDividedByNodes = getTextDividedByNodes(element);
+          let clickedNode = caret.element?.textContent;
 
-        let clickedNode = caret.element?.textContent;
-
-        //TODO: do it for textarea as well?
-        if (!isTextArea(element)) {
-          if (!clickedNode) return;
-
-          const nodesWhithinMaxCharLengthStartingAtClickedNode =
-            textDividedByNodes
-              .slice(textDividedByNodes.indexOf(clickedNode))
-              .map((node) => {
-                return { node: node, index: textDividedByNodes.indexOf(node) };
-              });
-
-          let totalChars = 0;
-          const nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength =
-            nodesWhithinMaxCharLengthStartingAtClickedNode.filter((node) => {
-              totalChars += node.node.length;
-              return totalChars <= maxCharLength;
-            });
-
-          //merge nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength and nodesWhithinMaxCharLengthRef.current
-          nodesWhithinMaxCharLengthRef.current =
-            nodesWhithinMaxCharLengthRef.current
-              .filter(
-                (node) =>
-                  !nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength.some(
-                    (node2) => node2.index === node.index
-                  )
-              )
-              .concat(
-                nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength
-              );
-
-          console.log(
-            'nodesWhithinMaxCharLengthRef.current',
-            nodesWhithinMaxCharLengthRef.current
-          );
-
-          const textWithinMaxCharLength =
-            nodesWhithinMaxCharLengthStartingAtClickedNodeUntilMaxCharLength
-              .map((node) => node.node)
-              .join('\n');
-
-          handleTextAndIcon(textWithinMaxCharLength, event);
+          if (!isTextArea(element) && clickedNode) {
+            const textWithinMaxCharLength = getTextWithinMaxCharLength(
+              textDividedByNodes.indexOf(clickedNode)
+            );
+            console.log('PART 3: textDividedByNodes', textDividedByNodes);
+            console.log(
+              'PART 3: index',
+              textDividedByNodes.indexOf(clickedNode)
+            );
+            console.log('PART 3: clicked', textWithinMaxCharLength);
+            handleTextAndIcon(textWithinMaxCharLength, event);
+          }
         }
-        // }
 
         if (caret.element && caret.position && caret.position > -1) {
           // Find out if the clicked element has alerts
@@ -648,120 +650,119 @@ const Input: React.FC<{
   }, [checkEndpointResponse]);
 
   useEffect(() => {
-    if (alerts.length === 0) setNodesWithAlerts([]);
-    else {
-      let alertsWithoutIgnoredCategories = alerts;
-      //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
-      if (
-        ignoredCategoriesFromStorage
-          .map((item) => item.category)
-          .includes('inclusive')
-      ) {
-        alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
-          (alert) => alert.data.gravity !== undefined
-        );
-      }
-
-      if (
-        ignoredCategoriesFromStorage
-          .map((item) => item.category)
-          .includes('premiumFeature')
-      ) {
-        alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
-          (alert) => alert.data.explanation !== undefined
-        );
-      }
-
-      const alertsWithoutIgnoredTerms: IAlert[] =
-        alertsWithoutIgnoredCategories.filter(
-          (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
-        );
-
-      //handle case where a word has multiple alerts of different gravity
-      const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
-        return [alert0, ...alerts]
-          .filter(Boolean)
-          .reduce((minAlert, currentAlert) =>
-            minAlert.data.category === 'orthography' &&
-            currentAlert.data.category !== 'orthography'
-              ? currentAlert
-              : minAlert.data.category !== 'orthography' &&
-                currentAlert.data.category === 'orthography'
-              ? minAlert
-              : minAlert.data.gravity === currentAlert.data.gravity
-              ? minAlert
-              : (minAlert.data.gravity || Infinity) <
-                (currentAlert.data.gravity || Infinity)
-              ? minAlert
-              : currentAlert
-          );
-      };
-
-      //Reduces the array to show only the alerts with a lower gravity (lower gravity === worst)
-      const alertsWithoutIgnoredTermsGravityReduced = Object.values(
-        alertsWithoutIgnoredTerms.reduce(
-          (groups, alert) => ({
-            ...groups,
-            [alert.startOffset]: whereMinGravity(
-              alert,
-              groups[alert.startOffset]
-            ),
-          }),
-          {} as Record<number, IAlert>
-        )
-      ).sort((a, b) => a.startOffset - b.startOffset);
-
-      const nodesWithAlertsTemp: INodeWithAlerts[] =
-        isTextArea(element) || isInputText(element)
-          ? [
-              {
-                node: clone.firstChild as Node,
-                alerts: alertsWithoutIgnoredTermsGravityReduced,
-              },
-            ]
-          : getNodesWithRecalculatedPositionAlerts(
-              alertsWithoutIgnoredTermsGravityReduced,
-              elementXPathResult as XPathResult
-            );
-
-      //Set the total alerts
-      const totalAlerts: number = nodesWithAlertsTemp.reduce(
-        (total, node) => total + node.alerts.length,
-        0
-      );
-      setTotalAlerts(totalAlerts);
-
-      //merge nodesWithAlerts and nodesWithAlertsTemp with winque nodeIndex
-      const nodesWithAlertsMerged: INodeWithAlerts[] = nodesWithAlertsTemp.map(
-        (nodeWithAlertsTemp) => {
-          const nodeWithAlerts = nodesWithAlerts.find(
-            (nodeWithAlerts) =>
-              nodeWithAlerts.nodeIndex === nodeWithAlertsTemp.nodeIndex
-          );
-          if (nodeWithAlerts) {
-            return {
-              ...nodeWithAlerts,
-              alerts: nodeWithAlertsTemp.alerts,
-            };
-          } else {
-            return nodeWithAlertsTemp;
-          }
-        }
-      );
-
-      //make this into Ref?
-      console.log('nodesWithAlertsMerged', nodesWithAlertsMerged);
-
-      setNodesWithAlerts(nodesWithAlertsMerged);
+    if (alerts.length === 0) {
+      setNodesWithAlerts([]);
+      return;
     }
+
+    let alertsWithoutIgnoredCategories = alerts;
+    //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
+    if (
+      ignoredCategoriesFromStorage
+        .map((item) => item.category)
+        .includes('inclusive')
+    ) {
+      alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
+        (alert) => alert.data.gravity !== undefined
+      );
+    }
+
+    if (
+      ignoredCategoriesFromStorage
+        .map((item) => item.category)
+        .includes('premiumFeature')
+    ) {
+      alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
+        (alert) => alert.data.explanation !== undefined
+      );
+    }
+
+    const alertsWithoutIgnoredTerms: IAlert[] =
+      alertsWithoutIgnoredCategories.filter(
+        (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
+      );
+
+    //handle case where a word has multiple alerts of different gravity
+    const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
+      return [alert0, ...alerts]
+        .filter(Boolean)
+        .reduce((minAlert, currentAlert) =>
+          minAlert.data.category === 'orthography' &&
+          currentAlert.data.category !== 'orthography'
+            ? currentAlert
+            : minAlert.data.category !== 'orthography' &&
+              currentAlert.data.category === 'orthography'
+            ? minAlert
+            : minAlert.data.gravity === currentAlert.data.gravity
+            ? minAlert
+            : (minAlert.data.gravity || Infinity) <
+              (currentAlert.data.gravity || Infinity)
+            ? minAlert
+            : currentAlert
+        );
+    };
+
+    //Reduces the array to show only the alerts with a lower gravity (lower gravity === worst)
+    const alertsWithoutIgnoredTermsGravityReduced = Object.values(
+      alertsWithoutIgnoredTerms.reduce(
+        (groups, alert) => ({
+          ...groups,
+          [alert.startOffset]: whereMinGravity(
+            alert,
+            groups[alert.startOffset]
+          ),
+        }),
+        {} as Record<number, IAlert>
+      )
+    ).sort((a, b) => a.startOffset - b.startOffset);
+
+    const nodesWithAlertsTemp: INodeWithAlerts[] =
+      isTextArea(element) || isInputText(element)
+        ? [
+            {
+              node: clone.firstChild as Node,
+              alerts: alertsWithoutIgnoredTermsGravityReduced,
+            },
+          ]
+        : getNodesWithRecalculatedPositionAlerts(
+            alertsWithoutIgnoredTermsGravityReduced,
+            elementXPathResult as XPathResult
+          );
+
+    //Set the total alerts
+    const totalAlerts: number = nodesWithAlertsTemp.reduce(
+      (total, node) => total + node.alerts.length,
+      0
+    );
+    setTotalAlerts(totalAlerts);
+
+    //NOT PERSISTANT -> make ref?
+    upsertNodesWithAlerts(nodesWithAlertsTemp);
   }, [alerts, ignoredTerms, elementXPathResult, ignoredCategoriesFromStorage]);
 
+  function upsertNodesWithAlerts(
+    updatedNodesWithAlerts: INodeWithAlerts[]
+  ): void {
+    const merged = new Map<number, INodeWithAlerts>();
+    for (const nodeWithAlerts of [
+      ...nodesWithAlerts,
+      ...updatedNodesWithAlerts,
+    ]) {
+      if (nodeWithAlerts.nodeIndex === undefined) continue;
+      merged.set(nodeWithAlerts.nodeIndex, nodeWithAlerts);
+    }
+    console.log('merged', Array.from(merged.values()));
+    setNodesWithAlerts(Array.from(merged.values()));
+  }
+
+  //PART 4: recalculate the position of the alerts
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
     elementEvaluation: XPathResult
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
 
+    //problem in how endOffset and startOffset are calculated
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = -1;
 
@@ -776,13 +777,13 @@ const Input: React.FC<{
       if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
         textStartingAbsPosition = textEndAbsPosition + 1;
 
-        if (
-          !nodesWhithinMaxCharLengthRef.current.some(
-            (nodeWithAlertsRef) => nodeWithAlertsRef.index === index
-          )
-        ) {
-          continue;
-        }
+        // if (
+        //   !nodesWhithinMaxCharLengthRef.current.some(
+        //     (nodeWithAlertsRef) => nodeWithAlertsRef.index === index
+        //   )
+        // ) {
+        //   continue;
+        // }
 
         textEndAbsPosition = textStartingAbsPosition + node.nodeValue.length;
 
@@ -791,11 +792,11 @@ const Input: React.FC<{
             (alert: IAlert) =>
               node.nodeValue && node.nodeValue.includes(alert.data.text)
           )
-          // .filter(
-          //   (alert: IAlert) =>
-          //     alert.startOffset >= textStartingAbsPosition &&
-          //     alert.endOffset <= textEndAbsPosition
-          // )
+          .filter(
+            (alert: IAlert) =>
+              alert.startOffset >= textStartingAbsPosition &&
+              alert.endOffset <= textEndAbsPosition
+          )
           .map((alert: IAlert) => {
             return {
               ...alert,
