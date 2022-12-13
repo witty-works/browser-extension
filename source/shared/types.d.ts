@@ -190,7 +190,7 @@ export interface IDashboardLogRequest {
   request__client: string;
   request__config__preferred_variants: ConfigProperty;
   request__config__german_gender_ending: ConfigProperty;
-  dashboard__location: string;
+  button__location: string;
 }
 export interface ICheckLogItems {
   request__type: string;

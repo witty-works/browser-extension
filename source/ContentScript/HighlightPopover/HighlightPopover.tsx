@@ -340,7 +340,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
-              analytics.dashboardLog('popover');
+              analytics.dashboardLog('button_popover');
               window.open(
                 getBaseUrls().dashboard + 'user/language/language-settings',
                 '_blank'
