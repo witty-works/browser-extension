@@ -65,14 +65,17 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'install') {
     //Set default settings
     setSettings();
-
-    //Open the welcome page
-    if (!DEV_ENV) {
-      browser.tabs.create({
-        url: 'https://www.witty.works/welcome',
-      });
-    }
+    // if (!DEV_ENV) {
+    // browser.storage.local.get(null).then((result) => {
+    //   if (result[StorageKeys.API_ENDPOINT_KEY]) {
+    browser.tabs.create({
+      url: `
+          http://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/api/browser-login?redirect_uri=https://www.witty.works/try-out-witty`,
+    });
+    //   }
+    // });
   }
+  // }
   if (details.reason === 'update') {
     //Set icon according to the saved settings
     scanTabsToDetectStatus();
