@@ -7,6 +7,8 @@ import {
   DEV_ENV,
   WittyIconActive,
   wittyVersion,
+  DefaultBaseUrlKey,
+  BaseUrls,
 } from '../shared/constants';
 import {
   addInactiveBadge,
@@ -65,17 +67,17 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'install') {
     //Set default settings
     setSettings();
-    // if (!DEV_ENV) {
-    // browser.storage.local.get(null).then((result) => {
-    //   if (result[StorageKeys.API_ENDPOINT_KEY]) {
-    browser.tabs.create({
-      url: `
-          http://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/api/browser-login?redirect_uri=https://www.witty.works/try-out-witty`,
+    browser.storage.local.get(null).then((result) => {
+      const optionsPageUrl = browser.extension.getURL('options.html');
+      const urls = result[StorageKeys.API_ENDPOINT_KEY]
+        ? result[StorageKeys.API_ENDPOINT_KEY]
+        : DefaultBaseUrlKey;
+      browser.tabs.create({
+        url: `
+        ${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`,
+      });
     });
-    //   }
-    // });
   }
-  // }
   if (details.reason === 'update') {
     //Set icon according to the saved settings
     scanTabsToDetectStatus();
