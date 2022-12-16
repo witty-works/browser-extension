@@ -25,7 +25,7 @@ import {
   addLoginBadge,
   getRandomToken,
 } from '../shared/utils';
-import { isTextArea, isInputText } from '../shared/DOMutils';
+import { isTextArea, isInputText, isCkeEditor } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
@@ -720,20 +720,48 @@ const Input: React.FC<{
       if (!sel) return;
       sel.removeAllRanges();
       sel.addRange(range);
-      getActiveDocument().execCommand('insertText', false, alternative);
-    }
 
-    if (isTextArea(element)) {
-      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
-        nodeWithAlerts.alerts.filter(
-          (nodeAlert) => nodeAlert.startOffset < alert.startOffset
-        )
-      );
-      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+      if (isCkeEditor(element)) {
+        const deleteSelectedText = new KeyboardEvent('keydown', {
+          key: 'Delete',
+          bubbles: true,
+          cancelable: true,
+        });
+        node.dispatchEvent(deleteSelectedText);
+
+        //Need to slow down the process for changes to be applied
+        setTimeout(() => {
+          const insertAlternative = new ClipboardEvent('paste', {
+            clipboardData: new DataTransfer(),
+            cancelable: true,
+            bubbles: true,
+          });
+          if (!insertAlternative.clipboardData) return;
+          insertAlternative.clipboardData.setData('text/plain', alternative);
+          node.dispatchEvent(insertAlternative);
+
+          setTimeout(() => {
+            setTextToCheck(getInputText(element));
+            const event = new Event('keyup', { bubbles: true });
+            element.dispatchEvent(event);
+          }, 200);
+        }, 200);
+      } else {
+        getActiveDocument().execCommand('insertText', false, alternative);
+        if (isTextArea(element)) {
+          const unchangedAlerts = nodesWithAlertsRef.current.map(
+            (nodeWithAlerts) =>
+              nodeWithAlerts.alerts.filter(
+                (nodeAlert) => nodeAlert.startOffset < alert.startOffset
+              )
+          );
+          if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+        }
+        setTextToCheck(getInputText(element));
+        const event = new Event('keyup', { bubbles: true });
+        element.dispatchEvent(event);
+      }
     }
-    setTextToCheck(getInputText(element));
-    const event = new Event('keyup', { bubbles: true });
-    element.dispatchEvent(event);
   };
 
   useEffect(() => {
