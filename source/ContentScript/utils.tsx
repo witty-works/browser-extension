@@ -131,6 +131,58 @@ export const handleDomainsFromDashboard = (newValue: any) => {
   }
 };
 
+export const getFirstTextDiff = (
+  previousTextArray: string[],
+  newTextArray: string[]
+) => {
+  if (!newTextArray) return 0;
+  //in what node the diff is
+  let node = 1;
+  for (let i = 0; i < previousTextArray.length; i++) {
+    if (previousTextArray[i] !== newTextArray[i]) {
+      node = i;
+      break;
+    }
+  }
+
+  //in what position in the node the diff is
+  let position = 0;
+  const previousText = previousTextArray[node];
+  const nextText = newTextArray[node];
+  if (!previousText || !nextText) return;
+  while (
+    position < previousText.length &&
+    position < nextText.length &&
+    previousText[position] == nextText[position]
+  ) {
+    position++;
+  }
+
+  return { node, position };
+};
+
+export const getTextDividedByNodes = (element: CustomInputElement) => {
+  if (isTextArea(element) || isInputText(element)) {
+    return [element.value];
+  } else {
+    const elementEvaluation = getActiveDocument().evaluate(
+      './/text()',
+      element,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    );
+
+    const nodes = [] as string[];
+    for (let i = 0; i < elementEvaluation.snapshotLength; i++) {
+      if (elementEvaluation.snapshotItem(i)?.textContent) {
+        nodes.push(elementEvaluation.snapshotItem(i)?.textContent as string);
+      }
+    }
+    return nodes;
+  }
+};
+
 export const makeAuthRequest = () => {
   browser.storage.local.get(null).then((result) => {
     if (

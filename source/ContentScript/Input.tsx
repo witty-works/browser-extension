@@ -21,7 +21,6 @@ import {
 } from '../shared/types';
 import {
   storeInLocalStorage,
-  getFirstTextDiff,
   addLoginBadge,
   getRandomToken,
 } from '../shared/utils';
@@ -42,7 +41,12 @@ import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
-import { getInputText, updateConfig } from './utils';
+import {
+  getFirstTextDiff,
+  getInputText,
+  getTextDividedByNodes,
+  updateConfig,
+} from './utils';
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
 import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
@@ -55,6 +59,10 @@ const Input: React.FC<{
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
   const [, , previousTextToCheckRef] = useStateRef('');
+  const [, , previousElementStateRef] = useStateRef<string[]>([]);
+  const [, , nodesWhithinMaxCharLengthRef] = useStateRef<
+    { node: string; index: number }[]
+  >([]);
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
@@ -87,6 +95,7 @@ const Input: React.FC<{
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
+  const maxCharLength = 300;
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -194,8 +203,10 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = (event: Event) => {
-    const nextText: string = getInputText(element);
-    handleTextAndIcon(nextText, event);
+    //TODO
+    console.log('focusin', event);
+    // const nextText: string = getInputText(element);
+    // handleTextAndIcon(nextText, event);
   };
 
   const handleFocusoutEvent = () => {
@@ -216,22 +227,26 @@ const Input: React.FC<{
         sendErrorToSentry(error);
       });
 
+    const nextTextDividedByNodes = getTextDividedByNodes(element);
+
     let nextText: string = getInputText(element);
     const fistTextDiff = getFirstTextDiff(
-      previousTextToCheckRef.current,
-      nextText
+      nextTextDividedByNodes,
+      previousElementStateRef.current
     );
 
-    if (isTextArea(element)) {
+    previousElementStateRef.current = nextTextDividedByNodes;
+
+    if (isTextArea(element) && fistTextDiff) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
-          (alert) => alert.startOffset < fistTextDiff
+          (alert) => alert.startOffset < fistTextDiff.position
         )
       );
-      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
-    } else {
+      unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
+    } else if (fistTextDiff) {
       const nextTextAtFistTextDiff = nextText.substring(
-        fistTextDiff,
+        fistTextDiff.position,
         nextText.length
       );
 
@@ -242,10 +257,53 @@ const Input: React.FC<{
 
     previousTextToCheckRef.current = nextText;
 
-    handleTextAndIcon(nextText, event);
+    fistTextDiff && handleTextAndIcon(nextText, event, fistTextDiff.node);
   };
 
-  const handleTextAndIcon = (text: string, event?: Event) => {
+  const getTextWithinMaxCharLength = (currentNode: number) => {
+    const textDividedByNodes = getTextDividedByNodes(element);
+
+    const nodesWhithinMaxCharLengthStartingAtNode = textDividedByNodes
+      .slice(currentNode)
+      .map((node) => {
+        return { node: node, index: textDividedByNodes.indexOf(node) };
+      });
+
+    let totalChars = 0;
+    const nodesWhithinMaxCharLengthStartingAtNodeUntilMaxCharLength =
+      nodesWhithinMaxCharLengthStartingAtNode.filter((node) => {
+        totalChars += node.node.length;
+        return totalChars <= maxCharLength;
+      });
+
+    nodesWhithinMaxCharLengthRef.current = nodesWhithinMaxCharLengthRef.current
+      .filter(
+        (node) =>
+          !nodesWhithinMaxCharLengthStartingAtNodeUntilMaxCharLength.some(
+            (node2) => node2.index === node.index
+          )
+      )
+      .concat(nodesWhithinMaxCharLengthStartingAtNodeUntilMaxCharLength);
+
+    const textWithinMaxCharLength =
+      nodesWhithinMaxCharLengthStartingAtNodeUntilMaxCharLength
+        .map((node) => node.node)
+        .join('\n');
+
+    return textWithinMaxCharLength;
+  };
+
+  const handleTextAndIcon = (
+    text: string,
+    event?: Event,
+    fistTextDiff?: number
+  ) => {
+    console.log('handleTextAndIcon', text.length, fistTextDiff);
+    if (text.length > maxCharLength && !isTextArea(element) && fistTextDiff) {
+      text = getTextWithinMaxCharLength(fistTextDiff);
+    }
+    console.log('text after', text);
+
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -330,6 +388,7 @@ const Input: React.FC<{
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
+    //TODO
     // If user clicks on an element only once...
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
@@ -640,8 +699,6 @@ const Input: React.FC<{
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
 
-    const nextText: string = getInputText(element);
-
     let textStartingAbsPosition: number = 0;
     let textEndAbsPosition: number = -1;
 
@@ -649,24 +706,23 @@ const Input: React.FC<{
       const node = elementEvaluation.snapshotItem(index) as Node;
 
       if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
+        if (
+          !nodesWhithinMaxCharLengthRef.current.some(
+            (nodeWithAlertsRef) => nodeWithAlertsRef.index === index
+          )
+        ) {
+          continue;
+        }
+
         textStartingAbsPosition = textEndAbsPosition + 1;
 
-        const nodeValueLength: number = node.nodeValue.length;
-
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1; //needed to keep huglights in place
-
-        // Check if there is a new line char after the node's content
-        // If so, we +1 to the end position
-        if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
-          textEndAbsPosition += 1;
-        }
+        textEndAbsPosition = textStartingAbsPosition + node.nodeValue.length;
 
         const alertsTemp: IAlert[] = alerts
           .filter(
             (alert: IAlert) =>
               node.nodeValue && node.nodeValue.includes(alert.data.text)
           )
-
           .filter(
             (alert: IAlert) =>
               alert.startOffset >= textStartingAbsPosition &&
@@ -684,6 +740,7 @@ const Input: React.FC<{
           nodesWithAlertsTemp.push({
             node: node,
             alerts: alertsTemp,
+            nodeIndex: index,
           });
       }
     }
