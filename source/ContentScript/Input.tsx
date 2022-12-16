@@ -748,19 +748,20 @@ const Input: React.FC<{
         }, 200);
       } else {
         getActiveDocument().execCommand('insertText', false, alternative);
-        if (isTextArea(element)) {
-          const unchangedAlerts = nodesWithAlertsRef.current.map(
-            (nodeWithAlerts) =>
-              nodeWithAlerts.alerts.filter(
-                (nodeAlert) => nodeAlert.startOffset < alert.startOffset
-              )
-          );
-          if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
-        }
-        setTextToCheck(getInputText(element));
-        const event = new Event('keyup', { bubbles: true });
-        element.dispatchEvent(event);
       }
+    }
+    if (isTextArea(element)) {
+      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+        nodeWithAlerts.alerts.filter(
+          (nodeAlert) => nodeAlert.startOffset < alert.startOffset
+        )
+      );
+      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+    }
+    if (!isCkeEditor(element)) {
+      setTextToCheck(getInputText(element));
+      const event = new Event('keyup', { bubbles: true });
+      element.dispatchEvent(event);
     }
   };
 
