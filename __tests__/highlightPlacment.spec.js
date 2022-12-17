@@ -12,11 +12,11 @@ const test = base.extend({
         const browserTypes = { chromium } //add firefox
         const pathToExtension = ('./extension/chrome');
         const launchOptions = {
-            proxy: {
-                server: process.env.PROXY_SERVER,
-                username: process.env.PROXY_USERNAME,
-                password: process.env.PROXY_PASSWORD
-            },
+            // proxy: {
+            //     server: process.env.PROXY_SERVER,
+            //     username: process.env.PROXY_USERNAME,
+            //     password: process.env.PROXY_PASSWORD
+            // },
             trace: 'on',
             devtools: false,
             headless: false,

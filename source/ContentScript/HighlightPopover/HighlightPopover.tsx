@@ -242,9 +242,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div className='witty-works-ext-lato-popover-text'>
             {data.alert.data.explanation.text}
             {data.alert.data.explanation.context && (
-              <span className=''>
-                &nbsp;({data.alert.data.explanation.context})
-              </span>
+              <span>&nbsp;({data.alert.data.explanation.context})</span>
             )}
             {data.alert.data.explanation && data.alert.data.explanation.url && (
               <div
@@ -274,44 +272,53 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 {t('insteadTry')}
               </div>
               <div>
-                {data.alert.data.alternatives
-                  .map((alternative, index) =>
-                    alternative.remove ? (
+                {data.alert.data.alternatives.map((alternative, index) =>
+                  alternative.remove ? (
+                    <div
+                      className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                      key={`${index}-${alternative}-container`}
+                    >
                       <div
-                        className='witty-works-ext-wittyworks-popover-alternative-btn-container witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text'
+                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
                         key={`${index}-remove-it`}
                         //string can not be empty because of replacement issue on firefox
                         onClick={() => clickAlternative(' ')}
                       >
                         {data.alert.data.text}
                       </div>
-                    ) : (
-                      <div
-                        className='witty-works-ext-wittyworks-popover-alternative-btn-container'
-                        key={`${index}-${alternative}-container`}
-                      >
-                        <div
-                          className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green'
-                          onClick={() =>
-                            clickAlternative(
-                              data.alert.data.alternatives[index].text
-                            )
-                          }
-                        >
-                          {alternative.text === ' ' ? (
-                            <i>{t('removeSpaces')}</i>
-                          ) : (
-                            alternative.text
-                          )}
+                      {alternative.context && (
+                        <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                          {alternative.context}
                         </div>
-                        {alternative.context && (
-                          <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                            {alternative.context}
-                          </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                      key={`${index}-${alternative}-container`}
+                    >
+                      <div
+                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
+                        onClick={() =>
+                          clickAlternative(
+                            data.alert.data.alternatives[index].text
+                          )
+                        }
+                      >
+                        {alternative.text === ' ' ? (
+                          <i>{t('removeSpaces')}</i>
+                        ) : (
+                          alternative.text
                         )}
                       </div>
-                    )
-                  )}
+                      {alternative.context && (
+                        <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                          {alternative.context}
+                        </div>
+                      )}
+                    </div>
+                  )
+                )}
               </div>
             </div>
           </>
@@ -333,7 +340,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
-              analytics.dashboardLog('popover');
+              analytics.dashboardLog('button_popover');
               window.open(
                 getBaseUrls().dashboard + 'user/language/language-settings',
                 '_blank'
