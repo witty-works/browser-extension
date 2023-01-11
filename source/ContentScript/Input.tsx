@@ -445,7 +445,6 @@ const Input: React.FC<{
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
-    //TODO
     // If user clicks on an element only once...
     if (event.detail === 1) {
       singleClickTimeOut = setTimeout(function () {
