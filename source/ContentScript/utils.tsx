@@ -137,7 +137,7 @@ export const getFirstTextDiff = (
 ) => {
   if (!newTextArray) return 0;
   //in what node the diff is
-  let node = 1;
+  let node = -1;
   for (let i = 0; i < previousTextArray.length; i++) {
     if (previousTextArray[i] !== newTextArray[i]) {
       node = i;
