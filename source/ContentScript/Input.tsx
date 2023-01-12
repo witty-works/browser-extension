@@ -480,6 +480,7 @@ const Input: React.FC<{
           let clickedNode = caret.element?.textContent;
 
           if (!isTextArea(element) && clickedNode) {
+            setAlerts([]);
             const textWithinMaxCharLength = getTextWithinMaxCharLength(
               textDividedByNodes.indexOf(clickedNode)
             );
