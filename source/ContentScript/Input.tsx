@@ -94,7 +94,7 @@ const Input: React.FC<{
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
-  const maxCharLength = 2000;
+  const maxCharLength = 500;
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -289,10 +289,12 @@ const Input: React.FC<{
 
   const getTextWithinMaxCharLength = (currentNode: number) => {
     const textDividedByNodes = getTextDividedByNodes(element);
-
+    const charLengthLeft =
+      maxCharLength - textDividedByNodes[currentNode].length;
     let totalCharsAbove = 0;
     const nodesWhithinMaxCharLengthAboveNode = textDividedByNodes
       .slice(0, currentNode)
+      .reverse()
       .map((node) => {
         return { node: node, index: textDividedByNodes.indexOf(node) };
       })
@@ -301,14 +303,14 @@ const Input: React.FC<{
         return (
           totalCharsAbove <=
           (currentNode == textDividedByNodes.length - 1
-            ? maxCharLength
-            : maxCharLength / 2)
+            ? charLengthLeft
+            : charLengthLeft / 2)
         );
       });
 
     let totalCharsBelow = 0;
     const nodesWhithinMaxCharLengthBelowNode = textDividedByNodes
-      .slice(currentNode)
+      .slice(currentNode + 1)
       .map((node) => {
         return { node: node, index: textDividedByNodes.indexOf(node) };
       })
@@ -316,12 +318,20 @@ const Input: React.FC<{
         totalCharsBelow += node.node.length;
         return (
           totalCharsBelow <=
-          (currentNode == 0 ? maxCharLength : maxCharLength / 2)
+          (currentNode == 0 ? charLengthLeft : charLengthLeft / 2)
         );
       });
 
+    const currentNodeFormatted = [
+      {
+        node: textDividedByNodes[currentNode],
+        index: currentNode,
+      },
+    ];
+
     const nodesWhithinMaxCharLength = nodesWhithinMaxCharLengthAboveNode
       .concat(nodesWhithinMaxCharLengthBelowNode)
+      .concat(currentNodeFormatted)
       .filter(
         (node, index, self) =>
           index === self.findIndex((t) => t.index === node.index)
