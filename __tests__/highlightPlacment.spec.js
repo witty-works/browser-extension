@@ -50,13 +50,13 @@ test.describe('Highlights', () => {
     test('witty form not logged in', async ({ page }) => {
         await page.goto('https://www.witty.works/editor');
         await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-        await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
+
+        await page.waitForSelector('#hs-eu-confirmation-button');
+        await page.click('#hs-eu-confirmation-button');
 
         await page.waitForSelector('#witty-test');
         await page.click('#witty-test');
-
-        await page.waitForTimeout(3000); //wait for api to respond with highlights
+        await page.waitForTimeout(4000); //wait for api to respond with highlights
 
         await page.locator('#witty-test').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot({
@@ -75,9 +75,12 @@ test.describe('Highlights', () => {
         await page.goto('https://www.witty.works/editor');
         await page.waitForLoadState('networkidle')
 
+        await page.waitForSelector('#hs-eu-confirmation-button');
+        await page.click('#hs-eu-confirmation-button');
+
         await page.waitForSelector('#witty-test');
         await page.click('#witty-test');
-        await page.waitForTimeout(3000); //wait for api to respond with highlights
+        await page.waitForTimeout(4000); //wait for api to respond with highlights
 
         await page.locator('#witty-test').screenshot().then(async (screenshot) => {
             //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
