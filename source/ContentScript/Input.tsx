@@ -94,7 +94,7 @@ const Input: React.FC<{
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
-  const maxCharLength = 500;
+  const maxCharLength = defaultConfig.MAX_CHAR_LENGTH;
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -480,7 +480,10 @@ const Input: React.FC<{
           let clickedNode = caret.element?.textContent;
 
           if (!isTextArea(element) && clickedNode) {
+            //remove highlights before sending new text to check
             setAlerts([]);
+            setTextToCheck('');
+
             const textWithinMaxCharLength = getTextWithinMaxCharLength(
               textDividedByNodes.indexOf(clickedNode)
             );
