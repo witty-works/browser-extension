@@ -161,9 +161,9 @@ export const getFirstTextDiff = (
   return { node, position };
 };
 
-export const getTextDividedByNodes = (element: CustomInputElement) => {
+export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   if (isTextArea(element) || isInputText(element)) {
-    return [element.value];
+    return [element];
   } else {
     const elementEvaluation = getActiveDocument().evaluate(
       './/text()',
@@ -173,14 +173,50 @@ export const getTextDividedByNodes = (element: CustomInputElement) => {
       null
     );
 
-    const nodes = [] as string[];
+    const nodes = [] as Node[];
     for (let i = 0; i < elementEvaluation.snapshotLength; i++) {
-      if (elementEvaluation.snapshotItem(i)?.textContent) {
-        nodes.push(elementEvaluation.snapshotItem(i)?.textContent as string);
+      const node = elementEvaluation.snapshotItem(i);
+      if (node) {
+        nodes.push(node);
       }
     }
     return nodes;
   }
+};
+
+export const getNodesWithinMaxCharLength = (
+  direction: string,
+  textDividedByNodes: Node[],
+  currentNodeRaw: Node,
+  currentNode: number,
+  charLengthLeft: number
+) => {
+  let totalChars = 0;
+  const slice =
+    direction == 'below'
+      ? textDividedByNodes.slice(currentNode + 1)
+      : textDividedByNodes.slice(0, currentNode).reverse();
+  const filterCondition =
+    direction == 'below'
+      ? currentNode == 0
+      : currentNode == textDividedByNodes.length - 1;
+  const nodesWhithinMaxCharLength = slice
+    .map((node) => {
+      const newNode = {
+        node: node.textContent as string,
+        index:
+          textDividedByNodes.indexOf(node) +
+          textDividedByNodes.indexOf(currentNodeRaw),
+      };
+      return newNode;
+    })
+    .filter((node) => {
+      totalChars += node.node.length;
+      return (
+        totalChars <= (filterCondition ? charLengthLeft : charLengthLeft / 2)
+      );
+    });
+  return nodesWhithinMaxCharLength;
 };
 
 export const makeAuthRequest = () => {

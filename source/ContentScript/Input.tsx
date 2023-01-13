@@ -44,6 +44,7 @@ import { setToken } from '../shared/ApiServices/requests';
 import {
   getFirstTextDiff,
   getInputText,
+  getNodesWithinMaxCharLength,
   getTextDividedByNodes,
   updateConfig,
 } from './utils';
@@ -225,14 +226,17 @@ const Input: React.FC<{
       });
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
+    const textDividedByNodesTextContent = nextTextDividedByNodes.map(
+      (node) => node.textContent
+    ) as string[];
 
     let nextText: string = getInputText(element);
     const fistTextDiff = getFirstTextDiff(
-      nextTextDividedByNodes,
+      textDividedByNodesTextContent,
       previousElementStateRef.current
     );
 
-    previousElementStateRef.current = nextTextDividedByNodes;
+    previousElementStateRef.current = textDividedByNodesTextContent;
 
     if (isTextArea(element) && fistTextDiff) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
@@ -241,7 +245,7 @@ const Input: React.FC<{
         )
       );
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
-    } else if (fistTextDiff) {
+    } else {
       //FOR FUTURE TICKET -> TO ONLY HIDE ALERTS BELOW CHANGE (NEEDS SOME TWEAKING)
       //   const unchangedNodesWithAlerts = nodesWithAlertsRef.current.filter(
       //     (nodeWithAlerts) =>
@@ -284,47 +288,38 @@ const Input: React.FC<{
       // }
       setAlerts([]);
     }
-    fistTextDiff && handleTextAndIcon(nextText, event, fistTextDiff.node);
+    handleTextAndIcon(nextText, event);
   };
 
-  const getTextWithinMaxCharLength = (currentNode: number) => {
+  const getTextWithinMaxCharLength = (
+    currentNode: number,
+    currentNodeRaw?: Node | null
+  ) => {
+    if (!currentNodeRaw) return;
     const textDividedByNodes = getTextDividedByNodes(element);
-    const charLengthLeft =
-      maxCharLength - textDividedByNodes[currentNode].length;
-    let totalCharsAbove = 0;
-    const nodesWhithinMaxCharLengthAboveNode = textDividedByNodes
-      .slice(0, currentNode)
-      .reverse()
-      .map((node) => {
-        return { node: node, index: textDividedByNodes.indexOf(node) };
-      })
-      .filter((node) => {
-        totalCharsAbove += node.node.length;
-        return (
-          totalCharsAbove <=
-          (currentNode == textDividedByNodes.length - 1
-            ? charLengthLeft
-            : charLengthLeft / 2)
-        );
-      });
-
-    let totalCharsBelow = 0;
-    const nodesWhithinMaxCharLengthBelowNode = textDividedByNodes
-      .slice(currentNode + 1)
-      .map((node) => {
-        return { node: node, index: textDividedByNodes.indexOf(node) };
-      })
-      .filter((node) => {
-        totalCharsBelow += node.node.length;
-        return (
-          totalCharsBelow <=
-          (currentNode == 0 ? charLengthLeft : charLengthLeft / 2)
-        );
-      });
-
+    const textDividedByNodesTextContent = textDividedByNodes.map(
+      (node) => node.textContent
+    );
+    const currentText = textDividedByNodesTextContent[currentNode];
+    if (!currentText) return;
+    const charLengthLeft = maxCharLength - currentText.length;
+    const nodesWhithinMaxCharLengthBelowNode = getNodesWithinMaxCharLength(
+      'below',
+      textDividedByNodes,
+      currentNodeRaw,
+      currentNode,
+      charLengthLeft
+    );
+    const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
+      'above',
+      textDividedByNodes,
+      currentNodeRaw,
+      currentNode,
+      charLengthLeft
+    );
     const currentNodeFormatted = [
       {
-        node: textDividedByNodes[currentNode],
+        node: currentNodeRaw.textContent as string,
         index: currentNode,
       },
     ];
@@ -342,14 +337,8 @@ const Input: React.FC<{
       .map((node) => node.node)
       .join('\n');
 
-    if (
-      textDividedByNodes[currentNode] &&
-      textDividedByNodes[currentNode].length > maxCharLength
-    ) {
-      const shortenedText = textDividedByNodes[currentNode].slice(
-        0,
-        maxCharLength
-      );
+    if (currentText.length > maxCharLength) {
+      const shortenedText = currentText.slice(0, maxCharLength);
       nodesWhithinMaxCharLengthRef.current = [
         {
           node: shortenedText,
@@ -363,15 +352,7 @@ const Input: React.FC<{
     }
   };
 
-  const handleTextAndIcon = (
-    text: string,
-    event?: Event,
-    fistTextDiff?: number
-  ) => {
-    if (text.length > maxCharLength && !isTextArea(element) && fistTextDiff) {
-      text = getTextWithinMaxCharLength(fistTextDiff);
-    }
-
+  const handleTextAndIcon = (text: string, event?: Event) => {
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -475,22 +456,6 @@ const Input: React.FC<{
                   .anchorNode,
               };
 
-        if (getInputText(element).length > maxCharLength) {
-          const textDividedByNodes = getTextDividedByNodes(element);
-          let clickedNode = caret.element?.textContent;
-
-          if (!isTextArea(element) && clickedNode) {
-            //remove highlights before sending new text to check
-            setAlerts([]);
-            setTextToCheck('');
-
-            const textWithinMaxCharLength = getTextWithinMaxCharLength(
-              textDividedByNodes.indexOf(clickedNode)
-            );
-            handleTextAndIcon(textWithinMaxCharLength, event);
-          }
-        }
-
         if (caret.element && caret.position && caret.position > -1) {
           // Find out if the clicked element has alerts
           const selectedNodeWithAlertsIndex: number =
@@ -502,6 +467,7 @@ const Input: React.FC<{
             );
 
           setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
+
           const oneNodeWithAlerts =
             nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
 
@@ -521,6 +487,15 @@ const Input: React.FC<{
               (alert: IAlert) =>
                 alert.startOffset <= caretPos && alert.endOffset >= caretPos
             );
+
+            if (
+              getInputText(element).length > maxCharLength &&
+              !isTextArea(element) &&
+              selectedAlerts.length == 0
+            ) {
+              handleElementClickLongText(caret, event);
+            }
+
             if (selectedAlerts.length > 1) {
               const alertWithLargestStartoffset = selectedAlerts.reduce(
                 (prev: IAlert, current: IAlert) => {
@@ -543,11 +518,37 @@ const Input: React.FC<{
             }
 
             setSelectedAlertIndex(selectedAlertIndex);
+          } else if (
+            getInputText(element).length > maxCharLength &&
+            !isTextArea(element)
+          ) {
+            handleElementClickLongText(caret, event);
           }
         }
       }, 400);
     } else {
       clearTimeout(singleClickTimeOut);
+    }
+  };
+
+  const handleElementClickLongText = (
+    caret: {
+      position: number | null;
+      element: Node | null;
+    },
+    event: MouseEvent
+  ): void => {
+    setAlerts([]);
+    setTextToCheck('');
+    const textDividedByNodes = getTextDividedByNodes(element);
+    let clickedNode = caret.element;
+    if (clickedNode) {
+      const textWithinMaxCharLength = getTextWithinMaxCharLength(
+        textDividedByNodes.indexOf(clickedNode),
+        caret.element
+      );
+      if (textWithinMaxCharLength)
+        handleTextAndIcon(textWithinMaxCharLength, event);
     }
   };
 
@@ -788,6 +789,11 @@ const Input: React.FC<{
     for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
       const node = elementEvaluation.snapshotItem(index) as Node;
       if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
+        console.log(
+          'nodesWhithinMaxCharLengthRef.current',
+          nodesWhithinMaxCharLengthRef.current
+        );
+        console.log('index', index);
         if (
           //for handeling long text
           nodesWhithinMaxCharLengthRef.current.length > 0 &&
