@@ -205,8 +205,10 @@ export const getNodesWithinMaxCharLength = (
       const newNode = {
         node: node.textContent as string,
         index:
-          textDividedByNodes.indexOf(node) +
-          textDividedByNodes.indexOf(currentNodeRaw),
+          direction == 'below'
+            ? textDividedByNodes.indexOf(node) +
+              textDividedByNodes.indexOf(currentNodeRaw)
+            : textDividedByNodes.indexOf(node),
       };
       return newNode;
     })

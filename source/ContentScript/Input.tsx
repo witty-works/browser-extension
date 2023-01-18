@@ -245,6 +245,7 @@ const Input: React.FC<{
         )
       );
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
+      handleTextAndIcon(nextText, event);
     } else {
       //FOR FUTURE TICKET -> TO ONLY HIDE ALERTS BELOW CHANGE (NEEDS SOME TWEAKING)
       //   const unchangedNodesWithAlerts = nodesWithAlertsRef.current.filter(
@@ -286,9 +287,22 @@ const Input: React.FC<{
 
       //   setAlerts(mergedUnchangedAlerts);
       // }
-      setAlerts([]);
+      if (element.innerText.length > maxCharLength) {
+        setAlerts([]);
+        if (fistTextDiff) {
+          const nodeAtFirstTextDiff = nextTextDividedByNodes[fistTextDiff.node];
+
+          const textWithinMaxCharLength = getTextWithinMaxCharLength(
+            fistTextDiff.node,
+            nodeAtFirstTextDiff
+          );
+          textWithinMaxCharLength &&
+            handleTextAndIcon(textWithinMaxCharLength, event);
+        }
+      } else {
+        handleTextAndIcon(nextText, event);
+      }
     }
-    handleTextAndIcon(nextText, event);
   };
 
   const getTextWithinMaxCharLength = (
@@ -775,75 +789,122 @@ const Input: React.FC<{
 
       setNodesWithAlerts(nodesWithAlertsTemp);
     }
-  }, [alerts, ignoredTerms, elementXPathResult, ignoredCategoriesFromStorage]);
+  }, [
+    alerts,
+    ignoredTerms,
+    elementXPathResult,
+    ignoredCategoriesFromStorage,
+    selectedAlertIndex,
+  ]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
     elementEvaluation: XPathResult
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
+    if (
+      nodesWhithinMaxCharLengthRef.current.length > 0 &&
+      !isTextArea(element)
+    ) {
+      let updatedAlerts: IAlert[] = [];
 
-    let textStartingAbsPosition: number = 0;
-    let textEndAbsPosition: number = -1;
+      const lowestIndex = nodesWhithinMaxCharLengthRef.current.reduce(
+        (min, node) => (node.index < min ? node.index : min),
+        Infinity
+      );
+      nodesWhithinMaxCharLengthRef.current.forEach((nodeWithAlertsRef) => {
+        let absolutePositionOfFirstCharOfNode = 0;
 
-    for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
-      const node = elementEvaluation.snapshotItem(index) as Node;
-      if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
-        console.log(
-          'nodesWhithinMaxCharLengthRef.current',
-          nodesWhithinMaxCharLengthRef.current
-        );
-        console.log('index', index);
-        if (
-          //for handeling long text
-          nodesWhithinMaxCharLengthRef.current.length > 0 &&
-          !nodesWhithinMaxCharLengthRef.current.some(
-            (nodeWithAlertsRef) => nodeWithAlertsRef.index === index
-          )
+        for (
+          let index = lowestIndex;
+          index < nodeWithAlertsRef.index;
+          index++
         ) {
-          continue;
+          absolutePositionOfFirstCharOfNode +=
+            elementEvaluation.snapshotItem(index)?.textContent?.length || 0;
+          absolutePositionOfFirstCharOfNode += 1;
         }
 
-        if (nodesWhithinMaxCharLengthRef.current.length == 0) {
-          const nextText: string = getInputText(element);
-          if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
-            textEndAbsPosition += 1;
-          }
-        }
+        const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
+          elementEvaluation
+            .snapshotItem(nodeWithAlertsRef.index)
+            ?.textContent?.includes(alert.data.text)
+        );
 
-        textStartingAbsPosition = textEndAbsPosition + 1;
-        textEndAbsPosition =
-          nodesWhithinMaxCharLengthRef.current.length == 0
-            ? textStartingAbsPosition + node.nodeValue.length - 1 //needed to keep highlights in place
-            : textStartingAbsPosition + node.nodeValue.length;
+        updatedAlerts = alertsRelevantToNode.map((alert: IAlert) => {
+          return {
+            ...alert,
+            startOffset: alert.startOffset - absolutePositionOfFirstCharOfNode,
+            endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode,
+          };
+        });
 
-        const alertsTemp: IAlert[] = alerts
-          .filter(
-            (alert: IAlert) =>
-              node.nodeValue && node.nodeValue.includes(alert.data.text)
-          )
-          .filter(
-            (alert: IAlert) =>
-              alert.startOffset >= textStartingAbsPosition &&
-              alert.endOffset <= textEndAbsPosition
-          )
-          .map((alert: IAlert) => {
-            return {
-              ...alert,
-              startOffset: alert.startOffset - textStartingAbsPosition,
-              endOffset: alert.endOffset - textStartingAbsPosition,
-            };
-          });
-
-        if (alertsTemp.length > 0)
+        updatedAlerts.length > 0 &&
           nodesWithAlertsTemp.push({
-            node: node,
-            alerts: alertsTemp,
-            nodeIndex: index,
+            node: elementEvaluation.snapshotItem(
+              nodeWithAlertsRef.index
+            ) as Node, //possibly null
+            alerts: updatedAlerts,
+            nodeIndex: nodeWithAlertsRef.index,
           });
+      });
+    } else {
+      let textStartingAbsPosition: number = 0;
+      let textEndAbsPosition: number = -1;
+
+      for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
+        const node = elementEvaluation.snapshotItem(index) as Node;
+        if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
+          if (
+            //for handeling long text
+            nodesWhithinMaxCharLengthRef.current.length > 0 &&
+            !nodesWhithinMaxCharLengthRef.current.some(
+              (nodeWithAlertsRef) => nodeWithAlertsRef.index === index
+            )
+          ) {
+            continue;
+          }
+
+          if (nodesWhithinMaxCharLengthRef.current.length == 0) {
+            const nextText: string = getInputText(element);
+            if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
+              textEndAbsPosition += 1;
+            }
+          }
+
+          textStartingAbsPosition = textEndAbsPosition + 1;
+          textEndAbsPosition =
+            nodesWhithinMaxCharLengthRef.current.length == 0
+              ? textStartingAbsPosition + node.nodeValue.length - 1 //needed to keep highlights in place
+              : textStartingAbsPosition + node.nodeValue.length;
+
+          const alertsTemp: IAlert[] = alerts
+            .filter(
+              (alert: IAlert) =>
+                node.nodeValue && node.nodeValue.includes(alert.data.text)
+            )
+            .filter(
+              (alert: IAlert) =>
+                alert.startOffset >= textStartingAbsPosition &&
+                alert.endOffset <= textEndAbsPosition
+            )
+            .map((alert: IAlert) => {
+              return {
+                ...alert,
+                startOffset: alert.startOffset - textStartingAbsPosition,
+                endOffset: alert.endOffset - textStartingAbsPosition,
+              };
+            });
+
+          if (alertsTemp.length > 0)
+            nodesWithAlertsTemp.push({
+              node: node,
+              alerts: alertsTemp,
+              nodeIndex: index,
+            });
+        }
       }
     }
-
     return nodesWithAlertsTemp;
   };
 
