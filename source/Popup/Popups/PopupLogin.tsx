@@ -10,12 +10,15 @@ import {
 import '../../i18n/i18n';
 import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
-import { getBaseUrls, setBaseUrls } from '../../shared/ApiServices/requests';
+import {
+  appID,
+  getBaseUrls,
+  setBaseUrls,
+} from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import Star from '../../assets/icons/popup/star.svg';
-import Checkmark from '../../assets/icons/popup/checkmark.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 
@@ -23,7 +26,7 @@ const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
   const [popupsBlocked, setPopupsBlocked] = useState(false);
   const [loginUrl, setLoginUrl] = useState('');
-  const [displayCopiedMeddage, setDisplayCopiedMessage] = useState(false);
+  const [displayCopiedMessage, setDisplayCopiedMessage] = useState(false);
   const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
   const log = useLog('PopupLogin');
 
@@ -89,12 +92,9 @@ const PopupLogin: React.FC = () => {
 
   return (
     <>
-      <PopupHeader showSettings={false} />
+      <PopupHeader showSettings={false} appId={appID} />
       <div className='witty-works-ext-section'>
         <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-          <div className='witty-works-ext-margin-right'>
-            <Checkmark />
-          </div>
           <div className='witty-works-ext-lato-small-paragraph-title-h4'>
             {t('loginToUnlock')}
           </div>
@@ -129,24 +129,10 @@ const PopupLogin: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
-        <div
-          className='witty-works-ext-button witty-works-ext-primary-button-red'
-          onClick={() => {
-            logIn(urls).catch((error) => {
-              log(`logIn Error: ${error}`, logTypes.ERROR);
-              sendErrorToSentry(error);
-              setPopupsBlocked(true);
-            });
-          }}
-        >
-          {t('signUp')}
-        </div>
-        <div className='witty-works-ext-lato-popup-text'>
-          {t('haveAccount')}
-          &nbsp;
-          <span
-            className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
+      {!popupsBlocked && (
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
+          <div
+            className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
               logIn(urls).catch((error) => {
                 log(`logIn Error: ${error}`, logTypes.ERROR);
@@ -155,10 +141,26 @@ const PopupLogin: React.FC = () => {
               });
             }}
           >
-            {t('signIn')}{' '}
-          </span>
+            {t('signUp')}
+          </div>
+          <div className='witty-works-ext-lato-popup-text'>
+            {t('haveAccount')}
+            &nbsp;
+            <span
+              className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
+              onClick={() => {
+                logIn(urls).catch((error) => {
+                  log(`logIn Error: ${error}`, logTypes.ERROR);
+                  sendErrorToSentry(error);
+                  setPopupsBlocked(true);
+                });
+              }}
+            >
+              {t('signIn')}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
       {popupsBlocked && (
         <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left witty-works-ext-margin-top'>
           <div className='witty-works-ext-lato-small-paragraph-title-h4'>
@@ -180,7 +182,7 @@ const PopupLogin: React.FC = () => {
             >
               {t('copyLink')}
             </div>
-            {displayCopiedMeddage && (
+            {displayCopiedMessage && (
               <div
                 className='witty-works-ext-lato-popup-text'
                 style={{ marginTop: '1.5em' }}

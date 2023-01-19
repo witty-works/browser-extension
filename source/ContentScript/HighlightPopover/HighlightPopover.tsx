@@ -18,6 +18,7 @@ import PreviousIcon from '../../assets/icons/popover/previous.svg';
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
+import { getBaseUrls } from '../../shared/ApiServices/requests';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -33,6 +34,7 @@ interface PopoverProps {
   updateTextWithAlternative: (alternative: string) => void;
   addIgnoredTerm: (term: string) => void;
   movePopoverNextOrPrev: (direction: string) => void;
+  userIsSignedIn: boolean;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -42,6 +44,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   updateTextWithAlternative,
   addIgnoredTerm,
   movePopoverNextOrPrev: updatePopover,
+  userIsSignedIn,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
 
@@ -147,13 +150,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   return (
     <div
-      id='wittyworks-popover'
+      id='witty-works-ext-popover'
       ref={floating}
       style={PopoverStyling}
       onMouseDown={(e) => e.preventDefault()}
     >
       <div
-        id='wittyworks-popover-content'
+        id='witty-works-ext-popover-content'
         className='witty-works-ext-lato-popover-text'
       >
         {/* HEADER */}
@@ -165,16 +168,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           >
             <WittyLogo />
           </a>
-          <div className='witty-works-ext-container-row' style={{}}>
+          <div className='witty-works-ext-container-row'>
             <div
               className={
-                data.index === 1
-                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray'
-                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
-              onClick={() =>
-                data.index === 1 ? '' : updatePopover('previous')
-              }
+              style={data.index === 1 ? { display: 'none' } : {}}
+              onClick={() => data.index !== 1 && updatePopover('previous')}
             >
               <PreviousIcon />
             </div>
@@ -184,12 +184,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
             <div
               className={
-                data.index === data.totalAlerts
-                  ? 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-light-gray'
-                  : 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
+              style={data.index === data.totalAlerts ? { display: 'none' } : {}}
               onClick={() =>
-                data.index === data.totalAlerts ? '' : updatePopover('next')
+                data.index !== data.totalAlerts && updatePopover('next')
               }
             >
               <NextIcon />
@@ -197,7 +196,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
 
           <div
-            className='witty-works-ext-lato-popover-text-gray cursor-pointer'
+            className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
             onClick={() => {
               hidePopover();
             }}
@@ -210,15 +209,21 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
         {/* LEARNIGN BITES */}
         <div
-          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer'
+          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
-            window.open(data.alert.data.explanation.url, '_blank');
+            data.alert.data.explanation &&
+              data.alert.data.explanation.url &&
+              window.open(data.alert.data.explanation.url, '_blank');
           }}
           style={{
+            cursor:
+              data.alert.data.explanation && data.alert.data.explanation.url
+                ? 'pointer'
+                : 'default',
             backgroundColor: isHovered
-              ? getColor(data.alert.data.gravity).hover
-              : getColor(data.alert.data.gravity).highlight,
+              ? getColor(data.alert.data.gravity, userIsSignedIn).hover
+              : getColor(data.alert.data.gravity, userIsSignedIn).highlight,
           }}
           onMouseEnter={() => {
             setIsHovered(true);
@@ -230,21 +235,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           {/* controls icon size */}
           <div
             className='witty-works-ext-margin-right'
-            style={{ fontSize: '2em' }}
+            style={{ fontSize: '1.5em' }}
           >
             {data.alert.data.explanation.icon}
           </div>
           <div className='witty-works-ext-lato-popover-text'>
             {data.alert.data.explanation.text}
             {data.alert.data.explanation.context && (
-              <span className=''>
-                &nbsp;({data.alert.data.explanation.context})
-              </span>
+              <span>&nbsp;({data.alert.data.explanation.context})</span>
             )}
-            {data.alert.data.explanation.url && (
+            {data.alert.data.explanation && data.alert.data.explanation.url && (
               <div
                 className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
-                style={{ padding: 0 }}
+                style={{ padding: '0.5em 0 0 0' }}
               >
                 <div className='witty-works-ext-margin-right'>
                   {data.alert.data.gravity
@@ -269,60 +272,61 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 {t('insteadTry')}
               </div>
               <div>
-                {data.alert.data.alternatives
-                  .slice(0, 5)
-                  .map((alternative, index) =>
-                    alternative.remove ? (
+                {data.alert.data.alternatives.map((alternative, index) =>
+                  alternative.remove ? (
+                    <div
+                      className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                      key={`${index}-${alternative}-container`}
+                    >
                       <div
-                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text'
+                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
                         key={`${index}-remove-it`}
                         //string can not be empty because of replacement issue on firefox
                         onClick={() => clickAlternative(' ')}
                       >
                         {data.alert.data.text}
                       </div>
-                    ) : (
-                      <div
-                        className='witty-works-ext-wittyworks-popover-alternative-btn-container'
-                        key={`${index}-${alternative}-container`}
-                      >
-                        <div
-                          className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green'
-                          onClick={() =>
-                            clickAlternative(
-                              data.alert.data.alternatives[index].text
-                            )
-                          }
-                        >
-                          {alternative.text === ' ' ? (
-                            <i>{t('removeSpaces')}</i>
-                          ) : (
-                            alternative.text
-                          )}
+                      {alternative.context && (
+                        <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                          {alternative.context}
                         </div>
-                        {alternative.context && (
-                          <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                            {alternative.context}
-                          </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                      key={`${index}-${alternative}-container`}
+                    >
+                      <div
+                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
+                        onClick={() =>
+                          clickAlternative(
+                            data.alert.data.alternatives[index].text
+                          )
+                        }
+                      >
+                        {alternative.text === ' ' ? (
+                          <i>{t('removeSpaces')}</i>
+                        ) : (
+                          alternative.text
                         )}
                       </div>
-                    )
-                  )}
+                      {alternative.context && (
+                        <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                          {alternative.context}
+                        </div>
+                      )}
+                    </div>
+                  )
+                )}
               </div>
             </div>
           </>
         )}
       </div>
-
-      <div
-        className='witty-works-ext-separator'
-        style={{ marginTop: '0.5em' }}
-      />
-
-      {/* FOOTER */}
       <div
         onClick={() => clickIgnoreTerm()}
-        className='witty-works-ext-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
+        className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
       >
         <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
           <IgnoreIcon />
@@ -331,6 +335,22 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           {t('ignoreTerm')}
         </span>
       </div>
+      {data.alert.plan == 'witty_free' && (
+        <div className='witty-works-ext-left' style={{ marginBottom: '1em' }}>
+          <div
+            className='witty-works-ext-button witty-works-ext-primary-button-red'
+            onClick={() => {
+              analytics.dashboardLog('button_popover');
+              window.open(
+                getBaseUrls().dashboard + 'user/language/language-settings',
+                '_blank'
+              );
+            }}
+          >
+            {t('customizeSuggestions')}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

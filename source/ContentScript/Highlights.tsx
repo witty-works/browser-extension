@@ -14,6 +14,7 @@ interface HighlightsProps {
   element: HTMLElement;
   elementRect: DOMRect;
   selectedAlert: IAlert | null;
+  userIsSignedIn: boolean;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
@@ -22,6 +23,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   element,
   elementRect,
   selectedAlert,
+  userIsSignedIn,
 }: HighlightsProps) => {
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
@@ -79,6 +81,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           const newHighlight: Highlight = {
             rects,
             id: alert.id,
+            plan: alert.plan,
             data: alert.data,
             startOffset: alert.startOffset,
             endOffset: alert.endOffset,
@@ -109,10 +112,23 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
-
       const [rect] = highlight.rects;
-      const hoverColor = `${getColor(highlight.data.gravity).default}`;
-      const highlightColor = `${getColor(highlight.data.gravity).hover}`;
+      const hoverColor = `${
+        getColor(
+          highlight.data.gravity,
+          userIsSignedIn,
+          highlight.data.explanation,
+          highlight.plan
+        ).default
+      }`;
+      const highlightColor = `${
+        getColor(
+          highlight.data.gravity,
+          userIsSignedIn,
+          highlight.data.explanation,
+          highlight.plan
+        ).hover
+      }`;
       const dashedLine = highlight.data.category == 'orthography';
       const roundedHighlight = new Path2D();
       const params = {

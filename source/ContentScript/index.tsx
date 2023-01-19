@@ -26,6 +26,8 @@ document.body.appendChild(document.createElement('witty-is-installed'));
 const wittyIsInstalledElement = document.querySelector('witty-is-installed');
 if (exposeWittyIdAllowList.includes(domain)) {
   wittyIsInstalledElement?.setAttribute('extension-id', browser.runtime.id);
+  wittyIsInstalledElement?.setAttribute('extension-version', wittyVersion);
+
   browser.storage.local.get(null).then((result) => {
     setBaseUrls(
       result[StorageKeys.API_ENDPOINT_KEY]
@@ -97,8 +99,7 @@ browser.storage.local
     if (
       isOnOrgDomainList ||
       isOnPersonalDomainList ||
-      defaultConfig.DISABLED_SITES.includes(domain) ||
-      !result[StorageKeys.ACCESS_TOKEN]
+      defaultConfig.DISABLED_SITES.includes(domain)
     ) {
       customRender(false);
     } else {
@@ -148,7 +149,7 @@ Sentry.init({
   release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
   sampleRate: 0.0,
-  tracesSampleRate: 0.01,
+  tracesSampleRate: 0.005,
 });
 
 export {};

@@ -1,11 +1,25 @@
 {
   "DISABLED_SITES": [
+    "whatsapp.com",
     "productboard.com",
     "notion.so",
     "airbnb.com",
     "trello.com"
   ],
   "ACTIVE_SITES": [
+    "joomla.org",
+    "joomla.com",
+    "drupal.org",
+    "sulu.io",
+    "sulu.rocks",
+    "typo3.org",
+    "wix.com",
+    "onlyfy.com",
+    "instagram.com",
+    "facebook.com",
+    "camunda.io",
+    "camunda.com",
+    "leapsome.com",
     "blaze.today",
     "holaspirit.com",
     "personio.com",

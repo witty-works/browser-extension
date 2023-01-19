@@ -1,13 +1,13 @@
 import { browser } from 'webextension-polyfill-ts';
-
+import { IExplanation } from './types';
 export const wittyVersion = browser.runtime.getManifest().version;
 
 //Development
 export const DEV_ENV = true;
 
-export const POSTHOG_API_KEY = DEV_ENV
-  ? 'phc_o3cjCKKkO7rn3CTBUJNmehFoa6vPc3zYavfnGj7WyqK'
-  : 'phc_tmJbApENFHLXMjwG1hHMYO4Md8qR4XAGRforELIiDwp';
+export const POSTHOG_API_KEY_EU = DEV_ENV
+  ? 'phc_DUofw8HC9GUENhXmZ8Wan7DGAvmWFrFnNCxoViLmuhx'
+  : 'phc_i1tlvuh1iecIOSEr0QmTEIklrsSJGhULpUwUlf8fkkl';
 
 //Storage
 export enum StorageKeys {
@@ -44,6 +44,12 @@ export enum StorageKeys {
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
 
   REDIRECT_URL_LOGIN = 'redirectUrlLogin',
+  IGNORED_CATEGORIES = 'ignoredCategories',
+
+  USER_ID = 'userId',
+  ORGANIZATION_ID = 'organizationId',
+
+  ID_WAS_ALIASED = 'idWasAliased',
 }
 
 //nlp api, dashboard
@@ -123,17 +129,30 @@ const unconsciousBiasAndGenderedOrange: IHighlightColors = {
   hover: '#EB9F46',
 };
 
+const disabledGrey: IHighlightColors = {
+  default: '#BEBEBE',
+  highlight: '#BEBEBE',
+  hover: '#BEBEBE',
+};
+
 const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
   default: '#E6635A',
   highlight: '#F7D4D4',
   hover: '#E6635A',
 };
 
-export const getColor = (gravity: number): IHighlightColors => {
-  if (!gravity) return inclusiveGreen;
-  if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
-  if (gravity > 2.5) return styleYellow;
-  return unconsciousBiasAndGenderedOrange;
+export const getColor = (
+  gravity: number,
+  userIsSignedIn: boolean,
+  hasExplanation?: IExplanation,
+  plan?: string
+): IHighlightColors => {
+  if (!userIsSignedIn) return disabledGrey;
+  else if (!hasExplanation && plan === 'witty_free') return disabledGrey;
+  else if (!gravity) return inclusiveGreen;
+  else if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
+  else if (gravity > 2.5) return styleYellow;
+  else return unconsciousBiasAndGenderedOrange;
 };
 
 //German Gender Endings
@@ -186,7 +205,6 @@ export const dropdownOptions = [
   },
 ];
 
-export const devAppId = 'DEV_APP_ID';
 export const exposeWittyIdAllowList = DEV_ENV
   ? ['lndo.site', 'platformsh.site', 'witty.works']
   : ['witty.works'];

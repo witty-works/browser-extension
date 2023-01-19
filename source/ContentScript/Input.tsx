@@ -14,6 +14,8 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
+  IExplanation,
+  IgnoredCategory,
   INodeWithAlerts,
   Position,
 } from '../shared/types';
@@ -21,8 +23,14 @@ import {
   storeInLocalStorage,
   getFirstTextDiff,
   addLoginBadge,
+  getRandomToken,
 } from '../shared/utils';
-import { isTextArea, isInputText, isGoogleDocs } from '../shared/DOMutils';
+import {
+  isTextArea,
+  isInputText,
+  isCkeEditor,
+  isGoogleDocs,
+} from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
@@ -42,6 +50,8 @@ import { setToken } from '../shared/ApiServices/requests';
 import { getInputText, updateConfig } from './utils';
 import GoogleDocsClone from './GoogleDocsClone';
 import { getActiveDocument } from './ContentScriptApp';
+import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
+import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -80,6 +90,9 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
+  const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
+    useState<IgnoredCategory[]>([]);
+  const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -98,13 +111,32 @@ const Input: React.FC<{
 
   useEffect(() => {
     browser.storage.local
-      .get(StorageKeys.API_DELAY)
+      .get(null)
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
+        setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
+
+        if (
+          result[StorageKeys.PLAN] === 'witty_free' &&
+          result[StorageKeys.IGNORED_CATEGORIES]
+        ) {
+          const filteredIgnoredCategories = (
+            result[StorageKeys.IGNORED_CATEGORIES] as IgnoredCategory[]
+          ).filter((term) => {
+            const now = new Date();
+            const termDate = new Date(term.timestamp);
+            const diffTime = Math.abs(now.getTime() - termDate.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays < 7;
+          });
+          setIgnoredCategoriesFromStorage(filteredIgnoredCategories);
+        }
       })
       .catch((error: unknown) => {
         sendErrorToSentry(error);
       });
+
+    browser.storage.onChanged.addListener(storageChange);
 
     element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
@@ -371,6 +403,28 @@ const Input: React.FC<{
     setIgnoredTerms([...ignoredTerms, term]);
   };
 
+  const addIgnoredCategory = (
+    gravity: number,
+    explanation: IExplanation
+  ): void => {
+    let category = 'inclusive';
+    if (gravity && !explanation) {
+      category = 'premiumFeature';
+    }
+    const currentTime = new Date().getTime();
+    const newIgnoredCategory: IgnoredCategory = {
+      category: category,
+      timestamp: currentTime,
+    };
+
+    const newIgnoredCategories: IgnoredCategory[] = [
+      ...ignoredCategoriesFromStorage,
+      newIgnoredCategory,
+    ];
+    storeInLocalStorage(StorageKeys.IGNORED_CATEGORIES, newIgnoredCategories);
+    setIgnoredCategoriesFromStorage(newIgnoredCategories);
+  };
+
   let singleClickTimeOut: ReturnType<typeof setTimeout>;
 
   const handleElementClickEvent = (event: MouseEvent) => {
@@ -586,7 +640,8 @@ const Input: React.FC<{
         startOffset: result.start,
         endOffset: result.end,
         popOverIsOpen: false,
-        groupId: authResponse ? authResponse.id : undefined,
+        organizationId: authResponse ? authResponse.organization_id : undefined,
+        userId: authResponse ? authResponse.id : undefined,
         plan: authResponse ? authResponse.plan : undefined,
         data: {
           language: checkEndpointResponse.language,
@@ -610,9 +665,32 @@ const Input: React.FC<{
   useEffect(() => {
     if (alerts.length === 0) setNodesWithAlerts([]);
     else {
-      const alertsWithoutIgnoredTerms: IAlert[] = alerts.filter(
-        (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
-      );
+      let alertsWithoutIgnoredCategories = alerts;
+      //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
+      if (
+        ignoredCategoriesFromStorage
+          .map((item) => item.category)
+          .includes('inclusive')
+      ) {
+        alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
+          (alert) => alert.data.gravity !== undefined
+        );
+      }
+
+      if (
+        ignoredCategoriesFromStorage
+          .map((item) => item.category)
+          .includes('premiumFeature')
+      ) {
+        alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
+          (alert) => alert.data.explanation !== undefined
+        );
+      }
+
+      const alertsWithoutIgnoredTerms: IAlert[] =
+        alertsWithoutIgnoredCategories.filter(
+          (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
+        );
 
       //handle case where a word has multiple alerts of different gravity
       const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
@@ -698,7 +776,7 @@ const Input: React.FC<{
 
       setNodesWithAlerts(nodesWithAlertsTempWithRect);
     }
-  }, [alerts, ignoredTerms, elementXPathResult]);
+  }, [alerts, ignoredTerms, elementXPathResult, ignoredCategoriesFromStorage]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
@@ -849,9 +927,36 @@ const Input: React.FC<{
       if (!sel) return;
       sel.removeAllRanges();
       sel.addRange(range);
-      getActiveDocument().execCommand('insertText', false, alternative);
-    }
 
+      if (isCkeEditor(element)) {
+        const deleteSelectedText = new KeyboardEvent('keydown', {
+          key: 'Delete',
+          bubbles: true,
+          cancelable: true,
+        });
+        node.dispatchEvent(deleteSelectedText);
+
+        //Need to slow down the process for changes to be applied
+        setTimeout(() => {
+          const insertAlternative = new ClipboardEvent('paste', {
+            clipboardData: new DataTransfer(),
+            cancelable: true,
+            bubbles: true,
+          });
+          if (!insertAlternative.clipboardData) return;
+          insertAlternative.clipboardData.setData('text/plain', alternative);
+          node.dispatchEvent(insertAlternative);
+
+          setTimeout(() => {
+            setTextToCheck(getInputText(element));
+            const event = new Event('keyup', { bubbles: true });
+            element.dispatchEvent(event);
+          }, 200);
+        }, 200);
+      } else {
+        getActiveDocument().execCommand('insertText', false, alternative);
+      }
+    }
     if (isTextArea(element)) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
@@ -860,9 +965,11 @@ const Input: React.FC<{
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
-    setTextToCheck(getInputText(element));
-    const event = new Event('keyup', { bubbles: true });
-    element.dispatchEvent(event);
+    if (!isCkeEditor(element)) {
+      setTextToCheck(getInputText(element));
+      const event = new Event('keyup', { bubbles: true });
+      element.dispatchEvent(event);
+    }
   };
 
   useEffect(() => {
@@ -870,7 +977,7 @@ const Input: React.FC<{
       setNodesWithAlerts([]);
     } else if (
       checkEndpointError?.status == 403 ||
-      authErrorResponse?.status === 403
+      (authErrorResponse?.status === 403 && userIsSignedIn)
     ) {
       browser.storage.local
         .get(StorageKeys.REFRESH_TOKEN)
@@ -893,6 +1000,9 @@ const Input: React.FC<{
   }, [checkEndpointError, authErrorResponse]);
 
   const logOut = () => {
+    storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
+    storeInLocalStorage(StorageKeys.USER_ID, '');
+    storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
     addLoginBadge();
@@ -923,9 +1033,40 @@ const Input: React.FC<{
     <Toast message={t('reloadWebsite')} type='error' />
   );
 
+  const storageChange = (changes: any) => {
+    let changedItems = Object.keys(changes);
+    for (let item of changedItems) {
+      switch (item) {
+        case StorageKeys.ACCESS_TOKEN:
+          setUserIsSignedIn(changes[item].newValue == '' ? false : true);
+          setConfigHasChanged(changes[item].newValue == '' ? false : true);
+          setTextToCheck('');
+          setTextToCheck(currentTextToCheck);
+          break;
+      }
+    }
+  };
+
   useEffect(() => {
     //Show/Hide the popover
-    if (popoverData) {
+    if (
+      popoverData &&
+      userIsSignedIn &&
+      popoverData.alert.plan === 'witty_free' &&
+      !popoverData.alert.data.explanation //if no explanation returned, its a premium feature
+    ) {
+      ReactDOM.render(
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopoverUpgrade
+            element={element}
+            data={popoverData}
+            hide={resetPopover}
+            addIgnoredCategory={addIgnoredCategory}
+          />
+        </Sentry.ErrorBoundary>,
+        document.querySelector(WTags.WW_POPOVER)
+      );
+    } else if (popoverData && userIsSignedIn) {
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
@@ -935,6 +1076,18 @@ const Input: React.FC<{
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
             movePopoverNextOrPrev={movePopoverNextOrPrev}
+            userIsSignedIn={userIsSignedIn}
+          />
+        </Sentry.ErrorBoundary>,
+        document.querySelector(WTags.WW_POPOVER)
+      );
+    } else if (popoverData && !userIsSignedIn) {
+      ReactDOM.render(
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <HighlightPopoverNotSignedIn
+            element={element}
+            data={popoverData}
+            hide={resetPopover}
           />
         </Sentry.ErrorBoundary>,
         document.querySelector(WTags.WW_POPOVER)
@@ -990,6 +1143,7 @@ const Input: React.FC<{
             element={element}
             elementRect={elementRect}
             selectedAlert={selectedAlert}
+            userIsSignedIn={userIsSignedIn}
           />
         </Sentry.ErrorBoundary>
       </WTags.WW_HIGHLIGHTS>

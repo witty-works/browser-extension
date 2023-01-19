@@ -13,6 +13,10 @@ import { createUrl } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
 
 export const updateConfig = (response: IAuthResponse) => {
+  response.organization_id &&
+    storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response.organization_id);
+  response.id && storeInLocalStorage(StorageKeys.USER_ID, response.id);
+
   response.domains &&
     storeInLocalStorage(StorageKeys.DOMAINS, response.domains.list);
 
@@ -110,7 +114,6 @@ export const getInputText = (element: CustomInputElement | any) => {
 export const customRender = (enabled: boolean) => {
   if (!document.querySelector(WTags.WW_POPOVER)) {
     const element = document.createElement(WTags.WW_POPOVER);
-    element.setAttribute('extension-id', browser.runtime.id);
     document.body.appendChild(element);
   }
 
