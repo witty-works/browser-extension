@@ -84,18 +84,6 @@ export const maximumImportanceToBoolean = (value: number) =>
 
 export const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
-export const getFirstTextDiff = (previousText: string, nextText: string) => {
-  let i = 0;
-  while (
-    i < previousText.length &&
-    i < nextText.length &&
-    previousText[i] == nextText[i]
-  ) {
-    i++;
-  }
-  return i;
-};
-
 export const addNotificationBadge = (numberOfNotifications: number) => {
   browser.browserAction.setBadgeBackgroundColor({
     color: '#E6635A',

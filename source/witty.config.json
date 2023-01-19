@@ -68,5 +68,6 @@
   "CASING_SITES": [],
   "API_DELAY": 500,
   "ACCESS_TOKEN": "",
-  "REFRESH_TOKEN": ""
+  "REFRESH_TOKEN": "",
+  "MAX_CHAR_LENGTH": 2000
 }

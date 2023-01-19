@@ -21,7 +21,6 @@ import {
 } from '../shared/types';
 import {
   storeInLocalStorage,
-  getFirstTextDiff,
   addLoginBadge,
   getRandomToken,
 } from '../shared/utils';
@@ -47,8 +46,14 @@ import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
-import { getInputText, updateConfig } from './utils';
 import GoogleDocsClone from './GoogleDocsClone';
+import {
+  getFirstTextDiff,
+  getInputText,
+  getNodesWithinMaxCharLength,
+  getTextDividedByNodes,
+  updateConfig,
+} from './utils';
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
 import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
@@ -60,7 +65,10 @@ const Input: React.FC<{
     useCheckEndpoint();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
-  const [, , previousTextToCheckRef] = useStateRef('');
+  const [, , previousElementStateRef] = useStateRef<string[]>([]);
+  const [, , nodesWhithinMaxCharLengthRef] = useStateRef<
+    { node: string; index: number }[]
+  >([]);
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
@@ -93,6 +101,7 @@ const Input: React.FC<{
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
+  const maxCharLength = defaultConfig.MAX_CHAR_LENGTH;
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -307,33 +316,145 @@ const Input: React.FC<{
         sendErrorToSentry(error);
       });
 
+    const nextTextDividedByNodes = getTextDividedByNodes(element);
+    const textDividedByNodesTextContent = nextTextDividedByNodes.map(
+      (node) => node.textContent
+    ) as string[];
+
     let nextText: string = getInputText(element);
     const fistTextDiff = getFirstTextDiff(
-      previousTextToCheckRef.current,
-      nextText
+      textDividedByNodesTextContent,
+      previousElementStateRef.current
     );
 
-    if (isTextArea(element)) {
+    previousElementStateRef.current = textDividedByNodesTextContent;
+
+    if (isTextArea(element) && fistTextDiff) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
-          (alert) => alert.startOffset < fistTextDiff
+          (alert) => alert.startOffset < fistTextDiff.position
         )
       );
-      if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
+      unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
+      handleTextAndIcon(nextText, event);
     } else {
-      const nextTextAtFistTextDiff = nextText.substring(
-        fistTextDiff,
-        nextText.length
-      );
+      //FOR FUTURE TICKET -> TO ONLY HIDE ALERTS BELOW CHANGE (NEEDS SOME TWEAKING)
+      //   const unchangedNodesWithAlerts = nodesWithAlertsRef.current.filter(
+      //     (nodeWithAlerts) =>
+      //       nodeWithAlerts.nodeIndex &&
+      //       nodeWithAlerts.nodeIndex <= fistTextDiff.node
+      //   );
 
-      if (nextTextAtFistTextDiff.length > 3) {
+      //   //create object thant node text and node index from unchangedAlerts
+      //   const unchangedAlertsNodeAndNodeIndex = unchangedNodesWithAlerts.map(
+      //     (nodeWithAlerts) => {
+      //       if (nodeWithAlerts.node.textContent && nodeWithAlerts.nodeIndex) {
+      //         return {
+      //           node: nodeWithAlerts.node.textContent,
+      //           index: nodeWithAlerts.nodeIndex,
+      //         };
+      //       } else {
+      //         return {
+      //           node: '',
+      //           index: -1,
+      //         };
+      //       }
+      //     }
+      //   );
+
+      //   const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+      //     nodeWithAlerts.alerts.filter(
+      //       () =>
+      //         nodeWithAlerts.nodeIndex &&
+      //         nodeWithAlerts.nodeIndex <= fistTextDiff.node
+      //     )
+      //   );
+
+      //   const mergedUnchangedAlerts = unchangedAlerts.reduce(
+      //     (acc, curr) => [...acc, ...curr],
+      //     []
+      //   );
+      //   nodesWhithinMaxCharLengthRef.current = unchangedAlertsNodeAndNodeIndex;
+
+      //   setAlerts(mergedUnchangedAlerts);
+      // }
+      if (element.innerText.length > maxCharLength) {
         setAlerts([]);
+        if (fistTextDiff) {
+          const nodeAtFirstTextDiff = nextTextDividedByNodes[fistTextDiff.node];
+
+          const textWithinMaxCharLength = getTextWithinMaxCharLength(
+            fistTextDiff.node,
+            nodeAtFirstTextDiff
+          );
+          textWithinMaxCharLength &&
+            handleTextAndIcon(textWithinMaxCharLength, event);
+        }
+      } else {
+        handleTextAndIcon(nextText, event);
       }
     }
+  };
 
-    previousTextToCheckRef.current = nextText;
+  const getTextWithinMaxCharLength = (
+    currentNode: number,
+    currentNodeRaw?: Node | null
+  ) => {
+    if (!currentNodeRaw) return;
+    const textDividedByNodes = getTextDividedByNodes(element);
+    const textDividedByNodesTextContent = textDividedByNodes.map(
+      (node) => node.textContent
+    );
+    const currentText = textDividedByNodesTextContent[currentNode];
+    if (!currentText) return;
+    const charLengthLeft = maxCharLength - currentText.length;
+    const nodesWhithinMaxCharLengthBelowNode = getNodesWithinMaxCharLength(
+      'below',
+      textDividedByNodes,
+      currentNodeRaw,
+      currentNode,
+      charLengthLeft
+    );
+    const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
+      'above',
+      textDividedByNodes,
+      currentNodeRaw,
+      currentNode,
+      charLengthLeft
+    );
+    const currentNodeFormatted = [
+      {
+        node: currentNodeRaw.textContent as string,
+        index: currentNode,
+      },
+    ];
 
-    handleTextAndIcon(nextText, event);
+    const nodesWhithinMaxCharLength = nodesWhithinMaxCharLengthAboveNode
+      .concat(nodesWhithinMaxCharLengthBelowNode)
+      .concat(currentNodeFormatted)
+      .sort((a, b) => a.index - b.index)
+      .filter(
+        (node, index, self) =>
+          index === self.findIndex((t) => t.index === node.index)
+      );
+
+    const textWithinMaxCharLength = nodesWhithinMaxCharLength
+      .map((node) => node.node)
+      .join('\n');
+
+    if (currentText.length > maxCharLength) {
+      const shortenedText = currentText.slice(0, maxCharLength);
+      nodesWhithinMaxCharLengthRef.current = [
+        {
+          node: shortenedText,
+          index: currentNode,
+        },
+      ];
+      return shortenedText;
+    } else {
+      nodesWhithinMaxCharLengthRef.current = nodesWhithinMaxCharLength;
+      return textWithinMaxCharLength;
+    }
   };
 
   const handleTextAndIcon = (text: string, event?: Event) => {
@@ -458,6 +579,7 @@ const Input: React.FC<{
             );
 
           setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
+
           const oneNodeWithAlerts =
             nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
 
@@ -477,6 +599,15 @@ const Input: React.FC<{
               (alert: IAlert) =>
                 alert.startOffset <= caretPos && alert.endOffset >= caretPos
             );
+
+            if (
+              getInputText(element).length > maxCharLength &&
+              !isTextArea(element) &&
+              selectedAlerts.length == 0
+            ) {
+              handleElementClickLongText(caret, event);
+            }
+
             if (selectedAlerts.length > 1) {
               const alertWithLargestStartoffset = selectedAlerts.reduce(
                 (prev: IAlert, current: IAlert) => {
@@ -502,11 +633,37 @@ const Input: React.FC<{
             }
 
             setSelectedAlertIndex(selectedAlertIndex);
+          } else if (
+            getInputText(element).length > maxCharLength &&
+            !isTextArea(element)
+          ) {
+            handleElementClickLongText(caret, event);
           }
         }
       }, 400);
     } else {
       clearTimeout(singleClickTimeOut);
+    }
+  };
+
+  const handleElementClickLongText = (
+    caret: {
+      position: number | null;
+      element: Node | null;
+    },
+    event: MouseEvent
+  ): void => {
+    setAlerts([]);
+    setTextToCheck('');
+    const textDividedByNodes = getTextDividedByNodes(element);
+    let clickedNode = caret.element;
+    if (clickedNode) {
+      const textWithinMaxCharLength = getTextWithinMaxCharLength(
+        textDividedByNodes.indexOf(clickedNode),
+        caret.element
+      );
+      if (textWithinMaxCharLength)
+        handleTextAndIcon(textWithinMaxCharLength, event);
     }
   };
 
@@ -776,65 +933,127 @@ const Input: React.FC<{
 
       setNodesWithAlerts(nodesWithAlertsTempWithRect);
     }
-  }, [alerts, ignoredTerms, elementXPathResult, ignoredCategoriesFromStorage]);
+  }, [
+    alerts,
+    ignoredTerms,
+    elementXPathResult,
+    ignoredCategoriesFromStorage,
+    selectedAlertIndex,
+  ]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
     elementEvaluation: XPathResult
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
+    if (
+      nodesWhithinMaxCharLengthRef.current.length > 0 &&
+      !isTextArea(element)
+    ) {
+      let updatedAlerts: IAlert[] = [];
 
-    if (isGoogleDocs()) {
-      element = cloneRef.current;
-    }
+      //HERE
+      if (isGoogleDocs()) {
+        element = cloneRef.current;
+      }
 
-    const nextText: string = getInputText(element);
+      const lowestIndex = nodesWhithinMaxCharLengthRef.current.reduce(
+        (min, node) => (node.index < min ? node.index : min),
+        Infinity
+      );
+      nodesWhithinMaxCharLengthRef.current.forEach((nodeWithAlertsRef) => {
+        let absolutePositionOfFirstCharOfNode = 0;
 
-    let textStartingAbsPosition: number = 0;
-    let textEndAbsPosition: number = -1;
-
-    for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
-      const node = elementEvaluation.snapshotItem(index) as Node;
-
-      if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
-        textStartingAbsPosition = textEndAbsPosition + 1;
-
-        const nodeValueLength: number = node.nodeValue.length;
-
-        textEndAbsPosition = textStartingAbsPosition + nodeValueLength - 1; //needed to keep huglights in place
-
-        // Check if there is a new line char after the node's content
-        // If so, we +1 to the end position
-        if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
-          textEndAbsPosition += 1;
+        for (
+          let index = lowestIndex;
+          index < nodeWithAlertsRef.index;
+          index++
+        ) {
+          absolutePositionOfFirstCharOfNode +=
+            elementEvaluation.snapshotItem(index)?.textContent?.length || 0;
+          absolutePositionOfFirstCharOfNode += 1;
         }
 
-        const alertsTemp: IAlert[] = alerts
-          .filter(
-            (alert: IAlert) =>
-              node.nodeValue && node.nodeValue.includes(alert.data.text)
-          )
-          .filter(
-            (alert: IAlert) =>
-              alert.startOffset >= textStartingAbsPosition &&
-              alert.endOffset <= textEndAbsPosition
-          )
-          .map((alert: IAlert) => {
-            return {
-              ...alert,
-              startOffset: alert.startOffset - textStartingAbsPosition,
-              endOffset: alert.endOffset - textStartingAbsPosition,
-            };
-          });
+        const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
+          elementEvaluation
+            .snapshotItem(nodeWithAlertsRef.index)
+            ?.textContent?.includes(alert.data.text)
+        );
 
-        if (alertsTemp.length > 0)
+        updatedAlerts = alertsRelevantToNode.map((alert: IAlert) => {
+          return {
+            ...alert,
+            startOffset: alert.startOffset - absolutePositionOfFirstCharOfNode,
+            endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode,
+          };
+        });
+
+        updatedAlerts.length > 0 &&
           nodesWithAlertsTemp.push({
-            node: node,
-            alerts: alertsTemp,
+            node: elementEvaluation.snapshotItem(
+              nodeWithAlertsRef.index
+            ) as Node, //possibly null
+            alerts: updatedAlerts,
+            nodeIndex: nodeWithAlertsRef.index,
           });
+      });
+    } else {
+      let textStartingAbsPosition: number = 0;
+      let textEndAbsPosition: number = -1;
+
+      for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
+        const node = elementEvaluation.snapshotItem(index) as Node;
+        if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
+          if (
+            //for handeling long text
+            nodesWhithinMaxCharLengthRef.current.length > 0 &&
+            !nodesWhithinMaxCharLengthRef.current.some(
+              (nodeWithAlertsRef) => nodeWithAlertsRef.index === index
+            )
+          ) {
+            continue;
+          }
+
+          if (nodesWhithinMaxCharLengthRef.current.length == 0) {
+            const nextText: string = getInputText(element);
+            if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
+              textEndAbsPosition += 1;
+            }
+          }
+
+          textStartingAbsPosition = textEndAbsPosition + 1;
+          textEndAbsPosition =
+            nodesWhithinMaxCharLengthRef.current.length == 0
+              ? textStartingAbsPosition + node.nodeValue.length - 1 //needed to keep highlights in place
+              : textStartingAbsPosition + node.nodeValue.length;
+
+          const alertsTemp: IAlert[] = alerts
+            .filter(
+              (alert: IAlert) =>
+                node.nodeValue && node.nodeValue.includes(alert.data.text)
+            )
+            .filter(
+              (alert: IAlert) =>
+                alert.startOffset >= textStartingAbsPosition &&
+                alert.endOffset <= textEndAbsPosition
+            )
+            .map((alert: IAlert) => {
+              return {
+                ...alert,
+                startOffset: alert.startOffset - textStartingAbsPosition,
+                endOffset: alert.endOffset - textStartingAbsPosition,
+              };
+            });
+
+          if (alertsTemp.length > 0)
+            nodesWithAlertsTemp.push({
+              node: node,
+              alerts: alertsTemp,
+              nodeIndex: index,
+            });
+        }
       }
     }
-
     return nodesWithAlertsTemp;
   };
 
