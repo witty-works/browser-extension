@@ -131,6 +131,96 @@ export const handleDomainsFromDashboard = (newValue: any) => {
   }
 };
 
+export const getFirstTextDiff = (
+  previousTextArray: string[],
+  newTextArray: string[]
+) => {
+  if (!newTextArray) return 0;
+  //in what node the diff is
+  let node = -1;
+  for (let i = 0; i < previousTextArray.length; i++) {
+    if (previousTextArray[i] !== newTextArray[i]) {
+      node = i;
+      break;
+    }
+  }
+
+  //in what position in the node the diff is
+  let position = 0;
+  const previousText = previousTextArray[node];
+  const nextText = newTextArray[node];
+  if (!previousText || !nextText) return;
+  while (
+    position < previousText.length &&
+    position < nextText.length &&
+    previousText[position] == nextText[position]
+  ) {
+    position++;
+  }
+
+  return { node, position };
+};
+
+export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
+  if (isTextArea(element) || isInputText(element)) {
+    return [element];
+  } else {
+    const elementEvaluation = getActiveDocument().evaluate(
+      './/text()',
+      element,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    );
+
+    const nodes = [] as Node[];
+    for (let i = 0; i < elementEvaluation.snapshotLength; i++) {
+      const node = elementEvaluation.snapshotItem(i);
+      if (node) {
+        nodes.push(node);
+      }
+    }
+    return nodes;
+  }
+};
+
+export const getNodesWithinMaxCharLength = (
+  direction: string,
+  textDividedByNodes: Node[],
+  currentNodeRaw: Node,
+  currentNode: number,
+  charLengthLeft: number
+) => {
+  let totalChars = 0;
+  const slice =
+    direction == 'below'
+      ? textDividedByNodes.slice(currentNode + 1)
+      : textDividedByNodes.slice(0, currentNode).reverse();
+  const filterCondition =
+    direction == 'below'
+      ? currentNode == 0
+      : currentNode == textDividedByNodes.length - 1;
+  const nodesWhithinMaxCharLength = slice
+    .map((node) => {
+      const newNode = {
+        node: node.textContent as string,
+        index:
+          direction == 'below'
+            ? textDividedByNodes.indexOf(node) +
+              textDividedByNodes.indexOf(currentNodeRaw)
+            : textDividedByNodes.indexOf(node),
+      };
+      return newNode;
+    })
+    .filter((node) => {
+      totalChars += node.node.length;
+      return (
+        totalChars <= (filterCondition ? charLengthLeft : charLengthLeft / 2)
+      );
+    });
+  return nodesWhithinMaxCharLength;
+};
+
 export const makeAuthRequest = () => {
   browser.storage.local.get(null).then((result) => {
     if (
