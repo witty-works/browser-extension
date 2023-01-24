@@ -87,7 +87,6 @@ const Highlights: React.FC<HighlightsProps> = ({
             endOffset: alert.endOffset,
             node: node,
           };
-          console.log('newHighlight', newHighlight);
           highlights.push(newHighlight);
         });
       }

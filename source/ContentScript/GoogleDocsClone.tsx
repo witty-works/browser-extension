@@ -4,11 +4,13 @@ import { getCorrectedPosition } from '../shared/utils';
 
 interface GoogleDocsCloneProps {
   element: CustomInputElement;
+  previousElement: string[];
   updateClone: (clone: HTMLDivElement) => void;
 }
 
 const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   element,
+  previousElement,
   updateClone,
 }: GoogleDocsCloneProps) => {
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
@@ -18,9 +20,12 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   for (const childNode of innerElement.childNodes) {
     const gElement = childNode as CustomInputElement;
     for (const rectElement of gElement.childNodes) {
+      console.log('rectElement', rectElement);
       const svgRectElement = rectElement as SVGRectElement;
+      //get aria-label from rectElement
+      const areaLabel = svgRectElement.getAttribute('aria-label');
+      console.log('areaLabel', areaLabel);
       const elementRect = svgRectElement.getBoundingClientRect();
-      const ariaLabel = gElement.querySelector('[aria-label]');
       const elementStylesFont = gElement.querySelector('[data-font-css]');
       const elementStyles = window.getComputedStyle(svgRectElement);
       const correctedPosition = getCorrectedPosition(
@@ -57,10 +62,11 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
               border: `${elementStyles.borderBottomWidth} solid black`,
               boxSizing: elementStyles.boxSizing,
               letterSpacing: elementStyles.letterSpacing,
+              // transform: elementStyles.transform,
             } as React.CSSProperties
           }
         >
-          {ariaLabel?.getAttribute('aria-label')}
+          {areaLabel}
         </div>
       );
     }
@@ -69,8 +75,19 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
     <div
       ref={(ref) => {
         if (ref !== null && divs.length > 0) {
+          const refAsArrayOfText = Array.from(ref.childNodes).map(
+            (node) => node.textContent
+          );
+          //update clone if refAsArrayOfText is different from previousElement
+          const isDifferent = refAsArrayOfText.some(
+            (text, index) => text !== previousElement[index]
+          );
+          console.log('IS DIFFERENT', isDifferent);
+          // if (isDifferent) {
           cloneRef.current = ref;
+
           updateClone(ref);
+          // }
         }
       }}
     >

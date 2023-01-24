@@ -288,6 +288,7 @@ const ContentScriptApp: React.FC = () => {
     const googleDocsHtml = document.querySelectorAll(
       '#kix-appview > div.kix-appview-editor-container > div > div:nth-child(1) > div.kix-rotatingtilemanager.docs-ui-hit-region-surface > div > div > div:nth-child(3)'
     )[0];
+    console.log('googleDocsHtml', googleDocsHtml);
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
       //inputref.current is the same as target

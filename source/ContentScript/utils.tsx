@@ -179,6 +179,17 @@ export const getFirstTextDiff = (
 };
 
 export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
+  if (isGoogleDocs()) {
+    const clone = document.querySelector('ww-clone');
+    let divs = [] as Node[];
+    if (clone && clone.firstChild) {
+      for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
+        const divElement = clone.firstChild.childNodes[i];
+        divs.push(divElement);
+      }
+    }
+    return divs;
+  }
   if (isTextArea(element) || isInputText(element)) {
     return [element];
   } else {
