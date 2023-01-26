@@ -135,9 +135,9 @@ const ContentScriptApp: React.FC = () => {
         sendErrorToSentry(error);
       });
 
+    //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
     const iframes = document.querySelectorAll('iframe');
-
     iframes.forEach((iframe: any) => {
       if (iframe.contentDocument && iframe.contentDocument.body) {
         iframe.contentDocument.body.addEventListener(
@@ -146,14 +146,14 @@ const ContentScriptApp: React.FC = () => {
         );
       }
     });
-    document.addEventListener('focusin', handleFocusinElement, true);
+
+    !isGoogleDocs() &&
+      document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
-      document.removeEventListener('focusin', handleFocusinElement);
-      document.removeEventListener('mouseover', handleMouseOver);
-      document.removeEventListener('mouseout', handleMouseOut);
+      browser.storage.onChanged.removeListener(storageChange);
       iframes.forEach((iframe) => {
         if (iframe.contentDocument && iframe.contentDocument.body) {
           iframe.contentDocument.body.removeEventListener(
@@ -162,6 +162,10 @@ const ContentScriptApp: React.FC = () => {
           );
         }
       });
+      !isGoogleDocs() &&
+        document.removeEventListener('focusin', handleFocusinElement);
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseout', handleMouseOut);
     };
   }, [iframeLoaded]);
 
@@ -282,9 +286,16 @@ const ContentScriptApp: React.FC = () => {
     setRequestConfig(reqConfig);
   }, [reqConfig]);
 
-  const handleFocusinElement = (event: Event) => {
-    let target = event.target as CustomInputElement;
+  const handleFocusinElement = (event?: Event) => {
+    let target = event?.target as CustomInputElement;
+    console.log('FOCUSIN', target);
 
+    if (
+      isGoogleDocs() &&
+      !target.parentElement?.querySelector('#docs-texteventtarget-descendant')
+    ) {
+      return;
+    }
     const googleDocsHtml = document.querySelectorAll(
       '#kix-appview > div.kix-appview-editor-container > div > div:nth-child(1) > div.kix-rotatingtilemanager.docs-ui-hit-region-surface > div > div > div:nth-child(3)'
     )[0];
@@ -298,6 +309,8 @@ const ContentScriptApp: React.FC = () => {
         // cloneGoogleDocsElementAsDiv(googleDocsHtml as CustomInputElement);
         target = googleDocsHtml as CustomInputElement;
       }
+      console.log('target', target);
+      console.log('target.ownerDocument', target.ownerDocument);
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
@@ -329,7 +342,7 @@ const ContentScriptApp: React.FC = () => {
     if (hoveredElementRef.current) {
       removeAllHoverIndicators();
       if (
-        window.location.hostname === 'docs.google.com' &&
+        isGoogleDocs() &&
         hoveredElementRef.current.classList.contains('cell-input')
       ) {
         return;
@@ -368,13 +381,14 @@ const ContentScriptApp: React.FC = () => {
     }
   };
   useEffect(() => {
+    console.log('inputsRef.current', inputsRef.current);
     //filter out inputs that are the same
     let filteredInputs = inputsRef.current.filter(
       (input, index, self) =>
         index === self.findIndex((t) => t.isEqualNode(input))
     );
 
-    //TODO: could be a problem!!
+    // //TODO: could be a problem!!
     if (isGoogleDocs()) {
       //remove any input that does not contain <g> as a child
       filteredInputs = inputsRef.current.filter((input) => {
@@ -393,6 +407,7 @@ const ContentScriptApp: React.FC = () => {
       filteredInputs.forEach((input: CustomInputElement) => {
         if (!input.parentElement) return;
 
+        //IMPROVE THIS FOR GOOGLE DOCS
         //if already has a container, remove them first
         if (document.getElementsByTagName(WTags.WW_CONTAINER).length > 0) {
           //remove all containers
@@ -408,10 +423,7 @@ const ContentScriptApp: React.FC = () => {
           getActiveDocument().createElement(WTags.WW_CONTAINER);
         highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
-        if (
-          window.location.hostname === 'docs.google.com' &&
-          input.classList.contains('cell-input')
-        ) {
+        if (isGoogleDocs() && input.classList.contains('cell-input')) {
           return;
         }
 

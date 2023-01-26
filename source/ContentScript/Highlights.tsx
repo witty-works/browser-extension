@@ -42,7 +42,6 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   useEffect(() => {
     const highlights: Highlight[] = [];
-    console.log('nodesWithAlerts', nodesWithAlerts);
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
@@ -108,7 +107,6 @@ const Highlights: React.FC<HighlightsProps> = ({
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
     console.log('highlights', highlights);
-
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
       const [rect] = highlight.rects;

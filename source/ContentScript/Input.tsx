@@ -102,7 +102,10 @@ const Input: React.FC<{
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
   const maxCharLength = defaultConfig.MAX_CHAR_LENGTH;
-
+  const eventTarget = document.querySelector(
+    '.docs-texteventtarget-iframe'
+  ) as any;
+  const input = eventTarget?.contentDocument.activeElement;
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       for (const mutation of mutationsList) {
@@ -147,16 +150,20 @@ const Input: React.FC<{
 
     browser.storage.onChanged.addListener(storageChange);
 
-    element.addEventListener('focusout', handleFocusoutEvent);
+    !isGoogleDocs() &&
+      element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleElementClickEvent as EventListener);
 
     if (isGoogleDocs()) {
-      document.addEventListener('focusout', handleFocusoutEvent);
-      // document.addEventListener('mouseover', handleMouseoverEvent);
-      // document.addEventListener('mouseout', handleMouseoutEvent);
+      console.log('INPUT element', element);
+
+      console.log('INPUT input', input);
+      console.log('INPUT clone', cloneRef.current);
+
+      input.addEventListener('focusout', handleFocusoutEvent);
       document.addEventListener('scroll', handleElementScrollEvent, true);
       document.addEventListener(
         'click',
@@ -175,11 +182,11 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
-      element.removeEventListener('focusout', handleFocusoutEvent);
+      !isGoogleDocs() &&
+        element.removeEventListener('focusout', handleFocusoutEvent);
       // element.removeEventListener('mouseover', handleMouseoverEvent);
       // element.removeEventListener('mouseout', handleMouseoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      console.log('removing click event listener', element);
       element.removeEventListener(
         'click',
         handleElementClickEvent as EventListener
@@ -187,10 +194,7 @@ const Input: React.FC<{
 
       //TODO: figure out how to use element listerner instead of document
       if (isGoogleDocs()) {
-        document.removeEventListener('focusout', handleFocusoutEvent);
-        // document.removeEventListener('mouseover', handleMouseoverEvent);
-        // document.removeEventListener('mouseout', handleMouseoutEvent);
-
+        input.removeEventListener('focusout', handleFocusoutEvent);
         document.removeEventListener('scroll', handleElementScrollEvent, true);
         document.removeEventListener(
           'click',
@@ -208,7 +212,7 @@ const Input: React.FC<{
     if (
       !isGoogleDocs ||
       event.path.some((el: any) => {
-        //clicking alternative
+        //clicking alternative in popover
         return el.id === 'witty-works-ext-popover';
       })
     )
@@ -222,7 +226,6 @@ const Input: React.FC<{
       //get position of cursor
       const googleDocsElementCursorRect =
         googleDocsElementCursor?.getBoundingClientRect();
-
       //if cursor is inside a node with alerts, select that node
       const alertsInRange = [] as IAlert[];
       let selectedNode = {} as INodeWithAlerts;
@@ -233,8 +236,11 @@ const Input: React.FC<{
         alertRects.forEach((alertRect) => {
           if (
             googleDocsElementCursorRect &&
-            googleDocsElementCursorRect.top > alertRect.top &&
-            googleDocsElementCursorRect.left > alertRect.left
+            googleDocsElementCursorRect.top >= alertRect.top &&
+            googleDocsElementCursorRect.left >= alertRect.left &&
+            googleDocsElementCursorRect.left <=
+              alertRect.left + alertRect.width &&
+            googleDocsElementCursorRect.top <= alertRect.top + alertRect.height
           ) {
             //get alert at alertRect
             const alert = node.alerts.find(
@@ -242,6 +248,7 @@ const Input: React.FC<{
                 alert.rect.top === alertRect.top &&
                 alert.rect.left === alertRect.left
             );
+            console.log('alert', alert);
             selectedNode = node.node;
             alert && alertsInRange.push(alert);
           }
@@ -253,23 +260,19 @@ const Input: React.FC<{
           : alertsInRange[0];
 
       //get index of selected alert in nodesWithAlertsRef.current
-      const selectedNodeWithAlertsIndex1 = nodesWithAlertsRef.current.findIndex(
-        (node) => node.node === selectedNode
-      );
+      const newSelectedNodeWithAlertsIndex =
+        nodesWithAlertsRef.current.findIndex(
+          (node) => node.node === selectedNode
+        );
 
-      const selectedAlertIndex1 =
-        nodesWithAlertsRef.current[selectedNodeWithAlertsIndex1] &&
+      const newSelectedAlertIndex =
+        nodesWithAlertsRef.current[newSelectedNodeWithAlertsIndex] &&
         nodesWithAlertsRef.current[
-          selectedNodeWithAlertsIndex1
+          newSelectedNodeWithAlertsIndex
         ].alerts.findIndex((alert) => alert === selectedAlert);
 
-      console.log(
-        'NEW INDEX',
-        selectedNodeWithAlertsIndex1,
-        selectedAlertIndex1
-      );
-      setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex1);
-      setSelectedAlertIndex(selectedAlertIndex1);
+      setSelectedNodeWithAlertsIndex(newSelectedNodeWithAlertsIndex);
+      setSelectedAlertIndex(newSelectedAlertIndex);
     }
   };
 
@@ -278,16 +281,17 @@ const Input: React.FC<{
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
     element.addEventListener('keyup', handleKeyupEvent);
-    element.addEventListener('focusin', handleFocusinEvent);
+    !isGoogleDocs() && element.addEventListener('focusin', handleFocusinEvent);
 
-    isGoogleDocs() && document.addEventListener('focusin', handleFocusinEvent);
+    isGoogleDocs() && input.addEventListener('focusin', handleFocusinEvent);
 
     return () => {
       //Don't forget to remove the listeners at the end
       element.removeEventListener('keyup', handleKeyupEvent);
-      element.removeEventListener('focusin', handleFocusinEvent);
+      !isGoogleDocs() &&
+        element.removeEventListener('focusin', handleFocusinEvent);
       isGoogleDocs() &&
-        document.removeEventListener('focusin', handleFocusinEvent);
+        input.removeEventListener('focusin', handleFocusinEvent);
     };
   }, [debounceDelay]);
 
@@ -309,19 +313,19 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = (event: Event) => {
-    console.log('focusin');
+    console.log('focusin Input');
     const nextText: string = getInputText(element);
     handleTextAndIcon(nextText, event);
   };
 
   const handleFocusoutEvent = () => {
+    console.log('focusout Input');
     setActiveIcon('passive');
     setAlerts([]);
     setTextToCheck('');
   };
 
   const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
-    console.log('keyup', event);
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     browser.storage.local
@@ -342,7 +346,6 @@ const Input: React.FC<{
       textDividedByNodesTextContent,
       previousElementStateRef.current
     );
-    console.log('fistTextDiff', fistTextDiff);
 
     previousElementStateRef.current = textDividedByNodesTextContent;
 
@@ -409,6 +412,7 @@ const Input: React.FC<{
             handleTextAndIcon(textWithinMaxCharLength, event);
         }
       } else {
+        setAlerts([]);
         handleTextAndIcon(nextText, event);
       }
     }
@@ -477,7 +481,6 @@ const Input: React.FC<{
 
   const handleTextAndIcon = (text: string, event?: Event) => {
     //If there isn't text, there's nothing to highlight
-    console.log('TEXT TO CHECK', text);
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
@@ -500,8 +503,6 @@ const Input: React.FC<{
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
-    console.log('element scroll', element.scrollTop);
-    console.log('clone scroll', cloneRef.current.scrollTop);
     setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
   };
 
@@ -524,18 +525,14 @@ const Input: React.FC<{
   };
 
   const updateCloneData = (newClone: HTMLDivElement) => {
-    console.log('updating Clone', clone, newClone, clone === newClone);
     setClone(newClone);
     if (isGoogleDocs()) {
       handleKeyupEvent(undefined, true);
-
-      // docTextEvaluation(element, newClone);
     }
   };
 
   const resetPopover = () => {
     if (selectedNodeWithAlertsIndex >= 0 && selectedAlertIndex >= 0) {
-      console.log('reset popover');
       setPopoverData(null);
       setSelectedAlert(null);
       setSelectedNodeWithAlertsIndex(-10);
@@ -545,7 +542,6 @@ const Input: React.FC<{
       event?.stopPropagation();
     }
   };
-  console.log('selectedNode', selectedNodeWithAlertsIndex, selectedAlertIndex);
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
@@ -695,16 +691,6 @@ const Input: React.FC<{
   };
 
   const movePopoverNextOrPrev = (direction: string): void => {
-    console.log(
-      'MOVE',
-      direction,
-      selectedAlertIndex,
-      selectedNodeWithAlertsIndex,
-      'nodesWithAlertsRef.current',
-      nodesWithAlertsRef.current,
-      'nodesWithAlerts',
-      nodesWithAlerts
-    );
     if (direction === 'previous') {
       if (selectedAlertIndex === 0) {
         setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex - 1);
@@ -740,14 +726,6 @@ const Input: React.FC<{
       selectedNodeWithAlertsIndex > -1 &&
       selectedAlertIndex > -1
     ) {
-      console.log(
-        'USEEFFECT POPOVERDATA',
-        popoverData,
-        nodesWithAlertsRef.current.length,
-        selectedNodeWithAlertsIndex,
-        selectedAlertIndex
-      );
-
       const oneNodeWithAlerts =
         nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
 
@@ -1083,6 +1061,8 @@ const Input: React.FC<{
         }
       }
     }
+    console.log('ALERTS AFTER filter', nodesWithAlertsTemp);
+
     return nodesWithAlertsTemp;
   };
 
@@ -1142,35 +1122,42 @@ const Input: React.FC<{
           }, 200);
         }, 200);
       } else if (isGoogleDocs()) {
-        const eventTarget = document.querySelector(
-          '.docs-texteventtarget-iframe'
-        ) as any;
+        const selectedTextStart = {
+          clientX: range.getBoundingClientRect().x,
+          clientY:
+            range.getBoundingClientRect().y +
+            range.getBoundingClientRect().height / 2,
+          bubbles: !0,
+          shiftKey: !1,
+        };
+        element.dispatchEvent(new MouseEvent('mousedown', selectedTextStart)),
+          element.dispatchEvent(new MouseEvent('mouseup', selectedTextStart));
 
-        const input = eventTarget.contentDocument.activeElement;
-        console.log('input', input);
-        //same as CKEEditor here
-        const deleteSelectedText = new KeyboardEvent('keydown', {
-          key: 'Delete',
-          bubbles: true,
+        const selectedTextEnd = {
+          clientX:
+            range.getBoundingClientRect().x +
+            range.getBoundingClientRect().width,
+          clientY:
+            range.getBoundingClientRect().y +
+            range.getBoundingClientRect().height / 2,
+          bubbles: !0,
+          shiftKey: !0,
+        };
+        element.dispatchEvent(new MouseEvent('mousedown', selectedTextEnd)),
+          element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd));
+
+        const insertAlternative = new ClipboardEvent('paste', {
+          clipboardData: new DataTransfer(),
           cancelable: true,
+          bubbles: true,
         });
-        input.dispatchEvent(deleteSelectedText);
+        if (!insertAlternative.clipboardData) return;
+        insertAlternative.clipboardData.setData('text/plain', alternative);
+        input.dispatchEvent(insertAlternative);
 
-        //Need to slow down the process for changes to be applied
         setTimeout(() => {
-          const insertAlternative = new ClipboardEvent('paste', {
-            clipboardData: new DataTransfer(),
-            cancelable: true,
-            bubbles: true,
-          });
-          if (!insertAlternative.clipboardData) return;
-          insertAlternative.clipboardData.setData('text/plain', alternative);
-          input.dispatchEvent(insertAlternative);
-
-          setTimeout(() => {
-            setTextToCheck(getInputText(element));
-            handleKeyupEvent(undefined, false);
-          }, 200);
+          setTextToCheck(getInputText(element));
+          handleKeyupEvent(undefined, false);
         }, 200);
       } else {
         getActiveDocument().execCommand('insertText', false, alternative);

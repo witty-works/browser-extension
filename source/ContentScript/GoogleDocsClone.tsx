@@ -20,55 +20,44 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   for (const childNode of innerElement.childNodes) {
     const gElement = childNode as CustomInputElement;
     for (const rectElement of gElement.childNodes) {
-      console.log('rectElement', rectElement);
       const svgRectElement = rectElement as SVGRectElement;
-      //get aria-label from rectElement
       const areaLabel = svgRectElement.getAttribute('aria-label');
-      console.log('areaLabel', areaLabel);
       const elementRect = svgRectElement.getBoundingClientRect();
-      const elementStylesFont = gElement.querySelector('[data-font-css]');
+      const elementStylesFont = svgRectElement.getAttribute('data-font-css');
       const elementStyles = window.getComputedStyle(svgRectElement);
       const correctedPosition = getCorrectedPosition(
         elementRect,
         cloneRef.current.parentElement,
         element
       );
-
-      divs.push(
-        <div
-          style={
-            {
-              visibility: 'hidden',
-              width: elementRect.width + 'px',
-              height: elementRect.height + 'px',
-              fontWeight: elementStylesFont
-                ?.getAttribute('data-font-css')
-                ?.split(' ')[0],
-              fontSize: elementStylesFont
-                ?.getAttribute('data-font-css')
-                ?.split(' ')[1],
-              font: elementStylesFont
-                ?.getAttribute('data-font-css')
-                ?.split(' ')[2],
-              lineHeight: elementStyles.lineHeight,
-              fontFamily: elementStyles.fontFamily,
-              position: 'absolute',
-              top: `${correctedPosition.top}px`,
-              left: `${correctedPosition.left}px`,
-              paddingTop: elementStyles.paddingTop,
-              paddingLeft: elementStyles.paddingLeft,
-              paddingRight: elementStyles.paddingRight,
-              paddingBottom: elementStyles.paddingBottom,
-              border: `${elementStyles.borderBottomWidth} solid black`,
-              boxSizing: elementStyles.boxSizing,
-              letterSpacing: elementStyles.letterSpacing,
-              // transform: elementStyles.transform,
-            } as React.CSSProperties
-          }
-        >
-          {areaLabel}
-        </div>
-      );
+      elementRect &&
+        divs.push(
+          <div
+            style={
+              {
+                visibility: 'hidden',
+                width: elementRect.width + 'px',
+                height: elementRect.height + 'px',
+                fontWeight: elementStylesFont?.split(' ')[0],
+                fontSize: elementStylesFont?.split(' ')[1],
+                fontFamily: elementStylesFont?.split(' ')[2],
+                lineHeight: elementStyles.lineHeight,
+                position: 'absolute',
+                top: `${correctedPosition.top}px`,
+                left: `${correctedPosition.left}px`,
+                paddingTop: elementStyles.paddingTop,
+                paddingLeft: elementStyles.paddingLeft,
+                paddingRight: elementStyles.paddingRight,
+                paddingBottom: elementStyles.paddingBottom,
+                border: `${elementStyles.borderBottomWidth} solid black`,
+                boxSizing: elementStyles.boxSizing,
+                letterSpacing: elementStyles.letterSpacing,
+              } as React.CSSProperties
+            }
+          >
+            {areaLabel}
+          </div>
+        );
     }
   }
   return (
@@ -82,12 +71,10 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
           const isDifferent = refAsArrayOfText.some(
             (text, index) => text !== previousElement[index]
           );
-          console.log('IS DIFFERENT', isDifferent);
-          // if (isDifferent) {
-          cloneRef.current = ref;
-
-          updateClone(ref);
-          // }
+          if (isDifferent) {
+            cloneRef.current = ref;
+            updateClone(ref);
+          }
         }
       }}
     >
