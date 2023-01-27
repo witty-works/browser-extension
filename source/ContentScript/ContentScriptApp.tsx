@@ -50,7 +50,7 @@ const ContentScriptApp: React.FC = () => {
 
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
-  const [iframeLoaded, setIframeLoaded] = useState<HTMLElement | null>(null);
+  const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
 
   //observes iframes that are added to the DOM
   const observer = new MutationObserver(function (mutations) {
@@ -60,11 +60,10 @@ const ContentScriptApp: React.FC = () => {
           return node.nodeName == 'IFRAME';
         })
         .forEach(function (node: HTMLElement) {
-          node.addEventListener('load', function () {
-            setIframeLoaded(node);
-          });
+          node.addEventListener('load', function () {});
         });
     });
+    setIframeLoaded(true);
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
@@ -134,6 +133,12 @@ const ContentScriptApp: React.FC = () => {
         log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
         sendErrorToSentry(error);
       });
+
+    //fixes initial iframe focus issue google docs
+    if (isGoogleDocs()) {
+      const focusedElement = getActiveDocument().activeElement as HTMLElement;
+      focusedElement?.blur();
+    }
 
     //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
@@ -288,27 +293,21 @@ const ContentScriptApp: React.FC = () => {
 
   const handleFocusinElement = (event?: Event) => {
     let target = event?.target as CustomInputElement;
+    console.log('target BEFORE', target);
+    console.log('pages', document.querySelectorAll('.kix-canvas-tile-content'));
+    //if no target, target is the child of #docs-texteventtarget-descendant
+    if (isGoogleDocs()) {
+      target = document.querySelectorAll(
+        '.kix-canvas-tile-content'
+      )[1] as CustomInputElement;
+    }
+
     console.log('FOCUSIN', target);
 
     if (
-      isGoogleDocs() &&
-      !target.parentElement?.querySelector('#docs-texteventtarget-descendant')
-    ) {
-      return;
-    }
-    const googleDocsHtml = document.querySelectorAll(
-      '#kix-appview > div.kix-appview-editor-container > div > div:nth-child(1) > div.kix-rotatingtilemanager.docs-ui-hit-region-surface > div > div > div:nth-child(3)'
-    )[0];
-    console.log('googleDocsHtml', googleDocsHtml);
-    if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
-      //inputref.current is the same as target
-      googleDocsHtml
+      (isGoogleDocs() && target)
     ) {
-      if (googleDocsHtml) {
-        // cloneGoogleDocsElementAsDiv(googleDocsHtml as CustomInputElement);
-        target = googleDocsHtml as CustomInputElement;
-      }
       console.log('target', target);
       console.log('target.ownerDocument', target.ownerDocument);
       setActiveDocument(target.ownerDocument);
@@ -388,7 +387,6 @@ const ContentScriptApp: React.FC = () => {
         index === self.findIndex((t) => t.isEqualNode(input))
     );
 
-    // //TODO: could be a problem!!
     if (isGoogleDocs()) {
       //remove any input that does not contain <g> as a child
       filteredInputs = inputsRef.current.filter((input) => {
@@ -407,15 +405,23 @@ const ContentScriptApp: React.FC = () => {
       filteredInputs.forEach((input: CustomInputElement) => {
         if (!input.parentElement) return;
 
-        //IMPROVE THIS FOR GOOGLE DOCS
-        //if already has a container, remove them first
+        // if already has a container, remove them first
         if (document.getElementsByTagName(WTags.WW_CONTAINER).length > 0) {
-          //remove all containers
+          // remove all containers
           const containers = document.getElementsByTagName(WTags.WW_CONTAINER);
-
           for (let container of containers) {
-            ReactDOM.unmountComponentAtNode(container);
-            container.remove();
+            //make sure each parent of a container only has one child that is a WW_CONTAINER
+            const parent = container.parentElement;
+            //check if parent has more than one child that is a WW_CONTAINER
+            if (parent) {
+              //remove all containers except one
+              const containers = parent.querySelectorAll(WTags.WW_CONTAINER);
+              for (let i = 0; i < containers.length; i++) {
+                const childContainer = containers[i];
+                ReactDOM.unmountComponentAtNode(childContainer);
+                childContainer.remove();
+              }
+            }
           }
         }
 

@@ -45,6 +45,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
+        console.log('node', node, 'alerts', alerts);
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
           try {

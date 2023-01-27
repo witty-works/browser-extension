@@ -229,7 +229,6 @@ const Input: React.FC<{
       //if cursor is inside a node with alerts, select that node
       const alertsInRange = [] as IAlert[];
       let selectedNode = {} as INodeWithAlerts;
-
       nodesWithAlertsRef.current.forEach((node) => {
         const alertRects = node.alerts.map((alert) => alert.rect);
 
@@ -313,13 +312,19 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = (event: Event) => {
-    console.log('focusin Input');
+    console.log('focusin Input', element, cloneRef.current);
+    // if (isGoogleDocs()) {
+    //   const googleDocsNextText = getInputText(cloneRef.current);
+    //   handleTextAndIcon(googleDocsNextText, event);
+    // } else {
     const nextText: string = getInputText(element);
     handleTextAndIcon(nextText, event);
+    // }
   };
 
   const handleFocusoutEvent = () => {
     console.log('focusout Input');
+    cloneRef.current = {} as HTMLInputElement;
     setActiveIcon('passive');
     setAlerts([]);
     setTextToCheck('');
@@ -480,6 +485,7 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (text: string, event?: Event) => {
+    console.log('handleTextAndIcon', text);
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -513,10 +519,11 @@ const Input: React.FC<{
   };
 
   const docTextEvaluation = (element: HTMLElement, clone: HTMLElement) => {
-    //Find the text nodes inside element
+    console.log('docTextEvaluation', element, clone, clone.nodeType == 1);
+
     const elementEvaluation: XPathResult = getActiveDocument().evaluate(
       './/text()',
-      isGoogleDocs() ? clone : element,
+      isGoogleDocs() && clone.nodeType == 1 ? clone : element,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
@@ -907,6 +914,7 @@ const Input: React.FC<{
               alertsWithoutIgnoredTermsGravityReduced,
               elementXPathResult as XPathResult
             );
+      console.log('nodesWithAlertsTemp', nodesWithAlertsTemp);
 
       // add getBoundingClientRect to each alert
       const nodesWithAlertsTempWithRect = nodesWithAlertsTemp.map(
@@ -918,23 +926,44 @@ const Input: React.FC<{
               range.setStart(nodeWithAlerts.node, alert.startOffset);
               range.setEnd(nodeWithAlerts.node, alert.endOffset);
               const rect = range.getClientRects()[0];
-              return {
-                ...alert,
-                rect: {
-                  ...rect,
-                  width: rect.width,
-                  height: rect.height,
-                  left: rect.left,
-                  x: rect.left,
-                  top: rect.top - elementScroll.top,
-                  y: rect.top - elementScroll.top,
-                },
-              };
+
+              const nodeRect =
+                nodeWithAlerts.node.parentElement.getBoundingClientRect();
+              //check if alert is within node, prevents displaced highlights
+              const alertIsWithinNode =
+                rect.x >= nodeRect.x &&
+                rect.x + rect.width <= nodeRect.x + nodeRect.width &&
+                rect.y >= nodeRect.y &&
+                rect.y + rect.height <= nodeRect.y + nodeRect.height;
+
+              if (alertIsWithinNode) {
+                return {
+                  ...alert,
+                  rect: {
+                    ...rect,
+                    width: rect.width,
+                    height: rect.height,
+                    left: rect.left,
+                    x: rect.left,
+                    top: rect.top - elementScroll.top,
+                    y: rect.top - elementScroll.top,
+                  },
+                };
+              } else {
+                return null;
+              }
             }),
           };
           return nodeWithAlertsWithRect;
         }
       );
+
+      // remove alerts that are null
+      nodesWithAlertsTempWithRect.forEach((nodeWithAlerts) => {
+        nodeWithAlerts.alerts = nodeWithAlerts.alerts.filter(
+          (alert) => alert !== null
+        );
+      });
 
       //Set the total alerts
       const totalAlerts: number = nodesWithAlertsTempWithRect.reduce(
@@ -942,8 +971,8 @@ const Input: React.FC<{
         0
       );
       setTotalAlerts(totalAlerts);
-
-      setNodesWithAlerts(nodesWithAlertsTempWithRect);
+      console.log('setNodesWithAlerts', nodesWithAlertsTempWithRect);
+      setNodesWithAlerts(nodesWithAlertsTempWithRect as INodeWithAlerts[]);
     }
   }, [
     alerts,
@@ -1010,6 +1039,7 @@ const Input: React.FC<{
 
       for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
         const node = elementEvaluation.snapshotItem(index) as Node;
+        console.log('NODE', node);
         if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
           if (
             //for handeling long text

@@ -101,6 +101,7 @@ export const getInputText = (element: CustomInputElement | any) => {
         text += divElement.textContent;
       }
     }
+    console.log('getInoutText', text);
     return text;
   } else if (isTextArea(element) || isInputText(element)) {
     return element.value;
