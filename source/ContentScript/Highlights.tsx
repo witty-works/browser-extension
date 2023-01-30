@@ -34,7 +34,6 @@ const Highlights: React.FC<HighlightsProps> = ({
     canvasRef.current.parentElement,
     element
   );
-
   const canvasSize = {
     width: elementRect.width,
     height: elementRect.height,
@@ -45,7 +44,6 @@ const Highlights: React.FC<HighlightsProps> = ({
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
-        console.log('node', node, 'alerts', alerts);
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
           try {
@@ -107,7 +105,6 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
-    console.log('highlights', highlights);
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
       const [rect] = highlight.rects;
@@ -163,6 +160,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           height: `${canvasSize.height}px`,
           overflow: 'auto',
           pointerEvents: 'none',
+          zIndex: 9999999, //needed google docs
         } as React.CSSProperties
       }
     ></canvas>

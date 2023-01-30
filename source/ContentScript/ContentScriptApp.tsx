@@ -293,23 +293,17 @@ const ContentScriptApp: React.FC = () => {
 
   const handleFocusinElement = (event?: Event) => {
     let target = event?.target as CustomInputElement;
-    console.log('target BEFORE', target);
-    console.log('pages', document.querySelectorAll('.kix-canvas-tile-content'));
     //if no target, target is the child of #docs-texteventtarget-descendant
     if (isGoogleDocs()) {
-      target = document.querySelectorAll(
-        '.kix-canvas-tile-content'
-      )[1] as CustomInputElement;
+      target = document.querySelector(
+        '.kix-rotatingtilemanager'
+      ) as CustomInputElement;
     }
-
-    console.log('FOCUSIN', target);
 
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
       (isGoogleDocs() && target)
     ) {
-      console.log('target', target);
-      console.log('target.ownerDocument', target.ownerDocument);
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
@@ -380,7 +374,6 @@ const ContentScriptApp: React.FC = () => {
     }
   };
   useEffect(() => {
-    console.log('inputsRef.current', inputsRef.current);
     //filter out inputs that are the same
     let filteredInputs = inputsRef.current.filter(
       (input, index, self) =>

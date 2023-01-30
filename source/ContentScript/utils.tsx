@@ -90,9 +90,7 @@ export const updateConfig = (response: IAuthResponse) => {
 };
 
 export const getInputText = (element: CustomInputElement | any) => {
-  //TODO: add propper type for arialabel
   if (isGoogleDocs()) {
-    //get element <ww-clone /> from google docs
     const clone = document.querySelector('ww-clone');
     let text = '';
     if (clone && clone.firstChild) {
@@ -101,7 +99,6 @@ export const getInputText = (element: CustomInputElement | any) => {
         text += divElement.textContent;
       }
     }
-    console.log('getInoutText', text);
     return text;
   } else if (isTextArea(element) || isInputText(element)) {
     return element.value;
