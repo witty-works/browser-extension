@@ -203,13 +203,14 @@ const Input: React.FC<{
   }, []);
 
   //GOOGLE DOCS WORKAROUND
-  const handleDocumentClickEvent = (event?: any) => {
+  const handleDocumentClickEvent = (event: any) => {
     if (
       !isGoogleDocs() ||
-      event.path.some((element: any) => {
-        //clicking alternative in popover
-        return element.id === 'witty-works-ext-popover';
-      })
+      (event?.path &&
+        event.path.some((element: any) => {
+          //clicking alternative in popover
+          return element.id === 'witty-works-ext-popover';
+        }))
     )
       return;
 
