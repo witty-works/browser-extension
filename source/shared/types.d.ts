@@ -107,7 +107,7 @@ export type CustomInputElement =
 
 //ALERTS
 export interface INodeWithAlerts {
-  node: any; //TODO
+  node: any;
   alerts: IAlert[];
   nodeIndex?: number;
 }

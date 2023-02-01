@@ -3,12 +3,7 @@ import { useAnalytics } from './ApiServices/useAnalytics';
 import { StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import {
-  isCkeEditor,
-  isGoogleDocs,
-  isTextArea,
-  isTinyMceEditor,
-} from './DOMutils';
+import { isCkeEditor, isTextArea, isTinyMceEditor } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 
 export const isObjectEmpty = (obj: object) =>
@@ -198,17 +193,6 @@ export const getCorrectedPosition = (
     isTinyMceEditor(element)
   ) {
     elementRect = element.getBoundingClientRect();
-  }
-
-  //if igGoogleDocs() parentElement is great grandparent of element
-  if (isGoogleDocs()) {
-    if (parentElement && parentElement.parentElement) {
-      const grandParent = parentElement.parentElement;
-      if (grandParent && grandParent.parentElement) {
-        const greatGrandParent = grandParent.parentElement;
-        parentElement = greatGrandParent;
-      }
-    }
   }
 
   return parentElement && !isObjectEmpty(parentElement)
