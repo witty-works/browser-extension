@@ -41,6 +41,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         elementRect &&
           divs.push(
             <div
+              key={`${areaLabel}-${elementRect.top}-${elementRect.left}`}
               style={
                 {
                   visibility: 'hidden',
@@ -81,6 +82,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
             (text, index) => text !== previousElement[index]
           );
           if (isDifferent) {
+            console.log('updating clone');
             cloneRef.current = ref;
             updateClone(ref);
           }

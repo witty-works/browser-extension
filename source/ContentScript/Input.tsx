@@ -84,6 +84,7 @@ const Input: React.FC<{
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
+  const [isScrolling, setIsScrolling] = useState<boolean>(false);
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedNodeWithAlertsIndex, setSelectedNodeWithAlertsIndex] =
     useState<number>(-1);
@@ -98,6 +99,7 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
+  const [, , prevClickedElementIndexRef] = useStateRef<number>(0);
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
@@ -166,6 +168,7 @@ const Input: React.FC<{
         'click',
         handleDocumentClickEvent as EventListener
       );
+      document.addEventListener('scroll', handleElementScrollEvent, true);
     }
 
     //If a parent form exists, we will monitor the submision.
@@ -214,7 +217,6 @@ const Input: React.FC<{
         }))
     )
       return;
-    //update nodes with alert to get accurate position
 
     if (selectedNodeWithAlertsIndex !== -10 && selectedAlertIndex !== -10) {
       //get element with id kix-current-user-cursor-caret
@@ -228,44 +230,7 @@ const Input: React.FC<{
 
       let selectedNode = {} as INodeWithAlerts;
 
-      const updatedNodesWithAlerts = nodesWithAlertsRef.current.map(
-        (nodeWithAlerts) => {
-          const nodeWithAlertsRefWithUpdatedRects = {
-            ...nodeWithAlerts,
-            alerts: nodeWithAlerts.alerts.map((alert) => {
-              const range = getActiveDocument().createRange();
-              if (
-                alert.startOffset > nodeWithAlerts.node.length ||
-                alert.endOffset > nodeWithAlerts.node.length ||
-                alert.startOffset < 0 ||
-                alert.endOffset < 0
-              ) {
-                return alert;
-              }
-              range.setStart(nodeWithAlerts.node, alert.startOffset);
-              range.setEnd(nodeWithAlerts.node, alert.endOffset);
-              const rect = range.getClientRects()[0];
-              if (!rect) return alert;
-
-              return {
-                ...alert,
-                rect: {
-                  ...rect,
-                  width: rect.width,
-                  height: rect.height,
-                  left: rect.left,
-                  x: rect.left,
-                  top: rect.top - elementScroll.top,
-                  y: rect.top - elementScroll.top,
-                },
-              };
-            }),
-          };
-          return nodeWithAlertsRefWithUpdatedRects;
-        }
-      );
-      if (updatedNodesWithAlerts.length === 0) return;
-      updatedNodesWithAlerts.forEach((node) => {
+      nodesWithAlertsRef.current.forEach((node) => {
         const alertRects = node.alerts.map((alert) => alert.rect);
 
         alertRects.forEach((alertRect) => {
@@ -296,15 +261,16 @@ const Input: React.FC<{
           : alertsInRange[0];
 
       //get index of selected alert in nodesWithAlertsRef.current
-      const newSelectedNodeWithAlertsIndex = updatedNodesWithAlerts.findIndex(
-        (node) => node.node === selectedNode
-      );
+      const newSelectedNodeWithAlertsIndex =
+        nodesWithAlertsRef.current.findIndex(
+          (node) => node.node === selectedNode
+        );
 
       const newSelectedAlertIndex =
-        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex] &&
-        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex].alerts.findIndex(
-          (alert) => alert === selectedAlert
-        );
+        nodesWithAlertsRef.current[newSelectedNodeWithAlertsIndex] &&
+        nodesWithAlertsRef.current[
+          newSelectedNodeWithAlertsIndex
+        ].alerts.findIndex((alert) => alert === selectedAlert);
 
       //LONG TEXT CLICK
       if (
@@ -335,14 +301,22 @@ const Input: React.FC<{
         );
 
         if (clickedElementIndex < 0) return;
+        prevClickedElementIndexRef.current = clickedElementIndex;
         //long text and clicked node is outside of current nodes
         const caret: { position: number; element: Node } = {
           position: clickedElementIndex,
           element: cloneRef.current,
         };
+        console.log('clickedElementIndex', clickedElementIndex);
+
+        const cloneUpdateEvent = new CustomEvent('cloneUpdate', {
+          detail: { clone: cloneRef.current },
+        });
+        handleKeyupEvent(cloneUpdateEvent, true, clickedElementIndex);
 
         handleElementClickLongText(caret, event);
       }
+
       setSelectedNodeWithAlertsIndex(newSelectedNodeWithAlertsIndex);
       setSelectedAlertIndex(newSelectedAlertIndex);
     }
@@ -393,6 +367,7 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = (event: Event) => {
+    console.log('focusin', event);
     const nextText: string = getInputText(element);
     handleTextAndIcon(nextText, event);
   };
@@ -403,7 +378,11 @@ const Input: React.FC<{
     setTextToCheck('');
   };
 
-  const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
+  const handleKeyupEvent = (
+    event?: Event,
+    gDocs?: boolean,
+    fistTextDiffClick?: number
+  ) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     browser.storage.local
@@ -479,18 +458,31 @@ const Input: React.FC<{
       // }
       if (nextText.length > maxCharLength) {
         setAlerts([]);
+        setTextToCheck('');
+
+        console.log('fistTextDiff', fistTextDiff, fistTextDiffClick);
         const nodeAtFirstTextDiff =
-          nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
+          nextTextDividedByNodes[
+            fistTextDiffClick && fistTextDiffClick > 0
+              ? fistTextDiffClick
+              : fistTextDiff
+              ? fistTextDiff.node
+              : 0
+          ];
+        console.log('nodeAtFirstTextDiff', nodeAtFirstTextDiff);
 
         const textWithinMaxCharLength = getTextWithinMaxCharLength(
           fistTextDiff ? fistTextDiff.node : 0,
           nodeAtFirstTextDiff
         );
+        console.log(textWithinMaxCharLength);
 
         textWithinMaxCharLength &&
           handleTextAndIcon(textWithinMaxCharLength, event);
       } else {
         setAlerts([]);
+        console.log(nextText);
+
         handleTextAndIcon(nextText, event);
       }
     }
@@ -500,9 +492,6 @@ const Input: React.FC<{
     currentNode: number,
     currentNodeRaw?: Node | null
   ) => {
-    // if (isGoogleDocs()) {
-    //   currentNodeRaw = cloneRef.current?.childNodes[currentNode];
-    // }
     if (!currentNodeRaw) return;
     const textDividedByNodes = getTextDividedByNodes(element);
     const textDividedByNodesTextContent = textDividedByNodes.map(
@@ -585,8 +574,34 @@ const Input: React.FC<{
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
-    setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
+    if (isGoogleDocs()) {
+      setIsScrolling(true);
+      debouncedSetIsScrolling();
+    } else {
+      setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
+    }
   };
+
+  const debouncedSetIsScrolling = debounce(() => {
+    //In this case always create a new string to force change the state of setTextToCheck
+    console.log('previousElement', previousElementStateRef.current);
+    //add element to previousElementStateRef.current
+    //add fake element to previousElementStateRef.current
+    const cloneUpdateEvent = new CustomEvent('cloneUpdate', {
+      detail: { clone: clone },
+    });
+    console.log(
+      ' prevClickedElementIndexRef.current',
+      prevClickedElementIndexRef.current
+    );
+    handleKeyupEvent(
+      cloneUpdateEvent,
+      true,
+      prevClickedElementIndexRef.current
+    );
+
+    setIsScrolling(false);
+  }, 500);
 
   const handleSubmitFormEvent = () => {
     //It's assumed that when user sends info through a form, text will disappear.
@@ -602,7 +617,7 @@ const Input: React.FC<{
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
     );
-
+    console.log('elementEvaluation');
     setElementXPathResult(elementEvaluation);
   };
 
@@ -619,15 +634,10 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
-    if (selectedNodeWithAlertsIndex >= 0 && selectedAlertIndex >= 0) {
-      setPopoverData(null);
-      setSelectedAlert(null);
-      setSelectedNodeWithAlertsIndex(-10);
-      setSelectedAlertIndex(-10);
-
-      //stop any event from being triggered
-      event?.stopPropagation();
-    }
+    setPopoverData(null);
+    setSelectedAlert(null);
+    setSelectedNodeWithAlertsIndex(-10);
+    setSelectedAlertIndex(-10);
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -837,9 +847,10 @@ const Input: React.FC<{
       const nodeText = oneNodeWithAlerts.node;
 
       if (
-        nodeText.textContent &&
-        (selectedAlert.endOffset > nodeText.textContent.length ||
-          selectedAlert.startOffset > nodeText.textContent.length)
+        !selectedAlert ||
+        (nodeText.textContent &&
+          (selectedAlert.endOffset > nodeText.textContent.length ||
+            selectedAlert.startOffset > nodeText.textContent.length))
       )
         return;
 
@@ -930,6 +941,8 @@ const Input: React.FC<{
         return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
       });
 
+    console.log('!alerts', alerts);
+
     setAlerts([...alerts]);
   }, [checkEndpointResponse]);
 
@@ -997,6 +1010,7 @@ const Input: React.FC<{
         )
       ).sort((a, b) => a.startOffset - b.startOffset);
 
+      if (!elementXPathResult) return;
       const nodesWithAlertsTemp: INodeWithAlerts[] =
         isTextArea(element) || isInputText(element)
           ? [
@@ -1007,7 +1021,7 @@ const Input: React.FC<{
             ]
           : getNodesWithRecalculatedPositionAlerts(
               alertsWithoutIgnoredTermsGravityReduced,
-              elementXPathResult as XPathResult
+              elementXPathResult
             );
 
       // add getBoundingClientRect to each alert
@@ -1055,12 +1069,14 @@ const Input: React.FC<{
         0
       );
       setTotalAlerts(totalAlerts);
+      console.log('setting nodes with alerts', nodesWithAlertsTempWithRect);
       setNodesWithAlerts(nodesWithAlertsTempWithRect as INodeWithAlerts[]);
     }
   }, [
     alerts,
     ignoredTerms,
     elementXPathResult,
+    isScrolling,
     ignoredCategoriesFromStorage,
     selectedAlertIndex,
   ]);
@@ -1448,7 +1464,7 @@ const Input: React.FC<{
           />
         </WTags.WW_CLONE>
       )}
-      {isGoogleDocs() && (
+      {isGoogleDocs() && !isScrolling && (
         <WTags.WW_CLONE>
           <GoogleDocsClone
             element={element}
@@ -1457,19 +1473,34 @@ const Input: React.FC<{
           />
         </WTags.WW_CLONE>
       )}
-
-      <WTags.WW_HIGHLIGHTS>
-        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
-          <Highlights
-            elementScroll={elementScroll}
-            nodesWithAlerts={nodesWithAlerts}
-            element={element}
-            elementRect={elementRect}
-            selectedAlert={selectedAlert}
-            userIsSignedIn={userIsSignedIn}
-          />
-        </Sentry.ErrorBoundary>
-      </WTags.WW_HIGHLIGHTS>
+      {isGoogleDocs() && !isScrolling && (
+        <WTags.WW_HIGHLIGHTS>
+          <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+            <Highlights
+              elementScroll={elementScroll}
+              nodesWithAlerts={nodesWithAlerts}
+              element={element}
+              elementRect={elementRect}
+              selectedAlert={popoverData && popoverData.alert}
+              userIsSignedIn={userIsSignedIn}
+            />
+          </Sentry.ErrorBoundary>
+        </WTags.WW_HIGHLIGHTS>
+      )}
+      {!isGoogleDocs() && (
+        <WTags.WW_HIGHLIGHTS>
+          <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+            <Highlights
+              elementScroll={elementScroll}
+              nodesWithAlerts={nodesWithAlerts}
+              element={element}
+              elementRect={elementRect}
+              selectedAlert={selectedAlert}
+              userIsSignedIn={userIsSignedIn}
+            />
+          </Sentry.ErrorBoundary>
+        </WTags.WW_HIGHLIGHTS>
+      )}
     </>
   );
 };

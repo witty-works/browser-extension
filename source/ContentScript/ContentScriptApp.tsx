@@ -292,7 +292,6 @@ const ContentScriptApp: React.FC = () => {
   }, [reqConfig]);
 
   const handleFocusinElement = (event?: Event) => {
-    console.log('handleFocusinElement');
     let target = event?.target as CustomInputElement;
     //if no target, target is the child of #docs-texteventtarget-descendant
     if (isGoogleDocs()) {
