@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
+import { isGoogleDocs, isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
 import { getCorrectedPosition } from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
@@ -31,7 +31,7 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   const correctedPosition = getCorrectedPosition(
     elementRect,
-    canvasRef.current.parentElement,
+    isGoogleDocs() ? element.parentElement : canvasRef.current.parentElement,
     element
   );
   const canvasSize = {
@@ -41,7 +41,6 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   useEffect(() => {
     const highlights: Highlight[] = [];
-    console.log('nodesWithAlerts', nodesWithAlerts);
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
@@ -109,6 +108,8 @@ const Highlights: React.FC<HighlightsProps> = ({
     console.log('highlights', highlights);
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
+      console.log('highlight', highlight);
+
       const [rect] = highlight.rects;
       const hoverColor = `${
         getColor(

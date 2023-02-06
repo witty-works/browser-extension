@@ -91,11 +91,10 @@ export const updateConfig = (response: IAuthResponse) => {
 
 export const getInputText = (element: CustomInputElement | any) => {
   if (isGoogleDocs()) {
-    const clone = document.querySelector('ww-clone');
     let text = '';
-    if (clone && clone.firstChild) {
-      for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
-        const divElement = clone.firstChild.childNodes[i];
+    if (element.childNodes) {
+      for (let i = 0; i < element.childNodes.length; i++) {
+        const divElement = element.childNodes[i];
         text += divElement.textContent;
       }
     }

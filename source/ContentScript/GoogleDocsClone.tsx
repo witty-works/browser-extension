@@ -35,7 +35,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         const elementStyles = window.getComputedStyle(svgRectElement);
         const correctedPosition = getCorrectedPosition(
           elementRect,
-          cloneRef.current.parentElement,
+          element.parentElement,
           element
         );
         elementRect &&
@@ -82,7 +82,6 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
             (text, index) => text !== previousElement[index]
           );
           if (isDifferent) {
-            console.log('updating clone');
             cloneRef.current = ref;
             updateClone(ref);
           }
