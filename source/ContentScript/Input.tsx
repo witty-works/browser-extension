@@ -132,7 +132,7 @@ const Input: React.FC<{
       />,
       document.querySelector(WTags.WW_CLONE)
     );
-  }, 2000);
+  }, 1000);
 
   useMutationObserver(element, onElementMutation);
   const { t } = useTranslation([namespaces.errors]);
@@ -1272,6 +1272,9 @@ const Input: React.FC<{
           }, 200);
         }, 200);
       } else if (isGoogleDocs()) {
+        setIsActive(true);
+        setAlerts([]);
+
         const rects = range.getBoundingClientRect();
         const selectedTextStart = {
           clientX: rects.x,
@@ -1290,20 +1293,19 @@ const Input: React.FC<{
         };
         element.dispatchEvent(new MouseEvent('mousedown', selectedTextEnd)),
           element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd));
-
+        //if empty insert space
         const insertAlternative = new ClipboardEvent('paste', {
           clipboardData: new DataTransfer(),
           cancelable: true,
           bubbles: true,
         });
         if (!insertAlternative.clipboardData) return;
-        insertAlternative.clipboardData.setData('text/plain', alternative);
+        insertAlternative.clipboardData.setData(
+          'text/plain',
+          alternative == ' ' ? '   ' : alternative
+        );
         googleDocsEventTarget.dispatchEvent(insertAlternative);
-
-        setTimeout(() => {
-          setTextToCheck(getInputText(cloneRef.current));
-          handleKeyupEvent(insertAlternative, false);
-        }, 200);
+        resetPopover();
       } else {
         getActiveDocument().execCommand('insertText', false, alternative);
       }
