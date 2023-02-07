@@ -36,7 +36,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   );
   const canvasSize = {
     width: elementRect.width,
-    height: elementRect.height,
+    height: isGoogleDocs() ? 3000 : elementRect.height, //3000 is about the height of three pages in google docs
   };
 
   useEffect(() => {
@@ -108,7 +108,6 @@ const Highlights: React.FC<HighlightsProps> = ({
     console.log('highlights', highlights);
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
-      console.log('highlight', highlight);
 
       const [rect] = highlight.rects;
       const hoverColor = `${

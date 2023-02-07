@@ -73,7 +73,9 @@ const Input: React.FC<{
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
+  const [clone, setClone, cloneRef] = useStateRef({} as HTMLElement);
   const elementRect = useResizeObserver(element);
+
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [elementScroll, setElementScroll] = useState<Position>({
     top: 0,
@@ -84,7 +86,6 @@ const Input: React.FC<{
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
-  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedNodeWithAlertsIndex, setSelectedNodeWithAlertsIndex] =
     useState<number>(-1);
   const [selectedAlertIndex, setSelectedAlertIndex, prevSelectedAlertIndex] =
@@ -221,23 +222,16 @@ const Input: React.FC<{
   //GOOGLE DOCS WORKAROUND
   const handleDocumentClickEvent = (event: any) => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
+    const activeDocument = getActiveDocument();
+    //CHECK IS DOM CONTAINS ELEMENT WITH ID witty-works-ext-popover
+
     if (
       isGoogleDocs() &&
-      !(
-        event?.path &&
-        event.path.some((element: any) => {
-          //clicking alternative in popover
-          return element.id === 'witty-works-ext-popover';
-        })
-      )
+      !activeDocument.getElementById('witty-works-ext-popover')
     ) {
-      console.log('HANDLE CLICK');
-      //update nodes with alert to get accurate position
-
-      // if (selectedNodeWithAlertsIndex !== -10 && selectedAlertIndex !== -10) {
       const alertsInRange = [] as IAlert[];
       let selectedNode = {} as INodeWithAlerts;
-      const googleDocsElementCursorRect = getActiveDocument()
+      const googleDocsElementCursorRect = activeDocument
         .getElementById('kix-current-user-cursor-caret')
         ?.getBoundingClientRect();
 
@@ -246,7 +240,7 @@ const Input: React.FC<{
           const nodeWithAlertsRefWithUpdatedRects = {
             ...nodeWithAlerts,
             alerts: nodeWithAlerts.alerts.map((alert) => {
-              const range = getActiveDocument().createRange();
+              const range = activeDocument.createRange();
               if (
                 alert.startOffset > nodeWithAlerts.node.length ||
                 alert.endOffset > nodeWithAlerts.node.length ||
@@ -357,14 +351,8 @@ const Input: React.FC<{
         handleElementClickLongText(caret, event);
       }
       setSelectedNodeWithAlertsIndex(newSelectedNodeWithAlertsIndex);
-      console.log(
-        'newSelectedAlertIndex',
-        newSelectedNodeWithAlertsIndex,
-        newSelectedAlertIndex
-      );
       setSelectedAlertIndex(newSelectedAlertIndex);
     }
-    // }
   };
 
   useEffect(() => {
@@ -1463,6 +1451,7 @@ const Input: React.FC<{
       }
     }
   }, [popoverData]);
+  console.log('CLONE', cloneRef.current);
 
   return (
     <>
@@ -1494,7 +1483,6 @@ const Input: React.FC<{
         </WTags.WW_CLONE>
       )}
       {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
-
       {isGoogleDocs() && !isActive && (
         <WTags.WW_HIGHLIGHTS>
           <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
