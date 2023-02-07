@@ -574,6 +574,8 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (text: string, event?: Event) => {
+    console.log('text to check', text);
+
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -641,14 +643,8 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
-    console.log('resetPopover');
     setPopoverData(null);
     setSelectedAlert(null);
-    // setSelectedNodeWithAlertsIndex(-10);
-    // setSelectedAlertIndex(-10);
-
-    //stop any event from being triggered
-    // event?.stopPropagation();
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -1453,7 +1449,6 @@ const Input: React.FC<{
       }
     }
   }, [popoverData]);
-  console.log('CLONE', cloneRef.current);
 
   return (
     <>

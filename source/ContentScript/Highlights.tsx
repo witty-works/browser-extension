@@ -105,7 +105,6 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
-    console.log('highlights', highlights);
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
 
@@ -150,22 +149,25 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={
-        {
-          position: 'absolute',
-          maxWidth: 'initial',
-          top: `${correctedPosition.top}px`,
-          left: `${correctedPosition.left}px`,
-          width: `${canvasSize.width}px`,
-          height: `${canvasSize.height}px`,
-          overflow: 'auto',
-          pointerEvents: 'none',
-          zIndex: 9999999, //needed google docs
-        } as React.CSSProperties
-      }
-    ></canvas>
+    console.log('RETURNING', canvasRef, correctedPosition, highlights),
+    (
+      <canvas
+        ref={canvasRef}
+        style={
+          {
+            position: 'absolute',
+            maxWidth: 'initial',
+            top: `${correctedPosition.top}px`,
+            left: `${correctedPosition.left}px`,
+            width: `${canvasSize.width}px`,
+            height: `${canvasSize.height}px`,
+            overflow: 'auto',
+            pointerEvents: 'none',
+            zIndex: 9999999, //needed google docs
+          } as React.CSSProperties
+        }
+      ></canvas>
+    )
   );
 };
 
