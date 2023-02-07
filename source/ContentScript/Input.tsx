@@ -111,6 +111,7 @@ const Input: React.FC<{
     (mutationsList: MutationRecord[]) => {
       if (isGoogleDocs()) {
         setIsActive(true);
+        setActiveIcon('loading');
         debouncedMutation();
       } else {
         for (const mutation of mutationsList) {
@@ -124,6 +125,8 @@ const Input: React.FC<{
   );
   const debouncedMutation = debounce(() => {
     setIsActive(false);
+    setActiveIcon('active');
+
     ReactDOM.render(
       <GoogleDocsClone
         element={element}
@@ -601,6 +604,8 @@ const Input: React.FC<{
   const handleElementScrollEvent = () => {
     if (isGoogleDocs()) {
       setIsActive(true);
+
+      setActiveIcon('loading');
       debouncedScroll();
       // debouncedMutation();
     } else {
@@ -610,6 +615,7 @@ const Input: React.FC<{
 
   const debouncedScroll = debounce(() => {
     setIsActive(false);
+    setActiveIcon('active');
   }, 500);
   console.log('isActive', isActive);
   const handleSubmitFormEvent = () => {
@@ -1269,6 +1275,7 @@ const Input: React.FC<{
         }, 200);
       } else if (isGoogleDocs()) {
         setIsActive(true);
+        setActiveIcon('loading');
         setAlerts([]);
 
         const rects = range.getBoundingClientRect();
@@ -1455,11 +1462,11 @@ const Input: React.FC<{
       <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
           element={element}
+          elementRect={elementRect}
           iconType={activeIcon}
           isHovered={isHovered}
         />
       </WTags.WW_ACTIVITY_INDICATOR>
-
       {isTextArea(element) && (
         <WTags.WW_CLONE>
           <TextAreaClone

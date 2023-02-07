@@ -149,7 +149,13 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
-    console.log('RETURNING', canvasRef, correctedPosition, highlights),
+    console.log(
+      'RETURNING',
+      canvasRef,
+      correctedPosition,
+      highlights,
+      canvasSize
+    ),
     (
       <canvas
         ref={canvasRef}
