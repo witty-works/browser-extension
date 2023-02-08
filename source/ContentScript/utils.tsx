@@ -146,33 +146,46 @@ export const handleDomainsFromDashboard = (newValue: any) => {
 };
 
 export const getFirstTextDiff = (
-  previousTextArray: string[],
-  newTextArray: string[]
+  element: CustomInputElement,
+  previousTextArray: string[] | string,
+  newTextArray: string[] | string
 ) => {
   if (!newTextArray) return 0;
-  //in what node the diff is
-  let node = -1;
-  for (let i = 0; i < previousTextArray.length; i++) {
-    if (previousTextArray[i] !== newTextArray[i]) {
-      node = i;
-      break;
+
+  if (isTextArea(element)) {
+    let i = 0;
+    console.log('PREV TEXT', previousTextArray, 'NEXT TEXT', newTextArray);
+    if (!previousTextArray || !newTextArray) return 0;
+    while (
+      i < previousTextArray.length &&
+      i < newTextArray.length &&
+      previousTextArray[i] == newTextArray[i]
+    ) {
+      i++;
     }
-  }
+    return { node: 0, position: i };
+  } else {
+    let node = -1;
+    for (let i = 0; i < previousTextArray.length; i++) {
+      if (previousTextArray[i] !== newTextArray[i]) {
+        node = i;
+        break;
+      }
+    }
+    let position = 0;
+    const previousText = previousTextArray[node];
+    const nextText = newTextArray[node];
+    if (!previousText || !nextText) return;
+    while (
+      position < previousText.length &&
+      position < nextText.length &&
+      previousText[position] == nextText[position]
+    ) {
+      position++;
+    }
 
-  //in what position in the node the diff is
-  let position = 0;
-  const previousText = previousTextArray[node];
-  const nextText = newTextArray[node];
-  if (!previousText || !nextText) return;
-  while (
-    position < previousText.length &&
-    position < nextText.length &&
-    previousText[position] == nextText[position]
-  ) {
-    position++;
+    return { node, position };
   }
-
-  return { node, position };
 };
 
 export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
@@ -186,8 +199,7 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
       }
     }
     return divs;
-  }
-  if (isTextArea(element) || isInputText(element)) {
+  } else if (isTextArea(element) || isInputText(element)) {
     return [element];
   } else {
     const elementEvaluation = getActiveDocument().evaluate(

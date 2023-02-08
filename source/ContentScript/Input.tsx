@@ -65,7 +65,7 @@ const Input: React.FC<{
     useCheckEndpoint();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
-  const [, , previousElementStateRef] = useStateRef<string[]>([]);
+  const [, , previousElementStateRef] = useStateRef<string[] | string>([]);
   const [, , nodesWhithinMaxCharLengthRef] = useStateRef<
     { node: string; index: number }[]
   >([]);
@@ -418,7 +418,7 @@ const Input: React.FC<{
   const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
-    !isGoogleDocs &&
+    !isGoogleDocs() &&
       browser.storage.local
         .get(StorageKeys.ORTHOGRAPHY)
         .then((result) => {
@@ -427,20 +427,23 @@ const Input: React.FC<{
         .catch((error: unknown) => {
           sendErrorToSentry(error);
         });
-
-    const nextTextDividedByNodes = getTextDividedByNodes(element);
-    const textDividedByNodesTextContent = nextTextDividedByNodes.map(
-      (node) => node.textContent
-    ) as string[];
-
     let nextText: string = isGoogleDocs()
       ? getInputText(cloneRef.current)
       : getInputText(element);
+
+    const nextTextDividedByNodes = getTextDividedByNodes(element);
+    const textDividedByNodesTextContent = isTextArea(element)
+      ? nextText
+      : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
+
+    console.log('nextText', nextText);
     const fistTextDiff = getFirstTextDiff(
+      element,
       textDividedByNodesTextContent,
       previousElementStateRef.current
     );
-
+    console.log('isTextArea', isTextArea(element), element);
+    console.log('fistTextDiff', fistTextDiff);
     previousElementStateRef.current = textDividedByNodesTextContent;
     if (isTextArea(element) && fistTextDiff) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
@@ -448,6 +451,7 @@ const Input: React.FC<{
           (alert) => alert.startOffset < fistTextDiff.position
         )
       );
+      console.log('unchangedAlerts', unchangedAlerts[0]);
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
       handleTextAndIcon(nextText, event);
     } else {
@@ -493,7 +497,7 @@ const Input: React.FC<{
       //   setAlerts(mergedUnchangedAlerts);
       // }
       if (nextText.length > maxCharLength) {
-        !isGoogleDocs && setAlerts([]);
+        !isGoogleDocs() && setAlerts([]);
         const nodeAtFirstTextDiff =
           nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
 
@@ -505,7 +509,7 @@ const Input: React.FC<{
         textWithinMaxCharLength &&
           handleTextAndIcon(textWithinMaxCharLength, event);
       } else {
-        !isGoogleDocs && setAlerts([]);
+        !isGoogleDocs() && setAlerts([]);
         handleTextAndIcon(nextText, event);
       }
     }

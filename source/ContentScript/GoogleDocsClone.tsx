@@ -4,7 +4,7 @@ import { getCorrectedPosition } from '../shared/utils';
 
 interface GoogleDocsCloneProps {
   element: CustomInputElement;
-  previousElement: string[];
+  previousElement: string[] | string;
   updateClone: (clone: HTMLDivElement) => void;
 }
 
