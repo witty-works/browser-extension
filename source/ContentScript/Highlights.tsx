@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { isTextArea } from '../shared/DOMutils';
+import { isGoogleDocs, isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
 import { getCorrectedPosition } from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
@@ -31,21 +31,19 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   const correctedPosition = getCorrectedPosition(
     elementRect,
-    canvasRef.current.parentElement,
+    isGoogleDocs() ? element.parentElement : canvasRef.current.parentElement,
     element
   );
   const canvasSize = {
     width: elementRect.width,
-    height: elementRect.height,
+    height: isGoogleDocs() ? 3000 : elementRect.height, //3000 is about the height of three pages in google docs
   };
 
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
-
     nodesWithAlerts.forEach(({ node, alerts }) => {
-      if (typeof node !== 'undefined') {
-        //&& nodeExistsInDOM(node) //TODO
+      if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
           try {
@@ -55,24 +53,22 @@ const Highlights: React.FC<HighlightsProps> = ({
                 alert.startOffset > node.textContent.length)
             )
               return;
+            range.selectNode(node);
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
           } catch (error) {
             sendErrorToSentry(error);
           }
-          const rects: DOMRect[] = Array.from(range.getClientRects()).map(
+
+          const rangeRects = [range.getClientRects()[0]];
+          const rects: DOMRect[] = Array.from(rangeRects).map(
             (rect: DOMRect) => {
               return {
                 ...rect,
                 width: rect.width,
                 height: rect.height,
                 left: rect.left,
-                x: rect.left,
                 top:
-                  rect.top +
-                  doc.scrollTop -
-                  (isTextArea(element) ? elementScroll.top : 0),
-                y:
                   rect.top +
                   doc.scrollTop -
                   (isTextArea(element) ? elementScroll.top : 0),
@@ -89,7 +85,6 @@ const Highlights: React.FC<HighlightsProps> = ({
             endOffset: alert.endOffset,
             node: node,
           };
-
           highlights.push(newHighlight);
         });
       }
@@ -110,9 +105,9 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
-
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
+
       const [rect] = highlight.rects;
       const hoverColor = `${
         getColor(
@@ -154,21 +149,31 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={
-        {
-          position: 'absolute',
-          maxWidth: 'initial',
-          top: `${correctedPosition.top}px`,
-          left: `${correctedPosition.left}px`,
-          width: `${canvasSize.width}px`,
-          height: `${canvasSize.height}px`,
-          overflow: 'auto',
-          pointerEvents: 'none',
-        } as React.CSSProperties
-      }
-    ></canvas>
+    console.log(
+      'RETURNING',
+      canvasRef,
+      correctedPosition,
+      highlights,
+      canvasSize
+    ),
+    (
+      <canvas
+        ref={canvasRef}
+        style={
+          {
+            position: 'absolute',
+            maxWidth: 'initial',
+            top: `${correctedPosition.top}px`,
+            left: `${correctedPosition.left}px`,
+            width: `${canvasSize.width}px`,
+            height: `${canvasSize.height}px`,
+            overflow: 'auto',
+            pointerEvents: 'none',
+            zIndex: 9999999, //needed google docs
+          } as React.CSSProperties
+        }
+      ></canvas>
+    )
   );
 };
 

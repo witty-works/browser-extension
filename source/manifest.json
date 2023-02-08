@@ -49,6 +49,12 @@
       "matches": ["http://*/*", "https://*/*"],
       "js": ["js/contentScript.bundle.js"],
       "css": ["css/contentScript.css"]
+    },
+    {
+      "matches": ["https://docs.google.com/document/*"],
+      "js": ["assets/googleDocsSupport.js"],
+      "all_frames": false,
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [

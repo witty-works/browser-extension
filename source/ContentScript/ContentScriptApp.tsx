@@ -18,6 +18,7 @@ import {
   isInputElement,
   nodeExistsInDOM,
   elementIsVisible,
+  isGoogleDocs,
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -49,7 +50,7 @@ const ContentScriptApp: React.FC = () => {
 
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
-  const [iframeLoaded, setIframeLoaded] = useState<HTMLElement | null>(null);
+  const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
 
   //observes iframes that are added to the DOM
   const observer = new MutationObserver(function (mutations) {
@@ -59,11 +60,10 @@ const ContentScriptApp: React.FC = () => {
           return node.nodeName == 'IFRAME';
         })
         .forEach(function (node: HTMLElement) {
-          node.addEventListener('load', function () {
-            setIframeLoaded(node);
-          });
+          node.addEventListener('load', function () {});
         });
     });
+    setIframeLoaded(true);
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
@@ -134,9 +134,15 @@ const ContentScriptApp: React.FC = () => {
         sendErrorToSentry(error);
       });
 
+    //fixes initial iframe focus issue google docs
+    if (isGoogleDocs()) {
+      const focusedElement = getActiveDocument().activeElement as HTMLElement;
+      focusedElement?.blur();
+    }
+
+    //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
     const iframes = document.querySelectorAll('iframe');
-
     iframes.forEach((iframe: any) => {
       if (iframe.contentDocument && iframe.contentDocument.body) {
         iframe.contentDocument.body.addEventListener(
@@ -145,20 +151,25 @@ const ContentScriptApp: React.FC = () => {
         );
       }
     });
-    document.addEventListener('focusin', handleFocusinElement, true);
+
+    !isGoogleDocs() &&
+      document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
-      document.removeEventListener('focusin', handleFocusinElement);
+      iframes.forEach((iframe) => {
+        if (iframe.contentDocument && iframe.contentDocument.body) {
+          iframe.contentDocument.body.removeEventListener(
+            'focusin',
+            handleFocusinElement
+          );
+        }
+      });
+      !isGoogleDocs() &&
+        document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
-      iframes.forEach((iframe) => {
-        iframe.contentDocument?.body.removeEventListener(
-          'focusin',
-          handleFocusinElement
-        );
-      });
     };
   }, [iframeLoaded]);
 
@@ -279,9 +290,19 @@ const ContentScriptApp: React.FC = () => {
     setRequestConfig(reqConfig);
   }, [reqConfig]);
 
-  const handleFocusinElement = (event: Event) => {
-    const target = event.target as CustomInputElement;
-    if (isInputElement(target) && !inputsRef.current.includes(target)) {
+  const handleFocusinElement = (event?: Event) => {
+    let target = event?.target as CustomInputElement;
+    //if no target, target is the child of #docs-texteventtarget-descendant
+    if (isGoogleDocs()) {
+      target = document.querySelector(
+        '.kix-rotatingtilemanager'
+      ) as CustomInputElement;
+    }
+
+    if (
+      (isInputElement(target) && !inputsRef.current.includes(target)) ||
+      (isGoogleDocs() && target)
+    ) {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
@@ -313,7 +334,7 @@ const ContentScriptApp: React.FC = () => {
     if (hoveredElementRef.current) {
       removeAllHoverIndicators();
       if (
-        window.location.hostname === 'docs.google.com' &&
+        isGoogleDocs() &&
         hoveredElementRef.current.classList.contains('cell-input')
       ) {
         return;
@@ -352,27 +373,47 @@ const ContentScriptApp: React.FC = () => {
     }
   };
   useEffect(() => {
-    if (inputs && inputs.length > 0) {
+    //filter out inputs that are the same
+    let filteredInputs = inputsRef.current.filter(
+      (input, index, self) =>
+        index === self.findIndex((t) => t.isEqualNode(input))
+    );
+
+    if (isGoogleDocs()) {
+      //remove any input that does not contain <g> as a child
+      filteredInputs = inputsRef.current.filter((input) => {
+        const gElements = input.querySelectorAll('g');
+        return gElements.length > 0;
+      });
+    }
+
+    if (filteredInputs && filteredInputs.length > 0) {
       log(
         `Analyzed inputs:`,
         logTypes.INFO,
-        inputs.length > 0 ? inputs : 'None'
+        filteredInputs.length > 0 ? filteredInputs : 'None'
       );
 
-      inputs.forEach((input: CustomInputElement) => {
+      filteredInputs.forEach((input: CustomInputElement) => {
         if (!input.parentElement) return;
 
-        //if already has a container, remove them first
-        if (
-          getActiveDocument().querySelectorAll(WTags.WW_CONTAINER).length > 0
-        ) {
-          //remove all containers
-          const containers = getActiveDocument().querySelectorAll(
-            WTags.WW_CONTAINER
-          );
+        // if already has a container, remove them first
+        if (document.getElementsByTagName(WTags.WW_CONTAINER).length > 0) {
+          // remove all containers
+          const containers = document.getElementsByTagName(WTags.WW_CONTAINER);
           for (let container of containers) {
-            ReactDOM.unmountComponentAtNode(container);
-            container.remove();
+            //make sure each parent of a container only has one child that is a WW_CONTAINER
+            const parent = container.parentElement;
+            //check if parent has more than one child that is a WW_CONTAINER
+            if (parent) {
+              //remove all containers except one
+              const containers = parent.querySelectorAll(WTags.WW_CONTAINER);
+              for (let i = 0; i < containers.length; i++) {
+                const childContainer = containers[i];
+                ReactDOM.unmountComponentAtNode(childContainer);
+                childContainer.remove();
+              }
+            }
           }
         }
 
@@ -380,14 +421,17 @@ const ContentScriptApp: React.FC = () => {
           getActiveDocument().createElement(WTags.WW_CONTAINER);
         highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
-        if (
-          window.location.hostname === 'docs.google.com' &&
-          input.classList.contains('cell-input')
-        ) {
+        if (isGoogleDocs() && input.classList.contains('cell-input')) {
           return;
         }
 
-        input.parentElement.insertBefore(highlightsContainer, input);
+        //get first ancestior that is a div
+        const ancestor = input.closest('div');
+
+        const parentElement =
+          input.tagName === 'rect' ? ancestor : input.parentElement;
+
+        parentElement && parentElement.insertBefore(highlightsContainer, input);
         ReactDOM.render(<Input element={input} />, highlightsContainer);
       });
     }
