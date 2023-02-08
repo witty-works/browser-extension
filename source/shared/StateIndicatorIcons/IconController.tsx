@@ -8,25 +8,38 @@ import { getCorrectedPosition } from '../utils';
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
+import { isGoogleDocs } from '../DOMutils';
 interface IconControllerProps {
-  iconType: string;
   element: CustomInputElement;
+  elementRect?: DOMRect;
+  iconType: string;
   isHovered: boolean;
 }
 
 const IconController: React.FC<IconControllerProps> = ({
-  iconType,
   element,
+  elementRect,
+  iconType,
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
+  const googleDocsIcon = isGoogleDocs();
+  if (!elementRect) elementRect = element.getBoundingClientRect();
 
-  const elementRect = element.getBoundingClientRect();
-  const correctedPosition = getCorrectedPosition(
-    elementRect,
-    ref.current.parentElement,
-    element
-  );
+  let correctedPosition = {} as any;
+  if (googleDocsIcon) {
+    if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
+    correctedPosition = (
+      element.firstChild?.firstChild as HTMLElement
+    ).getBoundingClientRect();
+  } else {
+    correctedPosition = getCorrectedPosition(
+      elementRect,
+      ref.current.parentElement,
+      element
+    );
+  }
+
   const iconPadding: number = 8;
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
 
@@ -44,13 +57,17 @@ const IconController: React.FC<IconControllerProps> = ({
       ref={ref}
       style={{
         display: 'flex',
-        position: 'absolute',
+        position: googleDocsIcon ? 'fixed' : 'absolute',
         //TODO don't hardcode icons width & height
         top: `${
-          elementRect.height + correctedPosition.top - 21 - iconPadding
+          googleDocsIcon
+            ? 250
+            : elementRect.height + correctedPosition.top - 21 - iconPadding
         }px`,
         left: `${
-          elementRect.width + correctedPosition.left - 25 - iconPadding
+          googleDocsIcon
+            ? correctedPosition.left + correctedPosition.width + 20
+            : elementRect.width + correctedPosition.left - 25 - iconPadding
         }px`,
       }}
       onMouseDown={(e) => {

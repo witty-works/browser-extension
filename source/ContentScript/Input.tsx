@@ -24,7 +24,12 @@ import {
   addLoginBadge,
   getRandomToken,
 } from '../shared/utils';
-import { isTextArea, isInputText, isCkeEditor } from '../shared/DOMutils';
+import {
+  isTextArea,
+  isInputText,
+  isCkeEditor,
+  isGoogleDocs,
+} from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
@@ -41,6 +46,7 @@ import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
+import GoogleDocsClone from './GoogleDocsClone';
 import {
   getFirstTextDiff,
   getInputText,
@@ -59,7 +65,7 @@ const Input: React.FC<{
     useCheckEndpoint();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
-  const [, , previousElementStateRef] = useStateRef<string[]>([]);
+  const [, , previousElementStateRef] = useStateRef<string[] | string>([]);
   const [, , nodesWhithinMaxCharLengthRef] = useStateRef<
     { node: string; index: number }[]
   >([]);
@@ -67,7 +73,9 @@ const Input: React.FC<{
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const analytics = useAnalytics();
+  const [clone, setClone, cloneRef] = useStateRef({} as HTMLElement);
   const elementRect = useResizeObserver(element);
+
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [elementScroll, setElementScroll] = useState<Position>({
     top: 0,
@@ -78,7 +86,6 @@ const Input: React.FC<{
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
-  const [clone, setClone, cloneRef] = useStateRef({} as HTMLDivElement);
   const [selectedNodeWithAlertsIndex, setSelectedNodeWithAlertsIndex] =
     useState<number>(-1);
   const [selectedAlertIndex, setSelectedAlertIndex, prevSelectedAlertIndex] =
@@ -92,21 +99,43 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
+  const [isActive, setIsActive] = useState<boolean>(false);
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
   const maxCharLength = defaultConfig.MAX_CHAR_LENGTH;
-
+  const googleDocsEventTarget = (
+    document.querySelector('.docs-texteventtarget-iframe') as any
+  )?.contentDocument.activeElement;
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
-      for (const mutation of mutationsList) {
-        if (mutation.type === 'childList') {
-          docTextEvaluation(element);
+      if (isGoogleDocs()) {
+        setIsActive(true);
+        setActiveIcon('loading');
+        debouncedMutation();
+      } else {
+        for (const mutation of mutationsList) {
+          if (mutation.type === 'childList') {
+            docTextEvaluation(element, cloneRef.current);
+          }
         }
       }
     },
     [element]
   );
+  const debouncedMutation = debounce(() => {
+    setIsActive(false);
+    setActiveIcon('active');
+
+    ReactDOM.render(
+      <GoogleDocsClone
+        element={element}
+        previousElement={previousElementStateRef.current}
+        updateClone={updateCloneData}
+      />,
+      document.querySelector(WTags.WW_CLONE)
+    );
+  }, 1000);
 
   useMutationObserver(element, onElementMutation);
   const { t } = useTranslation([namespaces.errors]);
@@ -141,11 +170,22 @@ const Input: React.FC<{
 
     browser.storage.onChanged.addListener(storageChange);
 
-    element.addEventListener('focusout', handleFocusoutEvent);
+    !isGoogleDocs() &&
+      element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
     element.addEventListener('click', handleElementClickEvent as EventListener);
+
+    if (isGoogleDocs()) {
+      googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
+      document.addEventListener(
+        'click',
+        handleDocumentClickEvent as EventListener
+      );
+      document.addEventListener('scroll', handleElementScrollEvent, true);
+      window.addEventListener('resize', handleDocumentResizeEvent);
+    }
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
@@ -158,30 +198,192 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
-      element.removeEventListener('focusout', handleFocusoutEvent);
-      element.removeEventListener('mouseover', handleMouseoverEvent);
-      element.removeEventListener('mouseout', handleMouseoutEvent);
+      !isGoogleDocs() &&
+        element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
       element.removeEventListener(
         'click',
         handleElementClickEvent as EventListener
       );
+
+      if (isGoogleDocs()) {
+        googleDocsEventTarget.removeEventListener(
+          'focusout',
+          handleFocusoutEvent
+        );
+        document.removeEventListener(
+          'click',
+          handleDocumentClickEvent as EventListener
+        );
+        document.removeEventListener('scroll', handleElementScrollEvent);
+        window.removeEventListener('resize', handleDocumentResizeEvent);
+      }
+
       if (parentForm)
         parentForm.removeEventListener('submit', handleSubmitFormEvent);
     };
   }, []);
 
+  //GOOGLE DOCS WORKAROUND
+  const handleDocumentClickEvent = (event: any) => {
+    if (getInputText(cloneRef.current).length === 0) debouncedMutation();
+    const activeDocument = getActiveDocument();
+    //CHECK IS DOM CONTAINS ELEMENT WITH ID witty-works-ext-popover
+
+    if (
+      isGoogleDocs() &&
+      !activeDocument.getElementById('witty-works-ext-popover')
+    ) {
+      const alertsInRange = [] as IAlert[];
+      let selectedNode = {} as INodeWithAlerts;
+      const googleDocsElementCursorRect = activeDocument
+        .getElementById('kix-current-user-cursor-caret')
+        ?.getBoundingClientRect();
+
+      const updatedNodesWithAlerts = nodesWithAlertsRef.current.map(
+        (nodeWithAlerts) => {
+          const nodeWithAlertsRefWithUpdatedRects = {
+            ...nodeWithAlerts,
+            alerts: nodeWithAlerts.alerts.map((alert) => {
+              const range = activeDocument.createRange();
+              if (
+                alert.startOffset > nodeWithAlerts.node.length ||
+                alert.endOffset > nodeWithAlerts.node.length ||
+                alert.startOffset < 0 ||
+                alert.endOffset < 0
+              ) {
+                return alert;
+              }
+              range.setStart(nodeWithAlerts.node, alert.startOffset);
+              range.setEnd(nodeWithAlerts.node, alert.endOffset);
+              const rect = range.getClientRects()[0];
+              if (!rect) return alert;
+
+              return {
+                ...alert,
+                rect: {
+                  ...rect,
+                  width: rect.width,
+                  height: rect.height,
+                  left: rect.left,
+                  x: rect.left,
+                  top: rect.top - elementScroll.top,
+                  y: rect.top - elementScroll.top,
+                },
+              };
+            }),
+          };
+          return nodeWithAlertsRefWithUpdatedRects;
+        }
+      );
+
+      updatedNodesWithAlerts.forEach((node) => {
+        const alertRects = node.alerts.map((alert) => alert.rect);
+
+        alertRects.forEach((alertRect) => {
+          if (
+            alertRect &&
+            googleDocsElementCursorRect &&
+            googleDocsElementCursorRect.top + 2 >= alertRect.top && //+ 2 adds some slack for weird fonts
+            googleDocsElementCursorRect.left >= alertRect.left &&
+            googleDocsElementCursorRect.left <=
+              alertRect.left + alertRect.width &&
+            googleDocsElementCursorRect.top + 2 <=
+              alertRect.top + alertRect.height
+          ) {
+            //get alert at alertRect
+            const alert = node.alerts.find(
+              (alert) =>
+                alert.rect.top === alertRect.top &&
+                alert.rect.left === alertRect.left
+            );
+            selectedNode = node.node;
+            alert && alertsInRange.push(alert);
+          }
+        });
+      });
+
+      const selectedAlert =
+        alertsInRange.length > 1
+          ? alertsInRange[alertsInRange.length - 1]
+          : alertsInRange[0];
+
+      //get index of selected alert in nodesWithAlertsRef.current
+      const newSelectedNodeWithAlertsIndex = updatedNodesWithAlerts.findIndex(
+        (node) => node.node === selectedNode
+      );
+
+      const newSelectedAlertIndex =
+        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex] &&
+        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex].alerts.findIndex(
+          (alert) => alert === selectedAlert
+        );
+
+      //LONG TEXT CLICK
+      if (
+        getInputText(cloneRef.current).length > maxCharLength &&
+        (newSelectedAlertIndex < 0 || newSelectedAlertIndex === undefined)
+      ) {
+        const clickedElement = [] as ChildNode[];
+        if (!cloneRef.current || !cloneRef.current.childNodes) {
+          return;
+        }
+        //get which cloneRef.current is under googleDocsElementCursorRect
+        cloneRef.current.childNodes.forEach((clone) => {
+          const htmlClone = clone as HTMLElement;
+          const cloneRect = htmlClone.getBoundingClientRect();
+          if (
+            googleDocsElementCursorRect &&
+            googleDocsElementCursorRect.top >= cloneRect.top &&
+            googleDocsElementCursorRect.left >= cloneRect.left
+          ) {
+            clickedElement.push(clone);
+          }
+        });
+
+        const clickedElementIndex = Array.from(
+          cloneRef.current.childNodes
+        ).findIndex(
+          (clone) => clone === clickedElement[clickedElement.length - 1]
+        );
+
+        if (clickedElementIndex < 0) return;
+        //long text and clicked node is outside of current nodes
+        const caret: { position: number; element: Node } = {
+          position: clickedElementIndex,
+          element: cloneRef.current,
+        };
+        handleElementClickLongText(caret, event);
+      }
+      setSelectedNodeWithAlertsIndex(newSelectedNodeWithAlertsIndex);
+      setSelectedAlertIndex(newSelectedAlertIndex);
+    }
+  };
+
   useEffect(() => {
     handleKeyupEvent();
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
-    element.addEventListener('keyup', handleKeyupEvent);
-    element.addEventListener('focusin', handleFocusinEvent);
+
+    if (isGoogleDocs()) {
+      //keyup comes from clone update
+      googleDocsEventTarget.addEventListener('focusin', handleFocusinEvent);
+    } else {
+      element.addEventListener('keyup', handleKeyupEvent);
+      element.addEventListener('focusin', handleFocusinEvent);
+    }
 
     return () => {
       //Don't forget to remove the listeners at the end
-      element.removeEventListener('keyup', handleKeyupEvent);
-      element.removeEventListener('focusin', handleFocusinEvent);
+      if (isGoogleDocs()) {
+        googleDocsEventTarget.removeEventListener(
+          'focusin',
+          handleFocusinEvent
+        );
+      } else {
+        element.removeEventListener('keyup', handleKeyupEvent);
+        element.removeEventListener('focusin', handleFocusinEvent);
+      }
     };
   }, [debounceDelay]);
 
@@ -191,8 +393,8 @@ const Input: React.FC<{
   }, [authResponse]);
 
   useEffect(() => {
-    docTextEvaluation(element);
-  }, [element]);
+    docTextEvaluation(element, cloneRef.current);
+  }, [element, cloneRef.current]);
 
   const handleMouseoverEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(true);
@@ -203,7 +405,9 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = (event: Event) => {
-    const nextText: string = getInputText(element);
+    const nextText: string = isGoogleDocs()
+      ? getInputText(cloneRef.current)
+      : getInputText(element);
     handleTextAndIcon(nextText, event);
   };
 
@@ -213,40 +417,51 @@ const Input: React.FC<{
     setTextToCheck('');
   };
 
-  const handleKeyupEvent = (event?: Event) => {
-    if (prevSelectedAlertIndex.current != -1) resetPopover();
+  const handleDocumentResizeEvent = () => {
+    setAlerts([]); //prevents misplaced alerts when resizing
+  };
 
-    browser.storage.local
-      .get(StorageKeys.ORTHOGRAPHY)
-      .then((result) => {
-        element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
-      })
-      .catch((error: unknown) => {
-        sendErrorToSentry(error);
-      });
+  const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
+    if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
+
+    !isGoogleDocs() &&
+      browser.storage.local
+        .get(StorageKeys.ORTHOGRAPHY)
+        .then((result) => {
+          element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
+        })
+        .catch((error: unknown) => {
+          sendErrorToSentry(error);
+        });
+    let nextText: string = isGoogleDocs()
+      ? getInputText(cloneRef.current)
+      : getInputText(element);
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
-    const textDividedByNodesTextContent = nextTextDividedByNodes.map(
-      (node) => node.textContent
-    ) as string[];
+    const textDividedByNodesTextContent = isTextArea(element)
+      ? nextText
+      : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
 
-    let nextText: string = getInputText(element);
+    console.log('nextText', nextText);
     const fistTextDiff = getFirstTextDiff(
+      element,
       textDividedByNodesTextContent,
       previousElementStateRef.current
     );
-
+    console.log('isTextArea', isTextArea(element), element);
+    console.log('fistTextDiff', fistTextDiff);
     previousElementStateRef.current = textDividedByNodesTextContent;
-
     if (isTextArea(element) && fistTextDiff) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
           (alert) => alert.startOffset < fistTextDiff.position
         )
       );
+      console.log('unchangedAlerts', unchangedAlerts[0]);
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
       handleTextAndIcon(nextText, event);
     } else {
+      //if (fistTextDiff)
       //FOR FUTURE TICKET -> TO ONLY HIDE ALERTS BELOW CHANGE (NEEDS SOME TWEAKING)
       //   const unchangedNodesWithAlerts = nodesWithAlertsRef.current.filter(
       //     (nodeWithAlerts) =>
@@ -287,19 +502,20 @@ const Input: React.FC<{
 
       //   setAlerts(mergedUnchangedAlerts);
       // }
-      if (element.innerText.length > maxCharLength) {
-        setAlerts([]);
-        if (fistTextDiff) {
-          const nodeAtFirstTextDiff = nextTextDividedByNodes[fistTextDiff.node];
+      if (nextText.length > maxCharLength) {
+        !isGoogleDocs() && setAlerts([]);
+        const nodeAtFirstTextDiff =
+          nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
 
-          const textWithinMaxCharLength = getTextWithinMaxCharLength(
-            fistTextDiff.node,
-            nodeAtFirstTextDiff
-          );
-          textWithinMaxCharLength &&
-            handleTextAndIcon(textWithinMaxCharLength, event);
-        }
+        const textWithinMaxCharLength = getTextWithinMaxCharLength(
+          fistTextDiff ? fistTextDiff.node : 0,
+          nodeAtFirstTextDiff
+        );
+
+        textWithinMaxCharLength &&
+          handleTextAndIcon(textWithinMaxCharLength, event);
       } else {
+        !isGoogleDocs() && setAlerts([]);
         handleTextAndIcon(nextText, event);
       }
     }
@@ -331,6 +547,7 @@ const Input: React.FC<{
       currentNode,
       charLengthLeft
     );
+
     const currentNodeFormatted = [
       {
         node: currentNodeRaw.textContent as string,
@@ -367,6 +584,8 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (text: string, event?: Event) => {
+    console.log('text to check', text);
+
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -390,36 +609,54 @@ const Input: React.FC<{
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
-    setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
+    if (isGoogleDocs()) {
+      setIsActive(true);
+
+      setActiveIcon('loading');
+      debouncedScroll();
+    } else {
+      setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
+    }
   };
 
+  const debouncedScroll = debounce(() => {
+    setIsActive(false);
+    setActiveIcon('active');
+  }, 500);
+  console.log('isActive', isActive);
   const handleSubmitFormEvent = () => {
     //It's assumed that when user sends info through a form, text will disappear.
     //Therefore highlights also need to be removed
     setNodesWithAlerts([]);
   };
 
-  const docTextEvaluation = (element: HTMLElement) => {
-    //Find the text nodes inside element
+  const docTextEvaluation = (element: HTMLElement, clone: HTMLElement) => {
     const elementEvaluation: XPathResult = getActiveDocument().evaluate(
       './/text()',
-      element,
+      isGoogleDocs() && clone.nodeType == 1 ? clone : element,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
     );
+
     setElementXPathResult(elementEvaluation);
   };
 
   const updateCloneData = (newClone: HTMLDivElement) => {
     setClone(newClone);
+    if (isGoogleDocs()) {
+      //create clone update event
+      const cloneUpdateEvent = new CustomEvent('cloneUpdate', {
+        detail: { clone: newClone },
+      });
+
+      handleKeyupEvent(cloneUpdateEvent, true);
+    }
   };
 
   const resetPopover = () => {
     setPopoverData(null);
     setSelectedAlert(null);
-    setSelectedNodeWithAlertsIndex(-1);
-    setSelectedAlertIndex(-1);
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -488,14 +725,17 @@ const Input: React.FC<{
           if (oneNodeWithAlerts) {
             const caretPos = caret.position;
 
-            let selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
-              (alert: IAlert) => {
+            let selectedAlertIndex =
+              oneNodeWithAlerts &&
+              oneNodeWithAlerts.alerts.findIndex((alert: IAlert) => {
+                if (!alert) {
+                  return false;
+                }
                 //If alert is a one character word, take in consideration clicking the position before or after the char
                 return alert.data.text.length === 1
                   ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
                   : alert.startOffset < caretPos && alert.endOffset > caretPos;
-              }
-            );
+              });
 
             const selectedAlerts = oneNodeWithAlerts.alerts.filter(
               (alert: IAlert) =>
@@ -505,7 +745,8 @@ const Input: React.FC<{
             if (
               getInputText(element).length > maxCharLength &&
               !isTextArea(element) &&
-              selectedAlerts.length == 0
+              selectedAlerts.length == 0 &&
+              !isGoogleDocs()
             ) {
               handleElementClickLongText(caret, event);
             }
@@ -519,10 +760,13 @@ const Input: React.FC<{
                 }
               );
 
-              selectedAlertIndex = oneNodeWithAlerts.alerts.findIndex(
-                (alert: IAlert) =>
-                  alert.startOffset === alertWithLargestStartoffset.startOffset
-              );
+              selectedAlertIndex =
+                oneNodeWithAlerts &&
+                oneNodeWithAlerts.alerts.findIndex(
+                  (alert: IAlert) =>
+                    alert.startOffset ===
+                    alertWithLargestStartoffset.startOffset
+                );
             }
 
             if (selectedAlertIndex === -1) return;
@@ -534,7 +778,8 @@ const Input: React.FC<{
             setSelectedAlertIndex(selectedAlertIndex);
           } else if (
             getInputText(element).length > maxCharLength &&
-            !isTextArea(element)
+            !isTextArea(element) &&
+            !isGoogleDocs()
           ) {
             handleElementClickLongText(caret, event);
           }
@@ -555,14 +800,25 @@ const Input: React.FC<{
     setAlerts([]);
     setTextToCheck('');
     const textDividedByNodes = getTextDividedByNodes(element);
-    let clickedNode = caret.element;
-    if (clickedNode) {
+
+    if (isGoogleDocs() && caret.position) {
       const textWithinMaxCharLength = getTextWithinMaxCharLength(
-        textDividedByNodes.indexOf(clickedNode),
-        caret.element
+        caret.position,
+        cloneRef.current?.childNodes[caret.position]
       );
       if (textWithinMaxCharLength)
         handleTextAndIcon(textWithinMaxCharLength, event);
+    } else if (!isGoogleDocs()) {
+      let clickedNode = caret.element;
+
+      if (clickedNode) {
+        const textWithinMaxCharLength = getTextWithinMaxCharLength(
+          textDividedByNodes.indexOf(clickedNode),
+          caret.element
+        );
+        if (textWithinMaxCharLength)
+          handleTextAndIcon(textWithinMaxCharLength, event);
+      }
     }
   };
 
@@ -574,8 +830,10 @@ const Input: React.FC<{
           nodesWithAlertsRef.current[selectedNodeWithAlertsIndex - 1].alerts
             .length - 1
         );
+        event?.stopPropagation();
       } else {
         setSelectedAlertIndex(selectedAlertIndex - 1);
+        event?.stopPropagation();
       }
     } else {
       if (
@@ -585,8 +843,10 @@ const Input: React.FC<{
       ) {
         setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex + 1);
         setSelectedAlertIndex(0);
+        event?.stopPropagation();
       } else {
         setSelectedAlertIndex(selectedAlertIndex + 1);
+        event?.stopPropagation();
       }
     }
   };
@@ -602,14 +862,15 @@ const Input: React.FC<{
         nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
 
       const selectedAlert = oneNodeWithAlerts.alerts[selectedAlertIndex];
-
       setSelectedAlert(selectedAlert);
 
       const range = getActiveDocument().createRange();
       const nodeText = oneNodeWithAlerts.node;
+
       if (
         nodeText.textContent &&
-        (selectedAlert.endOffset > nodeText.textContent.length ||
+        (!selectedAlert ||
+          selectedAlert.endOffset > nodeText.textContent.length ||
           selectedAlert.startOffset > nodeText.textContent.length)
       )
         return;
@@ -617,14 +878,15 @@ const Input: React.FC<{
       range.setStart(nodeText, selectedAlert.startOffset);
       range.setEnd(nodeText, selectedAlert.endOffset);
       const rect = range.getClientRects()[0];
+      if (!rect) return;
       const clickedRect = {
         ...rect,
         width: rect.width,
         height: rect.height,
         left: rect.left,
         x: rect.left,
-        top: range.getClientRects()[0].top - elementScroll.top,
-        y: range.getClientRects()[0].top - elementScroll.top,
+        top: rect.top - elementScroll.top,
+        y: rect.top - elementScroll.top,
       };
 
       const currentAlertIndex = nodesWithAlertsRef.current
@@ -766,28 +1028,73 @@ const Input: React.FC<{
           {} as Record<number, IAlert>
         )
       ).sort((a, b) => a.startOffset - b.startOffset);
-
       const nodesWithAlertsTemp: INodeWithAlerts[] =
         isTextArea(element) || isInputText(element)
           ? [
               {
-                node: clone.firstChild as Node,
+                node: clone.firstChild,
                 alerts: alertsWithoutIgnoredTermsGravityReduced,
               },
             ]
           : getNodesWithRecalculatedPositionAlerts(
               alertsWithoutIgnoredTermsGravityReduced,
-              elementXPathResult as XPathResult
+              isGoogleDocs()
+                ? getActiveDocument().evaluate(
+                    './/text()',
+                    clone,
+                    null,
+                    XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+                    null
+                  )
+                : (elementXPathResult as XPathResult)
             );
 
+      // add getBoundingClientRect to each alert
+      const nodesWithAlertsTempWithRect = nodesWithAlertsTemp.map(
+        (nodeWithAlerts) => {
+          const nodeWithAlertsWithRect = {
+            ...nodeWithAlerts,
+            alerts: nodeWithAlerts.alerts.map((alert) => {
+              const range = getActiveDocument().createRange();
+
+              if (
+                alert.startOffset > nodeWithAlerts.node.length ||
+                alert.endOffset > nodeWithAlerts.node.length ||
+                alert.startOffset < 0 ||
+                alert.endOffset < 0
+              ) {
+                return alert;
+              }
+              range.setStart(nodeWithAlerts.node, alert.startOffset);
+              range.setEnd(nodeWithAlerts.node, alert.endOffset);
+              const rect = range.getClientRects()[0];
+              if (!rect) return alert;
+
+              return {
+                ...alert,
+                rect: {
+                  ...rect,
+                  width: rect.width,
+                  height: rect.height,
+                  left: rect.left,
+                  x: rect.left,
+                  top: rect.top - elementScroll.top,
+                  y: rect.top - elementScroll.top,
+                },
+              };
+            }),
+          };
+          return nodeWithAlertsWithRect;
+        }
+      );
+
       //Set the total alerts
-      const totalAlerts: number = nodesWithAlertsTemp.reduce(
+      const totalAlerts: number = nodesWithAlertsTempWithRect.reduce(
         (total, node) => total + node.alerts.length,
         0
       );
       setTotalAlerts(totalAlerts);
-
-      setNodesWithAlerts(nodesWithAlertsTemp);
+      setNodesWithAlerts(nodesWithAlertsTempWithRect as INodeWithAlerts[]);
     }
   }, [
     alerts,
@@ -839,6 +1146,11 @@ const Input: React.FC<{
           };
         });
 
+        //remove updated alerts with negative startOffset
+        updatedAlerts = updatedAlerts.filter(
+          (alert) => alert.startOffset >= 0 && alert.endOffset >= 0
+        );
+
         updatedAlerts.length > 0 &&
           nodesWithAlertsTemp.push({
             node: elementEvaluation.snapshotItem(
@@ -854,6 +1166,7 @@ const Input: React.FC<{
 
       for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
         const node = elementEvaluation.snapshotItem(index) as Node;
+
         if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
           if (
             //for handeling long text
@@ -866,7 +1179,9 @@ const Input: React.FC<{
           }
 
           if (nodesWhithinMaxCharLengthRef.current.length == 0) {
-            const nextText: string = getInputText(element);
+            const nextText: string = isGoogleDocs()
+              ? getInputText(cloneRef.current)
+              : getInputText(element);
             if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
               textEndAbsPosition += 1;
             }
@@ -923,6 +1238,7 @@ const Input: React.FC<{
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
+
       range.setStart(
         node,
         alternative == ' ' && alert.startOffset !== 0
@@ -963,10 +1279,47 @@ const Input: React.FC<{
             element.dispatchEvent(event);
           }, 200);
         }, 200);
+      } else if (isGoogleDocs()) {
+        setIsActive(true);
+        setActiveIcon('loading');
+        setAlerts([]);
+
+        const rects = range.getBoundingClientRect();
+        const selectedTextStart = {
+          clientX: rects.x,
+          clientY: rects.y + rects.height / 2,
+          bubbles: !0,
+          shiftKey: !1,
+        };
+        element.dispatchEvent(new MouseEvent('mousedown', selectedTextStart)),
+          element.dispatchEvent(new MouseEvent('mouseup', selectedTextStart));
+
+        const selectedTextEnd = {
+          clientX: rects.x + rects.width,
+          clientY: rects.y + rects.height / 2,
+          bubbles: !0,
+          shiftKey: !0,
+        };
+        element.dispatchEvent(new MouseEvent('mousedown', selectedTextEnd)),
+          element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd));
+        //if empty insert space
+        const insertAlternative = new ClipboardEvent('paste', {
+          clipboardData: new DataTransfer(),
+          cancelable: true,
+          bubbles: true,
+        });
+        if (!insertAlternative.clipboardData) return;
+        insertAlternative.clipboardData.setData(
+          'text/plain',
+          alternative == ' ' ? '   ' : alternative
+        );
+        googleDocsEventTarget.dispatchEvent(insertAlternative);
+        resetPopover();
       } else {
         getActiveDocument().execCommand('insertText', false, alternative);
       }
     }
+
     if (isTextArea(element)) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
@@ -975,7 +1328,7 @@ const Input: React.FC<{
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
-    if (!isCkeEditor(element)) {
+    if (!isCkeEditor(element) && !isGoogleDocs()) {
       setTextToCheck(getInputText(element));
       const event = new Event('keyup', { bubbles: true });
       element.dispatchEvent(event);
@@ -1115,11 +1468,11 @@ const Input: React.FC<{
       <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
           element={element}
+          elementRect={elementRect}
           iconType={activeIcon}
           isHovered={isHovered}
         />
       </WTags.WW_ACTIVITY_INDICATOR>
-
       {isTextArea(element) && (
         <WTags.WW_CLONE>
           <TextAreaClone
@@ -1139,18 +1492,35 @@ const Input: React.FC<{
           />
         </WTags.WW_CLONE>
       )}
-      <WTags.WW_HIGHLIGHTS>
-        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
-          <Highlights
-            elementScroll={elementScroll}
-            nodesWithAlerts={nodesWithAlerts}
-            element={element}
-            elementRect={elementRect}
-            selectedAlert={selectedAlert}
-            userIsSignedIn={userIsSignedIn}
-          />
-        </Sentry.ErrorBoundary>
-      </WTags.WW_HIGHLIGHTS>
+      {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
+      {isGoogleDocs() && !isActive && (
+        <WTags.WW_HIGHLIGHTS>
+          <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+            <Highlights
+              elementScroll={elementScroll}
+              nodesWithAlerts={nodesWithAlerts}
+              element={element}
+              elementRect={elementRect}
+              selectedAlert={popoverData && popoverData.alert}
+              userIsSignedIn={userIsSignedIn}
+            />
+          </Sentry.ErrorBoundary>
+        </WTags.WW_HIGHLIGHTS>
+      )}
+      {!isGoogleDocs() && (
+        <WTags.WW_HIGHLIGHTS>
+          <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+            <Highlights
+              elementScroll={elementScroll}
+              nodesWithAlerts={nodesWithAlerts}
+              element={element}
+              elementRect={elementRect}
+              selectedAlert={selectedAlert}
+              userIsSignedIn={userIsSignedIn}
+            />
+          </Sentry.ErrorBoundary>
+        </WTags.WW_HIGHLIGHTS>
+      )}
     </>
   );
 };
