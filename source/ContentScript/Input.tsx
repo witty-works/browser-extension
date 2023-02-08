@@ -184,6 +184,7 @@ const Input: React.FC<{
         handleDocumentClickEvent as EventListener
       );
       document.addEventListener('scroll', handleElementScrollEvent, true);
+      window.addEventListener('resize', handleDocumentResizeEvent);
     }
 
     //If a parent form exists, we will monitor the submision.
@@ -215,6 +216,7 @@ const Input: React.FC<{
           handleDocumentClickEvent as EventListener
         );
         document.removeEventListener('scroll', handleElementScrollEvent);
+        window.removeEventListener('resize', handleDocumentResizeEvent);
       }
 
       if (parentForm)
@@ -413,6 +415,10 @@ const Input: React.FC<{
     setActiveIcon('passive');
     setAlerts([]);
     setTextToCheck('');
+  };
+
+  const handleDocumentResizeEvent = () => {
+    setAlerts([]); //prevents misplaced alerts when resizing
   };
 
   const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
