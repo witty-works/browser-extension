@@ -25,6 +25,9 @@ const isHTMLElementContentEditable = (element: Element): boolean => {
   return elementAsHtmlElement.contentEditable === 'true';
 };
 
+export const isChatGpt = () => {
+  return window.location.href.includes('chat.openai.com') ? true : false;
+};
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
 const isInputElement = (element: Element) =>
   isTextArea(element) ||

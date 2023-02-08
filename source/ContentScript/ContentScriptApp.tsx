@@ -18,6 +18,7 @@ import {
   isInputElement,
   nodeExistsInDOM,
   elementIsVisible,
+  isChatGpt,
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -280,8 +281,17 @@ const ContentScriptApp: React.FC = () => {
   }, [reqConfig]);
 
   const handleFocusinElement = (event: Event) => {
-    const target = event.target as CustomInputElement;
-    if (isInputElement(target) && !inputsRef.current.includes(target)) {
+    console.log('focusin', event.target);
+    let target = event.target as CustomInputElement;
+    if (isChatGpt()) {
+      const textFields = document.querySelectorAll('.markdown');
+      target = textFields[textFields.length - 1] as CustomInputElement;
+    }
+    console.log('target', target);
+    if (
+      (isInputElement(target) && !inputsRef.current.includes(target)) ||
+      isChatGpt()
+    ) {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
