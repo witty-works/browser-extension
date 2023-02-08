@@ -158,7 +158,6 @@ const ContentScriptApp: React.FC = () => {
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
-      browser.storage.onChanged.removeListener(storageChange);
       iframes.forEach((iframe) => {
         if (iframe.contentDocument && iframe.contentDocument.body) {
           iframe.contentDocument.body.removeEventListener(

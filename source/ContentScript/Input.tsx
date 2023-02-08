@@ -515,9 +515,6 @@ const Input: React.FC<{
     currentNode: number,
     currentNodeRaw?: Node | null
   ) => {
-    // if (isGoogleDocs()) {
-    //   currentNodeRaw = cloneRef.current?.childNodes[currentNode];
-    // }
     if (!currentNodeRaw) return;
     const textDividedByNodes = getTextDividedByNodes(element);
     const textDividedByNodesTextContent = textDividedByNodes.map(
@@ -607,7 +604,6 @@ const Input: React.FC<{
 
       setActiveIcon('loading');
       debouncedScroll();
-      // debouncedMutation();
     } else {
       setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
     }
