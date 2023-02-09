@@ -25,9 +25,22 @@ import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 
 //Witty containers' styling
-const WW_CONTAINER_STYLE = `z-index: auto !important;float: left !important;display: inline !important;
-width: 0px !important;height: 0px !important; top: 0px !important;left: 0px !important;
-position: relative !important;visibility: visible !important;overflow: visible !important;`;
+const WW_CONTAINER_STYLE = `
+  z-index: auto !important;
+  float: left !important;
+  display: inline !important;
+  width: 0px !important;
+  height: 0px !important; 
+  top: 0px !important;
+  left: 0px !important;
+  position: relative !important;
+  visibility: visible !important;
+  overflow: visible !important;
+  padding: 0px !important;
+  margin: 0px !important;
+  border: none !important;
+  box-shadow: none !important;
+  `;
 
 let activeDocument = document;
 export const setActiveDocument = (document: Document) => {
