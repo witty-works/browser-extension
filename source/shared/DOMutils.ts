@@ -41,11 +41,6 @@ export const findElement = (node: Node, element: string): boolean => {
   if (node.nodeName === element) {
     return true;
   }
-  for (const child of node.childNodes) {
-    if (findElement(child, element)) {
-      return true;
-    }
-  }
   return false;
 };
 
