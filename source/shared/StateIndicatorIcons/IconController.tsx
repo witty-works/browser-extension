@@ -24,23 +24,37 @@ const IconController: React.FC<IconControllerProps> = ({
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   const googleDocsIcon = isGoogleDocs();
-  if (!elementRect) elementRect = element.getBoundingClientRect();
-
+  const iconPadding: number = 8;
   let correctedPosition = {} as any;
-  if (googleDocsIcon) {
+
+  let iconPosition = { top: 0, left: 0 };
+  if (!elementRect) {
+    elementRect = element.getBoundingClientRect();
+    iconPosition = {
+      top: elementRect.height - 21 - iconPadding,
+      left: elementRect.width - 25 - iconPadding,
+    };
+  } else if (googleDocsIcon) {
     if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
     correctedPosition = (
       element.firstChild?.firstChild as HTMLElement
     ).getBoundingClientRect();
+    iconPosition = {
+      top: 250,
+      left: correctedPosition.left + correctedPosition.width + 20,
+    };
   } else {
     correctedPosition = getCorrectedPosition(
       elementRect,
       ref.current.parentElement,
       element
     );
+    iconPosition = {
+      top: elementRect.height + correctedPosition.top - 21 - iconPadding,
+      left: elementRect.width + correctedPosition.left - 25 - iconPadding,
+    };
   }
 
-  const iconPadding: number = 8;
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
 
   browser.storage.local
@@ -58,17 +72,8 @@ const IconController: React.FC<IconControllerProps> = ({
       style={{
         display: 'flex',
         position: googleDocsIcon ? 'fixed' : 'absolute',
-        //TODO don't hardcode icons width & height
-        top: `${
-          googleDocsIcon
-            ? 250
-            : elementRect.height + correctedPosition.top - 21 - iconPadding
-        }px`,
-        left: `${
-          googleDocsIcon
-            ? correctedPosition.left + correctedPosition.width + 20
-            : elementRect.width + correctedPosition.left - 25 - iconPadding
-        }px`,
+        top: `${iconPosition.top}px`,
+        left: `${iconPosition.left}px`,
       }}
       onMouseDown={(e) => {
         e.stopPropagation();
