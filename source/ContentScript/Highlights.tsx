@@ -5,7 +5,10 @@ import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
 import { isGoogleDocs, isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
-import { getCorrectedPosition } from '../shared/utils';
+import {
+  getCorrectedPosition,
+  getCorrectedPositionCanvas,
+} from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
 
 interface HighlightsProps {
@@ -28,20 +31,25 @@ const Highlights: React.FC<HighlightsProps> = ({
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
-
-  const correctedPosition = getCorrectedPosition(
-    elementRect,
-    isGoogleDocs() ? element.parentElement : canvasRef.current.parentElement,
-    element
-  );
+  const correctedPosition = isGoogleDocs()
+    ? getCorrectedPositionCanvas(elementRect, element)
+    : getCorrectedPosition(
+        elementRect,
+        canvasRef.current.parentElement,
+        element
+      );
   const canvasSize = {
     width: elementRect.width,
-    height: isGoogleDocs() ? 3000 : elementRect.height, //3000 is about the height of three pages in google docs
+    height: isGoogleDocs() ? 2000 : elementRect.height, //2000 is about the height of two pages in google docs
   };
 
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
+    const googleDocsToolbar = getActiveDocument().getElementsByClassName(
+      'kix-document-top-shadow-inner'
+    )[0];
+
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
@@ -67,11 +75,14 @@ const Highlights: React.FC<HighlightsProps> = ({
                 ...rect,
                 width: rect.width,
                 height: rect.height,
-                left: rect.left,
-                top:
-                  rect.top +
-                  doc.scrollTop -
-                  (isTextArea(element) ? elementScroll.top : 0),
+                left: isGoogleDocs() ? rect.left - 294 : rect.left,
+                top: isGoogleDocs()
+                  ? elementRect.top > 0
+                    ? rect.top - googleDocsToolbar.getBoundingClientRect().top
+                    : rect.top
+                  : rect.top +
+                    doc.scrollTop -
+                    (isTextArea(element) ? elementScroll.top : 0),
               };
             }
           );
@@ -163,7 +174,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           {
             position: 'absolute',
             maxWidth: 'initial',
-            top: `${correctedPosition.top}px`,
+            top: `${correctedPosition.top >= 0 ? correctedPosition.top : 0}px`,
             left: `${correctedPosition.left}px`,
             width: `${canvasSize.width}px`,
             height: `${canvasSize.height}px`,

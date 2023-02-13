@@ -392,7 +392,8 @@ const ContentScriptApp: React.FC = () => {
         index === self.findIndex((t) => t.isEqualNode(input))
     );
 
-    if (isGoogleDocs()) {
+    //> 1 prevents issues when starting with empty doc
+    if (isGoogleDocs() && filteredInputs.length > 1) {
       //remove any input that does not contain <g> as a child
       filteredInputs = inputsRef.current.filter((input) => {
         const gElements = input.querySelectorAll('g');

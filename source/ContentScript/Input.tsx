@@ -65,7 +65,11 @@ const Input: React.FC<{
     useCheckEndpoint();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
-  const [, , previousElementStateRef] = useStateRef<string[] | string>([]);
+  const [, , previousElementStateRef] = useStateRef<{
+    text: string[] | string;
+    position: DOMRect;
+  }>({ text: [], position: {} as DOMRect });
+
   const [, , nodesWhithinMaxCharLengthRef] = useStateRef<
     { node: string; index: number }[]
   >([]);
@@ -124,6 +128,11 @@ const Input: React.FC<{
     [element]
   );
   const debouncedMutation = debounce(() => {
+    //if no text, remove highlights
+    if (!element.querySelector('g')) {
+      setAlerts([]);
+    }
+    setTextToCheck('');
     setIsActive(false);
     setActiveIcon('active');
 
@@ -418,7 +427,8 @@ const Input: React.FC<{
   };
 
   const handleDocumentResizeEvent = () => {
-    setAlerts([]); //prevents misplaced alerts when resizing
+    setAlerts([]);
+    debouncedMutation();
   };
 
   const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
@@ -446,18 +456,18 @@ const Input: React.FC<{
     const fistTextDiff = getFirstTextDiff(
       element,
       textDividedByNodesTextContent,
-      previousElementStateRef.current
+      previousElementStateRef.current.text
     );
-    console.log('isTextArea', isTextArea(element), element);
-    console.log('fistTextDiff', fistTextDiff);
-    previousElementStateRef.current = textDividedByNodesTextContent;
+    previousElementStateRef.current = {
+      text: textDividedByNodesTextContent,
+      position: element.getBoundingClientRect(),
+    };
     if (isTextArea(element) && fistTextDiff) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
           (alert) => alert.startOffset < fistTextDiff.position
         )
       );
-      console.log('unchangedAlerts', unchangedAlerts[0]);
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
       handleTextAndIcon(nextText, event);
     } else {
@@ -584,7 +594,7 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (text: string, event?: Event) => {
-    console.log('text to check', text);
+    console.log('text to check', text.length, text);
 
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
