@@ -26,6 +26,10 @@ export const isTinyMceEditor = (element: Element): boolean => {
   return !!tinymceEditor;
 };
 
+export const isForalaEditor = (element: Element): boolean => {
+  const foralaEditor = element.closest('.fr-element');
+  return !!foralaEditor;
+};
 export const isHTMLElementContentEditable = (element: Element): boolean => {
   const elementAsHtmlElement = element as HTMLElement;
   return elementAsHtmlElement.contentEditable === 'true';
