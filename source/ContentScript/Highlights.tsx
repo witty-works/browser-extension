@@ -46,9 +46,20 @@ const Highlights: React.FC<HighlightsProps> = ({
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
-    const googleDocsToolbar = getActiveDocument().getElementsByClassName(
-      'kix-document-top-shadow-inner'
-    )[0];
+    let googleDocsToolbarTop = {} as Element;
+    let googleDocsToolbarLeft = {} as Element;
+    if (isGoogleDocs()) {
+      googleDocsToolbarTop = getActiveDocument().getElementsByClassName(
+        'kix-document-top-shadow-inner'
+      )[0];
+      googleDocsToolbarLeft = getActiveDocument().getElementsByClassName(
+        'left-sidebar-container-content'
+      )[0];
+    }
+    console.log(
+      'googleDocsToolbarLeft.getBoundingClientRect().left',
+      googleDocsToolbarLeft.getBoundingClientRect()
+    );
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
@@ -75,10 +86,15 @@ const Highlights: React.FC<HighlightsProps> = ({
                 ...rect,
                 width: rect.width,
                 height: rect.height,
-                left: isGoogleDocs() ? rect.left - 294 : rect.left,
+                left: isGoogleDocs()
+                  ? rect.left -
+                    googleDocsToolbarLeft.getBoundingClientRect().width -
+                    googleDocsToolbarLeft.getBoundingClientRect().left
+                  : rect.left,
                 top: isGoogleDocs()
                   ? elementRect.top > 0
-                    ? rect.top - googleDocsToolbar.getBoundingClientRect().top
+                    ? rect.top -
+                      googleDocsToolbarTop.getBoundingClientRect().top
                     : rect.top
                   : rect.top +
                     doc.scrollTop -
@@ -174,7 +190,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           {
             position: 'absolute',
             maxWidth: 'initial',
-            top: `${correctedPosition.top >= 0 ? correctedPosition.top : 0}px`,
+            top: `${correctedPosition.top}px`,
             left: `${correctedPosition.left}px`,
             width: `${canvasSize.width}px`,
             height: `${canvasSize.height}px`,
