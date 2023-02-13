@@ -3,7 +3,12 @@ import { useAnalytics } from './ApiServices/useAnalytics';
 import { StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import { isCkeEditor, isTextArea, isTinyMceEditor } from './DOMutils';
+import {
+  isCkeEditor,
+  isForalaEditor,
+  isTextArea,
+  isTinyMceEditor,
+} from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 
 export const isObjectEmpty = (obj: object) =>
@@ -190,7 +195,8 @@ export const getCorrectedPosition = (
     (domain === 'linkedin.com' && pathContainsMessaging) ||
     domain === 'personio.de' || //exception for linkedin messaging and personio
     isCkeEditor(element) ||
-    isTinyMceEditor(element)
+    isTinyMceEditor(element) ||
+    isForalaEditor(element)
   ) {
     elementRect = element.getBoundingClientRect();
   }
