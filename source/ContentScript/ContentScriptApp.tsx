@@ -5,7 +5,12 @@ import { browser } from 'webextension-polyfill-ts';
 import { CustomInputElement, RequestConfig } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
-import { WTags, StorageKeys, DefaultBaseUrlKey } from '../shared/constants';
+import {
+  WTags,
+  StorageKeys,
+  DefaultBaseUrlKey,
+  DEV_ENV,
+} from '../shared/constants';
 import {
   setAppID,
   setBaseUrls,
@@ -311,7 +316,7 @@ const ContentScriptApp: React.FC = () => {
       target = document.querySelector(
         '.kix-rotatingtilemanager'
       ) as CustomInputElement;
-    } else if (isChatGpt()) {
+    } else if (isChatGpt() && DEV_ENV) {
       const textFields = document.querySelectorAll('.markdown');
       target = textFields[textFields.length - 1] as CustomInputElement;
     }
