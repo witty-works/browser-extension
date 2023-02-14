@@ -46,20 +46,16 @@ const Highlights: React.FC<HighlightsProps> = ({
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
-    let googleDocsToolbarTop = {} as Element;
-    let googleDocsToolbarLeft = {} as Element;
+    let googleDocsToolbarTopRect = {} as DOMRect;
+    let googleDocsToolbarLeftRect = {} as DOMRect;
     if (isGoogleDocs()) {
-      googleDocsToolbarTop = getActiveDocument().getElementsByClassName(
-        'kix-document-top-shadow-inner'
-      )[0];
-      googleDocsToolbarLeft = getActiveDocument().getElementsByClassName(
-        'left-sidebar-container-content'
-      )[0];
+      googleDocsToolbarTopRect = getActiveDocument()
+        .getElementsByClassName('kix-document-top-shadow-inner')[0]
+        .getBoundingClientRect();
+      googleDocsToolbarLeftRect = getActiveDocument()
+        .getElementsByClassName('left-sidebar-container-content')[0]
+        .getBoundingClientRect();
     }
-    console.log(
-      'googleDocsToolbarLeft.getBoundingClientRect().left',
-      googleDocsToolbarLeft.getBoundingClientRect()
-    );
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
@@ -88,17 +84,17 @@ const Highlights: React.FC<HighlightsProps> = ({
                 height: rect.height,
                 left: isGoogleDocs()
                   ? rect.left -
-                    googleDocsToolbarLeft.getBoundingClientRect().width -
-                    googleDocsToolbarLeft.getBoundingClientRect().left
+                    googleDocsToolbarLeftRect.width -
+                    googleDocsToolbarLeftRect.left
                   : rect.left,
-                top: isGoogleDocs()
-                  ? elementRect.top > 0
-                    ? rect.top -
-                      googleDocsToolbarTop.getBoundingClientRect().top
-                    : rect.top
-                  : rect.top +
-                    doc.scrollTop -
-                    (isTextArea(element) ? elementScroll.top : 0),
+                top:
+                  isGoogleDocs() && elementRect.top > 0
+                    ? rect.top - googleDocsToolbarTopRect.top
+                    : isGoogleDocs() && elementRect.top <= 0
+                    ? rect.top
+                    : rect.top +
+                      doc.scrollTop -
+                      (isTextArea(element) ? elementScroll.top : 0),
               };
             }
           );
