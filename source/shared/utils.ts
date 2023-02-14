@@ -3,7 +3,12 @@ import { useAnalytics } from './ApiServices/useAnalytics';
 import { StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import { isCkeEditor, isTextArea, isTinyMceEditor } from './DOMutils';
+import {
+  isCkeEditor,
+  isForalaEditor,
+  isTextArea,
+  isTinyMceEditor,
+} from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 
 export const isObjectEmpty = (obj: object) =>
@@ -185,25 +190,43 @@ export const getCorrectedPosition = (
 ) => {
   const domain = getDomainWithoutSubdomain(window.location.hostname);
   const pathContainsMessaging = window.location.pathname.includes('messaging');
+  const parentRect = parentElement && parentElement.getBoundingClientRect();
   if (
     isTextArea(element) ||
     (domain === 'linkedin.com' && pathContainsMessaging) ||
     domain === 'personio.de' || //exception for linkedin messaging and personio
     isCkeEditor(element) ||
-    isTinyMceEditor(element)
+    isTinyMceEditor(element) ||
+    isForalaEditor(element)
   ) {
     elementRect = element.getBoundingClientRect();
   }
 
-  return parentElement && !isObjectEmpty(parentElement)
+  return parentRect && !isObjectEmpty(parentRect)
     ? {
         top: navigator.userAgent.match(/firefox|fxios/i)
           ? 0
-          : elementRect.top - parentElement.getBoundingClientRect().top,
-        left: elementRect.left - parentElement.getBoundingClientRect().left,
+          : elementRect.top - parentRect.top,
+        left: elementRect.left - parentRect.left,
       }
     : {
         top: elementRect.top,
         left: elementRect.left,
       };
+};
+
+export const getCorrectedPositionCanvas = (
+  elementRect: DOMRect,
+  element: HTMLElement
+) => {
+  const updatedElementRect = element.getBoundingClientRect();
+
+  return {
+    top:
+      elementRect.top > 0
+        ? elementRect.top - updatedElementRect.top
+        : updatedElementRect.top * -1,
+    left:
+      elementRect.left > 0 ? elementRect.left : 294 - updatedElementRect.left,
+  };
 };
