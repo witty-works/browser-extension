@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_appName__",
-  "version": "1.25.6.1",
+  "version": "1.25.7",
   "default_locale": "en",
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -49,6 +49,12 @@
       "matches": ["http://*/*", "https://*/*"],
       "js": ["js/contentScript.bundle.js"],
       "css": ["css/contentScript.css"]
+    },
+    {
+      "matches": ["https://docs.google.com/document/*"],
+      "js": ["assets/googleDocsSupport.js"],
+      "all_frames": false,
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [

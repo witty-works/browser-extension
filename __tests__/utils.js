@@ -24,11 +24,8 @@ exports.loginDashboard = async function (email, password, page) {
     await page.click('#next');
     await page.waitForLoadState('networkidle')
 
-    if (await page.$('#extension_termsOfUseConsentChoice_AgreeToTermsOfUseConsentYes')) {
-        await page.click('#extension_termsOfUseConsentChoice_AgreeToTermsOfUseConsentYes');
-        await page.click('#continue');
-        await page.waitForLoadState('networkidle')
-    }
+    await page.waitForSelector('#hs-eu-confirmation-button');
+    await page.click('#hs-eu-confirmation-button');
 
     return page;
 }
@@ -116,7 +113,8 @@ exports.evaluateToggleBackgroundBeforeAndAfterClick = async function (page, togg
 }
 
 exports.getExtensionId = async function (page) {
-    await page.goto('https://www.witty.works/editor');
+    await page.goto('https://www.witty.works/');
+
     const extensionId = await page.evaluate(() => {
         return document.querySelector('witty-is-installed').getAttribute('extension-id')
     })
@@ -125,8 +123,6 @@ exports.getExtensionId = async function (page) {
 
 exports.enableAllToggles = async function (page) {
     await page.waitForLoadState('networkidle')
-    await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-    await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
 
     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
     // await page.click('.leadinModal-close');
@@ -188,8 +184,6 @@ exports.enableAllToggles = async function (page) {
 
 exports.unlockAllToggles = async function (page) {
     await page.waitForLoadState('networkidle')
-    await page.waitForSelector('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
-    await page.click('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll');
     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
     // await page.click('.leadinModal-close');
 

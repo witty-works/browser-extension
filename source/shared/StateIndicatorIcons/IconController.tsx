@@ -8,26 +8,53 @@ import { getCorrectedPosition } from '../utils';
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
+import { isGoogleDocs } from '../DOMutils';
 interface IconControllerProps {
-  iconType: string;
   element: CustomInputElement;
+  elementRect?: DOMRect;
+  iconType: string;
   isHovered: boolean;
 }
 
 const IconController: React.FC<IconControllerProps> = ({
-  iconType,
   element,
+  elementRect,
+  iconType,
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-
-  const elementRect = element.getBoundingClientRect();
-  const correctedPosition = getCorrectedPosition(
-    elementRect,
-    ref.current.parentElement,
-    element
-  );
+  const googleDocsIcon = isGoogleDocs();
   const iconPadding: number = 8;
+  let correctedPosition = {} as any;
+
+  let iconPosition = { top: 0, left: 0 };
+  if (!elementRect) {
+    elementRect = element.getBoundingClientRect();
+    iconPosition = {
+      top: elementRect.height - 21 - iconPadding,
+      left: elementRect.width - 25 - iconPadding,
+    };
+  } else if (googleDocsIcon) {
+    if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
+    correctedPosition = (
+      element.firstChild?.firstChild as HTMLElement
+    ).getBoundingClientRect();
+    iconPosition = {
+      top: 250,
+      left: correctedPosition.left + correctedPosition.width + 20,
+    };
+  } else {
+    correctedPosition = getCorrectedPosition(
+      elementRect,
+      ref.current.parentElement,
+      element
+    );
+    iconPosition = {
+      top: elementRect.height + correctedPosition.top - 21 - iconPadding,
+      left: elementRect.width + correctedPosition.left - 25 - iconPadding,
+    };
+  }
+
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
 
   browser.storage.local
@@ -44,14 +71,9 @@ const IconController: React.FC<IconControllerProps> = ({
       ref={ref}
       style={{
         display: 'flex',
-        position: 'absolute',
-        //TODO don't hardcode icons width & height
-        top: `${
-          elementRect.height + correctedPosition.top - 21 - iconPadding
-        }px`,
-        left: `${
-          elementRect.width + correctedPosition.left - 25 - iconPadding
-        }px`,
+        position: googleDocsIcon ? 'fixed' : 'absolute',
+        top: `${iconPosition.top}px`,
+        left: `${iconPosition.left}px`,
       }}
       onMouseDown={(e) => {
         e.stopPropagation();

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
-import { isInputText, isTextArea } from '../shared/DOMutils';
+import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, IAuthResponse } from '../shared/types';
 import {
   getDomainWithoutSubdomain,
@@ -89,10 +89,24 @@ export const updateConfig = (response: IAuthResponse) => {
   });
 };
 
-export const getInputText = (element: CustomInputElement) =>
-  isTextArea(element) || isInputText(element)
-    ? element.value
-    : element.innerText.replaceAll(/^\n+/g, '').replaceAll(/\n{2,}/g, '\n');
+export const getInputText = (element: CustomInputElement | any) => {
+  if (isGoogleDocs()) {
+    let text = '';
+    if (element.childNodes) {
+      for (let i = 0; i < element.childNodes.length; i++) {
+        const divElement = element.childNodes[i];
+        text += divElement.textContent;
+      }
+    }
+    return text;
+  } else if (isTextArea(element) || isInputText(element)) {
+    return element.value;
+  } else {
+    return element.innerText
+      .replaceAll(/^\n+/g, '')
+      .replaceAll(/\n{2,}/g, '\n');
+  }
+};
 
 export const customRender = (enabled: boolean) => {
   if (!document.querySelector(WTags.WW_POPOVER)) {
@@ -132,37 +146,60 @@ export const handleDomainsFromDashboard = (newValue: any) => {
 };
 
 export const getFirstTextDiff = (
-  previousTextArray: string[],
-  newTextArray: string[]
+  element: CustomInputElement,
+  previousTextArray: string[] | string,
+  newTextArray: string[] | string
 ) => {
   if (!newTextArray) return 0;
-  //in what node the diff is
-  let node = -1;
-  for (let i = 0; i < previousTextArray.length; i++) {
-    if (previousTextArray[i] !== newTextArray[i]) {
-      node = i;
-      break;
+
+  if (isTextArea(element)) {
+    let i = 0;
+    console.log('PREV TEXT', previousTextArray, 'NEXT TEXT', newTextArray);
+    if (!previousTextArray || !newTextArray) return 0;
+    while (
+      i < previousTextArray.length &&
+      i < newTextArray.length &&
+      previousTextArray[i] == newTextArray[i]
+    ) {
+      i++;
     }
-  }
+    return { node: 0, position: i };
+  } else {
+    let node = -1;
+    for (let i = 0; i < previousTextArray.length; i++) {
+      if (previousTextArray[i] !== newTextArray[i]) {
+        node = i;
+        break;
+      }
+    }
+    let position = 0;
+    const previousText = previousTextArray[node];
+    const nextText = newTextArray[node];
+    if (!previousText || !nextText) return;
+    while (
+      position < previousText.length &&
+      position < nextText.length &&
+      previousText[position] == nextText[position]
+    ) {
+      position++;
+    }
 
-  //in what position in the node the diff is
-  let position = 0;
-  const previousText = previousTextArray[node];
-  const nextText = newTextArray[node];
-  if (!previousText || !nextText) return;
-  while (
-    position < previousText.length &&
-    position < nextText.length &&
-    previousText[position] == nextText[position]
-  ) {
-    position++;
+    return { node, position };
   }
-
-  return { node, position };
 };
 
 export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
-  if (isTextArea(element) || isInputText(element)) {
+  if (isGoogleDocs()) {
+    const clone = document.querySelector('ww-clone');
+    let divs = [] as Node[];
+    if (clone && clone.firstChild) {
+      for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
+        const divElement = clone.firstChild.childNodes[i];
+        divs.push(divElement);
+      }
+    }
+    return divs;
+  } else if (isTextArea(element) || isInputText(element)) {
     return [element];
   } else {
     const elementEvaluation = getActiveDocument().evaluate(
