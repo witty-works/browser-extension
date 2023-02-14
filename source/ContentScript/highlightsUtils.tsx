@@ -1,7 +1,14 @@
+import { isGoogleDocs } from '../shared/DOMutils';
+
 export const drawLine = (params: any, color: string, dashedLine: boolean) => {
   const { context, rect, elementRect } = params;
+
   let x = rect.left - elementRect.left;
   let y = rect.top - elementRect.top;
+  if (isGoogleDocs()) {
+    y = rect.top;
+    x = rect.left;
+  }
 
   context.beginPath();
   dashedLine ? context.setLineDash([0, 4]) : context.setLineDash([0, 0]);
@@ -19,6 +26,11 @@ export const drawHighlight = (params: any, color: string) => {
   //the +/- is to add some padding to the highlight
   let x = rect.left - elementRect.left - 1.5;
   let y = rect.top - elementRect.top + 1;
+  if (isGoogleDocs()) {
+    y = rect.top;
+    x = rect.left;
+  }
+
   let width = rect.width + 3;
   let height = rect.height - 1;
   let radius = 4;
