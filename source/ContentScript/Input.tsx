@@ -577,7 +577,6 @@ const Input: React.FC<{
     const textWithinMaxCharLength = nodesWhithinMaxCharLength
       .map((node) => node.node)
       .join('\n');
-
     if (currentText.length > maxCharLength) {
       const shortenedText = currentText.slice(0, maxCharLength);
       nodesWhithinMaxCharLengthRef.current = [
