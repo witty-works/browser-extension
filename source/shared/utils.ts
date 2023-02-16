@@ -6,6 +6,7 @@ import defaultConfig from '../witty.config.json';
 import {
   isCkeEditor,
   isForalaEditor,
+  isLinkedInMessage,
   isTextArea,
   isTinyMceEditor,
 } from './DOMutils';
@@ -196,7 +197,8 @@ export const getCorrectedPosition = (
     domain === 'personio.de' || //exception for linkedin messaging and personio
     isCkeEditor(element) ||
     isTinyMceEditor(element) ||
-    isForalaEditor(element)
+    isForalaEditor(element) ||
+    isLinkedInMessage()
   ) {
     elementRect = element.getBoundingClientRect();
   }

@@ -29,6 +29,7 @@ import {
   isInputText,
   isCkeEditor,
   isGoogleDocs,
+  isLinkedin,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -1200,8 +1201,9 @@ const Input: React.FC<{
             )
             .filter(
               (alert: IAlert) =>
-                alert.startOffset >= textStartingAbsPosition &&
-                alert.endOffset <= textEndAbsPosition
+                (alert.startOffset >= textStartingAbsPosition &&
+                  alert.endOffset <= textEndAbsPosition) ||
+                (isLinkedin() && alert.data.text.includes('#'))
             )
             .map((alert: IAlert) => {
               return {
