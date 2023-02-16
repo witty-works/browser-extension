@@ -82,12 +82,41 @@ const ContentScriptApp: React.FC = () => {
           node.addEventListener('load', function () {});
         });
     });
-    setIframeLoaded(true);
+    setTimeout(() => {
+      setIframeLoaded(true);
+    }, 5000);
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
 
   const log = useLog('ContentScriptApp');
+
+  async function loader() {
+    const gutenbergIframe = document.querySelector(
+      '.is-loaded'
+    ) as HTMLIFrameElement;
+    console.log('gutenbergIframe', gutenbergIframe);
+    if (gutenbergIframe) {
+      const src = gutenbergIframe.src;
+      console.log('src', src);
+
+      //get type of src
+      // turn src into string
+      const response = await fetch(src, {
+        //opaque” means you can’t see into any of its details; it blocks you from seeing.
+        mode: 'cors',
+      });
+
+      //get body
+
+      // if (response.status === 504) {
+      //   // if it didn't load via cache, just get it normally
+      //   response = await fetch(src);
+      // }
+
+      console.log('text', response);
+    }
+  }
 
   useEffect(() => {
     browser.storage.local
@@ -162,6 +191,9 @@ const ContentScriptApp: React.FC = () => {
     //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
     const iframes = document.querySelectorAll('iframe');
+    console.log('iframes', iframes);
+    loader();
+
     iframes.forEach((iframe: any) => {
       if (iframe.contentDocument && iframe.contentDocument.body) {
         iframe.contentDocument.body.addEventListener(
