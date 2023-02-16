@@ -32,15 +32,16 @@ export const isForalaEditor = (element: Element): boolean => {
 };
 
 export const isLinkedInMessage = (): boolean => {
-  const linkedInMessage = getActiveDocument().querySelector(
-    '.msg-form__contenteditable'
+  return (
+    !!getActiveDocument().querySelector('.msg-form__contenteditable') &&
+    isLinkedin()
   );
-  return !!linkedInMessage;
 };
 
 export const isLinkedin = (): boolean => {
   return window.location.hostname === 'www.linkedin.com';
 };
+
 export const isHTMLElementContentEditable = (element: Element): boolean => {
   const elementAsHtmlElement = element as HTMLElement;
   return elementAsHtmlElement.contentEditable === 'true';
