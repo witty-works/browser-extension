@@ -26,6 +26,9 @@ export const isTinyMceEditor = (element: Element): boolean => {
   return !!tinymceEditor;
 };
 
+export const isBambooHr = (): boolean => {
+  return window.location.hostname.split('.').includes('bamboohr');
+};
 export const isForalaEditor = (element: Element): boolean => {
   const foralaEditor = element.closest('.fr-element');
   return !!foralaEditor;
