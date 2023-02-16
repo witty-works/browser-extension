@@ -26,6 +26,9 @@ export const isTinyMceEditor = (element: Element): boolean => {
   return !!tinymceEditor;
 };
 
+export const isBambooHr = (): boolean => {
+  return window.location.hostname.split('.').includes('bamboohr');
+};
 export const isForalaEditor = (element: Element): boolean => {
   const foralaEditor = element.closest('.fr-element');
   return !!foralaEditor;
@@ -47,6 +50,9 @@ export const isHTMLElementContentEditable = (element: Element): boolean => {
   return elementAsHtmlElement.contentEditable === 'true';
 };
 
+export const isChatGpt = () => {
+  return window.location.href.includes('chat.openai.com') ? true : false;
+};
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
 export const isInputElement = (element: Element) =>
   isTextArea(element) ||
