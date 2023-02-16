@@ -4,6 +4,7 @@ import { StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import {
+  isBambooHr,
   isCkeEditor,
   isForalaEditor,
   isTextArea,
@@ -196,7 +197,8 @@ export const getCorrectedPosition = (
     domain === 'personio.de' || //exception for linkedin messaging and personio
     isCkeEditor(element) ||
     isTinyMceEditor(element) ||
-    isForalaEditor(element)
+    isForalaEditor(element) ||
+    isBambooHr()
   ) {
     elementRect = element.getBoundingClientRect();
   }
