@@ -39,10 +39,13 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
             : svgRectElement.getAttribute('aria-label');
 
         const elementRect = svgRectElement.getBoundingClientRect();
-        const elementStylesFont = svgRectElement
-          .getAttribute('data-font-css')
-          ?.split(' ');
-
+        let elementStylesFont = svgRectElement.getAttribute('data-font-css');
+        let elementStylesFontArray = [] as string[];
+        const extractedFont = elementStylesFont?.match(/"([^"]+)"/);
+        if (extractedFont && elementStylesFont) {
+          elementStylesFont = elementStylesFont.replace(extractedFont[0], '');
+          elementStylesFontArray = elementStylesFont.split(' ');
+        }
         const elementStyles = window.getComputedStyle(svgRectElement);
         const correctedPosition = getCorrectedPosition(
           elementRect,
@@ -59,12 +62,18 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
                   visibility: 'hidden',
                   width: elementRect.width + correctedPosition.left,
                   height: elementRect.height,
-                  fontWeight: elementStylesFont[elementStylesFont.length - 3],
-                  fontSize: elementStylesFont[elementStylesFont.length - 2],
-                  fontFamily: elementStylesFont[elementStylesFont.length - 1],
+                  fontWeight:
+                    elementStylesFontArray[elementStylesFontArray.length - 3],
+                  fontSize:
+                    elementStylesFontArray[elementStylesFontArray.length - 2],
+                  fontFamily: extractedFont
+                    ? extractedFont[1]
+                    : elementStyles.fontFamily,
                   fontStyle:
-                    elementStylesFont.length > 3
-                      ? elementStylesFont[elementStylesFont.length - 4]
+                    elementStylesFontArray.length > 3
+                      ? elementStylesFontArray[
+                          elementStylesFontArray.length - 4
+                        ]
                       : elementStyles.fontStyle,
                   lineHeight: elementStyles.lineHeight,
                   position: 'absolute',
@@ -106,7 +115,6 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
             previousElement.position.height !== elementRects.height;
 
           if (isDifferent || positionChanged) {
-            console.log('update clone');
             cloneRef.current = ref;
             updateClone(ref);
           }

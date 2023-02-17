@@ -154,7 +154,6 @@ export const getFirstTextDiff = (
 
   if (isTextArea(element)) {
     let i = 0;
-    console.log('PREV TEXT', previousTextArray, 'NEXT TEXT', newTextArray);
     if (!previousTextArray || !newTextArray) return 0;
     while (
       i < previousTextArray.length &&

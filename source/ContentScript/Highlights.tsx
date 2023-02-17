@@ -32,7 +32,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const correctedPosition = isGoogleDocs()
-    ? getCorrectedPositionCanvas(elementRect, element)
+    ? getCorrectedPositionCanvas(element)
     : getCorrectedPosition(
         elementRect,
         canvasRef.current.parentElement,
@@ -51,10 +51,10 @@ const Highlights: React.FC<HighlightsProps> = ({
     if (isGoogleDocs()) {
       googleDocsToolbarTopRect = getActiveDocument()
         .getElementsByClassName('kix-document-top-shadow-inner')[0]
-        .getBoundingClientRect();
+        ?.getBoundingClientRect();
       googleDocsToolbarLeftRect = getActiveDocument()
         .getElementsByClassName('left-sidebar-container-content')[0]
-        .getBoundingClientRect();
+        ?.getBoundingClientRect();
     }
 
     nodesWithAlerts.forEach(({ node, alerts }) => {
@@ -87,14 +87,11 @@ const Highlights: React.FC<HighlightsProps> = ({
                     googleDocsToolbarLeftRect.width -
                     googleDocsToolbarLeftRect.left
                   : rect.left,
-                top:
-                  isGoogleDocs() && elementRect.top > 0
-                    ? rect.top - googleDocsToolbarTopRect.top
-                    : isGoogleDocs() && elementRect.top <= 0
-                    ? rect.top
-                    : rect.top +
-                      doc.scrollTop -
-                      (isTextArea(element) ? elementScroll.top : 0),
+                top: isGoogleDocs()
+                  ? rect.top - googleDocsToolbarTopRect.top
+                  : rect.top +
+                    doc.scrollTop -
+                    (isTextArea(element) ? elementScroll.top : 0),
               };
             }
           );
@@ -192,7 +189,7 @@ const Highlights: React.FC<HighlightsProps> = ({
             height: `${canvasSize.height}px`,
             overflow: 'auto',
             pointerEvents: 'none',
-            zIndex: 9999999, //needed google docs
+            zIndex: isGoogleDocs() ? 9999999 : 'auto',
           } as React.CSSProperties
         }
       ></canvas>
