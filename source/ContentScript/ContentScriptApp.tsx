@@ -29,6 +29,7 @@ import {
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
+import debounce from 'lodash.debounce';
 
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
@@ -82,8 +83,13 @@ const ContentScriptApp: React.FC = () => {
           node.addEventListener('load', function () {});
         });
     });
-    setIframeLoaded(true);
+    debouncedMutation();
   });
+
+  const debouncedMutation = debounce(() => {
+    setIframeLoaded(!iframeLoaded);
+    console.log('mutaiton', iframeLoaded);
+  }, 1000);
 
   observer.observe(document.body, { childList: true, subtree: true });
 
