@@ -133,8 +133,6 @@ const Input: React.FC<{
       setAlerts([]);
     }
     setTextToCheck('');
-    setIsActive(false);
-    setActiveIcon('active');
 
     ReactDOM.render(
       <GoogleDocsClone
@@ -144,7 +142,9 @@ const Input: React.FC<{
       />,
       document.querySelector(WTags.WW_CLONE)
     );
-  }, 1000);
+    setIsActive(false);
+    setActiveIcon('active');
+  }, 500);
 
   useMutationObserver(element, onElementMutation);
   const { t } = useTranslation([namespaces.errors]);
@@ -452,7 +452,6 @@ const Input: React.FC<{
       ? nextText
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
 
-    console.log('nextText', nextText);
     const fistTextDiff = getFirstTextDiff(
       element,
       textDividedByNodesTextContent,
@@ -593,8 +592,6 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (text: string, event?: Event) => {
-    console.log('text to check', text.length, text);
-
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -632,7 +629,6 @@ const Input: React.FC<{
     setIsActive(false);
     setActiveIcon('active');
   }, 500);
-  console.log('isActive', isActive);
   const handleSubmitFormEvent = () => {
     //It's assumed that when user sends info through a form, text will disappear.
     //Therefore highlights also need to be removed
