@@ -27,7 +27,7 @@ import {
 import {
   isTextArea,
   isInputText,
-  isCkeEditor,
+  isCkEditor,
   isGoogleDocs,
   isLinkedin,
 } from '../shared/DOMutils';
@@ -1261,7 +1261,7 @@ const Input: React.FC<{
       sel.removeAllRanges();
       sel.addRange(range);
 
-      if (isCkeEditor(element)) {
+      if (isCkEditor(element)) {
         const deleteSelectedText = new KeyboardEvent('keydown', {
           key: 'Delete',
           bubbles: true,
@@ -1335,7 +1335,7 @@ const Input: React.FC<{
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
-    if (!isCkeEditor(element) && !isGoogleDocs()) {
+    if (!isCkEditor(element) && !isGoogleDocs()) {
       setTextToCheck(getInputText(element));
       const event = new Event('keyup', { bubbles: true });
       element.dispatchEvent(event);

@@ -16,9 +16,9 @@ export const isGoogleDocs = (): boolean => {
   return window.location.hostname === 'docs.google.com';
 };
 
-export const isCkeEditor = (element: Element): boolean => {
-  const ckeEditor = element.closest('.ck-content');
-  return !!ckeEditor;
+export const isCkEditor = (element: Element): boolean => {
+  const ckEditor = element.closest('.ck-content');
+  return !!ckEditor;
 };
 
 export const isTinyMceEditor = (element: Element): boolean => {
@@ -29,7 +29,7 @@ export const isTinyMceEditor = (element: Element): boolean => {
 export const isBambooHr = (): boolean => {
   return window.location.hostname.split('.').includes('bamboohr');
 };
-export const isForalaEditor = (element: Element): boolean => {
+export const isFroalaEditor = (element: Element): boolean => {
   const foralaEditor = element.closest('.fr-element');
   return !!foralaEditor;
 };
