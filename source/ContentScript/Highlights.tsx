@@ -3,7 +3,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { isGoogleDocs, isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
+import {
+  isBambooHr,
+  isGoogleDocs,
+  isTextArea,
+  nodeExistsInDOM,
+} from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
 import {
   getCorrectedPosition,
@@ -189,7 +194,7 @@ const Highlights: React.FC<HighlightsProps> = ({
             height: `${canvasSize.height}px`,
             overflow: 'auto',
             pointerEvents: 'none',
-            zIndex: isGoogleDocs() ? 9999999 : 'auto',
+            zIndex: isGoogleDocs() || isBambooHr() ? 9999999 : 'auto',
           } as React.CSSProperties
         }
       ></canvas>
