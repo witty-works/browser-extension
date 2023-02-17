@@ -5,8 +5,9 @@ import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import {
   isBambooHr,
-  isCkeEditor,
-  isForalaEditor,
+  isCkEditor,
+  isFroalaEditor,
+  isLinkedInMessage,
   isTextArea,
   isTinyMceEditor,
 } from './DOMutils';
@@ -196,9 +197,10 @@ export const getCorrectedPosition = (
     isTextArea(element) ||
     (domain === 'linkedin.com' && pathContainsMessaging) ||
     domain === 'personio.de' || //exception for linkedin messaging and personio
-    isCkeEditor(element) ||
+    isCkEditor(element) ||
     isTinyMceEditor(element) ||
-    isForalaEditor(element) ||
+    isFroalaEditor(element) ||
+    isLinkedInMessage() ||
     isBambooHr()
   ) {
     elementRect = element.getBoundingClientRect();
@@ -217,18 +219,13 @@ export const getCorrectedPosition = (
       };
 };
 
-export const getCorrectedPositionCanvas = (
-  elementRect: DOMRect,
-  element: HTMLElement
-) => {
+export const getCorrectedPositionCanvas = (element: HTMLElement) => {
   const updatedElementRect = element.getBoundingClientRect();
 
+  const scrollLeft = element.parentElement?.parentElement?.scrollLeft;
+  const scrollTop = element.parentElement?.parentElement?.scrollTop;
   return {
-    top:
-      elementRect.top > 0
-        ? elementRect.top - updatedElementRect.top
-        : updatedElementRect.top * -1,
-    left:
-      elementRect.left > 0 ? elementRect.left : 294 - updatedElementRect.left,
+    top: scrollTop ? scrollTop : 0,
+    left: updatedElementRect.left + (scrollLeft ? scrollLeft : 0),
   };
 };

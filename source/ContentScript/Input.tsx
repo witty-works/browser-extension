@@ -27,8 +27,9 @@ import {
 import {
   isTextArea,
   isInputText,
-  isCkeEditor,
+  isCkEditor,
   isGoogleDocs,
+  isLinkedin,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -133,8 +134,6 @@ const Input: React.FC<{
       setAlerts([]);
     }
     setTextToCheck('');
-    setIsActive(false);
-    setActiveIcon('active');
 
     ReactDOM.render(
       <GoogleDocsClone
@@ -144,7 +143,9 @@ const Input: React.FC<{
       />,
       document.querySelector(WTags.WW_CLONE)
     );
-  }, 1000);
+    setIsActive(false);
+    setActiveIcon('active');
+  }, 500);
 
   useMutationObserver(element, onElementMutation);
   const { t } = useTranslation([namespaces.errors]);
@@ -452,7 +453,6 @@ const Input: React.FC<{
       ? nextText
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
 
-    console.log('nextText', nextText);
     const fistTextDiff = getFirstTextDiff(
       element,
       textDividedByNodesTextContent,
@@ -593,8 +593,6 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (text: string, event?: Event) => {
-    console.log('text to check', text.length, text);
-
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(text); //for check call after refresh token
     if (text.length === 0 || !text.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -632,7 +630,6 @@ const Input: React.FC<{
     setIsActive(false);
     setActiveIcon('active');
   }, 500);
-  console.log('isActive', isActive);
   const handleSubmitFormEvent = () => {
     //It's assumed that when user sends info through a form, text will disappear.
     //Therefore highlights also need to be removed
@@ -1209,8 +1206,9 @@ const Input: React.FC<{
             )
             .filter(
               (alert: IAlert) =>
-                alert.startOffset >= textStartingAbsPosition &&
-                alert.endOffset <= textEndAbsPosition
+                (alert.startOffset >= textStartingAbsPosition &&
+                  alert.endOffset <= textEndAbsPosition) ||
+                (isLinkedin() && alert.data.text.includes('#'))
             )
             .map((alert: IAlert) => {
               return {
@@ -1263,7 +1261,7 @@ const Input: React.FC<{
       sel.removeAllRanges();
       sel.addRange(range);
 
-      if (isCkeEditor(element)) {
+      if (isCkEditor(element)) {
         const deleteSelectedText = new KeyboardEvent('keydown', {
           key: 'Delete',
           bubbles: true,
@@ -1337,7 +1335,7 @@ const Input: React.FC<{
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
-    if (!isCkeEditor(element) && !isGoogleDocs()) {
+    if (!isCkEditor(element) && !isGoogleDocs()) {
       setTextToCheck(getInputText(element));
       const event = new Event('keyup', { bubbles: true });
       element.dispatchEvent(event);
