@@ -5,8 +5,8 @@ import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import {
   isBambooHr,
-  isCkeEditor,
-  isForalaEditor,
+  isCkEditor,
+  isFroalaEditor,
   isLinkedInMessage,
   isTextArea,
   isTinyMceEditor,
@@ -197,9 +197,9 @@ export const getCorrectedPosition = (
     isTextArea(element) ||
     (domain === 'linkedin.com' && pathContainsMessaging) ||
     domain === 'personio.de' || //exception for linkedin messaging and personio
-    isCkeEditor(element) ||
+    isCkEditor(element) ||
     isTinyMceEditor(element) ||
-    isForalaEditor(element) ||
+    isFroalaEditor(element) ||
     isLinkedInMessage() ||
     isBambooHr()
   ) {
