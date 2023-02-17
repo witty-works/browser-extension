@@ -7,6 +7,7 @@ import {
   isBambooHr,
   isCkeEditor,
   isForalaEditor,
+  isLinkedInMessage,
   isTextArea,
   isTinyMceEditor,
 } from './DOMutils';
@@ -199,6 +200,7 @@ export const getCorrectedPosition = (
     isCkeEditor(element) ||
     isTinyMceEditor(element) ||
     isForalaEditor(element) ||
+    isLinkedInMessage() ||
     isBambooHr()
   ) {
     elementRect = element.getBoundingClientRect();
