@@ -3,7 +3,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
-import { isGoogleDocs, isTextArea, nodeExistsInDOM } from '../shared/DOMutils';
+import {
+  isGoogleDocs,
+  isGreenhouse,
+  isTextArea,
+  nodeExistsInDOM,
+} from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
 import {
   getCorrectedPosition,
@@ -38,11 +43,21 @@ const Highlights: React.FC<HighlightsProps> = ({
         canvasRef.current.parentElement,
         element
       );
+
   const canvasSize = {
     width: elementRect.width,
-    height: isGoogleDocs() ? 2000 : elementRect.height, //2000 is about the height of two pages in google docs
+    height: isGoogleDocs() //2000 is about the height of two pages in google docs
+      ? 2000
+      : isGreenhouse() && //fix for greenhouse tinymc editor as height is not set propperly
+        highlights &&
+        highlights[highlights.length - 1]?.rects[0] &&
+        highlights[0]?.rects[0]
+      ? highlights[highlights.length - 1].rects[0].top -
+        highlights[0].rects[0].top +
+        50
+      : elementRect.height,
   };
-
+  console.log('nodesWithAlerts', nodesWithAlerts);
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);

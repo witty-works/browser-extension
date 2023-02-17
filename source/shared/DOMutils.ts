@@ -33,6 +33,11 @@ export const isForalaEditor = (element: Element): boolean => {
   const foralaEditor = element.closest('.fr-element');
   return !!foralaEditor;
 };
+
+export const isGreenhouse = (): boolean => {
+  return window.location.hostname.split('.').includes('greenhouse');
+};
+
 export const isHTMLElementContentEditable = (element: Element): boolean => {
   const elementAsHtmlElement = element as HTMLElement;
   return elementAsHtmlElement.contentEditable === 'true';
