@@ -16,9 +16,9 @@ export const isGoogleDocs = (): boolean => {
   return window.location.hostname === 'docs.google.com';
 };
 
-export const isCkeEditor = (element: Element): boolean => {
-  const ckeEditor = element.closest('.ck-content');
-  return !!ckeEditor;
+export const isCkEditor = (element: Element): boolean => {
+  const ckEditor = element.closest('.ck-content');
+  return !!ckEditor;
 };
 
 export const isTinyMceEditor = (element: Element): boolean => {
@@ -26,10 +26,25 @@ export const isTinyMceEditor = (element: Element): boolean => {
   return !!tinymceEditor;
 };
 
-export const isForalaEditor = (element: Element): boolean => {
+export const isBambooHr = (): boolean => {
+  return window.location.hostname.split('.').includes('bamboohr');
+};
+export const isFroalaEditor = (element: Element): boolean => {
   const foralaEditor = element.closest('.fr-element');
   return !!foralaEditor;
 };
+
+export const isLinkedInMessage = (): boolean => {
+  return (
+    !!getActiveDocument().querySelector('.msg-form__contenteditable') &&
+    isLinkedin()
+  );
+};
+
+export const isLinkedin = (): boolean => {
+  return window.location.hostname === 'www.linkedin.com';
+};
+
 export const isHTMLElementContentEditable = (element: Element): boolean => {
   const elementAsHtmlElement = element as HTMLElement;
   return elementAsHtmlElement.contentEditable === 'true';
