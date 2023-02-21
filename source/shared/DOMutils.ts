@@ -13,7 +13,7 @@ export const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
 
 export const isGoogleDocs = (): boolean => {
-  return window.location.hostname === 'docs.google.com';
+  return false; //window.location.hostname === 'docs.google.com';
 };
 
 export const isCkEditor = (element: Element): boolean => {
