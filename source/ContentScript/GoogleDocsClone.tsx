@@ -35,7 +35,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         //if gElement is not last child of inner element, add a new line after label
         const areaLabel =
           gElement !== innerElement.lastChild
-            ? svgRectElement.getAttribute('aria-label') + '\n'
+            ? svgRectElement.getAttribute('aria-label') + ' '
             : svgRectElement.getAttribute('aria-label');
 
         const elementRect = svgRectElement.getBoundingClientRect();
