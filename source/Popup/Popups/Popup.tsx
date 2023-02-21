@@ -377,16 +377,9 @@ const Popup: React.FC<PopupProps> = ({
 
   function handleClickDashboard() {
     analytics.dashboardLog('button_popup');
-    window.open(getBaseUrls().dashboard, '_blank');
+    window.open(getBaseUrls().dashboard + 'editor', '_blank');
   }
 
-  function handleClickLearnMore() {
-    window.open(
-      'https://www.witty.works/witty-for-teams',
-      '_blank',
-      'noopener'
-    );
-  }
   return (
     <>
       {numberOfNotifications > 0 ? (
@@ -492,7 +485,7 @@ const Popup: React.FC<PopupProps> = ({
                 </div>
               </div>
             )}
-            {hasWittyTeams && (
+            {(
               <div className='witty-works-ext-left'>
                 <div
                   className='witty-works-ext-button witty-works-ext-primary-button-red'
@@ -505,23 +498,6 @@ const Popup: React.FC<PopupProps> = ({
           </div>
         )}
       </div>
-      {!hasWittyTeams && !showSurvey && (
-        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
-          <div className='witty-works-ext-lato-popup-title'>
-            {t('getMoreTitle', { domain: 'miro.com' })}
-          </div>
-          <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'>
-            {t('getMoreText')}
-          </div>
-          <div
-            className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
-            onClick={handleClickLearnMore}
-          >
-            {t('learnMoreButton')}
-          </div>
-        </div>
-      )}
-
       {showSurvey && enabled.enabled && (
         <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
           <div className='witty-works-ext-container-row witty-works-ext-justify-start'>

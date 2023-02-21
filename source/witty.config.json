@@ -1,11 +1,11 @@
 {
   "DISABLED_SITES": [
-    "whatsapp.com",
     "productboard.com",
-    "airbnb.com",
     "trello.com"
   ],
   "ACTIVE_SITES": [
+    "whatsapp.com",
+    "airbnb.com",
     "joomla.org",
     "joomla.com",
     "drupal.org",
@@ -31,7 +31,10 @@
     "google.com",
     "linkedin.com",
     "github.com",
-    "prospective.ch"
+    "prospective.ch",
+    "notion.so",
+    "bamboohr.com",
+    "slack.com"
   ],
   "CHROME_AND_FIREFOX_SITES": [
     "chrome:",
