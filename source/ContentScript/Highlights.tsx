@@ -174,31 +174,22 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
-    console.log(
-      'RETURNING',
-      canvasRef,
-      correctedPosition,
-      highlights,
-      canvasSize
-    ),
-    (
-      <canvas
-        ref={canvasRef}
-        style={
-          {
-            position: 'absolute',
-            maxWidth: 'initial',
-            top: `${correctedPosition.top}px`,
-            left: `${correctedPosition.left}px`,
-            width: `${canvasSize.width}px`,
-            height: `${canvasSize.height}px`,
-            overflow: 'auto',
-            pointerEvents: 'none',
-            zIndex: isGoogleDocs() || isBambooHr() ? 9999999 : 'auto',
-          } as React.CSSProperties
-        }
-      ></canvas>
-    )
+    <canvas
+      ref={canvasRef}
+      style={
+        {
+          position: 'absolute',
+          maxWidth: 'initial',
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
+          width: `${canvasSize.width}px`,
+          height: `${canvasSize.height}px`,
+          overflow: 'auto',
+          pointerEvents: 'none',
+          zIndex: isGoogleDocs() || isBambooHr() ? 9999999 : 'auto',
+        } as React.CSSProperties
+      }
+    ></canvas>
   );
 };
 

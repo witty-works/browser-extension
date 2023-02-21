@@ -576,6 +576,18 @@ const Input: React.FC<{
 
     const textWithinMaxCharLength = nodesWhithinMaxCharLength
       .map((node) => node.node)
+      // { //FORMATS NICELY FOR FUTURE FIX
+      // const nodeText = node.node;
+      // const nodeTextStart = nodeText[0];
+      // const nodeTextEnd = nodeText[nodeText.length - 1];
+      // const nodeTextStartMatches = nodeTextStart.match(/[\(\[\\"\'\“\”]/);
+      // const nodeTextEndMatches = nodeTextEnd.match(/[\.\,\)\"\'\“\”\]]/);
+      // if (nodeTextStartMatches || nodeTextEndMatches) {
+      //   return nodeText + '!';
+      // } else {
+      //   return nodeText + ' ';
+      // }
+      // }
       .join('\n');
     if (currentText.length > maxCharLength) {
       const shortenedText = currentText.slice(0, maxCharLength);

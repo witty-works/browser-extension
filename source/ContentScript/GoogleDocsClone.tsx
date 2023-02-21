@@ -32,12 +32,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
       const gElement = childNode as CustomInputElement;
       for (const rectElement of gElement.childNodes) {
         const svgRectElement = rectElement as SVGRectElement;
-        //if gElement is not last child of inner element, add a new line after label
-        const areaLabel =
-          gElement !== innerElement.lastChild
-            ? svgRectElement.getAttribute('aria-label') + ' '
-            : svgRectElement.getAttribute('aria-label');
-
+        const areaLabel = svgRectElement.getAttribute('aria-label');
         const elementRect = svgRectElement.getBoundingClientRect();
         let elementStylesFont = svgRectElement.getAttribute('data-font-css');
         let elementStylesFontArray = [] as string[];
