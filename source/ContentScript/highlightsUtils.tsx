@@ -1,4 +1,5 @@
 import { isGoogleDocs } from '../shared/DOMutils';
+const minHighlightWidth = 8;
 
 export const drawLine = (params: any, color: string, dashedLine: boolean) => {
   const { context, rect, elementRect } = params;
@@ -9,12 +10,14 @@ export const drawLine = (params: any, color: string, dashedLine: boolean) => {
     y = rect.top;
     x = rect.left;
   }
+  const rectWidth =
+    rect.width < minHighlightWidth ? minHighlightWidth : rect.width;
 
   context.beginPath();
   dashedLine ? context.setLineDash([0, 4]) : context.setLineDash([0, 0]);
   context.lineCap = 'round';
   context.moveTo(x, y + rect.height);
-  context.lineTo(x + rect.width, y + rect.height);
+  context.lineTo(x + rectWidth, y + rect.height);
   dashedLine ? (context.lineWidth = 3) : (context.lineWidth = 2);
   context.strokeStyle = color;
   context.globalAlpha = 1;
@@ -31,7 +34,8 @@ export const drawHighlight = (params: any, color: string) => {
     x = rect.left;
   }
 
-  let width = rect.width + 3;
+  let width =
+    rect.width < minHighlightWidth ? minHighlightWidth : rect.width + 3;
   let height = rect.height - 1;
   let radius = 4;
 
