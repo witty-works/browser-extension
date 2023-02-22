@@ -223,7 +223,6 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
 export const getNodesWithinMaxCharLength = (
   direction: string,
   textDividedByNodes: Node[],
-  currentNodeRaw: Node,
   currentNode: number,
   charLengthLeft: number
 ) => {
@@ -240,11 +239,7 @@ export const getNodesWithinMaxCharLength = (
     .map((node) => {
       const newNode = {
         node: node.textContent as string,
-        index:
-          direction == 'below'
-            ? textDividedByNodes.indexOf(node) +
-              textDividedByNodes.indexOf(currentNodeRaw)
-            : textDividedByNodes.indexOf(node),
+        index: textDividedByNodes.indexOf(node),
       };
       return newNode;
     })
