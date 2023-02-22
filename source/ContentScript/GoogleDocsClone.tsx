@@ -32,11 +32,16 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
       const gElement = childNode as CustomInputElement;
       for (const rectElement of gElement.childNodes) {
         const svgRectElement = rectElement as SVGRectElement;
-        //if gElement is not last child of inner element, add a new line after label
-        const areaLabel =
-          gElement !== innerElement.lastChild
-            ? svgRectElement.getAttribute('aria-label') + '\n'
-            : svgRectElement.getAttribute('aria-label');
+        const areaLabel = svgRectElement.getAttribute('aria-label');
+        const areaLabelSplit = areaLabel?.split(' ');
+        areaLabelSplit?.forEach((label, index) => {
+          if (label === '') {
+            areaLabelSplit[index] = '\xa0';
+          } else {
+            areaLabelSplit[index] = label + ' ';
+          }
+        });
+        const areaLabelPreserved = areaLabelSplit?.join('');
 
         const elementRect = svgRectElement.getBoundingClientRect();
         let elementStylesFont = svgRectElement.getAttribute('data-font-css');
@@ -89,7 +94,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
                 } as React.CSSProperties
               }
             >
-              {areaLabel}
+              {areaLabelPreserved}
             </div>
           );
       }

@@ -31,7 +31,7 @@ interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
   hide: () => void;
-  updateTextWithAlternative: (alternative: string) => void;
+  updateTextWithAlternative: (alternative: string, category: string) => void;
   addIgnoredTerm: (term: string) => void;
   movePopoverNextOrPrev: (direction: string) => void;
   userIsSignedIn: boolean;
@@ -135,10 +135,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     left: `${x}px`,
   };
 
-  const clickAlternative = (alternative: string) => {
+  const clickAlternative = (alternative: string, category: string) => {
     //Log the clicked alternative
     analytics.alternativeLog(data.alert, alternative);
-    updateTextWithAlternative(alternative);
+    updateTextWithAlternative(alternative, category);
   };
 
   const clickIgnoreTerm = () => {
@@ -282,7 +282,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
                         key={`${index}-remove-it`}
                         //string can not be empty because of replacement issue on firefox
-                        onClick={() => clickAlternative(' ')}
+                        onClick={() =>
+                          clickAlternative(' ', data.alert.data.category)
+                        }
                       >
                         {data.alert.data.text}
                       </div>
@@ -301,7 +303,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
                         onClick={() =>
                           clickAlternative(
-                            data.alert.data.alternatives[index].text
+                            data.alert.data.alternatives[index].text,
+                            data.alert.data.category
                           )
                         }
                       >
