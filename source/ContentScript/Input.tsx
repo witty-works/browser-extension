@@ -238,8 +238,6 @@ const Input: React.FC<{
   const handleDocumentClickEvent = (event: any) => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
     const activeDocument = getActiveDocument();
-    //CHECK IS DOM CONTAINS ELEMENT WITH ID witty-works-ext-popover
-
     if (
       isGoogleDocs() &&
       !activeDocument.getElementById('witty-works-ext-popover')
@@ -338,8 +336,16 @@ const Input: React.FC<{
         if (!cloneRef.current || !cloneRef.current.childNodes) {
           return;
         }
+
+        const sortedChildNodes = Array.from(cloneRef.current.childNodes).sort(
+          (a, b) => {
+            const aRect = (a as HTMLElement).getBoundingClientRect();
+            const bRect = (b as HTMLElement).getBoundingClientRect();
+            return aRect.top - bRect.top;
+          }
+        );
         //get which cloneRef.current is under googleDocsElementCursorRect
-        cloneRef.current.childNodes.forEach((clone) => {
+        sortedChildNodes.forEach((clone) => {
           const htmlClone = clone as HTMLElement;
           const cloneRect = htmlClone.getBoundingClientRect();
           if (
@@ -546,14 +552,12 @@ const Input: React.FC<{
     const nodesWhithinMaxCharLengthBelowNode = getNodesWithinMaxCharLength(
       'below',
       textDividedByNodes,
-      currentNodeRaw,
       currentNode,
       charLengthLeft
     );
     const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
       'above',
       textDividedByNodes,
-      currentNodeRaw,
       currentNode,
       charLengthLeft
     );

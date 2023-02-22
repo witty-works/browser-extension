@@ -33,6 +33,16 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
       for (const rectElement of gElement.childNodes) {
         const svgRectElement = rectElement as SVGRectElement;
         const areaLabel = svgRectElement.getAttribute('aria-label');
+        const areaLabelSplit = areaLabel?.split(' ');
+        areaLabelSplit?.forEach((label, index) => {
+          if (label === '') {
+            areaLabelSplit[index] = '\xa0';
+          } else {
+            areaLabelSplit[index] = label + ' ';
+          }
+        });
+        const areaLabelPreserved = areaLabelSplit?.join('');
+
         const elementRect = svgRectElement.getBoundingClientRect();
         let elementStylesFont = svgRectElement.getAttribute('data-font-css');
         let elementStylesFontArray = [] as string[];
@@ -84,7 +94,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
                 } as React.CSSProperties
               }
             >
-              {areaLabel}
+              {areaLabelPreserved}
             </div>
           );
       }
