@@ -292,12 +292,12 @@ const Input: React.FC<{
           if (
             alertRect &&
             googleDocsElementCursorRect &&
-            googleDocsElementCursorRect.top + 2 >= alertRect.top && //+ 2 adds some slack for weird fonts
-            googleDocsElementCursorRect.left >= alertRect.left &&
-            googleDocsElementCursorRect.left <=
-              alertRect.left + alertRect.width &&
             googleDocsElementCursorRect.top + 2 <=
-              alertRect.top + alertRect.height
+              alertRect.top + alertRect.height &&
+            googleDocsElementCursorRect.top + 2 >= alertRect.top && //+ 2 adds some slack for weird fonts
+            googleDocsElementCursorRect.left + 2 >= alertRect.left && //+ 2 to add some slack when clickin in front of the word
+            googleDocsElementCursorRect.left + 2 <=
+              alertRect.left + alertRect.width
           ) {
             //get alert at alertRect
             const alert = node.alerts.find(
@@ -1246,17 +1246,21 @@ const Input: React.FC<{
     return nodesWithAlertsTemp;
   };
 
-  const updateTextWithAlternative = (alternative: string) => {
+  const updateTextWithAlternative = (alternative: string, category: string) => {
     const node = popoverData?.node as Node;
     const alert = selectedAlert as IAlert;
 
     if (isTextArea(element) || isInputText(element)) {
       element.selectionStart =
-        alternative == ' ' && alert.startOffset !== 0
+        alternative == ' ' &&
+        category !== 'orthography' &&
+        alert.startOffset !== 0
           ? alert.startOffset - 1
           : alert.startOffset;
       element.selectionEnd =
-        alternative == ' ' ? alert.endOffset + 1 : alert.endOffset;
+        alternative == ' ' && category !== 'orthography'
+          ? alert.endOffset + 1
+          : alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
@@ -1264,13 +1268,17 @@ const Input: React.FC<{
 
       range.setStart(
         node,
-        alternative == ' ' && alert.startOffset !== 0
+        alternative == ' ' &&
+          category !== 'orthography' &&
+          alert.startOffset !== 0
           ? alert.startOffset - 1
           : alert.startOffset
       );
       range.setEnd(
         node,
-        alternative == ' ' ? alert.endOffset + 1 : alert.endOffset
+        alternative == ' ' && category !== 'orthography'
+          ? alert.endOffset + 1
+          : alert.endOffset
       );
       const sel = getActiveDocument().getSelection();
       if (!sel) return;
