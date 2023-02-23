@@ -25,6 +25,7 @@ import {
   elementIsVisible,
   isChatGpt,
   isGoogleDocs,
+  isGoogleSheets,
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -357,7 +358,7 @@ const ContentScriptApp: React.FC = () => {
     if (hoveredElementRef.current) {
       removeAllHoverIndicators();
       if (
-        isGoogleDocs() &&
+        isGoogleSheets() &&
         hoveredElementRef.current.classList.contains('cell-input')
       ) {
         return;
@@ -445,7 +446,7 @@ const ContentScriptApp: React.FC = () => {
           getActiveDocument().createElement(WTags.WW_CONTAINER);
         highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
-        if (isGoogleDocs() && input.classList.contains('cell-input')) {
+        if (isGoogleSheets() && input.classList.contains('cell-input')) {
           return;
         }
 
