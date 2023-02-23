@@ -29,7 +29,6 @@ import {
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import debounce from 'lodash.debounce';
 
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
@@ -77,19 +76,16 @@ const ContentScriptApp: React.FC = () => {
     mutations.forEach(function (mutation) {
       [].filter
         .call(mutation.addedNodes, function (node: HTMLElement) {
+          if (node.nodeName == 'IFRAME') {
+            setIframeLoaded(!iframeLoaded);
+          }
           return node.nodeName == 'IFRAME';
         })
         .forEach(function (node: HTMLElement) {
           node.addEventListener('load', function () {});
         });
     });
-    debouncedMutation();
   });
-
-  const debouncedMutation = debounce(() => {
-    setIframeLoaded(!iframeLoaded);
-    console.log('mutaiton', iframeLoaded);
-  }, 1000);
 
   observer.observe(document.body, { childList: true, subtree: true });
 

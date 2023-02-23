@@ -27,7 +27,7 @@ export const isTinyMceEditor = (element: Element): boolean => {
 };
 
 export const isBambooHr = (): boolean => {
-  return window.location.hostname.split('.').includes('bamboohr');
+  return window.location.hostname.includes('bamboohr');
 };
 
 export const isFroalaEditor = (element: Element): boolean => {
@@ -36,7 +36,7 @@ export const isFroalaEditor = (element: Element): boolean => {
 };
 
 export const isGreenhouse = (): boolean => {
-  return window.location.hostname.split('.').includes('greenhouse');
+  return window.location.hostname.includes('greenhouse');
 };
 
 export const isLinkedInMessage = (): boolean => {
