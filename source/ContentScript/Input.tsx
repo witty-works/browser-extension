@@ -30,6 +30,7 @@ import {
   isCkEditor,
   isGoogleDocs,
   isLinkedin,
+  isNotion,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -384,6 +385,10 @@ const Input: React.FC<{
     if (isGoogleDocs()) {
       //keyup comes from clone update
       googleDocsEventTarget.addEventListener('focusin', handleFocusinEvent);
+    } else if (isNotion()) {
+      document
+        .querySelector('.notion-frame')
+        ?.addEventListener('keyup', handleKeyupEvent);
     } else {
       element.addEventListener('keyup', handleKeyupEvent);
       element.addEventListener('focusin', handleFocusinEvent);
@@ -396,6 +401,10 @@ const Input: React.FC<{
           'focusin',
           handleFocusinEvent
         );
+      } else if (isNotion()) {
+        document
+          .querySelector('.notion-frame')
+          ?.removeEventListener('keyup', handleKeyupEvent);
       } else {
         element.removeEventListener('keyup', handleKeyupEvent);
         element.removeEventListener('focusin', handleFocusinEvent);
@@ -518,7 +527,7 @@ const Input: React.FC<{
 
       //   setAlerts(mergedUnchangedAlerts);
       // }
-      if (nextText.length > maxCharLength) {
+      if (nextText.length > maxCharLength || isNotion()) {
         !isGoogleDocs() && setAlerts([]);
         const nodeAtFirstTextDiff =
           nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
@@ -580,19 +589,7 @@ const Input: React.FC<{
 
     const textWithinMaxCharLength = nodesWhithinMaxCharLength
       .map((node) => node.node)
-      // { //FORMATS NICELY FOR FUTURE FIX
-      // const nodeText = node.node;
-      // const nodeTextStart = nodeText[0];
-      // const nodeTextEnd = nodeText[nodeText.length - 1];
-      // const nodeTextStartMatches = nodeTextStart.match(/[\(\[\\"\'\“\”]/);
-      // const nodeTextEndMatches = nodeTextEnd.match(/[\.\,\)\"\'\“\”\]]/);
-      // if (nodeTextStartMatches || nodeTextEndMatches) {
-      //   return nodeText + '!';
-      // } else {
-      //   return nodeText + ' ';
-      // }
-      // }
-      .join('\n');
+      .join('');
     if (currentText.length > maxCharLength) {
       const shortenedText = currentText.slice(0, maxCharLength);
       nodesWhithinMaxCharLengthRef.current = [
@@ -679,6 +676,7 @@ const Input: React.FC<{
   const resetPopover = () => {
     setPopoverData(null);
     setSelectedAlert(null);
+    setSelectedAlertIndex(-1);
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -743,7 +741,6 @@ const Input: React.FC<{
 
           const oneNodeWithAlerts =
             nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
-
           if (oneNodeWithAlerts) {
             const caretPos = caret.position;
 
@@ -790,8 +787,6 @@ const Input: React.FC<{
                     alertWithLargestStartoffset.startOffset
                 );
             }
-
-            if (selectedAlertIndex === -1) return;
             if (prevSelectedAlertIndex.current === selectedAlertIndex) {
               resetPopover();
               return;
@@ -1151,7 +1146,6 @@ const Input: React.FC<{
         ) {
           absolutePositionOfFirstCharOfNode +=
             elementEvaluation.snapshotItem(index)?.textContent?.length || 0;
-          absolutePositionOfFirstCharOfNode += 1;
         }
 
         const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
@@ -1183,6 +1177,7 @@ const Input: React.FC<{
           });
       });
     } else {
+      //EVENTUALLY REFACTOR TO ONLY USE ABOVE CONDITION
       let textStartingAbsPosition: number = 0;
       let textEndAbsPosition: number = -1;
 
