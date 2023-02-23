@@ -20,6 +20,10 @@ export const isGoogleSheets = (): boolean => {
   return window.location.href.includes('docs.google.com/spreadsheets');
 };
 
+export const isNotion = (): boolean => {
+  return window.location.hostname === 'www.notion.so';
+};
+
 export const isCkEditor = (element: Element): boolean => {
   const ckEditor = element.closest('.ck-content');
   return !!ckEditor;

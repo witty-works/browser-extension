@@ -25,6 +25,7 @@ import {
   elementIsVisible,
   isChatGpt,
   isGoogleDocs,
+  isNotion,
   isGoogleSheets,
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
@@ -320,12 +321,15 @@ const ContentScriptApp: React.FC = () => {
     } else if (isChatGpt() && DEV_ENV) {
       const textFields = document.querySelectorAll('.markdown');
       target = textFields[textFields.length - 1] as CustomInputElement;
+    } else if (isNotion() && target.querySelector('main')) {
+      target = target.querySelector('main') as CustomInputElement;
     }
 
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
       (isGoogleDocs() && target) ||
-      (isChatGpt() && target)
+      (isChatGpt() && target) ||
+      isNotion()
     ) {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
@@ -453,10 +457,20 @@ const ContentScriptApp: React.FC = () => {
         //get first ancestior that is a div
         const ancestor = input.closest('div');
 
-        const parentElement =
-          input.tagName === 'rect' ? ancestor : input.parentElement;
-
-        parentElement && parentElement.insertBefore(highlightsContainer, input);
+        if (isNotion()) {
+          //Workaround as Notion blocks insertion of code on a deeper level
+          const notionParentElement =
+            document.querySelector('.notion-frame')?.firstChild;
+          notionParentElement?.insertBefore(
+            highlightsContainer,
+            notionParentElement.firstChild
+          );
+        } else {
+          const parentElement =
+            input.tagName === 'rect' ? ancestor : input.parentElement;
+          parentElement &&
+            parentElement.insertBefore(highlightsContainer, input);
+        }
         ReactDOM.render(<Input element={input} />, highlightsContainer);
       });
     }
