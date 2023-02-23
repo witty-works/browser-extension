@@ -186,7 +186,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           height: `${canvasSize.height}px`,
           overflow: 'auto',
           pointerEvents: 'none',
-          zIndex: isGoogleDocs() || isBambooHr() ? 9999999 : 'auto',
+          zIndex: isGoogleDocs() || isBambooHr() ? 501 : 'auto',
         } as React.CSSProperties
       }
     ></canvas>

@@ -36,9 +36,19 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         const areaLabelSplit = areaLabel?.split(' ');
         areaLabelSplit?.forEach((label, index) => {
           if (label === '') {
+            //multiple spaces in a row -> automatically truncated
             areaLabelSplit[index] = '\xa0';
-          } else {
+          } else if (
+            (index !== 0 || //dont add space if last character is a special character or the first char of next word is a special character
+              index !== areaLabelSplit.length - 1) &&
+            !areaLabelSplit[index]
+              .charAt(areaLabelSplit[index].length - 1)
+              ?.match(/[\(\[\"\'\“\-\_\`]/) &&
+            !areaLabelSplit[index + 1]?.charAt(0)?.match(/[\)\]\"\'\”\-\_\`]/)
+          ) {
             areaLabelSplit[index] = label + ' ';
+          } else {
+            areaLabelSplit[index] = label;
           }
         });
         const areaLabelPreserved = areaLabelSplit?.join('');
