@@ -30,6 +30,7 @@ import {
   isCkEditor,
   isGoogleDocs,
   isLinkedin,
+  isNotion,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -384,6 +385,10 @@ const Input: React.FC<{
     if (isGoogleDocs()) {
       //keyup comes from clone update
       googleDocsEventTarget.addEventListener('focusin', handleFocusinEvent);
+    } else if (isNotion()) {
+      document
+        .querySelector('.notion-frame')
+        ?.addEventListener('keyup', handleKeyupEvent);
     } else {
       element.addEventListener('keyup', handleKeyupEvent);
       element.addEventListener('focusin', handleFocusinEvent);
@@ -396,6 +401,10 @@ const Input: React.FC<{
           'focusin',
           handleFocusinEvent
         );
+      } else if (isNotion()) {
+        document
+          .querySelector('.notion-frame')
+          ?.removeEventListener('keyup', handleKeyupEvent);
       } else {
         element.removeEventListener('keyup', handleKeyupEvent);
         element.removeEventListener('focusin', handleFocusinEvent);
@@ -518,7 +527,7 @@ const Input: React.FC<{
 
       //   setAlerts(mergedUnchangedAlerts);
       // }
-      if (nextText.length > maxCharLength) {
+      if (nextText.length > maxCharLength || isNotion()) {
         !isGoogleDocs() && setAlerts([]);
         const nodeAtFirstTextDiff =
           nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
@@ -1183,6 +1192,7 @@ const Input: React.FC<{
           });
       });
     } else {
+      //EVENTUALLY REFACTOR TO ONLY USE ABOVE CONDITION
       let textStartingAbsPosition: number = 0;
       let textEndAbsPosition: number = -1;
 

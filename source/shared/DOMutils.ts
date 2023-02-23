@@ -16,6 +16,10 @@ export const isGoogleDocs = (): boolean => {
   return window.location.hostname === 'docs.google.com';
 };
 
+export const isNotion = (): boolean => {
+  return window.location.hostname === 'www.notion.so';
+};
+
 export const isCkEditor = (element: Element): boolean => {
   const ckEditor = element.closest('.ck-content');
   return !!ckEditor;
