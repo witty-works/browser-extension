@@ -10,7 +10,11 @@ import {
   isTextArea,
   nodeExistsInDOM,
 } from '../shared/DOMutils';
-import { drawHighlight, drawLine } from './highlightsUtils';
+import {
+  drawHighlight,
+  drawLine,
+  getGreenhouseHeight,
+} from './highlightsUtils';
 import {
   getCorrectedPosition,
   getCorrectedPositionCanvas,
@@ -49,16 +53,11 @@ const Highlights: React.FC<HighlightsProps> = ({
     width: elementRect.width,
     height: isGoogleDocs() //2000 is about the height of two pages in google docs
       ? 2000
-      : isGreenhouse() && //fix for greenhouse tinymc editor as height is not set propperly
-        highlights &&
-        highlights[highlights.length - 1]?.rects[0] &&
-        highlights[0]?.rects[0]
-      ? highlights[highlights.length - 1].rects[0].top -
-        highlights[0].rects[0].top +
-        50
+      : isGreenhouse()
+      ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
       : elementRect.height,
   };
-  console.log('nodesWithAlerts', nodesWithAlerts);
+
   useEffect(() => {
     const highlights: Highlight[] = [];
     if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
@@ -185,31 +184,22 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
-    console.log(
-      'RETURNING',
-      canvasRef,
-      correctedPosition,
-      highlights,
-      canvasSize
-    ),
-    (
-      <canvas
-        ref={canvasRef}
-        style={
-          {
-            position: 'absolute',
-            maxWidth: 'initial',
-            top: `${correctedPosition.top}px`,
-            left: `${correctedPosition.left}px`,
-            width: `${canvasSize.width}px`,
-            height: `${canvasSize.height}px`,
-            overflow: 'auto',
-            pointerEvents: 'none',
-            zIndex: isGoogleDocs() || isBambooHr() ? 9999999 : 'auto',
-          } as React.CSSProperties
-        }
-      ></canvas>
-    )
+    <canvas
+      ref={canvasRef}
+      style={
+        {
+          position: 'absolute',
+          maxWidth: 'initial',
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
+          width: `${canvasSize.width}px`,
+          height: `${canvasSize.height}px`,
+          overflow: 'auto',
+          pointerEvents: 'none',
+          zIndex: isGoogleDocs() || isBambooHr() ? 9999999 : 'auto',
+        } as React.CSSProperties
+      }
+    ></canvas>
   );
 };
 

@@ -77,7 +77,9 @@ const ContentScriptApp: React.FC = () => {
       [].filter
         .call(mutation.addedNodes, function (node: HTMLElement) {
           if (node.nodeName == 'IFRAME') {
-            setIframeLoaded(!iframeLoaded);
+            setTimeout(() => {
+              setIframeLoaded(!iframeLoaded);
+            }, 1000);
           }
           return node.nodeName == 'IFRAME';
         })
