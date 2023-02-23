@@ -688,6 +688,7 @@ const Input: React.FC<{
   const resetPopover = () => {
     setPopoverData(null);
     setSelectedAlert(null);
+    setSelectedAlertIndex(-1);
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -752,7 +753,6 @@ const Input: React.FC<{
 
           const oneNodeWithAlerts =
             nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
-
           if (oneNodeWithAlerts) {
             const caretPos = caret.position;
 
@@ -799,8 +799,6 @@ const Input: React.FC<{
                     alertWithLargestStartoffset.startOffset
                 );
             }
-
-            if (selectedAlertIndex === -1) return;
             if (prevSelectedAlertIndex.current === selectedAlertIndex) {
               resetPopover();
               return;
