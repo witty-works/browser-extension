@@ -13,7 +13,15 @@ export const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
 
 export const isGoogleDocs = (): boolean => {
-  return window.location.hostname === 'docs.google.com';
+  return window.location.href.includes('docs.google.com/document');
+};
+
+export const isGoogleSheets = (): boolean => {
+  return window.location.href.includes('docs.google.com/spreadsheets');
+};
+
+export const isNotion = (): boolean => {
+  return window.location.hostname === 'www.notion.so';
 };
 
 export const isCkEditor = (element: Element): boolean => {

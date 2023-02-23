@@ -32,11 +32,26 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
       const gElement = childNode as CustomInputElement;
       for (const rectElement of gElement.childNodes) {
         const svgRectElement = rectElement as SVGRectElement;
-        //if gElement is not last child of inner element, add a new line after label
-        const areaLabel =
-          gElement !== innerElement.lastChild
-            ? svgRectElement.getAttribute('aria-label') + '\n'
-            : svgRectElement.getAttribute('aria-label');
+        const areaLabel = svgRectElement.getAttribute('aria-label');
+        const areaLabelSplit = areaLabel?.split(' ');
+        areaLabelSplit?.forEach((label, index) => {
+          if (label === '') {
+            //multiple spaces in a row -> automatically truncated
+            areaLabelSplit[index] = '\xa0';
+          } else if (
+            (index !== 0 || //dont add space if last character is a special character or the first char of next word is a special character
+              index !== areaLabelSplit.length - 1) &&
+            !areaLabelSplit[index]
+              .charAt(areaLabelSplit[index].length - 1)
+              ?.match(/[\(\[\"\'\“\-\_\`]/) &&
+            !areaLabelSplit[index + 1]?.charAt(0)?.match(/[\)\]\"\'\”\-\_\`]/)
+          ) {
+            areaLabelSplit[index] = label + ' ';
+          } else {
+            areaLabelSplit[index] = label;
+          }
+        });
+        const areaLabelPreserved = areaLabelSplit?.join('');
 
         const elementRect = svgRectElement.getBoundingClientRect();
         let elementStylesFont = svgRectElement.getAttribute('data-font-css');
@@ -89,7 +104,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
                 } as React.CSSProperties
               }
             >
-              {areaLabel}
+              {areaLabelPreserved}
             </div>
           );
       }

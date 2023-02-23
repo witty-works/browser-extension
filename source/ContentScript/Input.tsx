@@ -30,6 +30,7 @@ import {
   isCkEditor,
   isGoogleDocs,
   isLinkedin,
+  isNotion,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -238,8 +239,6 @@ const Input: React.FC<{
   const handleDocumentClickEvent = (event: any) => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
     const activeDocument = getActiveDocument();
-    //CHECK IS DOM CONTAINS ELEMENT WITH ID witty-works-ext-popover
-
     if (
       isGoogleDocs() &&
       !activeDocument.getElementById('witty-works-ext-popover')
@@ -294,12 +293,12 @@ const Input: React.FC<{
           if (
             alertRect &&
             googleDocsElementCursorRect &&
-            googleDocsElementCursorRect.top + 2 >= alertRect.top && //+ 2 adds some slack for weird fonts
-            googleDocsElementCursorRect.left >= alertRect.left &&
-            googleDocsElementCursorRect.left <=
-              alertRect.left + alertRect.width &&
             googleDocsElementCursorRect.top + 2 <=
-              alertRect.top + alertRect.height
+              alertRect.top + alertRect.height &&
+            googleDocsElementCursorRect.top + 2 >= alertRect.top && //+ 2 adds some slack for weird fonts
+            googleDocsElementCursorRect.left + 2 >= alertRect.left && //+ 2 to add some slack when clickin in front of the word
+            googleDocsElementCursorRect.left + 2 <=
+              alertRect.left + alertRect.width
           ) {
             //get alert at alertRect
             const alert = node.alerts.find(
@@ -338,8 +337,16 @@ const Input: React.FC<{
         if (!cloneRef.current || !cloneRef.current.childNodes) {
           return;
         }
+
+        const sortedChildNodes = Array.from(cloneRef.current.childNodes).sort(
+          (a, b) => {
+            const aRect = (a as HTMLElement).getBoundingClientRect();
+            const bRect = (b as HTMLElement).getBoundingClientRect();
+            return aRect.top - bRect.top;
+          }
+        );
         //get which cloneRef.current is under googleDocsElementCursorRect
-        cloneRef.current.childNodes.forEach((clone) => {
+        sortedChildNodes.forEach((clone) => {
           const htmlClone = clone as HTMLElement;
           const cloneRect = htmlClone.getBoundingClientRect();
           if (
@@ -378,6 +385,10 @@ const Input: React.FC<{
     if (isGoogleDocs()) {
       //keyup comes from clone update
       googleDocsEventTarget.addEventListener('focusin', handleFocusinEvent);
+    } else if (isNotion()) {
+      document
+        .querySelector('.notion-frame')
+        ?.addEventListener('keyup', handleKeyupEvent);
     } else {
       element.addEventListener('keyup', handleKeyupEvent);
       element.addEventListener('focusin', handleFocusinEvent);
@@ -390,6 +401,10 @@ const Input: React.FC<{
           'focusin',
           handleFocusinEvent
         );
+      } else if (isNotion()) {
+        document
+          .querySelector('.notion-frame')
+          ?.removeEventListener('keyup', handleKeyupEvent);
       } else {
         element.removeEventListener('keyup', handleKeyupEvent);
         element.removeEventListener('focusin', handleFocusinEvent);
@@ -512,7 +527,7 @@ const Input: React.FC<{
 
       //   setAlerts(mergedUnchangedAlerts);
       // }
-      if (nextText.length > maxCharLength) {
+      if (nextText.length > maxCharLength || isNotion()) {
         !isGoogleDocs() && setAlerts([]);
         const nodeAtFirstTextDiff =
           nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
@@ -546,14 +561,12 @@ const Input: React.FC<{
     const nodesWhithinMaxCharLengthBelowNode = getNodesWithinMaxCharLength(
       'below',
       textDividedByNodes,
-      currentNodeRaw,
       currentNode,
       charLengthLeft
     );
     const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
       'above',
       textDividedByNodes,
-      currentNodeRaw,
       currentNode,
       charLengthLeft
     );
@@ -576,7 +589,7 @@ const Input: React.FC<{
 
     const textWithinMaxCharLength = nodesWhithinMaxCharLength
       .map((node) => node.node)
-      .join('\n');
+      .join('');
     if (currentText.length > maxCharLength) {
       const shortenedText = currentText.slice(0, maxCharLength);
       nodesWhithinMaxCharLengthRef.current = [
@@ -663,6 +676,7 @@ const Input: React.FC<{
   const resetPopover = () => {
     setPopoverData(null);
     setSelectedAlert(null);
+    setSelectedAlertIndex(-1);
   };
 
   const addIgnoredTerm = (term: string): void => {
@@ -727,7 +741,6 @@ const Input: React.FC<{
 
           const oneNodeWithAlerts =
             nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
-
           if (oneNodeWithAlerts) {
             const caretPos = caret.position;
 
@@ -774,8 +787,6 @@ const Input: React.FC<{
                     alertWithLargestStartoffset.startOffset
                 );
             }
-
-            if (selectedAlertIndex === -1) return;
             if (prevSelectedAlertIndex.current === selectedAlertIndex) {
               resetPopover();
               return;
@@ -1135,7 +1146,6 @@ const Input: React.FC<{
         ) {
           absolutePositionOfFirstCharOfNode +=
             elementEvaluation.snapshotItem(index)?.textContent?.length || 0;
-          absolutePositionOfFirstCharOfNode += 1;
         }
 
         const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
@@ -1167,6 +1177,7 @@ const Input: React.FC<{
           });
       });
     } else {
+      //EVENTUALLY REFACTOR TO ONLY USE ABOVE CONDITION
       let textStartingAbsPosition: number = 0;
       let textEndAbsPosition: number = -1;
 
@@ -1230,17 +1241,21 @@ const Input: React.FC<{
     return nodesWithAlertsTemp;
   };
 
-  const updateTextWithAlternative = (alternative: string) => {
+  const updateTextWithAlternative = (alternative: string, category: string) => {
     const node = popoverData?.node as Node;
     const alert = selectedAlert as IAlert;
 
     if (isTextArea(element) || isInputText(element)) {
       element.selectionStart =
-        alternative == ' ' && alert.startOffset !== 0
+        alternative == ' ' &&
+        category !== 'orthography' &&
+        alert.startOffset !== 0
           ? alert.startOffset - 1
           : alert.startOffset;
       element.selectionEnd =
-        alternative == ' ' ? alert.endOffset + 1 : alert.endOffset;
+        alternative == ' ' && category !== 'orthography'
+          ? alert.endOffset + 1
+          : alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
@@ -1248,13 +1263,17 @@ const Input: React.FC<{
 
       range.setStart(
         node,
-        alternative == ' ' && alert.startOffset !== 0
+        alternative == ' ' &&
+          category !== 'orthography' &&
+          alert.startOffset !== 0
           ? alert.startOffset - 1
           : alert.startOffset
       );
       range.setEnd(
         node,
-        alternative == ' ' ? alert.endOffset + 1 : alert.endOffset
+        alternative == ' ' && category !== 'orthography'
+          ? alert.endOffset + 1
+          : alert.endOffset
       );
       const sel = getActiveDocument().getSelection();
       if (!sel) return;

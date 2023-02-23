@@ -25,6 +25,8 @@ import {
   elementIsVisible,
   isChatGpt,
   isGoogleDocs,
+  isNotion,
+  isGoogleSheets,
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -323,12 +325,15 @@ const ContentScriptApp: React.FC = () => {
     } else if (isChatGpt() && DEV_ENV) {
       const textFields = document.querySelectorAll('.markdown');
       target = textFields[textFields.length - 1] as CustomInputElement;
+    } else if (isNotion() && target.querySelector('main')) {
+      target = target.querySelector('main') as CustomInputElement;
     }
 
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
       (isGoogleDocs() && target) ||
-      (isChatGpt() && target)
+      (isChatGpt() && target) ||
+      isNotion()
     ) {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
@@ -361,7 +366,7 @@ const ContentScriptApp: React.FC = () => {
     if (hoveredElementRef.current) {
       removeAllHoverIndicators();
       if (
-        isGoogleDocs() &&
+        isGoogleSheets() &&
         hoveredElementRef.current.classList.contains('cell-input')
       ) {
         return;
@@ -449,17 +454,27 @@ const ContentScriptApp: React.FC = () => {
           getActiveDocument().createElement(WTags.WW_CONTAINER);
         highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
-        if (isGoogleDocs() && input.classList.contains('cell-input')) {
+        if (isGoogleSheets() && input.classList.contains('cell-input')) {
           return;
         }
 
         //get first ancestior that is a div
         const ancestor = input.closest('div');
 
-        const parentElement =
-          input.tagName === 'rect' ? ancestor : input.parentElement;
-
-        parentElement && parentElement.insertBefore(highlightsContainer, input);
+        if (isNotion()) {
+          //Workaround as Notion blocks insertion of code on a deeper level
+          const notionParentElement =
+            document.querySelector('.notion-frame')?.firstChild;
+          notionParentElement?.insertBefore(
+            highlightsContainer,
+            notionParentElement.firstChild
+          );
+        } else {
+          const parentElement =
+            input.tagName === 'rect' ? ancestor : input.parentElement;
+          parentElement &&
+            parentElement.insertBefore(highlightsContainer, input);
+        }
         ReactDOM.render(<Input element={input} />, highlightsContainer);
       });
     }
