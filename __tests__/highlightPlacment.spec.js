@@ -58,7 +58,7 @@ test.describe('Highlights', () => {
         await page.fill('#witty_editor', testText);
         await page.keyboard.press('Space');
 
-        await page.waitForTimeout(4000); //wait for api to respond with highlights
+        await page.waitForTimeout(6000); //wait for api to respond with highlights
 
         await page.locator('#witty_editor').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot({
@@ -84,7 +84,7 @@ test.describe('Highlights', () => {
         await page.fill('#witty_editor', testText);
         await page.keyboard.press('Space');
 
-        await page.waitForTimeout(4000); //wait for api to respond with highlights
+        await page.waitForTimeout(6000); //wait for api to respond with highlights
 
         await page.locator('#witty_editor').screenshot().then(async (screenshot) => {
             //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
