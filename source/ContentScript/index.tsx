@@ -10,7 +10,7 @@ import {
 } from '../shared/constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
-import { getDomainWithoutSubdomain } from '../shared/utils';
+import { getDomainWithoutSubdomain, getNewAccessToken } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import {
   customRender,
@@ -70,7 +70,13 @@ const handleDomainToUpdate = () => {
           },
         }
       ).then(async (response) => {
-        if (response.ok) {
+        console.log('response', response);
+        if (response.status == 403) {
+          console.log('response 403', response.status);
+          getNewAccessToken();
+
+          //Don't toggle & display 'sorry could not update,try again' to user
+        } else if (response.ok) {
           await browser.storage.local.set({
             [StorageKeys.DOMAIN_TO_UPDATE]: null,
           });

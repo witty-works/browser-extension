@@ -19,11 +19,7 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import {
-  storeInLocalStorage,
-  addLoginBadge,
-  getRandomToken,
-} from '../shared/utils';
+import { storeInLocalStorage, logOut } from '../shared/utils';
 import {
   isTextArea,
   isInputText,
@@ -1387,15 +1383,6 @@ const Input: React.FC<{
       logTypes.ERROR
     );
   }, [checkEndpointError, authErrorResponse]);
-
-  const logOut = () => {
-    storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
-    storeInLocalStorage(StorageKeys.USER_ID, '');
-    storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
-    storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
-    storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
-    addLoginBadge();
-  };
 
   useEffect(() => {
     if (refreshTokenError?.status === 403) {

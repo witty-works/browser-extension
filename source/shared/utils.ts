@@ -12,6 +12,7 @@ import {
   isTinyMceEditor,
 } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
+import { createUrl, getBaseUrls } from './ApiServices/requests';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -108,6 +109,53 @@ export const addLoginBadge = () => {
     color: [190, 190, 190, 230],
   });
   browser.browserAction.setBadgeText({ text: 'Login' });
+};
+
+export const getNewAccessToken = async () => {
+  browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
+    console.log('refresh token', result[StorageKeys.REFRESH_TOKEN]);
+    if (!result[StorageKeys.REFRESH_TOKEN]) {
+      console.log('no refresh token');
+      logOut();
+      return;
+    }
+    console.log('request to:', getBaseUrls().dashboard);
+    fetch(createUrl(getBaseUrls().dashboard, 'api/refresh-token'), {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        body: JSON.stringify({
+          refresh_token: result[StorageKeys.REFRESH_TOKEN],
+        }),
+      },
+    }).then(async (response) => {
+      if (!response || !response.ok) {
+        console.log('no refresh token response', response);
+        logOut();
+        return;
+      }
+      const responseJson = await response.json();
+
+      console.log('response REFRESH', responseJson);
+
+      storeInLocalStorage(
+        StorageKeys.REFRESH_TOKEN,
+        responseJson.refresh_token
+      );
+
+      storeInLocalStorage(StorageKeys.ACCESS_TOKEN, responseJson.access_token);
+    });
+  });
+};
+
+export const logOut = () => {
+  storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
+  storeInLocalStorage(StorageKeys.USER_ID, '');
+  storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
+  storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
+  storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
+  addLoginBadge();
 };
 
 export const removeBadge = () => {
