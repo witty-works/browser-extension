@@ -169,6 +169,10 @@ const ContentScriptApp: React.FC = () => {
     browser.storage.onChanged.addListener(storageChange);
     const iframes = document.querySelectorAll('iframe');
     iframes.forEach((iframe: any) => {
+      // console.log('iframe', iframe);
+      console.log('iframe.contentDocument', iframe.contentDocument);
+      console.log('iframe.contentWindow', iframe.contentWindow);
+      // console.log('iframe.contentWindow[0]', iframe.contentWindow[0]);
       if (iframe.contentDocument && iframe.contentDocument.body) {
         iframe.contentDocument.body.addEventListener(
           'focusin',
@@ -176,6 +180,45 @@ const ContentScriptApp: React.FC = () => {
         );
       }
     });
+
+    document.activeElement?.addEventListener('focusin', handleFocusinElement);
+
+    console.log(
+      'document.activeElement',
+      document.activeElement,
+      document.activeElement?.querySelectorAll('.hs_cos_wrapper')
+    );
+
+    // browser.runtime.sendMessage({
+    //   type: 'getIframe',
+    // });
+
+    // browser.runtime.onMessage.addListener((message) => {
+    //   console.log('message', message);
+    //   if (message.type === 'iframe') {
+    //     console.log('iframe', message.iframe);
+    //     message.iframe.contentDocument.body.addEventListener(
+    //       'focusin',
+    //       handleFocusinElement
+    //     );
+    //   }
+    // });
+
+    // console.log('iframes', iframes);
+
+    // window.addEventListener(
+    //   'message',
+    //   (event) => {
+    //     //get post message from iframe
+    //     console.log('Received message: ', event.origin, event.data);
+    //   },
+    //   false
+    // );
+    // //get elemnts with class hs_cos_wrapper from iframes
+    // iframes.forEach((iframe: any) => {
+    //   if (iframe.contentDocument) return; //not cross-origin
+    //   iframe.contentWindow.postMessage('page_info', '*');
+    // });
 
     !isGoogleDocs() &&
       document.addEventListener('focusin', handleFocusinElement, true);
@@ -317,6 +360,7 @@ const ContentScriptApp: React.FC = () => {
 
   const handleFocusinElement = (event?: Event) => {
     let target = event?.target as CustomInputElement;
+    console.log('focusin', target);
     //if no target, target is the child of #docs-texteventtarget-descendant
     if (isGoogleDocs()) {
       target = document.querySelector(
