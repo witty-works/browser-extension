@@ -10,14 +10,14 @@ import {
 } from '../shared/constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
-import { getDomainWithoutSubdomain, getNewAccessToken } from '../shared/utils';
+import { getDomainWithoutSubdomain } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import {
   customRender,
   handleDomainsFromDashboard,
   makeAuthRequest,
 } from './utils';
-import { createUrl, setBaseUrls } from '../shared/ApiServices/requests';
+import { setBaseUrls } from '../shared/ApiServices/requests';
 
 const log = useLog('ContentScript index');
 const domain = getDomainWithoutSubdomain(window.location.hostname);
@@ -45,46 +45,6 @@ if (exposeWittyIdAllowList.includes(domain)) {
     }
   });
 }
-
-const handleDomainToUpdate = () => {
-  browser.storage.local.get(null).then((result) => {
-    if (
-      result[StorageKeys.DOMAIN_TO_UPDATE] &&
-      result[StorageKeys.ACCESS_TOKEN] &&
-      result[StorageKeys.API_ENDPOINT_KEY]
-    ) {
-      fetch(
-        createUrl(
-          BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].dashboard,
-          `api/user/language/domains?` +
-            new URLSearchParams({
-              domain: result[StorageKeys.DOMAIN_TO_UPDATE].domain,
-            })
-        ),
-        {
-          method: result[StorageKeys.DOMAIN_TO_UPDATE].enabled
-            ? 'DELETE'
-            : 'PUT',
-          headers: {
-            Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
-          },
-        }
-      ).then(async (response) => {
-        console.log('response', response);
-        if (response.status == 403) {
-          console.log('response 403', response.status);
-          getNewAccessToken();
-
-          //Don't toggle & display 'sorry could not update,try again' to user
-        } else if (response.ok) {
-          await browser.storage.local.set({
-            [StorageKeys.DOMAIN_TO_UPDATE]: null,
-          });
-        }
-      });
-    }
-  });
-};
 
 browser.storage.local
   .get(null)
@@ -132,9 +92,6 @@ const storageChange = (changes: any) => {
         }
         break;
 
-      case StorageKeys.DOMAIN_TO_UPDATE:
-        handleDomainToUpdate();
-        break;
       case StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK:
         customRender(
           changes[item].newValue

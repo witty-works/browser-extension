@@ -53,6 +53,7 @@ export const de = {
     websiteSettingsDeactivated:
       'Du hast uns mitgeteilt, dass Witty auf {{Domain}} nicht funktioniert.',
     tryAgainOnThisWebsite: 'Erneut auf dieser Website versuchen',
+    enableWittyFailed: 'Could not update, try again',
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
     resetSettings: 'Einstellungen zurücksetzen',
     loggedInTo: 'Logged in to',
@@ -150,12 +151,13 @@ export const en = {
     websiteSettingsDeactivated:
       'You reported that Witty does not work on {{domain}}',
     tryAgainOnThisWebsite: 'Try again on this website',
+    enableWittyFailed: 'Could not update, try again',
     lockedInfo: 'This feature has been locked by your team admin.',
     resetSettings: 'Reset settings',
     loggedInTo: 'Logged in to',
     popupsBlocked: 'Popups are blocked',
     popupsBlockedText:
-      'To log in, please copy and paste the link into your browser\'s URL bar.',
+      "To log in, please copy and paste the link into your browser's URL bar.",
     copyLink: 'Copy Link',
     copiedConfirmation: 'link Copied',
   },

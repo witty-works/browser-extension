@@ -35,7 +35,6 @@ export enum StorageKeys {
   ORGANIZATION_DOMAINS = 'organizationDomains',
   CONFIG_HASH = 'configHash',
   ORGANIZATION_CONFIG_HASH = 'organizationConfigHash',
-  DOMAIN_TO_UPDATE = 'domainToUpdate',
 
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 

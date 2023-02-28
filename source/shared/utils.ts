@@ -12,7 +12,7 @@ import {
   isTinyMceEditor,
 } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
-import { createUrl, getBaseUrls } from './ApiServices/requests';
+import { getToken } from './ApiServices/requests';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -113,37 +113,25 @@ export const addLoginBadge = () => {
 
 export const getNewAccessToken = async () => {
   browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
-    console.log('refresh token', result[StorageKeys.REFRESH_TOKEN]);
     if (!result[StorageKeys.REFRESH_TOKEN]) {
-      console.log('no refresh token');
       logOut();
       return;
     }
-    console.log('request to:', getBaseUrls().dashboard);
-    fetch(createUrl(getBaseUrls().dashboard, 'api/refresh-token'), {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        body: JSON.stringify({
-          refresh_token: result[StorageKeys.REFRESH_TOKEN],
-        }),
-      },
-    }).then(async (response) => {
+    const request = getToken(result[StorageKeys.REFRESH_TOKEN]);
+    if (!request.config) {
+      logOut();
+      return;
+    }
+    fetch(request.url, request.config).then(async (response) => {
       if (!response || !response.ok) {
-        console.log('no refresh token response', response);
         logOut();
         return;
       }
       const responseJson = await response.json();
-
-      console.log('response REFRESH', responseJson);
-
       storeInLocalStorage(
         StorageKeys.REFRESH_TOKEN,
         responseJson.refresh_token
       );
-
       storeInLocalStorage(StorageKeys.ACCESS_TOKEN, responseJson.access_token);
     });
   });
