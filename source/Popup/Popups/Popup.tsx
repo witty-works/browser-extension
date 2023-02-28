@@ -305,7 +305,7 @@ const Popup: React.FC<PopupProps> = ({
   }, [authResponseConfig, orthography, inclusiveLanguage, styleCorrections]);
 
   useEffect(() => {
-    console.log('authErrorResponse', authErrorResponse);
+    DEV_ENV && console.log('authErrorResponse', authErrorResponse);
     // if (authErrorResponse?.status == 403) {
     //   logOut();
     // }
@@ -485,7 +485,7 @@ const Popup: React.FC<PopupProps> = ({
                 </div>
               </div>
             )}
-            {(
+            {
               <div className='witty-works-ext-left'>
                 <div
                   className='witty-works-ext-button witty-works-ext-primary-button-red'
@@ -494,7 +494,7 @@ const Popup: React.FC<PopupProps> = ({
                   {t('goToDashboard')}
                 </div>
               </div>
-            )}
+            }
           </div>
         )}
       </div>

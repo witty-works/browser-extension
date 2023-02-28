@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { IEndpointError, IRequest } from '../types';
 import { useLog, logTypes } from '../customHooks/useLog';
 import Ajv, { JSONSchemaType } from 'ajv';
-import { WTags } from '../constants';
+import { DEV_ENV, WTags } from '../constants';
 import { getActiveDocument } from '../../ContentScript/ContentScriptApp';
 const ajv = new Ajv();
 
@@ -58,7 +58,8 @@ const useApiResult = <TResponse,>(
             !validateResponse(responseResults) &&
             validateResponse.errors
           ) {
-            console.log('validateResponse.errors', validateResponse.errors);
+            DEV_ENV &&
+              console.log('validateResponse.errors', validateResponse.errors);
             log(
               `JSON Schema Error: ${validateResponse.errors.join(', ')}`,
               logTypes.ERROR

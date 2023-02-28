@@ -1,6 +1,6 @@
 import { browser } from 'webextension-polyfill-ts';
 import { useAnalytics } from './ApiServices/useAnalytics';
-import { StorageKeys, wittyVersion, WTags } from './constants';
+import { DEV_ENV, StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import {
@@ -35,12 +35,13 @@ export const storeInLocalStorage = (key: string, value: any) => {
         : `value with key: ${key} is undefined`;
       // const data = typeof value === 'object' ? Object.keys(value) : value;
 
-      console.log(
-        `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
-        `color: #55B8E9`,
-        `color: #5fca7d`,
-        `color: #000`
-      );
+      DEV_ENV &&
+        console.log(
+          `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
+          `color: #55B8E9`,
+          `color: #5fca7d`,
+          `color: #000`
+        );
     })
     .catch((error: unknown) => {
       //this error means that the extension was deactivated or uninstalled, in this case we delete the container
