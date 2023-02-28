@@ -1191,6 +1191,12 @@ const Input: React.FC<{
             continue;
           }
 
+          textStartingAbsPosition = textEndAbsPosition + 1;
+          textEndAbsPosition =
+            nodesWhithinMaxCharLengthRef.current.length == 0
+              ? textStartingAbsPosition + node.nodeValue.length - 1 //needed to keep highlights in place
+              : textStartingAbsPosition + node.nodeValue.length;
+
           if (nodesWhithinMaxCharLengthRef.current.length == 0) {
             const nextText: string = isGoogleDocs()
               ? getInputText(cloneRef.current)
@@ -1199,12 +1205,6 @@ const Input: React.FC<{
               textEndAbsPosition += 1;
             }
           }
-
-          textStartingAbsPosition = textEndAbsPosition + 1;
-          textEndAbsPosition =
-            nodesWhithinMaxCharLengthRef.current.length == 0
-              ? textStartingAbsPosition + node.nodeValue.length - 1 //needed to keep highlights in place
-              : textStartingAbsPosition + node.nodeValue.length;
 
           const alertsTemp: IAlert[] = alerts
             .filter(
