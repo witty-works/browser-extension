@@ -9,7 +9,7 @@ export const useLog = (
   componentName?: string
 ): ((message: string, type?: string, data?: any) => void) => {
   const log = (message: string, type?: string, data?: any) => {
-    if (DEV_ENV) {
+    DEV_ENV &&
       console.log(
         `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
         `color: ${Colors.blue}`,
@@ -17,7 +17,6 @@ export const useLog = (
         `color: ${type && type === logTypes.ERROR ? '#f00' : '#000'}`,
         data ? data : ''
       );
-    }
   };
 
   return log;

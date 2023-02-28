@@ -53,7 +53,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
   const log = useLog('PopupLogin');
   const onStorageError = (error: unknown) => {
-    console.log(`onBrowserStorage Error: ${error}`);
+    DEV_ENV && console.log(`onBrowserStorage Error: ${error}`);
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
   };
