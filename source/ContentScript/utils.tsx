@@ -28,52 +28,17 @@ export const updateConfig = (response: IAuthResponse) => {
   );
   storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
   Object.keys(response.config).forEach((key) => {
-    switch (key) {
-      case 'gendered_roles_format':
-        storeInLocalStorage(
-          StorageKeys.GENDERED_ROLES_FORMAT,
-          response.config[key]
-        );
-        break;
-      case 'german_gender_ending':
-        storeInLocalStorage(
-          StorageKeys.GERMAN_GENDER_ENDING,
-          response.config[key]
-        );
-        break;
-      case 'inclusive':
-        response.config[key].status == 'force' &&
-          storeInLocalStorage(StorageKeys.INCLUSIVE, response.config[key]);
-        break;
-      case 'maximum_importance':
-        storeInLocalStorage(
-          StorageKeys.MAXIMUM_IMPORTANCE,
-          response.config[key]
-        );
-        break;
-      case 'orthography':
-        response.config[key].status == 'force' &&
-          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, response.config[key]);
-        break;
-      case 'preferred_variants':
-        storeInLocalStorage(
-          StorageKeys.PREFERRED_VARIANTS,
-          response.config[key]
-        );
-        break;
-      case 'show_inspiration_alternatives':
-        storeInLocalStorage(
-          StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-          response.config[key]
-        );
-        break;
-      case 'singular_they':
-        storeInLocalStorage(StorageKeys.SINGULAR_THEY, response.config[key]);
-        break;
-      case 'style':
-        response.config[key].status == 'force' &&
-          storeInLocalStorage(StorageKeys.STYLE, response.config[key]);
-        break;
+    const keysForPopover = ['inclusive', 'orthography', 'style'];
+    if (
+      (keysForPopover.includes(key) &&
+        (response.config[key as keyof typeof response.config] as any).status ==
+          'force') ||
+      !keysForPopover.includes(key)
+    ) {
+      storeInLocalStorage(
+        StorageKeys[key.toUpperCase() as keyof typeof StorageKeys],
+        response.config[key as keyof typeof response.config] || null
+      );
     }
   });
 };
