@@ -13,31 +13,20 @@ import { createUrl } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
 
 export const updateConfig = (response: IAuthResponse) => {
-  response.organization_id &&
-    storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response.organization_id);
-  response.id && storeInLocalStorage(StorageKeys.USER_ID, response.id);
-
-  response.domains &&
-    storeInLocalStorage(StorageKeys.DOMAINS, response.domains.list);
-
-  response.plan && storeInLocalStorage(StorageKeys.PLAN, response.plan);
-
-  response.organization_domains &&
-    storeInLocalStorage(
-      StorageKeys.ORGANIZATION_DOMAINS,
-      response.organization_domains
-    );
-  response.config_hash &&
-    storeInLocalStorage(StorageKeys.CONFIG_HASH, response.config_hash);
-
-  response.organization_config_hash &&
-    storeInLocalStorage(
-      StorageKeys.ORGANIZATION_CONFIG_HASH,
-      response.organization_config_hash
-    );
-
-  response.organization_name &&
-    storeInLocalStorage(StorageKeys.TEAM_NAME, response.organization_name);
+  storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response?.organization_id);
+  storeInLocalStorage(StorageKeys.USER_ID, response?.id);
+  storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list);
+  storeInLocalStorage(StorageKeys.PLAN, response?.plan);
+  storeInLocalStorage(
+    StorageKeys.ORGANIZATION_DOMAINS,
+    response?.organization_domains
+  );
+  storeInLocalStorage(StorageKeys.CONFIG_HASH, response?.config_hash);
+  storeInLocalStorage(
+    StorageKeys.ORGANIZATION_CONFIG_HASH,
+    response?.organization_config_hash
+  );
+  storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
   Object.keys(response.config).forEach((key) => {
     switch (key) {
       case 'gendered_roles_format':
