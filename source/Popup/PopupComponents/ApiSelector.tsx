@@ -49,7 +49,9 @@ const ApiSelector: React.FC = () => {
         [StorageKeys.API_ENDPOINT_KEY]: value,
       })
       .then(() => {
-        logOut();
+        if (value == 'Prod' || value == 'Dev') {
+          logOut();
+        }
         log(`New api endpoint ${value} saved`);
       })
       .catch(onError);
