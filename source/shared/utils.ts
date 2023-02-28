@@ -12,6 +12,7 @@ import {
   isTinyMceEditor,
 } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
+import { getToken } from './ApiServices/requests';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -109,6 +110,41 @@ export const addLoginBadge = () => {
     color: [190, 190, 190, 230],
   });
   browser.browserAction.setBadgeText({ text: 'Login' });
+};
+
+export const getNewAccessToken = async () => {
+  browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
+    if (!result[StorageKeys.REFRESH_TOKEN]) {
+      logOut();
+      return;
+    }
+    const request = getToken(result[StorageKeys.REFRESH_TOKEN]);
+    if (!request.config) {
+      logOut();
+      return;
+    }
+    fetch(request.url, request.config).then(async (response) => {
+      if (!response || !response.ok) {
+        logOut();
+        return;
+      }
+      const responseJson = await response.json();
+      storeInLocalStorage(
+        StorageKeys.REFRESH_TOKEN,
+        responseJson.refresh_token
+      );
+      storeInLocalStorage(StorageKeys.ACCESS_TOKEN, responseJson.access_token);
+    });
+  });
+};
+
+export const logOut = () => {
+  storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
+  storeInLocalStorage(StorageKeys.USER_ID, '');
+  storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
+  storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
+  storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
+  addLoginBadge();
 };
 
 export const removeBadge = () => {

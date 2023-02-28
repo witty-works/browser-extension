@@ -11,11 +11,13 @@ import {
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
+  BaseUrls,
 } from '../../shared/constants';
 import {
   addInactiveBadge,
   addLoginBadge,
   addNotificationBadge,
+  getNewAccessToken,
   removeBadge,
   storeInLocalStorage,
 } from '../../shared/utils';
@@ -28,6 +30,7 @@ import DelaySelector from '../PopupComponents/DelaySelector';
 import defaultConfig from '../../witty.config.json';
 import '../styles.scss';
 import {
+  createUrl,
   getBaseUrls,
   setBaseUrls,
   setToken,
@@ -76,6 +79,8 @@ const Popup: React.FC<PopupProps> = ({
   const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
     defaultConfig.STYLE
   );
+  const [updatingDashboardFailed, setUpdatingDashboardFailed] =
+    useState<boolean>(false);
   const [casing, setCasing] = useState<boolean>(true);
   const [casingSites, setCasingSites] = useState<string[]>(
     defaultConfig.CASING_SITES
@@ -202,11 +207,12 @@ const Popup: React.FC<PopupProps> = ({
 
   useEffect(() => {
     if (domain) {
-      enabled.updateDashboard &&
-        storeInLocalStorage(StorageKeys.DOMAIN_TO_UPDATE, {
+      if (enabled.updateDashboard) {
+        handleDomainToUpdate({
           domain: domain,
           enabled: enabled.enabled,
         });
+      }
 
       !enabled &&
         storeInLocalStorage(StorageKeys.DOMAINS, [
@@ -380,6 +386,41 @@ const Popup: React.FC<PopupProps> = ({
     window.open(getBaseUrls().dashboard + 'editor', '_blank');
   }
 
+  const handleDomainToUpdate = (domain: any) => {
+    browser.storage.local.get(null).then((result) => {
+      if (
+        result[StorageKeys.ACCESS_TOKEN] &&
+        result[StorageKeys.API_ENDPOINT_KEY]
+      ) {
+        fetch(
+          createUrl(
+            BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].dashboard,
+            `api/user/language/domains?` +
+              new URLSearchParams({
+                domain: domain.domain,
+              })
+          ),
+          {
+            method: domain.enabled ? 'DELETE' : 'PUT',
+            headers: {
+              Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
+            },
+          }
+        ).then(async (response) => {
+          if (response.status == 403) {
+            setUpdatingDashboardFailed(true);
+            setEnabled({ enabled: !enabled.enabled, updateDashboard: false });
+            setTimeout(() => {
+              setUpdatingDashboardFailed(false);
+            }, 3000);
+
+            getNewAccessToken();
+          }
+        });
+      }
+    });
+  };
+
   return (
     <>
       {numberOfNotifications > 0 ? (
@@ -403,6 +444,8 @@ const Popup: React.FC<PopupProps> = ({
               label={
                 domainIsSetAsNotWorking
                   ? t('tryAgainOnThisWebsite')
+                  : updatingDashboardFailed
+                  ? t('enableWittyFailed')
                   : t('enableWitty')
               }
               locked={isLocked}
