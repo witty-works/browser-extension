@@ -1,6 +1,6 @@
 import { browser } from 'webextension-polyfill-ts';
 import { useAnalytics } from './ApiServices/useAnalytics';
-import { StorageKeys, wittyVersion, WTags } from './constants';
+import { DEV_ENV, StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import {
@@ -12,6 +12,7 @@ import {
   isTinyMceEditor,
 } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
+import { getToken } from './ApiServices/requests';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -35,12 +36,13 @@ export const storeInLocalStorage = (key: string, value: any) => {
         : `value with key: ${key} is undefined`;
       // const data = typeof value === 'object' ? Object.keys(value) : value;
 
-      console.log(
-        `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
-        `color: #55B8E9`,
-        `color: #5fca7d`,
-        `color: #000`
-      );
+      DEV_ENV &&
+        console.log(
+          `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
+          `color: #55B8E9`,
+          `color: #5fca7d`,
+          `color: #000`
+        );
     })
     .catch((error: unknown) => {
       //this error means that the extension was deactivated or uninstalled, in this case we delete the container
@@ -108,6 +110,41 @@ export const addLoginBadge = () => {
     color: [190, 190, 190, 230],
   });
   browser.browserAction.setBadgeText({ text: 'Login' });
+};
+
+export const getNewAccessToken = async () => {
+  browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
+    if (!result[StorageKeys.REFRESH_TOKEN]) {
+      logOut();
+      return;
+    }
+    const request = getToken(result[StorageKeys.REFRESH_TOKEN]);
+    if (!request.config) {
+      logOut();
+      return;
+    }
+    fetch(request.url, request.config).then(async (response) => {
+      if (!response || !response.ok) {
+        logOut();
+        return;
+      }
+      const responseJson = await response.json();
+      storeInLocalStorage(
+        StorageKeys.REFRESH_TOKEN,
+        responseJson.refresh_token
+      );
+      storeInLocalStorage(StorageKeys.ACCESS_TOKEN, responseJson.access_token);
+    });
+  });
+};
+
+export const logOut = () => {
+  storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
+  storeInLocalStorage(StorageKeys.USER_ID, '');
+  storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
+  storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
+  storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
+  addLoginBadge();
 };
 
 export const removeBadge = () => {

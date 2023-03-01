@@ -13,78 +13,32 @@ import { createUrl } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
 
 export const updateConfig = (response: IAuthResponse) => {
-  response.organization_id &&
-    storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response.organization_id);
-  response.id && storeInLocalStorage(StorageKeys.USER_ID, response.id);
-
-  response.domains &&
-    storeInLocalStorage(StorageKeys.DOMAINS, response.domains.list);
-
-  response.plan && storeInLocalStorage(StorageKeys.PLAN, response.plan);
-
-  response.organization_domains &&
-    storeInLocalStorage(
-      StorageKeys.ORGANIZATION_DOMAINS,
-      response.organization_domains
-    );
-  response.config_hash &&
-    storeInLocalStorage(StorageKeys.CONFIG_HASH, response.config_hash);
-
-  response.organization_config_hash &&
-    storeInLocalStorage(
-      StorageKeys.ORGANIZATION_CONFIG_HASH,
-      response.organization_config_hash
-    );
-
-  response.organization_name &&
-    storeInLocalStorage(StorageKeys.TEAM_NAME, response.organization_name);
+  storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response?.organization_id);
+  storeInLocalStorage(StorageKeys.USER_ID, response?.id);
+  storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list);
+  storeInLocalStorage(StorageKeys.PLAN, response?.plan);
+  storeInLocalStorage(
+    StorageKeys.ORGANIZATION_DOMAINS,
+    response?.organization_domains
+  );
+  storeInLocalStorage(StorageKeys.CONFIG_HASH, response?.config_hash);
+  storeInLocalStorage(
+    StorageKeys.ORGANIZATION_CONFIG_HASH,
+    response?.organization_config_hash
+  );
+  storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
   Object.keys(response.config).forEach((key) => {
-    switch (key) {
-      case 'gendered_roles_format':
-        storeInLocalStorage(
-          StorageKeys.GENDERED_ROLES_FORMAT,
-          response.config[key]
-        );
-        break;
-      case 'german_gender_ending':
-        storeInLocalStorage(
-          StorageKeys.GERMAN_GENDER_ENDING,
-          response.config[key]
-        );
-        break;
-      case 'inclusive':
-        response.config[key].status == 'force' &&
-          storeInLocalStorage(StorageKeys.INCLUSIVE, response.config[key]);
-        break;
-      case 'maximum_importance':
-        storeInLocalStorage(
-          StorageKeys.MAXIMUM_IMPORTANCE,
-          response.config[key]
-        );
-        break;
-      case 'orthography':
-        response.config[key].status == 'force' &&
-          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, response.config[key]);
-        break;
-      case 'preferred_variants':
-        storeInLocalStorage(
-          StorageKeys.PREFERRED_VARIANTS,
-          response.config[key]
-        );
-        break;
-      case 'show_inspiration_alternatives':
-        storeInLocalStorage(
-          StorageKeys.SHOW_INSPIRATION_ALTERNATIVES,
-          response.config[key]
-        );
-        break;
-      case 'singular_they':
-        storeInLocalStorage(StorageKeys.SINGULAR_THEY, response.config[key]);
-        break;
-      case 'style':
-        response.config[key].status == 'force' &&
-          storeInLocalStorage(StorageKeys.STYLE, response.config[key]);
-        break;
+    const keysForPopover = ['inclusive', 'orthography', 'style'];
+    if (
+      (keysForPopover.includes(key) &&
+        (response.config[key as keyof typeof response.config] as any).status ==
+          'force') ||
+      !keysForPopover.includes(key)
+    ) {
+      storeInLocalStorage(
+        StorageKeys[key.toUpperCase() as keyof typeof StorageKeys],
+        response.config[key as keyof typeof response.config] || null
+      );
     }
   });
 };
