@@ -48,21 +48,21 @@ test.use({ screenshot: 'on' })
 
 test.describe('Highlights', () => {
     test('witty form not logged in', async ({ page }) => {
-        await page.waitForLoadState('networkidle')
-        //editor is now on dashboard -> need to login
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
+
+        await page.waitForLoadState('networkidle')
 
         await page.waitForSelector('#witty_editor');
         await page.click('#witty_editor');
         await page.fill('#witty_editor', testText);
         await page.keyboard.press('Space');
 
-        await page.waitForTimeout(4000); //wait for api to respond with highlights
+        await page.waitForTimeout(5000); //wait for api to respond with highlights
 
         await page.locator('#witty_editor').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot({
-                maxDiffPixels: 900,
+                maxDiffPixels: 300,
             },
                 'witty-form-not-logged-in.png')
         });
@@ -84,7 +84,7 @@ test.describe('Highlights', () => {
         await page.fill('#witty_editor', testText);
         await page.keyboard.press('Space');
 
-        await page.waitForTimeout(4000); //wait for api to respond with highlights
+        await page.waitForTimeout(5000); //wait for api to respond with highlights
 
         await page.locator('#witty_editor').screenshot().then(async (screenshot) => {
             //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05

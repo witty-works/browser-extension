@@ -1,5 +1,6 @@
 import chroma from 'chroma-js';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
+import { getDomainWithoutSubdomain } from './utils';
 
 export const isTextArea = (
   element: Element
@@ -72,6 +73,25 @@ export const isInputElement = (element: Element) =>
   // isInputText(element) ||      Temporaly disabled as it could capture passwords
   isHTMLElementContentEditable(element);
 
+export const getZIndex = () => {
+  return isGoogleDocs() || isBambooHr() ? 501 : 'auto';
+};
+
+export const requiresRectRecalculation = (element: Element) => {
+  const domain = getDomainWithoutSubdomain(window.location.hostname);
+  const pathContainsMessaging = window.location.pathname.includes('messaging');
+
+  return (
+    isTextArea(element) ||
+    (domain === 'linkedin.com' && pathContainsMessaging) ||
+    domain === 'personio.de' || //exception for linkedin messaging and personio
+    isCkEditor(element) ||
+    isTinyMceEditor(element) ||
+    isFroalaEditor(element) ||
+    isLinkedInMessage() ||
+    isBambooHr()
+  );
+};
 export const findElement = (node: Node, element: string): boolean => {
   if (node.nodeName === element) {
     return true;

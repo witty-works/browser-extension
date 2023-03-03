@@ -345,7 +345,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             onClick={() => {
               analytics.dashboardLog('button_popover');
               window.open(
-                getBaseUrls().dashboard + 'user/language/language-settings',
+                getBaseUrls().dashboard,
                 '_blank'
               );
             }}

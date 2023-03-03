@@ -19,11 +19,7 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import {
-  storeInLocalStorage,
-  addLoginBadge,
-  getRandomToken,
-} from '../shared/utils';
+import { storeInLocalStorage, logOut } from '../shared/utils';
 import {
   isTextArea,
   isInputText,
@@ -1195,6 +1191,12 @@ const Input: React.FC<{
             continue;
           }
 
+          textStartingAbsPosition = textEndAbsPosition + 1;
+          textEndAbsPosition =
+            nodesWhithinMaxCharLengthRef.current.length == 0
+              ? textStartingAbsPosition + node.nodeValue.length - 1 //needed to keep highlights in place
+              : textStartingAbsPosition + node.nodeValue.length;
+
           if (nodesWhithinMaxCharLengthRef.current.length == 0) {
             const nextText: string = isGoogleDocs()
               ? getInputText(cloneRef.current)
@@ -1203,12 +1205,6 @@ const Input: React.FC<{
               textEndAbsPosition += 1;
             }
           }
-
-          textStartingAbsPosition = textEndAbsPosition + 1;
-          textEndAbsPosition =
-            nodesWhithinMaxCharLengthRef.current.length == 0
-              ? textStartingAbsPosition + node.nodeValue.length - 1 //needed to keep highlights in place
-              : textStartingAbsPosition + node.nodeValue.length;
 
           const alertsTemp: IAlert[] = alerts
             .filter(
@@ -1387,15 +1383,6 @@ const Input: React.FC<{
       logTypes.ERROR
     );
   }, [checkEndpointError, authErrorResponse]);
-
-  const logOut = () => {
-    storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
-    storeInLocalStorage(StorageKeys.USER_ID, '');
-    storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
-    storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
-    storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
-    addLoginBadge();
-  };
 
   useEffect(() => {
     if (refreshTokenError?.status === 403) {
