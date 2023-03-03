@@ -8,7 +8,7 @@ import { getCorrectedPosition } from '../utils';
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { isBambooHr, isGoogleDocs } from '../DOMutils';
+import { isGoogleDocs, requiresHighZIndex } from '../DOMutils';
 interface IconControllerProps {
   element: CustomInputElement;
   elementRect?: DOMRect;
@@ -74,7 +74,7 @@ const IconController: React.FC<IconControllerProps> = ({
         position: googleDocsIcon ? 'fixed' : 'absolute',
         top: `${iconPosition.top}px`,
         left: `${iconPosition.left}px`,
-        zIndex: isGoogleDocs() || isBambooHr() ? 501 : 'auto',
+        zIndex: requiresHighZIndex() ? 501 : 'auto',
       }}
       onMouseDown={(e) => {
         e.stopPropagation();
