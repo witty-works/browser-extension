@@ -6,6 +6,7 @@ import { getColor } from '../shared/constants';
 import {
   getZIndex,
   isGoogleDocs,
+  isGreenhouse,
   isTextArea,
   nodeExistsInDOM,
 } from '../shared/DOMutils';

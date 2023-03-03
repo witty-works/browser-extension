@@ -19,6 +19,7 @@ import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
+import { iframePositionRecquired } from '../../shared/DOMutils';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -65,11 +66,26 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     name: 'elementCords',
     options: dat,
     fn: ({ placement, rects }: any) => {
-      const calcNewX: number = dat.position.x;
-      const calcNewY: number = placement.includes('bottom')
-        ? dat.position.y + dat.position.height + doc.scrollTop
-        : dat.position.y - rects.floating.height + doc.scrollTop;
+      let iframeRects = { top: 0, left: 0, bottom: 0, right: 0 };
+      if (iframePositionRecquired()) {
+        const iframes = document.getElementsByTagName('iframe');
+        const iframe = Array.from(iframes).find((iframe) => {
+          const iframeDoc =
+            iframe.contentDocument || iframe.contentWindow?.document;
+          return iframeDoc?.contains(dat.node);
+        });
+        if (iframe?.getBoundingClientRect())
+          iframeRects = iframe?.getBoundingClientRect();
+      }
 
+      const calcNewX: number =
+        dat.position.x + iframeRects.left + doc.scrollLeft;
+      const calcNewY: number = placement.includes('bottom')
+        ? dat.position.y + dat.position.height + iframeRects.top + doc.scrollTop
+        : dat.position.y -
+          rects.floating.height +
+          iframeRects.top +
+          doc.scrollTop;
       return {
         x: calcNewX,
         y: calcNewY,
@@ -344,10 +360,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
               analytics.dashboardLog('button_popover');
-              window.open(
-                getBaseUrls().dashboard,
-                '_blank'
-              );
+              window.open(getBaseUrls().dashboard, '_blank');
             }}
           >
             {t('customizeSuggestions')}

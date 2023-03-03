@@ -48,6 +48,10 @@ export const isGreenhouse = (): boolean => {
   return window.location.hostname.includes('greenhouse');
 };
 
+export const isTypo3 = (): boolean => {
+  return window.location.hostname.includes('typo3');
+};
+
 export const isLinkedInMessage = (): boolean => {
   return (
     !!getActiveDocument().querySelector('.msg-form__contenteditable') &&
@@ -92,6 +96,11 @@ export const requiresRectRecalculation = (element: Element) => {
     isBambooHr()
   );
 };
+
+export const iframePositionRecquired = () => {
+  return isTypo3() || isGreenhouse();
+};
+
 export const findElement = (node: Node, element: string): boolean => {
   if (node.nodeName === element) {
     return true;
