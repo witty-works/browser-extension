@@ -11,6 +11,7 @@ import {
 } from '../../shared/constants';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
+import { logOut } from '../../shared/utils';
 
 const ApiSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
@@ -48,6 +49,9 @@ const ApiSelector: React.FC = () => {
         [StorageKeys.API_ENDPOINT_KEY]: value,
       })
       .then(() => {
+        if (value == 'Prod' || selectedOption == ' Prod') {
+          logOut();
+        }
         log(`New api endpoint ${value} saved`);
       })
       .catch(onError);
