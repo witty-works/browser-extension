@@ -4,7 +4,7 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
 import {
-  isBambooHr,
+  getZIndex,
   isGoogleDocs,
   isTextArea,
   nodeExistsInDOM,
@@ -186,7 +186,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           height: `${canvasSize.height}px`,
           overflow: 'auto',
           pointerEvents: 'none',
-          zIndex: isGoogleDocs() || isBambooHr() ? 501 : 'auto',
+          zIndex: getZIndex(),
         } as React.CSSProperties
       }
     ></canvas>

@@ -3,14 +3,7 @@ import { useAnalytics } from './ApiServices/useAnalytics';
 import { DEV_ENV, StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import {
-  isBambooHr,
-  isCkEditor,
-  isFroalaEditor,
-  isLinkedInMessage,
-  isTextArea,
-  isTinyMceEditor,
-} from './DOMutils';
+import { requiresRectRecalculation } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 import { getToken } from './ApiServices/requests';
 
@@ -227,19 +220,8 @@ export const getCorrectedPosition = (
   parentElement: HTMLElement | null,
   element: HTMLElement
 ) => {
-  const domain = getDomainWithoutSubdomain(window.location.hostname);
-  const pathContainsMessaging = window.location.pathname.includes('messaging');
   const parentRect = parentElement && parentElement.getBoundingClientRect();
-  if (
-    isTextArea(element) ||
-    (domain === 'linkedin.com' && pathContainsMessaging) ||
-    domain === 'personio.de' || //exception for linkedin messaging and personio
-    isCkEditor(element) ||
-    isTinyMceEditor(element) ||
-    isFroalaEditor(element) ||
-    isLinkedInMessage() ||
-    isBambooHr()
-  ) {
+  if (requiresRectRecalculation(element)) {
     elementRect = element.getBoundingClientRect();
   }
 
