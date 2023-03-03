@@ -68,8 +68,8 @@ export const isInputElement = (element: Element) =>
   // isInputText(element) ||      Temporaly disabled as it could capture passwords
   isHTMLElementContentEditable(element);
 
-export const requiresHighZIndex = () => {
-  return isGoogleDocs() || isBambooHr();
+export const getZIndex = () => {
+  return isGoogleDocs() || isBambooHr() ? 501 : 'auto';
 };
 
 export const requiresRectRecalculation = (element: Element) => {

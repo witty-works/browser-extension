@@ -4,10 +4,10 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
 import {
+  getZIndex,
   isGoogleDocs,
   isTextArea,
   nodeExistsInDOM,
-  requiresHighZIndex,
 } from '../shared/DOMutils';
 import { drawHighlight, drawLine } from './highlightsUtils';
 import {
@@ -186,7 +186,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           height: `${canvasSize.height}px`,
           overflow: 'auto',
           pointerEvents: 'none',
-          zIndex: requiresHighZIndex() ? 501 : 'auto',
+          zIndex: getZIndex(),
         } as React.CSSProperties
       }
     ></canvas>
