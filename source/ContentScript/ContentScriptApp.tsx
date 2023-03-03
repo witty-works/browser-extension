@@ -168,11 +168,13 @@ const ContentScriptApp: React.FC = () => {
     //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
     const iframes = document.querySelectorAll('iframe');
+
     iframes.forEach((iframe: any) => {
       // console.log('iframe', iframe);
-      console.log('iframe.contentDocument', iframe.contentDocument);
-      console.log('iframe.contentWindow', iframe.contentWindow);
-      // console.log('iframe.contentWindow[0]', iframe.contentWindow[0]);
+      // console.log('iframe.contentDocument', iframe.contentDocument);
+      // console.log('iframe.contentWindow', iframe.contentWindow);
+      iframe.contentWindow.postMessage('getIframe', '*');
+
       if (iframe.contentDocument && iframe.contentDocument.body) {
         iframe.contentDocument.body.addEventListener(
           'focusin',
@@ -182,12 +184,6 @@ const ContentScriptApp: React.FC = () => {
     });
 
     document.activeElement?.addEventListener('focusin', handleFocusinElement);
-
-    console.log(
-      'document.activeElement',
-      document.activeElement,
-      document.activeElement?.querySelectorAll('.hs_cos_wrapper')
-    );
 
     // browser.runtime.sendMessage({
     //   type: 'getIframe',
@@ -209,8 +205,19 @@ const ContentScriptApp: React.FC = () => {
     // window.addEventListener(
     //   'message',
     //   (event) => {
+    //     // if (event.origin !== 'https://www.hubspot.com') return;
     //     //get post message from iframe
-    //     console.log('Received message: ', event.origin, event.data);
+    //     console.log(
+    //       'Received message: ',
+    //       'origin',
+    //       event.origin,
+    //       'data',
+    //       event.data,
+    //       'event',
+    //       event,
+    //       'source',
+    //       event.source
+    //     );
     //   },
     //   false
     // );
