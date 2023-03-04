@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
@@ -31,6 +31,7 @@ import {
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
+import debounce from 'lodash.debounce';
 
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
@@ -65,27 +66,44 @@ const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
     {} as RequestConfig
   );
-  const [inputs, setInputs, inputsRef] = useStateRef(
-    [] as CustomInputElement[]
-  );
-
+  const [, setInputs, inputsRef] = useStateRef([] as CustomInputElement[]);
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
-  const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
 
   //observes iframes that are added to the DOM
   const observer = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
-      [].filter
-        .call(mutation.addedNodes, function (node: HTMLElement) {
-          return node.nodeName == 'IFRAME';
-        })
-        .forEach(function (node: HTMLElement) {
-          node.addEventListener('load', function () {});
-        });
+      [].filter.call(mutation.addedNodes, function (node: HTMLElement) {
+        if (node.nodeName == 'IFRAME') {
+          debouncedHandleIframeAdded();
+        }
+      });
     });
-    setIframeLoaded(true);
   });
+
+  //debounced handle iframe added, use debounce form lodash
+  const debouncedHandleIframeAdded = debounce(() => {
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach((iframe: any) => {
+      if (iframe.contentDocument && iframe.contentDocument.body) {
+        iframe.contentDocument.body.addEventListener(
+          'focusin',
+          handleFocusinElement
+        );
+      }
+    });
+
+    return () => {
+      iframes.forEach((iframe) => {
+        if (iframe.contentDocument && iframe.contentDocument.body) {
+          iframe.contentDocument.body.removeEventListener(
+            'focusin',
+            handleFocusinElement
+          );
+        }
+      });
+    };
+  }, 500);
 
   observer.observe(document.body, { childList: true, subtree: true });
 
@@ -163,15 +181,6 @@ const ContentScriptApp: React.FC = () => {
 
     //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach((iframe: any) => {
-      if (iframe.contentDocument && iframe.contentDocument.body) {
-        iframe.contentDocument.body.addEventListener(
-          'focusin',
-          handleFocusinElement
-        );
-      }
-    });
 
     !isGoogleDocs() &&
       document.addEventListener('focusin', handleFocusinElement, true);
@@ -179,20 +188,13 @@ const ContentScriptApp: React.FC = () => {
     document.addEventListener('mouseout', handleMouseOut, true);
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
-      iframes.forEach((iframe) => {
-        if (iframe.contentDocument && iframe.contentDocument.body) {
-          iframe.contentDocument.body.removeEventListener(
-            'focusin',
-            handleFocusinElement
-          );
-        }
-      });
+
       !isGoogleDocs() &&
         document.removeEventListener('focusin', handleFocusinElement);
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
     };
-  }, [iframeLoaded]);
+  }, []);
 
   //TODO specify changes type
   //TODO review all cases
@@ -334,6 +336,7 @@ const ContentScriptApp: React.FC = () => {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
+      handleNewInput(); //ensures update
     }
   };
 
@@ -400,7 +403,8 @@ const ContentScriptApp: React.FC = () => {
       element.remove();
     }
   };
-  useEffect(() => {
+
+  const handleNewInput = () => {
     //filter out inputs that are the same
     let filteredInputs = inputsRef.current.filter(
       (input, index, self) =>
@@ -422,59 +426,39 @@ const ContentScriptApp: React.FC = () => {
         logTypes.INFO,
         filteredInputs.length > 0 ? filteredInputs : 'None'
       );
-
       filteredInputs.forEach((input: CustomInputElement) => {
         if (!input.parentElement) return;
+        const sibling = input.previousElementSibling as HTMLElement;
+        if (!sibling || sibling.tagName !== 'WW-CONTAINER') {
+          const highlightsContainer: HTMLElement =
+            getActiveDocument().createElement(WTags.WW_CONTAINER);
+          highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
-        // if already has a container, remove them first
-        if (document.getElementsByTagName(WTags.WW_CONTAINER).length > 0) {
-          // remove all containers
-          const containers = document.getElementsByTagName(WTags.WW_CONTAINER);
-          for (let container of containers) {
-            //make sure each parent of a container only has one child that is a WW_CONTAINER
-            const parent = container.parentElement;
-            //check if parent has more than one child that is a WW_CONTAINER
-            if (parent) {
-              //remove all containers except one
-              const containers = parent.querySelectorAll(WTags.WW_CONTAINER);
-              for (let i = 0; i < containers.length; i++) {
-                const childContainer = containers[i];
-                ReactDOM.unmountComponentAtNode(childContainer);
-                childContainer.remove();
-              }
-            }
+          if (isGoogleSheets() && input.classList.contains('cell-input')) {
+            return;
           }
+          //get first ancestior that is a div
+          const ancestor = input.closest('div');
+
+          if (isNotion()) {
+            //Workaround as Notion blocks insertion of code on a deeper level
+            const notionParentElement =
+              document.querySelector('.notion-frame')?.firstChild;
+            notionParentElement?.insertBefore(
+              highlightsContainer,
+              notionParentElement.firstChild
+            );
+          } else {
+            const parentElement =
+              input.tagName === 'rect' ? ancestor : input.parentElement;
+            parentElement &&
+              parentElement.insertBefore(highlightsContainer, input);
+          }
+          ReactDOM.render(<Input element={input} />, highlightsContainer);
         }
-
-        const highlightsContainer: HTMLElement =
-          getActiveDocument().createElement(WTags.WW_CONTAINER);
-        highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
-
-        if (isGoogleSheets() && input.classList.contains('cell-input')) {
-          return;
-        }
-
-        //get first ancestior that is a div
-        const ancestor = input.closest('div');
-
-        if (isNotion()) {
-          //Workaround as Notion blocks insertion of code on a deeper level
-          const notionParentElement =
-            document.querySelector('.notion-frame')?.firstChild;
-          notionParentElement?.insertBefore(
-            highlightsContainer,
-            notionParentElement.firstChild
-          );
-        } else {
-          const parentElement =
-            input.tagName === 'rect' ? ancestor : input.parentElement;
-          parentElement &&
-            parentElement.insertBefore(highlightsContainer, input);
-        }
-        ReactDOM.render(<Input element={input} />, highlightsContainer);
       });
     }
-  }, [inputs]);
+  };
 
   // Check if tracked inputs exists or are still visible
   // If not, remove them from the list of inputs. This way the highlights are also removed
