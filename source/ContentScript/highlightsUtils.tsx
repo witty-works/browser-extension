@@ -1,4 +1,5 @@
 import { isGoogleDocs } from '../shared/DOMutils';
+import { Highlight } from '../shared/types';
 
 export const drawLine = (params: any, color: string, dashedLine: boolean) => {
   const { context, rect, elementRect } = params;
@@ -46,4 +47,18 @@ export const drawHighlight = (params: any, color: string) => {
   context.fillStyle = color;
   context.globalAlpha = 0.2;
   context.fill(roundedHighlight);
+};
+
+export const getGreenhouseHeight = (highlights: Highlight[]) => {
+  if (
+    !highlights ||
+    !highlights[highlights.length - 1] ||
+    !highlights[highlights.length - 1].rects[0]
+  )
+    return 0;
+  return (
+    highlights[highlights.length - 1].rects[0].top -
+    highlights[0].rects[0].top +
+    50
+  );
 };

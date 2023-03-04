@@ -36,11 +36,20 @@ export const isTinyMceEditor = (element: Element): boolean => {
 };
 
 export const isBambooHr = (): boolean => {
-  return window.location.hostname.split('.').includes('bamboohr');
+  return window.location.hostname.includes('bamboohr');
 };
+
 export const isFroalaEditor = (element: Element): boolean => {
   const foralaEditor = element.closest('.fr-element');
   return !!foralaEditor;
+};
+
+export const isGreenhouse = (): boolean => {
+  return window.location.hostname.includes('greenhouse');
+};
+
+export const isTypo3 = (): boolean => {
+  return window.location.hostname.includes('typo3');
 };
 
 export const isLinkedInMessage = (): boolean => {
@@ -87,6 +96,11 @@ export const requiresRectRecalculation = (element: Element) => {
     isBambooHr()
   );
 };
+
+export const iframePositionRecquired = () => {
+  return isTypo3() || isGreenhouse();
+};
+
 export const findElement = (node: Node, element: string): boolean => {
   if (node.nodeName === element) {
     return true;

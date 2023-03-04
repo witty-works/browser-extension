@@ -6,10 +6,15 @@ import { getColor } from '../shared/constants';
 import {
   getZIndex,
   isGoogleDocs,
+  isGreenhouse,
   isTextArea,
   nodeExistsInDOM,
 } from '../shared/DOMutils';
-import { drawHighlight, drawLine } from './highlightsUtils';
+import {
+  drawHighlight,
+  drawLine,
+  getGreenhouseHeight,
+} from './highlightsUtils';
 import {
   getCorrectedPosition,
   getCorrectedPositionCanvas,
@@ -43,9 +48,14 @@ const Highlights: React.FC<HighlightsProps> = ({
         canvasRef.current.parentElement,
         element
       );
+
   const canvasSize = {
     width: elementRect.width,
-    height: isGoogleDocs() ? 2000 : elementRect.height, //2000 is about the height of two pages in google docs
+    height: isGoogleDocs() //2000 is about the height of two pages in google docs
+      ? 2000
+      : isGreenhouse()
+      ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
+      : elementRect.height,
   };
 
   useEffect(() => {
