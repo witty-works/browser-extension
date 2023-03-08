@@ -1,8 +1,5 @@
 {
-  "DISABLED_SITES": [
-    "productboard.com",
-    "trello.com"
-  ],
+  "DISABLED_SITES": ["productboard.com", "trello.com"],
   "ACTIVE_SITES": [
     "whatsapp.com",
     "airbnb.com",
@@ -71,5 +68,7 @@
   "API_DELAY": 500,
   "ACCESS_TOKEN": "",
   "REFRESH_TOKEN": "",
-  "MAX_CHAR_LENGTH": 2000
+  "MAX_CHAR_LENGTH": 2000,
+  "MIN_CHAR_LENGTH": 150,
+  "BACKGROUND_REQUEST_CHAR_LENGTH": 500
 }

@@ -112,6 +112,7 @@ const Input: React.FC<{
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
   const maxCharLength = defaultConfig.MAX_CHAR_LENGTH;
+  const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -577,9 +578,10 @@ const Input: React.FC<{
     nodes?: any,
     event?: Event
   ) => {
+    console.log('textToCheck', textToCheck, event);
     let newTextToCheck = 'placeholder';
     if (nodes.length > 0) {
-      const nodesToCheck = nodes.filter((node: INodes) => {
+      let nodesToCheck = nodes.filter((node: INodes) => {
         const nodeIndex = prevCheckedNodesRef.current.findIndex(
           (prevCheckedNode: INodes) =>
             prevCheckedNode.node === node.node &&
@@ -589,8 +591,19 @@ const Input: React.FC<{
       });
       console.log('prevCheckedNodesRef.current', prevCheckedNodesRef.current);
       nodesStorageRef.current = nodesToCheck;
-      console.log('NEW nodesToCheck', nodesToCheck);
       newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
+
+      //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
+      console.log('LENGTH', newTextToCheck.length);
+      if (newTextToCheck.length < minCharLength) {
+        console.log('nodesToCheck BEFORE', nodesToCheck);
+        nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
+        newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
+        console.log('nodesToCheck AFTER', nodesToCheck);
+      }
+
+      console.log('NEW nodesToCheck', nodesToCheck);
+
       console.log('newTextToCheck', newTextToCheck);
       console.log('nodesWithAlertsRef.curren', nodesWithAlertsRef.current);
       // remove alerts from nodeswithalerts that are in the nodesToCheck
@@ -639,14 +652,47 @@ const Input: React.FC<{
       setAlerts([]);
       setTextToCheck('');
     } else {
-      if (event && event.type == 'keyup') {
-        debouncedSetTextToCheck(textToCheck);
-        setActiveIcon('loading');
-      } else {
-        setTextToCheck(textToCheck);
-        setActiveIcon('active');
-      }
+      // if (event && event.type == 'keyup') {
+      debouncedSetTextToCheck(textToCheck);
+      setActiveIcon('loading');
+      // }
+      //  else {
+      //   setTextToCheck(textToCheck);
+      //   setActiveIcon('active');
+      // }
     }
+  };
+  const getNodesToFillMinCharLength = (nodesToCheck: any, nodes: any) => {
+    if (nodesToCheck.length === 0) {
+      return nodesToCheck;
+    }
+    let nodesToCheckCopy = [...nodesToCheck];
+    let nodesCopy = [...nodes];
+    let nodesToCheckIndex = nodesToCheckCopy[0]?.index || 0;
+    let nodesIndex = nodesCopy[0]?.index || 0;
+    let nodesToCheckLength = nodesToCheckCopy
+      .map((node: any) => node?.node)
+      .join('').length;
+    while (nodesToCheckLength < minCharLength) {
+      //if nodestocheck is the same as nodes, break
+      if (nodesToCheck.length === nodes.length) {
+        break;
+      }
+      //add nodes from nodes close to nodesToCheck until min char length is reached
+      if (nodesToCheckIndex > nodesIndex) {
+        nodesToCheckCopy.unshift(nodesCopy[0]);
+        nodesCopy.shift();
+        nodesIndex = nodesCopy[0]?.index;
+      } else {
+        nodesToCheckCopy.push(nodesCopy[0]);
+        nodesCopy.shift();
+        nodesIndex = nodesCopy[0]?.index;
+      }
+      nodesToCheckLength = nodesToCheckCopy
+        .map((node: any) => node?.node)
+        .join('').length;
+    }
+    return nodesToCheckCopy;
   };
 
   const debouncedSetTextToCheck = debounce((text: string) => {
