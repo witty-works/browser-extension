@@ -28,6 +28,8 @@ interface HighlightsProps {
   elementRect: DOMRect;
   selectedAlert: IAlert | null;
   userIsSignedIn: boolean;
+  removeHighlights: boolean;
+  forceHighlightUpdate: boolean;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
@@ -37,6 +39,8 @@ const Highlights: React.FC<HighlightsProps> = ({
   elementRect,
   selectedAlert,
   userIsSignedIn,
+  removeHighlights,
+  forceHighlightUpdate,
 }: HighlightsProps) => {
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
@@ -59,8 +63,10 @@ const Highlights: React.FC<HighlightsProps> = ({
   };
 
   useEffect(() => {
-    const highlights: Highlight[] = [];
-    if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
+    if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
+      setHighlights([]);
+
+    const highlightsTemp: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
     let googleDocsToolbarLeftRect = {} as DOMRect;
     if (isGoogleDocs()) {
@@ -120,13 +126,14 @@ const Highlights: React.FC<HighlightsProps> = ({
             endOffset: alert.endOffset,
             node: node,
           };
-          highlights.push(newHighlight);
+          highlightsTemp.push(newHighlight);
         });
       }
     });
+    console.log('HIGHLIGHTS highlights', highlightsTemp);
 
-    setHighlights(highlights);
-  }, [nodesWithAlerts, elementScroll, elementRect]);
+    setHighlights(highlightsTemp);
+  }, [nodesWithAlerts, elementScroll, elementRect, forceHighlightUpdate]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
