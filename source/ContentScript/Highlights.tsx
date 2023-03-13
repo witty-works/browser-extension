@@ -63,6 +63,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   };
 
   useEffect(() => {
+    console.log('HIGHLIGHTS nodesWithAlerts', nodesWithAlerts);
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
       setHighlights([]);
 
@@ -191,22 +192,25 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={
-        {
-          position: 'absolute',
-          maxWidth: 'initial',
-          top: `${correctedPosition.top}px`,
-          left: `${correctedPosition.left}px`,
-          width: `${canvasSize.width}px`,
-          height: `${canvasSize.height}px`,
-          overflow: 'auto',
-          pointerEvents: 'none',
-          zIndex: getZIndex(),
-        } as React.CSSProperties
-      }
-    ></canvas>
+    console.log('RETURNIGN HIGHLIGHT CANVAS', canvasRef.current, highlights),
+    (
+      <canvas
+        ref={canvasRef}
+        style={
+          {
+            position: 'absolute',
+            maxWidth: 'initial',
+            top: `${correctedPosition.top}px`,
+            left: `${correctedPosition.left}px`,
+            width: `${canvasSize.width}px`,
+            height: `${canvasSize.height}px`,
+            overflow: 'auto',
+            pointerEvents: 'none',
+            zIndex: getZIndex(),
+          } as React.CSSProperties
+        }
+      ></canvas>
+    )
   );
 };
 
