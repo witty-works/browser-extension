@@ -74,7 +74,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
         : DefaultBaseUrlKey;
       browser.tabs.create({
         url: `
-        ${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`,
+        ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,
       });
     });
   }
