@@ -116,6 +116,7 @@ const Input: React.FC<{
   const backgroundRequestCharLength =
     defaultConfig.BACKGROUND_REQUEST_CHAR_LENGTH;
   const backgroundRequestInterval = defaultConfig.BACKGROUND_REQUEST_INTERVAL;
+  const [backgroundWorkerStarted, setBackgroundWorkerStarted] = useState(false);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -158,8 +159,6 @@ const Input: React.FC<{
   const log = useLog('Input');
 
   useEffect(() => {
-    console.log('CALLIN BACKGROUND WORKER');
-    backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
     browser.storage.local
       .get(null)
       .then((result) => {
@@ -192,7 +191,9 @@ const Input: React.FC<{
       element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
-    element.addEventListener('scroll', handleElementScrollEvent, true);
+    element.addEventListener('scroll', handleElementScrollEvent);
+    element.addEventListener('wheel', handleElementScrollEvent); //alternative to scroll event
+
     element.addEventListener('click', handleElementClickEvent as EventListener);
 
     if (isGoogleDocs()) {
@@ -201,7 +202,7 @@ const Input: React.FC<{
         'click',
         handleDocumentClickEvent as EventListener
       );
-      document.addEventListener('scroll', handleElementScrollEvent, true);
+      document.addEventListener('scroll', handleElementScrollEvent);
       window.addEventListener('resize', handleDocumentResizeEvent);
     }
 
@@ -219,6 +220,7 @@ const Input: React.FC<{
       !isGoogleDocs() &&
         element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
+      element.removeEventListener('wheel', handleElementScrollEvent);
       element.removeEventListener(
         'click',
         handleElementClickEvent as EventListener
@@ -385,36 +387,36 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    handleKeyupEvent();
+    handleKeyupEvent(new Event('initialLoad'));
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
 
     if (isGoogleDocs()) {
       //keyup comes from clone update
-      // googleDocsEventTarget.addEventListener('focusin', handleFocusinEvent);
+      googleDocsEventTarget.addEventListener('focusin', handleFocusinEvent);
     } else if (isNotion()) {
       document
         .querySelector('.notion-frame')
         ?.addEventListener('keyup', handleKeyupEvent);
     } else {
       element.addEventListener('keyup', handleKeyupEvent);
-      // element.addEventListener('focusin', handleFocusinEvent);
+      element.addEventListener('focusin', handleFocusinEvent);
     }
 
     return () => {
       //Don't forget to remove the listeners at the end
       if (isGoogleDocs()) {
-        // googleDocsEventTarget.removeEventListener(
-        //   'focusin',
-        //   handleFocusinEvent
-        // );
+        googleDocsEventTarget.removeEventListener(
+          'focusin',
+          handleFocusinEvent
+        );
       } else if (isNotion()) {
         document
           .querySelector('.notion-frame')
           ?.removeEventListener('keyup', handleKeyupEvent);
       } else {
         element.removeEventListener('keyup', handleKeyupEvent);
-        // element.removeEventListener('focusin', handleFocusinEvent);
+        element.removeEventListener('focusin', handleFocusinEvent);
       }
     };
   }, [debounceDelay]);
@@ -436,13 +438,20 @@ const Input: React.FC<{
     if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
-  //maybe remove this?
-  // const handleFocusinEvent = () => {
-  //   const nextText: string = isGoogleDocs()
-  //     ? getInputText(cloneRef.current)
-  //     : getInputText(element);
-  //   handleTextAndIcon(nextText, []);
-  // };
+  const handleFocusinEvent = () => {
+    const textDividedByNodes = getTextDividedByNodes(
+      element as CustomInputElement
+    );
+    const textWithinMaxCharLength = getTextWithinMaxCharLength(
+      0,
+      textDividedByNodes[0]
+    );
+    textWithinMaxCharLength &&
+      handleTextAndIcon(
+        textWithinMaxCharLength.text,
+        textWithinMaxCharLength.nodes
+      );
+  };
 
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
@@ -517,8 +526,11 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
+  const handleKeyupEvent = debounce((event?: Event, gDocs?: boolean) => {
     console.log('keyup', event);
+    // if (event && event.type == 'initialLoad') {
+    //   backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
+    // }
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     !isGoogleDocs() &&
@@ -577,7 +589,7 @@ const Input: React.FC<{
       //   handleTextAndIcon(nextText, getTextDividedByNodes(element), event);
       // }
     }
-  };
+  }, 3000);
 
   const getTextWithinMaxCharLength = (
     currentNode: number,
@@ -753,16 +765,16 @@ const Input: React.FC<{
     setTextToCheck(text);
   }, debounceDelay);
 
-  const handleElementScrollEvent = () => {
+  const handleElementScrollEvent = debounce(() => {
+    console.log('handleElementScrollEvent');
     if (isGoogleDocs()) {
       setIsActive(true);
-
       setActiveIcon('loading');
       debouncedScroll();
     } else {
       setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
     }
-  };
+  }, 500);
 
   const debouncedScroll = debounce(() => {
     setIsActive(false);
@@ -1112,6 +1124,15 @@ const Input: React.FC<{
       setRemoveHighlights(true);
       setForceHighlightUpdate(!forceHighlightUpdate);
     } else {
+      //first time this condition is hit start background worker
+      if (!backgroundWorkerStarted) {
+        setTimeout(() => {
+          console.log('Starting background worker');
+          backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
+          setBackgroundWorkerStarted(true);
+        }, 5000);
+      }
+
       let alertsWithoutIgnoredCategories = alerts;
 
       //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'

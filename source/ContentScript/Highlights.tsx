@@ -42,6 +42,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   removeHighlights,
   forceHighlightUpdate,
 }: HighlightsProps) => {
+  console.log('Highlights update', elementScroll);
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
@@ -59,7 +60,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       ? 2000
       : isGreenhouse()
       ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
-      : elementRect.height,
+      : elementRect.height - correctedPosition.top,
   };
 
   useEffect(() => {
@@ -131,10 +132,10 @@ const Highlights: React.FC<HighlightsProps> = ({
         });
       }
     });
-    console.log('HIGHLIGHTS highlights', highlightsTemp);
+    console.log('HIGHLIGHTS highlightsTemp', highlightsTemp);
 
     setHighlights(highlightsTemp);
-  }, [nodesWithAlerts, elementScroll, elementRect, forceHighlightUpdate]);
+  }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -192,7 +193,12 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
-    console.log('RETURNIGN HIGHLIGHT CANVAS', canvasRef.current, highlights),
+    console.log(
+      'RETURNIGN HIGHLIGHT CANVAS',
+      canvasRef.current,
+      correctedPosition,
+      highlights
+    ),
     (
       <canvas
         ref={canvasRef}
@@ -207,6 +213,7 @@ const Highlights: React.FC<HighlightsProps> = ({
             overflow: 'auto',
             pointerEvents: 'none',
             zIndex: getZIndex(),
+            border: '1px solid red',
           } as React.CSSProperties
         }
       ></canvas>
