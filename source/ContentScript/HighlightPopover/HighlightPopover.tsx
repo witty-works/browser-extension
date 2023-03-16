@@ -269,7 +269,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 style={{ padding: '0.5em 0 0 0' }}
               >
                 <div className='witty-works-ext-margin-right'>
-                  {data.alert.data.gravity
+                  {data.alert.data.explanation.content == 'video'
+                    ? t('learnMoreVideo')
+                    : data.alert.data.explanation.content == 'advanced'
+                    ? t('learnMoreAdvanced')
+                    : data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
                 </div>

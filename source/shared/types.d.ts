@@ -147,6 +147,7 @@ export interface IExplanation {
   icon: string;
   url: string;
   context: string;
+  content: string;
 }
 
 //ANALYTICS
