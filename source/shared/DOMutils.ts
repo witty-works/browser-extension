@@ -1,5 +1,6 @@
 import chroma from 'chroma-js';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
+import { getBaseUrls } from './ApiServices/requests';
 import { getDomainWithoutSubdomain } from './utils';
 
 export const isTextArea = (
@@ -15,6 +16,13 @@ export const isInputText = (element: Element): element is HTMLInputElement =>
 
 export const isGoogleDocs = (): boolean => {
   return window.location.href.includes('docs.google.com/document');
+};
+
+export const isWittyEditor = (): boolean => {
+  return (
+    window.location.href.includes('editor') &&
+    window.location.href.includes(getBaseUrls().dashboard)
+  );
 };
 
 export const isGoogleSheets = (): boolean => {
@@ -77,8 +85,10 @@ export const isInputElement = (element: Element) =>
   // isInputText(element) ||      Temporaly disabled as it could capture passwords
   isHTMLElementContentEditable(element);
 
-export const getZIndex = () => {
-  return isGoogleDocs() || isBambooHr() ? 501 : 'auto';
+export const getZIndex = (element: Element) => {
+  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element)
+    ? 501
+    : 'auto';
 };
 
 export const requiresRectRecalculation = (element: Element) => {

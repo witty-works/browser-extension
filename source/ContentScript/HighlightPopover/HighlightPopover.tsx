@@ -52,6 +52,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [alternativeHovered, setAlternativeHovered] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     analytics.popoverLogs(data.alert, 'popover_open');
@@ -323,9 +326,18 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                             data.alert.data.category
                           )
                         }
+                        onMouseEnter={() => {
+                          setAlternativeHovered(alternative.text);
+                        }}
+                        onMouseLeave={() => {
+                          setAlternativeHovered(null);
+                        }}
                       >
                         {alternative.text === ' ' ? (
                           <i>{t('removeSpaces')}</i>
+                        ) : alternative.text.length > 25 &&
+                          alternativeHovered !== alternative.text ? (
+                          alternative.text.substring(0, 25) + '...'
                         ) : (
                           alternative.text
                         )}

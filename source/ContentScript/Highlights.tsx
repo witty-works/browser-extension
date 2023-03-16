@@ -212,7 +212,7 @@ const Highlights: React.FC<HighlightsProps> = ({
             height: `${canvasSize.height}px`,
             overflow: 'auto',
             pointerEvents: 'none',
-            zIndex: getZIndex(),
+            zIndex: getZIndex(element),
             border: '1px solid red',
           } as React.CSSProperties
         }

@@ -74,7 +74,7 @@ const IconController: React.FC<IconControllerProps> = ({
         position: googleDocsIcon ? 'fixed' : 'absolute',
         top: `${iconPosition.top}px`,
         left: `${iconPosition.left}px`,
-        zIndex: getZIndex(),
+        zIndex: getZIndex(element),
       }}
       onMouseDown={(e) => {
         e.stopPropagation();
