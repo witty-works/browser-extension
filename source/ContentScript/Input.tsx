@@ -182,11 +182,8 @@ const Input: React.FC<{
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
-    element.addEventListener(
-      'dblclick',
-      handleElementClickEvent as EventListener
-    );
-    element.addEventListener('click', handleElementClickEvent as EventListener);
+    element.addEventListener('dblclick', handleElementClickEvent as any);
+    element.addEventListener('click', handleElementClickEvent as any);
 
     if (isGoogleDocs()) {
       googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
@@ -212,14 +209,8 @@ const Input: React.FC<{
       !isGoogleDocs() &&
         element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      element.removeEventListener(
-        'dblclick',
-        handleElementClickEvent as EventListener
-      );
-      element.removeEventListener(
-        'click',
-        handleElementClickEvent as EventListener
-      );
+      element.removeEventListener('dblclick', handleElementClickEvent as any);
+      element.removeEventListener('click', handleElementClickEvent as any);
 
       if (isGoogleDocs()) {
         googleDocsEventTarget.removeEventListener(
@@ -709,7 +700,7 @@ const Input: React.FC<{
     setIgnoredCategoriesFromStorage(newIgnoredCategories);
   };
 
-  const handleElementClickEvent = (event: MouseEvent) => {
+  const handleElementClickEvent = debounce((event: MouseEvent) => {
     const target = event.target as CustomInputElement;
 
     // Get caret data
@@ -726,6 +717,11 @@ const Input: React.FC<{
               .anchorNode,
           };
 
+    //if double click, caret.position = caret.position + 1
+    if (event.detail === 2 && caret.position) {
+      caret.position = caret.position + 1;
+    }
+
     if (caret.element && caret.position && caret.position > -1) {
       // Find out if the clicked element has alerts
       const selectedNodeWithAlertsIndex: number =
@@ -735,9 +731,7 @@ const Input: React.FC<{
               ? nodeWithAlerts.node.parentNode === caret.element
               : nodeWithAlerts.node === caret.element
         );
-
       setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
-
       const oneNodeWithAlerts =
         nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
       if (oneNodeWithAlerts) {
@@ -787,6 +781,11 @@ const Input: React.FC<{
           resetPopover();
           return;
         }
+        if (selectedAlertIndex > -1) {
+          //removes blue selection that might appear on double click
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+        }
 
         setSelectedAlertIndex(selectedAlertIndex);
       } else if (
@@ -796,11 +795,8 @@ const Input: React.FC<{
       ) {
         handleElementClickLongText(caret, event);
       }
-      //removes blie selection that might appear on double click
-      const sel = window.getSelection();
-      sel?.removeAllRanges();
     }
-  };
+  }, 200);
 
   const handleElementClickLongText = (
     caret: {
