@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import CSS from 'csstype';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
 import { CustomInputElement, IAlert } from '../../shared/types';
@@ -10,13 +9,14 @@ import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
-import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
 import StarNewIcon from '../../assets/icons/popover/star-new.svg';
 import StarNeuIcon from '../../assets/icons/popover/star-neu.svg';
 import StarVideoIcon from '../../assets/icons/popover/star-video.svg';
+import ArrowUpIcon from '../../assets/icons/popover/arrow-up.svg';
+import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
@@ -58,6 +58,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [alternativeHovered, setAlternativeHovered] = useState<string | null>(
     null
   );
+  const [showLearningBite, setShowLearningBite] = useState<boolean>(false);
 
   useEffect(() => {
     analytics.popoverLogs(data.alert, 'popover_open');
@@ -149,12 +150,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const hidePopover = () => {
     analytics.popoverLogs(data.alert, 'popover_close');
     hide();
-  };
-
-  const PopoverStyling: CSS.Properties = {
-    position: strategy,
-    top: `${y}px`,
-    left: `${x}px`,
+    setShowLearningBite(false);
   };
 
   const clickAlternative = (alternative: string, category: string) => {
@@ -174,7 +170,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     <div
       id='witty-works-ext-popover'
       ref={floating}
-      style={PopoverStyling}
+      style={{
+        position: strategy,
+        top: `${y}px`,
+        left: `${x}px`,
+        maxWidth: `${showLearningBite ? 850 : 350}px`,
+      }}
       onMouseDown={(e) => e.preventDefault()}
     >
       <div
@@ -196,7 +197,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
               style={data.index === 1 ? { display: 'none' } : {}}
-              onClick={() => data.index !== 1 && updatePopover('previous')}
+              onClick={() => {
+                data.index !== 1 && updatePopover('previous');
+                setShowLearningBite(false);
+              }}
             >
               <PreviousIcon />
             </div>
@@ -209,9 +213,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
               style={data.index === data.totalAlerts ? { display: 'none' } : {}}
-              onClick={() =>
-                data.index !== data.totalAlerts && updatePopover('next')
-              }
+              onClick={() => {
+                data.index !== data.totalAlerts && updatePopover('next');
+                setShowLearningBite(false);
+              }}
             >
               <NextIcon />
             </div>
@@ -231,12 +236,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
         {/* LEARNIGN BITES */}
         <div
-          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
+          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
-            data.alert.data.explanation &&
-              data.alert.data.explanation.url &&
-              window.open(data.alert.data.explanation.url, '_blank');
+            setShowLearningBite(!showLearningBite);
           }}
           style={{
             cursor:
@@ -272,20 +275,26 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   data.alert.data.language === 'de' && <StarNeuIcon />}
                 {data.alert.data.explanation.content === 'advanced' &&
                   data.alert.data.language === 'en' && <StarNewIcon />}
-                &nbsp;
-                <div>
-                  {data.alert.data.gravity
-                    ? t('learnMoreNegative')
-                    : t('learnMorePositive')}
+                <div className='witty-works-ext-margin-left witty-works-ext-margin-right'>
+                  {t('learnMore')}
                 </div>
-                <ArrowIcon play={isHovered} />
+                <div style={{ pointerEvents: 'none' }}>
+                  {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                </div>
               </div>
             )}
           </div>
+          {showLearningBite && (
+            <iframe
+              src={data.alert.data.explanation.url}
+              className='witty-works-ext-learning-bite-iframe'
+              title='learning bite'
+            ></iframe>
+          )}
         </div>
 
         {/* TRY INSTEAD */}
-        {data.alert.data.alternatives.length > 0 && (
+        {data.alert.data.alternatives.length > 0 && !showLearningBite && (
           <>
             <div
               className='witty-works-ext-separator'
