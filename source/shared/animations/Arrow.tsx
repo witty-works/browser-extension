@@ -15,7 +15,7 @@ const Arrow: React.FC<ArrowProps> = ({ play }: ArrowProps) => {
   return (
     <animated.div
       style={{
-        marginRight: '0.6em',
+        marginLeft: '0.5em',
         ...springStyles,
       }}
     >

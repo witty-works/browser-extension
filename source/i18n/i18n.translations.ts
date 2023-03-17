@@ -66,10 +66,8 @@ export const de = {
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
-    learnMorePositive: 'Warum?',
-    learnMoreNegative: 'Warum?',
-    learnMoreVideo: 'VIDEO TEXT?',
-    learnMoreAdvanced: 'ADVANCED TEXT?',
+    learnMorePositive: 'Warum',
+    learnMoreNegative: 'Warum',
     ignoreTerm: 'Ignorieren',
     whyQuestionMark: 'Warum?',
     alertOftotal: 'von',
@@ -168,10 +166,8 @@ export const en = {
 
   [namespaces.popover]: {
     insteadTry: 'Try instead ...',
-    learnMorePositive: 'Why?',
-    learnMoreNegative: 'Why?',
-    learnMoreVideo: 'VIDEO TEXT',
-    learnMoreAdvanced: 'ADVANCED TEXT?',
+    learnMorePositive: 'Why',
+    learnMoreNegative: 'Why',
     ignoreTerm: 'Ignore',
     whyQuestionMark: 'Why?',
     alertOftotal: 'of',
