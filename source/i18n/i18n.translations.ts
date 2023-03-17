@@ -53,7 +53,8 @@ export const de = {
     websiteSettingsDeactivated:
       'Du hast uns mitgeteilt, dass Witty auf {{Domain}} nicht funktioniert.',
     tryAgainOnThisWebsite: 'Erneut auf dieser Website versuchen',
-    enableWittyFailed: 'Currently unable to sync with the Witty Dashboard, try again later.',
+    enableWittyFailed:
+      'Currently unable to sync with the Witty Dashboard, try again later.',
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
     resetSettings: 'Einstellungen zurücksetzen',
     loggedInTo: 'Logged in to',
@@ -65,8 +66,8 @@ export const de = {
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
-    learnMorePositive: 'Warum?',
-    learnMoreNegative: 'Warum?',
+    learnMorePositive: 'Warum',
+    learnMoreNegative: 'Warum',
     ignoreTerm: 'Ignorieren',
     whyQuestionMark: 'Warum?',
     alertOftotal: 'von',
@@ -151,7 +152,8 @@ export const en = {
     websiteSettingsDeactivated:
       'You reported that Witty does not work on {{domain}}',
     tryAgainOnThisWebsite: 'Try again on this website',
-    enableWittyFailed: 'Die Synchronisierung mit Witty Dashboard ist aktuell nicht möglich, versuchen Sie es später noch einmal.',
+    enableWittyFailed:
+      'Die Synchronisierung mit Witty Dashboard ist aktuell nicht möglich, versuchen Sie es später noch einmal.',
     lockedInfo: 'This feature has been locked by your team admin.',
     resetSettings: 'Reset settings',
     loggedInTo: 'Logged in to',
@@ -164,8 +166,8 @@ export const en = {
 
   [namespaces.popover]: {
     insteadTry: 'Try instead ...',
-    learnMorePositive: 'Why?',
-    learnMoreNegative: 'Why?',
+    learnMorePositive: 'Why',
+    learnMoreNegative: 'Why',
     ignoreTerm: 'Ignore',
     whyQuestionMark: 'Why?',
     alertOftotal: 'of',

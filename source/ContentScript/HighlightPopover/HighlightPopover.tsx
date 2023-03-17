@@ -14,6 +14,9 @@ import ArrowIcon from '../../shared/animations/Arrow';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
+import StarNewIcon from '../../assets/icons/popover/star-new.svg';
+import StarNeuIcon from '../../assets/icons/popover/star-neu.svg';
+import StarVideoIcon from '../../assets/icons/popover/star-video.svg';
 
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
@@ -251,24 +254,26 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             setIsHovered(false);
           }}
         >
-          {/* controls icon size */}
-          <div
-            className='witty-works-ext-margin-right'
-            style={{ fontSize: '1.5em' }}
-          >
-            {data.alert.data.explanation.icon}
-          </div>
           <div className='witty-works-ext-lato-popover-text'>
+            {data.alert.data.explanation.icon} &nbsp;
             {data.alert.data.explanation.text}
             {data.alert.data.explanation.context && (
               <span>&nbsp;({data.alert.data.explanation.context})</span>
             )}
             {data.alert.data.explanation && data.alert.data.explanation.url && (
               <div
-                className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
+                className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
                 style={{ padding: '0.5em 0 0 0' }}
               >
-                <div className='witty-works-ext-margin-right'>
+                {data.alert.data.explanation.content === 'video' && (
+                  <StarVideoIcon />
+                )}
+                {data.alert.data.explanation.content === 'advanced' &&
+                  data.alert.data.language === 'de' && <StarNeuIcon />}
+                {data.alert.data.explanation.content === 'advanced' &&
+                  data.alert.data.language === 'en' && <StarNewIcon />}
+                &nbsp;
+                <div>
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
