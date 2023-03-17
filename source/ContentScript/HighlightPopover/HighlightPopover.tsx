@@ -94,7 +94,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           iframeRects.top +
           doc.scrollTop;
       return {
-        x: calcNewX,
+        x: showLearningBite ? calcNewX / 2 : calcNewX,
         y: calcNewY,
       };
     },
@@ -105,7 +105,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
 
-  useEffect(() => reference(element), [reference]);
+  useEffect(() => {
+    reference(element);
+  }, [reference, showLearningBite]);
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
