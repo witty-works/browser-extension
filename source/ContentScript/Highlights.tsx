@@ -193,31 +193,23 @@ const Highlights: React.FC<HighlightsProps> = ({
   }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
 
   return (
-    console.log(
-      'RETURNIGN HIGHLIGHT CANVAS',
-      canvasRef.current,
-      correctedPosition,
-      highlights
-    ),
-    (
-      <canvas
-        ref={canvasRef}
-        style={
-          {
-            position: 'absolute',
-            maxWidth: 'initial',
-            top: `${correctedPosition.top}px`,
-            left: `${correctedPosition.left}px`,
-            width: `${canvasSize.width}px`,
-            height: `${canvasSize.height}px`,
-            overflow: 'auto',
-            pointerEvents: 'none',
-            zIndex: getZIndex(element),
-            border: '1px solid red',
-          } as React.CSSProperties
-        }
-      ></canvas>
-    )
+    <canvas
+      ref={canvasRef}
+      style={
+        {
+          position: 'absolute',
+          maxWidth: 'initial',
+          top: `${correctedPosition.top}px`,
+          left: `${correctedPosition.left}px`,
+          width: `${canvasSize.width}px`,
+          height: `${canvasSize.height}px`,
+          overflow: 'auto',
+          pointerEvents: 'none',
+          zIndex: getZIndex(element),
+          border: '1px solid red',
+        } as React.CSSProperties
+      }
+    ></canvas>
   );
 };
 

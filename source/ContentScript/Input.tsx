@@ -191,8 +191,9 @@ const Input: React.FC<{
       element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
-    element.addEventListener('scroll', handleElementScrollEvent);
-    element.addEventListener('wheel', handleElementScrollEvent); //alternative to scroll event
+    element.addEventListener('scroll', handleElementScrollEvent, true);
+    !isTextArea(element) &&
+      element.addEventListener('wheel', handleElementScrollEvent); //alternative to scroll event -> gmail
 
     element.addEventListener('click', handleElementClickEvent as EventListener);
 
@@ -202,7 +203,7 @@ const Input: React.FC<{
         'click',
         handleDocumentClickEvent as EventListener
       );
-      document.addEventListener('scroll', handleElementScrollEvent);
+      document.addEventListener('scroll', handleElementScrollEvent, true);
       window.addEventListener('resize', handleDocumentResizeEvent);
     }
 
@@ -220,7 +221,8 @@ const Input: React.FC<{
       !isGoogleDocs() &&
         element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      element.removeEventListener('wheel', handleElementScrollEvent);
+      !isTextArea(element) &&
+        element.removeEventListener('wheel', handleElementScrollEvent);
       element.removeEventListener(
         'click',
         handleElementClickEvent as EventListener
@@ -387,10 +389,10 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    handleKeyupEvent(new Event('initialLoad'));
+    // handleKeyupEvent(); //REMOVE THIS??
+
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
-
     if (isGoogleDocs()) {
       //keyup comes from clone update
       googleDocsEventTarget.addEventListener('focusin', handleFocusinEvent);
@@ -526,11 +528,8 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = debounce((event?: Event, gDocs?: boolean) => {
+  const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
     console.log('keyup', event);
-    // if (event && event.type == 'initialLoad') {
-    //   backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
-    // }
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     !isGoogleDocs() &&
@@ -583,13 +582,8 @@ const Input: React.FC<{
           textWithinMaxCharLength.text,
           textWithinMaxCharLength.nodes
         );
-
-      // else {
-      //   !isGoogleDocs() && setAlerts([]);
-      //   handleTextAndIcon(nextText, getTextDividedByNodes(element), event);
-      // }
     }
-  }, 3000);
+  };
 
   const getTextWithinMaxCharLength = (
     currentNode: number,
@@ -672,8 +666,8 @@ const Input: React.FC<{
 
       //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
       if (newTextToCheck.length < minCharLength) {
-        nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
-        newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
+        // nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
+        newTextToCheck = nodesToCheck.map((node: any) => node.node).join(''); //probably bad join here
       }
 
       console.log('newTextToCheck', newTextToCheck);
@@ -711,10 +705,9 @@ const Input: React.FC<{
       }
     }
 
-    if (newTextToCheck !== '') {
+    if (!isTextArea(element)) {
       textToCheck = newTextToCheck;
     }
-    console.log('textToCheck', textToCheck);
 
     //If there isn't text, there's nothing to highlight
     setCurrentTextToCheck(textToCheck); //for check call after refresh token
@@ -727,38 +720,35 @@ const Input: React.FC<{
       setActiveIcon('loading');
     }
   };
-  const getNodesToFillMinCharLength = (nodesToCheck: any, nodes: any) => {
-    if (nodesToCheck.length === 0) {
-      return nodesToCheck;
-    }
-    let nodesToCheckCopy = [...nodesToCheck];
-    let nodesCopy = [...nodes];
-    let nodesToCheckIndex = nodesToCheckCopy[0]?.index || 0;
-    let nodesIndex = nodesCopy[0]?.index || 0;
-    let nodesToCheckLength = nodesToCheckCopy
-      .map((node: any) => node?.node)
-      .join('').length;
-    while (nodesToCheckLength < minCharLength) {
-      //if nodestocheck is the same as nodes, break
-      if (nodesToCheck.length === nodes.length) {
-        break;
-      }
-      //add nodes from nodes close to nodesToCheck until min char length is reached
-      if (nodesToCheckIndex > nodesIndex) {
-        nodesToCheckCopy.unshift(nodesCopy[0]);
-        nodesCopy.shift();
-        nodesIndex = nodesCopy[0]?.index;
-      } else {
-        nodesToCheckCopy.push(nodesCopy[0]);
-        nodesCopy.shift();
-        nodesIndex = nodesCopy[0]?.index;
-      }
-      nodesToCheckLength = nodesToCheckCopy
-        .map((node: any) => node?.node)
-        .join('').length;
-    }
-    return nodesToCheckCopy;
-  };
+
+  //SOMETHING BROKEN HERE
+  // const getNodesToFillMinCharLength = (nodesToCheck: any, nodes: any) => {
+  //   if (nodesToCheck.length === 0) return nodesToCheck;
+
+  //   console.log('getNodesToFillMinCharLength', nodesToCheck, nodes);
+  //   const expandedNodesToCheck = nodesToCheck;
+  //   const lowestNodeIndex = nodesToCheck.reduce(
+  //     (prev: { index: number }, current: { index: number }) =>
+  //       prev.index < current.index ? prev : current
+  //   ).index;
+
+  //   let index = 1;
+  //   while (
+  //     expandedNodesToCheck.map((node: any) => node?.node).join('').length <
+  //     minCharLength
+  //   ) {
+  //     expandedNodesToCheck.push(
+  //       nodes.find(
+  //         (node: { index: number }) => node.index === lowestNodeIndex - index
+  //       )
+  //     );
+  //     index++;
+  //   }
+
+  //   // expandedNodesToCheck.sort((a: any, b: any) => a.index - b.index);
+
+  //   return expandedNodesToCheck;
+  // };
 
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
@@ -1125,12 +1115,16 @@ const Input: React.FC<{
       setForceHighlightUpdate(!forceHighlightUpdate);
     } else {
       //first time this condition is hit start background worker
-      if (!backgroundWorkerStarted) {
-        setTimeout(() => {
-          console.log('Starting background worker');
-          backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
-          setBackgroundWorkerStarted(true);
-        }, 5000);
+      if (
+        !backgroundWorkerStarted &&
+        !isTextArea(element) &&
+        getInputText(element).length > maxCharLength
+      ) {
+        // setTimeout(() => {
+        console.log('Starting background worker');
+        backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
+        setBackgroundWorkerStarted(true);
+        // }, 5000);
       }
 
       let alertsWithoutIgnoredCategories = alerts;
