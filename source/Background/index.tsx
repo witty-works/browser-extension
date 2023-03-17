@@ -7,6 +7,8 @@ import {
   DEV_ENV,
   WittyIconActive,
   wittyVersion,
+  DefaultBaseUrlKey,
+  BaseUrls,
 } from '../shared/constants';
 import {
   addInactiveBadge,
@@ -65,13 +67,16 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'install') {
     //Set default settings
     setSettings();
-
-    //Open the welcome page
-    if (!DEV_ENV) {
+    browser.storage.local.get(null).then((result) => {
+      const optionsPageUrl = browser.extension.getURL('options.html');
+      const urls = result[StorageKeys.API_ENDPOINT_KEY]
+        ? result[StorageKeys.API_ENDPOINT_KEY]
+        : DefaultBaseUrlKey;
       browser.tabs.create({
-        url: 'https://www.witty.works/welcome',
+        url: `
+        ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,
       });
-    }
+    });
   }
   if (details.reason === 'update') {
     //Set icon according to the saved settings

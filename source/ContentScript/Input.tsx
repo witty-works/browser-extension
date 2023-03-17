@@ -182,7 +182,8 @@ const Input: React.FC<{
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
     element.addEventListener('scroll', handleElementScrollEvent, true);
-    element.addEventListener('click', handleElementClickEvent as EventListener);
+    element.addEventListener('dblclick', handleElementClickEvent as any);
+    element.addEventListener('click', handleElementClickEvent as any);
 
     if (isGoogleDocs()) {
       googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
@@ -208,10 +209,8 @@ const Input: React.FC<{
       !isGoogleDocs() &&
         element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
-      element.removeEventListener(
-        'click',
-        handleElementClickEvent as EventListener
-      );
+      element.removeEventListener('dblclick', handleElementClickEvent as any);
+      element.removeEventListener('click', handleElementClickEvent as any);
 
       if (isGoogleDocs()) {
         googleDocsEventTarget.removeEventListener(
@@ -701,107 +700,103 @@ const Input: React.FC<{
     setIgnoredCategoriesFromStorage(newIgnoredCategories);
   };
 
-  let singleClickTimeOut: ReturnType<typeof setTimeout>;
+  const handleElementClickEvent = debounce((event: MouseEvent) => {
+    const target = event.target as CustomInputElement;
 
-  const handleElementClickEvent = (event: MouseEvent) => {
-    // If user clicks on an element only once...
-    if (event.detail === 1) {
-      singleClickTimeOut = setTimeout(function () {
-        const target = event.target as CustomInputElement;
-
-        // Get caret data
-        const caret: { position: number | null; element: Node | null } =
-          isTextArea(element) || isInputText(element)
-            ? {
-                position: element.selectionStart,
-                element: cloneRef.current,
-              }
-            : {
-                position: (getActiveDocument().getSelection() as Selection)
-                  .anchorOffset,
-                element: (getActiveDocument().getSelection() as Selection)
-                  .anchorNode,
-              };
-
-        if (caret.element && caret.position && caret.position > -1) {
-          // Find out if the clicked element has alerts
-          const selectedNodeWithAlertsIndex: number =
-            nodesWithAlertsRef.current.findIndex(
-              (nodeWithAlerts: INodeWithAlerts) =>
-                isTextArea(target) || isInputText(target)
-                  ? nodeWithAlerts.node.parentNode === caret.element
-                  : nodeWithAlerts.node === caret.element
-            );
-
-          setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
-
-          const oneNodeWithAlerts =
-            nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
-          if (oneNodeWithAlerts) {
-            const caretPos = caret.position;
-
-            let selectedAlertIndex =
-              oneNodeWithAlerts &&
-              oneNodeWithAlerts.alerts.findIndex((alert: IAlert) => {
-                if (!alert) {
-                  return false;
-                }
-                //If alert is a one character word, take in consideration clicking the position before or after the char
-                return alert.data.text.length === 1
-                  ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
-                  : alert.startOffset < caretPos && alert.endOffset > caretPos;
-              });
-
-            const selectedAlerts = oneNodeWithAlerts.alerts.filter(
-              (alert: IAlert) =>
-                alert.startOffset <= caretPos && alert.endOffset >= caretPos
-            );
-
-            if (
-              getInputText(element).length > maxCharLength &&
-              !isTextArea(element) &&
-              selectedAlerts.length == 0 &&
-              !isGoogleDocs()
-            ) {
-              handleElementClickLongText(caret, event);
-            }
-
-            if (selectedAlerts.length > 1) {
-              const alertWithLargestStartoffset = selectedAlerts.reduce(
-                (prev: IAlert, current: IAlert) => {
-                  return prev.startOffset > current.startOffset
-                    ? prev
-                    : current;
-                }
-              );
-
-              selectedAlertIndex =
-                oneNodeWithAlerts &&
-                oneNodeWithAlerts.alerts.findIndex(
-                  (alert: IAlert) =>
-                    alert.startOffset ===
-                    alertWithLargestStartoffset.startOffset
-                );
-            }
-            if (prevSelectedAlertIndex.current === selectedAlertIndex) {
-              resetPopover();
-              return;
-            }
-
-            setSelectedAlertIndex(selectedAlertIndex);
-          } else if (
-            getInputText(element).length > maxCharLength &&
-            !isTextArea(element) &&
-            !isGoogleDocs()
-          ) {
-            handleElementClickLongText(caret, event);
+    // Get caret data
+    const caret: { position: number | null; element: Node | null } =
+      isTextArea(element) || isInputText(element)
+        ? {
+            position: element.selectionStart,
+            element: cloneRef.current,
           }
-        }
-      }, 400);
-    } else {
-      clearTimeout(singleClickTimeOut);
+        : {
+            position: (getActiveDocument().getSelection() as Selection)
+              .anchorOffset,
+            element: (getActiveDocument().getSelection() as Selection)
+              .anchorNode,
+          };
+
+    //if double click, caret.position = caret.position + 1
+    if (event.detail === 2 && caret.position) {
+      caret.position = caret.position + 1;
     }
-  };
+
+    if (caret.element && caret.position && caret.position > -1) {
+      // Find out if the clicked element has alerts
+      const selectedNodeWithAlertsIndex: number =
+        nodesWithAlertsRef.current.findIndex(
+          (nodeWithAlerts: INodeWithAlerts) =>
+            isTextArea(target) || isInputText(target)
+              ? nodeWithAlerts.node.parentNode === caret.element
+              : nodeWithAlerts.node === caret.element
+        );
+      setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
+      const oneNodeWithAlerts =
+        nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
+      if (oneNodeWithAlerts) {
+        const caretPos = caret.position;
+
+        let selectedAlertIndex =
+          oneNodeWithAlerts &&
+          oneNodeWithAlerts.alerts.findIndex((alert: IAlert) => {
+            if (!alert) {
+              return false;
+            }
+            //If alert is a one character word, take in consideration clicking the position before or after the char
+            return alert.data.text.length === 1
+              ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
+              : alert.startOffset < caretPos && alert.endOffset > caretPos;
+          });
+
+        const selectedAlerts = oneNodeWithAlerts.alerts.filter(
+          (alert: IAlert) =>
+            alert.startOffset <= caretPos && alert.endOffset >= caretPos
+        );
+
+        if (
+          getInputText(element).length > maxCharLength &&
+          !isTextArea(element) &&
+          selectedAlerts.length == 0 &&
+          !isGoogleDocs()
+        ) {
+          handleElementClickLongText(caret, event);
+        }
+
+        if (selectedAlerts.length > 1) {
+          const alertWithLargestStartoffset = selectedAlerts.reduce(
+            (prev: IAlert, current: IAlert) => {
+              return prev.startOffset > current.startOffset ? prev : current;
+            }
+          );
+
+          selectedAlertIndex =
+            oneNodeWithAlerts &&
+            oneNodeWithAlerts.alerts.findIndex(
+              (alert: IAlert) =>
+                alert.startOffset === alertWithLargestStartoffset.startOffset
+            );
+        }
+        if (prevSelectedAlertIndex.current === selectedAlertIndex) {
+          resetPopover();
+          return;
+        }
+        if (selectedAlertIndex > -1) {
+          //removes blue selection that might appear on double click
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+        }
+
+        setSelectedAlertIndex(selectedAlertIndex);
+      } else if (
+        getInputText(element).length > maxCharLength &&
+        !isTextArea(element) &&
+        !isGoogleDocs()
+      ) {
+        handleElementClickLongText(caret, event);
+      }
+    }
+  }, 200);
 
   const handleElementClickLongText = (
     caret: {

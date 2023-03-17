@@ -40,7 +40,7 @@ if (exposeWittyIdAllowList.includes(domain)) {
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
 
-      const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}`;
+      const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`;
       wittyIsInstalledElement?.setAttribute('login-url', url);
     }
   });
