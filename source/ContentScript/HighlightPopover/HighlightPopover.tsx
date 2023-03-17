@@ -257,16 +257,24 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             setIsHovered(false);
           }}
         >
-          <div className='witty-works-ext-lato-popover-text'>
+          <div
+            className='witty-works-ext-lato-popover-text witty-works-ext-justify-space-between'
+            style={{
+              display: 'flex',
+              flexDirection: showLearningBite ? 'row' : 'column',
+            }}
+          >
             {data.alert.data.explanation.icon} &nbsp;
             {data.alert.data.explanation.text}
-            {data.alert.data.explanation.context && (
-              <span>&nbsp;({data.alert.data.explanation.context})</span>
-            )}
+            {data.alert.data.explanation.context &&
+              ' (' + data.alert.data.explanation.context + ')'}
             {data.alert.data.explanation && data.alert.data.explanation.url && (
               <div
                 className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
-                style={{ padding: '0.5em 0 0 0' }}
+                style={{
+                  padding: '0.5em 0 0 0',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 {data.alert.data.explanation.content === 'video' && (
                   <StarVideoIcon />
@@ -369,29 +377,36 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </>
         )}
       </div>
-      <div
-        onClick={() => clickIgnoreTerm()}
-        className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
-      >
-        <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
-          <IgnoreIcon />
-        </span>
-        <span className='witty-works-ext-lato-popover-text-gray'>
-          {t('ignoreTerm')}
-        </span>
-      </div>
-      {data.alert.plan == 'witty_free' && (
-        <div className='witty-works-ext-left' style={{ marginBottom: '1em' }}>
+      {!showLearningBite && (
+        <>
           <div
-            className='witty-works-ext-button witty-works-ext-primary-button-red'
-            onClick={() => {
-              analytics.dashboardLog('button_popover');
-              window.open(getBaseUrls().dashboard, '_blank');
-            }}
+            onClick={() => clickIgnoreTerm()}
+            className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
           >
-            {t('customizeSuggestions')}
+            <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
+              <IgnoreIcon />
+            </span>
+            <span className='witty-works-ext-lato-popover-text-gray'>
+              {t('ignoreTerm')}
+            </span>
           </div>
-        </div>
+          {data.alert.plan == 'witty_free' && (
+            <div
+              className='witty-works-ext-left'
+              style={{ marginBottom: '1em' }}
+            >
+              <div
+                className='witty-works-ext-button witty-works-ext-primary-button-red'
+                onClick={() => {
+                  analytics.dashboardLog('button_popover');
+                  window.open(getBaseUrls().dashboard, '_blank');
+                }}
+              >
+                {t('customizeSuggestions')}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
