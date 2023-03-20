@@ -66,8 +66,7 @@ export const de = {
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
-    learnMorePositive: 'Warum',
-    learnMoreNegative: 'Warum',
+    learnMore: 'Warum',
     ignoreTerm: 'Ignorieren',
     whyQuestionMark: 'Warum?',
     alertOftotal: 'von',
@@ -173,8 +172,7 @@ export const en = {
 
   [namespaces.popover]: {
     insteadTry: 'Try instead ...',
-    learnMorePositive: 'Why',
-    learnMoreNegative: 'Why',
+    learnMore: 'Why',
     ignoreTerm: 'Ignore',
     whyQuestionMark: 'Why?',
     alertOftotal: 'of',

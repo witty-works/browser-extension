@@ -22,7 +22,6 @@
   flex-direction: row;
   align-items: center;
   margin-bottom: 0.5em;
-  max-width: 300px;
 
   &:hover {
     .witty-works-ext-wittyworks-popover-alternative-btn {
@@ -223,18 +222,18 @@
 .witty-works-ext-wittyworks-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: left;
   padding-bottom: 0.5em;
 }
 
 .witty-works-ext-container-rounded {
   border-radius: 8px;
-  max-width: 300px;
 }
 
 .witty-works-ext-container-row {
   display: flex;
   flex-direction: row !important;
+  align-items: center;
 }
 
 //Alignments
@@ -259,7 +258,6 @@
 
 .witty-works-ext-full-padding {
   padding: 1em;
-  max-width: 300px;
 }
 
 .witty-works-ext-left {
@@ -294,7 +292,6 @@
 
 #witty-works-ext-popup-root {
   min-width: 300px;
-  max-width: 400px;
   display: flex;
   flex-direction: column;
 }
@@ -325,4 +322,15 @@
 .witty-works-ext-margin-auto {
   margin-top: auto;
   margin-bottom: auto;
+}
+
+.witty-works-ext-learning-bite-iframe {
+  border: none;
+  margin: 1em 1em 0.4em 1em;
+  background-color: $white;
+  min-height: 320px;
+  min-width: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
