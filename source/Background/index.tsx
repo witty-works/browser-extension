@@ -63,7 +63,6 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   browser.browserAction.setIcon(WittyIconActive);
   if (!DEV_ENV)
     browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
-
   if (details.reason === 'install') {
     //Set default settings
     setSettings();
@@ -72,10 +71,12 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
-      browser.tabs.create({
-        url: `
+
+      !DEV_ENV &&
+        browser.tabs.create({
+          url: `
         ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,
-      });
+        });
     });
   }
   if (details.reason === 'update') {
