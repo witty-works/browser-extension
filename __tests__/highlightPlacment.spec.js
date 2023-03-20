@@ -24,11 +24,7 @@ const test = base.extend({
                 width: 1920,
                 height: 1080
             },
-
-
             args: [
-                `--no-sandbox`,
-                `--disable-setuid-sandbox`,
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`,
             ],
@@ -47,9 +43,8 @@ test.use({ screenshot: 'on' })
 
 
 test.describe('Highlights', () => {
-    test('witty form not logged in', async ({ page, context }) => {
-        await page.goto('https://www.witty.works/')
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page, context);
+    test('witty form not logged in', async ({ page }) => {
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
 
         await page.waitForLoadState('networkidle')
@@ -70,8 +65,7 @@ test.describe('Highlights', () => {
     });
 
     test('witty form', async ({ page, context }) => {
-        await page.goto('https://www.witty.works/')
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page, context);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
 
         const extensionId = await utils.getExtensionId(page);
         await utils.enableAllToggles(page);
