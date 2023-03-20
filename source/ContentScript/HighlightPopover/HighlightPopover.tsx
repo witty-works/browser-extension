@@ -188,7 +188,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             href='https://www.witty.works/'
             target='_blank'
           >
-            <WittyLogo />
+            <WittyLogo alt='witty logo' />
           </a>
           <div className='witty-works-ext-container-row'>
             <div
@@ -198,7 +198,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               style={data.index === 1 ? { display: 'none' } : {}}
               onClick={() => data.index !== 1 && updatePopover('previous')}
             >
-              <PreviousIcon />
+              <PreviousIcon alt='previous' />
             </div>
             <div className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>{`${
               data.index
@@ -213,7 +213,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 data.index !== data.totalAlerts && updatePopover('next')
               }
             >
-              <NextIcon />
+              <NextIcon alt='next' />
             </div>
           </div>
 
@@ -223,7 +223,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               hidePopover();
             }}
           >
-            <CloseIcon />
+            <CloseIcon alt='close' />
           </div>
         </div>
 
@@ -265,19 +265,23 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
                 style={{ padding: '0.5em 0 0 0' }}
               >
-                {data.alert.data.explanation.content === 'video' && (
-                  <StarVideoIcon />
-                )}
-                {data.alert.data.explanation.content === 'advanced' &&
-                  data.alert.data.language === 'de' && <StarNeuIcon />}
-                {data.alert.data.explanation.content === 'advanced' &&
-                  data.alert.data.language === 'en' && <StarNewIcon />}
-                &nbsp;
                 <div>
                   {data.alert.data.gravity
                     ? t('learnMoreNegative')
                     : t('learnMorePositive')}
                 </div>
+                &nbsp;
+                {data.alert.data.explanation.content === 'video' && (
+                  <StarVideoIcon alt='video' />
+                )}
+                {data.alert.data.explanation.content === 'advanced' &&
+                  data.alert.data.language === 'de' && (
+                    <StarNeuIcon alt='neu' />
+                  )}
+                {data.alert.data.explanation.content === 'advanced' &&
+                  data.alert.data.language === 'en' && (
+                    <StarNewIcon alt='new' />
+                  )}
                 <ArrowIcon play={isHovered} />
               </div>
             )}
@@ -365,7 +369,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
       >
         <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
-          <IgnoreIcon />
+          <IgnoreIcon alt='ignore' />
         </span>
         <span className='witty-works-ext-lato-popover-text-gray'>
           {t('ignoreTerm')}
