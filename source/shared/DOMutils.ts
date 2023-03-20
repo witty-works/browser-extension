@@ -1,6 +1,6 @@
 import chroma from 'chroma-js';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
-import { getBaseUrls } from './ApiServices/requests';
+import { BaseUrls } from './constants';
 import { getDomainWithoutSubdomain } from './utils';
 
 export const isTextArea = (
@@ -19,10 +19,16 @@ export const isGoogleDocs = (): boolean => {
 };
 
 export const isWittyEditor = (): boolean => {
-  return (
-    window.location.href.includes('editor') &&
-    window.location.href.includes(getBaseUrls().dashboard)
+  const dashboardBaseUrls = Object.values(BaseUrls).map(
+    (baseUrl) => baseUrl.dashboard
   );
+  const isDashboard = dashboardBaseUrls
+    .map((url) => window.location.href.includes(url))
+    .reduce((acc, curr) => {
+      return acc || curr;
+    }, false);
+
+  return window.location.href.includes('editor') && isDashboard;
 };
 
 export const isGoogleSheets = (): boolean => {
