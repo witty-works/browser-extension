@@ -326,8 +326,11 @@
 
 .witty-works-ext-learning-bite-iframe {
   border: none;
-  margin-top: 1em;
+  margin: 1em 1em 0.4em 1em;
   background-color: $white;
-  min-height: 350px;
+  min-height: 320px;
   min-width: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
