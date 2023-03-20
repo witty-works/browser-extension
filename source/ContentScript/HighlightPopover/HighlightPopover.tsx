@@ -250,7 +250,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           onClick={() => {
             analytics.popoverLogs(data.alert, 'learning_bites');
             setShowLearningBite(!showLearningBite);
-            setIframeLoaded(false);
           }}
           style={{
             cursor:
@@ -305,29 +304,32 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             )}
           </div>
         </div>
-        {showLearningBite && (
-          <>
-            <div
-              className='witty-works-ext-learning-bite-iframe'
-              style={{
-                display: iframeLoaded ? 'none' : 'flex',
-              }}
-            >
-              <LoadingIcon />
-            </div>
-            <iframe
-              src={data.alert.data.explanation.url}
-              style={{
-                display: iframeLoaded ? 'flex' : 'none',
-              }}
-              className='witty-works-ext-learning-bite-iframe'
-              title='learning bite'
-              onLoad={() => {
-                setIframeLoaded(true);
-              }}
-            ></iframe>
-          </>
-        )}
+        <div
+          style={{
+            display: showLearningBite ? 'flex' : 'none',
+          }}
+        >
+          <div
+            className='witty-works-ext-learning-bite-iframe'
+            style={{
+              display: iframeLoaded ? 'none' : 'flex',
+            }}
+          >
+            <LoadingIcon />
+          </div>
+          <iframe
+            src={data.alert.data.explanation.url}
+            style={{
+              display: iframeLoaded ? 'flex' : 'none',
+            }}
+            className='witty-works-ext-learning-bite-iframe'
+            title='learning bite'
+            onLoad={() => {
+              console.log('iframe loaded');
+              setIframeLoaded(true);
+            }}
+          ></iframe>
+        </div>
 
         {/* TRY INSTEAD */}
         {data.alert.data.alternatives.length > 0 && !showLearningBite && (
