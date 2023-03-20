@@ -38,7 +38,7 @@ test.setTimeout(120000);
 test.describe('Popup', () => {
     test('login popup', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page, context);
         await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
@@ -61,7 +61,7 @@ test.describe('Popup', () => {
 
     test('popup contains three toggles with labels when survey response yes', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page, context);
         await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
@@ -73,7 +73,7 @@ test.describe('Popup', () => {
 
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page, context);
         await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')
@@ -87,7 +87,7 @@ test.describe('Popup', () => {
 
     test('clicking unlocked global toggle changes background color', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page, context);
         await utils.unlockAllToggles(page);
         await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
@@ -107,7 +107,8 @@ test.describe('Popup', () => {
 
 
     test('locks made by administrators are show', async ({ page, context }) => {
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await page.goto('https://www.witty.works/')
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page, context);
         await utils.unlockAllToggles(page);
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
 
