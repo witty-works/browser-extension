@@ -71,7 +71,7 @@ const PopupLogin: React.FC = () => {
 
     browser.storage.local.get(null).then((result) => {
       if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-        const url = `${BaseUrls[urls].dashboard}api/browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
+        const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
         if (!window.open(url, '_blank')) {
           setPopupsBlocked(true);
           setLoginUrl(url);
@@ -79,7 +79,7 @@ const PopupLogin: React.FC = () => {
       } else {
         const url = `${
           BaseUrls[urls].dashboard
-        }api/browser-login?redirect_uri=${optionsPageUrl}?target=${
+        }browser-login?redirect_uri=${optionsPageUrl}?target=${
           getBaseUrls().dashboard
         }`;
         if (!window.open(url, '_blank')) {

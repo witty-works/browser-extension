@@ -17,8 +17,6 @@ const test = base.extend({
                 height: 700
             },
             args: [
-                `--no-sandbox`,
-                `--disable-setuid-sandbox`,
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`
             ],
@@ -73,7 +71,7 @@ test.describe('Popup', () => {
 
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page, context);
         await utils.loginPopupPage(page, extensionId, context);
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForLoadState('networkidle')

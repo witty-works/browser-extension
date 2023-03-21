@@ -27,6 +27,7 @@ import {
   isGoogleDocs,
   isNotion,
   isGoogleSheets,
+  isWittyEditor,
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -173,8 +174,8 @@ const ContentScriptApp: React.FC = () => {
         sendErrorToSentry(error);
       });
 
-    //fixes initial iframe focus issue google docs
-    if (isGoogleDocs()) {
+    //fixes initial iframe focus issue
+    if (isGoogleDocs() || isWittyEditor()) {
       const focusedElement = getActiveDocument().activeElement as HTMLElement;
       focusedElement?.blur();
     }
