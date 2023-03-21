@@ -197,7 +197,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             href='https://www.witty.works/'
             target='_blank'
           >
-            <WittyLogo />
+            <WittyLogo alt={t('wittyLogo')} />
           </a>
           <div className='witty-works-ext-container-row'>
             <div
@@ -211,7 +211,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 setIframeLoaded(false);
               }}
             >
-              <PreviousIcon />
+              <PreviousIcon alt={t('previous')} />
             </div>
             <div className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>{`${
               data.index
@@ -228,7 +228,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 setIframeLoaded(false);
               }}
             >
-              <NextIcon />
+              <NextIcon alt={t('next')} />
             </div>
           </div>
 
@@ -238,7 +238,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               hidePopover();
             }}
           >
-            <CloseIcon />
+            <CloseIcon alt={t('close')} />
           </div>
         </div>
 
@@ -287,17 +287,25 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   whiteSpace: 'nowrap',
                 }}
               >
-                {data.alert.data.explanation.content === 'video' && (
-                  <StarVideoIcon />
-                )}
-                {data.alert.data.explanation.content === 'advanced' &&
-                  data.alert.data.language === 'de' && <StarNeuIcon />}
-                {data.alert.data.explanation.content === 'advanced' &&
-                  data.alert.data.language === 'en' && <StarNewIcon />}
                 <div className='witty-works-ext-margin-left witty-works-ext-margin-right'>
                   {t('learnMore')}
                 </div>
-                <div style={{ pointerEvents: 'none' }}>
+                {data.alert.data.explanation.content === 'video' && (
+                  <StarVideoIcon alt={t('video')} />
+                )}
+                {data.alert.data.explanation.content === 'advanced' &&
+                  data.alert.data.language === 'de' && (
+                    <StarNeuIcon alt={t('new')} />
+                  )}
+                {data.alert.data.explanation.content === 'advanced' &&
+                  data.alert.data.language === 'en' && (
+                    <StarNewIcon alt={t('new')} />
+                  )}
+
+                <div
+                  className='witty-works-ext-margin-left'
+                  style={{ pointerEvents: 'none' }}
+                >
                   {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
                 </div>
               </div>
@@ -414,7 +422,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
           >
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
-              <IgnoreIcon />
+              <IgnoreIcon alt={t('ignore')} />
             </span>
             <span className='witty-works-ext-lato-popover-text-gray'>
               {t('ignoreTerm')}
