@@ -24,11 +24,7 @@ const test = base.extend({
                 width: 1920,
                 height: 1080
             },
-
-
             args: [
-                `--no-sandbox`,
-                `--disable-setuid-sandbox`,
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`,
             ],

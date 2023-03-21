@@ -13,8 +13,6 @@ const test = base.extend({
                 height: 700
             },
             args: [
-                `--no-sandbox`,
-                `--disable-setuid-sandbox`,
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`
             ],
