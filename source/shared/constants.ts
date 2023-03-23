@@ -5,6 +5,9 @@ export const wittyVersion = browser.runtime.getManifest().version;
 //Development
 export const DEV_ENV = true;
 
+//Testing
+export const TESTING = false;
+
 export const POSTHOG_API_KEY_EU = DEV_ENV
   ? 'phc_DUofw8HC9GUENhXmZ8Wan7DGAvmWFrFnNCxoViLmuhx'
   : 'phc_i1tlvuh1iecIOSEr0QmTEIklrsSJGhULpUwUlf8fkkl';
