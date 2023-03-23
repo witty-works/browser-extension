@@ -5,6 +5,7 @@ import { BrowserTracing } from '@sentry/tracing';
 import {
   StorageKeys,
   DEV_ENV,
+  TESTING,
   WittyIconActive,
   wittyVersion,
   DefaultBaseUrlKey,
@@ -72,7 +73,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
 
-      !DEV_ENV &&
+      !TESTING &&
         browser.tabs.create({
           url: `
         ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,

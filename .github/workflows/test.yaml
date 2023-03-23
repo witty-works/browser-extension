@@ -19,6 +19,11 @@ jobs:
           cache: 'yarn'
       - run: yarn install --frozen-lockfile # optional, --immutable
 
+      - name: Enable testing mode
+        run: |
+          sed 's/export const TESTING = false;/export const TESTING = true;/' source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
+
       - name: Build artifacts
         run: yarn build:chrome
 
