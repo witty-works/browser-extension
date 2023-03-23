@@ -240,3 +240,19 @@ export const makeAuthRequest = () => {
     }
   });
 };
+
+export const getScrollParent = (
+  node: CustomInputElement | null
+): CustomInputElement | null => {
+  if (node == null) {
+    return null;
+  }
+
+  if (node.scrollHeight > node.clientHeight) {
+    return node;
+  } else {
+    return getScrollParent(
+      node.parentNode ? (node.parentNode as CustomInputElement) : null
+    );
+  }
+};

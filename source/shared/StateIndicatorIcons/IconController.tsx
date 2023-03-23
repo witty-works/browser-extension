@@ -72,7 +72,7 @@ const IconController: React.FC<IconControllerProps> = ({
       style={{
         display: 'flex',
         position: googleDocsIcon ? 'fixed' : 'absolute',
-        top: `${iconPosition.top}px`,
+        top: `${10}px`, //TODO: fix this -> makes the canvas huge
         left: `${iconPosition.left}px`,
         zIndex: getZIndex(element),
       }}

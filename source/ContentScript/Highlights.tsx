@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-
+import React, { useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
@@ -20,6 +19,8 @@ import {
   getCorrectedPositionCanvas,
 } from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
+import { useStateRef } from '../shared/customHooks/useStateRef';
+// import ReactDOM from 'react-dom';
 
 interface HighlightsProps {
   elementScroll: Position;
@@ -42,10 +43,9 @@ const Highlights: React.FC<HighlightsProps> = ({
   removeHighlights,
   forceHighlightUpdate,
 }: HighlightsProps) => {
-  console.log('Highlights update', elementScroll);
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [, , highlightsRef] = useStateRef<Highlight[]>([]);
   const correctedPosition = isGoogleDocs()
     ? getCorrectedPositionCanvas(element)
     : getCorrectedPosition(
@@ -54,19 +54,21 @@ const Highlights: React.FC<HighlightsProps> = ({
         element
       );
 
+  console.log('elementRect', elementRect, correctedPosition.left);
+
   const canvasSize = {
     width: elementRect.width,
     height: isGoogleDocs() //2000 is about the height of two pages in google docs
       ? 2000
       : isGreenhouse()
-      ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
+      ? getGreenhouseHeight(highlightsRef.current) //fix for greenhouse tinymc editor as height is not set propperly
       : elementRect.height - correctedPosition.top,
   };
 
   useEffect(() => {
-    console.log('HIGHLIGHTS nodesWithAlerts', nodesWithAlerts);
+    // console.log('HIGHLIGHT nodesWithAlerts', nodesWithAlerts, removeHighlights);
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
-      setHighlights([]);
+      highlightsRef.current = [];
 
     const highlightsTemp: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
@@ -128,16 +130,18 @@ const Highlights: React.FC<HighlightsProps> = ({
             endOffset: alert.endOffset,
             node: node,
           };
+          // console.log('HIGHLIGHT newHighlight', newHighlight);
           highlightsTemp.push(newHighlight);
         });
       }
     });
-    console.log('HIGHLIGHTS highlightsTemp', highlightsTemp);
 
-    setHighlights(highlightsTemp);
+    // console.log('setting highlights', highlightsTemp);
+    highlightsRef.current = highlightsTemp;
   }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
+    console.log('HIGHLIGHT highlights', highlightsRef.current);
     const canvas = canvasRef.current;
     if (!canvas) return;
     //makes the canvas ratio correct, needed to make text clear
@@ -149,8 +153,10 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
-    highlights.forEach((highlight) => {
+    highlightsRef.current.forEach((highlight) => {
+      console.log('HIGHLIGHT highlight', highlight);
       if (highlight.rects && highlight.rects.length === 0) return;
+      console.log('HIGHLIGHT highlight RECT', highlight);
 
       const [rect] = highlight.rects;
       const hoverColor = `${
@@ -190,8 +196,8 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawLine(params, hoverColor, dashedLine);
       }
     });
-  }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
-
+  }, [elementRect, highlightsRef.current, selectedAlert]);
+  console.log('element', element);
   return (
     <canvas
       ref={canvasRef}

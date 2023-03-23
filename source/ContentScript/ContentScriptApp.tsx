@@ -455,6 +455,7 @@ const ContentScriptApp: React.FC = () => {
             parentElement &&
               parentElement.insertBefore(highlightsContainer, input);
           }
+          console.log('CONTENTSCRIPT');
           ReactDOM.render(<Input element={input} />, highlightsContainer);
         }
       });

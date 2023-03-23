@@ -7,7 +7,6 @@ export const useResizeObserver = (element: HTMLElement): DOMRect => {
 
   const resizeListener = () => {
     const { width, height, top, left } = element.getBoundingClientRect();
-
     setRect(
       new DOMRect(left + doc.scrollLeft, top + doc.scrollTop, width, height)
     );

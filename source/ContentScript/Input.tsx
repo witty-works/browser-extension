@@ -50,6 +50,7 @@ import {
   getFirstTextDiff,
   getInputText,
   getNodesWithinMaxCharLength,
+  getScrollParent,
   getTextDividedByNodes,
   updateConfig,
 } from './utils';
@@ -92,6 +93,7 @@ const Input: React.FC<{
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
+  // const [, , prevNodesWithAlertsRef] = useStateRef([] as INodeWithAlerts[]);
   const [, , prevCheckedNodesRef] = useStateRef([] as INodes[]);
   const [, , nodesStorageRef] = useStateRef([] as INodes[]);
   const [selectedNodeWithAlertsIndex, setSelectedNodeWithAlertsIndex] =
@@ -117,6 +119,7 @@ const Input: React.FC<{
     defaultConfig.BACKGROUND_REQUEST_CHAR_LENGTH;
   const backgroundRequestInterval = defaultConfig.BACKGROUND_REQUEST_INTERVAL;
   const [backgroundWorkerStarted, setBackgroundWorkerStarted] = useState(false);
+  const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -158,6 +161,7 @@ const Input: React.FC<{
   const { t } = useTranslation([namespaces.errors]);
   const log = useLog('Input');
 
+  console.log('INPUT');
   useEffect(() => {
     browser.storage.local
       .get(null)
@@ -186,14 +190,19 @@ const Input: React.FC<{
       });
 
     browser.storage.onChanged.addListener(storageChange);
+    const newScrollableParent = getScrollParent(element);
+    if (newScrollableParent)
+      firstScrollableParentRef.current = newScrollableParent;
 
     !isGoogleDocs() &&
       element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
-    element.addEventListener('scroll', handleElementScrollEvent, true);
-    !isTextArea(element) &&
-      element.addEventListener('wheel', handleElementScrollEvent); //alternative to scroll event -> gmail
+    firstScrollableParentRef.current.addEventListener(
+      'scroll',
+      handleElementScrollEvent,
+      true
+    );
 
     element.addEventListener('dblclick', handleElementClickEvent as any);
     element.addEventListener('click', handleElementClickEvent as any);
@@ -221,9 +230,11 @@ const Input: React.FC<{
       //Don't forget to remove the listeners at the end
       !isGoogleDocs() &&
         element.removeEventListener('focusout', handleFocusoutEvent);
-      element.removeEventListener('scroll', handleElementScrollEvent);
-      !isTextArea(element) &&
-        element.removeEventListener('wheel', handleElementScrollEvent);
+      firstScrollableParentRef.current.removeEventListener(
+        'scroll',
+        handleElementScrollEvent
+      );
+
       element.removeEventListener('dblclick', handleElementClickEvent as any);
       element.removeEventListener('click', handleElementClickEvent as any);
 
@@ -285,9 +296,7 @@ const Input: React.FC<{
                   width: rect.width,
                   height: rect.height,
                   left: rect.left,
-                  x: rect.left,
                   top: rect.top - elementScroll.top,
-                  y: rect.top - elementScroll.top,
                 },
               };
             }),
@@ -388,7 +397,7 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    // handleKeyupEvent(); //REMOVE THIS??
+    handleKeyupEvent(); //REMOVE THIS??
 
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
@@ -432,6 +441,7 @@ const Input: React.FC<{
   }, [element, cloneRef.current]);
 
   const handleMouseoverEvent = () => {
+    console.log('mouseover');
     if (activeIconRef.current == 'passive') setIsHovered(true);
   };
 
@@ -440,6 +450,7 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = () => {
+    console.log('focusin');
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
@@ -456,10 +467,10 @@ const Input: React.FC<{
 
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
+    console.log('backgroundWorker started');
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
-    console.log('Background textDividedByNodes', textDividedByNodes);
     const nodesWithinBackgroundRequestLength = [] as {
       text: string;
       nodes: {
@@ -499,19 +510,17 @@ const Input: React.FC<{
         textLength = node.textContent ? node.textContent.length : 0;
       }
     });
+
     console.log(
       'nodesWithinBackgroundRequestLength',
       nodesWithinBackgroundRequestLength
     );
-    //call handleTextAndIcon with chunks with interval backgroundRequestInterval
     const interval = setInterval(() => {
       if (nodesWithinBackgroundRequestLength.length == 0) {
         clearInterval(interval);
         return;
       }
       const nextText = nodesWithinBackgroundRequestLength.shift();
-
-      console.log('BACKGROUND nextText', nextText);
       handleTextAndIcon(nextText?.text || '', nextText?.nodes);
     }, backgroundRequestInterval);
   };
@@ -647,7 +656,6 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (textToCheck: string, nodes?: any) => {
-    console.log('handleTextAndIcon', nodes);
     let newTextToCheck = '';
     if (nodes.length > 0) {
       let nodesToCheck = nodes.filter((node: INodes) => {
@@ -656,7 +664,6 @@ const Input: React.FC<{
             prevCheckedNode.node === node.node &&
             prevCheckedNode.index === node.index
         );
-        console.log('nodeIndex', nodeIndex, node.node, node.index);
         return nodeIndex === -1;
       });
       console.log('prevCheckedNodesRef.current', prevCheckedNodesRef.current);
@@ -665,12 +672,13 @@ const Input: React.FC<{
 
       //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
       if (newTextToCheck.length < minCharLength) {
-        // nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
+        nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
         newTextToCheck = nodesToCheck.map((node: any) => node.node).join(''); //probably bad join here
       }
 
       console.log('newTextToCheck', newTextToCheck);
       console.log('nodesWithAlertsRef.curren', nodesWithAlertsRef.current);
+
       // remove alerts from nodeswithalerts that are in the nodesToCheck
 
       if (nodesToCheck.length > 0) {
@@ -686,7 +694,6 @@ const Input: React.FC<{
         );
         console.log('NEW nodesWithAlertsUpdate', nodesWithAlertsUpdate);
         setNodesWithAlerts(nodesWithAlertsUpdate);
-        // setAlerts([]);
 
         //remove nodesToCheck from prevCheckedNodesRef.current
         const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
@@ -699,7 +706,6 @@ const Input: React.FC<{
             return nodeIndex === -1;
           }
         );
-        console.log('NEW prevCheckedNodesUpdate', prevCheckedNodesUpdate);
         prevCheckedNodesRef.current = prevCheckedNodesUpdate;
       }
     }
@@ -720,55 +726,59 @@ const Input: React.FC<{
     }
   };
 
-  //SOMETHING BROKEN HERE
-  // const getNodesToFillMinCharLength = (nodesToCheck: any, nodes: any) => {
-  //   if (nodesToCheck.length === 0) return nodesToCheck;
+  const getNodesToFillMinCharLength = (nodesToCheck: any, nodes: any) => {
+    if (nodesToCheck.length === 0) return nodesToCheck;
 
-  //   console.log('getNodesToFillMinCharLength', nodesToCheck, nodes);
-  //   const expandedNodesToCheck = nodesToCheck;
-  //   const lowestNodeIndex = nodesToCheck.reduce(
-  //     (prev: { index: number }, current: { index: number }) =>
-  //       prev.index < current.index ? prev : current
-  //   ).index;
+    const lowestNodeIndex = nodesToCheck.reduce(
+      (prev: { index: number }, current: { index: number }) =>
+        prev.index < current.index ? prev : current
+    ).index;
 
-  //   let index = 1;
-  //   while (
-  //     expandedNodesToCheck.map((node: any) => node?.node).join('').length <
-  //     minCharLength
-  //   ) {
-  //     expandedNodesToCheck.push(
-  //       nodes.find(
-  //         (node: { index: number }) => node.index === lowestNodeIndex - index
-  //       )
-  //     );
-  //     index++;
-  //   }
+    const nodesBeforeLowestNodeIndex = nodes
+      .filter((node: INodes) => node.index < lowestNodeIndex)
+      .sort((a: INodes, b: INodes) => b.index - a.index);
 
-  //   // expandedNodesToCheck.sort((a: any, b: any) => a.index - b.index);
+    let newNodesToCheck = nodesToCheck;
 
-  //   return expandedNodesToCheck;
-  // };
+    let totalLength = nodesToCheck.reduce(
+      (prev: number, current: { node: string }) => prev + current.node.length,
+      0
+    );
+    while (totalLength < minCharLength) {
+      const nodeToAdd = nodesBeforeLowestNodeIndex.shift();
+      if (!nodeToAdd) break;
+      newNodesToCheck = [...newNodesToCheck, nodeToAdd];
+      totalLength += nodeToAdd.node.length;
+    }
+    newNodesToCheck.sort((a: INodes, b: INodes) => a.index - b.index);
+
+    return newNodesToCheck;
+  };
 
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
     setTextToCheck(text);
   }, debounceDelay);
 
-  const handleElementScrollEvent = debounce(() => {
-    console.log('handleElementScrollEvent');
+  const handleElementScrollEvent = () => {
+    console.log('handleElementScrollEvent', firstScrollableParentRef.current);
     if (isGoogleDocs()) {
       setIsActive(true);
       setActiveIcon('loading');
       debouncedScroll();
     } else {
-      setElementScroll({ top: element.scrollTop, left: element.scrollLeft });
+      setElementScroll({
+        top: firstScrollableParentRef.current.scrollTop,
+        left: firstScrollableParentRef.current.scrollLeft,
+      });
     }
-  }, 500);
+  };
 
   const debouncedScroll = debounce(() => {
     setIsActive(false);
     setActiveIcon('active');
-  }, 500);
+  }, debounceDelay);
+
   const handleSubmitFormEvent = () => {
     //It's assumed that when user sends info through a form, text will disappear.
     //Therefore highlights also need to be removed
@@ -1099,18 +1109,15 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (alerts.length === 0) {
-      console.log('No alerts');
       setRemoveHighlights(true);
       setForceHighlightUpdate(!forceHighlightUpdate);
     } else {
-      //first time this condition is hit start background worker
       if (
         !backgroundWorkerStarted &&
         !isTextArea(element) &&
         getInputText(element).length > maxCharLength
       ) {
         // setTimeout(() => {
-        console.log('Starting background worker');
         backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
         setBackgroundWorkerStarted(true);
         // }, 5000);
@@ -1217,7 +1224,6 @@ const Input: React.FC<{
               range.setEnd(nodeWithAlerts.node, alert.endOffset);
               const rect = range.getClientRects()[0];
               if (!rect) return alert;
-
               return {
                 ...alert,
                 rect: {
@@ -1225,9 +1231,7 @@ const Input: React.FC<{
                   width: rect.width,
                   height: rect.height,
                   left: rect.left,
-                  x: rect.left,
-                  top: rect.top - elementScroll.top,
-                  y: rect.top - elementScroll.top,
+                  top: rect.top - elementScroll.top, //+ elementScroll.top
                 },
               };
             }),
@@ -1242,10 +1246,6 @@ const Input: React.FC<{
         0
       );
       setTotalAlerts(totalAlerts);
-
-      //add nodesWithAlertsTempWithRect to nodesWithAlerts. if the nodeIndex of the node is already in nodesWithAlerts, replace it
-      console.log('nodesWithAlertsTempWithRect', nodesWithAlertsTempWithRect);
-      console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current);
 
       const mergedNodesWithAlerts = [
         ...nodesWithAlertsRef.current.filter(
@@ -1629,6 +1629,35 @@ const Input: React.FC<{
     }
   }, [popoverData]);
 
+  // //check if every element in the array is the same
+  // const isSameArray = (arr1: any[], arr2: any[]) => {
+  //   console.log('isSameArray', arr1, arr2);
+  //   if (arr1.length !== arr2.length) {
+  //     prevNodesWithAlertsRef.current = nodesWithAlerts;
+
+  //     console.log('isSameArray', false);
+  //     return false;
+  //   }
+  //   for (let i = 0; i < arr1.length; i++) {
+  //     if (arr1[i] !== arr2[i]) {
+  //       prevNodesWithAlertsRef.current = nodesWithAlerts;
+  //       console.log('isSameArray', false);
+  //       return false;
+  //     }
+  //   }
+  //   return true;
+  // };
+
+  // const noHighlightsLoaded = () => {
+  //   //check if highlight tag is present
+  //   const highlightTags = document.querySelectorAll(WTags.WW_HIGHLIGHTS);
+  //   if (highlightTags.length > 0) {
+  //     return false;
+  //   }
+  //   console.log('noHighlightsLoaded', true);
+  //   return true;
+  // };
+
   return (
     <>
       <WTags.WW_ACTIVITY_INDICATOR>
@@ -1659,7 +1688,7 @@ const Input: React.FC<{
         </WTags.WW_CLONE>
       )}
       {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
-      {isGoogleDocs() && !isActive && (
+      {isGoogleDocs() && !isActive && nodesWithAlerts.length > 0 && (
         <WTags.WW_HIGHLIGHTS>
           <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
             <Highlights
@@ -1676,6 +1705,8 @@ const Input: React.FC<{
         </WTags.WW_HIGHLIGHTS>
       )}
       {!isGoogleDocs() && (
+        // !isSameArray(nodesWithAlerts, prevNodesWithAlertsRef.current) && (
+        //   noHighlightsLoaded()) && (
         <WTags.WW_HIGHLIGHTS>
           <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
             <Highlights
