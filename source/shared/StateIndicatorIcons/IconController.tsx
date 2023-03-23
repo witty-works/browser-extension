@@ -8,7 +8,8 @@ import { getCorrectedPosition } from '../utils';
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { getZIndex, isGoogleDocs } from '../DOMutils';
+import { getZIndex, isGoogleDocs, isTextArea } from '../DOMutils';
+import { getScrollParent } from '../../ContentScript/utils';
 interface IconControllerProps {
   element: CustomInputElement;
   elementRect?: DOMRect;
@@ -26,6 +27,8 @@ const IconController: React.FC<IconControllerProps> = ({
   const googleDocsIcon = isGoogleDocs();
   const iconPadding: number = 8;
   let correctedPosition = {} as any;
+  const scrollTop =
+    (!isTextArea(element) && getScrollParent(element)?.scrollTop) || 0;
 
   let iconPosition = { top: 0, left: 0 };
   if (!elementRect) {
@@ -50,7 +53,12 @@ const IconController: React.FC<IconControllerProps> = ({
       element
     );
     iconPosition = {
-      top: elementRect.height + correctedPosition.top - 21 - iconPadding,
+      top:
+        elementRect.height +
+        correctedPosition.top -
+        21 -
+        iconPadding -
+        scrollTop,
       left: elementRect.width + correctedPosition.left - 25 - iconPadding,
     };
   }
@@ -72,7 +80,7 @@ const IconController: React.FC<IconControllerProps> = ({
       style={{
         display: 'flex',
         position: googleDocsIcon ? 'fixed' : 'absolute',
-        top: `${10}px`, //TODO: fix this -> makes the canvas huge
+        top: `${iconPosition.top}px`,
         left: `${iconPosition.left}px`,
         zIndex: getZIndex(element),
       }}

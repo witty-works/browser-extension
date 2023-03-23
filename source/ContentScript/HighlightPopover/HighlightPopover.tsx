@@ -23,8 +23,9 @@ import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
-import { iframePositionRecquired } from '../../shared/DOMutils';
+import { iframePositionRecquired, isTextArea } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
+import { getScrollParent } from '../utils';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -76,7 +77,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const elementCords = (dat: PopoverData) => ({
     name: 'elementCords',
     options: dat,
-    fn: ({ placement, rects }: any) => {
+    _fn: ({ placement, rects }: any) => {
       let iframeRects = { top: 0, left: 0, bottom: 0, right: 0 };
       if (iframePositionRecquired()) {
         const iframes = document.getElementsByTagName('iframe');
@@ -89,18 +90,32 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           iframeRects = iframe?.getBoundingClientRect();
       }
 
+      const scrollTop =
+        (!isTextArea(element) && getScrollParent(element)?.scrollTop) || 0;
+
       const calcNewX: number =
         dat.position.x + iframeRects.left + doc.scrollLeft;
       const calcNewY: number = placement.includes('bottom')
-        ? dat.position.y + dat.position.height + iframeRects.top + doc.scrollTop
+        ? dat.position.y +
+          dat.position.height +
+          iframeRects.top +
+          doc.scrollTop +
+          scrollTop
         : dat.position.y -
           rects.floating.height +
           iframeRects.top +
-          doc.scrollTop;
+          doc.scrollTop +
+          scrollTop;
       return {
         x: showLearningBiteRef.current ? calcNewX / 2 : calcNewX,
         y: calcNewY,
       };
+    },
+    get fn() {
+      return this._fn;
+    },
+    set fn(value) {
+      this._fn = value;
     },
   });
 
