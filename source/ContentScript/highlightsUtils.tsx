@@ -7,7 +7,6 @@ export const drawLine = (params: any, color: string, dashedLine: boolean) => {
   let x = rect.left - elementRect.left;
   let y = rect.top - elementRect.top;
   if (isGoogleDocs()) {
-    y = rect.top;
     x = rect.left;
   }
 
@@ -28,7 +27,6 @@ export const drawHighlight = (params: any, color: string) => {
   let x = rect.left - elementRect.left - 1.5;
   let y = rect.top - elementRect.top + 1;
   if (isGoogleDocs()) {
-    y = rect.top;
     x = rect.left;
   }
 
