@@ -34,6 +34,8 @@ jobs:
         env:
           PREMIUM_TEST_USER_EMAIL: ${{ secrets.PREMIUM_TEST_USER_EMAIL }}
           PREMIUM_TEST_USER_PASSWORD: ${{ secrets.PREMIUM_TEST_USER_PASSWORD }}
+          HTACCESS_USERNAME: ${{ secrets.HTACCESS_USERNAME }}
+          HTACCESS_PASSWORD: ${{ secrets.HTACCESS_PASSWORD }}
           # PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
           # PROXY_USERNAME: ${{ secrets.PROXY_USERNAME }}
           # PROXY_PASSWORD: ${{ secrets.PROXY_PASSWORD }}
