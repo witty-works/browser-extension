@@ -23,10 +23,8 @@ exports.loginDashboard = async function (email, password, page) {
     await page.type('#password', password);
     await page.click('#next');
     await page.waitForLoadState('networkidle')
-
-    await page.waitForSelector('#hs-eu-confirmation-button');
-    await page.click('#hs-eu-confirmation-button');
-
+    await page.keyboard.press('Enter');
+    await page.waitForLoadState('networkidle')
     return page;
 }
 
