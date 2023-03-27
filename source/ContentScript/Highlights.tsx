@@ -120,7 +120,6 @@ const Highlights: React.FC<HighlightsProps> = ({
               };
             }
           );
-
           const newHighlight: Highlight = {
             rects,
             id: alert.id,

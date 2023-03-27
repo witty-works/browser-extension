@@ -94,6 +94,13 @@ export const de = {
     inclusiveBulletPointTwo: 'Weitere inklusive Begriffe',
     upgrade: 'Upgrade',
     customizeSuggestions: 'Vorschläge anpassen',
+    wittyLogo: 'Witty',
+    new: 'neu',
+    video: 'Video',
+    next: 'vor',
+    previous: 'zurück',
+    close: 'schliessen',
+    ignore: 'ignorieren',
   },
 };
 
@@ -192,6 +199,13 @@ export const en = {
     inclusiveBulletPointTwo: 'More inclusive terms',
     upgrade: 'Upgrade',
     customizeSuggestions: 'Customize Suggestions',
+    wittyLogo: 'Witty',
+    new: 'new',
+    video: 'video',
+    next: 'next',
+    previous: 'previous',
+    close: 'close',
+    ignore: 'ignore',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',

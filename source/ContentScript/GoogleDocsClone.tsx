@@ -22,9 +22,8 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
 
   //get 3d child of each page
   const pageElementsContainingSvg = Array.from(pages).map(
-    (page) => page.childNodes[2]
+    (page) => page.childNodes[1]
   );
-
   for (const pageElementContainingSvg of pageElementsContainingSvg) {
     const innerElement = pageElementContainingSvg
       .childNodes[0] as CustomInputElement;

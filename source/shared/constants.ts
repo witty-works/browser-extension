@@ -5,6 +5,9 @@ export const wittyVersion = browser.runtime.getManifest().version;
 //Development
 export const DEV_ENV = true;
 
+//Testing
+export const TESTING = false;
+
 export const POSTHOG_API_KEY_EU = DEV_ENV
   ? 'phc_DUofw8HC9GUENhXmZ8Wan7DGAvmWFrFnNCxoViLmuhx'
   : 'phc_i1tlvuh1iecIOSEr0QmTEIklrsSJGhULpUwUlf8fkkl';
@@ -67,7 +70,7 @@ export const BaseUrls: IBaseUrls = {
     dashboard: 'https://dashboard.witty.works/',
   },
   Dev: {
-    api: 'https://dev-54ta5gq-nfkxhzxe3xgbw.de-2.platformsh.site/',
+    api: 'https://dev-54ta5gq-him65foajgj5c.fr-4.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
   },
   Local: {
