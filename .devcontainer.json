@@ -1,0 +1,13 @@
+{
+  "image": "mcr.microsoft.com/vscode/devcontainers/base:bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "16"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}
