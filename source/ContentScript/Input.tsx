@@ -161,7 +161,6 @@ const Input: React.FC<{
   const { t } = useTranslation([namespaces.errors]);
   const log = useLog('Input');
 
-  console.log('INPUT');
   useEffect(() => {
     browser.storage.local
       .get(null)
@@ -440,7 +439,6 @@ const Input: React.FC<{
   }, [element, cloneRef.current]);
 
   const handleMouseoverEvent = () => {
-    console.log('mouseover');
     if (activeIconRef.current == 'passive') setIsHovered(true);
   };
 
@@ -449,7 +447,6 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = () => {
-    console.log('focusin');
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
@@ -466,7 +463,6 @@ const Input: React.FC<{
 
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
-    console.log('backgroundWorker started');
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
@@ -510,10 +506,6 @@ const Input: React.FC<{
       }
     });
 
-    console.log(
-      'nodesWithinBackgroundRequestLength',
-      nodesWithinBackgroundRequestLength
-    );
     const interval = setInterval(() => {
       if (nodesWithinBackgroundRequestLength.length == 0) {
         clearInterval(interval);
@@ -535,8 +527,10 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
+  console.log('isActive', isActive)
+
   const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
-    console.log('keyup', event);
+    console.log('event', event)
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     !isGoogleDocs() &&
@@ -665,7 +659,6 @@ const Input: React.FC<{
         );
         return nodeIndex === -1;
       });
-      console.log('prevCheckedNodesRef.current', prevCheckedNodesRef.current);
       nodesStorageRef.current = nodesToCheck;
       newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
 
@@ -674,9 +667,6 @@ const Input: React.FC<{
         nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
         newTextToCheck = nodesToCheck.map((node: any) => node.node).join(''); //probably bad join here
       }
-
-      console.log('newTextToCheck', newTextToCheck);
-      console.log('nodesWithAlertsRef.curren', nodesWithAlertsRef.current);
 
       // remove alerts from nodeswithalerts that are in the nodesToCheck
 
@@ -691,7 +681,6 @@ const Input: React.FC<{
             return nodeIndex === -1;
           }
         );
-        console.log('NEW nodesWithAlertsUpdate', nodesWithAlertsUpdate);
         setNodesWithAlerts(nodesWithAlertsUpdate);
 
         //remove nodesToCheck from prevCheckedNodesRef.current
@@ -760,17 +749,16 @@ const Input: React.FC<{
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
-    console.log('handleElementScrollEvent', firstScrollableParentRef.current);
-    if (isGoogleDocs()) {
+    if (!isTextArea(element)) {
       setIsActive(true);
       setActiveIcon('loading');
       debouncedScroll();
-    } else {
-      setElementScroll({
+    } 
+
+    !isGoogleDocs() && setElementScroll({
         top: firstScrollableParentRef.current.scrollTop,
         left: firstScrollableParentRef.current.scrollLeft,
       });
-    }
   };
 
   const debouncedScroll = debounce(() => {
@@ -1255,7 +1243,6 @@ const Input: React.FC<{
         ),
         ...nodesWithAlertsTempWithRect,
       ];
-      console.log('mergedAlerts', mergedNodesWithAlerts);
       setNodesWithAlerts(mergedNodesWithAlerts);
 
       prevCheckedNodesRef.current = prevCheckedNodesRef.current.concat(
@@ -1628,35 +1615,6 @@ const Input: React.FC<{
     }
   }, [popoverData]);
 
-  // //check if every element in the array is the same
-  // const isSameArray = (arr1: any[], arr2: any[]) => {
-  //   console.log('isSameArray', arr1, arr2);
-  //   if (arr1.length !== arr2.length) {
-  //     prevNodesWithAlertsRef.current = nodesWithAlerts;
-
-  //     console.log('isSameArray', false);
-  //     return false;
-  //   }
-  //   for (let i = 0; i < arr1.length; i++) {
-  //     if (arr1[i] !== arr2[i]) {
-  //       prevNodesWithAlertsRef.current = nodesWithAlerts;
-  //       console.log('isSameArray', false);
-  //       return false;
-  //     }
-  //   }
-  //   return true;
-  // };
-
-  // const noHighlightsLoaded = () => {
-  //   //check if highlight tag is present
-  //   const highlightTags = document.querySelectorAll(WTags.WW_HIGHLIGHTS);
-  //   if (highlightTags.length > 0) {
-  //     return false;
-  //   }
-  //   console.log('noHighlightsLoaded', true);
-  //   return true;
-  // };
-
   return (
     <>
       <WTags.WW_ACTIVITY_INDICATOR>
@@ -1687,7 +1645,7 @@ const Input: React.FC<{
         </WTags.WW_CLONE>
       )}
       {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
-      {isGoogleDocs() && !isActive && nodesWithAlerts.length > 0 && (
+      {(isGoogleDocs() || !isTextArea(element)) && !isActive && nodesWithAlerts.length > 0 && (
         <WTags.WW_HIGHLIGHTS>
           <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
             <Highlights
@@ -1703,9 +1661,7 @@ const Input: React.FC<{
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
       )}
-      {!isGoogleDocs() && (
-        // !isSameArray(nodesWithAlerts, prevNodesWithAlertsRef.current) && (
-        //   noHighlightsLoaded()) && (
+      {isTextArea(element) && (
         <WTags.WW_HIGHLIGHTS>
           <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
             <Highlights

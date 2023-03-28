@@ -348,7 +348,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             className='witty-works-ext-learning-bite-iframe'
             title='learning bite'
             onLoad={() => {
-              console.log('iframe loaded');
               setIframeLoaded(true);
             }}
           ></iframe>

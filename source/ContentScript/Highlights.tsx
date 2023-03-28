@@ -54,8 +54,6 @@ const Highlights: React.FC<HighlightsProps> = ({
         element
       );
 
-  console.log('elementRect', elementRect, correctedPosition.left);
-
   const canvasSize = {
     width: elementRect.width,
     height: isGoogleDocs() //2000 is about the height of two pages in google docs
@@ -66,7 +64,6 @@ const Highlights: React.FC<HighlightsProps> = ({
   };
 
   useEffect(() => {
-    // console.log('HIGHLIGHT nodesWithAlerts', nodesWithAlerts, removeHighlights);
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
       highlightsRef.current = [];
 
@@ -129,18 +126,15 @@ const Highlights: React.FC<HighlightsProps> = ({
             endOffset: alert.endOffset,
             node: node,
           };
-          // console.log('HIGHLIGHT newHighlight', newHighlight);
           highlightsTemp.push(newHighlight);
         });
       }
     });
 
-    // console.log('setting highlights', highlightsTemp);
     highlightsRef.current = highlightsTemp;
   }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
-    console.log('HIGHLIGHT highlights', highlightsRef.current);
     const canvas = canvasRef.current;
     if (!canvas) return;
     //makes the canvas ratio correct, needed to make text clear
@@ -153,9 +147,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
     highlightsRef.current.forEach((highlight) => {
-      console.log('HIGHLIGHT highlight', highlight);
       if (highlight.rects && highlight.rects.length === 0) return;
-      console.log('HIGHLIGHT highlight RECT', highlight);
 
       const [rect] = highlight.rects;
       const hoverColor = `${
@@ -196,7 +188,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       }
     });
   }, [elementRect, highlightsRef.current, selectedAlert]);
-  console.log('element', element);
+
   return (
     <canvas
       ref={canvasRef}
