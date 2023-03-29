@@ -7,6 +7,8 @@ const premiumUserPassword = process.env.PREMIUM_TEST_USER_PASSWORD;
 const testText = 'The basics: Witty highlights biased and gendered language in orange: Hey guys, we\'re excited to announce a new front-end developer will assume the leadership role. Taylor has extensive expertise and a strong technical background. Witty highlights inclusive terms in green: We are a creative team. Witty corrects grammar and spelling mistakes. They are highlighted in red: This is a spelling mistacke. Wait... there is more. Witty highlights style issues in yellow: This is actually a very long meeting.'
 const testTextShort = ' Hey guys, we\'re excited to announce a new front-end developer will assume the leadership role.'
 const apiWaitTime = 5000;
+const htaccessUsername = process.env.HTACCESS_USERNAME;
+const htaccessPassword = process.env.HTACCESS_PASSWORD;
 const test = base.extend({
     context: async ({ browserName }, use) => {
         const browserTypes = { chromium } //add firefox
@@ -17,6 +19,10 @@ const test = base.extend({
             //     username: process.env.PROXY_USERNAME,
             //     password: process.env.PROXY_PASSWORD
             // },
+            httpCredentials: {
+                username: htaccessUsername,
+                password: htaccessPassword,
+            },
             trace: 'on',
             devtools: false,
             headless: false,
@@ -45,6 +51,8 @@ test.use({ screenshot: 'on' })
 test.describe('Highlights', () => {
     test('witty form not logged in', async ({ page }) => {
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await page.waitForSelector('#hs-eu-confirmation-button');
+        await page.click('#hs-eu-confirmation-button');
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
 
         await page.waitForLoadState('networkidle')
@@ -66,6 +74,8 @@ test.describe('Highlights', () => {
 
     test('witty form', async ({ page, context }) => {
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await page.waitForSelector('#hs-eu-confirmation-button');
+        await page.click('#hs-eu-confirmation-button');
 
         const extensionId = await utils.getExtensionId(page);
         await utils.enableAllToggles(page);

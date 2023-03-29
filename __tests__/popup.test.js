@@ -4,12 +4,18 @@ const utils = require('./utils');
 
 const premiumUserEmail = process.env.PREMIUM_TEST_USER_EMAIL;
 const premiumUserPassword = process.env.PREMIUM_TEST_USER_PASSWORD;
+const htaccessUsername = process.env.HTACCESS_USERNAME;
+const htaccessPassword = process.env.HTACCESS_PASSWORD;
 
 const test = base.extend({
     context: async ({ browserName }, use) => {
         const browserTypes = { chromium } //add firefox
         const pathToExtension = ('./extension/chrome');
         const launchOptions = {
+            httpCredentials: {
+                username: htaccessUsername,
+                password: htaccessPassword,
+            },
             devtools: false,
             headless: false,
             viewport: {
