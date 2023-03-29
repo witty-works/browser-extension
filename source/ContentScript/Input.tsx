@@ -405,9 +405,9 @@ const Input: React.FC<{
     } else if (isNotion()) {
       document
         .querySelector('.notion-frame')
-        ?.addEventListener('keyup', handleKeyupEvent);
+        ?.addEventListener('keyup', handleKeyupEvent as any);
     } else {
-      element.addEventListener('keyup', handleKeyupEvent);
+      element.addEventListener('keyup', handleKeyupEvent as any);
       element.addEventListener('focusin', handleFocusinEvent);
     }
 
@@ -421,9 +421,9 @@ const Input: React.FC<{
       } else if (isNotion()) {
         document
           .querySelector('.notion-frame')
-          ?.removeEventListener('keyup', handleKeyupEvent);
+          ?.removeEventListener('keyup', handleKeyupEvent as any);
       } else {
-        element.removeEventListener('keyup', handleKeyupEvent);
+        element.removeEventListener('keyup', handleKeyupEvent as any);
         element.removeEventListener('focusin', handleFocusinEvent);
       }
     };
@@ -466,6 +466,18 @@ const Input: React.FC<{
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
+
+    // //sort out previously checked nodes from textDividedByNodes
+    // const textDividedByNodesWithoutCheckedNodes = textDividedByNodes.filter(
+    //   (node) => {
+    //     const nodeIsChecked = nodesWithAlertsRef.current.find(
+    //       (nodeWithAlerts) =>
+    //         nodeWithAlerts.node === node 
+    //     );
+    //     return !nodeIsChecked;
+    //   }
+    // );
+
     const nodesWithinBackgroundRequestLength = [] as {
       text: string;
       nodes: {
@@ -527,10 +539,7 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  console.log('isActive', isActive)
-
-  const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
-    console.log('event', event)
+  const handleKeyupEvent = (gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     !isGoogleDocs() &&
@@ -1099,17 +1108,6 @@ const Input: React.FC<{
       setRemoveHighlights(true);
       setForceHighlightUpdate(!forceHighlightUpdate);
     } else {
-      if (
-        !backgroundWorkerStarted &&
-        !isTextArea(element) &&
-        getInputText(element).length > maxCharLength
-      ) {
-        // setTimeout(() => {
-        backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
-        setBackgroundWorkerStarted(true);
-        // }, 5000);
-      }
-
       let alertsWithoutIgnoredCategories = alerts;
 
       //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
@@ -1249,6 +1247,15 @@ const Input: React.FC<{
         nodesStorageRef.current
       );
       nodesStorageRef.current = [];
+
+      if (
+        !backgroundWorkerStarted &&
+        !isTextArea(element) &&
+        getInputText(element).length > maxCharLength
+      ) {
+        backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
+        setBackgroundWorkerStarted(true);
+      }
     }
   }, [
     alerts,

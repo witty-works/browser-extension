@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
+import { CustomInputElement, Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
 import {
   getZIndex,
@@ -25,7 +25,7 @@ import { useStateRef } from '../shared/customHooks/useStateRef';
 interface HighlightsProps {
   elementScroll: Position;
   nodesWithAlerts: INodeWithAlerts[];
-  element: HTMLElement;
+  element: CustomInputElement;
   elementRect: DOMRect;
   selectedAlert: IAlert | null;
   userIsSignedIn: boolean;
@@ -43,9 +43,11 @@ const Highlights: React.FC<HighlightsProps> = ({
   removeHighlights,
   forceHighlightUpdate,
 }: HighlightsProps) => {
+  
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-  const [, , highlightsRef] = useStateRef<Highlight[]>([]);
+
+  const [highlights, setHighlights] = useStateRef<Highlight[]>([]);
   const correctedPosition = isGoogleDocs()
     ? getCorrectedPositionCanvas(element)
     : getCorrectedPosition(
@@ -59,13 +61,13 @@ const Highlights: React.FC<HighlightsProps> = ({
     height: isGoogleDocs() //2000 is about the height of two pages in google docs
       ? 2000
       : isGreenhouse()
-      ? getGreenhouseHeight(highlightsRef.current) //fix for greenhouse tinymc editor as height is not set propperly
-      : elementRect.height - correctedPosition.top,
+      ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
+      : elementRect.height //prevents expanding contenteditable gmail: - correctedPosition.top,
   };
 
   useEffect(() => {
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
-      highlightsRef.current = [];
+      setHighlights([]);
 
     const highlightsTemp: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
@@ -131,7 +133,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       }
     });
 
-    highlightsRef.current = highlightsTemp;
+    setHighlights(highlightsTemp);
   }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
@@ -146,7 +148,7 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
-    highlightsRef.current.forEach((highlight) => {
+    highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
 
       const [rect] = highlight.rects;
@@ -187,7 +189,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawLine(params, hoverColor, dashedLine);
       }
     });
-  }, [elementRect, highlightsRef.current, selectedAlert]);
+  }, [elementRect, highlights, selectedAlert]);
 
   return (
     <canvas
@@ -203,7 +205,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           overflow: 'auto',
           pointerEvents: 'none',
           zIndex: getZIndex(element),
-          border: '1px solid red',
         } as React.CSSProperties
       }
     ></canvas>
