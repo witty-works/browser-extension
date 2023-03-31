@@ -6,6 +6,8 @@ export interface IRequest {
 export interface IEndpointError {
   status: number;
   message: string;
+  request?: IRequest;
+  responseSchema?: any;
 }
 
 export interface ResponseConfig {

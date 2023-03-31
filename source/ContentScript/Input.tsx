@@ -93,7 +93,6 @@ const Input: React.FC<{
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
-  // const [, , prevNodesWithAlertsRef] = useStateRef([] as INodeWithAlerts[]);
   const [, , prevCheckedNodesRef] = useStateRef([] as INodes[]);
   const [, , nodesStorageRef] = useStateRef([] as INodes[]);
   const [selectedNodeWithAlertsIndex, setSelectedNodeWithAlertsIndex] =
@@ -120,6 +119,7 @@ const Input: React.FC<{
   const backgroundRequestInterval = defaultConfig.BACKGROUND_REQUEST_INTERVAL;
   const [backgroundWorkerStarted, setBackgroundWorkerStarted] = useState(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
+  const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -155,6 +155,21 @@ const Input: React.FC<{
     );
     setIsActive(false);
     setActiveIcon('active');
+
+    //Deals with new pages getting rendered in google docs
+    const pages = element.querySelectorAll('.kix-page-paginated');
+    const pagesZIndex = Array.from(pages).map((page) => {//z-index = page number
+      const zIndex = window    
+        .getComputedStyle(page)
+        .getPropertyValue('z-index');
+      return parseInt(zIndex);
+    }) as number[];
+    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page))) {
+      previouslyCheckedPagesGoogleDocs.current = [
+        ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
+      ];
+      backgroundWorker(cloneRef.current);
+    }
   }, 500);
 
   useMutationObserver(element, onElementMutation);
@@ -205,6 +220,7 @@ const Input: React.FC<{
 
     element.addEventListener('dblclick', handleElementClickEvent as any);
     element.addEventListener('click', handleElementClickEvent as any);
+    !isTextArea(element) && element.addEventListener('paste', backgroundWorker(element) as any);
 
     if (isGoogleDocs()) {
       googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
@@ -236,6 +252,7 @@ const Input: React.FC<{
 
       element.removeEventListener('dblclick', handleElementClickEvent as any);
       element.removeEventListener('click', handleElementClickEvent as any);
+      !isTextArea(element) && element.removeEventListener('paste', backgroundWorker(element) as any);
 
       if (isGoogleDocs()) {
         googleDocsEventTarget.removeEventListener(
@@ -395,7 +412,7 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    handleKeyupEvent(); //REMOVE THIS??
+    handleKeyupEvent(); 
 
     //Listener should be on input, but on Twitter it simply does not fire when deleting
     //The work around (at least for the moment) is to use 'keyup'
@@ -463,20 +480,10 @@ const Input: React.FC<{
 
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
+    console.log('BACKGROUND WORKER CALLED', element);
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
-
-    // //sort out previously checked nodes from textDividedByNodes
-    // const textDividedByNodesWithoutCheckedNodes = textDividedByNodes.filter(
-    //   (node) => {
-    //     const nodeIsChecked = nodesWithAlertsRef.current.find(
-    //       (nodeWithAlerts) =>
-    //         nodeWithAlerts.node === node 
-    //     );
-    //     return !nodeIsChecked;
-    //   }
-    // );
 
     const nodesWithinBackgroundRequestLength = [] as {
       text: string;
@@ -489,6 +496,8 @@ const Input: React.FC<{
     let textLength = 0;
     textDividedByNodes.forEach((node) => {
       const text = node.textContent ? node.textContent : '';
+      const index = textDividedByNodes.indexOf(node);
+
       if (
         textLength + (node.textContent ? node.textContent.length : 0) <=
         backgroundRequestCharLength
@@ -500,19 +509,19 @@ const Input: React.FC<{
           lastNode.text += text;
           lastNode.nodes.push({
             node: text,
-            index: textDividedByNodes.indexOf(node),
+            index: index
           });
           nodesWithinBackgroundRequestLength.push(lastNode);
         } else {
           nodesWithinBackgroundRequestLength.push({
             text: text,
-            nodes: [{ node: text, index: textDividedByNodes.indexOf(node) }],
+            nodes: [{ node: text, index: index }],
           });
         }
       } else {
         nodesWithinBackgroundRequestLength.push({
           text: node.textContent ? node.textContent : '',
-          nodes: [{ node: text, index: textDividedByNodes.indexOf(node) }],
+          nodes: [{ node: text, index: index }],
         });
         textLength = node.textContent ? node.textContent.length : 0;
       }
@@ -658,13 +667,14 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (textToCheck: string, nodes?: any) => {
+    console.log('handleTextAndIcon',textToCheck);
     let newTextToCheck = '';
     if (nodes.length > 0) {
       let nodesToCheck = nodes.filter((node: INodes) => {
         const nodeIndex = prevCheckedNodesRef.current.findIndex(
           (prevCheckedNode: INodes) =>
             prevCheckedNode.node === node.node &&
-            prevCheckedNode.index === node.index
+            prevCheckedNode.index === node.index 
         );
         return nodeIndex === -1;
       });
@@ -672,27 +682,25 @@ const Input: React.FC<{
       newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
 
       //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
-      if (newTextToCheck.length < minCharLength) {
+      if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
         nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
-        newTextToCheck = nodesToCheck.map((node: any) => node.node).join(''); //probably bad join here
+        newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
       }
 
-      // remove alerts from nodeswithalerts that are in the nodesToCheck
-
-      if (nodesToCheck.length > 0) {
+      // remove alerts from nodeswithalerts that have changed
+      if (nodesToCheck.length > 0) { 
         const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter(
           (nodeWithAlerts) => {
             const nodeIndex = nodesToCheck.findIndex(
-              (nodeToCheck: { node: any; index: number | undefined }) =>
-                // nodeToCheck.node === nodeWithAlerts.node.textContent &&
-                nodeToCheck.index === nodeWithAlerts.nodeIndex
-            );
+              (nodeToCheck: { node: any; index: number | undefined }) => 
+                nodeToCheck.index === nodeWithAlerts.nodeIndex &&
+                nodeToCheck.node !== nodeWithAlerts.node.textContent
+            ); 
             return nodeIndex === -1;
           }
         );
         setNodesWithAlerts(nodesWithAlertsUpdate);
 
-        //remove nodesToCheck from prevCheckedNodesRef.current
         const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
           (prevCheckedNode) => {
             const nodeIndex = nodesToCheck.findIndex(
@@ -1250,10 +1258,10 @@ const Input: React.FC<{
 
       if (
         !backgroundWorkerStarted &&
-        !isTextArea(element) &&
-        getInputText(element).length > maxCharLength
+        !isTextArea(element) && !isGoogleDocs()  //does not work on textArea yet, google docs is handled on mutation
+         && getInputText(element).length > maxCharLength 
       ) {
-        backgroundWorker(isGoogleDocs() ? cloneRef.current : element);
+        backgroundWorker(element);
         setBackgroundWorkerStarted(true);
       }
     }
@@ -1504,6 +1512,7 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
+    console.log('checkEndpointError',checkEndpointError)
     if (checkEndpointError?.status === 422) {
       setAlerts([]);
     } else if (
@@ -1523,6 +1532,8 @@ const Input: React.FC<{
         .catch((error: unknown) => {
           sendErrorToSentry(error);
         });
+    } else if(checkEndpointError?.status === 0) { //try to re do the request once if it was cancelled
+      //TODO: repeat request here
     }
     log(
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,

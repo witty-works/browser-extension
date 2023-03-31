@@ -65,6 +65,8 @@ const Highlights: React.FC<HighlightsProps> = ({
       : elementRect.height //prevents expanding contenteditable gmail: - correctedPosition.top,
   };
 
+  console.log('incoming nodes', nodesWithAlerts);
+
   useEffect(() => {
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
       setHighlights([]);
@@ -80,7 +82,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         .getElementsByClassName('left-sidebar-container-content')[0]
         ?.getBoundingClientRect();
     }
-
+      
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
@@ -119,6 +121,11 @@ const Highlights: React.FC<HighlightsProps> = ({
               };
             }
           );
+
+          //Check if node is in view, if not, don't add new highlight
+          if (rects[0].top < 0 || rects[0].top > window.innerHeight || (node.textContent && !node.textContent.includes(alert.data.text)))  {
+            return;
+          } else {
           const newHighlight: Highlight = {
             rects,
             id: alert.id,
@@ -129,8 +136,9 @@ const Highlights: React.FC<HighlightsProps> = ({
             node: node,
           };
           highlightsTemp.push(newHighlight);
+        }
         });
-      }
+      } 
     });
 
     setHighlights(highlightsTemp);
@@ -191,6 +199,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
   }, [elementRect, highlights, selectedAlert]);
 
+  console.log('render highlights', highlights);
   return (
     <canvas
       ref={canvasRef}
