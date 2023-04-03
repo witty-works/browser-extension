@@ -138,7 +138,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           highlightsTemp.push(newHighlight);
         }
         });
-      } 
+      }
     });
 
     setHighlights(highlightsTemp);

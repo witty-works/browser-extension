@@ -7,6 +7,7 @@ import { DEV_ENV, WTags } from '../constants';
 import { getActiveDocument } from '../../ContentScript/ContentScriptApp';
 const ajv = new Ajv();
 
+//use setInterval to slow down requests
 const useApiResult = <TResponse,>(
   request: IRequest,
   responseSchema: JSONSchemaType<TResponse> | null,
@@ -28,6 +29,7 @@ const useApiResult = <TResponse,>(
       WTags.WW_CONTAINER
     );
     const ac = new AbortController();
+    // const fetchData = () => {
     //avoid enpoint call if no config or no container (aka plugin disabled)
     if (request.config && request.url) {
       if (
@@ -38,41 +40,40 @@ const useApiResult = <TResponse,>(
         return;
       }
       request.config = { ...request.config, signal: ac.signal };
-
       log('Request:', logTypes.INFO, request);
+    
+        fetch(request.url, request.config)
+          .then(async (response) => {
+            log('Response: ', logTypes.INFO, response);
 
-      fetch(request.url, request.config)
-        .then(async (response) => {
-          log('Response: ', logTypes.INFO, response);
+            if (!response.ok) {
+              setEndpointError({
+                status: response.status,
+                message: response.statusText,
+              });
+              return;
+            }
+            const responseResults: any = await response.json();
 
-          if (!response.ok) {
-            setEndpointError({
-              status: response.status,
-              message: response.statusText,
-            });
-            return;
-          }
-          const responseResults: any = await response.json();
-
-          if (
-            validateResponse &&
-            !validateResponse(responseResults) &&
-            validateResponse.errors
-          ) {
-            DEV_ENV &&
-              console.log('validateResponse.errors', validateResponse.errors);
-            log(
-              `JSON Schema Error: ${validateResponse.errors.join(', ')}`,
-              logTypes.ERROR
-            );
-            return;
-          }
-          console.log('responseResults: ', responseResults);
+            if (
+              validateResponse &&
+              !validateResponse(responseResults) &&
+              validateResponse.errors
+            ) {
+              DEV_ENV &&
+                console.log('validateResponse.errors', validateResponse.errors);
+              log(
+                `JSON Schema Error: ${validateResponse.errors.join(', ')}`,
+                logTypes.ERROR
+              );
+              return;
+            }
+            console.log('responseResults: ', responseResults);
 
 
-          setEndpointResponse(responseResults);
-          setEndpointError(null);
-        })
+            setEndpointResponse(responseResults);
+            setEndpointError(null);
+          })
 
         .catch((error: Error) => {
           console.log('error: ', error, error.name);
@@ -80,7 +81,6 @@ const useApiResult = <TResponse,>(
             status: 0,
             message: error.message,
             request: request,
-            responseSchema: responseSchema,
           });
           
           // AbortError is created when a request is aborted.
@@ -89,14 +89,20 @@ const useApiResult = <TResponse,>(
             log(error.message, logTypes.ERROR);
           }
         });
-    }
+      };
+    // };
 
+    //make sure we don't call the endpoint too often
+    // const debounceTimeout = setTimeout(() => {
+    //   fetchData();
+    // }, 2000);
+
+    // Clean up the debounce timeout and abort controller when the component is unmounted or the request changes
     return () => {
-      ac.abort(); // Abort fetch on unmount
+      // clearTimeout(debounceTimeout);
+      ac.abort();
     };
-    // });
   }, [request]);
-
   return [endpointResponse, endpointError];
 };
 

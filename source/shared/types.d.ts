@@ -3,6 +3,12 @@ export interface IRequest {
   url: string;
   config: RequestInit | null;
 }
+
+export interface ICheckRequest {
+  text: string;
+  repeatedRequest: boolean;
+}
+
 export interface IEndpointError {
   status: number;
   message: string;

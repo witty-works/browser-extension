@@ -144,7 +144,7 @@ const Input: React.FC<{
     if (!element.querySelector('g')) {
       setAlerts([]);
     }
-    setTextToCheck('');
+    setTextToCheck({text: '', repeatedRequest: false});
     ReactDOM.render(
       <GoogleDocsClone
         element={element}
@@ -220,7 +220,7 @@ const Input: React.FC<{
 
     element.addEventListener('dblclick', handleElementClickEvent as any);
     element.addEventListener('click', handleElementClickEvent as any);
-    !isTextArea(element) && element.addEventListener('paste', backgroundWorker(element) as any);
+    !isTextArea(element) && window.addEventListener('paste', backgroundWorker(element) as any);
 
     if (isGoogleDocs()) {
       googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
@@ -252,7 +252,7 @@ const Input: React.FC<{
 
       element.removeEventListener('dblclick', handleElementClickEvent as any);
       element.removeEventListener('click', handleElementClickEvent as any);
-      !isTextArea(element) && element.removeEventListener('paste', backgroundWorker(element) as any);
+      !isTextArea(element) && window.removeEventListener('paste', backgroundWorker(element) as any);
 
       if (isGoogleDocs()) {
         googleDocsEventTarget.removeEventListener(
@@ -540,7 +540,7 @@ const Input: React.FC<{
   const handleFocusoutEvent = () => {
     setActiveIcon('passive');
     setAlerts([]);
-    setTextToCheck('');
+    setTextToCheck({text: '', repeatedRequest: false});
   };
 
   const handleDocumentResizeEvent = () => {
@@ -665,8 +665,9 @@ const Input: React.FC<{
       };
     }
   };
+  
 
-  const handleTextAndIcon = (textToCheck: string, nodes?: any) => {
+  const handleTextAndIcon = (textToCheck: string, nodes: any) => {
     console.log('handleTextAndIcon',textToCheck);
     let newTextToCheck = '';
     if (nodes.length > 0) {
@@ -724,12 +725,12 @@ const Input: React.FC<{
     if (textToCheck.length === 0 || !textToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
-      setTextToCheck('');
+      setTextToCheck({text: '', repeatedRequest: false});
     } else {
       debouncedSetTextToCheck(textToCheck);
       setActiveIcon('loading');
     }
-  };
+  }
 
   const getNodesToFillMinCharLength = (nodesToCheck: any, nodes: any) => {
     if (nodesToCheck.length === 0) return nodesToCheck;
@@ -762,7 +763,7 @@ const Input: React.FC<{
 
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
-    setTextToCheck(text);
+    setTextToCheck({text: text, repeatedRequest: false});
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
@@ -937,7 +938,7 @@ const Input: React.FC<{
     element: Node | null;
   }): void => {
     setAlerts([]);
-    setTextToCheck('');
+    setTextToCheck({text: '', repeatedRequest: false});
     const textDividedByNodes = getTextDividedByNodes(element);
 
     if (isGoogleDocs() && caret.position) {
@@ -959,7 +960,7 @@ const Input: React.FC<{
           caret.element
         );
         if (textWithinMaxCharLength)
-          handleTextAndIcon(
+          handleTextAndIcon( 
             textWithinMaxCharLength.text,
             textWithinMaxCharLength.nodes
           );
@@ -1450,7 +1451,7 @@ const Input: React.FC<{
           node.dispatchEvent(insertAlternative);
 
           setTimeout(() => {
-            setTextToCheck(getInputText(element));
+            setTextToCheck({text: getInputText(element), repeatedRequest: false});
             const event = new Event('keyup', { bubbles: true });
             element.dispatchEvent(event);
           }, 200);
@@ -1505,7 +1506,7 @@ const Input: React.FC<{
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
     if (!isCkEditor(element) && !isGoogleDocs()) {
-      setTextToCheck(getInputText(element));
+      setTextToCheck({text: getInputText(element), repeatedRequest: false});
       const event = new Event('keyup', { bubbles: true });
       element.dispatchEvent(event);
     }
@@ -1533,7 +1534,17 @@ const Input: React.FC<{
           sendErrorToSentry(error);
         });
     } else if(checkEndpointError?.status === 0) { //try to re do the request once if it was cancelled
-      //TODO: repeat request here
+      //TODO: repeat request here if 
+      //setcheckendpoint
+      if(checkEndpointError.request) {
+        const body = checkEndpointError.request.config?.body as string;
+        //decode body 
+        if (!body) return;
+        //json decode body to get the text
+        const text = JSON.parse(body).text;
+        console.log('text',text);
+        setTextToCheck({text: text, repeatedRequest: true});
+      }
     }
     log(
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
@@ -1558,8 +1569,8 @@ const Input: React.FC<{
       refreshTokenResponse.refresh_token
     );
 
-    setTextToCheck('');
-    setTextToCheck(currentTextToCheck);
+    setTextToCheck({text: '', repeatedRequest: false});
+    setTextToCheck({text: currentTextToCheck, repeatedRequest: false});
   }, [refreshTokenError, refreshTokenResponse]);
 
   const ErrorBoundaryFallback = () => (
@@ -1573,8 +1584,8 @@ const Input: React.FC<{
         case StorageKeys.ACCESS_TOKEN:
           setUserIsSignedIn(changes[item].newValue == '' ? false : true);
           setConfigHasChanged(changes[item].newValue == '' ? false : true);
-          setTextToCheck('');
-          setTextToCheck(currentTextToCheck);
+          setTextToCheck({text: '', repeatedRequest: false});
+          setTextToCheck({text: currentTextToCheck, repeatedRequest: false});
           break;
       }
     }

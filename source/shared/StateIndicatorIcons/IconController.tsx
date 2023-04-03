@@ -8,8 +8,7 @@ import { getCorrectedPosition } from '../utils';
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { getZIndex, isGoogleDocs, isTextArea } from '../DOMutils';
-import { getScrollParent } from '../../ContentScript/utils';
+import { getZIndex, isGoogleDocs } from '../DOMutils';
 interface IconControllerProps {
   element: CustomInputElement;
   elementRect?: DOMRect;
@@ -27,8 +26,8 @@ const IconController: React.FC<IconControllerProps> = ({
   const googleDocsIcon = isGoogleDocs();
   const iconPadding: number = 8;
   let correctedPosition = {} as any;
-  const scrollTop =
-    (!isTextArea(element) && getScrollParent(element)?.scrollTop) || 0;
+  // const scrollTop =
+  //   (!isTextArea(element) && getScrollParent(element)?.scrollTop) || 0;
 
   let iconPosition = { top: 0, left: 0 };
   if (!elementRect) {
@@ -57,8 +56,8 @@ const IconController: React.FC<IconControllerProps> = ({
         elementRect.height +
         correctedPosition.top -
         21 -
-        iconPadding -
-        scrollTop,
+        iconPadding,
+        // - scrollTop,
       left: elementRect.width + correctedPosition.left - 25 - iconPadding,
     };
   }
