@@ -25,6 +25,7 @@ import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
+import { getScrollableParentClosestToElement } from '../../shared/utils';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -115,8 +116,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   }, [reference, showLearningBite]);
 
   useEffect(() => {
+    getScrollableParentClosestToElement(element)?.addEventListener('scroll', handleElementScroll);
+    element.addEventListener('scroll', handleElementScroll);
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('input', handleClickOutside as EventListener);
+    window.addEventListener('scroll', handleElementScroll);
     getActiveDocument().addEventListener('click', handleClickOutside);
     getActiveDocument().addEventListener(
       'input',
@@ -128,6 +132,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         'input',
         handleClickOutside as EventListener
       );
+      getScrollableParentClosestToElement(element)?.removeEventListener('scroll', handleElementScroll); 
+      element.removeEventListener('scroll', handleElementScroll);
       getActiveDocument().removeEventListener('click', handleClickOutside);
       getActiveDocument().removeEventListener(
         'input',
@@ -135,6 +141,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       );
     };
   }, [refs.floating.current]);
+
+  const handleElementScroll = () => {
+    hidePopover();
+  };
 
   const handleClickOutside = (event: MouseEvent) => {
     const hasClickedOutsidePopOver: boolean | null =

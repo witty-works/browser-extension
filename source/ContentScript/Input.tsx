@@ -625,7 +625,6 @@ const Input: React.FC<{
   const handleElementScrollEvent = () => {
     if (isGoogleDocs()) {
       setIsActive(true);
-
       setActiveIcon('loading');
       debouncedScroll();
     } else {
