@@ -120,7 +120,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     element.addEventListener('scroll', handleElementScroll);
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('input', handleClickOutside as EventListener);
-    window.addEventListener('scroll', handleElementScroll);
     getActiveDocument().addEventListener('click', handleClickOutside);
     getActiveDocument().addEventListener(
       'input',
