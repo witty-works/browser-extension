@@ -123,7 +123,8 @@ const Highlights: React.FC<HighlightsProps> = ({
           );
 
           //Check if node is in view, if not, don't add new highlight
-          if (rects[0].top < 0 || rects[0].top > window.innerHeight || (node.textContent && !node.textContent.includes(alert.data.text)))  {
+          if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text)))  {
+            console.log('node not in view');
             return;
           } else {
           const newHighlight: Highlight = {
@@ -138,6 +139,8 @@ const Highlights: React.FC<HighlightsProps> = ({
           highlightsTemp.push(newHighlight);
         }
         });
+      } else {
+        console.log('node not in dom');
       }
     });
 
@@ -214,6 +217,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           overflow: 'auto',
           pointerEvents: 'none',
           zIndex: getZIndex(element),
+          border: '1px solid red'
         } as React.CSSProperties
       }
     ></canvas>

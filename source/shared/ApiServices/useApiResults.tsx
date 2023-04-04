@@ -28,8 +28,6 @@ const useApiResult = <TResponse,>(
     const container = getActiveDocument().getElementsByTagName(
       WTags.WW_CONTAINER
     );
-    const ac = new AbortController();
-    // const fetchData = () => {
     //avoid enpoint call if no config or no container (aka plugin disabled)
     if (request.config && request.url) {
       if (
@@ -39,7 +37,7 @@ const useApiResult = <TResponse,>(
       ) {
         return;
       }
-      request.config = { ...request.config, signal: ac.signal };
+      request.config = { ...request.config };
       log('Request:', logTypes.INFO, request);
     
         fetch(request.url, request.config)
@@ -90,18 +88,6 @@ const useApiResult = <TResponse,>(
           }
         });
       };
-    // };
-
-    //make sure we don't call the endpoint too often
-    // const debounceTimeout = setTimeout(() => {
-    //   fetchData();
-    // }, 2000);
-
-    // Clean up the debounce timeout and abort controller when the component is unmounted or the request changes
-    return () => {
-      // clearTimeout(debounceTimeout);
-      ac.abort();
-    };
   }, [request]);
   return [endpointResponse, endpointError];
 };

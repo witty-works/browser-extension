@@ -164,7 +164,7 @@ const Input: React.FC<{
         .getPropertyValue('z-index');
       return parseInt(zIndex);
     }) as number[];
-    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page))) {
+    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs()) {
       previouslyCheckedPagesGoogleDocs.current = [
         ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
       ];
@@ -220,7 +220,7 @@ const Input: React.FC<{
 
     element.addEventListener('dblclick', handleElementClickEvent as any);
     element.addEventListener('click', handleElementClickEvent as any);
-    !isTextArea(element) && window.addEventListener('paste', backgroundWorker(element) as any);
+    !isTextArea(element) && window.addEventListener('paste', handlePaste);
 
     if (isGoogleDocs()) {
       googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
@@ -252,7 +252,6 @@ const Input: React.FC<{
 
       element.removeEventListener('dblclick', handleElementClickEvent as any);
       element.removeEventListener('click', handleElementClickEvent as any);
-      !isTextArea(element) && window.removeEventListener('paste', backgroundWorker(element) as any);
 
       if (isGoogleDocs()) {
         googleDocsEventTarget.removeEventListener(
@@ -265,6 +264,7 @@ const Input: React.FC<{
         );
         document.removeEventListener('scroll', handleElementScrollEvent);
         window.removeEventListener('resize', handleDocumentResizeEvent);
+        !isTextArea(element) && window.removeEventListener('paste', handlePaste);
       }
 
       if (parentForm)
@@ -414,34 +414,22 @@ const Input: React.FC<{
   useEffect(() => {
     handleKeyupEvent(); 
 
-    //Listener should be on input, but on Twitter it simply does not fire when deleting
-    //The work around (at least for the moment) is to use 'keyup'
-    if (isGoogleDocs()) {
-      //keyup comes from clone update
-      googleDocsEventTarget.addEventListener('focusin', handleFocusinEvent);
-    } else if (isNotion()) {
+   if (isNotion()) {
       document
         .querySelector('.notion-frame')
         ?.addEventListener('keyup', handleKeyupEvent as any);
     } else {
       element.addEventListener('keyup', handleKeyupEvent as any);
-      element.addEventListener('focusin', handleFocusinEvent);
     }
 
     return () => {
       //Don't forget to remove the listeners at the end
-      if (isGoogleDocs()) {
-        googleDocsEventTarget.removeEventListener(
-          'focusin',
-          handleFocusinEvent
-        );
-      } else if (isNotion()) {
+      if (isNotion()) {
         document
           .querySelector('.notion-frame')
           ?.removeEventListener('keyup', handleKeyupEvent as any);
       } else {
         element.removeEventListener('keyup', handleKeyupEvent as any);
-        element.removeEventListener('focusin', handleFocusinEvent);
       }
     };
   }, [debounceDelay]);
@@ -455,27 +443,16 @@ const Input: React.FC<{
     docTextEvaluation(element, cloneRef.current);
   }, [element, cloneRef.current]);
 
+  const handlePaste = () => {
+    backgroundWorker(element);
+  }
+
   const handleMouseoverEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(true);
   };
 
   const handleMouseoutEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(false);
-  };
-
-  const handleFocusinEvent = () => {
-    const textDividedByNodes = getTextDividedByNodes(
-      element as CustomInputElement
-    );
-    const textWithinMaxCharLength = getTextWithinMaxCharLength(
-      0,
-      textDividedByNodes[0]
-    );
-    textWithinMaxCharLength &&
-      handleTextAndIcon(
-        textWithinMaxCharLength.text,
-        textWithinMaxCharLength.nodes
-      );
   };
 
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
@@ -1240,7 +1217,7 @@ const Input: React.FC<{
         0
       );
       setTotalAlerts(totalAlerts);
-
+console.log('merging', 'nodesWithAlertsRef.current', nodesWithAlertsRef.current, 'nodesWithAlertsTempWithRect', nodesWithAlertsTempWithRect)
       const mergedNodesWithAlerts = [
         ...nodesWithAlertsRef.current.filter(
           (nodeWithAlerts) =>
@@ -1285,11 +1262,19 @@ const Input: React.FC<{
     ) {
       let updatedAlerts: IAlert[] = [];
       //only use text that is updated -> nodesStorageRef.current
+      //GOOGLE DOCS ONLY
       const lowestIndex = nodesStorageRef.current.reduce(
         (min, node) => (node.index < min ? node.index : min),
         Infinity
       );
+
+      // const lowestIndex = nodesWhithinMaxCharLengthRef.current.reduce(
+      //   (min, node) => (node.index < min ? node.index : min),
+      //   Infinity
+      // );
+
       nodesStorageRef.current.forEach((nodeWithAlertsRef) => {
+      // nodesWhithinMaxCharLengthRef.current.forEach((nodeWithAlertsRef) => {
         let absolutePositionOfFirstCharOfNode = 0;
         for (
           let index = lowestIndex;
