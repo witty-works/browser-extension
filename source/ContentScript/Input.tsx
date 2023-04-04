@@ -1324,11 +1324,13 @@ const Input: React.FC<{
           cancelable: true,
           bubbles: true,
         });
+        console.log('insertAlternative.clipboardData', insertAlternative.clipboardData)
         if (!insertAlternative.clipboardData) return;
         insertAlternative.clipboardData.setData(
           'text/plain',
           alternative == ' ' ? '   ' : alternative
         );
+        console.log('insertAlternative.clipboardData + alternatice', insertAlternative.clipboardData)
         googleDocsEventTarget.dispatchEvent(insertAlternative);
         resetPopover();
       } else {
