@@ -3,6 +3,7 @@ import React from 'react';
 import './Toggle.scss';
 import '../../../Popup/styles.scss';
 import Lock from '../../../assets/icons/popup/lock.svg';
+import Star from '../../../assets/icons/popup/star.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../../i18n/i18n.constants';
 import { Colors } from '../../constants';
@@ -43,14 +44,17 @@ const Toggle: React.FC<ToggleProps> = ({
           type='checkbox'
         />
         {!hasWittyTeams && (
-          <div className='witty-works-ext-toggle-premium-only'>
+          <div className='witty-works-ext-toggle-lock'>
             <a
               className='witty-works-ext-witty-teams-only-link'
               href='https://www.witty.works/witty-for-teams'
               target='_blank'
             >
-              {t('wittyTeamsOnly')}
-            </a>
+              <Star />
+            </a>            
+            <div className='witty-works-ext-toggle-lock-info'>
+              {t('premiumInfo')}
+            </div>
           </div>
         )}
         {userIsLoggedIn && locked && hasWittyTeams && (
