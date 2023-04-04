@@ -79,6 +79,8 @@ const Popup: React.FC<PopupProps> = ({
   const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
     defaultConfig.STYLE
   );
+  const [hrAddon, setHrAddon] = useState<ConfigProperty>(defaultConfig.HR);
+
   const [updatingDashboardFailed, setUpdatingDashboardFailed] =
     useState<boolean>(false);
   const [casing, setCasing] = useState<boolean>(true);
@@ -160,6 +162,7 @@ const Popup: React.FC<PopupProps> = ({
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
         setStyleCorrections(result[StorageKeys.STYLE]);
+        setHrAddon(result[StorageKeys.HR]);
 
         setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
@@ -236,6 +239,10 @@ const Popup: React.FC<PopupProps> = ({
   }, [styleCorrections]);
 
   useEffect(() => {
+    storeInLocalStorage(StorageKeys.HR, hrAddon);
+  }, [hrAddon]);
+
+  useEffect(() => {
     setToken(accessToken);
     setConfig(accessToken != '' ? true : false);
   }, [accessToken]);
@@ -288,6 +295,19 @@ const Popup: React.FC<PopupProps> = ({
               });
             }
             break;
+          case 'hr':
+            if (
+              authResponse.organization_config[key].status == 'force' ||
+              resetSettings
+            ) {
+              setHrAddon(authResponse.organization_config[key]);
+            } else {
+              setHrAddon({
+                ...hrAddon,
+                status: authResponse.organization_config[key].status,
+              });
+            }
+            break;
         }
       }
       setResetSettings(false);
@@ -302,13 +322,15 @@ const Popup: React.FC<PopupProps> = ({
       authResponseConfig.organization_config['inclusive'].value !=
         inclusiveLanguage.value ||
       authResponseConfig.organization_config['style'].value !=
-        styleCorrections.value
+        styleCorrections.value 
+      // authResponseConfig.organization_config['hr'].value != 
+      //   hrAddon.value
     ) {
       setLocalConfigDiffersFromDashboard(true);
     } else {
       setLocalConfigDiffersFromDashboard(false);
     }
-  }, [authResponseConfig, orthography, inclusiveLanguage, styleCorrections]);
+  }, [authResponseConfig, orthography, inclusiveLanguage, styleCorrections, hrAddon]);
 
   useEffect(() => {
     DEV_ENV && console.log('authErrorResponse', authErrorResponse);
@@ -514,6 +536,21 @@ const Popup: React.FC<PopupProps> = ({
               }}
               label={t('styleCorrections')}
               locked={styleCorrections.status == 'force'}
+              userIsLoggedIn={userIsLoggedIn}
+            />
+            <Toggle
+              on={hrAddon.value as boolean}
+              handleToggle={() => {
+                setHrAddon({
+                  ...hrAddon,
+                  value:
+                    hrAddon.status != 'force' || !userIsLoggedIn
+                      ? !hrAddon.value
+                      : hrAddon.value,
+                });
+              }}
+              label={t('enableHr')}
+              locked={hrAddon.status == 'force'}
               userIsLoggedIn={userIsLoggedIn}
             />
             {localConfigDiffersFromDashboard && (

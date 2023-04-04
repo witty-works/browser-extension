@@ -18,6 +18,7 @@ export interface ResponseConfig {
   singular_they: ConfigProperty;
   style: ConfigProperty;
   preferred_variants: ConfigProperty;
+  hr: ConfigProperty;
 }
 export interface RequestConfig extends ResponseConfig {
   disabled_categories: string[];
@@ -27,6 +28,7 @@ export interface FilteredRequestConfig {
   style: ConfigProperty;
   orthography: ConfigProperty;
   inclusive: ConfigProperty;
+  hr: ConfigProperty;
   disabled_categories: string[];
 }
 export interface ConfigProperty {

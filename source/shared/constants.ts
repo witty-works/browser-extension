@@ -22,6 +22,7 @@ export enum StorageKeys {
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
   STYLE = 'styleCorrections',
+  HR = 'hr',
   INCLUSIVE = 'inclusiveLanguage',
   SHOW_INSPIRATION_ALTERNATIVES = 'inspirationalAlternatives',
   SINGULAR_THEY = 'singularThey',

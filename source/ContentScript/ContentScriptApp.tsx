@@ -141,6 +141,7 @@ const ContentScriptApp: React.FC = () => {
             result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
             result[StorageKeys.INCLUSIVE].value === true ? '' : 'inclusive',
             result[StorageKeys.STYLE].value === true ? '' : 'style',
+            result[StorageKeys.HR].value === true ? '' : 'hr',
             result[StorageKeys.CASING_SITES] &&
             result[StorageKeys.CASING_SITES].includes(
               window.location.hostname.replace('www.', '')
@@ -165,8 +166,10 @@ const ContentScriptApp: React.FC = () => {
 
           inclusive: result[StorageKeys.INCLUSIVE].value,
           style: result[StorageKeys.STYLE].value,
+          hr: result[StorageKeys.HR].value,
           orthography: result[StorageKeys.ORTHOGRAPHY].value,
         };
+        console.log('requestConfig', requestConfig);
         setReqConfig(requestConfig);
       })
       .catch((error: unknown) => {
@@ -261,6 +264,16 @@ const ContentScriptApp: React.FC = () => {
                   (category) => category !== 'style'
                 )
               : [...reqConfigRef.current.disabled_categories, 'style'],
+          });
+          break;
+        case StorageKeys.HR:
+          setReqConfig({
+            ...reqConfigRef.current,
+            disabled_categories: changes[item].newValue.value
+              ? reqConfigRef.current.disabled_categories.filter(
+                  (category) => category !== 'hr'
+                )
+              : [...reqConfigRef.current.disabled_categories, 'hr'],
           });
           break;
         case StorageKeys.CASING_SITES:

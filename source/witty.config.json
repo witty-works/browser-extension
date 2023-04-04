@@ -59,6 +59,9 @@
   "INCLUSIVE": {
     "value": true
   },
+  "HR": {
+    "value": false
+  },
   "SHOW_INSPIRATION_ALTERNATIVES": {
     "value": false
   },

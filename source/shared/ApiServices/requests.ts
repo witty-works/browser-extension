@@ -30,6 +30,7 @@ export const setRequestConfig = (reqConfig: RequestConfig) => {
     style: reqConfig.style,
     orthography: reqConfig.orthography,
     inclusive: reqConfig.inclusive,
+    hr: reqConfig.hr,
     disabled_categories: reqConfig.disabled_categories,
   };
 };
