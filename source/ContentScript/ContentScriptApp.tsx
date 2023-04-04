@@ -169,7 +169,6 @@ const ContentScriptApp: React.FC = () => {
           hr: result[StorageKeys.HR].value,
           orthography: result[StorageKeys.ORTHOGRAPHY].value,
         };
-        console.log('requestConfig', requestConfig);
         setReqConfig(requestConfig);
       })
       .catch((error: unknown) => {
