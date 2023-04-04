@@ -317,13 +317,13 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     if (!authResponseConfig?.organization_config) return;
     if (
-      authResponseConfig.organization_config['orthography'].value !=
+      authResponseConfig.organization_config['orthography']?.value !=
         orthography.value ||
-      authResponseConfig.organization_config['inclusive'].value !=
+      authResponseConfig.organization_config['inclusive']?.value !=
         inclusiveLanguage.value ||
-      authResponseConfig.organization_config['style'].value !=
+      authResponseConfig.organization_config['style']?.value !=
         styleCorrections.value ||
-      authResponseConfig.organization_config['hr'].value != 
+      authResponseConfig.organization_config['hr']?.value != 
         hrAddon.value
     ) {
       setLocalConfigDiffersFromDashboard(true);
@@ -551,6 +551,7 @@ const Popup: React.FC<PopupProps> = ({
               }}
               label={t('enableHr')}
               locked={hrAddon.status == 'force'}
+              hasWittyTeams={hasWittyTeams}
               userIsLoggedIn={userIsLoggedIn}
             />
             {localConfigDiffersFromDashboard && (
