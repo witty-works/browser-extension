@@ -18,6 +18,10 @@ export const isGoogleDocs = (): boolean => {
   return window.location.href.includes('docs.google.com/document');
 };
 
+export const isGmail = (): boolean => {
+  return window.location.hostname === 'mail.google.com';
+};
+
 export const isWittyEditor = (): boolean => {
   const dashboardBaseUrls = Object.values(BaseUrls).map(
     (baseUrl) => baseUrl.dashboard
@@ -92,7 +96,7 @@ export const isInputElement = (element: Element) =>
   isHTMLElementContentEditable(element);
 
 export const getZIndex = (element: Element) => {
-  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element)
+  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail()
     ? 501
     : 'auto';
 };
