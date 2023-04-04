@@ -779,11 +779,6 @@ const Input: React.FC<{
           resetPopover();
           return;
         }
-        if (selectedAlertIndex > -1) {
-          //removes blue selection that might appear on double click
-          const sel = window.getSelection();
-          sel?.removeAllRanges();
-        }
 
         setSelectedAlertIndex(selectedAlertIndex);
       } else if (
