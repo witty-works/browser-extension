@@ -118,6 +118,7 @@ const Input: React.FC<{
     defaultConfig.BACKGROUND_REQUEST_CHAR_LENGTH;
   const backgroundRequestInterval = defaultConfig.BACKGROUND_REQUEST_INTERVAL;
   const [backgroundWorkerStarted, setBackgroundWorkerStarted] = useState(false);
+  const [, , abortBackgroundWorkerRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
   const googleDocsEventTarget = (
@@ -220,7 +221,6 @@ const Input: React.FC<{
 
     element.addEventListener('dblclick', handleElementClickEvent as any);
     element.addEventListener('click', handleElementClickEvent as any);
-    !isTextArea(element) && window.addEventListener('paste', handlePaste);
 
     if (isGoogleDocs()) {
       googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
@@ -264,7 +264,6 @@ const Input: React.FC<{
         );
         document.removeEventListener('scroll', handleElementScrollEvent);
         window.removeEventListener('resize', handleDocumentResizeEvent);
-        !isTextArea(element) && window.removeEventListener('paste', handlePaste);
       }
 
       if (parentForm)
@@ -417,20 +416,23 @@ const Input: React.FC<{
    if (isNotion()) {
       document
         .querySelector('.notion-frame')
-        ?.addEventListener('keyup', handleKeyupEvent as any);
+        ?.addEventListener('keyup', handleKeyupEvent);
     } else {
-      element.addEventListener('keyup', handleKeyupEvent as any);
+      element.addEventListener('keyup', handleKeyupEvent);
     }
+    element.addEventListener('paste', handleKeyupEvent);
+
 
     return () => {
       //Don't forget to remove the listeners at the end
       if (isNotion()) {
         document
           .querySelector('.notion-frame')
-          ?.removeEventListener('keyup', handleKeyupEvent as any);
+          ?.removeEventListener('keyup', handleKeyupEvent);
       } else {
-        element.removeEventListener('keyup', handleKeyupEvent as any);
+        element.removeEventListener('keyup', handleKeyupEvent);
       }
+      element.removeEventListener('paste', handleKeyupEvent);
     };
   }, [debounceDelay]);
 
@@ -443,10 +445,6 @@ const Input: React.FC<{
     docTextEvaluation(element, cloneRef.current);
   }, [element, cloneRef.current]);
 
-  const handlePaste = () => {
-    backgroundWorker(element);
-  }
-
   const handleMouseoverEvent = () => {
     if (activeIconRef.current == 'passive') setIsHovered(true);
   };
@@ -458,9 +456,12 @@ const Input: React.FC<{
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
     console.log('BACKGROUND WORKER CALLED', element);
+
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
+
+    //fiter out nodes that have been checked before
 
     const nodesWithinBackgroundRequestLength = [] as {
       text: string;
@@ -503,10 +504,13 @@ const Input: React.FC<{
         textLength = node.textContent ? node.textContent.length : 0;
       }
     });
-
+    
     const interval = setInterval(() => {
-      if (nodesWithinBackgroundRequestLength.length == 0) {
+      console.log('abortBackgroundWorkerRef.curren', abortBackgroundWorkerRef.current);
+      if (nodesWithinBackgroundRequestLength.length == 0 || abortBackgroundWorkerRef.current) {
+        abortBackgroundWorkerRef.current = false;
         clearInterval(interval);
+        setBackgroundWorkerStarted(false);
         return;
       }
       const nextText = nodesWithinBackgroundRequestLength.shift();
@@ -525,8 +529,10 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = (gDocs?: boolean) => {
+  const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
+    console.log('KEYUP EVENT CALLED', event);
+    event && (abortBackgroundWorkerRef.current = true);
 
     !isGoogleDocs() &&
       browser.storage.local
@@ -819,6 +825,9 @@ const Input: React.FC<{
   };
 
   const handleElementClickEvent = debounce((event: MouseEvent) => {
+    console.log('handleElementClickEvent');
+    abortBackgroundWorkerRef.current = true;
+    
     const target = event.target as CustomInputElement;
 
     // Get caret data
@@ -1033,6 +1042,16 @@ const Input: React.FC<{
   }, [selectedNodeWithAlertsIndex, selectedAlertIndex]);
 
   useEffect(() => {
+    if (
+      !backgroundWorkerStarted &&
+      !isTextArea(element) && !isGoogleDocs()  //does not work on textArea yet, google docs is handled on mutation
+       && getInputText(element).length > maxCharLength 
+    ) {
+      console.log('starting background worker')
+      backgroundWorker(element);
+      setBackgroundWorkerStarted(true);
+    }
+
     if (!checkEndpointResponse) return;
     setRemoveHighlights(false);
 
@@ -1233,15 +1252,6 @@ console.log('merging', 'nodesWithAlertsRef.current', nodesWithAlertsRef.current,
         nodesStorageRef.current
       );
       nodesStorageRef.current = [];
-
-      if (
-        !backgroundWorkerStarted &&
-        !isTextArea(element) && !isGoogleDocs()  //does not work on textArea yet, google docs is handled on mutation
-         && getInputText(element).length > maxCharLength 
-      ) {
-        backgroundWorker(element);
-        setBackgroundWorkerStarted(true);
-      }
     }
   }, [
     alerts,
