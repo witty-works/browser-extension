@@ -1,5 +1,9 @@
 {
-  "DISABLED_SITES": ["productboard.com", "trello.com"],
+  "DISABLED_SITES": [
+    "deepl.com",
+    "productboard.com",
+    "trello.com"
+  ],
   "ACTIVE_SITES": [
     "whatsapp.com",
     "airbnb.com",
