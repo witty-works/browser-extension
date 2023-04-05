@@ -1,10 +1,13 @@
 {
-  "image": "mcr.microsoft.com/vscode/devcontainers/base:bullseye",
+  "image": "mcr.microsoft.com/vscode/devcontainers/base:focal",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "16"
-    }
+    },
+    "ghcr.io/devcontainers/features/desktop-lite:1": {}
+
   },
+  "forwardPorts": [6080],
   "customizations": {
     "vscode": {
       "extensions": []
