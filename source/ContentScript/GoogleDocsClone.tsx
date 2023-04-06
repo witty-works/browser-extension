@@ -35,8 +35,9 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         const areaLabelSplit = areaLabel?.split(' ');
         areaLabelSplit?.forEach((label, index) => {
           if (label === '') {
-            //multiple spaces in a row -> automatically truncated
-            areaLabelSplit[index] = '\xa0';
+            areaLabelSplit[index] = '\xa0'; //multiple spaces in a row -> automatically truncated
+          } else if (areaLabelSplit[index].length == 1 && !areaLabelSplit[index].match(/[a-zA-Z]/)) { //not alfabetical character
+            areaLabelSplit[index] = ' ' + label + ' '; //single character -> add space before and after
           } else if (
             (index !== 0 || //dont add space if last character is a special character or the first char of next word is a special character
               index !== areaLabelSplit.length - 1) &&
