@@ -100,7 +100,6 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
                   border: `${elementStyles.borderBottomWidth} solid black`,
                   boxSizing: elementStyles.boxSizing,
                   letterSpacing: elementStyles.letterSpacing,
-                  // zIndex: zIndex,
                 } as React.CSSProperties
               }
             >

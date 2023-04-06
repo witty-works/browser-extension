@@ -7,7 +7,6 @@ import { DEV_ENV, WTags } from '../constants';
 import { getActiveDocument } from '../../ContentScript/ContentScriptApp';
 const ajv = new Ajv();
 
-//use setInterval to slow down requests
 const useApiResult = <TResponse,>(
   request: IRequest,
   responseSchema: JSONSchemaType<TResponse> | null,

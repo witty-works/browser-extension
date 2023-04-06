@@ -25,7 +25,6 @@ import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
 import { iframePositionRecquired, isTextArea } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
-//TODO: only have one function for getting scrollparent
 import { getScrollParent } from '../utils';
 import { getScrollableParentClosestToElement } from '../../shared/utils';
 export interface PopoverData {
@@ -79,7 +78,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const elementCords = (dat: PopoverData) => ({
     name: 'elementCords',
     options: dat,
-    _fn: ({ placement, rects }: any) => {
+    fn: ({ placement, rects }: any) => {
       let iframeRects = { top: 0, left: 0, bottom: 0, right: 0 };
       if (iframePositionRecquired()) {
         const iframes = document.getElementsByTagName('iframe');
@@ -93,7 +92,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       }
 
       const scrollTop =
-        (!isTextArea(element) && getScrollParent(element)?.scrollTop) || 0;
+      (!isTextArea(element) && getScrollParent(element)?.scrollTop) || 0;
 
       const calcNewX: number =
         dat.position.x + iframeRects.left + doc.scrollLeft;
@@ -112,12 +111,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         x: showLearningBiteRef.current ? calcNewX / 2 : calcNewX,
         y: calcNewY,
       };
-    },
-    get fn() {
-      return this._fn;
-    },
-    set fn(value) {
-      this._fn = value;
     },
   });
 
