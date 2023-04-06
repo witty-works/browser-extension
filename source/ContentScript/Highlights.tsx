@@ -139,6 +139,13 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
+
+    let googleDocsRulerIsHidden = false;
+    if (isGoogleDocs()) {
+      const rulerElement = document.getElementById('kix-vertical-ruler');
+      googleDocsRulerIsHidden = rulerElement?.style.display == 'none' || rulerElement?.offsetHeight == 0;
+    }
+
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
 
@@ -171,6 +178,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         elementRect,
         canvas,
         element,
+        googleDocsRulerIsHidden,
       };
 
       drawLine(params, hoverColor, dashedLine);
