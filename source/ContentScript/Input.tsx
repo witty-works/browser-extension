@@ -71,7 +71,7 @@ const Input: React.FC<{
   }>({ text: [], position: {} as DOMRect });
 
   const [, , nodesWhithinMaxCharLengthRef] = useStateRef<
-    { node: string; index: number }[]
+    { node: string; index: number; rawNode: Node }[]
   >([]);
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
@@ -145,7 +145,7 @@ const Input: React.FC<{
     if (!element.querySelector('g')) {
       setAlerts([]);
     }
-    setTextToCheck({text: '', repeatedRequest: false});
+    setTextToCheck('');
     ReactDOM.render(
       <GoogleDocsClone
         element={element}
@@ -455,24 +455,33 @@ const Input: React.FC<{
 
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
-    console.log('BACKGROUND WORKER CALLED', element);
-
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
 
-    //fiter out nodes that have been checked before
+    //fiter out nodes that have been checked before and have not changed
+    const textDividedByNodesWithoutCheckedNodes = textDividedByNodes.filter(
+      (node) => {
+        const nodeIsChecked = prevCheckedNodesRef.current.find(
+          (prevNode) =>
+          prevNode.rawNode && prevNode.rawNode === node 
+        );
+        return !nodeIsChecked;
+      }
+    );
+    console.log('BACKGROUND WORKER CALLED, nodesToCheck', textDividedByNodesWithoutCheckedNodes);
 
     const nodesWithinBackgroundRequestLength = [] as {
       text: string;
       nodes: {
         node: string;
         index: number;
+        rawNode: Node;
       }[];
     }[];
 
     let textLength = 0;
-    textDividedByNodes.forEach((node) => {
+    textDividedByNodesWithoutCheckedNodes.forEach((node) => {
       const text = node.textContent ? node.textContent : '';
       const index = textDividedByNodes.indexOf(node);
 
@@ -487,26 +496,26 @@ const Input: React.FC<{
           lastNode.text += text;
           lastNode.nodes.push({
             node: text,
-            index: index
+            index: index,
+            rawNode: node,
           });
           nodesWithinBackgroundRequestLength.push(lastNode);
         } else {
           nodesWithinBackgroundRequestLength.push({
             text: text,
-            nodes: [{ node: text, index: index }],
+            nodes: [{ node: text, index: index, rawNode: node }],
           });
         }
       } else {
         nodesWithinBackgroundRequestLength.push({
           text: node.textContent ? node.textContent : '',
-          nodes: [{ node: text, index: index }],
+          nodes: [{ node: text, index: index, rawNode: node }],
         });
         textLength = node.textContent ? node.textContent.length : 0;
       }
     });
     
     const interval = setInterval(() => {
-      console.log('abortBackgroundWorkerRef.curren', abortBackgroundWorkerRef.current);
       if (nodesWithinBackgroundRequestLength.length == 0 || abortBackgroundWorkerRef.current) {
         abortBackgroundWorkerRef.current = false;
         clearInterval(interval);
@@ -521,7 +530,7 @@ const Input: React.FC<{
   const handleFocusoutEvent = () => {
     setActiveIcon('passive');
     setAlerts([]);
-    setTextToCheck({text: '', repeatedRequest: false});
+    setTextToCheck('');
   };
 
   const handleDocumentResizeEvent = () => {
@@ -531,7 +540,6 @@ const Input: React.FC<{
 
   const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
-    console.log('KEYUP EVENT CALLED', event);
     event && (abortBackgroundWorkerRef.current = true);
 
     !isGoogleDocs() &&
@@ -616,6 +624,7 @@ const Input: React.FC<{
       {
         node: currentNodeRaw.textContent as string,
         index: currentNode,
+        rawNode: currentNodeRaw,
       },
     ];
 
@@ -637,6 +646,7 @@ const Input: React.FC<{
         {
           node: shortenedText,
           index: currentNode,
+          rawNode: currentNodeRaw,
         },
       ];
       return { text: shortenedText, nodes: nodesWhithinMaxCharLength };
@@ -708,7 +718,7 @@ const Input: React.FC<{
     if (textToCheck.length === 0 || !textToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
-      setTextToCheck({text: '', repeatedRequest: false});
+      setTextToCheck('');
     } else {
       debouncedSetTextToCheck(textToCheck);
       setActiveIcon('loading');
@@ -746,7 +756,7 @@ const Input: React.FC<{
 
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
-    setTextToCheck({text: text, repeatedRequest: false});
+    setTextToCheck(text);
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
@@ -825,7 +835,6 @@ const Input: React.FC<{
   };
 
   const handleElementClickEvent = debounce((event: MouseEvent) => {
-    console.log('handleElementClickEvent');
     abortBackgroundWorkerRef.current = true;
     
     const target = event.target as CustomInputElement;
@@ -924,7 +933,7 @@ const Input: React.FC<{
     element: Node | null;
   }): void => {
     setAlerts([]);
-    setTextToCheck({text: '', repeatedRequest: false});
+    setTextToCheck('');
     const textDividedByNodes = getTextDividedByNodes(element);
 
     if (isGoogleDocs() && caret.position) {
@@ -1047,7 +1056,7 @@ const Input: React.FC<{
       !isTextArea(element) && !isGoogleDocs()  //does not work on textArea yet, google docs is handled on mutation
        && getInputText(element).length > maxCharLength 
     ) {
-      console.log('starting background worker')
+      abortBackgroundWorkerRef.current = false;
       backgroundWorker(element);
       setBackgroundWorkerStarted(true);
     }
@@ -1236,7 +1245,6 @@ const Input: React.FC<{
         0
       );
       setTotalAlerts(totalAlerts);
-console.log('merging', 'nodesWithAlertsRef.current', nodesWithAlertsRef.current, 'nodesWithAlertsTempWithRect', nodesWithAlertsTempWithRect)
       const mergedNodesWithAlerts = [
         ...nodesWithAlertsRef.current.filter(
           (nodeWithAlerts) =>
@@ -1272,19 +1280,12 @@ console.log('merging', 'nodesWithAlertsRef.current', nodesWithAlertsRef.current,
     ) {
       let updatedAlerts: IAlert[] = [];
       //only use text that is updated -> nodesStorageRef.current
-      //GOOGLE DOCS ONLY
       const lowestIndex = nodesStorageRef.current.reduce(
         (min, node) => (node.index < min ? node.index : min),
         Infinity
       );
 
-      // const lowestIndex = nodesWhithinMaxCharLengthRef.current.reduce(
-      //   (min, node) => (node.index < min ? node.index : min),
-      //   Infinity
-      // );
-
       nodesStorageRef.current.forEach((nodeWithAlertsRef) => {
-      // nodesWhithinMaxCharLengthRef.current.forEach((nodeWithAlertsRef) => {
         let absolutePositionOfFirstCharOfNode = 0;
         for (
           let index = lowestIndex;
@@ -1446,7 +1447,7 @@ console.log('merging', 'nodesWithAlertsRef.current', nodesWithAlertsRef.current,
           node.dispatchEvent(insertAlternative);
 
           setTimeout(() => {
-            setTextToCheck({text: getInputText(element), repeatedRequest: false});
+            setTextToCheck(getInputText(element));
             const event = new Event('keyup', { bubbles: true });
             element.dispatchEvent(event);
           }, 200);
@@ -1501,14 +1502,13 @@ console.log('merging', 'nodesWithAlertsRef.current', nodesWithAlertsRef.current,
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
     if (!isCkEditor(element) && !isGoogleDocs()) {
-      setTextToCheck({text: getInputText(element), repeatedRequest: false});
+      setTextToCheck(getInputText(element));
       const event = new Event('keyup', { bubbles: true });
       element.dispatchEvent(event);
     }
   };
 
   useEffect(() => {
-    console.log('checkEndpointError',checkEndpointError)
     if (checkEndpointError?.status === 422) {
       setAlerts([]);
     } else if (
@@ -1528,18 +1528,9 @@ console.log('merging', 'nodesWithAlertsRef.current', nodesWithAlertsRef.current,
         .catch((error: unknown) => {
           sendErrorToSentry(error);
         });
-    } else if(checkEndpointError?.status === 0) { //try to re do the request once if it was cancelled
-      //TODO: repeat request here if 
-      //setcheckendpoint
-      if(checkEndpointError.request) {
-        const body = checkEndpointError.request.config?.body as string;
-        //decode body 
-        if (!body) return;
-        //json decode body to get the text
-        const text = JSON.parse(body).text;
-        console.log('text',text);
-        setTextToCheck({text: text, repeatedRequest: true});
-      }
+    } 
+    else if(checkEndpointError?.status === 500) { 
+      abortBackgroundWorkerRef.current = true; //stop sending requests if server is down
     }
     log(
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
@@ -1564,8 +1555,8 @@ console.log('merging', 'nodesWithAlertsRef.current', nodesWithAlertsRef.current,
       refreshTokenResponse.refresh_token
     );
 
-    setTextToCheck({text: '', repeatedRequest: false});
-    setTextToCheck({text: currentTextToCheck, repeatedRequest: false});
+    setTextToCheck('');
+    setTextToCheck(currentTextToCheck);
   }, [refreshTokenError, refreshTokenResponse]);
 
   const ErrorBoundaryFallback = () => (
@@ -1579,8 +1570,8 @@ console.log('merging', 'nodesWithAlertsRef.current', nodesWithAlertsRef.current,
         case StorageKeys.ACCESS_TOKEN:
           setUserIsSignedIn(changes[item].newValue == '' ? false : true);
           setConfigHasChanged(changes[item].newValue == '' ? false : true);
-          setTextToCheck({text: '', repeatedRequest: false});
-          setTextToCheck({text: currentTextToCheck, repeatedRequest: false});
+          setTextToCheck('');
+          setTextToCheck(currentTextToCheck);
           break;
       }
     }

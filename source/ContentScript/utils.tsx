@@ -194,6 +194,7 @@ export const getNodesWithinMaxCharLength = (
       const newNode = {
         node: node.textContent as string,
         index: textDividedByNodes.indexOf(node),
+        rawNode: node,
       };
       return newNode;
     })

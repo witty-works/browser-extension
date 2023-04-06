@@ -11,7 +11,6 @@ const ajv = new Ajv();
 const useApiResult = <TResponse,>(
   request: IRequest,
   responseSchema: JSONSchemaType<TResponse> | null,
-  repeatedRequest: boolean = false
 ): [TResponse | null, IEndpointError | null] => {
   const validateResponse =
     responseSchema === null ? null : ajv.compile(responseSchema);
@@ -74,18 +73,7 @@ const useApiResult = <TResponse,>(
           })
 
         .catch((error: Error) => {
-          console.log('error: ', error, error.name);
-          !repeatedRequest && setEndpointError({
-            status: 0,
-            message: error.message,
-            request: request,
-          });
-          
-          // AbortError is created when a request is aborted.
-          // We don't need to shown an error message in this case
-          if (error.name !== 'AbortError') {
-            log(error.message, logTypes.ERROR);
-          }
+          log(error.message, logTypes.ERROR);
         });
       };
   }, [request]);

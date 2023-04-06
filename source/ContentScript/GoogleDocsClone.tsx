@@ -24,15 +24,9 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
     (page) => page.childNodes[1]
   );
 
-  console.log('pageElementsContainingSvg',pageElementsContainingSvg)
-
   for (const pageElementContainingSvg of pageElementsContainingSvg) {
     const innerElement = pageElementContainingSvg
       .childNodes[0] as CustomInputElement;
-      // const pageElementContainingSvgStyles = window.getComputedStyle(pageElementContainingSvg as Element);
-      // const zIndex = pageElementContainingSvgStyles.getPropertyValue('z-index');
-      // console.log('zIndex CLONE', zIndex)
-
     for (const childNode of innerElement.childNodes) {
       const gElement = childNode as CustomInputElement;
       for (const rectElement of gElement.childNodes) {

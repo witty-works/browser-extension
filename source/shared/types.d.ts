@@ -123,6 +123,7 @@ export interface INodeWithAlerts {
 export interface INodes {
   node: any;
   index: number;
+  rawNode: Node;
 }
 export interface IAlert {
   id: string;

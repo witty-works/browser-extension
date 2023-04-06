@@ -69,7 +69,7 @@
     "value": "he_or_she"
   },
   "CASING_SITES": [],
-  "API_DELAY": 500,
+  "API_DELAY": 800,
   "ACCESS_TOKEN": "",
   "REFRESH_TOKEN": "",
   "MAX_CHAR_LENGTH": 2000,

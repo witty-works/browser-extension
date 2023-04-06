@@ -20,7 +20,6 @@ import {
 } from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
 import { useStateRef } from '../shared/customHooks/useStateRef';
-// import ReactDOM from 'react-dom';
 
 interface HighlightsProps {
   elementScroll: Position;
@@ -64,8 +63,6 @@ const Highlights: React.FC<HighlightsProps> = ({
       ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
       : elementRect.height //prevents expanding contenteditable gmail: - correctedPosition.top,
   };
-
-  console.log('incoming nodes', nodesWithAlerts);
 
   useEffect(() => {
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
@@ -124,7 +121,6 @@ const Highlights: React.FC<HighlightsProps> = ({
 
           //Check if node is in view, if not, don't add new highlight
           if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text)))  {
-            console.log('node not in view');
             return;
           } else {
           const newHighlight: Highlight = {
@@ -139,8 +135,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           highlightsTemp.push(newHighlight);
         }
         });
-      } else {
-        console.log('node not in dom');
       }
     });
 
@@ -202,7 +196,6 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
   }, [elementRect, highlights, selectedAlert]);
 
-  console.log('render highlights', highlights);
   return (
     <canvas
       ref={canvasRef}
@@ -217,7 +210,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           overflow: 'auto',
           pointerEvents: 'none',
           zIndex: getZIndex(element),
-          border: '1px solid red'
         } as React.CSSProperties
       }
     ></canvas>
