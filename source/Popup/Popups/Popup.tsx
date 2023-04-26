@@ -11,7 +11,6 @@ import {
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
-  BaseUrls,
 } from '../../shared/constants';
 import {
   addInactiveBadge,
@@ -390,13 +389,12 @@ const Popup: React.FC<PopupProps> = ({
   }
 
   const handleDomainToUpdate = (domain: any) => {
-    browser.storage.local.get(null).then((result) => {
+    browser.storage.local.get().then((result) => {
       if (
         result[StorageKeys.ACCESS_TOKEN] 
       ) {
         fetch(
-          createUrl(
-            BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].dashboard,
+          createUrl(getBaseUrls().dashboard,
             `api/user/language/domains?` +
               new URLSearchParams({
                 domain: domain.domain,
