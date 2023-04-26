@@ -205,10 +205,7 @@ const Popup: React.FC<PopupProps> = ({
   }, [casingSites.length]);
 
   useEffect(() => {
-    // if (domain) { //TEMP FOR TESTING IN PROD
-      if (!domain) {
-        domain = 'www.testing.com';
-      }
+    if (domain) {
       if (enabled.updateDashboard) {
         handleDomainToUpdate({
           domain: domain,
@@ -221,7 +218,7 @@ const Popup: React.FC<PopupProps> = ({
           ...domainsDisabledLocally,
           domain,
         ]);
-    // }
+    }
     setWittyIcon(enabled.enabled);
   }, [enabled]);
 
@@ -413,7 +410,6 @@ const Popup: React.FC<PopupProps> = ({
             setTimeout(() => {
               setUpdatingDashboardFailed(false);
             }, 3000);
-
             getNewAccessToken();
           }
         });
@@ -429,8 +425,7 @@ const Popup: React.FC<PopupProps> = ({
         <PopupHeader appId={appId} />
       )}
       <div className='witty-works-ext-section'>
-        {/* {domainExists && ( */} 
-        {/* TEMP REMOVED TO TEST ON PROD */}
+        {domainExists && ( 
           <>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
               <div className='witty-works-ext-lato-popup-title'>
@@ -462,7 +457,7 @@ const Popup: React.FC<PopupProps> = ({
             )}
             <div className='witty-works-ext-separator' />
           </>
-        {/* )} */}
+        )}
 
         {enabled.enabled && !showSurvey && (
           <div className='witty-works-ext-margin-top'>
