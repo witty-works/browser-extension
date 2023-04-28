@@ -21,8 +21,6 @@ export const de = {
     caseSensitivity: 'Gross- & Kleinschreibung',
     developmentSettings: 'Entwicklungs-Einstellungen',
     spellChecking: 'Grammatik & Rechtschreibung',
-    inclusiveTerms: 'Inklusive Begriffe',
-    styleCorrections: 'Stilvorschläge',
     thanks: 'Danke für deinen Beitrag!',
     noSupport:
       'Es tut uns leid! Witty unterstützt diese Webseite noch nicht offiziell.',
@@ -126,8 +124,6 @@ export const en = {
     caseSensitivity: 'Check upper & lower case',
     developmentSettings: 'Development Settings',
     spellChecking: 'Check grammar & spelling',
-    inclusiveTerms: 'Highlight inclusive terms',
-    styleCorrections: 'Highlight style issues',
     thanks: 'Thanks for your feedback!',
     noSupport:
       'We’re sorry! Witty doesn’t yet officially support this website.',

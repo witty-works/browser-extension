@@ -72,12 +72,6 @@ const Popup: React.FC<PopupProps> = ({
   const [orthography, setOrthography] = useState<ConfigProperty>(
     defaultConfig.ORTHOGRAPHY
   );
-  const [inclusiveLanguage, setInclusiveLanguage] = useState<ConfigProperty>(
-    defaultConfig.INCLUSIVE
-  );
-  const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
-    defaultConfig.STYLE
-  );
   const [updatingDashboardFailed, setUpdatingDashboardFailed] =
     useState<boolean>(false);
   const [casing, setCasing] = useState<boolean>(true);
@@ -157,8 +151,6 @@ const Popup: React.FC<PopupProps> = ({
         }
 
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
-        setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
-        setStyleCorrections(result[StorageKeys.STYLE]);
 
         setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
@@ -227,14 +219,6 @@ const Popup: React.FC<PopupProps> = ({
   }, [orthography]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.INCLUSIVE, inclusiveLanguage);
-  }, [inclusiveLanguage]);
-
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.STYLE, styleCorrections);
-  }, [styleCorrections]);
-
-  useEffect(() => {
     setToken(accessToken);
     setConfig(accessToken != '' ? true : false);
   }, [accessToken]);
@@ -261,32 +245,6 @@ const Popup: React.FC<PopupProps> = ({
               });
             }
             break;
-          case 'inclusive':
-            if (
-              authResponse.organization_config[key].status == 'force' ||
-              resetSettings
-            ) {
-              setInclusiveLanguage(authResponse.organization_config[key]);
-            } else {
-              setInclusiveLanguage({
-                ...inclusiveLanguage,
-                status: authResponse.organization_config[key].status,
-              });
-            }
-            break;
-          case 'style':
-            if (
-              authResponse.organization_config[key].status == 'force' ||
-              resetSettings
-            ) {
-              setStyleCorrections(authResponse.organization_config[key]);
-            } else {
-              setStyleCorrections({
-                ...styleCorrections,
-                status: authResponse.organization_config[key].status,
-              });
-            }
-            break;
         }
       }
       setResetSettings(false);
@@ -297,17 +255,13 @@ const Popup: React.FC<PopupProps> = ({
     if (!authResponseConfig?.organization_config) return;
     if (
       authResponseConfig.organization_config['orthography'].value !=
-        orthography.value ||
-      authResponseConfig.organization_config['inclusive'].value !=
-        inclusiveLanguage.value ||
-      authResponseConfig.organization_config['style'].value !=
-        styleCorrections.value
+        orthography.value
     ) {
       setLocalConfigDiffersFromDashboard(true);
     } else {
       setLocalConfigDiffersFromDashboard(false);
     }
-  }, [authResponseConfig, orthography, inclusiveLanguage, styleCorrections]);
+  }, [authResponseConfig, orthography]);
 
   useEffect(() => {
     DEV_ENV && console.log('authErrorResponse', authErrorResponse);
@@ -481,37 +435,7 @@ const Popup: React.FC<PopupProps> = ({
               locked={orthography.status == 'force'}
               userIsLoggedIn={userIsLoggedIn}
             />
-
-            <Toggle
-              on={inclusiveLanguage.value as boolean}
-              handleToggle={() => {
-                setInclusiveLanguage({
-                  ...inclusiveLanguage,
-                  value:
-                    inclusiveLanguage.status != 'force' || !userIsLoggedIn
-                      ? !inclusiveLanguage.value
-                      : inclusiveLanguage.value,
-                });
-              }}
-              label={t('inclusiveTerms')}
-              locked={inclusiveLanguage.status === 'force'}
-              userIsLoggedIn={userIsLoggedIn}
-            />
-            <Toggle
-              on={styleCorrections.value as boolean}
-              handleToggle={() => {
-                setStyleCorrections({
-                  ...styleCorrections,
-                  value:
-                    styleCorrections.status != 'force' || !userIsLoggedIn
-                      ? !styleCorrections.value
-                      : styleCorrections.value,
-                });
-              }}
-              label={t('styleCorrections')}
-              locked={styleCorrections.status == 'force'}
-              userIsLoggedIn={userIsLoggedIn}
-            />
+       
             {localConfigDiffersFromDashboard && (
               <div className='witty-works-ext-wittyworks-container witty-works-ext-left'>
                 <div
