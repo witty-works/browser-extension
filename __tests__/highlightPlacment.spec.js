@@ -1,7 +1,7 @@
 const { test: base, chromium, expect } = require('@playwright/test') //add firefox
 require('dotenv').config();
 const utils = require('./utils');
-
+const testText = 'The basics: Witty highlights biased and gendered language in orange: Hey guys, we\'re excited to announce a new front-end developer will assume the leadership role. Taylor has extensive expertise and a strong technical background. Witty highlights inclusive terms in green: We are a creative team. Witty corrects grammar and spelling mistakes. They are highlighted in red: This is a spelling mistacke. Wait... there is more. Witty highlights style issues in yellow: This is actually a very long meeting.'
 const premiumUserEmail = process.env.PREMIUM_TEST_USER_EMAIL;
 const premiumUserPassword = process.env.PREMIUM_TEST_USER_PASSWORD;
 const apiWaitTime = 5000;
@@ -53,17 +53,22 @@ test.describe('Highlights', () => {
         await page.click('#hs-eu-confirmation-button');
         await utils.enableAllToggles(page);
 
-        await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
-
+        await page.goto(' https://www.witty.works/try-out-witty');
         await page.waitForLoadState('networkidle')
+        await page.waitForSelector('#witty-test');
+        await page.click('#witty-test');
+        await page.keyboard.type(testText);
 
-        await page.waitForSelector('#example-1');
-        await page.click('#example-1');
-        await page.keyboard.press('Space');
+        //FONT ISSUES ON EDITOR
+        // await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
+        // await page.waitForLoadState('networkidle')
+        // await page.waitForSelector('#example-1');
+        // await page.click('#example-1');
+        // await page.keyboard.press('Space');
 
         await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
 
-        await page.locator('.fr-element').screenshot().then(async (screenshot) => {
+        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot({
                 maxDiffPixels: 300,
             },
@@ -80,17 +85,21 @@ test.describe('Highlights', () => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginPopupPage(page, extensionId, context);
 
-        await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
-
+        await page.goto(' https://www.witty.works/try-out-witty');
         await page.waitForLoadState('networkidle')
+        await page.waitForSelector('#witty-test');
+        await page.click('#witty-test');
+        await page.keyboard.type(testText);
 
-        await page.waitForSelector('#example-1');
-        await page.click('#example-1');
-        await page.keyboard.press('Space');
+        // await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
+        // await page.waitForLoadState('networkidle')
+        // await page.waitForSelector('#example-1');
+        // await page.click('#example-1');
+        // await page.keyboard.press('Space');
 
         await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
 
-        await page.locator('.fr-element').screenshot().then(async (screenshot) => {
+        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
             //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
             expect(screenshot).toMatchSnapshot({
                 maxDiffPixels: 300,
