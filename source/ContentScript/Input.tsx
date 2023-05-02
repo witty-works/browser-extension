@@ -469,7 +469,6 @@ const Input: React.FC<{
         return !nodeIsChecked;
       }
     );
-    console.log('BACKGROUND WORKER CALLED, nodesToCheck', textDividedByNodesWithoutCheckedNodes);
 
     const nodesWithinBackgroundRequestLength = [] as {
       text: string;
@@ -661,7 +660,6 @@ const Input: React.FC<{
   
 
   const handleTextAndIcon = (textToCheck: string, nodes: any) => {
-    console.log('handleTextAndIcon',textToCheck);
     let newTextToCheck = '';
     if (nodes.length > 0) {
       let nodesToCheck = nodes.filter((node: INodes) => {
@@ -1074,7 +1072,9 @@ const Input: React.FC<{
       : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
 
     setActiveIcon('active');
-
+    
+    console.log('LOGGING', checkEndpointResponse);
+    console.log('prevCheckedNodesRef', prevCheckedNodesRef);
     analytics.checkLog(
       checkEndpointResponse,
       authResponse,
