@@ -53,22 +53,15 @@ test.describe('Highlights', () => {
         await page.click('#hs-eu-confirmation-button');
         await utils.enableAllToggles(page);
 
-        await page.goto(' https://www.witty.works/try-out-witty');
+        await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
         await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#witty-test');
-        await page.click('#witty-test');
-        await page.keyboard.type(testText);
-
-        //FONT ISSUES ON EDITOR
-        // await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
-        // await page.waitForLoadState('networkidle')
-        // await page.waitForSelector('#example-1');
-        // await page.click('#example-1');
-        // await page.keyboard.press('Space');
+        await page.waitForSelector('#example-1');
+        await page.click('#example-1');
+        await page.keyboard.press('Space');
 
         await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
 
-        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
+        await page.locator('.fr-element').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot({
                 maxDiffPixels: 300,
             },
@@ -85,21 +78,15 @@ test.describe('Highlights', () => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginPopupPage(page, extensionId, context);
 
-        await page.goto(' https://www.witty.works/try-out-witty');
+        await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
         await page.waitForLoadState('networkidle')
-        await page.waitForSelector('#witty-test');
-        await page.click('#witty-test');
-        await page.keyboard.type(testText);
-
-        // await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
-        // await page.waitForLoadState('networkidle')
-        // await page.waitForSelector('#example-1');
-        // await page.click('#example-1');
-        // await page.keyboard.press('Space');
+        await page.waitForSelector('#example-1');
+        await page.click('#example-1');
+        await page.keyboard.press('Space');
 
         await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
 
-        await page.locator('#witty-test').screenshot().then(async (screenshot) => {
+        await page.locator('.fr-element').screenshot().then(async (screenshot) => {
             //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
             expect(screenshot).toMatchSnapshot({
                 maxDiffPixels: 300,
