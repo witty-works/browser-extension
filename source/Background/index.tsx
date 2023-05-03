@@ -144,6 +144,7 @@ const storageChange = (changes: { [key: string]: any }) => {
 //     iconUrl: 'assets/icons/w-logo-wire-color.svg',
 //     title: "My Title",
 //     message: "My Message",
+
 // });
 
   const changedItems = Object.keys(changes);
