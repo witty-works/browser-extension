@@ -12,7 +12,7 @@
   "description": "__MSG_appDesc__",
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
-  "permissions": ["storage", "http://*/*", "https://*/*"],
+  "permissions": ["storage", "http://*/*", "https://*/*", "notifications"],
   "content_security_policy": "script-src 'self'; object-src 'self'",
   "__chrome|firefox__author": "Witty Works",
   "__opera__developer": {
