@@ -3,9 +3,17 @@ export interface IRequest {
   url: string;
   config: RequestInit | null;
 }
+
+export interface ICheckRequest {
+  text: string;
+  repeatedRequest: boolean;
+}
+
 export interface IEndpointError {
   status: number;
   message: string;
+  request?: IRequest;
+  responseSchema?: any;
 }
 
 export interface ResponseConfig {
@@ -109,7 +117,13 @@ export type CustomInputElement =
 export interface INodeWithAlerts {
   node: any;
   alerts: IAlert[];
-  nodeIndex?: number;
+  nodeIndex?: number | undefined;
+}
+
+export interface INodes {
+  node: any;
+  index: number;
+  rawNode: Node;
 }
 export interface IAlert {
   id: string;

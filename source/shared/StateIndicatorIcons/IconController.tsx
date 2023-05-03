@@ -26,6 +26,8 @@ const IconController: React.FC<IconControllerProps> = ({
   const googleDocsIcon = isGoogleDocs();
   const iconPadding: number = 8;
   let correctedPosition = {} as any;
+  // const scrollTop =
+  //   (!isTextArea(element) && getScrollParent(element)?.scrollTop) || 0;
 
   let iconPosition = { top: 0, left: 0 };
   if (!elementRect) {
@@ -50,7 +52,12 @@ const IconController: React.FC<IconControllerProps> = ({
       element
     );
     iconPosition = {
-      top: elementRect.height + correctedPosition.top - 21 - iconPadding,
+      top:
+        elementRect.height +
+        correctedPosition.top -
+        21 -
+        iconPadding,
+        // - scrollTop,
       left: elementRect.width + correctedPosition.left - 25 - iconPadding,
     };
   }
