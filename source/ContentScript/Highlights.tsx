@@ -90,36 +90,38 @@ const Highlights: React.FC<HighlightsProps> = ({
             sendErrorToSentry(error);
           }
 
-          const rangeRects = [range.getClientRects()[0]];
-          const rects: DOMRect[] = Array.from(rangeRects).map(
-            (rect: DOMRect) => {
-              return {
-                ...rect,
-                width: rect.width,
-                height: rect.height,
-                left: isGoogleDocs()
-                  ? rect.left -
-                    googleDocsToolbarLeftRect.width -
-                    googleDocsToolbarLeftRect.left
-                  : rect.left,
-                top: isGoogleDocs()
-                  ? rect.top - googleDocsToolbarTopRect.top
-                  : rect.top +
-                    doc.scrollTop -
-                    (isTextArea(element) ? elementScroll.top : 0),
-              };
-            }
-          );
-          const newHighlight: Highlight = {
-            rects,
-            id: alert.id,
-            plan: alert.plan,
-            data: alert.data,
-            startOffset: alert.startOffset,
-            endOffset: alert.endOffset,
-            node: node,
-          };
-          highlights.push(newHighlight);
+          const rangeRects = range.getClientRects();
+          for (let i = 0; i < rangeRects.length; i++) {
+            const rects: DOMRect[] = [rangeRects[i]].map(
+              (rect: DOMRect) => {
+                return {
+                  ...rect,
+                  width: rect.width,
+                  height: rect.height,
+                  left: isGoogleDocs()
+                    ? rect.left -
+                      googleDocsToolbarLeftRect.width -
+                      googleDocsToolbarLeftRect.left
+                    : rect.left,
+                  top: isGoogleDocs()
+                    ? rect.top - googleDocsToolbarTopRect.top
+                    : rect.top +
+                      doc.scrollTop -
+                      (isTextArea(element) ? elementScroll.top : 0),
+                };
+              }
+            );
+            const newHighlight: Highlight = {
+              rects,
+              id: alert.id,
+              plan: alert.plan,
+              data: alert.data,
+              startOffset: alert.startOffset,
+              endOffset: alert.endOffset,
+              node: node,
+            };
+            highlights.push(newHighlight);
+          }
         });
       }
     });
@@ -145,7 +147,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       const rulerElement = document.getElementById('kix-vertical-ruler');
       googleDocsRulerIsHidden = rulerElement?.style.display == 'none' || rulerElement?.offsetHeight == 0;
     }
-
+    
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
 
