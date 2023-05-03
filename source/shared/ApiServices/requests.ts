@@ -45,7 +45,7 @@ export const setOrganizationConfigHash = (hash: string) =>
 
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
-    url: createUrl(BASE_URL_API, 'v2.2/check'),
+    url: createUrl(BASE_URL_API, 'v2.3/check'),
     config: {
       method: 'POST',
       headers: {

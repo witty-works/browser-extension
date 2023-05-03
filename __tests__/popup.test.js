@@ -72,7 +72,7 @@ test.describe('Popup', () => {
 
         await page.waitForSelector('.witty-works-ext-lato-popup-title');
         let toggles = await page.$$('.witty-works-ext-toggle-encloser');
-        expect(toggles.length).toBe(3);
+        expect(toggles.length).toBe(1);
     });
 
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
@@ -98,12 +98,6 @@ test.describe('Popup', () => {
 
         await page.waitForSelector('.witty-works-ext-lato-popup-title');
         await page.waitForTimeout(2000);
-
-        const inclusiveToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-highlight-inclusive-terms', '#toggle-button-highlight-inclusive-terms', false);
-        expect(inclusiveToggle).toBe(true);
-
-        const styleIssuesToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-highlight-style-issues', '#toggle-button-highlight-style-issues', false);
-        expect(styleIssuesToggle).toBe(true);
 
         const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', false);
         expect(grammarToggle).toBe(true);
