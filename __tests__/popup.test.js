@@ -72,7 +72,7 @@ test.describe('Popup', () => {
 
         await page.waitForSelector('.witty-works-ext-lato-popup-title');
         let toggles = await page.$$('.witty-works-ext-toggle-encloser');
-        expect(toggles.length).toBe(3);
+        expect(toggles.length).toBe(1);
     });
 
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
