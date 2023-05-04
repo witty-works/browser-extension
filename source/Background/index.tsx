@@ -136,17 +136,7 @@ const scanTabsToDetectStatus = () => {
   });
 };
 
-
 const storageChange = (changes: { [key: string]: any }) => {
-  //OPTION 1: notification in browser (user has to allow it first..)
-//   browser.notifications.create(`my-notification-${Date.now()}`, {
-//     type: "basic",
-//     iconUrl: 'assets/icons/w-logo-wire-color.svg',
-//     title: "My Title",
-//     message: "My Message",
-
-// });
-
   const changedItems = Object.keys(changes);
 
   changedItems.forEach((key) => {

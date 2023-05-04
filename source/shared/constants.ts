@@ -52,6 +52,7 @@ export enum StorageKeys {
   ORGANIZATION_ID = 'organizationId',
 
   ID_WAS_ALIASED = 'idWasAliased',
+  PIN_NOTIFICATION_SHOWED = 'pinNotificationShowed',
 }
 
 //nlp api, dashboard

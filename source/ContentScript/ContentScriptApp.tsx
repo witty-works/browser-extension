@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
@@ -12,6 +12,7 @@ import {
   DEV_ENV,
 } from '../shared/constants';
 import {
+  getBaseUrls,
   setAppID,
   setBaseUrls,
   setConfigHash,
@@ -33,8 +34,8 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import debounce from 'lodash.debounce';
-import { getDomainWithoutSubdomain } from '../shared/utils';
-
+import { getDomainWithoutSubdomain, storeInLocalStorage } from '../shared/utils';
+import Notification from '../Notifications/Notification';
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
   z-index: auto !important;
@@ -71,6 +72,7 @@ const ContentScriptApp: React.FC = () => {
   const [, setInputs, inputsRef] = useStateRef([] as CustomInputElement[]);
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
+  const [pinNotificationStored, setPinNotificationStored] = useState<boolean | null>(null);
 
   //observes iframes that are added to the DOM
   const observer = new MutationObserver(function (mutations) {
@@ -129,7 +131,9 @@ const ContentScriptApp: React.FC = () => {
         getActiveDocument().body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
           ? (getActiveDocument().body.spellcheck = false) //needed here for linkedin, could be removed when we fix focusin issue
           : (getActiveDocument().body.spellcheck = true);
-
+          
+        setPinNotificationStored(result[StorageKeys.PIN_NOTIFICATION_SHOWED]);
+        
         //Define API requests config
         const requestConfig: RequestConfig = {
           german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value
@@ -197,6 +201,25 @@ const ContentScriptApp: React.FC = () => {
       document.removeEventListener('mouseout', handleMouseOut);
     };
   }, []);
+
+  useEffect(() => {
+    if(pinNotificationStored === null || window.location.href.includes(getBaseUrls().dashboard)) return;
+
+    if (!pinNotificationStored) {
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+      ReactDOM.render(
+          <Notification
+            notificationType={'pin'}
+          />,
+        document.body.insertBefore(
+          notificationWrapper,
+          document.body.firstChild
+        )
+      );
+      storeInLocalStorage(StorageKeys.PIN_NOTIFICATION_SHOWED, true);
+    }
+  }, [pinNotificationStored]);
 
   //TODO specify changes type
   //TODO review all cases
