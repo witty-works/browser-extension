@@ -114,6 +114,10 @@ const Input: React.FC<{
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
   const maxCharLength = defaultConfig.MAX_CHAR_LENGTH;
   const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
+  const totalMaxCharLength = defaultConfig.TOTAL_MAX_CHAR_LENGTH;
+  const [totalMaxCharLengthReached, setTotalMaxCharLengthReached] = useState<
+    boolean
+  >(false);
   const backgroundRequestCharLength =
     defaultConfig.BACKGROUND_REQUEST_CHAR_LENGTH;
   const backgroundRequestInterval = defaultConfig.BACKGROUND_REQUEST_INTERVAL;
@@ -661,7 +665,6 @@ const Input: React.FC<{
   
 
   const handleTextAndIcon = (textToCheck: string, nodes: any) => {
-    console.log('handleTextAndIcon',textToCheck);
     let newTextToCheck = '';
     if (nodes.length > 0) {
       let nodesToCheck = nodes.filter((node: INodes) => {
@@ -675,54 +678,67 @@ const Input: React.FC<{
       nodesStorageRef.current = nodesToCheck;
       newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
 
-      //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
-      if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
-        nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
-        newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
-      }
+      console.log('handleTextAndIcon', newTextToCheck, prevCheckedNodesRef.current, totalMaxCharLength);
 
-      // remove alerts from nodeswithalerts that have changed
-      if (nodesToCheck.length > 0) { 
-        const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter(
-          (nodeWithAlerts) => {
-            const nodeIndex = nodesToCheck.findIndex(
-              (nodeToCheck: { node: any; index: number | undefined }) => 
-                nodeToCheck.index === nodeWithAlerts.nodeIndex &&
-                nodeToCheck.node !== nodeWithAlerts.node.textContent
-            ); 
-            return nodeIndex === -1;
+      const prevCheckedNodesTextLength = prevCheckedNodesRef.current
+        .map((node: any) => node.node)
+        .join('').length;
+      const newTextToCheckLength = newTextToCheck.length;
+      const totalTextLength = prevCheckedNodesTextLength + newTextToCheckLength;
+      console.log('totalTextLength', totalTextLength);
+      if (totalTextLength > totalMaxCharLength || newTextToCheckLength > totalMaxCharLength) {
+        setTotalMaxCharLengthReached(true);
+      } else {   
+        setTotalMaxCharLengthReached(false);
+        //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
+        if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
+          nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
+          newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
+        }
+
+        // remove alerts from nodeswithalerts that have changed
+        if (nodesToCheck.length > 0) { 
+          const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter(
+            (nodeWithAlerts) => {
+              const nodeIndex = nodesToCheck.findIndex(
+                (nodeToCheck: { node: any; index: number | undefined }) => 
+                  nodeToCheck.index === nodeWithAlerts.nodeIndex &&
+                  nodeToCheck.node !== nodeWithAlerts.node.textContent
+              ); 
+              return nodeIndex === -1;
+            }
+          );
+          setNodesWithAlerts(nodesWithAlertsUpdate);
+
+          const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
+            (prevCheckedNode) => {
+              const nodeIndex = nodesToCheck.findIndex(
+                (nodeToCheck: { node: any; index: number | undefined }) =>
+                  // nodeToCheck.node === prevCheckedNode.node.textContent &&
+                  nodeToCheck.index === prevCheckedNode.index
+              );
+              return nodeIndex === -1;
+            }
+          );
+          prevCheckedNodesRef.current = prevCheckedNodesUpdate;
           }
-        );
-        setNodesWithAlerts(nodesWithAlertsUpdate);
 
-        const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
-          (prevCheckedNode) => {
-            const nodeIndex = nodesToCheck.findIndex(
-              (nodeToCheck: { node: any; index: number | undefined }) =>
-                // nodeToCheck.node === prevCheckedNode.node.textContent &&
-                nodeToCheck.index === prevCheckedNode.index
-            );
-            return nodeIndex === -1;
-          }
-        );
-        prevCheckedNodesRef.current = prevCheckedNodesUpdate;
+        if (!isTextArea(element)) {
+          textToCheck = newTextToCheck;
+        }
+
+        //If there isn't text, there's nothing to highlight
+        setCurrentTextToCheck(textToCheck); //for check call after refresh token
+        if (textToCheck.length === 0 || !textToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
+          setActiveIcon('active');
+          setAlerts([]);
+          setTextToCheck('');
+        } else {
+          debouncedSetTextToCheck(textToCheck);
+          setActiveIcon('loading');
+        }
       }
-    }
-
-    if (!isTextArea(element)) {
-      textToCheck = newTextToCheck;
-    }
-
-    //If there isn't text, there's nothing to highlight
-    setCurrentTextToCheck(textToCheck); //for check call after refresh token
-    if (textToCheck.length === 0 || !textToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
-      setActiveIcon('active');
-      setAlerts([]);
-      setTextToCheck('');
-    } else {
-      debouncedSetTextToCheck(textToCheck);
-      setActiveIcon('loading');
-    }
+    };
   }
 
   const getNodesToFillMinCharLength = (nodesToCheck: any, nodes: any) => {
@@ -1630,13 +1646,14 @@ const Input: React.FC<{
     }
   }, [popoverData]);
 
+  console.log('totalMaxCharLengthReached', totalMaxCharLengthReached)
   return (
     <>
       <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
           element={element}
           elementRect={elementRect}
-          iconType={activeIcon}
+          iconType={totalMaxCharLengthReached ? 'warning' : activeIcon}
           isHovered={isHovered}
         />
       </WTags.WW_ACTIVITY_INDICATOR>
