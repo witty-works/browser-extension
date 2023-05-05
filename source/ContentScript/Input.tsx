@@ -121,6 +121,9 @@ const Input: React.FC<{
   const [, , abortBackgroundWorkerRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
+  const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
+    IAlert[]
+  >([]);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -575,6 +578,7 @@ const Input: React.FC<{
         )
       );
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
+      setUnchangedAlertsTextarea(unchangedAlerts[0]);
       handleTextAndIcon(nextText, []);
     } else {
       !isGoogleDocs() && setAlerts([]);
@@ -1073,13 +1077,15 @@ const Input: React.FC<{
 
     setActiveIcon('active');
     
-    console.log('LOGGING', checkEndpointResponse);
-    console.log('prevCheckedNodesRef', prevCheckedNodesRef);
-    analytics.checkLog(
-      checkEndpointResponse,
-      authResponse,
-      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
-    );
+    // console.log('checkEndpointResponse', checkEndpointResponse);
+    // console.log('prevCheckedNodesRef', prevCheckedNodesRef);
+    // console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current); //figure out where/how this is made -> find diff -> log that only
+
+    // analytics.checkLog(
+    //   checkEndpointResponse,
+    //   authResponse,
+    //   clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
+    // );
 
     log(
       `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
@@ -1255,6 +1261,8 @@ const Input: React.FC<{
         ...nodesWithAlertsTempWithRect,
       ];
       setNodesWithAlerts(mergedNodesWithAlerts);
+    
+      logNewCheckResponses(nodesWithAlertsRef.current);
 
       prevCheckedNodesRef.current = prevCheckedNodesRef.current.concat(
         nodesStorageRef.current
@@ -1269,6 +1277,38 @@ const Input: React.FC<{
     selectedAlertIndex,
   ]);
 
+  const logNewCheckResponses = (newNodes: INodeWithAlerts[]) => {
+    let newResults;
+  
+    if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
+      newResults = checkEndpointResponse.results.filter((alert) => {
+        return !unchangedAlertsTextarea.map((alert) => alert.startOffset).includes(alert.start);
+      });  
+    } else {
+      newResults = newNodes.filter((nodeWithAlerts) => {
+        return nodesStorageRef.current.map((node) => node.rawNode).includes(nodeWithAlerts.node);
+      }).map((nodeWithAlerts) => {
+        const mergedAlerts = nodeWithAlerts.alerts.reduce((mergedAlerts, alert) => {
+          return {
+            ...mergedAlerts,
+            ...alert.data,
+          };
+        }, {}); 
+        return mergedAlerts;
+      });
+    }
+
+    if (newResults.length === 0) return;
+
+    const mergedCheckEndpointResponse = checkEndpointResponse ? {
+      ...checkEndpointResponse,
+      results: newResults as any,
+    } : undefined;
+  
+    const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
+    mergedCheckEndpointResponse && analytics.checkLog(mergedCheckEndpointResponse, authResponse, textContentLength);
+  };
+  
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
     elementEvaluation: XPathResult
