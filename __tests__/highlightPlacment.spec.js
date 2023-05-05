@@ -1,11 +1,9 @@
 const { test: base, chromium, expect } = require('@playwright/test') //add firefox
 require('dotenv').config();
 const utils = require('./utils');
-
+const testText = 'The basics: Witty highlights biased and gendered language in orange: Hey guys, we\'re excited to announce a new front-end developer will assume the leadership role. Taylor has extensive expertise and a strong technical background. Witty highlights inclusive terms in green: We are a creative team. Witty corrects grammar and spelling mistakes. They are highlighted in red: This is a spelling mistacke. Wait... there is more. Witty highlights style issues in yellow: This is actually a very long meeting.'
 const premiumUserEmail = process.env.PREMIUM_TEST_USER_EMAIL;
 const premiumUserPassword = process.env.PREMIUM_TEST_USER_PASSWORD;
-const testText = 'The basics: Witty highlights biased and gendered language in orange: Hey guys, we\'re excited to announce a new front-end developer will assume the leadership role. Taylor has extensive expertise and a strong technical background. Witty highlights inclusive terms in green: We are a creative team. Witty corrects grammar and spelling mistakes. They are highlighted in red: This is a spelling mistacke. Wait... there is more. Witty highlights style issues in yellow: This is actually a very long meeting.'
-const testTextShort = ' Hey guys, we\'re excited to announce a new front-end developer will assume the leadership role.'
 const apiWaitTime = 5000;
 const htaccessUsername = process.env.HTACCESS_USERNAME;
 const htaccessPassword = process.env.HTACCESS_PASSWORD;
@@ -53,14 +51,13 @@ test.describe('Highlights', () => {
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await page.waitForSelector('#hs-eu-confirmation-button');
         await page.click('#hs-eu-confirmation-button');
+        await utils.enableAllToggles(page);
+
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
-
         await page.waitForLoadState('networkidle')
-
-        await page.waitForSelector('.fr-element');
+        await page.waitForSelector('#example-1');
+        await page.click('#example-1');
         await page.click('.fr-element');
-        await page.fill('.fr-element', testText);
-        await page.keyboard.press('Space');
 
         await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
 
@@ -76,21 +73,18 @@ test.describe('Highlights', () => {
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await page.waitForSelector('#hs-eu-confirmation-button');
         await page.click('#hs-eu-confirmation-button');
+        await utils.enableAllToggles(page);
 
         const extensionId = await utils.getExtensionId(page);
-        await utils.enableAllToggles(page);
         await utils.loginPopupPage(page, extensionId, context);
 
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
-
         await page.waitForLoadState('networkidle')
-
-        await page.waitForSelector('.fr-element');
+        await page.waitForSelector('#example-1');
+        await page.click('#example-1');
         await page.click('.fr-element');
-        await page.fill('.fr-element', testText);
-        await page.keyboard.press('Space');
 
-        await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
+        await page.waitForTimeout(10000); //wait for api to respond with highlights
 
         await page.locator('.fr-element').screenshot().then(async (screenshot) => {
             //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
