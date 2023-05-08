@@ -4,11 +4,10 @@ import { CustomInputElement } from '../types';
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
-import { getCorrectedPosition } from '../utils';
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { getZIndex, isGoogleDocs } from '../DOMutils';
+import { getZIndex } from '../DOMutils';
 interface IconControllerProps {
   element: CustomInputElement;
   elementRect?: DOMRect;
@@ -23,38 +22,9 @@ const IconController: React.FC<IconControllerProps> = ({
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const googleDocsIcon = isGoogleDocs();
-  const iconPadding: number = 8;
-  let correctedPosition = {} as any;
-
-  let iconPosition = { top: 0, left: 0 };
   if (!elementRect) {
     elementRect = element.getBoundingClientRect();
-    iconPosition = {
-      top: elementRect.height - 21 - iconPadding,
-      left: elementRect.width - 25 - iconPadding,
-    };
-  } else if (googleDocsIcon) {
-    if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
-    correctedPosition = (
-      element.firstChild?.firstChild as HTMLElement
-    ).getBoundingClientRect();
-    iconPosition = {
-      top: 250,
-      left: correctedPosition.left + correctedPosition.width + 20,
-    };
-  } else {
-    correctedPosition = getCorrectedPosition(
-      elementRect,
-      ref.current.parentElement,
-      element
-    );
-    iconPosition = {
-      top: elementRect.height + correctedPosition.top - 21 - iconPadding,
-      left: elementRect.width + correctedPosition.left - 25 - iconPadding,
-    };
   }
-
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
 
   browser.storage.local
@@ -70,11 +40,10 @@ const IconController: React.FC<IconControllerProps> = ({
     <div
       ref={ref}
       style={{
-        display: 'flex',
-        position: googleDocsIcon ? 'fixed' : 'absolute',
-        top: `${iconPosition.top}px`,
-        left: `${iconPosition.left}px`,
         zIndex: getZIndex(element),
+        position: 'fixed',
+        margin: `10px`,
+        right: `${window.innerWidth - elementRect.right}px`,
       }}
       onMouseDown={(e) => {
         e.stopPropagation();
