@@ -33,6 +33,7 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import debounce from 'lodash.debounce';
+import { getDomainWithoutSubdomain } from '../shared/utils';
 
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
@@ -406,59 +407,69 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleNewInput = () => {
-    //filter out inputs that are the same
-    let filteredInputs = inputsRef.current.filter(
-      (input, index, self) =>
-        index === self.findIndex((t) => t.isEqualNode(input))
-    );
+    browser.storage.local.get().then((result) => {
+      const disabledDomains = [
+        ...(result[StorageKeys.DOMAINS] || []),
+        ...(result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK] || []),
+        ...(result[StorageKeys.ORGANIZATION_DOMAINS]?.list || []),
+      ];
+      const domain = getDomainWithoutSubdomain(window.location.hostname);
+      if (!disabledDomains.includes(domain)) {
+        //filter out inputs that are the same
+        let filteredInputs = inputsRef.current.filter(
+          (input, index, self) =>
+            index === self.findIndex((t) => t.isEqualNode(input))
+        );
 
-    //> 1 prevents issues when starting with empty doc
-    if (isGoogleDocs() && filteredInputs.length > 1) {
-      //remove any input that does not contain <g> as a child
-      filteredInputs = inputsRef.current.filter((input) => {
-        const gElements = input.querySelectorAll('g');
-        return gElements.length > 0;
-      });
-    }
-
-    if (filteredInputs && filteredInputs.length > 0) {
-      log(
-        `Analyzed inputs:`,
-        logTypes.INFO,
-        filteredInputs.length > 0 ? filteredInputs : 'None'
-      );
-      filteredInputs.forEach((input: CustomInputElement) => {
-        if (!input.parentElement) return;
-        const sibling = input.previousElementSibling as HTMLElement;
-        if (!sibling || sibling.tagName !== 'WW-CONTAINER') {
-          const highlightsContainer: HTMLElement =
-            getActiveDocument().createElement(WTags.WW_CONTAINER);
-          highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
-
-          if (isGoogleSheets() && input.classList.contains('cell-input')) {
-            return;
-          }
-          //get first ancestior that is a div
-          const ancestor = input.closest('div');
-
-          if (isNotion()) {
-            //Workaround as Notion blocks insertion of code on a deeper level
-            const notionParentElement =
-              document.querySelector('.notion-frame')?.firstChild;
-            notionParentElement?.insertBefore(
-              highlightsContainer,
-              notionParentElement.firstChild
-            );
-          } else {
-            const parentElement =
-              input.tagName === 'rect' ? ancestor : input.parentElement;
-            parentElement &&
-              parentElement.insertBefore(highlightsContainer, input);
-          }
-          ReactDOM.render(<Input element={input} />, highlightsContainer);
+        //> 1 prevents issues when starting with empty doc
+        if (isGoogleDocs() && filteredInputs.length > 1) {
+          //remove any input that does not contain <g> as a child
+          filteredInputs = inputsRef.current.filter((input) => {
+            const gElements = input.querySelectorAll('g');
+            return gElements.length > 0;
+          });
         }
-      });
-    }
+
+        if (filteredInputs && filteredInputs.length > 0) {
+          log(
+            `Analyzed inputs:`,
+            logTypes.INFO,
+            filteredInputs.length > 0 ? filteredInputs : 'None'
+          );
+          filteredInputs.forEach((input: CustomInputElement) => {
+            if (!input.parentElement) return;
+            const sibling = input.previousElementSibling as HTMLElement;
+            if (!sibling || sibling.tagName !== 'WW-CONTAINER') {
+              const highlightsContainer: HTMLElement =
+                getActiveDocument().createElement(WTags.WW_CONTAINER);
+              highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
+
+              if (isGoogleSheets() && input.classList.contains('cell-input')) {
+                return;
+              }
+              //get first ancestior that is a div
+              const ancestor = input.closest('div');
+
+              if (isNotion()) {
+                //Workaround as Notion blocks insertion of code on a deeper level
+                const notionParentElement =
+                  document.querySelector('.notion-frame')?.firstChild;
+                notionParentElement?.insertBefore(
+                  highlightsContainer,
+                  notionParentElement.firstChild
+                );
+              } else {
+                const parentElement =
+                  input.tagName === 'rect' ? ancestor : input.parentElement;
+                parentElement &&
+                  parentElement.insertBefore(highlightsContainer, input);
+              }
+              ReactDOM.render(<Input element={input} />, highlightsContainer);
+            }
+          });
+        }
+      }
+    });
   };
 
   // Check if tracked inputs exists or are still visible

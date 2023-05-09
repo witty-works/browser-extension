@@ -290,7 +290,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             style={{
               display: 'flex',
               flexDirection: showLearningBite ? 'row' : 'column',
-              alignItems: showLearningBite ? 'center' : 'flex-end',
+              alignItems: showLearningBite ? 'center' : 'flex-start',
             }}
           >
             {data.alert.data.explanation.icon} &nbsp;
@@ -303,6 +303,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 style={{
                   padding: '0.5em 0 0 0',
                   whiteSpace: 'nowrap',
+                  marginLeft: 'auto'
                 }}
               >
                 <div className='witty-works-ext-margin-left witty-works-ext-margin-right'>
