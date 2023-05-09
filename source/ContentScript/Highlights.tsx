@@ -68,7 +68,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
       setHighlights([]);
 
-    const highlightsTemp: Highlight[] = [];
+    const highlights: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
     let googleDocsToolbarLeftRect = {} as DOMRect;
     if (isGoogleDocs()) {
@@ -98,47 +98,50 @@ const Highlights: React.FC<HighlightsProps> = ({
             sendErrorToSentry(error);
           }
 
-          const rangeRects = [range.getClientRects()[0]];
-          const rects: DOMRect[] = Array.from(rangeRects).map(
-            (rect: DOMRect) => {
-              return {
-                ...rect,
-                width: rect.width,
-                height: rect.height,
-                left: isGoogleDocs()
-                  ? rect.left -
-                    googleDocsToolbarLeftRect.width -
-                    googleDocsToolbarLeftRect.left
-                  : rect.left,
-                top: isGoogleDocs()
-                  ? rect.top - googleDocsToolbarTopRect.top
-                  : rect.top +
-                    doc.scrollTop -
-                    (isTextArea(element) ? elementScroll.top : 0),
-              };
-            }
-          );
-
+          
+          const rangeRects = range.getClientRects();
+          for (let i = 0; i < rangeRects.length; i++) {
+            const rects: DOMRect[] = [rangeRects[i]].map(
+              (rect: DOMRect) => {
+                return {
+                  ...rect,
+                  width: rect.width,
+                  height: rect.height,
+                  left: isGoogleDocs()
+                    ? rect.left -
+                      googleDocsToolbarLeftRect.width -
+                      googleDocsToolbarLeftRect.left
+                    : rect.left,
+                  top: isGoogleDocs()
+                    ? rect.top - googleDocsToolbarTopRect.top
+                    : rect.top +
+                      doc.scrollTop -
+                      (isTextArea(element) ? elementScroll.top : 0),
+                };
+              }
+            );
+          
           //Check if node is in view, if not, don't add new highlight
           if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text)))  {
             return;
           } else {
-          const newHighlight: Highlight = {
-            rects,
-            id: alert.id,
-            plan: alert.plan,
-            data: alert.data,
-            startOffset: alert.startOffset,
-            endOffset: alert.endOffset,
-            node: node,
-          };
-          highlightsTemp.push(newHighlight);
+            const newHighlight: Highlight = {
+              rects,
+              id: alert.id,
+              plan: alert.plan,
+              data: alert.data,
+              startOffset: alert.startOffset,
+              endOffset: alert.endOffset,
+              node: node,
+            };
+            highlights.push(newHighlight);
+          }
         }
         });
       }
     });
 
-    setHighlights(highlightsTemp);
+    setHighlights(highlights);
   }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
