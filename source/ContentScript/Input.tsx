@@ -676,20 +676,43 @@ const Input: React.FC<{
         return nodeIndex === -1;
       });
       nodesStorageRef.current = nodesToCheck;
-      newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
-
-      console.log('handleTextAndIcon', newTextToCheck, prevCheckedNodesRef.current, totalMaxCharLength);
 
       const prevCheckedNodesTextLength = prevCheckedNodesRef.current
         .map((node: any) => node.node)
         .join('').length;
-      const newTextToCheckLength = newTextToCheck.length;
+      const newTextToCheckLength = nodesToCheck.map((node: any) => node.node).join('').length;
       const totalTextLength = prevCheckedNodesTextLength + newTextToCheckLength;
       console.log('totalTextLength', totalTextLength);
+
       if (totalTextLength > totalMaxCharLength || newTextToCheckLength > totalMaxCharLength) {
+        //add prev checked to new text to check
+        const allNodes = [...prevCheckedNodesRef.current, ...nodesToCheck];
+        console.log('allNodes', allNodes);
+        //merge all raw nodes 
+        const allRawNodes = allNodes.map((node: any) => node.rawNode);
+
+        if (allNodes.length === 0) return;
+        //cut at max char length
+        const nodesWithinMaxCharLength = getNodesWithinMaxCharLength('below', allRawNodes, -1, totalMaxCharLength);
+
+        const nodesWhithinMaxCharLength = nodesWithinMaxCharLength
+        .sort((a, b) => a.index - b.index)
+        .filter(
+          (node, index, self) =>
+            index === self.findIndex((t) => t.index === node.index)
+        );
+  
+      const textWithinMaxCharLength = nodesWhithinMaxCharLength
+        .map((node) => node.node)
+        .join('');
+        
+        console.log('nodesWithinMaxCharLength', nodesWithinMaxCharLength, textWithinMaxCharLength);
+        //get text from nodes
+        debouncedSetTextToCheck(textWithinMaxCharLength);
         setTotalMaxCharLengthReached(true);
       } else {   
         setTotalMaxCharLengthReached(false);
+      
         //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
         if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
           nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
@@ -698,6 +721,7 @@ const Input: React.FC<{
 
         // remove alerts from nodeswithalerts that have changed
         if (nodesToCheck.length > 0) { 
+          console.log('REMOVING NODES before', nodesWithAlertsRef.current);
           const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter(
             (nodeWithAlerts) => {
               const nodeIndex = nodesToCheck.findIndex(
@@ -708,8 +732,11 @@ const Input: React.FC<{
               return nodeIndex === -1;
             }
           );
+          console.log('REMOVING NODES after', nodesWithAlertsUpdate);
+
           setNodesWithAlerts(nodesWithAlertsUpdate);
 
+          console.log('prevCheckedNodesRef.current', prevCheckedNodesRef.current);
           const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
             (prevCheckedNode) => {
               const nodeIndex = nodesToCheck.findIndex(
