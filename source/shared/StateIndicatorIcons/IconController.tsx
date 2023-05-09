@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-import { CustomInputElement } from '../types';
+import { CustomInputElement, Position } from '../types';
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
@@ -13,6 +13,7 @@ interface IconControllerProps {
   elementRect?: DOMRect;
   iconType: string;
   isHovered: boolean;
+  windowScroll: Position;
 }
 
 const IconController: React.FC<IconControllerProps> = ({
@@ -20,6 +21,7 @@ const IconController: React.FC<IconControllerProps> = ({
   elementRect,
   iconType,
   isHovered,
+  windowScroll,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   if (!elementRect) {
@@ -43,6 +45,7 @@ const IconController: React.FC<IconControllerProps> = ({
         zIndex: getZIndex(element),
         position: 'fixed',
         margin: `10px`,
+        top: `${elementRect.top - windowScroll.top}px`,
         right: `${window.innerWidth - elementRect.right}px`,
       }}
       onMouseDown={(e) => {

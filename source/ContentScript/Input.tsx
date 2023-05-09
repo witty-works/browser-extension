@@ -83,6 +83,10 @@ const Input: React.FC<{
     top: 0,
     left: 0,
   } as Position);
+  const [windowScroll, setWindowScroll] = useState<Position>({
+    top: 0,
+    left: 0,
+  } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
@@ -177,6 +181,7 @@ const Input: React.FC<{
 
     browser.storage.onChanged.addListener(storageChange);
 
+    window.addEventListener('scroll', handleWindowScrollEvent);
     !isGoogleDocs() &&
       element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
@@ -206,6 +211,7 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
+      window.removeEventListener('scroll', handleWindowScrollEvent);
       !isGoogleDocs() &&
         element.removeEventListener('focusout', handleFocusoutEvent);
       element.removeEventListener('scroll', handleElementScrollEvent);
@@ -230,6 +236,12 @@ const Input: React.FC<{
     };
   }, []);
 
+  const handleWindowScrollEvent = () => {
+    setWindowScroll({
+      top: window.scrollY,
+      left: window.scrollX,
+    });
+  };
   //GOOGLE DOCS WORKAROUND
   const handleDocumentClickEvent = (event: any) => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
@@ -1472,6 +1484,7 @@ const Input: React.FC<{
           elementRect={elementRect}
           iconType={activeIcon}
           isHovered={isHovered}
+          windowScroll={windowScroll}
         />
       </WTags.WW_ACTIVITY_INDICATOR>
       {isTextArea(element) && (
