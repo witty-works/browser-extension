@@ -119,44 +119,38 @@ exports.getExtensionId = async function (page) {
     return extensionId;
 }
 
-exports.enableAllToggles = async function (page) {
-    await page.waitForLoadState('networkidle')
-
-    await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
-    // await page.click('.leadinModal-close');
-
-    //orthography
-    const orthographyToggle = await page.waitForSelector('.py-10:nth-child(8) .guidelines-form-section--apply-for-all .slider');
-    const backgroundColorOrthography = await orthographyToggle.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    });
-    if (backgroundColorOrthography === 'rgb(204, 204, 204)') {
-        await page.click('.py-10:nth-child(8) .guidelines-form-section--apply-for-all .slider');
-    }
-    const orthographyToggleForce = await page.waitForSelector('.py-10:nth-child(8) .guidelines-form-section--apply-for-all .slider');
-    const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    }
-    );
-    if (backgroundColorOrthographyForce === 'rgb(204, 204, 204)') {
-        await page.click('.py-10:nth-child(8) .guidelines-form-section--apply-for-all .slider');
-    }
-    await page.click('.py-10:nth-child(8) .button');
-}
-
 exports.unlockAllToggles = async function (page) {
-    await page.waitForLoadState('networkidle')
+    // await page.waitForLoadState('networkidle')
     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
-    // await page.click('.leadinModal-close');
+
+    // //inclusive
+    // const inclusiveToggleForce = await page.waitForSelector('.py-10:nth-child(7) .guidelines-form-section--apply-for-all .slider');
+    // const backgroundColorInclusiveForce = await inclusiveToggleForce.evaluate((el) => {
+    //     return window.getComputedStyle(el).getPropertyValue('background-color');
+    // });
+    // if (backgroundColorInclusiveForce !== 'rgb(204, 204, 204)') {
+    //     await page.click('.py-10:nth-child(7) .guidelines-form-section--apply-for-all .slider');
+    // }
+    // await page.click('.py-10:nth-child(7) .button');
+
+    //style
+    const styleToggleForce = await page.waitForSelector('.py-10:nth-child(5) .guidelines-form-section--apply-for-all .slider');
+    const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue('background-color');
+    })
+    if (backgroundColorStyleForce !== 'rgb(204, 204, 204)') {
+        await page.click('.py-10:nth-child(5) .guidelines-form-section--apply-for-all .slider');
+    }
+    await page.click('.py-10:nth-child(5) .button');
 
     //orthography
-    const orthographyToggleForce = await page.waitForSelector('.py-10:nth-child(9) .guidelines-form-section--apply-for-all .slider');
+    const orthographyToggleForce = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
     const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
         return window.getComputedStyle(el).getPropertyValue('background-color');
     }
     );
     if (backgroundColorOrthographyForce !== 'rgb(204, 204, 204)') {
-        await page.click('.py-10:nth-child(9) .guidelines-form-section--apply-for-all .slider');
+        await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
     }
-    await page.click('.py-10:nth-child(9) .button');
+    await page.click('.py-10:nth-child(3) .button');
 }

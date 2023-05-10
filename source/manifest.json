@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_appName__",
-  "version": "1.27.2.2",
+  "version": "1.28.0",
   "default_locale": "en",
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -12,7 +12,7 @@
   "description": "__MSG_appDesc__",
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
-  "permissions": ["storage", "http://*/*", "https://*/*", "notifications"],
+  "permissions": ["storage", "http://*/*", "https://*/*"],
   "content_security_policy": "script-src 'self'; object-src 'self'",
   "__chrome|firefox__author": "Witty Works",
   "__opera__developer": {

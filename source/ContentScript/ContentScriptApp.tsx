@@ -388,6 +388,7 @@ const ContentScriptApp: React.FC = () => {
           }
           iconType={'passive'}
           isHovered={true}
+          windowScroll={{top: window.scrollY, left: window.scrollX}}
         />,
         hoveredIndicatorContainer
       );

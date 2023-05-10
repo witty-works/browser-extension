@@ -88,6 +88,10 @@ const Input: React.FC<{
   const [removeHighlights, setRemoveHighlights] = useState<boolean>(false);
   const [forceHighlightUpdate, setForceHighlightUpdate] =
     useState<boolean>(false);
+  const [windowScroll, setWindowScroll] = useState<Position>({
+    top: 0,
+    left: 0,
+  } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
@@ -213,6 +217,7 @@ const Input: React.FC<{
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
+    window.addEventListener('scroll', handleWindowScrollEvent);
     !isGoogleDocs() &&
       element.addEventListener('focusout', handleFocusoutEvent);
     element.addEventListener('mouseover', handleMouseoverEvent);
@@ -247,6 +252,7 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
+      window.removeEventListener('scroll', handleWindowScrollEvent);
       !isGoogleDocs() &&
         element.removeEventListener('focusout', handleFocusoutEvent);
       firstScrollableParentRef.current.removeEventListener(
@@ -275,6 +281,12 @@ const Input: React.FC<{
     };
   }, []);
 
+  const handleWindowScrollEvent = () => {
+    setWindowScroll({
+      top: window.scrollY,
+      left: window.scrollX,
+    });
+  };
   //GOOGLE DOCS WORKAROUND
   const handleDocumentClickEvent = () => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
@@ -1682,6 +1694,7 @@ const Input: React.FC<{
           elementRect={elementRect}
           iconType={totalMaxCharLengthReached ? 'warning' : activeIcon}
           isHovered={isHovered}
+          windowScroll={windowScroll}
         />
       </WTags.WW_ACTIVITY_INDICATOR>
       {isTextArea(element) && (
