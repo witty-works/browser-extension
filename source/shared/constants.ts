@@ -21,8 +21,6 @@ export enum StorageKeys {
   PREFERRED_VARIANTS = 'preferredVariants',
   GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
-  STYLE = 'styleCorrections',
-  INCLUSIVE = 'inclusiveLanguage',
   SHOW_INSPIRATION_ALTERNATIVES = 'inspirationalAlternatives',
   SINGULAR_THEY = 'singularThey',
   MAXIMUM_IMPORTANCE = 'maximumImportance',
