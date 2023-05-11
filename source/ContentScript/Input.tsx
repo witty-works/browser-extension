@@ -127,6 +127,7 @@ const Input: React.FC<{
   const [, , abortBackgroundWorkerRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
+  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); ////TODO: SET TO TRUE BEFORE RELEASE -> FALSE FOR TESTING
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -189,7 +190,8 @@ const Input: React.FC<{
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
         setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
-
+        console.log('esult[StorageKeys.PLAN]', result[StorageKeys.PLAN])
+        result[StorageKeys.PLAN] === 'witty_free' && (isWittyPremiumUserRef.current = false);
         if (
           result[StorageKeys.PLAN] === 'witty_free' &&
           result[StorageKeys.IGNORED_CATEGORIES]
@@ -706,8 +708,8 @@ const Input: React.FC<{
         .join('').length;
 
       console.log('prevCheckedNodesRef', prevCheckedNodesRef.current);
-      console.log('textToCheck.length ', textToCheck.length);
-      if (newTextToCheck.length > totalMaxCharLength || (prevCheckedNodesTextLength + newTextToCheck.length) > totalMaxCharLength) {  
+      console.log('textToCheck.length, isWittyPremiumUser ', textToCheck.length, isWittyPremiumUserRef.current);
+      if ((newTextToCheck.length > totalMaxCharLength || (prevCheckedNodesTextLength + newTextToCheck.length) > totalMaxCharLength) && !isWittyPremiumUserRef.current) {  
         totalMaxCharLengthReachedRef.current = true;
         abortBackgroundWorkerRef.current = true;  
         const allNodes = [...prevCheckedNodesRef.current, ...nodesToCheck]
@@ -717,20 +719,19 @@ const Input: React.FC<{
         console.log('allNodes', allNodes);
 
         if (allNodes.length === 0) return;  
-        const nodesWithinTotalMaxCharLength = getNodesWithinMaxCharLength('below', allNodes, -1, totalMaxCharLength);
+        const nodesWithinTotalMaxCharLength = getNodesWithinMaxCharLength('below', allNodes, -1, totalMaxCharLength*2);
         console.log('nodesWithinMaxCharLength', nodesWithinTotalMaxCharLength);
         newTextToCheck = nodesWithinTotalMaxCharLength
           .map((node) => node.node)
           .join('');
-        
-      
+          console.log('newTextToCheck LENGTH', newTextToCheck, newTextToCheck.length);
         debouncedSetTextToCheck(' '); //make sure highlights stay even if its the same text
-      } else if (isTextArea(element) && textToCheck.length > totalMaxCharLength) {
+      } else if (isTextArea(element) && textToCheck.length > totalMaxCharLength && !isWittyPremiumUserRef.current) {
         totalMaxCharLengthReachedRef.current = true;
-        newTextToCheck = textToCheck.slice(0, totalMaxCharLength);
-        debouncedSetTextToCheck(' '); //make sure highlights stay even if its the same text
-      }
-      else {   
+        const lastSpaceIndex = textToCheck.lastIndexOf(' ', totalMaxCharLength);
+        textToCheck = textToCheck.slice(0, lastSpaceIndex);
+        debouncedSetTextToCheck(' ');
+      } else {   
         totalMaxCharLengthReachedRef.current = false;
         abortBackgroundWorkerRef.current = false;
       }
@@ -800,7 +801,7 @@ const Input: React.FC<{
           console.log('nodesWithAlertsUpdate2', nodesWithAlertsUpdate)
         }
         
-        if (!isTextArea(element) && !totalMaxCharLengthReachedRef.current) {
+        if (!isTextArea(element)) {
           textToCheck = newTextToCheck;
         }
 
@@ -811,6 +812,7 @@ const Input: React.FC<{
           setAlerts([]);
           setTextToCheck('');
         } else {
+          console.log('textToCheck', textToCheck);
           debouncedSetTextToCheck(textToCheck);
           setActiveIcon('loading');
         }
@@ -858,8 +860,8 @@ const Input: React.FC<{
     } 
 
     !isGoogleDocs() && setElementScroll({
-        top: firstScrollableParentRef.current.scrollTop,
-        left: firstScrollableParentRef.current.scrollLeft,
+        top: isTextArea(element) ? element.scrollTop : firstScrollableParentRef.current.scrollTop,
+        left: isTextArea(element) ? element.scrollLeft : firstScrollableParentRef.current.scrollLeft,
       });
   };
 

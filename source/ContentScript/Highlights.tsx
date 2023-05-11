@@ -114,7 +114,8 @@ const Highlights: React.FC<HighlightsProps> = ({
                   top: isGoogleDocs()
                     ? rect.top - googleDocsToolbarTopRect.top
                     : rect.top +
-                      doc.scrollTop -
+                      doc.scrollTop
+                       -
                       (isTextArea(element) ? elementScroll.top : 0),
                 };
               }
