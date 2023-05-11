@@ -119,9 +119,7 @@ const Input: React.FC<{
   const maxCharLength = defaultConfig.MAX_CHAR_LENGTH;
   const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
   const totalMaxCharLength = defaultConfig.TOTAL_MAX_CHAR_LENGTH;
-  const [totalMaxCharLengthReached, setTotalMaxCharLengthReached] = useState<
-    boolean
-  >(false);
+  const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
   const backgroundRequestCharLength =
     defaultConfig.BACKGROUND_REQUEST_CHAR_LENGTH;
   const backgroundRequestInterval = defaultConfig.BACKGROUND_REQUEST_INTERVAL;
@@ -218,8 +216,10 @@ const Input: React.FC<{
       firstScrollableParentRef.current = newScrollableParent;
 
     window.addEventListener('scroll', handleWindowScrollEvent);
-    !isGoogleDocs() &&
+    if(!isGoogleDocs()) {
       element.addEventListener('focusout', handleFocusoutEvent);
+      element.addEventListener('focusin', handleFocusinEvent);
+    }
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
     firstScrollableParentRef.current.addEventListener(
@@ -253,8 +253,11 @@ const Input: React.FC<{
     return () => {
       //Don't forget to remove the listeners at the end
       window.removeEventListener('scroll', handleWindowScrollEvent);
-      !isGoogleDocs() &&
+      if(!isGoogleDocs()) {
         element.removeEventListener('focusout', handleFocusoutEvent);
+        element.removeEventListener('focusin', handleFocusinEvent);
+      }
+
       firstScrollableParentRef.current.removeEventListener(
         'scroll',
         handleElementScrollEvent
@@ -380,7 +383,8 @@ const Input: React.FC<{
       //LONG TEXT CLICK
       if (
         getInputText(cloneRef.current).length > maxCharLength &&
-        (newSelectedAlertIndex < 0 || newSelectedAlertIndex === undefined)
+        (newSelectedAlertIndex < 0 || newSelectedAlertIndex === undefined) &&
+        !totalMaxCharLengthReachedRef.current
       ) {
         const clickedElement = [] as ChildNode[];
         if (!cloneRef.current || !cloneRef.current.childNodes) {
@@ -469,6 +473,9 @@ const Input: React.FC<{
     if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
+  console.log('totalMaxCharLengthReached', totalMaxCharLengthReachedRef.current)
+
+
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
     const textDividedByNodes = getTextDividedByNodes(
@@ -485,7 +492,6 @@ const Input: React.FC<{
         return !nodeIsChecked;
       }
     );
-    console.log('BACKGROUND WORKER CALLED, nodesToCheck', textDividedByNodesWithoutCheckedNodes);
 
     const nodesWithinBackgroundRequestLength = [] as {
       text: string;
@@ -547,6 +553,10 @@ const Input: React.FC<{
     setActiveIcon('passive');
     setAlerts([]);
     setTextToCheck('');
+  };
+
+  const handleFocusinEvent = () => {
+    setActiveIcon('active');
   };
 
   const handleDocumentResizeEvent = () => {
@@ -677,8 +687,6 @@ const Input: React.FC<{
   
 
   const handleTextAndIcon = (textToCheck: string, nodes: any) => {
-    let newTextToCheck = '';
-    if (nodes.length > 0) {
       let nodesToCheck = nodes.filter((node: INodes) => {
         const nodeIndex = prevCheckedNodesRef.current.findIndex(
           (prevCheckedNode: INodes) =>
@@ -687,44 +695,45 @@ const Input: React.FC<{
         );
         return nodeIndex === -1;
       });
+
       nodesStorageRef.current = nodesToCheck;
+      console.log('nodesToCheck', nodesToCheck)
+
+      let newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
 
       const prevCheckedNodesTextLength = prevCheckedNodesRef.current
         .map((node: any) => node.node)
         .join('').length;
-      const newTextToCheckLength = nodesToCheck.map((node: any) => node.node).join('').length;
-      const totalTextLength = prevCheckedNodesTextLength + newTextToCheckLength;
-      console.log('totalTextLength', totalTextLength);
 
-      if (totalTextLength > totalMaxCharLength || newTextToCheckLength > totalMaxCharLength) {
-        //add prev checked to new text to check
-        const allNodes = [...prevCheckedNodesRef.current, ...nodesToCheck];
+      console.log('prevCheckedNodesRef', prevCheckedNodesRef.current);
+      console.log('textToCheck.length ', textToCheck.length);
+      if (newTextToCheck.length > totalMaxCharLength || (prevCheckedNodesTextLength + newTextToCheck.length) > totalMaxCharLength) {  
+        totalMaxCharLengthReachedRef.current = true;
+        abortBackgroundWorkerRef.current = true;  
+        const allNodes = [...prevCheckedNodesRef.current, ...nodesToCheck]
+          .filter((node: any, index: number, self: any) => index === self.findIndex((t: any) => t.rawNode === node.rawNode && t.index === node.index))
+          .sort((a: any, b: any) => a.index - b.index)
+          .map((node: any) => node.rawNode)
         console.log('allNodes', allNodes);
-        //merge all raw nodes 
-        const allRawNodes = allNodes.map((node: any) => node.rawNode);
 
-        if (allNodes.length === 0) return;
-        //cut at max char length
-        const nodesWithinMaxCharLength = getNodesWithinMaxCharLength('below', allRawNodes, -1, totalMaxCharLength);
-
-        const nodesWhithinMaxCharLength = nodesWithinMaxCharLength
-        .sort((a, b) => a.index - b.index)
-        .filter(
-          (node, index, self) =>
-            index === self.findIndex((t) => t.index === node.index)
-        );
-  
-      const textWithinMaxCharLength = nodesWhithinMaxCharLength
-        .map((node) => node.node)
-        .join('');
+        if (allNodes.length === 0) return;  
+        const nodesWithinTotalMaxCharLength = getNodesWithinMaxCharLength('below', allNodes, -1, totalMaxCharLength);
+        console.log('nodesWithinMaxCharLength', nodesWithinTotalMaxCharLength);
+        newTextToCheck = nodesWithinTotalMaxCharLength
+          .map((node) => node.node)
+          .join('');
         
-        console.log('nodesWithinMaxCharLength', nodesWithinMaxCharLength, textWithinMaxCharLength);
-        //get text from nodes
-        debouncedSetTextToCheck(textWithinMaxCharLength);
-        setTotalMaxCharLengthReached(true);
-      } else {   
-        setTotalMaxCharLengthReached(false);
       
+        debouncedSetTextToCheck(' '); //make sure highlights stay even if its the same text
+      } else if (isTextArea(element) && textToCheck.length > totalMaxCharLength) {
+        totalMaxCharLengthReachedRef.current = true;
+        newTextToCheck = textToCheck.slice(0, totalMaxCharLength);
+        debouncedSetTextToCheck(' '); //make sure highlights stay even if its the same text
+      }
+      else {   
+        totalMaxCharLengthReachedRef.current = false;
+        abortBackgroundWorkerRef.current = false;
+      }
         //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
         if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
           nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
@@ -732,37 +741,66 @@ const Input: React.FC<{
         }
 
         // remove alerts from nodeswithalerts that have changed
+        console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current)
+        console.log('nodesToCheck.length', nodesToCheck.length)
         if (nodesToCheck.length > 0) { 
-          console.log('REMOVING NODES before', nodesWithAlertsRef.current);
           const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter(
             (nodeWithAlerts) => {
               const nodeIndex = nodesToCheck.findIndex(
                 (nodeToCheck: { node: any; index: number | undefined }) => 
-                  nodeToCheck.index === nodeWithAlerts.nodeIndex &&
-                  nodeToCheck.node !== nodeWithAlerts.node.textContent
+                  nodeToCheck.index === nodeWithAlerts.nodeIndex 
+                  // nodeToCheck.node !== nodeWithAlerts.node.textContent
               ); 
-              return nodeIndex === -1;
+              return nodeIndex !== -1;
             }
           );
-          console.log('REMOVING NODES after', nodesWithAlertsUpdate);
 
+          console.log('nodesWithAlerts before, after', nodesWithAlertsRef.current, nodesWithAlertsUpdate)
           setNodesWithAlerts(nodesWithAlertsUpdate);
 
-          console.log('prevCheckedNodesRef.current', prevCheckedNodesRef.current);
           const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
             (prevCheckedNode) => {
               const nodeIndex = nodesToCheck.findIndex(
                 (nodeToCheck: { node: any; index: number | undefined }) =>
-                  // nodeToCheck.node === prevCheckedNode.node.textContent &&
-                  nodeToCheck.index === prevCheckedNode.index
+                  nodeToCheck.index === prevCheckedNode.index 
+                  // nodeToCheck.node !== prevCheckedNode.node.textContent 
+
               );
-              return nodeIndex === -1;
+              return nodeIndex !== -1;
             }
           );
+         
+          console.log('prevCheckedNodesUpdate before, after', prevCheckedNodesRef.current, prevCheckedNodesUpdate)
           prevCheckedNodesRef.current = prevCheckedNodesUpdate;
-          }
+        } else {
+          //remove nodes and alerts that no longer exis in dom
+          const existingNodes = getTextDividedByNodes(element); 
+          const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
+            (prevCheckedNode) => {
+              const nodeIndex = existingNodes.findIndex(
+                (existingNode) =>
+                  existingNode === prevCheckedNode.rawNode
+              );
+              return nodeIndex !== -1;
+            }
+          );
 
-        if (!isTextArea(element)) {
+          console.log('prevCheckedNodesUpdate2', prevCheckedNodesUpdate)
+          prevCheckedNodesRef.current = prevCheckedNodesUpdate;
+          //remove nodesWithAlertsRef.current that no longer exis in dom
+          const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter(
+            (nodeWithAlerts) => {
+              const nodeIndex = existingNodes.findIndex(
+                (existingNode) =>
+                  existingNode === nodeWithAlerts.node
+              );
+              return nodeIndex !== -1;
+            } 
+          );
+          console.log('nodesWithAlertsUpdate2', nodesWithAlertsUpdate)
+        }
+        
+        if (!isTextArea(element) && !totalMaxCharLengthReachedRef.current) {
           textToCheck = newTextToCheck;
         }
 
@@ -776,8 +814,6 @@ const Input: React.FC<{
           debouncedSetTextToCheck(textToCheck);
           setActiveIcon('loading');
         }
-      }
-    };
   }
 
   const getNodesToFillMinCharLength = (nodesToCheck: any, nodes: any) => {
@@ -948,7 +984,8 @@ const Input: React.FC<{
           getInputText(element).length > maxCharLength &&
           !isTextArea(element) &&
           selectedAlerts.length == 0 &&
-          !isGoogleDocs()
+          !isGoogleDocs() && 
+          !totalMaxCharLengthReachedRef.current
         ) {
           handleElementClickLongText(caret);
         }
@@ -976,7 +1013,8 @@ const Input: React.FC<{
       } else if (
         getInputText(element).length > maxCharLength &&
         !isTextArea(element) &&
-        !isGoogleDocs()
+        !isGoogleDocs() &&
+        !totalMaxCharLengthReachedRef.current
       ) {
         handleElementClickLongText(caret);
       }
@@ -987,6 +1025,7 @@ const Input: React.FC<{
     position: number | null;
     element: Node | null;
   }): void => {
+    console.log('handleElementClickLongText', totalMaxCharLengthReachedRef.current);
     setAlerts([]);
     setTextToCheck('');
     const textDividedByNodes = getTextDividedByNodes(element);
@@ -1685,14 +1724,13 @@ const Input: React.FC<{
     }
   }, [popoverData]);
 
-  console.log('totalMaxCharLengthReached', totalMaxCharLengthReached)
   return (
     <>
       <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
           element={element}
           elementRect={elementRect}
-          iconType={totalMaxCharLengthReached ? 'warning' : activeIcon}
+          iconType={totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon}
           isHovered={isHovered}
           windowScroll={windowScroll}
         />

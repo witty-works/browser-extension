@@ -100,6 +100,10 @@ export const de = {
     close: 'schliessen',
     ignore: 'ignorieren',
   },
+  [namespaces.iconController]: {
+    limitReached: 'You have reached the limit',
+    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade (link to pricing) if you would like to have longer texts checked'
+  },
 };
 
 export const en = {
@@ -206,5 +210,9 @@ export const en = {
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',
     reloadWebsite: 'Please reload the website',
+  },
+  [namespaces.iconController]: {
+    limitReached: 'You have reached the limit',
+    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade (link to pricing) if you would like to have longer texts checked'
   },
 };
