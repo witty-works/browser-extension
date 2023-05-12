@@ -386,6 +386,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     <div
                       className='witty-works-ext-wittyworks-popover-alternative-btn-container'
                       key={`${index}-${alternative}-container`}
+                      onMouseEnter={() => {
+                        setAlternativeHovered(alternative.text);
+                      }}
+                      onMouseLeave={() => {
+                        setAlternativeHovered(null);
+                      }}
                     >
                       <div
                         className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
@@ -395,12 +401,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                             data.alert.data.category
                           )
                         }
-                        onMouseEnter={() => {
-                          setAlternativeHovered(alternative.text);
-                        }}
-                        onMouseLeave={() => {
-                          setAlternativeHovered(null);
-                        }}
                       >
                         {alternative.text === ' ' ? (
                           <i>{t('removeSpaces')}</i>
@@ -413,7 +413,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       </div>
                       {alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                          {alternative.context}
+                          {alternative.context.length > 25 &&
+                          alternativeHovered !== alternative.text
+                            ? alternative.context.substring(0, 25) + '...'
+                            : alternative.context}
+
                         </div>
                       )}
                     </div>
