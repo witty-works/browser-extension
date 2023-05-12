@@ -57,7 +57,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
-  const [isHovered, setIsHovered] = useState<boolean>(false);
   const [alternativeHovered, setAlternativeHovered] = useState<string | null>(
     null
   );
@@ -265,15 +264,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               data.alert.data.explanation && data.alert.data.explanation.url
                 ? 'pointer'
                 : 'default',
-            backgroundColor: isHovered
-              ? getColor(data.alert.data.gravity, userIsSignedIn).hover
-              : getColor(data.alert.data.gravity, userIsSignedIn).highlight,
-          }}
-          onMouseEnter={() => {
-            setIsHovered(true);
-          }}
-          onMouseLeave={() => {
-            setIsHovered(false);
+            backgroundColor: getColor(data.alert.data.gravity, userIsSignedIn).highlight,
           }}
         >
           <div
@@ -289,34 +280,30 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             {data.alert.data.explanation.context &&
               ' (' + data.alert.data.explanation.context + ')'}
             {data.alert.data.explanation && data.alert.data.explanation.url && (
-              <div
-                className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
-                style={{
-                  padding: '0.5em 0 0 0',
-                  whiteSpace: 'nowrap',
-                  marginLeft: 'auto'
-                }}
+              <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+              style={{marginTop: showLearningBite ? '0em' : '1em'}}
               >
-                <div className='witty-works-ext-margin-left witty-works-ext-margin-right'>
-                  {t('learnMore')}
+                <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
+                    {t('learnMore')}
+                  <div
+                    className='witty-works-ext-margin-left'
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                  </div>
                 </div>
-                {data.alert.data.explanation.content === 'video' && (
-                  <StarVideoIcon alt={t('video')} />
-                )}
-                {data.alert.data.explanation.content === 'advanced' &&
-                  data.alert.data.language === 'de' && (
-                    <StarNeuIcon alt={t('new')} />
+                <div className='witty-works-ext-margin-left'>
+                  {data.alert.data.explanation.content === 'video' && (
+                    <StarVideoIcon alt={t('video')} />
                   )}
-                {data.alert.data.explanation.content === 'advanced' &&
-                  data.alert.data.language === 'en' && (
-                    <StarNewIcon alt={t('new')} />
-                  )}
-
-                <div
-                  className='witty-works-ext-margin-left'
-                  style={{ pointerEvents: 'none' }}
-                >
-                  {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                  {data.alert.data.explanation.content === 'advanced' &&
+                    data.alert.data.language === 'de' && (
+                      <StarNeuIcon alt={t('new')} />
+                    )}
+                  {data.alert.data.explanation.content === 'advanced' &&
+                    data.alert.data.language === 'en' && (
+                      <StarNewIcon alt={t('new')} />
+                    )}
                 </div>
               </div>
             )}
