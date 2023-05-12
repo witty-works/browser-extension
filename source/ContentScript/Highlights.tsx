@@ -65,6 +65,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   };
 
   useEffect(() => {
+    console.log('nodesWithAlerts HIGHLIGHTS', nodesWithAlerts);
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
       setHighlights([]);
 

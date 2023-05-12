@@ -127,7 +127,7 @@ const Input: React.FC<{
   const [, , abortBackgroundWorkerRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
-  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); ////TODO: SET TO TRUE BEFORE RELEASE -> FALSE FOR TESTING
+  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(false); ////TODO: SET TO TRUE BEFORE RELEASE -> FALSE FOR TESTING
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -190,7 +190,6 @@ const Input: React.FC<{
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
         setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
-        console.log('esult[StorageKeys.PLAN]', result[StorageKeys.PLAN])
         result[StorageKeys.PLAN] === 'witty_free' && (isWittyPremiumUserRef.current = false);
         if (
           result[StorageKeys.PLAN] === 'witty_free' &&
@@ -477,7 +476,6 @@ const Input: React.FC<{
 
   console.log('totalMaxCharLengthReached', totalMaxCharLengthReachedRef.current)
 
-
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
     const textDividedByNodes = getTextDividedByNodes(
@@ -699,7 +697,6 @@ const Input: React.FC<{
       });
 
       nodesStorageRef.current = nodesToCheck;
-      console.log('nodesToCheck', nodesToCheck)
 
       let newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
 
@@ -708,7 +705,7 @@ const Input: React.FC<{
         .join('').length;
 
       console.log('prevCheckedNodesRef', prevCheckedNodesRef.current);
-      console.log('textToCheck.length, isWittyPremiumUser ', textToCheck.length, isWittyPremiumUserRef.current);
+      console.log('nodesStorageRef.current', nodesStorageRef.current);
       if ((newTextToCheck.length > totalMaxCharLength || (prevCheckedNodesTextLength + newTextToCheck.length) > totalMaxCharLength) && !isWittyPremiumUserRef.current) {  
         totalMaxCharLengthReachedRef.current = true;
         abortBackgroundWorkerRef.current = true;  
@@ -716,16 +713,16 @@ const Input: React.FC<{
           .filter((node: any, index: number, self: any) => index === self.findIndex((t: any) => t.rawNode === node.rawNode && t.index === node.index))
           .sort((a: any, b: any) => a.index - b.index)
           .map((node: any) => node.rawNode)
-        console.log('allNodes', allNodes);
 
         if (allNodes.length === 0) return;  
         const nodesWithinTotalMaxCharLength = getNodesWithinMaxCharLength('below', allNodes, -1, totalMaxCharLength*2);
         console.log('nodesWithinMaxCharLength', nodesWithinTotalMaxCharLength);
+        // nodesWhithinMaxCharLengthRef.current = nodesWithinTotalMaxCharLength;
         newTextToCheck = nodesWithinTotalMaxCharLength
           .map((node) => node.node)
           .join('');
-          console.log('newTextToCheck LENGTH', newTextToCheck, newTextToCheck.length);
-        debouncedSetTextToCheck(' '); //make sure highlights stay even if its the same text
+        setAlerts([]);
+        setTextToCheck(''); //to trigger request even with same text
       } else if (isTextArea(element) && textToCheck.length > totalMaxCharLength && !isWittyPremiumUserRef.current) {
         totalMaxCharLengthReachedRef.current = true;
         const lastSpaceIndex = textToCheck.lastIndexOf(' ', totalMaxCharLength);
@@ -742,8 +739,6 @@ const Input: React.FC<{
         }
 
         // remove alerts from nodeswithalerts that have changed
-        console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current)
-        console.log('nodesToCheck.length', nodesToCheck.length)
         if (nodesToCheck.length > 0) { 
           const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter(
             (nodeWithAlerts) => {
@@ -755,8 +750,7 @@ const Input: React.FC<{
               return nodeIndex !== -1;
             }
           );
-
-          console.log('nodesWithAlerts before, after', nodesWithAlertsRef.current, nodesWithAlertsUpdate)
+          console.log('nodesWithAlertsUpdate', nodesWithAlertsUpdate);
           setNodesWithAlerts(nodesWithAlertsUpdate);
 
           const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
@@ -770,10 +764,20 @@ const Input: React.FC<{
               return nodeIndex !== -1;
             }
           );
-         
-          console.log('prevCheckedNodesUpdate before, after', prevCheckedNodesRef.current, prevCheckedNodesUpdate)
           prevCheckedNodesRef.current = prevCheckedNodesUpdate;
         } else {
+          //remove nodesWithAlertsRef.current that no longer exis in dom
+          const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter( //problem wit initilization
+            (nodeWithAlerts) => {
+              const nodeIndex = existingNodes.findIndex(
+                (existingNode) =>
+                  existingNode === nodeWithAlerts.node
+              );
+              return nodeIndex !== -1;
+            } 
+          );
+          setNodesWithAlerts(nodesWithAlertsUpdate);
+
           //remove nodes and alerts that no longer exis in dom
           const existingNodes = getTextDividedByNodes(element); 
           const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
@@ -785,22 +789,9 @@ const Input: React.FC<{
               return nodeIndex !== -1;
             }
           );
-
-          console.log('prevCheckedNodesUpdate2', prevCheckedNodesUpdate)
           prevCheckedNodesRef.current = prevCheckedNodesUpdate;
-          //remove nodesWithAlertsRef.current that no longer exis in dom
-          const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter(
-            (nodeWithAlerts) => {
-              const nodeIndex = existingNodes.findIndex(
-                (existingNode) =>
-                  existingNode === nodeWithAlerts.node
-              );
-              return nodeIndex !== -1;
-            } 
-          );
-          console.log('nodesWithAlertsUpdate2', nodesWithAlertsUpdate)
         }
-        
+      
         if (!isTextArea(element)) {
           textToCheck = newTextToCheck;
         }
@@ -1370,9 +1361,10 @@ const Input: React.FC<{
     elementEvaluation: XPathResult
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
+    console.log('nodesWhithinMaxCharLengthRef.current', nodesWhithinMaxCharLengthRef.current)
     if (
       nodesWhithinMaxCharLengthRef.current.length > 0 &&
-      !isTextArea(element)
+      !isTextArea(element) 
     ) {
       let updatedAlerts: IAlert[] = [];
       //only use text that is updated -> nodesStorageRef.current
@@ -1380,7 +1372,7 @@ const Input: React.FC<{
         (min, node) => (node.index < min ? node.index : min),
         Infinity
       );
-
+      console.log('nodesStorageRef.current', nodesStorageRef.current)
       nodesStorageRef.current.forEach((nodeWithAlertsRef) => {
         let absolutePositionOfFirstCharOfNode = 0;
         for (
@@ -1421,6 +1413,7 @@ const Input: React.FC<{
           });
       });
     } else {
+      console.log('ELSE')
       //EVENTUALLY REFACTOR TO ONLY USE ABOVE CONDITION
       let textStartingAbsPosition: number = 0;
       let textEndAbsPosition: number = -1;
