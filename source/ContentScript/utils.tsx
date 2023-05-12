@@ -32,7 +32,7 @@ export const updateConfig = (response: IAuthResponse) => {
     if (
       (keysForPopover.includes(key) &&
         (response.config[key as keyof typeof response.config] as any).status ==
-          'force') ||
+          'force' && (response.config[key as keyof typeof response.config] as any).value) ||
       !keysForPopover.includes(key)
     ) {
       storeInLocalStorage(
