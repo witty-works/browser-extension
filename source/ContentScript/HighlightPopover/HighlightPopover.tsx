@@ -284,8 +284,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               alignItems: showLearningBite ? 'center' : 'flex-start',
             }}
           >
-            {data.alert.data.explanation.icon} &nbsp;
-            {data.alert.data.explanation.text}
+            {data.alert.data.explanation?.icon} &nbsp;
+            {data.alert.data.explanation?.text}
             {data.alert.data.explanation.context &&
               ' (' + data.alert.data.explanation.context + ')'}
             {data.alert.data.explanation && data.alert.data.explanation.url && (
