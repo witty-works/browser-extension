@@ -25,6 +25,9 @@ exports.loginDashboard = async function (email, password, page) {
     await page.waitForLoadState('networkidle')
     await page.keyboard.press('Enter');
     await page.waitForLoadState('networkidle')
+    if (await page.$('[title="Quit Tour"]')) {
+        await page.click('[title="Quit Tour"]');
+    }
     return page;
 }
 
@@ -123,6 +126,12 @@ exports.unlockAllToggles = async function (page) {
     // await page.waitForLoadState('networkidle')
     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
 
+    await page.waitForLoadState('networkidle')
+
+    if (await page.$('[title="Quit Tour"]')) {
+        await page.click('[title="Quit Tour"]');
+    }
+    
     // //inclusive
     // const inclusiveToggleForce = await page.waitForSelector('.py-10:nth-child(7) .guidelines-form-section--apply-for-all .slider');
     // const backgroundColorInclusiveForce = await inclusiveToggleForce.evaluate((el) => {
