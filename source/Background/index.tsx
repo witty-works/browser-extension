@@ -136,6 +136,7 @@ const scanTabsToDetectStatus = () => {
   });
 };
 
+
 const storageChange = (changes: { [key: string]: any }) => {
   const changedItems = Object.keys(changes);
 

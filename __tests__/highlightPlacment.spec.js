@@ -51,7 +51,7 @@ test.describe('Highlights', () => {
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await page.waitForSelector('#hs-eu-confirmation-button');
         await page.click('#hs-eu-confirmation-button');
-        await utils.enableAllToggles(page);
+        await utils.unlockAllToggles(page);
 
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
         await page.waitForLoadState('networkidle')
@@ -73,7 +73,7 @@ test.describe('Highlights', () => {
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await page.waitForSelector('#hs-eu-confirmation-button');
         await page.click('#hs-eu-confirmation-button');
-        await utils.enableAllToggles(page);
+        await utils.unlockAllToggles(page);
 
         const extensionId = await utils.getExtensionId(page);
         await utils.loginPopupPage(page, extensionId, context);

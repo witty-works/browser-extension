@@ -723,12 +723,12 @@ const Input: React.FC<{
     if (caret.element && caret.position && caret.position > -1) {
       // Find out if the clicked element has alerts
       const selectedNodeWithAlertsIndex: number =
-        nodesWithAlertsRef.current.findIndex(
-          (nodeWithAlerts: INodeWithAlerts) =>
-            isTextArea(target) || isInputText(target)
-              ? nodeWithAlerts.node.parentNode === caret.element
-              : nodeWithAlerts.node === caret.element
-        );
+      nodesWithAlertsRef.current.findIndex(
+        (nodeWithAlerts: INodeWithAlerts) =>
+          isTextArea(target) || isInputText(target)
+            ? nodeWithAlerts.node.parentNode === caret.element
+            : nodeWithAlerts.node === caret.element
+      );
       setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
       const oneNodeWithAlerts =
         nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
@@ -741,10 +741,8 @@ const Input: React.FC<{
             if (!alert) {
               return false;
             }
-            //If alert is a one character word, take in consideration clicking the position before or after the char
-            return alert.data.text.length === 1
-              ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
-              : alert.startOffset < caretPos && alert.endOffset > caretPos;
+
+            return alert.startOffset <= caretPos && alert.endOffset >= caretPos
           });
 
         const selectedAlerts = oneNodeWithAlerts.alerts.filter(

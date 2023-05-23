@@ -11,12 +11,10 @@ export interface IEndpointError {
 export interface ResponseConfig {
   gendered_roles_format: ConfigProperty;
   german_gender_ending: ConfigProperty;
-  inclusive: ConfigProperty;
   maximum_importance: number;
   orthography: ConfigProperty;
   show_inspiration_alternatives: ConfigProperty;
   singular_they: ConfigProperty;
-  style: ConfigProperty;
   preferred_variants: ConfigProperty;
 }
 export interface RequestConfig extends ResponseConfig {
@@ -24,9 +22,7 @@ export interface RequestConfig extends ResponseConfig {
 }
 
 export interface FilteredRequestConfig {
-  style: ConfigProperty;
   orthography: ConfigProperty;
-  inclusive: ConfigProperty;
   disabled_categories: string[];
 }
 export interface ConfigProperty {
