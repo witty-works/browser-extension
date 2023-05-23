@@ -140,8 +140,6 @@ const ContentScriptApp: React.FC = () => {
             : result[StorageKeys.PREFERRED_VARIANTS],
           disabled_categories: [
             result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
-            result[StorageKeys.INCLUSIVE].value === true ? '' : 'inclusive',
-            result[StorageKeys.STYLE].value === true ? '' : 'style',
             result[StorageKeys.CASING_SITES] &&
             result[StorageKeys.CASING_SITES].includes(
               window.location.hostname.replace('www.', '')
@@ -164,8 +162,6 @@ const ContentScriptApp: React.FC = () => {
             ? result[StorageKeys.GENDERED_ROLES_FORMAT].value
             : result[StorageKeys.GENDERED_ROLES_FORMAT],
 
-          inclusive: result[StorageKeys.INCLUSIVE].value,
-          style: result[StorageKeys.STYLE].value,
           orthography: result[StorageKeys.ORTHOGRAPHY].value,
         };
         setReqConfig(requestConfig);
@@ -242,26 +238,6 @@ const ContentScriptApp: React.FC = () => {
                   (category) => category !== 'orthography'
                 )
               : [...reqConfigRef.current.disabled_categories, 'orthography'],
-          });
-          break;
-        case StorageKeys.INCLUSIVE:
-          setReqConfig({
-            ...reqConfigRef.current,
-            disabled_categories: changes[item].newValue.value
-              ? reqConfigRef.current.disabled_categories.filter(
-                  (category) => category !== 'inclusive'
-                )
-              : [...reqConfigRef.current.disabled_categories, 'inclusive'],
-          });
-          break;
-        case StorageKeys.STYLE:
-          setReqConfig({
-            ...reqConfigRef.current,
-            disabled_categories: changes[item].newValue.value
-              ? reqConfigRef.current.disabled_categories.filter(
-                  (category) => category !== 'style'
-                )
-              : [...reqConfigRef.current.disabled_categories, 'style'],
           });
           break;
         case StorageKeys.CASING_SITES:

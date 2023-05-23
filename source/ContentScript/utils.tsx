@@ -28,11 +28,11 @@ export const updateConfig = (response: IAuthResponse) => {
   );
   storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
   Object.keys(response.config).forEach((key) => {
-    const keysForPopover = ['inclusive', 'orthography', 'style'];
+    const keysForPopover = ['orthography'];
     if (
       (keysForPopover.includes(key) &&
         (response.config[key as keyof typeof response.config] as any).status ==
-          'force') ||
+          'force' && (response.config[key as keyof typeof response.config] as any).value) ||
       !keysForPopover.includes(key)
     ) {
       storeInLocalStorage(
