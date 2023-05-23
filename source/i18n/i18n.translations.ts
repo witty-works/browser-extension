@@ -102,7 +102,7 @@ export const de = {
   },
   [namespaces.iconController]: {
     limitReached: 'You have reached the limit',
-    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade (link to pricing) if you would like to have longer texts checked'
+    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
   },
 };
 
@@ -213,6 +213,6 @@ export const en = {
   },
   [namespaces.iconController]: {
     limitReached: 'You have reached the limit',
-    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade (link to pricing) if you would like to have longer texts checked'
+    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
   },
 };

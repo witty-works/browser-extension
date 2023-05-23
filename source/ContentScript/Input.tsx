@@ -127,7 +127,7 @@ const Input: React.FC<{
   const [, , abortBackgroundWorkerRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
-  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); ////TODO: SET TO TRUE BEFORE RELEASE -> FALSE FOR TESTING
+  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(false); ////TODO: SET TO TRUE BEFORE RELEASE -> FOR TESTING SET TO FALSE TO SEE WITH LIMIT, TRUE TO SEE WITHOUT LIMIT (premium)
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -474,8 +474,6 @@ const Input: React.FC<{
     if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
-  console.log('totalMaxCharLengthReached', totalMaxCharLengthReachedRef.current)
-
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
     const textDividedByNodes = getTextDividedByNodes(
@@ -699,6 +697,12 @@ const Input: React.FC<{
     let newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
     const totalTextLength = getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
 
+    const prevCheckedNodesRefWithoutNodesToCheck = prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
+      const nodeIndex = nodesToCheck.findIndex((node: INodes) => node.index === prevCheckedNode.index);
+      return nodeIndex === -1;
+    });
+    prevCheckedNodesRef.current = prevCheckedNodesRefWithoutNodesToCheck;
+
     if (isTextArea(element) && textToCheck?.length > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       const lastSpaceIndex = textToCheck.lastIndexOf(' ', totalMaxCharLength);
@@ -706,11 +710,6 @@ const Input: React.FC<{
     } else if (!isTextArea(element) && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {  
       totalMaxCharLengthReachedRef.current = true;
       abortBackgroundWorkerRef.current = true;  
-
-      const prevCheckedNodesRefWithoutNodesToCheck = prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
-        const nodeIndex = nodesToCheck.findIndex((node: INodes) => node.index === prevCheckedNode.index);
-        return nodeIndex === -1;
-      });
       
       const allNodes = [...prevCheckedNodesRefWithoutNodesToCheck, ...nodesToCheck]
         .sort((a: any, b: any) => a.index - b.index)
@@ -735,23 +734,13 @@ const Input: React.FC<{
         (nodeWithAlerts) => {
           const nodeIndex = nodesToCheck.findIndex(
             (nodeToCheck: { node: any; index: number | undefined }) => 
-              nodeToCheck.index === nodeWithAlerts.nodeIndex 
+              nodeToCheck.index === nodeWithAlerts.nodeIndex && 
+              nodeToCheck.node === nodeWithAlerts.node
             ); 
           return nodeIndex === -1;
         }
       );
       setNodesWithAlerts(nodesWithAlertsWithoutChangesAlerts);
-
-      const prevCheckedNodesWithoutChangedNodes = prevCheckedNodesRef.current.filter(
-        (prevCheckedNode) => {
-          const nodeIndex = nodesToCheck.findIndex(
-            (nodeToCheck: { node: any; index: number | undefined }) =>
-              nodeToCheck.index === prevCheckedNode.index
-          );
-          return nodeIndex === -1;
-        }
-      );
-      prevCheckedNodesRef.current = prevCheckedNodesWithoutChangedNodes;
     } 
       
     if (!isTextArea(element)) {
@@ -765,7 +754,6 @@ const Input: React.FC<{
       setAlerts([]);
       setTextToCheck('');
     } else {
-      console.log('textToCheck', textToCheck);
       debouncedSetTextToCheck(textToCheck);
       setActiveIcon('loading');
     }
@@ -1252,7 +1240,6 @@ const Input: React.FC<{
                 : (elementXPathResult as XPathResult)
             );
 
-      console.log('nodesWithAlertsTemp',nodesWithAlertsTemp)
       // add getBoundingClientRect to each alert
       const nodesWithAlertsTempWithRect = nodesWithAlertsTemp.map(
         (nodeWithAlerts) => {
@@ -1305,7 +1292,6 @@ const Input: React.FC<{
         ),
         ...nodesWithAlertsTempWithRect,
       ];
-      console.log('mergedNodesWithAlerts', mergedNodesWithAlerts)
       setNodesWithAlerts(mergedNodesWithAlerts);
 
       prevCheckedNodesRef.current = prevCheckedNodesRef.current.concat(
@@ -1327,30 +1313,23 @@ const Input: React.FC<{
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
     if (
-      nodesWhithinMaxCharLengthRef.current.length > 0 &&
       !isTextArea(element) 
     ) {
       let updatedAlerts: IAlert[] = [];
-      //only use text that is updated -> nodesStorageRef.current
-      const lowestIndex = nodesWhithinMaxCharLengthRef.current.reduce(
+      const nodesForCalculation = totalMaxCharLengthReachedRef.current ? nodesWhithinMaxCharLengthRef.current : nodesStorageRef.current;
+      const lowestIndex = nodesForCalculation.reduce(
         (min, node) => (node.index < min ? node.index : min),
         Infinity
       );
 
-      console.log('prevCheckedNodesRef.current', prevCheckedNodesRef.current)
 
-      console.log('nodesWhithinMaxCharLengthRef', nodesWhithinMaxCharLengthRef)
-      
-      console.log('nodesStorageRef', nodesStorageRef.current)
-
-      nodesWhithinMaxCharLengthRef.current.forEach((node) => {
+      nodesForCalculation.forEach((node) => {
         let absolutePositionOfFirstCharOfNode = 0;
         for (
           let index = lowestIndex;
           index < node.index;
           index++
         ) {
-          console.log('elementEvaluation.snapshotItem(index)', elementEvaluation.snapshotItem(index))
           absolutePositionOfFirstCharOfNode +=
             elementEvaluation.snapshotItem(index)?.textContent?.length || 0;
         }
@@ -1361,12 +1340,10 @@ const Input: React.FC<{
             ?.textContent?.includes(alert.data.text)
         );
 
-        console.log('absolutePositionOfFirstCharOfNode', absolutePositionOfFirstCharOfNode, lowestIndex, alertsRelevantToNode)
-
         updatedAlerts = alertsRelevantToNode.map((alert: IAlert) => {
           return {
             ...alert,
-            startOffset: alert.startOffset - absolutePositionOfFirstCharOfNode, //something is wrong here!!!!
+            startOffset: alert.startOffset - absolutePositionOfFirstCharOfNode,
             endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode,
           };
         });

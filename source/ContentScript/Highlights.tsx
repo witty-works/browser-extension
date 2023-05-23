@@ -79,7 +79,6 @@ const Highlights: React.FC<HighlightsProps> = ({
         .getElementsByClassName('left-sidebar-container-content')[0]
         ?.getBoundingClientRect();
     }
-    console.log('nodesWithAlerts',nodesWithAlerts)
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
@@ -90,7 +89,6 @@ const Highlights: React.FC<HighlightsProps> = ({
               (alert.endOffset > node.textContent.length ||
                 alert.startOffset > node.textContent.length)
             ) {
-              console.log('alert out of range', alert, node, alert.endOffset, node.textContent.length,  alert.startOffset, node.textContent.length)
               return;
             }
             range.selectNode(node);
@@ -138,13 +136,10 @@ const Highlights: React.FC<HighlightsProps> = ({
           }
         }
         });
-      } else {
-        console.log('node not found', node);
       }
     });
 
     setHighlights(highlights);
-    console.log('highlights', highlights);
   }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
