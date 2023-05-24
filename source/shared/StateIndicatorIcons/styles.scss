@@ -37,5 +37,8 @@
   color: black;
   font-size: 12px;
   padding: 0.5em;
+  z-index: 999999999;
+  background-color: #f5f5f5;
+  position: absolute;
   font-family: Lato, Arial, Helvetica, sans-serif;
 }

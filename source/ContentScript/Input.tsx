@@ -1667,15 +1667,6 @@ const Input: React.FC<{
 
   return (
     <>
-      <WTags.WW_ACTIVITY_INDICATOR>
-        <StateIndicatorIcon
-          element={element}
-          elementRect={elementRect}
-          iconType={totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon}
-          isHovered={isHovered}
-          windowScroll={windowScroll}
-        />
-      </WTags.WW_ACTIVITY_INDICATOR>
       {isTextArea(element) && (
         <WTags.WW_CLONE>
           <TextAreaClone
@@ -1728,7 +1719,17 @@ const Input: React.FC<{
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
       )}
+      <WTags.WW_ACTIVITY_INDICATOR>
+        <StateIndicatorIcon
+          element={element}
+          elementRect={elementRect}
+          iconType={totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon}
+          isHovered={isHovered}
+          windowScroll={windowScroll}
+        />
+      </WTags.WW_ACTIVITY_INDICATOR>
     </>
+    
   );
 };
 
