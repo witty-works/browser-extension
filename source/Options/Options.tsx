@@ -27,7 +27,7 @@ const Options: React.FC = () => {
         const target = searchParams.get('target')?.split('?')[0];
         storeInLocalStorage(StorageKeys.REDIRECT_URL_LOGIN, target);
         window.open(
-          target ? target : 'https://www.witty.works/try-out-witty',
+          target ? target : 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor?onboarding=true',
           '_self',
           'noopener'
         );

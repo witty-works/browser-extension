@@ -71,7 +71,7 @@ const PopupLogin: React.FC = () => {
 
     browser.storage.local.get(null).then((result) => {
       if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-        const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
+        const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
         if (!window.open(url, '_blank')) {
           setPopupsBlocked(true);
           setLoginUrl(url);
