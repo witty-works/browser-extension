@@ -1,6 +1,6 @@
 import { IAlert } from '../types';
 import { requestConfig } from './requests';
-import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
+import { browserPostHog } from 'posthog-js-lite/lib/index';
 import { POSTHOG_API_KEY_EU, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 import { sendErrorToSentry } from '../errorUtils';
@@ -46,6 +46,7 @@ export const captureEvent = (eventName: string, eventData: object) => {
     const ph = browserPostHog(POSTHOG_API_KEY_EU, {
       apiHost: 'https://eu.posthog.com',
     });
+    //FOR TESTING FEATURE FLAGS: ph.isFeatureEnabled('capture_pageview') && ph.capturePageview();
 
     ph.session.distinctId = userId ? userId : appId;
 
