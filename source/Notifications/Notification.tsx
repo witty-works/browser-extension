@@ -26,7 +26,7 @@ const Notification: React.FC<NotificationProps> = ({notificationType}: Notificat
     <div className="witty-works-notification-wrapper">
       <div className="witty-works-ext-container-row witty-works-notification-headline-wrapper">
         <div className="witty-works-notification-headline">{notificationHeadline}</div>
-        <CloseIcon />
+        <CloseIcon onClick={() => {document.getElementsByClassName('witty-works-notification-wrapper')[0].remove()}} style={{cursor: 'pointer'}} />
       </div>
       <div className="witty-works-ext-container-row">
         <WittyIcon className="witty-works-notification-icon"/>
