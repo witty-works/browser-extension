@@ -149,6 +149,7 @@ const Popup: React.FC<PopupProps> = ({
           addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
           setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
         }
+        console.log('result[StorageKeys.ORTHOGRAPHY]', result[StorageKeys.ORTHOGRAPHY])
 
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
 
@@ -234,7 +235,7 @@ const Popup: React.FC<PopupProps> = ({
         switch (key) {
           case 'orthography':
             if (
-              authResponse.organization_config[key].status == 'force' ||
+              (authResponse.organization_config[key].status == 'force' && !authResponse.organization_config[key].value && localConfigDiffersFromDashboard) ||
               resetSettings
             ) {
               setOrthography(authResponse.organization_config[key]);
@@ -426,13 +427,13 @@ const Popup: React.FC<PopupProps> = ({
                 setOrthography({
                   ...orthography,
                   value:
-                    orthography.status != 'force' || !userIsLoggedIn
-                      ? !orthography.value
-                      : orthography.value,
+                    orthography.status === 'force'  && orthography.value == true && !localConfigDiffersFromDashboard
+                      ? orthography.value
+                      : !orthography.value,
                 });
               }}
               label={t('spellChecking')}
-              locked={orthography.status == 'force'}
+              locked={orthography.status === 'force' && orthography.value == true && !localConfigDiffersFromDashboard}
               userIsLoggedIn={userIsLoggedIn}
             />
        

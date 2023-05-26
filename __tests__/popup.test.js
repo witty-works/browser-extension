@@ -63,7 +63,7 @@ test.describe('Popup', () => {
     //     expect(await pages[2].url()).toBe('https://www.witty.works/');
     // });
 
-    test('popup contains three toggles with labels when survey response yes', async ({ page, context }) => {
+    test('popup contains one toggle with labels when survey response yes', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await utils.loginPopupPage(page, extensionId, context);
@@ -104,27 +104,40 @@ test.describe('Popup', () => {
     });
 
 
-    test('locks made by administrators are show', async ({ page, context }) => {
-        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
-        await utils.unlockAllToggles(page);
-        await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+    //ENABLE AGAIN ONCE NLP API IS RELEASED
+    // test('locks made by administrators are show', async ({ page, context }) => {
+    //     await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+    //     await utils.unlockAllToggles(page);
+    //     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
 
-        const element = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
-        const backgroundColor = await element.evaluate((el) => {
-            return window.getComputedStyle(el).getPropertyValue('background-color');
-        });
-        if (backgroundColor === 'rgb(204, 204, 204)') {
-            await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
-        }
-        await page.click('.py-10:nth-child(3) .button');
+    //     //enable toggle -> lock is only showed when enabled and forced  
+    //     const enableSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section .slider');
+    //     const backgroundColorEnableSpellingToggle = await enableSpelling.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+    //     if (backgroundColorEnableSpellingToggle === 'rgb(204, 204, 204)') {
+    //         await page.click('.py-10:nth-child(3) .guidelines-form-section .slider');
+    //     }
 
-        const extensionId = await utils.getExtensionId(page);
-        await utils.loginPopupPage(page, extensionId, context);
+    //     await page.waitForTimeout(2000);
 
-        await page.goto(`chrome-extension://${extensionId}/popup.html`);
-        await page.waitForSelector('.witty-works-ext-lato-popup-title');
-        const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
-        expect(grammarToggle).toBe(true);
-    });
+    //     const forceSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
+    //     const backgroundColorForceSpelling = await forceSpelling.evaluate((el) => {
+    //         return window.getComputedStyle(el).getPropertyValue('background-color');
+    //     });
+    //     if (backgroundColorForceSpelling === 'rgb(204, 204, 204)') {
+    //         await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
+    //     }
+    //     await page.waitForTimeout(2000);
+
+    //     await page.click('.py-10:nth-child(3) .button');
+
+    //     const extensionId = await utils.getExtensionId(page);
+    //     await utils.loginPopupPage(page, extensionId, context);
+
+    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    //     await page.waitForSelector('.witty-works-ext-lato-popup-title');
+    //     const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
+    //     expect(grammarToggle).toBe(true);
+    // });
 })
-
