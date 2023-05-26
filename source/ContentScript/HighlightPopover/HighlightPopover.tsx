@@ -12,9 +12,7 @@ import WittyLogo from '../../assets/icons/popover/logo.svg';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
-import StarNewIcon from '../../assets/icons/popover/star-new.svg';
-import StarNeuIcon from '../../assets/icons/popover/star-neu.svg';
-import StarVideoIcon from '../../assets/icons/popover/star-video.svg';
+import VideoIcon from '../../assets/icons/popover/video.svg';
 import ArrowUpIcon from '../../assets/icons/popover/arrow-up.svg';
 import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
@@ -275,35 +273,27 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               alignItems: showLearningBite ? 'center' : 'flex-start',
             }}
           >
-            {data.alert.data.explanation.icon} &nbsp;
-            {data.alert.data.explanation.text}
-            {data.alert.data.explanation.context &&
-              ' (' + data.alert.data.explanation.context + ')'}
+            <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+              <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation.icon}</div>
+              {data.alert.data.explanation.text}
+              {data.alert.data.explanation.context &&
+                ' (' + data.alert.data.explanation.context + ')'}
+            </div>
             {data.alert.data.explanation && data.alert.data.explanation.url && (
               <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
               style={{marginTop: showLearningBite ? '0em' : '1em'}}
               >
                 <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
                     {t('learnMore')}
+                    {data.alert.data.explanation.content === 'video' && (
+                      <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
+                    )}
                   <div
                     className='witty-works-ext-margin-left'
                     style={{ pointerEvents: 'none' }}
                   >
                     {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
                   </div>
-                </div>
-                <div className='witty-works-ext-margin-left'>
-                  {data.alert.data.explanation.content === 'video' && (
-                    <StarVideoIcon alt={t('video')} />
-                  )}
-                  {data.alert.data.explanation.content === 'advanced' &&
-                    data.alert.data.language === 'de' && (
-                      <StarNeuIcon alt={t('new')} />
-                    )}
-                  {data.alert.data.explanation.content === 'advanced' &&
-                    data.alert.data.language === 'en' && (
-                      <StarNewIcon alt={t('new')} />
-                    )}
                 </div>
               </div>
             )}
