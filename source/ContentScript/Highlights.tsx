@@ -120,21 +120,21 @@ const Highlights: React.FC<HighlightsProps> = ({
                 };
               }
             );
-            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text)))  {
+            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text))) {
               return;
             } else {
-            const newHighlight: Highlight = {
-              rects,
-              id: alert.id,
-              plan: alert.plan,
-              data: alert.data,
-              startOffset: alert.startOffset,
-              endOffset: alert.endOffset,
-              node: node,
-            };
-            highlights.push(newHighlight);
+              const newHighlight: Highlight = {
+                rects,
+                id: alert.id,
+                plan: alert.plan,
+                data: alert.data,
+                startOffset: alert.startOffset,
+                endOffset: alert.endOffset,
+                node: node,
+              };
+              highlights.push(newHighlight);
+            }
           }
-        }
         });
       }
     });

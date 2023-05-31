@@ -181,6 +181,9 @@ export const getNodesWithinMaxCharLength = (
   charLengthLeft: number
 ) => {
   let totalChars = 0;
+  textDividedByNodes = textDividedByNodes.filter((node) => { //remove empty nodes
+    return node.textContent?.length && node.textContent?.length > 0;
+  });
   const slice =
     direction == 'below'
       ? textDividedByNodes.slice(currentNode + 1)
@@ -203,6 +206,8 @@ export const getNodesWithinMaxCharLength = (
       return (
         totalChars <= (filterCondition ? charLengthLeft : charLengthLeft / 2)
       );
+    }).sort((a, b) => {
+      return direction == 'below' ? a.index - b.index : b.index - a.index;
     });
   return nodesWhithinMaxCharLength;
 };
