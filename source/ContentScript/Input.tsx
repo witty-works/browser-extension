@@ -693,10 +693,12 @@ const Input: React.FC<{
     const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
+      analytics.maxCharLengthReachedLog('max_char_length_reached');
       const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
       newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
     } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {  
       totalMaxCharLengthReachedRef.current = true;
+      analytics.maxCharLengthReachedLog('max_char_length_reached');
       abortBackgroundWorkerRef.current = true;  
       const prevCheckedNodesRefWithoutNodesToCheck = prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
         const nodeIndex = nodesToCheck.findIndex((node: INodes) => node.index === prevCheckedNode.index);

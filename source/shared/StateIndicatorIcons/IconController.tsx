@@ -12,6 +12,7 @@ import { getZIndex } from '../DOMutils';
 import CloseIcon from '../../assets/icons/close-white.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
+import { useAnalytics } from '../ApiServices/useAnalytics';
 
 interface IconControllerProps {
   element: CustomInputElement;
@@ -66,6 +67,8 @@ const IconController: React.FC<IconControllerProps> = ({
         const maxLengthWarning = document.getElementById("maxLengthWarning");
         if (!maxLengthWarning) return;
         maxLengthWarning.style.visibility = maxLengthWarning.style.visibility == "visible" ? "hidden" : "visible";
+        maxLengthWarning.style.visibility == "visible" && useAnalytics().maxCharLengthReachedLog('max_char_length_icon_clicked');
+
       }}/>}
       
       <div id="maxLengthWarning" className="witty-works-warning-wrapper">
