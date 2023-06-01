@@ -101,8 +101,8 @@ export const de = {
     ignore: 'ignorieren',
   },
   [namespaces.notifications]: {
-    pinNotificationHeadline: 'Pin notification',
-    pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
+    pinNotificationHeadline: 'Pin Witty',
+    pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
   },
 };
 
@@ -212,7 +212,7 @@ export const en = {
     reloadWebsite: 'Please reload the website',
   },
   [namespaces.notifications]: {
-    pinNotificationHeadline: 'Pin notification',
+    pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
   },
 
