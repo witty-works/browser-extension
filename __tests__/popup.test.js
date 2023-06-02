@@ -106,6 +106,9 @@ test.describe('Popup', () => {
 
     test('locks made by administrators are show', async ({ page, context }) => {
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginPopupPage(page, extensionId, context);
+
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
 
         const forceSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
@@ -119,11 +122,10 @@ test.describe('Popup', () => {
         await page.click('.py-10:nth-child(3) .button:nth-child(1)');
         await page.click('.py-10:nth-child(3) .w-full');
 
-        const extensionId = await utils.getExtensionId(page);
-        await utils.loginPopupPage(page, extensionId, context);
-
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         await page.waitForSelector('.witty-works-ext-lato-popup-title');
+
+        await page.waitForTimeout(2000);
         const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
         expect(grammarToggle).toBe(true);
     });
