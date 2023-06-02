@@ -3,7 +3,7 @@ name: Build prod extension and source code
 on:
   push:
     branches:
-      - feature/update-ga-action-versions
+      - feature/default-to-prod-api
     tags:
       - '*'
 
@@ -18,10 +18,14 @@ jobs:
           node-version: '16'
           cache: 'npm'
 
-      - name: Disable development mode, hide dev/local URLs
+      - name: Disable development mode, hide dev/local URLs, default to prod API
         run: |
           sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
-          sed -r 's/https:\/\/.+\.site\//https:\/\/127.0.0.1\//' constants.ts > source/shared/constants.ts
+          mv constants.ts source/shared/constants.ts
+          sed -r 's/https:\/\/.+\.site\//https:\/\/127.0.0.1\//' source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
+          sed -r "s/DefaultBaseUrlKey = 'Dev'/DefaultBaseUrlKey = 'Prod'/" source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
 
       - name: Remove git
         run: rm -rf .git
