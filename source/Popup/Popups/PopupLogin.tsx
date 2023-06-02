@@ -12,7 +12,6 @@ import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
 import {
   appID,
-  getBaseUrls,
   setBaseUrls,
 } from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
@@ -68,26 +67,11 @@ const PopupLogin: React.FC = () => {
 
   const logIn = async (urls: string) => {
     const optionsPageUrl = browser.extension.getURL('options.html');
-
-    browser.storage.local.get(null).then((result) => {
-      if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-        const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        }
-      } else {
-        const url = `${
-          BaseUrls[urls].dashboard
-        }browser-login?redirect_uri=${optionsPageUrl}?target=${
-          getBaseUrls().dashboard
-        }`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        }
-      }
-    });
+    const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
+    if (!window.open(url, '_blank')) {
+      setPopupsBlocked(true);
+      setLoginUrl(url);
+    }
   };
 
   return (

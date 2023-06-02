@@ -5,6 +5,7 @@ export const namespaces = {
   common: 'common',
   popover: 'popover',
   errors: 'errors',
+  notifications: 'notifications',
 };
 
 export const languages = {

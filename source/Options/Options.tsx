@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { StorageKeys } from '../shared/constants';
+import { BaseUrls, DefaultBaseUrlKey, StorageKeys } from '../shared/constants';
 import { storeInLocalStorage } from '../shared/utils';
 import { setToken } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
+import { browser } from 'webextension-polyfill-ts';
 
 const Options: React.FC = () => {
   const [accessToken, setAccessToken] = useState<string>('');
@@ -26,11 +27,15 @@ const Options: React.FC = () => {
         setRefreshToken(searchParams.get('refresh_token') as string);
         const target = searchParams.get('target')?.split('?')[0];
         storeInLocalStorage(StorageKeys.REDIRECT_URL_LOGIN, target);
-        window.open(
-          target ? target : 'https://www.witty.works/try-out-witty',
-          '_self',
-          'noopener'
-        );
+        browser.storage.local.get(null).then((result) => {
+          const url = result[StorageKeys.API_ENDPOINT_KEY] ? result[StorageKeys.API_ENDPOINT_KEY] : DefaultBaseUrlKey
+          window.open(
+            target ? target : `${BaseUrls[url].dashboard}editor?onboarding=true`,
+            '_self',
+            'noopener'
+          );
+        });
+       
       }
     } catch (error) {
       sendErrorToSentry(error);
