@@ -27,7 +27,6 @@ export const getBaseUrls = () => {
 export const setRequestConfig = (reqConfig: RequestConfig) => {
   requestConfig = reqConfig;
   filteredRequestConfig = {
-    orthography: reqConfig.orthography,
     disabled_categories: reqConfig.disabled_categories,
   };
 };

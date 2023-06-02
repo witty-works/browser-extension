@@ -18,14 +18,8 @@ export enum StorageKeys {
   API_DELAY = 'apiDelay',
   APP_ID = 'id',
 
-  PREFERRED_VARIANTS = 'preferredVariants',
-  GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
-  SHOW_INSPIRATION_ALTERNATIVES = 'inspirationalAlternatives',
-  SINGULAR_THEY = 'singularThey',
-  MAXIMUM_IMPORTANCE = 'maximumImportance',
   CASING_SITES = 'casingSites',
-  GENDERED_ROLES_FORMAT = 'genderedRolesFormat',
 
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',
