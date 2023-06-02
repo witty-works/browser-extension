@@ -476,6 +476,7 @@ const Input: React.FC<{
 
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
+    console.log('backgroundWorker CALLED');
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
@@ -682,9 +683,10 @@ const Input: React.FC<{
     let nodesToCheck = isTextAreaCheck ? nodes : nodes.filter((node: INodes) => {
       const nodeIndex = prevCheckedNodesRef.current.findIndex(
         (prevCheckedNode: INodes) =>
-          prevCheckedNode.node === node.node &&
-          prevCheckedNode.index === node.index 
-      );
+          prevCheckedNode.rawNode === node.rawNode //important for highlight placement -> problem with new text 
+          // prevCheckedNode.node === node.node &&
+          // prevCheckedNode.index === node.index       
+        );
       return nodeIndex === -1;
     });
     nodesStorageRef.current = nodesToCheck;
@@ -1306,7 +1308,7 @@ const Input: React.FC<{
       let updatedAlerts: IAlert[] = [];
       const nodesForCalculation = (totalMaxCharLengthReachedRef.current ? nodesWhithinMaxCharLengthRef.current : nodesStorageRef.current).filter((node: INodes) => {
         return node.node.length > 0;
-      });
+      }).sort((a: INodes, b: INodes) => a.index - b.index);
       const lowestIndex = nodesForCalculation.reduce(
         (min, node) => (node.index < min ? node.index : min),
         Infinity
