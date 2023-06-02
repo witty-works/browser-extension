@@ -9,24 +9,13 @@ export interface IEndpointError {
 }
 
 export interface ResponseConfig {
-  gendered_roles_format: ConfigProperty;
-  german_gender_ending: ConfigProperty;
-  inclusive: ConfigProperty;
-  maximum_importance: number;
   orthography: ConfigProperty;
-  show_inspiration_alternatives: ConfigProperty;
-  singular_they: ConfigProperty;
-  style: ConfigProperty;
-  preferred_variants: ConfigProperty;
 }
 export interface RequestConfig extends ResponseConfig {
   disabled_categories: string[];
 }
 
 export interface FilteredRequestConfig {
-  style: ConfigProperty;
-  orthography: ConfigProperty;
-  inclusive: ConfigProperty;
   disabled_categories: string[];
 }
 export interface ConfigProperty {
@@ -155,8 +144,6 @@ export interface ILogItems {
   request__type: string;
   request__lang: string;
   request__client: string;
-  request__config__preferred_variants: ConfigProperty;
-  request__config__german_gender_ending: ConfigProperty;
   response__id: string;
   response__startOffset: number;
   response__endOffset: number;
@@ -182,8 +169,6 @@ export interface IVoteLogRequest {
   request__type: string;
   request__lang: string;
   request__client: string;
-  request__config__preferred_variants: ConfigProperty;
-  request__config__german_gender_ending: ConfigProperty;
   vote__url: string;
 }
 
@@ -191,16 +176,12 @@ export interface IDashboardLogRequest {
   request__type: string;
   request__lang: string;
   request__client: string;
-  request__config__preferred_variants: ConfigProperty;
-  request__config__german_gender_ending: ConfigProperty;
   button__location: string;
 }
 export interface ICheckLogItems {
   request__type: string;
   request__lang: string;
   request__client: string;
-  request__config__preferred_variants: ConfigProperty;
-  request__config__german_gender_ending: ConfigProperty;
   request__text__length: number;
   response__organizationId?: string;
   response__plan?: string;

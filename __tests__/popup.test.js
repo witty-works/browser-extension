@@ -63,7 +63,7 @@ test.describe('Popup', () => {
     //     expect(await pages[2].url()).toBe('https://www.witty.works/');
     // });
 
-    test('popup contains three toggles with labels when survey response yes', async ({ page, context }) => {
+    test('popup contains one toggle with labels when survey response yes', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await utils.loginPopupPage(page, extensionId, context);
@@ -106,16 +106,16 @@ test.describe('Popup', () => {
 
     test('locks made by administrators are show', async ({ page, context }) => {
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
-        await utils.unlockAllToggles(page);
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
 
-        const element = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
-        const backgroundColor = await element.evaluate((el) => {
+        const forceSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
+        const backgroundColorForceSpelling = await forceSpelling.evaluate((el) => {
             return window.getComputedStyle(el).getPropertyValue('background-color');
         });
-        if (backgroundColor === 'rgb(204, 204, 204)') {
+        if (backgroundColorForceSpelling === 'rgb(204, 204, 204)') {
             await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
         }
+
         await page.click('.py-10:nth-child(3) .button:nth-child(1)');
         await page.click('.py-10:nth-child(3) .w-full');
 
@@ -128,4 +128,3 @@ test.describe('Popup', () => {
         expect(grammarToggle).toBe(true);
     });
 })
-

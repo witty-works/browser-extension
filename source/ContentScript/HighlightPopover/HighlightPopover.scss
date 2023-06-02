@@ -33,10 +33,6 @@
   }
 }
 
-.witty-works-ext-wittyworks-popover-alternative-context {
-  white-space: nowrap;
-}
-
 .witty-works-ext-wittyworks-popover-alternative-btn {
   background-color: $lightGreen;
   display: table;
@@ -169,10 +165,11 @@
   color: $orange;
 }
 
-.witty-works-ext-primary-button-red {
-  background: $orange;
+.witty-works-ext-secondary-button-red {
+  border: 1px solid $orange;
   border-radius: 8px;
-  color: $white;
+  color: $orange;
+  padding: 0.4em;
 }
 //Backgrounds
 .witty-works-ext-strong-gradient-background {
