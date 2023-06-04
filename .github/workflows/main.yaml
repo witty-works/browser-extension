@@ -2,8 +2,6 @@ name: Build prod extension and source code
 
 on:
   push:
-    branches:
-      - feature/default-to-prod-api
     tags:
       - '*'
 
