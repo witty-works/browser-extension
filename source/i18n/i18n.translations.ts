@@ -100,6 +100,10 @@ export const de = {
     close: 'schliessen',
     ignore: 'ignorieren',
   },
+  [namespaces.notifications]: {
+    pinNotificationHeadline: 'Pin Witty',
+    pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
+  },
 };
 
 export const en = {
@@ -207,4 +211,10 @@ export const en = {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',
     reloadWebsite: 'Please reload the website',
   },
+  [namespaces.notifications]: {
+    pinNotificationHeadline: 'Pin Witty',
+    pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
+  },
+
 };
+

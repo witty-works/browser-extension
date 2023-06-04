@@ -1,6 +1,10 @@
 name: Build dev extension
 
-on: [push]
+on:
+  push:
+    branches:
+      - feature/default-to-prod-api
+      - dev
 
 jobs:
   build:
@@ -12,6 +16,11 @@ jobs:
         with:
           node-version: '16'
           cache: 'npm'
+
+      - name: Default to prod API
+        run: |
+          sed -r "s/DefaultBaseUrlKey = 'Dev'/DefaultBaseUrlKey = 'Prod'/" source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
 
       - name: Install yarn
         run: |
