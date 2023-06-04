@@ -1,10 +1,6 @@
 name: Build dev extension
 
-on:
-  push:
-    branches:
-      - feature/default-to-prod-api
-      - dev
+on: [push]
 
 jobs:
   build:
