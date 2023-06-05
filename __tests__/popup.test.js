@@ -72,7 +72,7 @@ test.describe('Popup', () => {
 
         await page.waitForSelector('.witty-works-ext-lato-popup-title');
         let toggles = await page.$$('.witty-works-ext-toggle-encloser');
-        expect(toggles.length).toBe(1);
+        expect(toggles.length).toBe(1) //only one toggle on chorome popup page (no valid url)
     });
 
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
@@ -104,40 +104,27 @@ test.describe('Popup', () => {
     });
 
 
-    //ENABLE AGAIN ONCE NLP API IS RELEASED
-    // test('locks made by administrators are show', async ({ page, context }) => {
-    //     await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
-    //     await utils.unlockAllToggles(page);
-    //     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+    test('locks made by administrators are show', async ({ page, context }) => {
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
 
-    //     //enable toggle -> lock is only showed when enabled and forced  
-    //     const enableSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section .slider');
-    //     const backgroundColorEnableSpellingToggle = await enableSpelling.evaluate((el) => {
-    //         return window.getComputedStyle(el).getPropertyValue('background-color');
-    //     });
-    //     if (backgroundColorEnableSpellingToggle === 'rgb(204, 204, 204)') {
-    //         await page.click('.py-10:nth-child(3) .guidelines-form-section .slider');
-    //     }
+        const forceSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
+        const backgroundColorForceSpelling = await forceSpelling.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('background-color');
+        });
+        if (backgroundColorForceSpelling === 'rgb(204, 204, 204)') {
+            await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
+        }
 
-    //     await page.waitForTimeout(2000);
+        await page.click('.py-10:nth-child(3) .button:nth-child(1)');
+        await page.click('.py-10:nth-child(3) .w-full');
 
-    //     const forceSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
-    //     const backgroundColorForceSpelling = await forceSpelling.evaluate((el) => {
-    //         return window.getComputedStyle(el).getPropertyValue('background-color');
-    //     });
-    //     if (backgroundColorForceSpelling === 'rgb(204, 204, 204)') {
-    //         await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
-    //     }
-    //     await page.waitForTimeout(2000);
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginPopupPage(page, extensionId, context);
 
-    //     await page.click('.py-10:nth-child(3) .button');
-
-    //     const extensionId = await utils.getExtensionId(page);
-    //     await utils.loginPopupPage(page, extensionId, context);
-
-    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
-    //     await page.waitForSelector('.witty-works-ext-lato-popup-title');
-    //     const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
-    //     expect(grammarToggle).toBe(true);
-    // });
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.waitForSelector('.witty-works-ext-lato-popup-title');
+        const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
+        expect(grammarToggle).toBe(true);
+    });
 })

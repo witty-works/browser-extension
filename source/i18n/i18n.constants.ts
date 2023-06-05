@@ -6,6 +6,7 @@ export const namespaces = {
   popover: 'popover',
   errors: 'errors',
   iconController: 'iconController',
+  notifications: 'notifications',
 };
 
 export const languages = {

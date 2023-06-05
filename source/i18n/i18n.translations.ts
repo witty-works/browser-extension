@@ -104,6 +104,10 @@ export const de = {
     limitReached: 'You have reached the limit',
     limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
   },
+    [namespaces.notifications]: {
+    pinNotificationHeadline: 'Pin Witty',
+    pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
+  },
 };
 
 export const en = {
@@ -215,4 +219,10 @@ export const en = {
     limitReached: 'You have reached the limit',
     limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
   },
+  [namespaces.notifications]: {
+    pinNotificationHeadline: 'Pin Witty',
+    pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
+  },
+
 };
+

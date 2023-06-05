@@ -21,7 +21,7 @@ import {
   StorageKeys,
 } from '../../shared/constants';
 import { browser } from 'webextension-polyfill-ts';
-import { getBaseUrls, setBaseUrls } from '../../shared/ApiServices/requests';
+import { setBaseUrls } from '../../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
@@ -67,30 +67,11 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 
   const logIn = async (urls: string) => {
     const optionsPageUrl = browser.extension.getURL('options.html');
-
-    browser.storage.local.get(null).then((result) => {
-      if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-        const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        } else {
-          hide();
-        }
-      } else {
-        const url = `${
-          BaseUrls[urls].dashboard
-        }browser-login?redirect_uri=${optionsPageUrl}?target=${
-          getBaseUrls().dashboard
-        }`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        } else {
-          hide();
-        }
-      }
-    });
+    const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
+    if (!window.open(url, '_blank')) {
+      setPopupsBlocked(true);
+      setLoginUrl(url);
+    }
   };
 
   useEffect(() => {

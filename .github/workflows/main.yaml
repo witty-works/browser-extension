@@ -1,6 +1,9 @@
-name: Build dev extension
+name: Build prod extension and source code
 
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -12,6 +15,27 @@ jobs:
         with:
           node-version: '16'
           cache: 'npm'
+
+      - name: Disable development mode, hide dev/local URLs, default to prod API
+        run: |
+          sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
+          sed -r 's/https:\/\/.+\.site\//https:\/\/127.0.0.1\//' source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
+          sed -r "s/DefaultBaseUrlKey = 'Dev'/DefaultBaseUrlKey = 'Prod'/" source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
+
+      - name: Remove git
+        run: rm -rf .git
+
+      - name: Zip source code
+        run: zip release.zip ./ -r
+
+      - name: Upload source code
+        uses: actions/upload-artifact@v3
+        with:
+          name: source-code
+          path: release.zip
 
       - name: Install yarn
         run: |
@@ -30,11 +54,18 @@ jobs:
 
       - name: Build artifacts
         run: |
-          yarn run build:chrome
+          yarn run build
 
-      - name: Store Chrome Development artifacts
+      - name: Store Chrome artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: chrome-dev
+          name: chrome
           path: |
             extension/chrome
+
+      - name: Store Firefox artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: firefox
+          path: |
+            extension/firefox.xpi

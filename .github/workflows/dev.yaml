@@ -1,0 +1,45 @@
+name: Build dev extension
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Default to prod API
+        run: |
+          sed -r "s/DefaultBaseUrlKey = 'Dev'/DefaultBaseUrlKey = 'Prod'/" source/shared/constants.ts > constants.ts
+          mv constants.ts source/shared/constants.ts
+
+      - name: Install yarn
+        run: |
+          npm install --global yarn
+
+      - id: cache-yarn
+        uses: actions/cache@v3
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        run: |
+          yarn install
+
+      - name: Build artifacts
+        run: |
+          yarn run build:chrome
+
+      - name: Store Chrome Development artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: chrome-dev
+          path: |
+            extension/chrome
