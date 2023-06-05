@@ -7,7 +7,7 @@ import defaultConfig from '../witty.config.json';
 import { WTags, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
-
+import Notification from '../Notifications/Notification';
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -172,11 +172,14 @@ const Input: React.FC<{
         .getPropertyValue('z-index');
       return parseInt(zIndex);
     }) as number[];
-    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs()) {
+    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs() ) {
       previouslyCheckedPagesGoogleDocs.current = [
         ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
       ];
-      backgroundWorker(cloneRef.current);
+      if (prevCheckedNodesRef.current.length > 0 ) {
+        abortBackgroundWorkerRef.current = false;
+        backgroundWorker(cloneRef.current);
+      }
     }
   }, 500);
 
@@ -476,7 +479,6 @@ const Input: React.FC<{
 
   //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
   const backgroundWorker = (element: HTMLElement) => {
-    console.log('backgroundWorker CALLED');
     const textDividedByNodes = getTextDividedByNodes(
       element as CustomInputElement
     );
@@ -683,9 +685,8 @@ const Input: React.FC<{
     let nodesToCheck = isTextAreaCheck ? nodes : nodes.filter((node: INodes) => {
       const nodeIndex = prevCheckedNodesRef.current.findIndex(
         (prevCheckedNode: INodes) =>
-          prevCheckedNode.rawNode === node.rawNode //important for highlight placement -> problem with new text 
-          // prevCheckedNode.node === node.node &&
-          // prevCheckedNode.index === node.index       
+          prevCheckedNode.rawNode === node.rawNode && //important for highlight placement -> problem with new text 
+          prevCheckedNode.node === node.node 
         );
       return nodeIndex === -1;
     });
@@ -1296,6 +1297,22 @@ const Input: React.FC<{
     ignoredCategoriesFromStorage,
     selectedAlertIndex,
   ]);
+
+  useEffect(() => {
+    if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
+      const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
+      totalMaxCharLengthReachedNotificationWrapper.id = 'ww-notification';
+      ReactDOM.render(
+          <Notification
+            notificationType={'totalMaxCharLengthReached'}
+          />,
+        document.body.insertBefore(
+          totalMaxCharLengthReachedNotificationWrapper,
+          document.body.firstChild
+        )
+      );
+    }
+  }, [totalMaxCharLengthReachedRef.current]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
