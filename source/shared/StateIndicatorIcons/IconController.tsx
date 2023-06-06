@@ -1,19 +1,25 @@
 import React, { useRef } from 'react';
-
-import { CustomInputElement } from '../types';
+import './styles.scss';
+import { CustomInputElement, Position } from '../types';
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
-import { getCorrectedPosition } from '../utils';
+import WarningIcon from '../../assets/icons/wittyStateIndicator/witty-warning.svg';
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { getZIndex, isGoogleDocs } from '../DOMutils';
+import { getZIndex } from '../DOMutils';
+import CloseIcon from '../../assets/icons/close-white.svg';
+import { useTranslation } from 'react-i18next';
+import { namespaces } from '../../i18n/i18n.constants';
+import { useAnalytics } from '../ApiServices/useAnalytics';
+
 interface IconControllerProps {
   element: CustomInputElement;
   elementRect?: DOMRect;
   iconType: string;
   isHovered: boolean;
+  windowScroll: Position;
 }
 
 const IconController: React.FC<IconControllerProps> = ({
@@ -21,41 +27,14 @@ const IconController: React.FC<IconControllerProps> = ({
   elementRect,
   iconType,
   isHovered,
+  windowScroll,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const googleDocsIcon = isGoogleDocs();
-  const iconPadding: number = 8;
-  let correctedPosition = {} as any;
-
-  let iconPosition = { top: 0, left: 0 };
   if (!elementRect) {
     elementRect = element.getBoundingClientRect();
-    iconPosition = {
-      top: elementRect.height - 21 - iconPadding,
-      left: elementRect.width - 25 - iconPadding,
-    };
-  } else if (googleDocsIcon) {
-    if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
-    correctedPosition = (
-      element.firstChild?.firstChild as HTMLElement
-    ).getBoundingClientRect();
-    iconPosition = {
-      top: 250,
-      left: correctedPosition.left + correctedPosition.width + 20,
-    };
-  } else {
-    correctedPosition = getCorrectedPosition(
-      elementRect,
-      ref.current.parentElement,
-      element
-    );
-    iconPosition = {
-      top: elementRect.height + correctedPosition.top - 21 - iconPadding,
-      left: elementRect.width + correctedPosition.left - 25 - iconPadding,
-    };
   }
-
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
+  const { t } = useTranslation([namespaces.iconController]);
 
   browser.storage.local
     .get(StorageKeys.ACCESS_TOKEN)
@@ -70,11 +49,11 @@ const IconController: React.FC<IconControllerProps> = ({
     <div
       ref={ref}
       style={{
-        display: 'flex',
-        position: googleDocsIcon ? 'fixed' : 'absolute',
-        top: `${iconPosition.top}px`,
-        left: `${iconPosition.left}px`,
         zIndex: getZIndex(element),
+        position: 'fixed',
+        margin: `10px`,
+        top: `${elementRect.top - windowScroll.top}px`,
+        right: `${window.innerWidth - elementRect.right}px`,
       }}
       onMouseDown={(e) => {
         e.stopPropagation();
@@ -84,6 +63,28 @@ const IconController: React.FC<IconControllerProps> = ({
       {userIsLoggedIn && iconType == 'loading' && <LoadingIcon />}
       {userIsLoggedIn && iconType == 'active' && <ActiveIcon />}
       {userIsLoggedIn && iconType == 'passive' && isHovered && <PassiveIcon />}
+      {userIsLoggedIn && iconType == 'warning' && <WarningIcon onClick = {() => {
+        const maxLengthWarning = document.getElementById("maxLengthWarning");
+        if (!maxLengthWarning) return;
+        maxLengthWarning.style.visibility = maxLengthWarning.style.visibility == "visible" ? "hidden" : "visible";
+        maxLengthWarning.style.visibility == "visible" && useAnalytics().maxCharLengthReachedLog('max_char_length_icon_clicked');
+
+      }}/>}
+      
+      <div id="maxLengthWarning" className="witty-works-warning-wrapper">
+        <div className="witty-works-ext-container-row witty-works-warning-headline-wrapper">
+          <div className="witty-works-warning-headline">{t('limitReached')}</div>
+          <CloseIcon onClick = {() => {
+            const maxLengthWarning = document.getElementById("maxLengthWarning");
+            if (!maxLengthWarning) return;
+            maxLengthWarning.style.visibility = "hidden";
+          }}/>
+        </div>
+        <div className="witty-works-warning-text">
+          {t('limitReachedText')}
+        </div>
+      </div>
+
     </div>
   );
 };

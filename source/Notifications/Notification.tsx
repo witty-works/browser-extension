@@ -19,7 +19,10 @@ const Notification: React.FC<NotificationProps> = ({notificationType}: Notificat
       notificationHeadline = t('pinNotificationHeadline');
       notificationText = t('pinNotificationText');
       break;
-    //TODO: expand this when we have more notification types
+    case 'totalMaxCharLengthReached':
+      notificationHeadline = t('totalMaxCharLengthReachedNotificationHeadline');
+      notificationText = t('totalMaxCharLengthReachedNotificationText');
+      break;
   }
 
   return (
@@ -32,7 +35,7 @@ const Notification: React.FC<NotificationProps> = ({notificationType}: Notificat
         <WittyIcon className="witty-works-notification-icon"/>
         <div className="witty-works-notification-text">{notificationText}</div> 
       </div>
-      <img className="witty-works-pin-gif" src="https://www.witty.works/hubfs/pin_witty-2.gif" alt="pin-extension" />
+      {notificationType == 'pin' && <img className="witty-works-pin-gif" src="https://www.witty.works/hubfs/pin_witty-2.gif" alt="pin-extension" />}
     </div>
   );
 };

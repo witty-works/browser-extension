@@ -21,8 +21,9 @@ import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
-import { iframePositionRecquired } from '../../shared/DOMutils';
+import { iframePositionRecquired, isTextArea } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
+import { getScrollParent } from '../utils';
 import { getScrollableParentClosestToElement } from '../../shared/utils';
 export interface PopoverData {
   index: number;
@@ -87,14 +88,22 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           iframeRects = iframe?.getBoundingClientRect();
       }
 
+      const scrollTop =
+      (!isTextArea(element) && getScrollParent(element)?.scrollTop) || 0;
+
       const calcNewX: number =
         dat.position.x + iframeRects.left + doc.scrollLeft;
       const calcNewY: number = placement.includes('bottom')
-        ? dat.position.y + dat.position.height + iframeRects.top + doc.scrollTop
+        ? dat.position.y +
+          dat.position.height +
+          iframeRects.top +
+          doc.scrollTop +
+          scrollTop
         : dat.position.y -
           rects.floating.height +
           iframeRects.top +
-          doc.scrollTop;
+          doc.scrollTop +
+          scrollTop;
       return {
         x: showLearningBiteRef.current ? calcNewX / 2 : calcNewX,
         y: calcNewY,

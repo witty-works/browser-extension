@@ -181,6 +181,9 @@ export const getNodesWithinMaxCharLength = (
   charLengthLeft: number
 ) => {
   let totalChars = 0;
+  textDividedByNodes = textDividedByNodes.filter((node) => { //remove empty nodes
+    return node.textContent?.length && node.textContent?.length > 0;
+  });
   const slice =
     direction == 'below'
       ? textDividedByNodes.slice(currentNode + 1)
@@ -194,6 +197,7 @@ export const getNodesWithinMaxCharLength = (
       const newNode = {
         node: node.textContent as string,
         index: textDividedByNodes.indexOf(node),
+        rawNode: node,
       };
       return newNode;
     })
@@ -202,6 +206,8 @@ export const getNodesWithinMaxCharLength = (
       return (
         totalChars <= (filterCondition ? charLengthLeft : charLengthLeft / 2)
       );
+    }).sort((a, b) => {
+      return direction == 'below' ? a.index - b.index : b.index - a.index;
     });
   return nodesWhithinMaxCharLength;
 };
@@ -239,4 +245,20 @@ export const makeAuthRequest = () => {
         });
     }
   });
+};
+
+export const getScrollParent = (
+  node: CustomInputElement | null
+): CustomInputElement | null => {
+  if (node == null) {
+    return null;
+  }
+
+  if (node.scrollHeight > node.clientHeight) {
+    return node;
+  } else {
+    return getScrollParent(
+      node.parentNode ? (node.parentNode as CustomInputElement) : null
+    );
+  }
 };
