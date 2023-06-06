@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-
+import React, { useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
+import { CustomInputElement, Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
 import {
   getZIndex,
@@ -20,14 +19,17 @@ import {
   getCorrectedPositionCanvas,
 } from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
+import { useStateRef } from '../shared/customHooks/useStateRef';
 
 interface HighlightsProps {
   elementScroll: Position;
   nodesWithAlerts: INodeWithAlerts[];
-  element: HTMLElement;
+  element: CustomInputElement;
   elementRect: DOMRect;
   selectedAlert: IAlert | null;
   userIsSignedIn: boolean;
+  removeHighlights: boolean;
+  forceHighlightUpdate: boolean;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
@@ -37,10 +39,14 @@ const Highlights: React.FC<HighlightsProps> = ({
   elementRect,
   selectedAlert,
   userIsSignedIn,
+  removeHighlights,
+  forceHighlightUpdate,
 }: HighlightsProps) => {
+  
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
+
+  const [highlights, setHighlights] = useStateRef<Highlight[]>([]);
   const correctedPosition = isGoogleDocs()
     ? getCorrectedPositionCanvas(element)
     : getCorrectedPosition(
@@ -55,12 +61,14 @@ const Highlights: React.FC<HighlightsProps> = ({
       ? 2000
       : isGreenhouse()
       ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
-      : elementRect.height,
+      : elementRect.height //prevents expanding contenteditable gmail: - correctedPosition.top,
   };
 
   useEffect(() => {
+    if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
+      setHighlights([]);
+
     const highlights: Highlight[] = [];
-    if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
     let googleDocsToolbarTopRect = {} as DOMRect;
     let googleDocsToolbarLeftRect = {} as DOMRect;
     if (isGoogleDocs()) {
@@ -71,7 +79,6 @@ const Highlights: React.FC<HighlightsProps> = ({
         .getElementsByClassName('left-sidebar-container-content')[0]
         ?.getBoundingClientRect();
     }
-
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
@@ -81,8 +88,9 @@ const Highlights: React.FC<HighlightsProps> = ({
               node.textContent &&
               (alert.endOffset > node.textContent.length ||
                 alert.startOffset > node.textContent.length)
-            )
+            ) {
               return;
+            }
             range.selectNode(node);
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
@@ -106,28 +114,33 @@ const Highlights: React.FC<HighlightsProps> = ({
                   top: isGoogleDocs()
                     ? rect.top - googleDocsToolbarTopRect.top
                     : rect.top +
-                      doc.scrollTop -
+                      doc.scrollTop
+                       -
                       (isTextArea(element) ? elementScroll.top : 0),
                 };
               }
             );
-            const newHighlight: Highlight = {
-              rects,
-              id: alert.id,
-              plan: alert.plan,
-              data: alert.data,
-              startOffset: alert.startOffset,
-              endOffset: alert.endOffset,
-              node: node,
-            };
-            highlights.push(newHighlight);
+            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text))) {
+              return;
+            } else {
+              const newHighlight: Highlight = {
+                rects,
+                id: alert.id,
+                plan: alert.plan,
+                data: alert.data,
+                startOffset: alert.startOffset,
+                endOffset: alert.endOffset,
+                node: node,
+              };
+              highlights.push(newHighlight);
+            }
           }
         });
       }
     });
 
     setHighlights(highlights);
-  }, [nodesWithAlerts, elementScroll, elementRect]);
+  }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -190,7 +203,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawLine(params, hoverColor, dashedLine);
       }
     });
-  }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
+  }, [elementRect, highlights, selectedAlert]);
 
   return (
     <canvas

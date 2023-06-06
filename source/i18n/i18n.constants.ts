@@ -5,6 +5,7 @@ export const namespaces = {
   common: 'common',
   popover: 'popover',
   errors: 'errors',
+  iconController: 'iconController',
   notifications: 'notifications',
 };
 
