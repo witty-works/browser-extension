@@ -35,6 +35,7 @@ const IconController: React.FC<IconControllerProps> = ({
   }
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
   const { t } = useTranslation([namespaces.iconController]);
+  const analytics = useAnalytics();
 
   browser.storage.local
     .get(StorageKeys.ACCESS_TOKEN)
@@ -67,7 +68,7 @@ const IconController: React.FC<IconControllerProps> = ({
         const maxLengthWarning = document.getElementById("maxLengthWarning");
         if (!maxLengthWarning) return;
         maxLengthWarning.style.visibility = maxLengthWarning.style.visibility == "visible" ? "hidden" : "visible";
-        maxLengthWarning.style.visibility == "visible" && useAnalytics().maxCharLengthReachedLog('max_char_length_icon_clicked');
+        maxLengthWarning.style.visibility == "visible" && analytics.maxCharLengthReachedLog('max_char_length_icon_clicked');
 
       }}/>}
       
