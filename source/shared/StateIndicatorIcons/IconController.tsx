@@ -13,6 +13,7 @@ import CloseIcon from '../../assets/icons/close-white.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../ApiServices/useAnalytics';
+import { getBaseUrls } from '../ApiServices/requests';
 
 interface IconControllerProps {
   element: CustomInputElement;
@@ -70,21 +71,28 @@ const IconController: React.FC<IconControllerProps> = ({
         maxLengthWarning.style.visibility == "visible" && useAnalytics().maxCharLengthReachedLog('max_char_length_icon_clicked');
 
       }}/>}
-      
+  
       <div id="maxLengthWarning" className="witty-works-warning-wrapper">
         <div className="witty-works-ext-container-row witty-works-warning-headline-wrapper">
           <div className="witty-works-warning-headline">{t('limitReached')}</div>
-          <CloseIcon onClick = {() => {
-            const maxLengthWarning = document.getElementById("maxLengthWarning");
-            if (!maxLengthWarning) return;
-            maxLengthWarning.style.visibility = "hidden";
+          <CloseIcon  
+            style={{cursor: 'pointer', marginRight: '-1em'}} 
+            onClick = {() => {
+              const maxLengthWarning = document.getElementById("maxLengthWarning");
+              if (!maxLengthWarning) return;
+              maxLengthWarning.style.visibility = "hidden";
           }}/>
         </div>
         <div className="witty-works-warning-text">
           {t('limitReachedText')}
+          <div className='witty-works-ext-left'>
+            <div className='witty-works-ext-button witty-works-ext-primary-button-red'
+              onClick={() => { window.open(getBaseUrls().dashboard + 'team/subscription', '_blank'); }}>
+              {t('subscriptionButton')}
+            </div>
+          </div>
         </div>
       </div>
-
     </div>
   );
 };

@@ -102,13 +102,15 @@ export const de = {
   },
   [namespaces.iconController]: {
     limitReached: 'You have reached the limit',
-    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
+    limitReachedText: 'Mit Ihrem aktuellen Preisplan überprüft Witty nur eine begrenzte Textlänge. <a href="https://dashboard.witty.works/team/subscription">Wechseln Sie</a> jetzt auf <a href="https://www.witty.works/pricing">Witty Teams</a>. Vorteile:<ul><li>unbegrenzte Textlänge</li><li>unbegrenzte Statistiken</li><li>Mehr Teammitglieder einladen</li></ul>',
+    subscriptionButton: 'Upgrade',
   },
-    [namespaces.notifications]: {
+  [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
     totalMaxCharLengthReachedNotificationHeadline: 'You have reached the limit',
-    totalMaxCharLengthReachedNotificationText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
+    totalMaxCharLengthReachedNotificationText: 'Mit Ihrem aktuellen Preisplan überprüft Witty nur eine begrenzte Textlänge. <a href="https://dashboard.witty.works/team/subscription">Wechseln Sie</a> jetzt auf <a href="https://www.witty.works/pricing">Witty Teams</a>. Vorteile:<ul><li>unbegrenzte Textlänge</li><li>unbegrenzte Statistiken</li><li>Mehr Teammitglieder einladen</li></ul>',
+    subscriptionButton: 'Upgrade',
   },
 };
 
@@ -219,13 +221,15 @@ export const en = {
   },
   [namespaces.iconController]: {
     limitReached: 'You have reached the limit',
-    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
+    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. <a href="https://dashboard.witty.works/team/subscription">Upgrade</a> now to <a href="https://www.witty.works/pricing">Witty Teams</a>.You get:<ul><li>unlimited text length</li><li>unlimited analytics</li><li>invite more team members</li></ul>',
+    subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
     totalMaxCharLengthReachedNotificationHeadline: 'You have reached the limit',
-    totalMaxCharLengthReachedNotificationText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
+    totalMaxCharLengthReachedNotificationText: 'With your current pricing plan, Witty only checks a limited text length. <a href="https://dashboard.witty.works/team/subscription">Upgrade</a> now to <a href="https://www.witty.works/pricing">Witty Teams</a>.You get:<ul><li>unlimited text length</li><li>unlimited analytics</li><li>invite more team members</li></ul>',
+    subscriptionButton: 'Upgrade',
   },
 
 };
