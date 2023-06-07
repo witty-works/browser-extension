@@ -106,13 +106,7 @@ export type CustomInputElement =
 export interface INodeWithAlerts {
   node: any;
   alerts: IAlert[];
-  nodeIndex?: number | undefined;
-}
-
-export interface INodes {
-  node: any;
-  index: number;
-  rawNode: Node;
+  nodeIndex?: number;
 }
 
 export interface INodes {

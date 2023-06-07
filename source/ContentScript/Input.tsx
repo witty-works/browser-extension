@@ -1097,17 +1097,7 @@ const Input: React.FC<{
       : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
 
     setActiveIcon('active');
-    
-    // console.log('checkEndpointResponse', checkEndpointResponse);
-    // console.log('prevCheckedNodesRef', prevCheckedNodesRef);
-    // console.log('nodesWithAlertsRef.current', nodesWithAlertsRef.current); //figure out where/how this is made -> find diff -> log that only
-
-    // analytics.checkLog(
-    //   checkEndpointResponse,
-    //   authResponse,
-    //   clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
-    // );
-
+  
     log(
       `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
       logTypes.INFO,
