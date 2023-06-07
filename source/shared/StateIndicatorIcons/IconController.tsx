@@ -35,7 +35,7 @@ const IconController: React.FC<IconControllerProps> = ({
     elementRect = element.getBoundingClientRect();
   }
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
-  const { t } = useTranslation([namespaces.iconController]);
+  const { t, i18n } = useTranslation(namespaces.iconController);
   const analytics = useAnalytics();
 
   browser.storage.local
@@ -85,7 +85,11 @@ const IconController: React.FC<IconControllerProps> = ({
           }}/>
         </div>
         <div className="witty-works-warning-text">
-          {t('limitReachedText')}
+
+        {i18n.language.split('-')[0] === 'en' ? 
+        <>With your current pricing plan, Witty only checks a limited text length. <a href="https://dashboard.witty.works/team/subscription">Upgrade</a> now to <a href="https://www.witty.works/pricing">Witty Teams</a>. You get:<ul><li>unlimited text length</li><li>unlimited analytics</li><li>invite more team members</li></ul></> :
+        <>Mit Ihrem aktuellen Preisplan überprüft Witty nur eine begrenzte Textlänge. <a href="https://dashboard.witty.works/team/subscription">Wechseln Sie</a> jetzt auf <a href="https://www.witty.works/pricing">Witty Teams</a>. Vorteile:<ul><li>unbegrenzte Textlänge</li><li>unbegrenzte Statistiken</li><li>Mehr Teammitglieder einladen</li></ul></>
+        }
           <div className='witty-works-ext-left'>
             <div className='witty-works-ext-button witty-works-ext-primary-button-red'
               onClick={() => { window.open(getBaseUrls().dashboard + 'team/subscription', '_blank'); }}>
