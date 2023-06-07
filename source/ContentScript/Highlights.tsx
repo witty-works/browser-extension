@@ -79,7 +79,6 @@ const Highlights: React.FC<HighlightsProps> = ({
         .getElementsByClassName('left-sidebar-container-content')[0]
         ?.getBoundingClientRect();
     }
-      
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
@@ -89,8 +88,9 @@ const Highlights: React.FC<HighlightsProps> = ({
               node.textContent &&
               (alert.endOffset > node.textContent.length ||
                 alert.startOffset > node.textContent.length)
-            )
+            ) {
               return;
+            }
             range.selectNode(node);
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
@@ -98,42 +98,43 @@ const Highlights: React.FC<HighlightsProps> = ({
             sendErrorToSentry(error);
           }
 
-          const rangeRects = [range.getClientRects()[0]];
-          const rects: DOMRect[] = Array.from(rangeRects).map(
-            (rect: DOMRect) => {
-              return {
-                ...rect,
-                width: rect.width,
-                height: rect.height,
-                left: isGoogleDocs()
-                  ? rect.left -
-                    googleDocsToolbarLeftRect.width -
-                    googleDocsToolbarLeftRect.left
-                  : rect.left,
-                top: isGoogleDocs()
-                  ? rect.top - googleDocsToolbarTopRect.top
-                  : rect.top +
-                    doc.scrollTop -
-                    (isTextArea(element) ? elementScroll.top : 0),
+          const rangeRects = range.getClientRects();
+          for (let i = 0; i < rangeRects.length; i++) {
+            const rects: DOMRect[] = [rangeRects[i]].map(
+              (rect: DOMRect) => {
+                return {
+                  ...rect,
+                  width: rect.width,
+                  height: rect.height,
+                  left: isGoogleDocs()
+                    ? rect.left -
+                      googleDocsToolbarLeftRect.width -
+                      googleDocsToolbarLeftRect.left
+                    : rect.left,
+                  top: isGoogleDocs()
+                    ? rect.top - googleDocsToolbarTopRect.top
+                    : rect.top +
+                      doc.scrollTop
+                       -
+                      (isTextArea(element) ? elementScroll.top : 0),
+                };
+              }
+            );
+            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text))) {
+              return;
+            } else {
+              const newHighlight: Highlight = {
+                rects,
+                id: alert.id,
+                plan: alert.plan,
+                data: alert.data,
+                startOffset: alert.startOffset,
+                endOffset: alert.endOffset,
+                node: node,
               };
+              highlightsTemp.push(newHighlight);
             }
-          );
-
-          //Check if node is in view, if not, don't add new highlight
-          if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text)))  {
-            return;
-          } else {
-          const newHighlight: Highlight = {
-            rects,
-            id: alert.id,
-            plan: alert.plan,
-            data: alert.data,
-            startOffset: alert.startOffset,
-            endOffset: alert.endOffset,
-            node: node,
-          };
-          highlightsTemp.push(newHighlight);
-        }
+          }
         });
       }
     });
@@ -159,7 +160,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       const rulerElement = document.getElementById('kix-vertical-ruler');
       googleDocsRulerIsHidden = rulerElement?.style.display == 'none' || rulerElement?.offsetHeight == 0;
     }
-
+    
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
 

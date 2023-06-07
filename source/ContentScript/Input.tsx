@@ -7,7 +7,7 @@ import defaultConfig from '../witty.config.json';
 import { WTags, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
-
+import Notification from '../Notifications/Notification';
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -88,6 +88,10 @@ const Input: React.FC<{
   const [removeHighlights, setRemoveHighlights] = useState<boolean>(false);
   const [forceHighlightUpdate, setForceHighlightUpdate] =
     useState<boolean>(false);
+  const [windowScroll, setWindowScroll] = useState<Position>({
+    top: 0,
+    left: 0,
+  } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
@@ -114,6 +118,8 @@ const Input: React.FC<{
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
   const maxCharLength = defaultConfig.MAX_CHAR_LENGTH;
   const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
+  const totalMaxCharLength = defaultConfig.TOTAL_MAX_CHAR_LENGTH;
+  const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
   const backgroundRequestCharLength =
     defaultConfig.BACKGROUND_REQUEST_CHAR_LENGTH;
   const backgroundRequestInterval = defaultConfig.BACKGROUND_REQUEST_INTERVAL;
@@ -124,6 +130,7 @@ const Input: React.FC<{
   const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
     IAlert[]
   >([]);
+  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -168,11 +175,14 @@ const Input: React.FC<{
         .getPropertyValue('z-index');
       return parseInt(zIndex);
     }) as number[];
-    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs()) {
+    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs() ) {
       previouslyCheckedPagesGoogleDocs.current = [
         ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
       ];
-      backgroundWorker(cloneRef.current);
+      if (prevCheckedNodesRef.current.length > 0 ) {
+        abortBackgroundWorkerRef.current = false;
+        backgroundWorker(cloneRef.current);
+      }
     }
   }, 500);
 
@@ -186,7 +196,7 @@ const Input: React.FC<{
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
         setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
-
+        result[StorageKeys.PLAN] === 'witty_free' && (isWittyPremiumUserRef.current = false);
         if (
           result[StorageKeys.PLAN] === 'witty_free' &&
           result[StorageKeys.IGNORED_CATEGORIES]
@@ -212,8 +222,11 @@ const Input: React.FC<{
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
-    !isGoogleDocs() &&
+    window.addEventListener('scroll', handleWindowScrollEvent);
+    if(!isGoogleDocs()) {
       element.addEventListener('focusout', handleFocusoutEvent);
+      element.addEventListener('focusin', handleFocusinEvent);
+    }
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
     firstScrollableParentRef.current.addEventListener(
@@ -246,8 +259,12 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
-      !isGoogleDocs() &&
+      window.removeEventListener('scroll', handleWindowScrollEvent);
+      if(!isGoogleDocs()) {
         element.removeEventListener('focusout', handleFocusoutEvent);
+        element.removeEventListener('focusin', handleFocusinEvent);
+      }
+
       firstScrollableParentRef.current.removeEventListener(
         'scroll',
         handleElementScrollEvent
@@ -274,6 +291,12 @@ const Input: React.FC<{
     };
   }, []);
 
+  const handleWindowScrollEvent = () => {
+    setWindowScroll({
+      top: window.scrollY,
+      left: window.scrollX,
+    });
+  };
   //GOOGLE DOCS WORKAROUND
   const handleDocumentClickEvent = () => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
@@ -367,7 +390,8 @@ const Input: React.FC<{
       //LONG TEXT CLICK
       if (
         getInputText(cloneRef.current).length > maxCharLength &&
-        (newSelectedAlertIndex < 0 || newSelectedAlertIndex === undefined)
+        (newSelectedAlertIndex < 0 || newSelectedAlertIndex === undefined) &&
+        !totalMaxCharLengthReachedRef.current
       ) {
         const clickedElement = [] as ChildNode[];
         if (!cloneRef.current || !cloneRef.current.childNodes) {
@@ -469,7 +493,7 @@ const Input: React.FC<{
           (prevNode) =>
           prevNode.rawNode && prevNode.rawNode === node 
         );
-        return !nodeIsChecked;
+        return !nodeIsChecked || nodeIsChecked.node.length > 0; 
       }
     );
 
@@ -486,34 +510,35 @@ const Input: React.FC<{
     textDividedByNodesWithoutCheckedNodes.forEach((node) => {
       const text = node.textContent ? node.textContent : '';
       const index = textDividedByNodes.indexOf(node);
+      if(text.length > 0) {
+        if (
+          textLength + (node.textContent ? node.textContent.length : 0) <=
+          backgroundRequestCharLength
+        ) {
+          textLength += node.textContent ? node.textContent.length : 0;
+          const lastNode = nodesWithinBackgroundRequestLength.pop();
 
-      if (
-        textLength + (node.textContent ? node.textContent.length : 0) <=
-        backgroundRequestCharLength
-      ) {
-        textLength += node.textContent ? node.textContent.length : 0;
-        const lastNode = nodesWithinBackgroundRequestLength.pop();
-
-        if (lastNode) {
-          lastNode.text += text;
-          lastNode.nodes.push({
-            node: text,
-            index: index,
-            rawNode: node,
-          });
-          nodesWithinBackgroundRequestLength.push(lastNode);
+          if (lastNode) {
+            lastNode.text += text;
+            lastNode.nodes.push({
+              node: text,
+              index: index,
+              rawNode: node,
+            });
+            nodesWithinBackgroundRequestLength.push(lastNode);
+          } else {
+            nodesWithinBackgroundRequestLength.push({
+              text: text,
+              nodes: [{ node: text, index: index, rawNode: node }],
+            });
+          }
         } else {
           nodesWithinBackgroundRequestLength.push({
-            text: text,
+            text: node.textContent ? node.textContent : '',
             nodes: [{ node: text, index: index, rawNode: node }],
           });
+          textLength = node.textContent ? node.textContent.length : 0;
         }
-      } else {
-        nodesWithinBackgroundRequestLength.push({
-          text: node.textContent ? node.textContent : '',
-          nodes: [{ node: text, index: index, rawNode: node }],
-        });
-        textLength = node.textContent ? node.textContent.length : 0;
       }
     });
     
@@ -525,7 +550,7 @@ const Input: React.FC<{
         return;
       }
       const nextText = nodesWithinBackgroundRequestLength.shift();
-      handleTextAndIcon(nextText?.text || '', nextText?.nodes);
+      handleTextAndIcon(nextText?.nodes);
     }, backgroundRequestInterval);
   };
 
@@ -533,6 +558,10 @@ const Input: React.FC<{
     setActiveIcon('passive');
     setAlerts([]);
     setTextToCheck('');
+  };
+
+  const handleFocusinEvent = () => {
+    setActiveIcon('active');
   };
 
   const handleDocumentResizeEvent = () => {
@@ -579,7 +608,7 @@ const Input: React.FC<{
       );
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
       setUnchangedAlertsTextarea(unchangedAlerts[0]);
-      handleTextAndIcon(nextText, []);
+      handleTextAndIcon([nextText]);
     } else {
       !isGoogleDocs() && setAlerts([]);
       const nodeAtFirstTextDiff =
@@ -589,11 +618,9 @@ const Input: React.FC<{
         fistTextDiff ? fistTextDiff.node : 0,
         nodeAtFirstTextDiff
       );
-
       textWithinMaxCharLength &&
         handleTextAndIcon(
-          textWithinMaxCharLength.text,
-          textWithinMaxCharLength.nodes
+          textWithinMaxCharLength
         );
     }
   };
@@ -640,9 +667,6 @@ const Input: React.FC<{
           index === self.findIndex((t) => t.index === node.index)
       );
 
-    const textWithinMaxCharLength = nodesWhithinMaxCharLength
-      .map((node) => node.node)
-      .join('');
     if (currentText.length > maxCharLength) {
       const shortenedText = currentText.slice(0, maxCharLength);
       nodesWhithinMaxCharLengthRef.current = [
@@ -652,77 +676,82 @@ const Input: React.FC<{
           rawNode: currentNodeRaw,
         },
       ];
-      return { text: shortenedText, nodes: nodesWhithinMaxCharLength };
+      return nodesWhithinMaxCharLength;
     } else {
       nodesWhithinMaxCharLengthRef.current = nodesWhithinMaxCharLength;
-      return {
-        text: textWithinMaxCharLength,
-        nodes: nodesWhithinMaxCharLength,
-      };
+      return nodesWhithinMaxCharLength;
     }
   };
-  
 
-  const handleTextAndIcon = (textToCheck: string, nodes: any) => {
-    let newTextToCheck = '';
-    if (nodes.length > 0) {
-      let nodesToCheck = nodes.filter((node: INodes) => {
-        const nodeIndex = prevCheckedNodesRef.current.findIndex(
-          (prevCheckedNode: INodes) =>
-            prevCheckedNode.node === node.node &&
-            prevCheckedNode.index === node.index 
+  const handleTextAndIcon = (nodes: any) => {
+    const isTextAreaCheck = isTextArea(element);
+    let nodesToCheck = isTextAreaCheck ? nodes : nodes.filter((node: INodes) => {
+      const nodeIndex = prevCheckedNodesRef.current.findIndex(
+        (prevCheckedNode: INodes) =>
+          prevCheckedNode.rawNode === node.rawNode && //important for highlight placement -> problem with new text 
+          prevCheckedNode.node === node.node 
         );
+      return nodeIndex === -1;
+    });
+    nodesStorageRef.current = nodesToCheck;
+    let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
+    const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
+    const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
+    if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
+      totalMaxCharLengthReachedRef.current = true;
+      analytics.maxCharLengthReachedLog('max_char_length_reached');
+      const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
+      newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
+    } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {  
+      totalMaxCharLengthReachedRef.current = true;
+      analytics.maxCharLengthReachedLog('max_char_length_reached');
+      abortBackgroundWorkerRef.current = true;  
+      const prevCheckedNodesRefWithoutNodesToCheck = prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
+        const nodeIndex = nodesToCheck.findIndex((node: INodes) => node.index === prevCheckedNode.index);
         return nodeIndex === -1;
       });
+      prevCheckedNodesRef.current = prevCheckedNodesRefWithoutNodesToCheck;
+
+      const allNodes = [...prevCheckedNodesRefWithoutNodesToCheck, ...nodesToCheck]
+        .sort((a: any, b: any) => a.index - b.index)
+        .map((node: any) => node.rawNode)
+      if (allNodes.length === 0) return;  
+
+      const nodesWithinTotalMaxCharLength = getNodesWithinMaxCharLength('below', allNodes, -1, totalMaxCharLength*2);
+      newTextToCheck = nodesWithinTotalMaxCharLength.map((node) => node.node).join('\n');
+    } else {  
+      isTextAreaCheck && (newTextToCheck = nodes[0]); 
+      totalMaxCharLengthReachedRef.current = false;
+      abortBackgroundWorkerRef.current = false;
+    }
+    
+    //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
+    if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
+      nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
+      newTextToCheck = nodesToCheck.map((node: any) => node.node).join('\n');
       nodesStorageRef.current = nodesToCheck;
-      newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
+    }
 
-      //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
-      if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
-        nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
-        newTextToCheck = nodesToCheck.map((node: any) => node.node).join('');
-      }
-
-      // remove alerts from nodeswithalerts that have changed
-      if (nodesToCheck.length > 0) { 
-        const nodesWithAlertsUpdate = nodesWithAlertsRef.current.filter(
-          (nodeWithAlerts) => {
-            const nodeIndex = nodesToCheck.findIndex(
-              (nodeToCheck: { node: any; index: number | undefined }) => 
-                nodeToCheck.index === nodeWithAlerts.nodeIndex &&
-                nodeToCheck.node !== nodeWithAlerts.node.textContent
+    if (nodesToCheck.length > 0) { 
+      const nodesWithAlertsWithoutChangesAlerts = nodesWithAlertsRef.current.filter(
+        (nodeWithAlerts) => {
+          const nodeIndex = nodesToCheck.findIndex(
+            (nodeToCheck: { node: any; index: number | undefined }) => 
+              nodeToCheck.index === nodeWithAlerts.nodeIndex 
             ); 
-            return nodeIndex === -1;
-          }
-        );
-        setNodesWithAlerts(nodesWithAlertsUpdate);
-
-        const prevCheckedNodesUpdate = prevCheckedNodesRef.current.filter(
-          (prevCheckedNode) => {
-            const nodeIndex = nodesToCheck.findIndex(
-              (nodeToCheck: { node: any; index: number | undefined }) =>
-                // nodeToCheck.node === prevCheckedNode.node.textContent &&
-                nodeToCheck.index === prevCheckedNode.index
-            );
-            return nodeIndex === -1;
-          }
-        );
-        prevCheckedNodesRef.current = prevCheckedNodesUpdate;
-      }
-    }
-
-    if (!isTextArea(element)) {
-      textToCheck = newTextToCheck;
-    }
-
-    //If there isn't text, there's nothing to highlight
-    setCurrentTextToCheck(textToCheck); //for check call after refresh token
-    if (textToCheck.length === 0 || !textToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
+          return nodeIndex === -1;
+        }
+      );
+      setNodesWithAlerts(nodesWithAlertsWithoutChangesAlerts);
+    } 
+    setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
+        
+    if (newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
       setTextToCheck('');
     } else {
-      debouncedSetTextToCheck(textToCheck);
+      debouncedSetTextToCheck(newTextToCheck);
       setActiveIcon('loading');
     }
   }
@@ -769,8 +798,8 @@ const Input: React.FC<{
     } 
 
     !isGoogleDocs() && setElementScroll({
-        top: firstScrollableParentRef.current.scrollTop,
-        left: firstScrollableParentRef.current.scrollLeft,
+        top: isTextArea(element) ? element.scrollTop : firstScrollableParentRef.current.scrollTop,
+        left: isTextArea(element) ? element.scrollLeft : firstScrollableParentRef.current.scrollLeft,
       });
   };
 
@@ -860,13 +889,12 @@ const Input: React.FC<{
     if (caret.element && caret.position && caret.position > -1) {
       // Find out if the clicked element has alerts
       const selectedNodeWithAlertsIndex: number =
-        nodesWithAlertsRef.current.findIndex(
-          (nodeWithAlerts: INodeWithAlerts) =>
-            isTextArea(target) || isInputText(target)
-              ? nodeWithAlerts.node.parentNode === caret.element
-              : nodeWithAlerts.node === caret.element
-        );
-
+      nodesWithAlertsRef.current.findIndex(
+        (nodeWithAlerts: INodeWithAlerts) =>
+          isTextArea(target) || isInputText(target)
+            ? nodeWithAlerts.node.parentNode === caret.element
+            : nodeWithAlerts.node === caret.element
+      );
       setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
 
       const oneNodeWithAlerts =
@@ -880,10 +908,8 @@ const Input: React.FC<{
             if (!alert) {
               return false;
             }
-            //If alert is a one character word, take in consideration clicking the position before or after the char
-            return alert.data.text.length === 1
-              ? alert.startOffset <= caretPos && alert.endOffset >= caretPos
-              : alert.startOffset < caretPos && alert.endOffset > caretPos;
+
+            return alert.startOffset <= caretPos && alert.endOffset >= caretPos
           });
 
         const selectedAlerts = oneNodeWithAlerts.alerts.filter(
@@ -895,7 +921,8 @@ const Input: React.FC<{
           getInputText(element).length > maxCharLength &&
           !isTextArea(element) &&
           selectedAlerts.length == 0 &&
-          !isGoogleDocs()
+          !isGoogleDocs() && 
+          !totalMaxCharLengthReachedRef.current
         ) {
           handleElementClickLongText(caret);
         }
@@ -923,7 +950,8 @@ const Input: React.FC<{
       } else if (
         getInputText(element).length > maxCharLength &&
         !isTextArea(element) &&
-        !isGoogleDocs()
+        !isGoogleDocs() &&
+        !totalMaxCharLengthReachedRef.current
       ) {
         handleElementClickLongText(caret);
       }
@@ -943,11 +971,7 @@ const Input: React.FC<{
         caret.position,
         cloneRef.current?.childNodes[caret.position]
       );
-      if (textWithinMaxCharLength)
-        handleTextAndIcon(
-          textWithinMaxCharLength.text,
-          textWithinMaxCharLength.nodes
-        );
+      textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
     } else if (!isGoogleDocs()) {
       let clickedNode = caret.element;
 
@@ -956,11 +980,7 @@ const Input: React.FC<{
           textDividedByNodes.indexOf(clickedNode),
           caret.element
         );
-        if (textWithinMaxCharLength)
-          handleTextAndIcon( 
-            textWithinMaxCharLength.text,
-            textWithinMaxCharLength.nodes
-          );
+        textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
       }
     }
   };
@@ -1055,8 +1075,9 @@ const Input: React.FC<{
   useEffect(() => {
     if (
       !backgroundWorkerStarted &&
-      !isTextArea(element) && !isGoogleDocs()  //does not work on textArea yet, google docs is handled on mutation
-       && getInputText(element).length > maxCharLength 
+      !isTextArea(element) && //does not work on textArea yet
+      !isGoogleDocs() && //google docs is handled on mutation
+      getInputText(element).length > maxCharLength
     ) {
       abortBackgroundWorkerRef.current = false;
       backgroundWorker(element);
@@ -1188,6 +1209,7 @@ const Input: React.FC<{
           {} as Record<number, IAlert>
         )
       ).sort((a, b) => a.startOffset - b.startOffset);
+      
       const nodesWithAlertsTemp: INodeWithAlerts[] =
         isTextArea(element) || isInputText(element)
           ? [
@@ -1209,7 +1231,6 @@ const Input: React.FC<{
                 : (elementXPathResult as XPathResult)
             );
 
-      // add getBoundingClientRect to each alert
       const nodesWithAlertsTempWithRect = nodesWithAlertsTemp.map(
         (nodeWithAlerts) => {
           const nodeWithAlertsWithRect = {
@@ -1218,6 +1239,7 @@ const Input: React.FC<{
               const range = getActiveDocument().createRange();
 
               if (
+                !nodeWithAlerts.node ||
                 alert.startOffset > nodeWithAlerts.node.length ||
                 alert.endOffset > nodeWithAlerts.node.length ||
                 alert.startOffset < 0 ||
@@ -1245,12 +1267,6 @@ const Input: React.FC<{
         }
       );
 
-      //Set the total alerts
-      const totalAlerts: number = nodesWithAlertsTempWithRect.reduce(
-        (total, node) => total + node.alerts.length,
-        0
-      );
-      setTotalAlerts(totalAlerts);
       const mergedNodesWithAlerts = [
         ...nodesWithAlertsRef.current.filter(
           (nodeWithAlerts) =>
@@ -1259,14 +1275,21 @@ const Input: React.FC<{
               .includes(nodeWithAlerts.nodeIndex)
         ),
         ...nodesWithAlertsTempWithRect,
-      ];
+      ].sort((a: any, b: any) => a.nodeIndex - b.nodeIndex);      
+
+      const totalAlerts: number = mergedNodesWithAlerts.reduce(
+        (total, node) => total + node.alerts.length,
+        0
+      );
+      setTotalAlerts(totalAlerts);
       setNodesWithAlerts(mergedNodesWithAlerts);
-    
       logNewCheckResponses(nodesWithAlertsRef.current);
 
-      prevCheckedNodesRef.current = prevCheckedNodesRef.current.concat(
-        nodesStorageRef.current
-      );
+      prevCheckedNodesRef.current = [...prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
+        const nodeIndex = nodesStorageRef.current.findIndex((node: INodes) => node.index === prevCheckedNode.index);
+        return nodeIndex === -1;
+      }), ...nodesStorageRef.current].sort((a: INodes, b: INodes) => a.index - b.index);
+
       nodesStorageRef.current = [];
     }
   }, [
@@ -1309,36 +1332,53 @@ const Input: React.FC<{
     mergedCheckEndpointResponse && analytics.checkLog(mergedCheckEndpointResponse, authResponse, textContentLength);
   };
   
+  useEffect(() => {
+    if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
+      const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
+      totalMaxCharLengthReachedNotificationWrapper.id = 'ww-notification';
+      ReactDOM.render(
+          <Notification
+            notificationType={'totalMaxCharLengthReached'}
+          />,
+        document.body.insertBefore(
+          totalMaxCharLengthReachedNotificationWrapper,
+          document.body.firstChild
+        )
+      );
+    }
+  }, [totalMaxCharLengthReachedRef.current]);
+
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
     elementEvaluation: XPathResult
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
     if (
-      nodesWhithinMaxCharLengthRef.current.length > 0 &&
-      !isTextArea(element)
+      !isTextArea(element) 
     ) {
       let updatedAlerts: IAlert[] = [];
-      //only use text that is updated -> nodesStorageRef.current
-      const lowestIndex = nodesStorageRef.current.reduce(
+      const nodesForCalculation = (totalMaxCharLengthReachedRef.current ? nodesWhithinMaxCharLengthRef.current : nodesStorageRef.current).filter((node: INodes) => {
+        return node.node.length > 0;
+      }).sort((a: INodes, b: INodes) => a.index - b.index);
+      const lowestIndex = nodesForCalculation.reduce(
         (min, node) => (node.index < min ? node.index : min),
         Infinity
       );
 
-      nodesStorageRef.current.forEach((nodeWithAlertsRef) => {
+      nodesForCalculation.forEach((node) => {
         let absolutePositionOfFirstCharOfNode = 0;
         for (
           let index = lowestIndex;
-          index < nodeWithAlertsRef.index;
+          index < node.index;
           index++
         ) {
-          absolutePositionOfFirstCharOfNode +=
-            elementEvaluation.snapshotItem(index)?.textContent?.length || 0;
+          const text = elementEvaluation.snapshotItem(index)?.textContent;
+          absolutePositionOfFirstCharOfNode += text ? text.length + 1 : 0;
         }
 
         const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
           elementEvaluation
-            .snapshotItem(nodeWithAlertsRef.index)
+            .snapshotItem(node.index)
             ?.textContent?.includes(alert.data.text)
         );
 
@@ -1358,10 +1398,10 @@ const Input: React.FC<{
         updatedAlerts.length > 0 &&
           nodesWithAlertsTemp.push({
             node: elementEvaluation.snapshotItem(
-              nodeWithAlertsRef.index
+              node.index
             ) as Node, //possibly null
             alerts: updatedAlerts,
-            nodeIndex: nodeWithAlertsRef.index,
+            nodeIndex: node.index,
           });
       });
     } else {
@@ -1542,7 +1582,7 @@ const Input: React.FC<{
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
     if (!isCkEditor(element) && !isGoogleDocs()) {
-      setTextToCheck(getInputText(element));
+      handleTextAndIcon([]); //ensures update 
       const event = new Event('keyup', { bubbles: true });
       element.dispatchEvent(event);
     }
@@ -1672,14 +1712,6 @@ const Input: React.FC<{
 
   return (
     <>
-      <WTags.WW_ACTIVITY_INDICATOR>
-        <StateIndicatorIcon
-          element={element}
-          elementRect={elementRect}
-          iconType={activeIcon}
-          isHovered={isHovered}
-        />
-      </WTags.WW_ACTIVITY_INDICATOR>
       {isTextArea(element) && (
         <WTags.WW_CLONE>
           <TextAreaClone
@@ -1732,7 +1764,17 @@ const Input: React.FC<{
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
       )}
+      <WTags.WW_ACTIVITY_INDICATOR>
+        <StateIndicatorIcon
+          element={element}
+          elementRect={elementRect}
+          iconType={totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon}
+          isHovered={isHovered}
+          windowScroll={windowScroll}
+        />
+      </WTags.WW_ACTIVITY_INDICATOR>
     </>
+    
   );
 };
 

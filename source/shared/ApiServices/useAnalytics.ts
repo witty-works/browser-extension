@@ -95,5 +95,9 @@ export const useAnalytics = () => {
     async extensionInstallationAndUpdateLog(status: string) {
       captureEvent(status, getRequestData());
     },
+
+    async maxCharLengthReachedLog(eventName: string) {
+      captureEvent(eventName, getRequestData());
+    },
   };
 };

@@ -28,11 +28,11 @@ export const updateConfig = (response: IAuthResponse) => {
   );
   storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
   Object.keys(response.config).forEach((key) => {
-    const keysForPopover = ['inclusive', 'orthography', 'style'];
+    const keysForPopover = ['orthography'];
     if (
       (keysForPopover.includes(key) &&
         (response.config[key as keyof typeof response.config] as any).status ==
-          'force') ||
+          'force' && (response.config[key as keyof typeof response.config] as any).value) ||
       !keysForPopover.includes(key)
     ) {
       storeInLocalStorage(
@@ -181,6 +181,9 @@ export const getNodesWithinMaxCharLength = (
   charLengthLeft: number
 ) => {
   let totalChars = 0;
+  textDividedByNodes = textDividedByNodes.filter((node) => { //remove empty nodes
+    return node.textContent?.length && node.textContent?.length > 0;
+  });
   const slice =
     direction == 'below'
       ? textDividedByNodes.slice(currentNode + 1)
@@ -203,6 +206,8 @@ export const getNodesWithinMaxCharLength = (
       return (
         totalChars <= (filterCondition ? charLengthLeft : charLengthLeft / 2)
       );
+    }).sort((a, b) => {
+      return direction == 'below' ? a.index - b.index : b.index - a.index;
     });
   return nodesWhithinMaxCharLength;
 };
