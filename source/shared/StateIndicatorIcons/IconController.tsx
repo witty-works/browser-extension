@@ -87,8 +87,8 @@ const IconController: React.FC<IconControllerProps> = ({
         <div className="witty-works-warning-text">
 
         {i18n.language.split('-')[0] === 'en' ? 
-        <>With your current pricing plan, Witty only checks a limited text length. <a className="witty-works-link" href="https://dashboard.witty.works/team/subscription">Upgrade</a> now to <a className="witty-works-link" href="https://www.witty.works/pricing">Witty Teams</a>. You get:<ul><li>Unlimited text length</li><li>Unlimited analytics</li><li>Invite more team members</li></ul></> :
-        <>Mit Ihrem aktuellen Preisplan überprüft Witty nur eine begrenzte Textlänge. <a className="witty-works-link" href="https://dashboard.witty.works/team/subscription">Wechseln Sie</a> jetzt auf <a className="witty-works-link" href="https://www.witty.works/pricing">Witty Teams</a>. Vorteile:<ul><li>Unbegrenzte Textlänge</li><li>Unbegrenzte Statistiken</li><li>Mehr Teammitglieder einladen</li></ul></>
+        <>With your current pricing plan, Witty only checks a limited text length. <a href="https://dashboard.witty.works/team/subscription">Upgrade</a> now to <a href="https://www.witty.works/pricing">Witty Teams</a>. You get:<ul><li>Unlimited text length</li><li>Unlimited analytics</li><li>Invite more team members</li></ul></> :
+        <>Mit Ihrem aktuellen Preisplan überprüft Witty nur eine begrenzte Textlänge. <a href="https://dashboard.witty.works/team/subscription">Wechseln Sie</a> jetzt auf <a href="https://www.witty.works/pricing">Witty Teams</a>. Vorteile:<ul><li>Unbegrenzte Textlänge</li><li>Unbegrenzte Statistiken</li><li>Mehr Teammitglieder einladen</li></ul></>
         }
           <div className='witty-works-ext-left'>
             <div className='witty-works-ext-button witty-works-ext-primary-button-red'
