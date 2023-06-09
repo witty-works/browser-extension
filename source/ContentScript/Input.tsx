@@ -1097,6 +1097,12 @@ const Input: React.FC<{
       : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
 
     setActiveIcon('active');
+    analytics.checkLog(
+      checkEndpointResponse,
+      authResponse,
+      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
+      'check'
+    );
   
     log(
       `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
@@ -1319,7 +1325,7 @@ const Input: React.FC<{
     } : undefined;
   
     const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-    mergedCheckEndpointResponse && analytics.checkLog(mergedCheckEndpointResponse, authResponse, textContentLength);
+    mergedCheckEndpointResponse && analytics.checkLog(mergedCheckEndpointResponse, authResponse, textContentLength, 'unique_check');
   };
   
   useEffect(() => {
