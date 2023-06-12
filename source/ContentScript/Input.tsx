@@ -131,7 +131,7 @@ const Input: React.FC<{
     IAlert[]
   >([]);
   const [, , checkLogEventIdRef] = useStateRef<string>('');
-  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true);
+  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;

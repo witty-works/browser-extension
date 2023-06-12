@@ -102,13 +102,13 @@ export const de = {
   },
   [namespaces.iconController]: {
     limitReached: 'You have reached the limit',
-    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
+    subscriptionButton: 'Upgrade',
   },
-    [namespaces.notifications]: {
+  [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
     totalMaxCharLengthReachedNotificationHeadline: 'You have reached the limit',
-    totalMaxCharLengthReachedNotificationText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
+    subscriptionButton: 'Upgrade',
   },
 };
 
@@ -219,13 +219,13 @@ export const en = {
   },
   [namespaces.iconController]: {
     limitReached: 'You have reached the limit',
-    limitReachedText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
+    subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
     totalMaxCharLengthReachedNotificationHeadline: 'You have reached the limit',
-    totalMaxCharLengthReachedNotificationText: 'With your current pricing plan, Witty only checks a limited text length. Please upgrade if you would like to have longer texts checked'
+    subscriptionButton: 'Upgrade',
   },
 
 };
