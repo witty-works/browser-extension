@@ -21,11 +21,15 @@ export const useAnalytics = () => {
       checkResponse: ICheckResponse,
       authResponse: IAuthResponse | null,
       inputLength: number,
-      requestType: string
+      requestType: string,
+      isAutoTriggered: boolean,
+      checkLogEventId: string,
     ) {
       const checkLogItems: ICheckLogItems = {
+        request__id: checkLogEventId,
         request__type: requestType,
         request__text__length: inputLength,
+        request__is_auto_triggered: isAutoTriggered,
         ...getRequestData(),
         response__results: checkResponse.results,
         response__language: checkResponse.language,

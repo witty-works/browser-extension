@@ -130,6 +130,7 @@ const Input: React.FC<{
   const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
     IAlert[]
   >([]);
+  const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
@@ -1097,11 +1098,14 @@ const Input: React.FC<{
       : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
 
     setActiveIcon('active');
+    checkLogEventIdRef.current = Math.random().toString(36).substring(2, 15);
     analytics.checkLog(
       checkEndpointResponse,
       authResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
-      'check'
+      'check',
+      backgroundWorkerStarted,
+      checkLogEventIdRef.current
     );
   
     log(
@@ -1325,7 +1329,7 @@ const Input: React.FC<{
     } : undefined;
   
     const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-    mergedCheckEndpointResponse && analytics.checkLog(mergedCheckEndpointResponse, authResponse, textContentLength, 'unique_check');
+    mergedCheckEndpointResponse && analytics.checkLog(mergedCheckEndpointResponse, authResponse, textContentLength, 'check_result', backgroundWorkerStarted, checkLogEventIdRef.current);
   };
   
   useEffect(() => {
