@@ -64,7 +64,7 @@ const useApiResult = <TResponse,>(
               );
               return;
             }
-
+            
             setEndpointResponse(responseResults);
             setEndpointError(null);
           })

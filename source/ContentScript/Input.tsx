@@ -127,6 +127,10 @@ const Input: React.FC<{
   const [, , abortBackgroundWorkerRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
+  const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
+    IAlert[]
+  >([]);
+  const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
@@ -604,6 +608,7 @@ const Input: React.FC<{
         )
       );
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
+      setUnchangedAlertsTextarea(unchangedAlerts[0]);
       handleTextAndIcon([nextText]);
     } else {
       !isGoogleDocs() && setAlerts([]);
@@ -678,7 +683,6 @@ const Input: React.FC<{
       return nodesWhithinMaxCharLength;
     }
   };
-  
 
   const handleTextAndIcon = (nodes: any) => {
     const isTextAreaCheck = isTextArea(element);
@@ -968,10 +972,7 @@ const Input: React.FC<{
         caret.position,
         cloneRef.current?.childNodes[caret.position]
       );
-      if (textWithinMaxCharLength)
-        handleTextAndIcon(
-          textWithinMaxCharLength
-        );
+      textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
     } else if (!isGoogleDocs()) {
       let clickedNode = caret.element;
 
@@ -980,10 +981,7 @@ const Input: React.FC<{
           textDividedByNodes.indexOf(clickedNode),
           caret.element
         );
-        if (textWithinMaxCharLength)
-          handleTextAndIcon( 
-            textWithinMaxCharLength
-          );
+        textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
       }
     }
   };
@@ -1100,13 +1098,16 @@ const Input: React.FC<{
       : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
 
     setActiveIcon('active');
-
+    checkLogEventIdRef.current = Math.random().toString(36).substring(2, 15);
     analytics.checkLog(
       checkEndpointResponse,
       authResponse,
-      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
+      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
+      'check',
+      backgroundWorkerStarted,
+      checkLogEventIdRef.current
     );
-
+  
     log(
       `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
       logTypes.INFO,
@@ -1282,6 +1283,7 @@ const Input: React.FC<{
       );
       setTotalAlerts(totalAlerts);
       setNodesWithAlerts(mergedNodesWithAlerts);
+      logNewCheckResponses(nodesWithAlertsRef.current);
 
       prevCheckedNodesRef.current = [...prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
         const nodeIndex = nodesStorageRef.current.findIndex((node: INodes) => node.index === prevCheckedNode.index);
@@ -1298,6 +1300,38 @@ const Input: React.FC<{
     selectedAlertIndex,
   ]);
 
+  const logNewCheckResponses = (newNodes: INodeWithAlerts[]) => {
+    let newResults;
+  
+    if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
+      newResults = checkEndpointResponse.results.filter((alert) => {
+        return !unchangedAlertsTextarea.map((alert) => alert.startOffset).includes(alert.start);
+      });  
+    } else {
+      newResults = newNodes.filter((nodeWithAlerts) => {
+        return nodesStorageRef.current.map((node) => node.rawNode).includes(nodeWithAlerts.node);
+      }).map((nodeWithAlerts) => {
+        const mergedAlerts = nodeWithAlerts.alerts.reduce((mergedAlerts, alert) => {
+          return {
+            ...mergedAlerts,
+            ...alert.data,
+          };
+        }, {}); 
+        return mergedAlerts;
+      });
+    }
+
+    if (newResults.length === 0) return;
+
+    const mergedCheckEndpointResponse = checkEndpointResponse ? {
+      ...checkEndpointResponse,
+      results: newResults as any,
+    } : undefined;
+  
+    const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
+    mergedCheckEndpointResponse && analytics.checkLog(mergedCheckEndpointResponse, authResponse, textContentLength, 'check_result', backgroundWorkerStarted, checkLogEventIdRef.current);
+  };
+  
   useEffect(() => {
     if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
       const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');

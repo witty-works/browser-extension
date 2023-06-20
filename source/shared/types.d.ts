@@ -193,10 +193,12 @@ export interface IDashboardLogRequest {
   button__location: string;
 }
 export interface ICheckLogItems {
+  request__id: string;
   request__type: string;
   request__lang: string;
   request__client: string;
   request__text__length: number;
+  request__is_auto_triggered: boolean;
   response__organizationId?: string;
   response__plan?: string;
   response__name?: string;

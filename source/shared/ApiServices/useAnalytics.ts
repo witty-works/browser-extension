@@ -20,11 +20,16 @@ export const useAnalytics = () => {
     async checkLog(
       checkResponse: ICheckResponse,
       authResponse: IAuthResponse | null,
-      inputLength: number
+      inputLength: number,
+      requestType: string,
+      isAutoTriggered: boolean,
+      checkLogEventId: string,
     ) {
       const checkLogItems: ICheckLogItems = {
-        request__type: 'check',
+        request__id: checkLogEventId,
+        request__type: requestType,
         request__text__length: inputLength,
+        request__is_auto_triggered: isAutoTriggered,
         ...getRequestData(),
         response__results: checkResponse.results,
         response__language: checkResponse.language,
@@ -36,7 +41,7 @@ export const useAnalytics = () => {
         response__plan: authResponse ? authResponse.plan : undefined,
       };
 
-      captureEvent('check', checkLogItems);
+      captureEvent(requestType, checkLogItems);
     },
 
     async alternativeLog(logResponse: IAlert, alternative: string) {

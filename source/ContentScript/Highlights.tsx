@@ -68,7 +68,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
       setHighlights([]);
 
-    const highlights: Highlight[] = [];
+    const highlightsTemp: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
     let googleDocsToolbarLeftRect = {} as DOMRect;
     if (isGoogleDocs()) {
@@ -132,14 +132,14 @@ const Highlights: React.FC<HighlightsProps> = ({
                 endOffset: alert.endOffset,
                 node: node,
               };
-              highlights.push(newHighlight);
+              highlightsTemp.push(newHighlight);
             }
           }
         });
       }
     });
 
-    setHighlights(highlights);
+    setHighlights(highlightsTemp);
   }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
