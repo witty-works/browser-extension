@@ -8,6 +8,8 @@ import {
   IAuthResponse,
   ICheckResponse,
   IDashboardLogRequest,
+  ICheckResultLogItems,
+  ICheckResponseResult,
 } from '../types';
 import {
   captureEvent,
@@ -37,7 +39,41 @@ export const useAnalytics = () => {
         response__organizationId: authResponse
           ? authResponse.organization_id
           : undefined,
-        response__name: authResponse ? authResponse.name : undefined,
+        response__plan: authResponse ? authResponse.plan : undefined,
+      };
+
+      captureEvent(requestType, checkLogItems);
+    },
+
+    async checkResultLog(
+      checkResponse: ICheckResponseResult,
+      authResponse: IAuthResponse | null,
+      inputLength: number,
+      requestType: string,
+      isAutoTriggered: boolean,
+      checkLogEventId: string,
+    ) {
+      const checkLogItems: ICheckResultLogItems = {
+        request__id: checkLogEventId,
+        request__type: requestType,
+        request__text__length: inputLength,
+        request__is_auto_triggered: isAutoTriggered,
+        ...getRequestData(),
+        response__results__text: checkResponse.text,
+        response__results__context: checkResponse.context,
+        response__results__category: checkResponse.category,
+        response__results__subcategory: checkResponse.subcategory,
+        response__results__start: checkResponse.start,
+        response__results__end: checkResponse.end,
+        response__results__alternatives: checkResponse.alternatives,
+        response__results__label: checkResponse.label,
+        response__results__explanation: checkResponse.explanation,
+        response__results__gravity: checkResponse.gravity,
+        response__language: checkResponse.language,
+        response__limit_reached: checkResponse.limit_reached,
+        response__organizationId: authResponse
+          ? authResponse.organization_id
+          : undefined,
         response__plan: authResponse ? authResponse.plan : undefined,
       };
 

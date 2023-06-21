@@ -51,6 +51,8 @@ export interface ICheckResponseResult {
   explanation: IExplanation;
   label: string;
   gravity: number;
+  language: string;
+  limit_reached: boolean;
 }
 
 //AUTH/REFRESHTOKEN ENDPOINT
@@ -203,6 +205,30 @@ export interface ICheckLogItems {
   response__plan?: string;
   response__name?: string;
   response__results: ICheckResponseResult[];
+  response__language: string;
+  response__limit_reached: boolean;
+}
+
+export interface ICheckResultLogItems {
+  request__id: string;
+  request__type: string;
+  request__lang: string;
+  request__client: string;
+  request__text__length: number;
+  request__is_auto_triggered: boolean;
+  response__organizationId?: string;
+  response__plan?: string;
+  response__name?: string;
+  response__results__text: string;
+  response__results__context: string;
+  response__results__category: string;
+  response__results__subcategory: string;
+  response__results__start: number;
+  response__results__end: number;
+  response__results__alternatives: IAlternatives[];
+  response__results__label: string;
+  response__results__explanation: IExplanation;
+  response__results__gravity: number;
   response__language: string;
   response__limit_reached: boolean;
 }

@@ -1328,8 +1328,20 @@ const Input: React.FC<{
       results: newResults as any,
     } : undefined;
   
-    const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-    mergedCheckEndpointResponse && analytics.checkLog(mergedCheckEndpointResponse, authResponse, textContentLength, 'check_result', backgroundWorkerStarted, checkLogEventIdRef.current);
+    if (mergedCheckEndpointResponse) {
+      const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
+
+      mergedCheckEndpointResponse.results.forEach((result: any) => {
+        analytics.checkResultLog(
+          result,
+          authResponse,
+          textContentLength,
+          'check_result',
+          backgroundWorkerStarted,
+          checkLogEventIdRef.current,
+        )
+      });
+    } 
   };
   
   useEffect(() => {

@@ -125,6 +125,14 @@ export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
       description: 'the gravity of the problematic word',
       type: 'number',
     },
+    language: {
+      description: 'the language of the problematic word',
+      type: 'string',
+    },
+    limit_reached: {
+      description: 'whether the limit of the free plan has been reached',
+      type: 'boolean',
+    },
   },
   required: ['text', 'start', 'end'],
 };
