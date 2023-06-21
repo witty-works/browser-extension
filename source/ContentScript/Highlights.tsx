@@ -4,6 +4,7 @@ import { CustomInputElement, Highlight, IAlert, INodeWithAlerts, Position } from
 import { getColor } from '../shared/constants';
 import {
   getZIndex,
+  isFroalaEditor,
   isGoogleDocs,
   isGreenhouse,
   isTextArea,
@@ -117,7 +118,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                     ? rect.top - googleDocsToolbarTopRect.top
                     : rect.top +
                       doc.scrollTop -
-                      windowScroll.top -
+                      (isFroalaEditor(element) ? windowScroll.top : 0) - 
                       (isTextArea(element) ? elementScroll.top : 0),
                 };
               }
