@@ -268,10 +268,10 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
                 });
               }}
             >
-              {t('signUp')}
+              {t('signIn')}
             </div>
             <div className='witty-works-ext-lato-popup-text'>
-              {t('haveAccount')}
+              {t('dontHaveAccount')}
               &nbsp;
               <span
                 className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
@@ -283,7 +283,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
                   });
                 }}
               >
-                {t('signIn')}
+                {t('signUp')}
               </span>
             </div>
           </div>

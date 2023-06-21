@@ -125,10 +125,10 @@ const PopupLogin: React.FC = () => {
               });
             }}
           >
-            {t('signUp')}
+            {t('signIn')}
           </div>
           <div className='witty-works-ext-lato-popup-text'>
-            {t('haveAccount')}
+            {t('dontHaveAccount')}
             &nbsp;
             <span
               className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
@@ -140,7 +140,7 @@ const PopupLogin: React.FC = () => {
                 });
               }}
             >
-              {t('signIn')}
+              {t('signUp')}
             </span>
           </div>
         </div>
