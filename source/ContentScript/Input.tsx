@@ -89,8 +89,8 @@ const Input: React.FC<{
   const [forceHighlightUpdate, setForceHighlightUpdate] =
     useState<boolean>(false);
   const [windowScroll, setWindowScroll] = useState<Position>({
-    top: 0,
-    left: 0,
+    top:  window.scrollY,
+    left: window.scrollX,
   } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
@@ -1744,6 +1744,7 @@ const Input: React.FC<{
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
+              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
@@ -1760,6 +1761,7 @@ const Input: React.FC<{
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
+              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
