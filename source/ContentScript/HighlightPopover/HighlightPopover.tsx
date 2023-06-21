@@ -21,7 +21,7 @@ import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
-import { iframePositionRecquired, isFroalaEditor, isTextArea } from '../../shared/DOMutils';
+import { iframePositionRecquired, isTextArea } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollParent } from '../utils';
 import { getScrollableParentClosestToElement } from '../../shared/utils';
@@ -89,7 +89,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       }
 
       const scrollParentScrollTop = getScrollParent(element)?.scrollTop;
-      const scrollTop = (!isTextArea(element) && !isFroalaEditor(element) && scrollParentScrollTop) ? scrollParentScrollTop : 0;
+      const scrollTop = (!isTextArea(element) && scrollParentScrollTop) ? scrollParentScrollTop : 0;
       const calcNewX: number =
         dat.position.x + iframeRects.left + doc.scrollLeft;
       const calcNewY: number = placement.includes('bottom')

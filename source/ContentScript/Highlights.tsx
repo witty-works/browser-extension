@@ -30,6 +30,7 @@ interface HighlightsProps {
   userIsSignedIn: boolean;
   removeHighlights: boolean;
   forceHighlightUpdate: boolean;
+  windowScroll: Position;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
@@ -41,6 +42,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   userIsSignedIn,
   removeHighlights,
   forceHighlightUpdate,
+  windowScroll,
 }: HighlightsProps) => {
   
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
@@ -114,8 +116,8 @@ const Highlights: React.FC<HighlightsProps> = ({
                   top: isGoogleDocs()
                     ? rect.top - googleDocsToolbarTopRect.top
                     : rect.top +
-                      doc.scrollTop
-                       -
+                      doc.scrollTop -
+                      windowScroll.top -
                       (isTextArea(element) ? elementScroll.top : 0),
                 };
               }
@@ -140,7 +142,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
 
     setHighlights(highlightsTemp);
-  }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
+  }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll, windowScroll]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

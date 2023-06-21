@@ -111,7 +111,6 @@ export const requiresRectRecalculation = (element: Element) => {
     domain === 'personio.de' || //exception for linkedin messaging and personio
     isCkEditor(element) ||
     isTinyMceEditor(element) ||
-    isFroalaEditor(element) ||
     isLinkedInMessage() ||
     isBambooHr()
   );
