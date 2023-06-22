@@ -249,7 +249,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
               {t('inclusiveAlternatives')}
             </div>
           </div>
-          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
             <div className='witty-works-ext-margin-right'>
               <Star />
             </div>
@@ -273,7 +273,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             >
               {t('signIn')}
             </div>
-            <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'>
+            <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
               {t('dontHaveAccount')}
               &nbsp;
               <span
