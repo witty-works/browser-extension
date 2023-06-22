@@ -95,6 +95,40 @@ test.describe('Highlights', () => {
         });
     });
 
+    test('no highlights after disabling witty', async ({ page, context }) => {
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        await page.waitForSelector('#hs-eu-confirmation-button');
+        await page.click('#hs-eu-confirmation-button');
+
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginPopupPage(page, extensionId, context);
+
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        const enableWittyToggle = await page.waitForSelector('#toggle-encloser-enable-witty');
+        const backgroundColorEnableToggle = await enableWittyToggle.evaluate((toggle) => {
+            return window.getComputedStyle(toggle).getPropertyValue('background-color');
+        });
+        if (backgroundColorEnableToggle === 'rgb(95, 202, 125)') {
+            await page.click('#toggle-encloser-enable-witty');
+            await page.waitForTimeout(apiWaitTime);
+        }
+        
+        await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
+        await page.waitForLoadState('networkidle')
+        await page.waitForSelector('#example-1');
+        await page.click('#example-1');
+        await page.click('.fr-element');
+
+        await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
+
+        await page.locator('.fr-element').screenshot().then(async (screenshot) => {
+            expect(screenshot).toMatchSnapshot({
+                maxDiffPixels: 300,
+            },
+                'no-highlights-after-disabling-witty.png')
+        });
+    });
+    
     // //ASKING FOR reCAPTCHA
     // test('twitter writing post', async ({ page, context }) => {
     //     test.skip(process.env.CI, 'skip in pipeline');

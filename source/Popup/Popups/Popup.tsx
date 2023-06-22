@@ -11,6 +11,7 @@ import {
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
+  TESTING,
 } from '../../shared/constants';
 import {
   addInactiveBadge,
@@ -61,6 +62,7 @@ const Popup: React.FC<PopupProps> = ({
   domainsConfirmedToWork,
   isLocked,
 }: PopupProps) => {
+  if (TESTING) domain = 'platformsh.site';
   const { t } = useTranslation([namespaces.pages.popup]);
   const [enabled, setEnabled] = useState<EnableWittyToggle>({
     enabled: true,
@@ -149,7 +151,6 @@ const Popup: React.FC<PopupProps> = ({
           addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
           setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
         }
-        console.log('result[StorageKeys.ORTHOGRAPHY]', result[StorageKeys.ORTHOGRAPHY])
 
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
 
