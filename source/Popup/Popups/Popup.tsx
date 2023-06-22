@@ -415,7 +415,7 @@ const Popup: React.FC<PopupProps> = ({
           </>
         )}
 
-        {enabled.enabled && !showSurvey && (
+        {enabled.enabled && (!showSurvey || TESTING) && (
           <div className='witty-works-ext-margin-top'>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
               <div className='witty-works-ext-lato-popup-title'>
