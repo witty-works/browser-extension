@@ -233,11 +233,6 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
         </div>
 
         <div className='witty-works-ext-full-padding'>
-          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-            <div className='witty-works-ext-lato-popover-text'>
-              {t('signUpFor')}
-            </div>
-          </div>
           <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row'>
             <div className='witty-works-ext-margin-right'>
               <Star />
@@ -252,6 +247,14 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             </div>
             <div className='witty-works-ext-lato-popover-text'>
               {t('inclusiveAlternatives')}
+            </div>
+          </div>
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-margin-right'>
+              <Star />
+            </div>
+            <div className='witty-works-ext-lato-popover-text'>
+              {t('teamFeatures')}
             </div>
           </div>
         </div>
@@ -270,7 +273,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             >
               {t('signIn')}
             </div>
-            <div className='witty-works-ext-lato-popup-text'>
+            <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'>
               {t('dontHaveAccount')}
               &nbsp;
               <span
