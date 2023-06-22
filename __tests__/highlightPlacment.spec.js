@@ -103,6 +103,7 @@ test.describe('Highlights', () => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginPopupPage(page, extensionId, context);
 
+        //make sure witty is disabled
         await page.goto(`chrome-extension://${extensionId}/popup.html`);
         const enableWittyToggle = await page.waitForSelector('#toggle-encloser-enable-witty');
         const backgroundColorEnableToggle = await enableWittyToggle.evaluate((toggle) => {
@@ -122,6 +123,11 @@ test.describe('Highlights', () => {
         await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
 
         await page.locator('.fr-element').screenshot().then(async (screenshot) => {
+            //enable witty again 
+            await page.goto(`chrome-extension://${extensionId}/popup.html`);
+            await page.click('#toggle-encloser-enable-witty');
+            await page.waitForTimeout(apiWaitTime);
+
             expect(screenshot).toMatchSnapshot({
                 maxDiffPixels: 300,
             },
