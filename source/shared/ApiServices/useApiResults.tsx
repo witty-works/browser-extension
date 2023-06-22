@@ -9,7 +9,7 @@ const ajv = new Ajv();
 
 const useApiResult = <TResponse,>(
   request: IRequest,
-  responseSchema: JSONSchemaType<TResponse> | null
+  responseSchema: JSONSchemaType<TResponse> | null,
 ): [TResponse | null, IEndpointError | null] => {
   const validateResponse =
     responseSchema === null ? null : ajv.compile(responseSchema);
@@ -26,7 +26,6 @@ const useApiResult = <TResponse,>(
     const container = getActiveDocument().getElementsByTagName(
       WTags.WW_CONTAINER
     );
-    const ac = new AbortController();
     //avoid enpoint call if no config or no container (aka plugin disabled)
     if (request.config && request.url) {
       if (
@@ -36,56 +35,45 @@ const useApiResult = <TResponse,>(
       ) {
         return;
       }
-      request.config = { ...request.config, signal: ac.signal };
-
+      request.config = { ...request.config };
       log('Request:', logTypes.INFO, request);
+    
+        fetch(request.url, request.config)
+          .then(async (response) => {
+            log('Response: ', logTypes.INFO, response);
 
-      fetch(request.url, request.config)
-        .then(async (response) => {
-          log('Response: ', logTypes.INFO, response);
+            if (!response.ok) {
+              setEndpointError({
+                status: response.status,
+                message: response.statusText,
+              });
+              return;
+            }
+            const responseResults: any = await response.json();
 
-          if (!response.ok) {
-            setEndpointError({
-              status: response.status,
-              message: response.statusText,
-            });
-            return;
-          }
-          const responseResults: any = await response.json();
-
-          if (
-            validateResponse &&
-            !validateResponse(responseResults) &&
-            validateResponse.errors
-          ) {
-            DEV_ENV &&
-              console.log('validateResponse.errors', validateResponse.errors);
-            log(
-              `JSON Schema Error: ${validateResponse.errors.join(', ')}`,
-              logTypes.ERROR
-            );
-            return;
-          }
-
-          setEndpointResponse(responseResults);
-          setEndpointError(null);
-        })
+            if (
+              validateResponse &&
+              !validateResponse(responseResults) &&
+              validateResponse.errors
+            ) {
+              DEV_ENV &&
+                console.log('validateResponse.errors', validateResponse.errors);
+              log(
+                `JSON Schema Error: ${validateResponse.errors.join(', ')}`,
+                logTypes.ERROR
+              );
+              return;
+            }
+            
+            setEndpointResponse(responseResults);
+            setEndpointError(null);
+          })
 
         .catch((error: Error) => {
-          // AbortError is created when a request is aborted.
-          // We don't need to shown an error message in this case
-          if (error.name !== 'AbortError') {
-            log(error.message, logTypes.ERROR);
-          }
+          log(error.message, logTypes.ERROR);
         });
-    }
-
-    return () => {
-      ac.abort(); // Abort fetch on unmount
-    };
-    // });
+      };
   }, [request]);
-
   return [endpointResponse, endpointError];
 };
 

@@ -12,9 +12,7 @@ import WittyLogo from '../../assets/icons/popover/logo.svg';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
-import StarNewIcon from '../../assets/icons/popover/star-new.svg';
-import StarNeuIcon from '../../assets/icons/popover/star-neu.svg';
-import StarVideoIcon from '../../assets/icons/popover/star-video.svg';
+import VideoIcon from '../../assets/icons/popover/video.svg';
 import ArrowUpIcon from '../../assets/icons/popover/arrow-up.svg';
 import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
@@ -23,8 +21,10 @@ import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
-import { iframePositionRecquired } from '../../shared/DOMutils';
+import { iframePositionRecquired, isTextArea } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
+import { getScrollParent } from '../utils';
+import { getScrollableParentClosestToElement } from '../../shared/utils';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -56,7 +56,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
-  const [isHovered, setIsHovered] = useState<boolean>(false);
   const [alternativeHovered, setAlternativeHovered] = useState<string | null>(
     null
   );
@@ -89,14 +88,21 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           iframeRects = iframe?.getBoundingClientRect();
       }
 
+      const scrollParentScrollTop = getScrollParent(element)?.scrollTop;
+      const scrollTop = (!isTextArea(element) && scrollParentScrollTop) ? scrollParentScrollTop : 0;
       const calcNewX: number =
         dat.position.x + iframeRects.left + doc.scrollLeft;
       const calcNewY: number = placement.includes('bottom')
-        ? dat.position.y + dat.position.height + iframeRects.top + doc.scrollTop
+        ? dat.position.y +
+          dat.position.height +
+          iframeRects.top +
+          doc.scrollTop +
+          scrollTop
         : dat.position.y -
           rects.floating.height +
           iframeRects.top +
-          doc.scrollTop;
+          doc.scrollTop +
+          scrollTop;
       return {
         x: showLearningBiteRef.current ? calcNewX / 2 : calcNewX,
         y: calcNewY,
@@ -115,6 +121,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   }, [reference, showLearningBite]);
 
   useEffect(() => {
+    getScrollableParentClosestToElement(element)?.addEventListener('scroll', handleElementScroll);
+    element.addEventListener('scroll', handleElementScroll);
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('input', handleClickOutside as EventListener);
     getActiveDocument().addEventListener('click', handleClickOutside);
@@ -128,6 +136,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         'input',
         handleClickOutside as EventListener
       );
+      getScrollableParentClosestToElement(element)?.removeEventListener('scroll', handleElementScroll); 
+      element.removeEventListener('scroll', handleElementScroll);
       getActiveDocument().removeEventListener('click', handleClickOutside);
       getActiveDocument().removeEventListener(
         'input',
@@ -135,6 +145,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       );
     };
   }, [refs.floating.current]);
+
+  const handleElementScroll = () => {
+    hidePopover();
+  };
 
   const handleClickOutside = (event: MouseEvent) => {
     const hasClickedOutsidePopOver: boolean | null =
@@ -256,15 +270,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               data.alert.data.explanation && data.alert.data.explanation.url
                 ? 'pointer'
                 : 'default',
-            backgroundColor: isHovered
-              ? getColor(data.alert.data.gravity, userIsSignedIn).hover
-              : getColor(data.alert.data.gravity, userIsSignedIn).highlight,
-          }}
-          onMouseEnter={() => {
-            setIsHovered(true);
-          }}
-          onMouseLeave={() => {
-            setIsHovered(false);
+            backgroundColor: getColor(data.alert.data.gravity, userIsSignedIn).highlight,
           }}
         >
           <div
@@ -272,41 +278,30 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             style={{
               display: 'flex',
               flexDirection: showLearningBite ? 'row' : 'column',
-              alignItems: showLearningBite ? 'center' : 'flex-end',
+              alignItems: showLearningBite ? 'center' : 'flex-start',
             }}
           >
-            {data.alert.data.explanation.icon} &nbsp;
-            {data.alert.data.explanation.text}
-            {data.alert.data.explanation.context &&
-              ' (' + data.alert.data.explanation.context + ')'}
+            <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+              <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation.icon}</div>
+              {data.alert.data.explanation.text}
+              {data.alert.data.explanation.context &&
+                ' (' + data.alert.data.explanation.context + ')'}
+            </div>
             {data.alert.data.explanation && data.alert.data.explanation.url && (
-              <div
-                className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
-                style={{
-                  padding: '0.5em 0 0 0',
-                  whiteSpace: 'nowrap',
-                }}
+              <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+              style={{marginTop: showLearningBite ? '0em' : '1em'}}
               >
-                <div className='witty-works-ext-margin-left witty-works-ext-margin-right'>
-                  {t('learnMore')}
-                </div>
-                {data.alert.data.explanation.content === 'video' && (
-                  <StarVideoIcon alt={t('video')} />
-                )}
-                {data.alert.data.explanation.content === 'advanced' &&
-                  data.alert.data.language === 'de' && (
-                    <StarNeuIcon alt={t('new')} />
-                  )}
-                {data.alert.data.explanation.content === 'advanced' &&
-                  data.alert.data.language === 'en' && (
-                    <StarNewIcon alt={t('new')} />
-                  )}
-
-                <div
-                  className='witty-works-ext-margin-left'
-                  style={{ pointerEvents: 'none' }}
-                >
-                  {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
+                    {t('learnMore')}
+                    {data.alert.data.explanation.content === 'video' && (
+                      <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
+                    )}
+                  <div
+                    className='witty-works-ext-margin-left'
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                  </div>
                 </div>
               </div>
             )}
@@ -333,7 +328,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             className='witty-works-ext-learning-bite-iframe'
             title='learning bite'
             onLoad={() => {
-              console.log('iframe loaded');
               setIframeLoaded(true);
             }}
           ></iframe>
@@ -377,6 +371,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     <div
                       className='witty-works-ext-wittyworks-popover-alternative-btn-container'
                       key={`${index}-${alternative}-container`}
+                      onMouseEnter={() => {
+                        setAlternativeHovered(alternative.text);
+                      }}
+                      onMouseLeave={() => {
+                        setAlternativeHovered(null);
+                      }}
                     >
                       <div
                         className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
@@ -386,12 +386,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                             data.alert.data.category
                           )
                         }
-                        onMouseEnter={() => {
-                          setAlternativeHovered(alternative.text);
-                        }}
-                        onMouseLeave={() => {
-                          setAlternativeHovered(null);
-                        }}
                       >
                         {alternative.text === ' ' ? (
                           <i>{t('removeSpaces')}</i>
@@ -404,7 +398,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       </div>
                       {alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                          {alternative.context}
+                          {alternative.context.length > 25 &&
+                          alternativeHovered !== alternative.text
+                            ? alternative.context.substring(0, 25) + '...'
+                            : alternative.context}
+
                         </div>
                       )}
                     </div>

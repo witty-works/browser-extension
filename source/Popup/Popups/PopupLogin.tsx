@@ -12,12 +12,12 @@ import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
 import {
   appID,
-  getBaseUrls,
   setBaseUrls,
 } from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
+import SadFace from '../../assets/icons/popup/sadFace.svg';
 import Star from '../../assets/icons/popup/star.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
@@ -68,64 +68,59 @@ const PopupLogin: React.FC = () => {
 
   const logIn = async (urls: string) => {
     const optionsPageUrl = browser.extension.getURL('options.html');
-
-    browser.storage.local.get(null).then((result) => {
-      if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-        const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        }
-      } else {
-        const url = `${
-          BaseUrls[urls].dashboard
-        }browser-login?redirect_uri=${optionsPageUrl}?target=${
-          getBaseUrls().dashboard
-        }`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        }
-      }
-    });
+    const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
+    if (!window.open(url, '_blank')) {
+      setPopupsBlocked(true);
+      setLoginUrl(url);
+    }
   };
 
   return (
     <>
       <PopupHeader showSettings={false} appId={appID} />
-      <div className='witty-works-ext-section'>
-        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-          <div className='witty-works-ext-lato-small-paragraph-title-h4'>
+      <div>
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-full-padding witty-works-ext-light-gray-background'>
+          <div className='witty-works-ext-margin-right'>
+            <SadFace />
+          </div>
+          <div className='witty-works-ext-lato-popover-text witty-works-ext-margin-left'>
             {t('loginToUnlock')}
+
+            <div
+              className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
+              style={{ padding: 0 }}
+            >
+              <div className='witty-works-ext-margin-right'>
+                {t('signedOutText')}
+              </div>
+            </div>
           </div>
         </div>
-        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-          <div className='witty-works-ext-lato-popover-text'>
-            {t('signUpFor')}
+
+        <div className='witty-works-ext-full-padding'>
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-margin-right'>
+              <Star />
+            </div>
+            <div className='witty-works-ext-lato-popover-text'>
+              {t('biasDetection')}
+            </div>
           </div>
-        </div>
-        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row'>
-          <div className='witty-works-ext-margin-right'>
-            <Star />
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-margin-right'>
+              <Star />
+            </div>
+            <div className='witty-works-ext-lato-popover-text'>
+              {t('inclusiveAlternatives')}
+            </div>
           </div>
-          <div className='witty-works-ext-lato-popover-text'>
-            {t('biasDetection')}
-          </div>
-        </div>
-        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-          <div className='witty-works-ext-margin-right'>
-            <Star />
-          </div>
-          <div className='witty-works-ext-lato-popover-text'>
-            {t('inclusiveAlternatives')}
-          </div>
-        </div>
-        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-          <div className='witty-works-ext-margin-right'>
-            <Star />
-          </div>
-          <div className='witty-works-ext-lato-popover-text'>
-            {t('teamFeatures')}
+          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-margin-right'>
+              <Star />
+            </div>
+            <div className='witty-works-ext-lato-popover-text'>
+              {t('teamFeatures')}
+            </div>
           </div>
         </div>
       </div>
@@ -141,10 +136,10 @@ const PopupLogin: React.FC = () => {
               });
             }}
           >
-            {t('signUp')}
+            {t('signIn')}
           </div>
-          <div className='witty-works-ext-lato-popup-text'>
-            {t('haveAccount')}
+          <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
+            {t('dontHaveAccount')}
             &nbsp;
             <span
               className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
@@ -156,7 +151,7 @@ const PopupLogin: React.FC = () => {
                 });
               }}
             >
-              {t('signIn')}
+              {t('signUp')}
             </span>
           </div>
         </div>

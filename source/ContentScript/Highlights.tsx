@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-
+import React, { useEffect, useRef } from 'react';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import { Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
+import { CustomInputElement, Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
 import { getColor } from '../shared/constants';
 import {
   getZIndex,
+  isFroalaEditor,
   isGoogleDocs,
   isGreenhouse,
   isTextArea,
@@ -20,14 +20,18 @@ import {
   getCorrectedPositionCanvas,
 } from '../shared/utils';
 import { getActiveDocument } from './ContentScriptApp';
+import { useStateRef } from '../shared/customHooks/useStateRef';
 
 interface HighlightsProps {
   elementScroll: Position;
   nodesWithAlerts: INodeWithAlerts[];
-  element: HTMLElement;
+  element: CustomInputElement;
   elementRect: DOMRect;
   selectedAlert: IAlert | null;
   userIsSignedIn: boolean;
+  removeHighlights: boolean;
+  forceHighlightUpdate: boolean;
+  windowScroll: Position;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
@@ -37,10 +41,15 @@ const Highlights: React.FC<HighlightsProps> = ({
   elementRect,
   selectedAlert,
   userIsSignedIn,
+  removeHighlights,
+  forceHighlightUpdate,
+  windowScroll,
 }: HighlightsProps) => {
+  
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
+
+  const [highlights, setHighlights] = useStateRef<Highlight[]>([]);
   const correctedPosition = isGoogleDocs()
     ? getCorrectedPositionCanvas(element)
     : getCorrectedPosition(
@@ -55,12 +64,14 @@ const Highlights: React.FC<HighlightsProps> = ({
       ? 2000
       : isGreenhouse()
       ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
-      : elementRect.height,
+      : elementRect.height //prevents expanding contenteditable gmail: - correctedPosition.top,
   };
 
   useEffect(() => {
-    const highlights: Highlight[] = [];
-    if (nodesWithAlerts && nodesWithAlerts.length === 0) setHighlights([]);
+    if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
+      setHighlights([]);
+
+    const highlightsTemp: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
     let googleDocsToolbarLeftRect = {} as DOMRect;
     if (isGoogleDocs()) {
@@ -71,7 +82,6 @@ const Highlights: React.FC<HighlightsProps> = ({
         .getElementsByClassName('left-sidebar-container-content')[0]
         ?.getBoundingClientRect();
     }
-
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
         alerts.forEach((alert: IAlert) => {
@@ -81,8 +91,9 @@ const Highlights: React.FC<HighlightsProps> = ({
               node.textContent &&
               (alert.endOffset > node.textContent.length ||
                 alert.startOffset > node.textContent.length)
-            )
+            ) {
               return;
+            }
             range.selectNode(node);
             range.setStart(node, alert.startOffset);
             range.setEnd(node, alert.endOffset);
@@ -90,42 +101,49 @@ const Highlights: React.FC<HighlightsProps> = ({
             sendErrorToSentry(error);
           }
 
-          const rangeRects = [range.getClientRects()[0]];
-          const rects: DOMRect[] = Array.from(rangeRects).map(
-            (rect: DOMRect) => {
-              return {
-                ...rect,
-                width: rect.width,
-                height: rect.height,
-                left: isGoogleDocs()
-                  ? rect.left -
-                    googleDocsToolbarLeftRect.width -
-                    googleDocsToolbarLeftRect.left
-                  : rect.left,
-                top: isGoogleDocs()
-                  ? rect.top - googleDocsToolbarTopRect.top
-                  : rect.top +
-                    doc.scrollTop -
-                    (isTextArea(element) ? elementScroll.top : 0),
+          const rangeRects = range.getClientRects();
+          for (let i = 0; i < rangeRects.length; i++) {
+            const rects: DOMRect[] = [rangeRects[i]].map(
+              (rect: DOMRect) => {
+                return {
+                  ...rect,
+                  width: rect.width,
+                  height: rect.height,
+                  left: isGoogleDocs()
+                    ? rect.left -
+                      googleDocsToolbarLeftRect.width -
+                      googleDocsToolbarLeftRect.left
+                    : rect.left,
+                  top: isGoogleDocs()
+                    ? rect.top - googleDocsToolbarTopRect.top
+                    : rect.top +
+                      doc.scrollTop -
+                      (isFroalaEditor(element) ? windowScroll.top : 0) - 
+                      (isTextArea(element) ? elementScroll.top : 0),
+                };
+              }
+            );
+            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text))) {
+              return;
+            } else {
+              const newHighlight: Highlight = {
+                rects,
+                id: alert.id,
+                plan: alert.plan,
+                data: alert.data,
+                startOffset: alert.startOffset,
+                endOffset: alert.endOffset,
+                node: node,
               };
+              highlightsTemp.push(newHighlight);
             }
-          );
-          const newHighlight: Highlight = {
-            rects,
-            id: alert.id,
-            plan: alert.plan,
-            data: alert.data,
-            startOffset: alert.startOffset,
-            endOffset: alert.endOffset,
-            node: node,
-          };
-          highlights.push(newHighlight);
+          }
         });
       }
     });
 
-    setHighlights(highlights);
-  }, [nodesWithAlerts, elementScroll, elementRect]);
+    setHighlights(highlightsTemp);
+  }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll, windowScroll]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -139,6 +157,13 @@ const Highlights: React.FC<HighlightsProps> = ({
 
     context.scale(ratio, ratio);
     context.clearRect(0, 0, canvas.width, canvas.height);
+
+    let googleDocsRulerIsHidden = false;
+    if (isGoogleDocs()) {
+      const rulerElement = document.getElementById('kix-vertical-ruler');
+      googleDocsRulerIsHidden = rulerElement?.style.display == 'none' || rulerElement?.offsetHeight == 0;
+    }
+    
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
 
@@ -171,6 +196,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         elementRect,
         canvas,
         element,
+        googleDocsRulerIsHidden,
       };
 
       drawLine(params, hoverColor, dashedLine);
@@ -180,7 +206,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         drawLine(params, hoverColor, dashedLine);
       }
     });
-  }, [elementRect.width, elementRect.height, highlights, selectedAlert]);
+  }, [elementRect, highlights, selectedAlert]);
 
   return (
     <canvas

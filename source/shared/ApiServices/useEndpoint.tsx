@@ -12,7 +12,7 @@ export const useCheckEndpoint = () => {
 
   const [checkResponse, errorResponse] = useApiResults<ICheckResponse>(
     request,
-    checkResponseSchema
+    checkResponseSchema,
   );
 
   return [checkResponse, errorResponse, setTextToAnalyse] as const;

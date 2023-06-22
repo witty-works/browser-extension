@@ -103,7 +103,8 @@ if the vendor is `chrome` or `opera`, this compiles to:
 See the original [README](https://github.com/abhijithvijayan/wext-manifest-loader) of `wext-manifest-loader` package for more details
 
 ## Unit Testing
-
+run `npx playwright install-deps`
+run `npx playwright install`
 Copy `.env.example` to `.env` and adjust the values accordingly.
 
 ```
@@ -112,13 +113,12 @@ PREMIUM_TEST_USER_PASSWORD = '<can be found in 1Password>'
 PROXY_SERVER = '<can be found in 1Password>'
 PROXY_USERNAME = '<can be found in 1Password>'
 PROXY_PASSWORD = '<can be found in 1Password>'
+HTACCESS_USERNAME = 'witty'
+HTACCESS_PASSWORD = '<can be found in 1Password>'
 ```
 
-To run locally: From inside the directory just run `yarn run test`
-To run with docker (needed to make linux screenshots for GA):
-`docker run -v $PWD:/browser-extension -w /browser-extension --rm -it mcr.microsoft.com/playwright:v1.24.2-focal /bin/bash`
-
-`xvfb-run yarn test`
+To run locally: From inside the directory just run `yarn run test` (runs in linux environment)
+You can watch the tests executing on http://localhost:6080/  (PW: vscode)
 
 test-results folder will be created with screenshots for manual debuging
 

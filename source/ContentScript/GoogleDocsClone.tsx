@@ -46,8 +46,9 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         const areaLabelSplit = areaLabel?.split(' ');
         areaLabelSplit?.forEach((label, index) => {
           if (label === '') {
-            //multiple spaces in a row -> automatically truncated
-            areaLabelSplit[index] = '\xa0';
+            areaLabelSplit[index] = '\xa0'; //multiple spaces in a row -> automatically truncated
+          } else if (areaLabelSplit[index].length == 1 && !areaLabelSplit[index].match(/[a-zA-Z]/)) { //not alfabetical character
+            areaLabelSplit[index] = ' ' + label + ' '; //single character -> add space before and after
           } else if (
             (index !== 0 || //dont add space if last character is a special character or the first char of next word is a special character
               index !== areaLabelSplit.length - 1) &&
@@ -81,8 +82,8 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         elementRect &&
           elementStylesFont &&
           divs.push(
-            <div
-              key={`${areaLabel}-${elementRect.top}-${elementRect.left}`}
+            <div 
+              // key={`${areaLabel?.slice(0, 10)}-${elementRect.width}-${elementRect.top}`} //LEFT OUT ON PURPOSE TO AVOID RE-RENDERING
               style={
                 {
                   visibility: 'hidden',
@@ -121,6 +122,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
       }
     }
   }
+
   return (
     <div
       ref={(ref) => {
@@ -128,7 +130,6 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
           const refAsArrayOfText = Array.from(ref.childNodes).map(
             (node) => node.textContent
           );
-          //update clone only if text or position changed
           const isDifferent = refAsArrayOfText.some(
             (text, index) => text !== previousElement.text[index]
           );

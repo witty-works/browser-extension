@@ -18,16 +18,8 @@ export enum StorageKeys {
   API_DELAY = 'apiDelay',
   APP_ID = 'id',
 
-  PREFERRED_VARIANTS = 'preferredVariants',
-  GERMAN_GENDER_ENDING = 'germanGenderEnding',
   ORTHOGRAPHY = 'spellChecking',
-  STYLE = 'styleCorrections',
-  INCLUSIVE = 'inclusiveLanguage',
-  SHOW_INSPIRATION_ALTERNATIVES = 'inspirationalAlternatives',
-  SINGULAR_THEY = 'singularThey',
-  MAXIMUM_IMPORTANCE = 'maximumImportance',
   CASING_SITES = 'casingSites',
-  GENDERED_ROLES_FORMAT = 'genderedRolesFormat',
 
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',
@@ -52,6 +44,7 @@ export enum StorageKeys {
   ORGANIZATION_ID = 'organizationId',
 
   ID_WAS_ALIASED = 'idWasAliased',
+  PIN_NOTIFICATION_SHOWED = 'pinNotificationShowed',
 }
 
 //nlp api, dashboard
@@ -79,9 +72,7 @@ export const BaseUrls: IBaseUrls = {
   },
 };
 
-export const DefaultBaseUrlKey: keyof typeof BaseUrls = DEV_ENV
-  ? ('Dev' as keyof typeof BaseUrls)
-  : ('Prod' as keyof typeof BaseUrls);
+export const DefaultBaseUrlKey = 'Dev';
 
 export enum ConfigPropertyStatus {
   FORCE = 'force',

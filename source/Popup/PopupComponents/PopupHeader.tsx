@@ -25,7 +25,7 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
   function handleClickSettings() {
     analytics.dashboardLog('cogwheel_popup');
     window.open(
-      getBaseUrls().dashboard + 'user/language/language-settings',
+      getBaseUrls().dashboard + 'user/language',
       '_blank'
     );
   }

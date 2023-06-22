@@ -3,30 +3,27 @@ export interface IRequest {
   url: string;
   config: RequestInit | null;
 }
+
+export interface ICheckRequest {
+  text: string;
+  repeatedRequest: boolean;
+}
+
 export interface IEndpointError {
   status: number;
   message: string;
+  request?: IRequest;
+  responseSchema?: any;
 }
 
 export interface ResponseConfig {
-  gendered_roles_format: ConfigProperty;
-  german_gender_ending: ConfigProperty;
-  inclusive: ConfigProperty;
-  maximum_importance: number;
   orthography: ConfigProperty;
-  show_inspiration_alternatives: ConfigProperty;
-  singular_they: ConfigProperty;
-  style: ConfigProperty;
-  preferred_variants: ConfigProperty;
 }
 export interface RequestConfig extends ResponseConfig {
   disabled_categories: string[];
 }
 
 export interface FilteredRequestConfig {
-  style: ConfigProperty;
-  orthography: ConfigProperty;
-  inclusive: ConfigProperty;
   disabled_categories: string[];
 }
 export interface ConfigProperty {
@@ -54,6 +51,8 @@ export interface ICheckResponseResult {
   explanation: IExplanation;
   label: string;
   gravity: number;
+  language: string;
+  limit_reached: boolean;
 }
 
 //AUTH/REFRESHTOKEN ENDPOINT
@@ -111,6 +110,12 @@ export interface INodeWithAlerts {
   alerts: IAlert[];
   nodeIndex?: number;
 }
+
+export interface INodes {
+  node: any;
+  index: number;
+  rawNode: Node;
+}
 export interface IAlert {
   id: string;
   startOffset: number;
@@ -155,8 +160,6 @@ export interface ILogItems {
   request__type: string;
   request__lang: string;
   request__client: string;
-  request__config__preferred_variants: ConfigProperty;
-  request__config__german_gender_ending: ConfigProperty;
   response__id: string;
   response__startOffset: number;
   response__endOffset: number;
@@ -166,7 +169,7 @@ export interface ILogItems {
   response__data__category: string;
   response__data__subcategory: string;
   response__data__context: string;
-  response__data_text: string;
+  response__data__text: string;
   response__data__label: string;
   response__data__explanation__text: string;
   response__data__explanation__icon: string;
@@ -182,8 +185,6 @@ export interface IVoteLogRequest {
   request__type: string;
   request__lang: string;
   request__client: string;
-  request__config__preferred_variants: ConfigProperty;
-  request__config__german_gender_ending: ConfigProperty;
   vote__url: string;
 }
 
@@ -191,21 +192,43 @@ export interface IDashboardLogRequest {
   request__type: string;
   request__lang: string;
   request__client: string;
-  request__config__preferred_variants: ConfigProperty;
-  request__config__german_gender_ending: ConfigProperty;
   button__location: string;
 }
 export interface ICheckLogItems {
+  request__id: string;
   request__type: string;
   request__lang: string;
   request__client: string;
-  request__config__preferred_variants: ConfigProperty;
-  request__config__german_gender_ending: ConfigProperty;
   request__text__length: number;
+  request__is_auto_triggered: boolean;
   response__organizationId?: string;
   response__plan?: string;
-  response__name?: string;
   response__results: ICheckResponseResult[];
+  response__language: string;
+  response__limit_reached: boolean;
+}
+
+export interface ICheckResultLogItems {
+  request__id: string;
+  request__type: string;
+  request__lang: string;
+  request__client: string;
+  request__text__length: number;
+  request__is_auto_triggered: boolean;
+  response__organizationId?: string;
+  response__plan?: string;
+  response__data__text: string;
+  response__data__context: string;
+  response__data__category: string;
+  response__data__subcategory: string;
+  response__data__start: number;
+  response__data__end: number;
+  response__data__alternatives: IAlternatives[];
+  response__data__label: string;
+  response__data__explanation__text: string;
+  response__data__explanation__icon: string;
+  response__data__explanation__url: string;
+  response__data__gravity: number;
   response__language: string;
   response__limit_reached: boolean;
 }

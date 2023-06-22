@@ -1,5 +1,4 @@
 import { IAlert } from '../types';
-import { requestConfig } from './requests';
 import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
 import { POSTHOG_API_KEY_EU, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
@@ -77,14 +76,11 @@ export const getResponseData = (logResponse: IAlert) => {
     response__data__category: logResponse.data.category,
     response__data__subcategory: logResponse.data.subcategory,
     response__data__context: logResponse.data.context,
-    response__data_text: logResponse.data.text,
+    response__data__text: logResponse.data.text,
     response__data__label: logResponse.data.label,
-    response__data__explanation__text:
-      logResponse.data.explanation && logResponse.data.explanation.text,
-    response__data__explanation__icon:
-      logResponse.data.explanation && logResponse.data.explanation.icon,
-    response__data__explanation__url:
-      logResponse.data.explanation && logResponse.data.explanation.url,
+    response__data__explanation__text: logResponse.data.explanation?.text,
+    response__data__explanation__icon: logResponse.data.explanation?.icon,
+    response__data__explanation__url: logResponse.data.explanation?.url,
     response__data__alternatives: logResponse.data.alternatives,
     response__data__gravity: logResponse.data.gravity,
   };
@@ -94,7 +90,5 @@ export const getRequestData = () => {
   return {
     request__lang: 'auto',
     request__client: wittyVersion,
-    request__config__preferred_variants: requestConfig.preferred_variants,
-    request__config__german_gender_ending: requestConfig.german_gender_ending,
   };
 };

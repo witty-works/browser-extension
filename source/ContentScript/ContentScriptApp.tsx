@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
@@ -12,6 +12,7 @@ import {
   DEV_ENV,
 } from '../shared/constants';
 import {
+  getBaseUrls,
   setAppID,
   setBaseUrls,
   setConfigHash,
@@ -27,13 +28,14 @@ import {
   isGoogleDocs,
   isNotion,
   isGoogleSheets,
-  isWittyEditor,
+  isWittyEditor
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import debounce from 'lodash.debounce';
-
+import { getDomainWithoutSubdomain, storeInLocalStorage } from '../shared/utils';
+import Notification from '../Notifications/Notification';
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
   z-index: auto !important;
@@ -70,6 +72,7 @@ const ContentScriptApp: React.FC = () => {
   const [, setInputs, inputsRef] = useStateRef([] as CustomInputElement[]);
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
+  const [pinNotificationStored, setPinNotificationStored] = useState<boolean | null>(null);
 
   //observes iframes that are added to the DOM
   const observer = new MutationObserver(function (mutations) {
@@ -128,19 +131,13 @@ const ContentScriptApp: React.FC = () => {
         getActiveDocument().body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
           ? (getActiveDocument().body.spellcheck = false) //needed here for linkedin, could be removed when we fix focusin issue
           : (getActiveDocument().body.spellcheck = true);
-
+          
+        setPinNotificationStored(result[StorageKeys.PIN_NOTIFICATION_SHOWED]);
+        
         //Define API requests config
         const requestConfig: RequestConfig = {
-          german_gender_ending: result[StorageKeys.GERMAN_GENDER_ENDING].value
-            ? result[StorageKeys.GERMAN_GENDER_ENDING].value
-            : result[StorageKeys.GERMAN_GENDER_ENDING],
-          preferred_variants: result[StorageKeys.PREFERRED_VARIANTS].value
-            ? result[StorageKeys.PREFERRED_VARIANTS].value
-            : result[StorageKeys.PREFERRED_VARIANTS],
           disabled_categories: [
             result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
-            result[StorageKeys.INCLUSIVE].value === true ? '' : 'inclusive',
-            result[StorageKeys.STYLE].value === true ? '' : 'style',
             result[StorageKeys.CASING_SITES] &&
             result[StorageKeys.CASING_SITES].includes(
               window.location.hostname.replace('www.', '')
@@ -148,23 +145,6 @@ const ContentScriptApp: React.FC = () => {
               ? 'casing'
               : '',
           ].filter((category) => category !== ''),
-          maximum_importance: result[StorageKeys.MAXIMUM_IMPORTANCE].value
-            ? result[StorageKeys.MAXIMUM_IMPORTANCE].value
-            : result[StorageKeys.MAXIMUM_IMPORTANCE],
-          singular_they: result[StorageKeys.SINGULAR_THEY].value
-            ? result[StorageKeys.SINGULAR_THEY].value
-            : result[StorageKeys.SINGULAR_THEY],
-          show_inspiration_alternatives:
-            typeof result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES].value !=
-            undefined
-              ? result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES].value
-              : result[StorageKeys.SHOW_INSPIRATION_ALTERNATIVES],
-          gendered_roles_format: result[StorageKeys.GENDERED_ROLES_FORMAT].value
-            ? result[StorageKeys.GENDERED_ROLES_FORMAT].value
-            : result[StorageKeys.GENDERED_ROLES_FORMAT],
-
-          inclusive: result[StorageKeys.INCLUSIVE].value,
-          style: result[StorageKeys.STYLE].value,
           orthography: result[StorageKeys.ORTHOGRAPHY].value,
         };
         setReqConfig(requestConfig);
@@ -174,19 +154,21 @@ const ContentScriptApp: React.FC = () => {
         sendErrorToSentry(error);
       });
 
-    //fixes initial iframe focus issue
-    if (isGoogleDocs() || isWittyEditor()) {
-      const focusedElement = getActiveDocument().activeElement as HTMLElement;
-      focusedElement?.blur();
-    }
-
     //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
 
+    isGoogleDocs() && handleFocusinElement();
     !isGoogleDocs() &&
       document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
+
+    if (isWittyEditor()) {
+      const focusedElement = getActiveDocument().activeElement as HTMLElement;
+      focusedElement?.blur();
+      focusedElement?.focus();
+    }
+
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
 
@@ -196,6 +178,25 @@ const ContentScriptApp: React.FC = () => {
       document.removeEventListener('mouseout', handleMouseOut);
     };
   }, []);
+
+  useEffect(() => {
+    if(pinNotificationStored === null || window.location.href.includes(getBaseUrls().dashboard)) return;
+
+    if (!pinNotificationStored) {
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+      ReactDOM.render(
+          <Notification
+            notificationType={'pin'}
+          />,
+        document.body.insertBefore(
+          notificationWrapper,
+          document.body.firstChild
+        )
+      );
+      storeInLocalStorage(StorageKeys.PIN_NOTIFICATION_SHOWED, true);
+    }
+  }, [pinNotificationStored]);
 
   //TODO specify changes type
   //TODO review all cases
@@ -217,22 +218,6 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.ORGANIZATION_CONFIG_HASH:
           setOrganizationConfigHash(changes[item].newValue);
           break;
-        case StorageKeys.PREFERRED_VARIANTS:
-          setReqConfig({
-            ...reqConfigRef.current,
-            preferred_variants: changes[item].newValue.value
-              ? changes[item].newValue.value
-              : changes[item].newValue,
-          });
-          break;
-        case StorageKeys.GERMAN_GENDER_ENDING:
-          setReqConfig({
-            ...reqConfigRef.current,
-            german_gender_ending: changes[item].newValue.value
-              ? changes[item].newValue.value
-              : changes[item].newValue,
-          });
-          break;
         case StorageKeys.ORTHOGRAPHY:
           setReqConfig({
             ...reqConfigRef.current,
@@ -241,26 +226,6 @@ const ContentScriptApp: React.FC = () => {
                   (category) => category !== 'orthography'
                 )
               : [...reqConfigRef.current.disabled_categories, 'orthography'],
-          });
-          break;
-        case StorageKeys.INCLUSIVE:
-          setReqConfig({
-            ...reqConfigRef.current,
-            disabled_categories: changes[item].newValue.value
-              ? reqConfigRef.current.disabled_categories.filter(
-                  (category) => category !== 'inclusive'
-                )
-              : [...reqConfigRef.current.disabled_categories, 'inclusive'],
-          });
-          break;
-        case StorageKeys.STYLE:
-          setReqConfig({
-            ...reqConfigRef.current,
-            disabled_categories: changes[item].newValue.value
-              ? reqConfigRef.current.disabled_categories.filter(
-                  (category) => category !== 'style'
-                )
-              : [...reqConfigRef.current.disabled_categories, 'style'],
           });
           break;
         case StorageKeys.CASING_SITES:
@@ -273,37 +238,6 @@ const ContentScriptApp: React.FC = () => {
               : reqConfigRef.current.disabled_categories.filter(
                   (category) => category !== 'casing'
                 ),
-          });
-          break;
-        case StorageKeys.SHOW_INSPIRATION_ALTERNATIVES:
-          setReqConfig({
-            ...reqConfigRef.current,
-            show_inspiration_alternatives:
-              typeof changes[item].newValue.value != undefined
-                ? changes[item].newValue.value
-                : changes[item].newValue,
-          });
-          break;
-        case StorageKeys.SINGULAR_THEY:
-          setReqConfig({
-            ...reqConfigRef.current,
-            singular_they: changes[item].newValue.value
-              ? changes[item].newValue.value
-              : changes[item].newValue,
-          });
-          break;
-        case StorageKeys.MAXIMUM_IMPORTANCE:
-          setReqConfig({
-            ...reqConfigRef.current,
-            maximum_importance: changes[item].newValue ? 3 : 2,
-          });
-          break;
-        case StorageKeys.GENDERED_ROLES_FORMAT:
-          setReqConfig({
-            ...reqConfigRef.current,
-            gendered_roles_format: changes[item].newValue.value
-              ? changes[item].newValue.value
-              : changes[item].newValue,
           });
           break;
       }
@@ -387,6 +321,7 @@ const ContentScriptApp: React.FC = () => {
           }
           iconType={'passive'}
           isHovered={true}
+          windowScroll={{top: window.scrollY, left: window.scrollX}}
         />,
         hoveredIndicatorContainer
       );
@@ -406,59 +341,69 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleNewInput = () => {
-    //filter out inputs that are the same
-    let filteredInputs = inputsRef.current.filter(
-      (input, index, self) =>
-        index === self.findIndex((t) => t.isEqualNode(input))
-    );
+    browser.storage.local.get().then((result) => {
+      const disabledDomains = [
+        ...(result[StorageKeys.DOMAINS] || []),
+        ...(result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK] || []),
+        ...(result[StorageKeys.ORGANIZATION_DOMAINS]?.list || []),
+      ];
+      const domain = getDomainWithoutSubdomain(window.location.hostname);
+      if (!disabledDomains.includes(domain)) {
+        //filter out inputs that are the same
+        let filteredInputs = inputsRef.current.filter(
+          (input, index, self) =>
+            index === self.findIndex((t) => t.isEqualNode(input))
+        );
 
-    //> 1 prevents issues when starting with empty doc
-    if (isGoogleDocs() && filteredInputs.length > 1) {
-      //remove any input that does not contain <g> as a child
-      filteredInputs = inputsRef.current.filter((input) => {
-        const gElements = input.querySelectorAll('g');
-        return gElements.length > 0;
-      });
-    }
-
-    if (filteredInputs && filteredInputs.length > 0) {
-      log(
-        `Analyzed inputs:`,
-        logTypes.INFO,
-        filteredInputs.length > 0 ? filteredInputs : 'None'
-      );
-      filteredInputs.forEach((input: CustomInputElement) => {
-        if (!input.parentElement) return;
-        const sibling = input.previousElementSibling as HTMLElement;
-        if (!sibling || sibling.tagName !== 'WW-CONTAINER') {
-          const highlightsContainer: HTMLElement =
-            getActiveDocument().createElement(WTags.WW_CONTAINER);
-          highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
-
-          if (isGoogleSheets() && input.classList.contains('cell-input')) {
-            return;
-          }
-          //get first ancestior that is a div
-          const ancestor = input.closest('div');
-
-          if (isNotion()) {
-            //Workaround as Notion blocks insertion of code on a deeper level
-            const notionParentElement =
-              document.querySelector('.notion-frame')?.firstChild;
-            notionParentElement?.insertBefore(
-              highlightsContainer,
-              notionParentElement.firstChild
-            );
-          } else {
-            const parentElement =
-              input.tagName === 'rect' ? ancestor : input.parentElement;
-            parentElement &&
-              parentElement.insertBefore(highlightsContainer, input);
-          }
-          ReactDOM.render(<Input element={input} />, highlightsContainer);
+        //> 1 prevents issues when starting with empty doc
+        if (isGoogleDocs() && filteredInputs.length > 1) {
+          //remove any input that does not contain <g> as a child
+          filteredInputs = inputsRef.current.filter((input) => {
+            const gElements = input.querySelectorAll('g');
+            return gElements.length > 0;
+          });
         }
-      });
-    }
+
+        if (filteredInputs && filteredInputs.length > 0) {
+          log(
+            `Analyzed inputs:`,
+            logTypes.INFO,
+            filteredInputs.length > 0 ? filteredInputs : 'None'
+          );
+          filteredInputs.forEach((input: CustomInputElement) => {
+            if (!input.parentElement) return;
+            const sibling = input.previousElementSibling as HTMLElement;
+            if (!sibling || sibling.tagName !== 'WW-CONTAINER') {
+              const highlightsContainer: HTMLElement =
+                getActiveDocument().createElement(WTags.WW_CONTAINER);
+              highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
+
+              if (isGoogleSheets() && input.classList.contains('cell-input')) {
+                return;
+              }
+              //get first ancestior that is a div
+              const ancestor = input.closest('div');
+
+              if (isNotion()) {
+                //Workaround as Notion blocks insertion of code on a deeper level
+                const notionParentElement =
+                  document.querySelector('.notion-frame')?.firstChild;
+                notionParentElement?.insertBefore(
+                  highlightsContainer,
+                  notionParentElement.firstChild
+                );
+              } else {
+                const parentElement =
+                  input.tagName === 'rect' ? ancestor : input.parentElement;
+                parentElement &&
+                  parentElement.insertBefore(highlightsContainer, input);
+              }
+              ReactDOM.render(<Input element={input} />, highlightsContainer);
+            }
+          });
+        }
+      }
+    });
   };
 
   // Check if tracked inputs exists or are still visible

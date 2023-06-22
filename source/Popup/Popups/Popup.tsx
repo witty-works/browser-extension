@@ -11,7 +11,6 @@ import {
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
-  BaseUrls,
 } from '../../shared/constants';
 import {
   addInactiveBadge,
@@ -72,12 +71,6 @@ const Popup: React.FC<PopupProps> = ({
   >([]);
   const [orthography, setOrthography] = useState<ConfigProperty>(
     defaultConfig.ORTHOGRAPHY
-  );
-  const [inclusiveLanguage, setInclusiveLanguage] = useState<ConfigProperty>(
-    defaultConfig.INCLUSIVE
-  );
-  const [styleCorrections, setStyleCorrections] = useState<ConfigProperty>(
-    defaultConfig.STYLE
   );
   const [updatingDashboardFailed, setUpdatingDashboardFailed] =
     useState<boolean>(false);
@@ -156,10 +149,9 @@ const Popup: React.FC<PopupProps> = ({
           addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
           setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
         }
+        console.log('result[StorageKeys.ORTHOGRAPHY]', result[StorageKeys.ORTHOGRAPHY])
 
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
-        setInclusiveLanguage(result[StorageKeys.INCLUSIVE]);
-        setStyleCorrections(result[StorageKeys.STYLE]);
 
         setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
@@ -228,14 +220,6 @@ const Popup: React.FC<PopupProps> = ({
   }, [orthography]);
 
   useEffect(() => {
-    storeInLocalStorage(StorageKeys.INCLUSIVE, inclusiveLanguage);
-  }, [inclusiveLanguage]);
-
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.STYLE, styleCorrections);
-  }, [styleCorrections]);
-
-  useEffect(() => {
     setToken(accessToken);
     setConfig(accessToken != '' ? true : false);
   }, [accessToken]);
@@ -251,39 +235,13 @@ const Popup: React.FC<PopupProps> = ({
         switch (key) {
           case 'orthography':
             if (
-              authResponse.organization_config[key].status == 'force' ||
+              (authResponse.organization_config[key].status == 'force' && !authResponse.organization_config[key].value && localConfigDiffersFromDashboard) ||
               resetSettings
             ) {
               setOrthography(authResponse.organization_config[key]);
             } else {
               setOrthography({
                 ...orthography,
-                status: authResponse.organization_config[key].status,
-              });
-            }
-            break;
-          case 'inclusive':
-            if (
-              authResponse.organization_config[key].status == 'force' ||
-              resetSettings
-            ) {
-              setInclusiveLanguage(authResponse.organization_config[key]);
-            } else {
-              setInclusiveLanguage({
-                ...inclusiveLanguage,
-                status: authResponse.organization_config[key].status,
-              });
-            }
-            break;
-          case 'style':
-            if (
-              authResponse.organization_config[key].status == 'force' ||
-              resetSettings
-            ) {
-              setStyleCorrections(authResponse.organization_config[key]);
-            } else {
-              setStyleCorrections({
-                ...styleCorrections,
                 status: authResponse.organization_config[key].status,
               });
             }
@@ -298,17 +256,13 @@ const Popup: React.FC<PopupProps> = ({
     if (!authResponseConfig?.organization_config) return;
     if (
       authResponseConfig.organization_config['orthography'].value !=
-        orthography.value ||
-      authResponseConfig.organization_config['inclusive'].value !=
-        inclusiveLanguage.value ||
-      authResponseConfig.organization_config['style'].value !=
-        styleCorrections.value
+        orthography.value
     ) {
       setLocalConfigDiffersFromDashboard(true);
     } else {
       setLocalConfigDiffersFromDashboard(false);
     }
-  }, [authResponseConfig, orthography, inclusiveLanguage, styleCorrections]);
+  }, [authResponseConfig, orthography]);
 
   useEffect(() => {
     DEV_ENV && console.log('authErrorResponse', authErrorResponse);
@@ -387,14 +341,12 @@ const Popup: React.FC<PopupProps> = ({
   }
 
   const handleDomainToUpdate = (domain: any) => {
-    browser.storage.local.get(null).then((result) => {
+    browser.storage.local.get().then((result) => {
       if (
-        result[StorageKeys.ACCESS_TOKEN] &&
-        result[StorageKeys.API_ENDPOINT_KEY]
+        result[StorageKeys.ACCESS_TOKEN] 
       ) {
         fetch(
-          createUrl(
-            BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].dashboard,
+          createUrl(getBaseUrls().dashboard,
             `api/user/language/domains?` +
               new URLSearchParams({
                 domain: domain.domain,
@@ -413,7 +365,6 @@ const Popup: React.FC<PopupProps> = ({
             setTimeout(() => {
               setUpdatingDashboardFailed(false);
             }, 3000);
-
             getNewAccessToken();
           }
         });
@@ -429,7 +380,7 @@ const Popup: React.FC<PopupProps> = ({
         <PopupHeader appId={appId} />
       )}
       <div className='witty-works-ext-section'>
-        {domainExists && (
+        {domainExists && ( 
           <>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
               <div className='witty-works-ext-lato-popup-title'>
@@ -476,46 +427,16 @@ const Popup: React.FC<PopupProps> = ({
                 setOrthography({
                   ...orthography,
                   value:
-                    orthography.status != 'force' || !userIsLoggedIn
-                      ? !orthography.value
-                      : orthography.value,
+                    orthography.status === 'force'  && orthography.value == true && !localConfigDiffersFromDashboard
+                      ? orthography.value
+                      : !orthography.value,
                 });
               }}
               label={t('spellChecking')}
-              locked={orthography.status == 'force'}
+              locked={orthography.status === 'force' && orthography.value == true && !localConfigDiffersFromDashboard}
               userIsLoggedIn={userIsLoggedIn}
             />
-
-            <Toggle
-              on={inclusiveLanguage.value as boolean}
-              handleToggle={() => {
-                setInclusiveLanguage({
-                  ...inclusiveLanguage,
-                  value:
-                    inclusiveLanguage.status != 'force' || !userIsLoggedIn
-                      ? !inclusiveLanguage.value
-                      : inclusiveLanguage.value,
-                });
-              }}
-              label={t('inclusiveTerms')}
-              locked={inclusiveLanguage.status === 'force'}
-              userIsLoggedIn={userIsLoggedIn}
-            />
-            <Toggle
-              on={styleCorrections.value as boolean}
-              handleToggle={() => {
-                setStyleCorrections({
-                  ...styleCorrections,
-                  value:
-                    styleCorrections.status != 'force' || !userIsLoggedIn
-                      ? !styleCorrections.value
-                      : styleCorrections.value,
-                });
-              }}
-              label={t('styleCorrections')}
-              locked={styleCorrections.status == 'force'}
-              userIsLoggedIn={userIsLoggedIn}
-            />
+       
             {localConfigDiffersFromDashboard && (
               <div className='witty-works-ext-wittyworks-container witty-works-ext-left'>
                 <div
