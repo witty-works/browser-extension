@@ -8,6 +8,8 @@ import {
   IAuthResponse,
   ICheckResponse,
   IDashboardLogRequest,
+  ICheckResultLogItems,
+  ICheckResponseResult,
 } from '../types';
 import {
   captureEvent,
@@ -37,7 +39,43 @@ export const useAnalytics = () => {
         response__organizationId: authResponse
           ? authResponse.organization_id
           : undefined,
-        response__name: authResponse ? authResponse.name : undefined,
+        response__plan: authResponse ? authResponse.plan : undefined,
+      };
+
+      captureEvent(requestType, checkLogItems);
+    },
+
+    async checkResultLog(
+      checkResponse: ICheckResponseResult,
+      authResponse: IAuthResponse | null,
+      inputLength: number,
+      requestType: string,
+      isAutoTriggered: boolean,
+      checkLogEventId: string,
+    ) {
+      const checkLogItems: ICheckResultLogItems = {
+        request__id: checkLogEventId,
+        request__type: requestType,
+        request__text__length: inputLength,
+        request__is_auto_triggered: isAutoTriggered,
+        ...getRequestData(),
+        response__data__text: checkResponse.text,
+        response__data__context: checkResponse.context,
+        response__data__category: checkResponse.category,
+        response__data__subcategory: checkResponse.subcategory,
+        response__data__start: checkResponse.start,
+        response__data__end: checkResponse.end,
+        response__data__alternatives: checkResponse.alternatives,
+        response__data__label: checkResponse.label,
+        response__data__explanation__text: checkResponse.explanation.text,
+        response__data__explanation__icon: checkResponse.explanation.icon,
+        response__data__explanation__url: checkResponse.explanation.url,
+        response__data__gravity: checkResponse.gravity,
+        response__language: checkResponse.language,
+        response__limit_reached: checkResponse.limit_reached,
+        response__organizationId: authResponse
+          ? authResponse.organization_id
+          : undefined,
         response__plan: authResponse ? authResponse.plan : undefined,
       };
 
