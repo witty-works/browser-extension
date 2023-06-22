@@ -203,7 +203,6 @@ export interface ICheckLogItems {
   request__is_auto_triggered: boolean;
   response__organizationId?: string;
   response__plan?: string;
-  response__name?: string;
   response__results: ICheckResponseResult[];
   response__language: string;
   response__limit_reached: boolean;
@@ -218,7 +217,6 @@ export interface ICheckResultLogItems {
   request__is_auto_triggered: boolean;
   response__organizationId?: string;
   response__plan?: string;
-  response__name?: string;
   response__data__text: string;
   response__data__context: string;
   response__data__category: string;
