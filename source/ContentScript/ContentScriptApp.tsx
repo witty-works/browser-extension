@@ -28,7 +28,7 @@ import {
   isGoogleDocs,
   isNotion,
   isGoogleSheets,
-  isWittyEditor,
+  isWittyEditor
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -154,19 +154,21 @@ const ContentScriptApp: React.FC = () => {
         sendErrorToSentry(error);
       });
 
-    //fixes initial iframe focus issue
-    if (isGoogleDocs() || isWittyEditor()) {
-      const focusedElement = getActiveDocument().activeElement as HTMLElement;
-      focusedElement?.blur();
-    }
-
     //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
 
+    isGoogleDocs() && handleFocusinElement();
     !isGoogleDocs() &&
       document.addEventListener('focusin', handleFocusinElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
+
+    if (isWittyEditor()) {
+      const focusedElement = getActiveDocument().activeElement as HTMLElement;
+      focusedElement?.blur();
+      focusedElement?.focus();
+    }
+
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
 
