@@ -219,16 +219,18 @@ export interface ICheckResultLogItems {
   response__organizationId?: string;
   response__plan?: string;
   response__name?: string;
-  response__results__text: string;
-  response__results__context: string;
-  response__results__category: string;
-  response__results__subcategory: string;
-  response__results__start: number;
-  response__results__end: number;
-  response__results__alternatives: IAlternatives[];
-  response__results__label: string;
-  response__results__explanation: IExplanation;
-  response__results__gravity: number;
+  response__data__text: string;
+  response__data__context: string;
+  response__data__category: string;
+  response__data__subcategory: string;
+  response__data__start: number;
+  response__data__end: number;
+  response__data__alternatives: IAlternatives[];
+  response__data__label: string;
+  response__data__explanation__text: string;
+  response__data__explanation__icon: string;
+  response__data__explanation__url: string;
+  response__data__gravity: number;
   response__language: string;
   response__limit_reached: boolean;
 }
