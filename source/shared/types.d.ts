@@ -169,7 +169,7 @@ export interface ILogItems {
   response__data__category: string;
   response__data__subcategory: string;
   response__data__context: string;
-  response__data_text: string;
+  response__data__text: string;
   response__data__label: string;
   response__data__explanation__text: string;
   response__data__explanation__icon: string;
