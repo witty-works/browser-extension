@@ -233,11 +233,6 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
         </div>
 
         <div className='witty-works-ext-full-padding'>
-          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-            <div className='witty-works-ext-lato-popover-text'>
-              {t('signUpFor')}
-            </div>
-          </div>
           <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row'>
             <div className='witty-works-ext-margin-right'>
               <Star />
@@ -254,6 +249,14 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
               {t('inclusiveAlternatives')}
             </div>
           </div>
+          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-margin-right'>
+              <Star />
+            </div>
+            <div className='witty-works-ext-lato-popover-text'>
+              {t('teamFeatures')}
+            </div>
+          </div>
         </div>
 
         {!popupsBlocked && (
@@ -268,10 +271,10 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
                 });
               }}
             >
-              {t('signUp')}
+              {t('signIn')}
             </div>
-            <div className='witty-works-ext-lato-popup-text'>
-              {t('haveAccount')}
+            <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
+              {t('dontHaveAccount')}
               &nbsp;
               <span
                 className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
@@ -283,7 +286,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
                   });
                 }}
               >
-                {t('signIn')}
+                {t('signUp')}
               </span>
             </div>
           </div>
