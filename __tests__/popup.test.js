@@ -92,7 +92,7 @@ test.describe('Popup', () => {
     //     expect(await pages[2].url()).toBe('https://www.witty.works/');
     // });
 
-    test('popup contains one toggle with labels when survey response yes', async ({ page, context }) => {
+    test('popup contains two toggles with labels when survey response yes', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await utils.loginPopupPage(page, extensionId, context);
@@ -101,7 +101,7 @@ test.describe('Popup', () => {
 
         await page.waitForSelector('.witty-works-ext-lato-popup-title');
         let toggles = await page.$$('.witty-works-ext-toggle-encloser');
-        expect(toggles.length).toBe(1) //only one toggle on chorome popup page (no valid url)
+        expect(toggles.length).toBe(2);
     });
 
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {

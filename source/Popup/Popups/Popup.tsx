@@ -11,6 +11,7 @@ import {
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
+  TESTING,
 } from '../../shared/constants';
 import {
   addInactiveBadge,
@@ -61,6 +62,7 @@ const Popup: React.FC<PopupProps> = ({
   domainsConfirmedToWork,
   isLocked,
 }: PopupProps) => {
+  if (TESTING) domain = 'platformsh.site';
   const { t } = useTranslation([namespaces.pages.popup]);
   const [enabled, setEnabled] = useState<EnableWittyToggle>({
     enabled: true,
@@ -149,7 +151,6 @@ const Popup: React.FC<PopupProps> = ({
           addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
           setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
         }
-        console.log('result[StorageKeys.ORTHOGRAPHY]', result[StorageKeys.ORTHOGRAPHY])
 
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
 
@@ -414,7 +415,7 @@ const Popup: React.FC<PopupProps> = ({
           </>
         )}
 
-        {enabled.enabled && !showSurvey && (
+        {enabled.enabled && (!showSurvey || TESTING) && (
           <div className='witty-works-ext-margin-top'>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
               <div className='witty-works-ext-lato-popup-title'>
