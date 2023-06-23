@@ -229,6 +229,23 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     if (authResponse) {
       updateConfig(authResponse);
+
+      if (
+        authResponse.domains.list.includes(domain) ||
+        (authResponse.organization_domains &&
+          authResponse.organization_domains.list.includes(domain))
+      ) {
+        setEnabled({
+          enabled: false,
+          updateDashboard: false,
+        });
+      } else {
+        setEnabled({
+          enabled: true,
+          updateDashboard: false,
+        });
+      }
+      
       setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
@@ -279,8 +296,7 @@ const Popup: React.FC<PopupProps> = ({
   }, [domainsDisabledLocally.length]);
 
   const setWittyIcon = (state: boolean) => {
-    removeBadge();
-    !state && addInactiveBadge();
+    state ? removeBadge() : addInactiveBadge();
   };
 
   const handleEnableToggle = () => {
