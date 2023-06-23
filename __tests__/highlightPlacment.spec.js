@@ -115,7 +115,7 @@ test.describe('Highlights', () => {
         }
         
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
-        await page.waitForLoadState('networkidle')
+        await page.waitForTimeout(apiWaitTime); 
         await page.waitForSelector('#example-1');
         await page.click('#example-1');
         await page.click('.fr-element');
