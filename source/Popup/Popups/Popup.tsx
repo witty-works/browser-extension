@@ -229,11 +229,19 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     if (authResponse) {
       updateConfig(authResponse);
-
       if (
-        authResponse.domains.list.includes(domain) ||
+        (authResponse.domains &&
+        authResponse.domains.type === 'deny' &&
+        authResponse.domains.list.includes(domain)) ||
+        (authResponse.domains &&
+          authResponse.domains.type === 'allow' &&
+          !authResponse.domains.list.includes(domain)) ||
         (authResponse.organization_domains &&
-          authResponse.organization_domains.list.includes(domain))
+          authResponse.organization_domains.type === 'deny' &&
+          authResponse.organization_domains.list.includes(domain)) ||
+        (authResponse.organization_domains &&
+          authResponse.organization_domains.type === 'allow' &&
+          !authResponse.organization_domains.list.includes(domain))
       ) {
         setEnabled({
           enabled: false,
