@@ -18,7 +18,8 @@
     "build:chrome": "cross-env NODE_ENV=production cross-env TARGET_BROWSER=chrome webpack",
     "build:firefox": "cross-env NODE_ENV=production cross-env TARGET_BROWSER=firefox webpack",
     "build:opera": "cross-env NODE_ENV=production cross-env TARGET_BROWSER=opera webpack",
-    "build": "yarn run build:chrome && yarn run build:firefox && yarn run build:opera",
+    "sentry:sourcemaps": "cross-env NODE_ENV=production cross-env UPLOAD_SOURCEMAPS=true TARGET_BROWSER=chrome webpack",
+    "build": "yarn run build:chrome && yarn run build:firefox",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "test": "npx playwright test"
@@ -28,6 +29,7 @@
     "@floating-ui/react-dom": "^0.4.3",
     "@sentry/react": "^7.7.0",
     "@sentry/tracing": "^7.7.0",
+    "@sentry/webpack-plugin": "^2.3.0",
     "@types/jest": "^26.0.23",
     "@types/lodash.debounce": "^4.0.6",
     "@types/resize-observer-browser": "^0.1.6",

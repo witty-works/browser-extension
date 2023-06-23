@@ -48,7 +48,7 @@ Sentry.init({
   dsn: 'https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342',
   release: 'witty@' + wittyVersion,
   integrations: [new BrowserTracing()],
-  sampleRate: 0.0,
+  sampleRate: 0.001,
   tracesSampleRate: 0.005,
 });
 
