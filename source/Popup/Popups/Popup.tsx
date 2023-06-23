@@ -41,6 +41,7 @@ import ThinkingEmoji from '../../assets/icons/popup/thinkingEmoji.svg';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
+import { updateConfig } from '../../ContentScript/utils';
 
 interface PopupProps {
   appId: string;
@@ -226,6 +227,7 @@ const Popup: React.FC<PopupProps> = ({
 
   useEffect(() => {
     if (authResponse) {
+      updateConfig(authResponse);
       setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
