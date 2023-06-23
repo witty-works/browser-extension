@@ -148,10 +148,11 @@ exports.enableAllToggles = async function (page) {
 }
 
 exports.unlockAllToggles = async function (page) {
-    // await page.waitForLoadState('networkidle')
     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
 
-    await page.waitForLoadState('networkidle')
+    // await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(5000);
+
 
     if (await page.$('[title="Quit Tour"]')) {
         await page.click('[title="Quit Tour"]');
