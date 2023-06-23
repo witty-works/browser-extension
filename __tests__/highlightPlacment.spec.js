@@ -84,7 +84,7 @@ test.describe('Highlights', () => {
         await page.click('#example-1');
         await page.click('.fr-element');
 
-        await page.waitForTimeout(10000); //wait for api to respond with highlights
+        await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
 
         await page.locator('.fr-element').screenshot().then(async (screenshot) => {
             //screenshot accuracy can be adjusted by: maxDiffPixels: 36000, maxDiffPixelRatio: 0.05
