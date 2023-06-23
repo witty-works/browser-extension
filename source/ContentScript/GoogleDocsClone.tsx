@@ -16,12 +16,23 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   previousElement,
   updateClone,
 }: GoogleDocsCloneProps) => {
-
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
   const divs = [] as JSX.Element[];
   const pages = element.querySelectorAll('.kix-page-paginated');
+
+  //find index of child of pages that has a grandchild containing g
+  const childNodeIndex = Array.from(pages).map((page) =>
+    Array.from(page.childNodes).findIndex(
+      (childNode) =>
+        childNode.childNodes[0] &&
+        childNode.childNodes[0].childNodes[0] &&
+        childNode.childNodes[0].childNodes[0].nodeName === 'g'
+    )
+  );
+
+  //get 3d child of each page
   const pageElementsContainingSvg = Array.from(pages).map(
-    (page) => page.childNodes[1]
+    (page) => page.childNodes[childNodeIndex[0]]
   );
 
   for (const pageElementContainingSvg of pageElementsContainingSvg) {
@@ -67,6 +78,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
           element.parentElement,
           element
         );
+
         elementRect &&
           elementStylesFont &&
           divs.push(
@@ -128,7 +140,6 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
             previousElement.position.left !== elementRects.left ||
             previousElement.position.width !== elementRects.width ||
             previousElement.position.height !== elementRects.height;
-
           if (isDifferent || positionChanged) {
             cloneRef.current = ref;
             updateClone(ref);

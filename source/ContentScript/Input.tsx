@@ -1567,18 +1567,31 @@ const Input: React.FC<{
         };
         element.dispatchEvent(new MouseEvent('mousedown', selectedTextEnd)),
           element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd));
+
         //if empty insert space
-        const insertAlternative = new ClipboardEvent('paste', {
-          clipboardData: new DataTransfer(),
-          cancelable: true,
-          bubbles: true,
-        });
-        if (!insertAlternative.clipboardData) return;
-        insertAlternative.clipboardData.setData(
-          'text/plain',
-          alternative == ' ' ? '   ' : alternative
-        );
-        googleDocsEventTarget.dispatchEvent(insertAlternative);
+        const replacementText = alternative == ' ' ? '   ' : alternative;
+        const replaceWithPaste = function(alternative: string) {
+          const evt = new ClipboardEvent('paste', {
+            clipboardData: new DataTransfer(),
+            cancelable: true,
+            bubbles: true,
+          });
+          if (!evt.clipboardData) return;
+          evt.clipboardData.items.add(alternative, 'text/plain');
+          const eventTarget = (document.querySelector('.docs-texteventtarget-iframe') as any)
+              ?.contentDocument.activeElement;
+          eventTarget && eventTarget.dispatchEvent(evt);
+        };
+        if (navigator.userAgent.match(/firefox|fxios/i)) {
+          const ownerDocument = element.ownerDocument;
+          const script = ownerDocument.createElement('script');
+          script.innerHTML = `(${replaceWithPaste})(${JSON.stringify(replacementText)})`;
+          ownerDocument.head.appendChild(script);
+          script.parentNode ? script.parentNode.removeChild(script) : script.remove();
+        } else {
+          replaceWithPaste(replacementText);
+        }
+
         resetPopover();
       } else {
         getActiveDocument().execCommand('insertText', false, alternative);
