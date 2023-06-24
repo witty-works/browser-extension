@@ -42,6 +42,7 @@ import ThinkingEmoji from '../../assets/icons/popup/thinkingEmoji.svg';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
+import { updateConfig } from '../../ContentScript/utils';
 
 interface PopupProps {
   appId: string;
@@ -227,6 +228,32 @@ const Popup: React.FC<PopupProps> = ({
 
   useEffect(() => {
     if (authResponse) {
+      updateConfig(authResponse);
+      if (
+        (authResponse.domains &&
+        authResponse.domains.type === 'deny' &&
+        authResponse.domains.list.includes(domain)) ||
+        (authResponse.domains &&
+          authResponse.domains.type === 'allow' &&
+          !authResponse.domains.list.includes(domain)) ||
+        (authResponse.organization_domains &&
+          authResponse.organization_domains.type === 'deny' &&
+          authResponse.organization_domains.list.includes(domain)) ||
+        (authResponse.organization_domains &&
+          authResponse.organization_domains.type === 'allow' &&
+          !authResponse.organization_domains.list.includes(domain))
+      ) {
+        setEnabled({
+          enabled: false,
+          updateDashboard: false,
+        });
+      } else {
+        setEnabled({
+          enabled: true,
+          updateDashboard: false,
+        });
+      }
+      
       setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
@@ -277,8 +304,7 @@ const Popup: React.FC<PopupProps> = ({
   }, [domainsDisabledLocally.length]);
 
   const setWittyIcon = (state: boolean) => {
-    removeBadge();
-    !state && addInactiveBadge();
+    state ? removeBadge() : addInactiveBadge();
   };
 
   const handleEnableToggle = () => {

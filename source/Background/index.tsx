@@ -124,7 +124,7 @@ const setSettings = () => {
 
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-    if (tabs.length != 0 && tabs[0].url) {
+    if (tabs.length != 0, tabs[0].url) {
       const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
       updateLabelChrome(domain);
     } else if (

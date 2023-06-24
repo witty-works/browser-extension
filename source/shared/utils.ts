@@ -177,7 +177,7 @@ export const updateLabelChrome = (domain: string) => {
         result[StorageKeys.ORGANIZATION_DOMAINS].list &&
         !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
-    const isDisabled = result[StorageKeys.DOMAINS].includes(domain);
+    const isDisabled = result[StorageKeys.DOMAINS].length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
 
     const domainConfirmedToNotWork = result[
       StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK
