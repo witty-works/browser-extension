@@ -89,8 +89,8 @@ const Input: React.FC<{
   const [forceHighlightUpdate, setForceHighlightUpdate] =
     useState<boolean>(false);
   const [windowScroll, setWindowScroll] = useState<Position>({
-    top: 0,
-    left: 0,
+    top:  window.scrollY,
+    left: window.scrollX,
   } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
 
@@ -127,7 +127,11 @@ const Input: React.FC<{
   const [, , abortBackgroundWorkerRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
-  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true);
+  const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
+    IAlert[]
+  >([]);
+  const [, , checkLogEventIdRef] = useStateRef<string>('');
+  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -604,6 +608,7 @@ const Input: React.FC<{
         )
       );
       unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
+      setUnchangedAlertsTextarea(unchangedAlerts[0]);
       handleTextAndIcon([nextText]);
     } else {
       !isGoogleDocs() && setAlerts([]);
@@ -678,7 +683,6 @@ const Input: React.FC<{
       return nodesWhithinMaxCharLength;
     }
   };
-  
 
   const handleTextAndIcon = (nodes: any) => {
     const isTextAreaCheck = isTextArea(element);
@@ -968,10 +972,7 @@ const Input: React.FC<{
         caret.position,
         cloneRef.current?.childNodes[caret.position]
       );
-      if (textWithinMaxCharLength)
-        handleTextAndIcon(
-          textWithinMaxCharLength
-        );
+      textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
     } else if (!isGoogleDocs()) {
       let clickedNode = caret.element;
 
@@ -980,10 +981,7 @@ const Input: React.FC<{
           textDividedByNodes.indexOf(clickedNode),
           caret.element
         );
-        if (textWithinMaxCharLength)
-          handleTextAndIcon( 
-            textWithinMaxCharLength
-          );
+        textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
       }
     }
   };
@@ -1100,13 +1098,16 @@ const Input: React.FC<{
       : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
 
     setActiveIcon('active');
-
+    checkLogEventIdRef.current = Math.random().toString(36).substring(2, 15);
     analytics.checkLog(
       checkEndpointResponse,
       authResponse,
-      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0
+      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
+      'check',
+      backgroundWorkerStarted,
+      checkLogEventIdRef.current
     );
-
+  
     log(
       `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
       logTypes.INFO,
@@ -1282,6 +1283,7 @@ const Input: React.FC<{
       );
       setTotalAlerts(totalAlerts);
       setNodesWithAlerts(mergedNodesWithAlerts);
+      logNewCheckResponses(nodesWithAlertsRef.current);
 
       prevCheckedNodesRef.current = [...prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
         const nodeIndex = nodesStorageRef.current.findIndex((node: INodes) => node.index === prevCheckedNode.index);
@@ -1298,6 +1300,50 @@ const Input: React.FC<{
     selectedAlertIndex,
   ]);
 
+  const logNewCheckResponses = (newNodes: INodeWithAlerts[]) => {
+    let newResults;
+  
+    if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
+      newResults = checkEndpointResponse.results.filter((alert) => {
+        return !unchangedAlertsTextarea.map((alert) => alert.startOffset).includes(alert.start);
+      });  
+    } else {
+      newResults = newNodes.filter((nodeWithAlerts) => {
+        return nodesStorageRef.current.map((node) => node.rawNode).includes(nodeWithAlerts.node);
+      }).map((nodeWithAlerts) => {
+        const mergedAlerts = nodeWithAlerts.alerts.reduce((mergedAlerts, alert) => {
+          return {
+            ...mergedAlerts,
+            ...alert.data,
+          };
+        }, {}); 
+        return mergedAlerts;
+      });
+    }
+
+    if (newResults.length === 0) return;
+
+    const mergedCheckEndpointResponse = checkEndpointResponse ? {
+      ...checkEndpointResponse,
+      results: newResults as any,
+    } : undefined;
+  
+    if (mergedCheckEndpointResponse) {
+      const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
+
+      mergedCheckEndpointResponse.results.forEach((result: any) => {
+        analytics.checkResultLog(
+          result,
+          authResponse,
+          textContentLength,
+          'check_result',
+          backgroundWorkerStarted,
+          checkLogEventIdRef.current,
+        )
+      });
+    } 
+  };
+  
   useEffect(() => {
     if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
       const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
@@ -1521,18 +1567,31 @@ const Input: React.FC<{
         };
         element.dispatchEvent(new MouseEvent('mousedown', selectedTextEnd)),
           element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd));
+
         //if empty insert space
-        const insertAlternative = new ClipboardEvent('paste', {
-          clipboardData: new DataTransfer(),
-          cancelable: true,
-          bubbles: true,
-        });
-        if (!insertAlternative.clipboardData) return;
-        insertAlternative.clipboardData.setData(
-          'text/plain',
-          alternative == ' ' ? '   ' : alternative
-        );
-        googleDocsEventTarget.dispatchEvent(insertAlternative);
+        const replacementText = alternative == ' ' ? '   ' : alternative;
+        const replaceWithPaste = function(alternative: string) {
+          const evt = new ClipboardEvent('paste', {
+            clipboardData: new DataTransfer(),
+            cancelable: true,
+            bubbles: true,
+          });
+          if (!evt.clipboardData) return;
+          evt.clipboardData.items.add(alternative, 'text/plain');
+          const eventTarget = (document.querySelector('.docs-texteventtarget-iframe') as any)
+              ?.contentDocument.activeElement;
+          eventTarget && eventTarget.dispatchEvent(evt);
+        };
+        if (navigator.userAgent.match(/firefox|fxios/i)) {
+          const ownerDocument = element.ownerDocument;
+          const script = ownerDocument.createElement('script');
+          script.innerHTML = `(${replaceWithPaste})(${JSON.stringify(replacementText)})`;
+          ownerDocument.head.appendChild(script);
+          script.parentNode ? script.parentNode.removeChild(script) : script.remove();
+        } else {
+          replaceWithPaste(replacementText);
+        }
+
         resetPopover();
       } else {
         getActiveDocument().execCommand('insertText', false, alternative);
@@ -1710,6 +1769,7 @@ const Input: React.FC<{
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
+              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
@@ -1726,6 +1786,7 @@ const Input: React.FC<{
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
+              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
