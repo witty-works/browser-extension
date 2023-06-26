@@ -17,13 +17,24 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   updateClone,
 }: GoogleDocsCloneProps) => {
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const divs = [];
+  const divs = [] as JSX.Element[];
   const pages = element.querySelectorAll('.kix-page-paginated');
+
+  //find index of child of pages that has a grandchild containing g
+  const childNodeIndex = Array.from(pages).map((page) =>
+    Array.from(page.childNodes).findIndex(
+      (childNode) =>
+        childNode.childNodes[0] &&
+        childNode.childNodes[0].childNodes[0] &&
+        childNode.childNodes[0].childNodes[0].nodeName === 'g'
+    )
+  );
 
   //get 3d child of each page
   const pageElementsContainingSvg = Array.from(pages).map(
-    (page) => page.childNodes[1]
+    (page) => page.childNodes[childNodeIndex[0]]
   );
+
   for (const pageElementContainingSvg of pageElementsContainingSvg) {
     const innerElement = pageElementContainingSvg
       .childNodes[0] as CustomInputElement;
@@ -67,11 +78,12 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
           element.parentElement,
           element
         );
+
         elementRect &&
           elementStylesFont &&
           divs.push(
-            <div
-              key={`${areaLabel}-${elementRect.top}-${elementRect.left}`}
+            <div 
+              // key={`${areaLabel?.slice(0, 10)}-${elementRect.width}-${elementRect.top}`} //LEFT OUT ON PURPOSE TO AVOID RE-RENDERING
               style={
                 {
                   visibility: 'hidden',
@@ -110,6 +122,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
       }
     }
   }
+
   return (
     <div
       ref={(ref) => {
@@ -117,7 +130,6 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
           const refAsArrayOfText = Array.from(ref.childNodes).map(
             (node) => node.textContent
           );
-          //update clone only if text or position changed
           const isDifferent = refAsArrayOfText.some(
             (text, index) => text !== previousElement.text[index]
           );
@@ -128,7 +140,6 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
             previousElement.position.left !== elementRects.left ||
             previousElement.position.width !== elementRects.width ||
             previousElement.position.height !== elementRects.height;
-
           if (isDifferent || positionChanged) {
             cloneRef.current = ref;
             updateClone(ref);

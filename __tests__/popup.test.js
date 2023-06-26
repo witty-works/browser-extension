@@ -40,6 +40,35 @@ test.setTimeout(120000);
 
 
 test.describe('Popup', () => {
+    test('locks made by administrators are shown', async ({ page, context }) => {
+        await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
+        const extensionId = await utils.getExtensionId(page);
+        await utils.loginPopupPage(page, extensionId, context);
+
+        await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
+
+        const forceSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
+        const backgroundColorForceSpelling = await forceSpelling.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('background-color');
+        });
+        if (backgroundColorForceSpelling === 'rgb(204, 204, 204)') {
+            await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
+        }
+        await page.waitForTimeout(2000);
+
+
+        await page.click('.py-10:nth-child(3) .button:nth-child(1)');
+        await page.click('.py-10:nth-child(3) .w-full');
+        await page.waitForTimeout(2000);
+
+        await page.goto(`chrome-extension://${extensionId}/popup.html`);
+        await page.waitForSelector('.witty-works-ext-lato-popup-title');
+
+        await page.waitForTimeout(2000);
+        const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
+        expect(grammarToggle).toBe(true);
+    });
+
     test('login popup', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
@@ -63,7 +92,7 @@ test.describe('Popup', () => {
     //     expect(await pages[2].url()).toBe('https://www.witty.works/');
     // });
 
-    test('popup contains one toggle with labels when survey response yes', async ({ page, context }) => {
+    test('popup contains two toggles with labels when survey response yes', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
         await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
         await utils.loginPopupPage(page, extensionId, context);
@@ -72,7 +101,7 @@ test.describe('Popup', () => {
 
         await page.waitForSelector('.witty-works-ext-lato-popup-title');
         let toggles = await page.$$('.witty-works-ext-toggle-encloser');
-        expect(toggles.length).toBe(1);
+        expect(toggles.length).toBe(2);
     });
 
     test('popup has setting icons wich leads to dashboard', async ({ page, context }) => {
@@ -85,9 +114,8 @@ test.describe('Popup', () => {
         await page.waitForLoadState('networkidle')
         await page.waitForTimeout(5000);
         let pages = await context.pages();
-        expect(await pages[2].url()).toBe('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/user/language/language-settings');
+        expect(await pages[2].url()).toBe('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/user/language/customize-witty');
     });
-
 
     test('clicking unlocked global toggle changes background color', async ({ page, context }) => {
         const extensionId = await utils.getExtensionId(page);
@@ -102,42 +130,4 @@ test.describe('Popup', () => {
         const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', false);
         expect(grammarToggle).toBe(true);
     });
-
-
-    //ENABLE AGAIN ONCE NLP API IS RELEASED
-    // test('locks made by administrators are show', async ({ page, context }) => {
-    //     await utils.loginDashboard(premiumUserEmail, premiumUserPassword, page);
-    //     await utils.unlockAllToggles(page);
-    //     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/team/language/language-settings');
-
-    //     //enable toggle -> lock is only showed when enabled and forced  
-    //     const enableSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section .slider');
-    //     const backgroundColorEnableSpellingToggle = await enableSpelling.evaluate((el) => {
-    //         return window.getComputedStyle(el).getPropertyValue('background-color');
-    //     });
-    //     if (backgroundColorEnableSpellingToggle === 'rgb(204, 204, 204)') {
-    //         await page.click('.py-10:nth-child(3) .guidelines-form-section .slider');
-    //     }
-
-    //     await page.waitForTimeout(2000);
-
-    //     const forceSpelling = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
-    //     const backgroundColorForceSpelling = await forceSpelling.evaluate((el) => {
-    //         return window.getComputedStyle(el).getPropertyValue('background-color');
-    //     });
-    //     if (backgroundColorForceSpelling === 'rgb(204, 204, 204)') {
-    //         await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
-    //     }
-    //     await page.waitForTimeout(2000);
-
-    //     await page.click('.py-10:nth-child(3) .button');
-
-    //     const extensionId = await utils.getExtensionId(page);
-    //     await utils.loginPopupPage(page, extensionId, context);
-
-    //     await page.goto(`chrome-extension://${extensionId}/popup.html`);
-    //     await page.waitForSelector('.witty-works-ext-lato-popup-title');
-    //     const grammarToggle = await utils.evaluateToggleBackgroundBeforeAndAfterClick(page, '#toggle-encloser-check-grammar---spelling', '#toggle-button-check-grammar---spelling', true);
-    //     expect(grammarToggle).toBe(true);
-    // });
 })

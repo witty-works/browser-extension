@@ -3,7 +3,7 @@ import { useAnalytics } from './ApiServices/useAnalytics';
 import { DEV_ENV, StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import { requiresRectRecalculation } from './DOMutils';
+import { isGoogleDocs, requiresRectRecalculation } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 import { getToken } from './ApiServices/requests';
 
@@ -177,7 +177,7 @@ export const updateLabelChrome = (domain: string) => {
         result[StorageKeys.ORGANIZATION_DOMAINS].list &&
         !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
-    const isDisabled = result[StorageKeys.DOMAINS].includes(domain);
+    const isDisabled = result[StorageKeys.DOMAINS].length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
 
     const domainConfirmedToNotWork = result[
       StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK
@@ -227,7 +227,7 @@ export const getCorrectedPosition = (
 
   return parentRect && !isObjectEmpty(parentRect)
     ? {
-        top: navigator.userAgent.match(/firefox|fxios/i)
+        top: navigator.userAgent.match(/firefox|fxios/i) && !isGoogleDocs()
           ? 0
           : elementRect.top - parentRect.top,
         left: elementRect.left - parentRect.left,

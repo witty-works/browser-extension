@@ -11,6 +11,7 @@ import {
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
+  TESTING,
 } from '../../shared/constants';
 import {
   addInactiveBadge,
@@ -41,6 +42,7 @@ import ThinkingEmoji from '../../assets/icons/popup/thinkingEmoji.svg';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
+import { updateConfig } from '../../ContentScript/utils';
 
 interface PopupProps {
   appId: string;
@@ -61,6 +63,7 @@ const Popup: React.FC<PopupProps> = ({
   domainsConfirmedToWork,
   isLocked,
 }: PopupProps) => {
+  if (TESTING) domain = 'platformsh.site';
   const { t } = useTranslation([namespaces.pages.popup]);
   const [enabled, setEnabled] = useState<EnableWittyToggle>({
     enabled: true,
@@ -149,7 +152,6 @@ const Popup: React.FC<PopupProps> = ({
           addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
           setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
         }
-        console.log('result[StorageKeys.ORTHOGRAPHY]', result[StorageKeys.ORTHOGRAPHY])
 
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
 
@@ -226,6 +228,32 @@ const Popup: React.FC<PopupProps> = ({
 
   useEffect(() => {
     if (authResponse) {
+      updateConfig(authResponse);
+      if (
+        (authResponse.domains &&
+        authResponse.domains.type === 'deny' &&
+        authResponse.domains.list.includes(domain)) ||
+        (authResponse.domains &&
+          authResponse.domains.type === 'allow' &&
+          !authResponse.domains.list.includes(domain)) ||
+        (authResponse.organization_domains &&
+          authResponse.organization_domains.type === 'deny' &&
+          authResponse.organization_domains.list.includes(domain)) ||
+        (authResponse.organization_domains &&
+          authResponse.organization_domains.type === 'allow' &&
+          !authResponse.organization_domains.list.includes(domain))
+      ) {
+        setEnabled({
+          enabled: false,
+          updateDashboard: false,
+        });
+      } else {
+        setEnabled({
+          enabled: true,
+          updateDashboard: false,
+        });
+      }
+      
       setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
@@ -276,8 +304,7 @@ const Popup: React.FC<PopupProps> = ({
   }, [domainsDisabledLocally.length]);
 
   const setWittyIcon = (state: boolean) => {
-    removeBadge();
-    !state && addInactiveBadge();
+    state ? removeBadge() : addInactiveBadge();
   };
 
   const handleEnableToggle = () => {
@@ -414,7 +441,7 @@ const Popup: React.FC<PopupProps> = ({
           </>
         )}
 
-        {enabled.enabled && !showSurvey && (
+        {enabled.enabled && (!showSurvey || TESTING) && (
           <div className='witty-works-ext-margin-top'>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
               <div className='witty-works-ext-lato-popup-title'>

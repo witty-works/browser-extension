@@ -21,7 +21,7 @@ import {
   StorageKeys,
 } from '../../shared/constants';
 import { browser } from 'webextension-polyfill-ts';
-import { getBaseUrls, setBaseUrls } from '../../shared/ApiServices/requests';
+import { setBaseUrls } from '../../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
@@ -67,30 +67,11 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 
   const logIn = async (urls: string) => {
     const optionsPageUrl = browser.extension.getURL('options.html');
-
-    browser.storage.local.get(null).then((result) => {
-      if (!result[StorageKeys.REDIRECT_URL_LOGIN]) {
-        const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=https://www.witty.works/try-out-witty`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        } else {
-          hide();
-        }
-      } else {
-        const url = `${
-          BaseUrls[urls].dashboard
-        }browser-login?redirect_uri=${optionsPageUrl}?target=${
-          getBaseUrls().dashboard
-        }`;
-        if (!window.open(url, '_blank')) {
-          setPopupsBlocked(true);
-          setLoginUrl(url);
-        } else {
-          hide();
-        }
-      }
-    });
+    const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
+    if (!window.open(url, '_blank')) {
+      setPopupsBlocked(true);
+      setLoginUrl(url);
+    }
   };
 
   useEffect(() => {
@@ -252,11 +233,6 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
         </div>
 
         <div className='witty-works-ext-full-padding'>
-          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'>
-            <div className='witty-works-ext-lato-popover-text'>
-              {t('signUpFor')}
-            </div>
-          </div>
           <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row'>
             <div className='witty-works-ext-margin-right'>
               <Star />
@@ -273,6 +249,14 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
               {t('inclusiveAlternatives')}
             </div>
           </div>
+          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+            <div className='witty-works-ext-margin-right'>
+              <Star />
+            </div>
+            <div className='witty-works-ext-lato-popover-text'>
+              {t('teamFeatures')}
+            </div>
+          </div>
         </div>
 
         {!popupsBlocked && (
@@ -287,10 +271,10 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
                 });
               }}
             >
-              {t('signUp')}
+              {t('signIn')}
             </div>
-            <div className='witty-works-ext-lato-popup-text'>
-              {t('haveAccount')}
+            <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
+              {t('dontHaveAccount')}
               &nbsp;
               <span
                 className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
@@ -302,7 +286,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
                   });
                 }}
               >
-                {t('signIn')}
+                {t('signUp')}
               </span>
             </div>
           </div>
