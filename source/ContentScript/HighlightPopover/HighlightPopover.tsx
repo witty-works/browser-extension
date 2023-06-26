@@ -18,13 +18,18 @@ import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
 
 import './HighlightPopover.scss';
-import { getColor } from '../../shared/constants';
+import { StorageKeys, getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
 import { iframePositionRecquired, isTextArea } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollParent } from '../utils';
-import { getScrollableParentClosestToElement } from '../../shared/utils';
+import { getScrollableParentClosestToElement, storeInLocalStorage } from '../../shared/utils';
+import { browser } from 'webextension-polyfill-ts';
+import ReactDOM from 'react-dom';
+import Notification from '../../Notifications/Notification';
+import defaultConfig from '../../witty.config.json';
+
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -178,6 +183,30 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const clickAlternative = (alternative: string, category: string) => {
     //Log the clicked alternative
     analytics.alternativeLog(data.alert, alternative);
+
+    const numberOfAlternativesAcceptedToTriggerNotification = defaultConfig.NUMBER_OF_ALTERNATIVES_ACCEPTED_TO_TRIGGER_NOTIFICATION;
+    browser.storage.local.get(null).then((result) => {
+      if(!result[StorageKeys.SALES_DEMO_FEATURE_FLAG]) {
+        storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0); //in case we need to reset the counter
+      } else if (!result[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] && result[StorageKeys.SALES_DEMO_FEATURE_FLAG]) {
+        storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 1);
+      } else if (result[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1 === numberOfAlternativesAcceptedToTriggerNotification && result[StorageKeys.SALES_DEMO_FEATURE_FLAG]) {
+        const notificationWrapper = document.createElement('div');
+        notificationWrapper.id = 'ww-notification';
+        ReactDOM.render(
+            <Notification
+              notificationType={'salesDemo'}
+            />,
+          document.body.insertBefore(
+            notificationWrapper,
+            document.body.firstChild
+          )
+        );
+      } else {
+        storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, result[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1);
+      }
+    })
+
     updateTextWithAlternative(alternative, category);
   };
 

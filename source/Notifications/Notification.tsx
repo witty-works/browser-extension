@@ -14,6 +14,8 @@ const Notification: React.FC<NotificationProps> = ({notificationType}: Notificat
 
   let notificationHeadline = '';
   let notificationText = '';
+  let notificationButton = '';
+  let notificationLink = '';
 
   switch (notificationType) {
     case 'pin':
@@ -25,6 +27,14 @@ const Notification: React.FC<NotificationProps> = ({notificationType}: Notificat
       notificationText = i18n.language.split('-')[0] === 'en' ? 
       `With your current pricing plan, Witty only checks a limited text length. <a class="witty-works-link" href="https://dashboard.witty.works/team/subscription">Upgrade</a> now to <a class="witty-works-link" href="https://www.witty.works/pricing">Witty Teams</a>. You get:<ul><li>Unlimited text length</li><li>Unlimited analytics</li><li>Invite more team members</li></ul>` :
       `Mit Ihrem aktuellen Preisplan überprüft Witty nur eine begrenzte Textlänge. <a class="witty-works-link" href="https://dashboard.witty.works/team/subscription">Wechseln Sie</a> jetzt auf <a class="witty-works-link" href="https://www.witty.works/pricing">Witty Teams</a>. Vorteile:<ul><li>Unbegrenzte Textlänge</li><li>Unbegrenzte Statistiken</li><li>Mehr Teammitglieder einladen</li></ul>`
+      notificationButton = t('subscriptionButton');
+      notificationLink = getBaseUrls().dashboard + 'team/subscription';
+      break;
+    case 'salesDemo':
+      notificationHeadline = t('salesDemoNotificationHeadline');
+      notificationText = t('salesDemoNotificationText');
+      notificationButton = t('salesDemoNotificationButton');
+      notificationLink = 'https://www.witty.works/demo';
       break;
   }
 
@@ -37,11 +47,11 @@ const Notification: React.FC<NotificationProps> = ({notificationType}: Notificat
       <div className="witty-works-ext-container-row">
         {notificationType == 'pin' && <WittyIcon className="witty-works-notification-icon"/>}
         <div className="witty-works-notification-text"><div dangerouslySetInnerHTML={{__html: notificationText}}></div>
-        {notificationType == 'totalMaxCharLengthReached' && 
+        {notificationButton && 
           <div className='witty-works-ext-left'>
             <div className='witty-works-ext-button witty-works-ext-primary-button-red'
-              onClick={() => { window.open(getBaseUrls().dashboard + 'team/subscription', '_blank'); }}>
-              {t('subscriptionButton')}
+              onClick={() => { window.open(notificationLink, '_blank'); }}>
+              {notificationButton}
             </div>
           </div>
         }

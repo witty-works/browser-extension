@@ -110,6 +110,10 @@ export const de = {
     pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
     totalMaxCharLengthReachedNotificationHeadline: 'You have reached the limit',
     subscriptionButton: 'Upgrade',
+    salesDemoNotificationHeadline: 'Learn more about Witty DE',
+    salesDemoNotificationText:
+      'Book a sales demo! Some bla bla text here DE',
+    salesDemoNotificationButton: 'Book',
   },
 };
 
@@ -229,6 +233,10 @@ export const en = {
     pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
     totalMaxCharLengthReachedNotificationHeadline: 'You have reached the limit',
     subscriptionButton: 'Upgrade',
+    salesDemoNotificationHeadline: 'Learn more about Witty',
+    salesDemoNotificationText:
+      'Book a sales demo! Some bla bla text here',
+    salesDemoNotificationButton: 'Book',
   },
 
 };

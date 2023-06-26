@@ -49,22 +49,16 @@ export const captureEvent = (eventName: string, eventData: object) => {
       },
     })
 
-    // // Ensure flags are loaded before usage.
-    // // You'll only need to call this on the code for when the first time a user visits.
-    // ph.onFeatureFlags(function() {
-    //   // feature flags should be available at this point
-    //   if (ph.isFeatureEnabled('test-feature-flag') ) {
-    //      console.log('test-feature-flag is enabled', ph.getFeatureFlagPayload('test-feature-flag')
-    //      )
-    //   }
-    // })
+    // Ensure flags are loaded before usage.
+    ph.onFeatureFlags(function() {
+      if (ph.isFeatureEnabled('sales-demo-feature-flag')) {
+        storeInLocalStorage(StorageKeys.SALES_DEMO_FEATURE_FLAG, ph.getFeatureFlagPayload('sales-demo-feature-flag'))        
+      }
+    })
 
-    // // Otherwise, you can just do:
-    // if (ph.isFeatureEnabled('test-feature-flag') ) {
-    //   console.log('test-feature-flag is enabled 2', ph.getFeatureFlagPayload('test-feature-flag')
-    //   )
-    //   // do something
-    // }
+    if (ph.isFeatureEnabled('test-feature-flag')) {
+      storeInLocalStorage(StorageKeys.SALES_DEMO_FEATURE_FLAG, ph.getFeatureFlagPayload('sales-demo-feature-flag'))        
+    }
 
     if (organizationId) {
       ph.capture(eventName, {
