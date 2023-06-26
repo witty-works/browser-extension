@@ -1,5 +1,5 @@
 import { IAlert } from '../types';
-import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
+import PostHog from 'posthog-js-lite'
 import { POSTHOG_API_KEY_EU, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 import { sendErrorToSentry } from '../errorUtils';
@@ -42,12 +42,29 @@ export const captureEvent = (eventName: string, eventData: object) => {
 
     !idWasAliased && userId && aliasId(userId, appId);
 
-    const ph = browserPostHog(POSTHOG_API_KEY_EU, {
-      apiHost: 'https://eu.posthog.com',
-    });
-    //FOR TESTING FEATURE FLAGS: ph.isFeatureEnabled('capture_pageview') && ph.capturePageview();
+    const ph = new PostHog(POSTHOG_API_KEY_EU, {
+      host: 'https://eu.posthog.com',
+      bootstrap : {
+        distinctId: userId ? userId : appId, ////make sure that this is equivalent to ph.session.distinctId
+      },
+    })
 
-    ph.session.distinctId = userId ? userId : appId;
+    // // Ensure flags are loaded before usage.
+    // // You'll only need to call this on the code for when the first time a user visits.
+    // ph.onFeatureFlags(function() {
+    //   // feature flags should be available at this point
+    //   if (ph.isFeatureEnabled('test-feature-flag') ) {
+    //      console.log('test-feature-flag is enabled', ph.getFeatureFlagPayload('test-feature-flag')
+    //      )
+    //   }
+    // })
+
+    // // Otherwise, you can just do:
+    // if (ph.isFeatureEnabled('test-feature-flag') ) {
+    //   console.log('test-feature-flag is enabled 2', ph.getFeatureFlagPayload('test-feature-flag')
+    //   )
+    //   // do something
+    // }
 
     if (organizationId) {
       ph.capture(eventName, {
