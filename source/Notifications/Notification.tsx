@@ -36,6 +36,17 @@ const Notification: React.FC<NotificationProps> = ({notificationType}: Notificat
       notificationButton = t('salesDemoNotificationButton');
       notificationLink = 'https://www.witty.works/demo';
       break;
+    case 'inviteTeam':
+      notificationHeadline = t('inviteTeamNotificationHeadline');
+      notificationText = t('inviteTeamNotificationText');
+      notificationButton = t('inviteTeamNotificationButton');
+      notificationLink = getBaseUrls().dashboard + 'team/show';
+      break;
+    case 'inviteFriends': 
+      notificationHeadline = t('inviteFriendsNotificationHeadline');
+      notificationText = t('inviteFriendsNotificationText');
+      notificationButton = t('inviteFriendsNotificationButton');
+      notificationLink = 'mailto:?subject=Check out Witty&body=Hey, I just found this great tool to improve my writing. It’s called Witty and it’s a browser extension that checks my writing for clarity, engagement, and tone. I think you’ll like it too. Check it out here: https://www.witty.works/';
   }
 
   return (

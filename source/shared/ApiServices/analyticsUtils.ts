@@ -39,6 +39,20 @@ export const captureEvent = (eventName: string, eventData: object) => {
     const organizationId = result[StorageKeys.ORGANIZATION_ID];
     const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];
     const appId = result[StorageKeys.APP_ID];
+    const featureFlags = [
+      {
+        flag: 'sales-demo-feature-flag',
+        storageKey: StorageKeys.SALES_DEMO_FEATURE_FLAG
+      },
+      {
+        flag: 'invite-team-feature-flag',
+        storageKey: StorageKeys.INVITE_TEAM_FEATURE_FLAG
+      },
+      {
+        flag: 'invite-friends-feature-flag',
+        storageKey: StorageKeys.INVITE_FRIENDS_FEATURE_FLAG
+      },
+    ];
 
     !idWasAliased && userId && aliasId(userId, appId);
 
@@ -49,16 +63,14 @@ export const captureEvent = (eventName: string, eventData: object) => {
       },
     })
 
-    // Ensure flags are loaded before usage.
-    ph.onFeatureFlags(function() {
-      if (ph.isFeatureEnabled('sales-demo-feature-flag')) {
-        storeInLocalStorage(StorageKeys.SALES_DEMO_FEATURE_FLAG, ph.getFeatureFlagPayload('sales-demo-feature-flag'))        
+    function storeEnabledFeatureFlags() {
+      for (const featureFlag of featureFlags) {
+        storeInLocalStorage(featureFlag.storageKey, ph.getFeatureFlagPayload(featureFlag.flag));
       }
-    })
-
-    if (ph.isFeatureEnabled('test-feature-flag')) {
-      storeInLocalStorage(StorageKeys.SALES_DEMO_FEATURE_FLAG, ph.getFeatureFlagPayload('sales-demo-feature-flag'))        
     }
+    
+    ph.onFeatureFlags(storeEnabledFeatureFlags); // Ensure flags are loaded before usage.
+    storeEnabledFeatureFlags();
 
     if (organizationId) {
       ph.capture(eventName, {

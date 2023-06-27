@@ -179,33 +179,57 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     setShowLearningBite(false);
     setIframeLoaded(false);
   };
+  
+  const incrementAlternativesAccepted = (storage: any) => 
+    storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] ? storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1 : 1);
+  
+  const renderNotification = (type: string) => {
+    const notificationWrapper = document.createElement('div');
+    notificationWrapper.id = 'ww-notification';
+    
+    ReactDOM.render(
+      <Notification notificationType={type} />,
+      document.body.insertBefore(notificationWrapper, document.body.firstChild)
+    );
+  };
 
   const clickAlternative = (alternative: string, category: string) => {
     //Log the clicked alternative
     analytics.alternativeLog(data.alert, alternative);
 
-    const numberOfAlternativesAcceptedToTriggerNotification = defaultConfig.NUMBER_OF_ALTERNATIVES_ACCEPTED_TO_TRIGGER_NOTIFICATION;
     browser.storage.local.get(null).then((result) => {
-      if(!result[StorageKeys.SALES_DEMO_FEATURE_FLAG]) {
-        storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0); //in case we need to reset the counter
-      } else if (!result[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] && result[StorageKeys.SALES_DEMO_FEATURE_FLAG]) {
-        storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 1);
-      } else if (result[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1 === numberOfAlternativesAcceptedToTriggerNotification && result[StorageKeys.SALES_DEMO_FEATURE_FLAG]) {
-        const notificationWrapper = document.createElement('div');
-        notificationWrapper.id = 'ww-notification';
-        ReactDOM.render(
-            <Notification
-              notificationType={'salesDemo'}
-            />,
-          document.body.insertBefore(
-            notificationWrapper,
-            document.body.firstChild
-          )
-        );
+      const {
+        ALTERNATIVES_ACCEPTED_TO_TRIGGER_SALES_DEMO_NOTIFICATION: salesDemoTrigger,
+        ALTERNATIVES_ACCEPTED_TO_TRIGGER_INVITE_TEAM_NOTIFICATION: teamInviteTrigger,
+        ALTERNATIVES_ACCEPTED_TO_TRIGGER_INVITE_FRIEND_NOTIFICATION: friendInviteTrigger
+      } = defaultConfig;
+
+      const {
+        [StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]: alternativesAccepted,
+        [StorageKeys.SALES_DEMO_FEATURE_FLAG]: salesDemoFlag,
+        [StorageKeys.INVITE_TEAM_FEATURE_FLAG]: teamInviteFlag,
+        [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
+      } = result;
+    
+      if (!salesDemoFlag || !teamInviteFlag || !friendInviteFlag) { //reset counter if a feature flag is diabled, maybe need to rethink this?
+        storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0); 
       } else {
-        storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, result[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1);
+        const incrementedAlternativesAccepted = alternativesAccepted + 1;
+        if (
+          (incrementedAlternativesAccepted === salesDemoTrigger && salesDemoFlag) ||
+          (incrementedAlternativesAccepted === teamInviteTrigger && teamInviteFlag) ||
+          (incrementedAlternativesAccepted === friendInviteTrigger && friendInviteFlag)
+        ) {
+          const notificationType = incrementedAlternativesAccepted === salesDemoTrigger ? 'salesDemo'
+            : incrementedAlternativesAccepted === teamInviteTrigger ? 'inviteTeam'
+            : 'inviteFriends';
+    
+          renderNotification(notificationType);
+        }
       }
-    })
+      incrementAlternativesAccepted(result);
+    });
+    
 
     updateTextWithAlternative(alternative, category);
   };

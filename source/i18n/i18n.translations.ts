@@ -113,7 +113,15 @@ export const de = {
     salesDemoNotificationHeadline: 'Learn more about Witty DE',
     salesDemoNotificationText:
       'Book a sales demo! Some bla bla text here DE',
-    salesDemoNotificationButton: 'Book',
+    salesDemoNotificationButton: 'Book DE',
+    inviteTeamNotificationHeadline: 'Invite your team DE',
+    inviteTeamNotificationText:
+      'Invite your team to Witty DE',
+    inviteTeamNotificationButton: 'Invite DE',
+    inviteFriendsNotificationHeadline: 'Invite your friends DE',
+    inviteFriendsNotificationText:
+      'Invite your friends to Witty DE',
+    inviteFriendsNotificationButton: 'Invite DE',
   },
 };
 
@@ -237,6 +245,14 @@ export const en = {
     salesDemoNotificationText:
       'Book a sales demo! Some bla bla text here',
     salesDemoNotificationButton: 'Book',
+    inviteTeamNotificationHeadline: 'Invite your team',
+    inviteTeamNotificationText:
+      'Invite your team to Witty',
+    inviteTeamNotificationButton: 'Invite',
+    inviteFriendsNotificationHeadline: 'Invite your friends',
+    inviteFriendsNotificationText:
+      'Invite your friends to Witty',
+    inviteFriendsNotificationButton: 'Invite',
   },
 
 };
