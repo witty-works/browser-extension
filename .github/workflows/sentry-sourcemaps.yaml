@@ -1,0 +1,39 @@
+name: Upload sourcemaps to sentry
+
+on:
+  push:
+    branches: [feature/upload-sourcemaps-to-sentry]
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install yarn
+        run: |
+          npm install --global yarn
+
+      - id: cache-yarn
+        uses: actions/cache@v3
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        run: |
+          yarn install
+
+      - name: Upload sourcemaps to sentry
+        run: |
+          yarn run sentry:sourcemaps
