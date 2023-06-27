@@ -22,25 +22,25 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
 
   //find index of child of pages that has a grandchild containing g
   const childNodeIndex = Array.from(pages).map((page) =>
-    Array.from(page.childNodes).findIndex(
+    Array.from(page?.childNodes).findIndex(
       (childNode) =>
-        childNode.childNodes[0] &&
-        childNode.childNodes[0].childNodes[0] &&
-        childNode.childNodes[0].childNodes[0].nodeName === 'g'
+        childNode?.childNodes[0]?.childNodes[0]?.nodeName === 'g'
     )
   );
 
   //get 3d child of each page
   const pageElementsContainingSvg = Array.from(pages).map(
-    (page) => page.childNodes[childNodeIndex[0]]
+    (page) => page?.childNodes[childNodeIndex[0]]
   );
 
   for (const pageElementContainingSvg of pageElementsContainingSvg) {
-    const innerElement = pageElementContainingSvg
-      .childNodes[0] as CustomInputElement;
-    for (const childNode of innerElement.childNodes) {
+    const innerElement = pageElementContainingSvg?.childNodes[0] as CustomInputElement;
+    if (!innerElement) continue;
+    for (const childNode of innerElement?.childNodes) {
+      if (!childNode) continue;
       const gElement = childNode as CustomInputElement;
-      for (const rectElement of gElement.childNodes) {
+      for (const rectElement of gElement?.childNodes) {
+        if (!rectElement) continue;
         const svgRectElement = rectElement as SVGRectElement;
         const areaLabel = svgRectElement.getAttribute('aria-label');
         const areaLabelSplit = areaLabel?.split(' ');
