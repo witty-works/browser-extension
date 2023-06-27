@@ -10,6 +10,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WextManifestWebpackPlugin = require('wext-manifest-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
 
 const viewsPath = path.join(__dirname, 'views');
 const sourcePath = path.join(__dirname, 'source');
@@ -33,6 +34,21 @@ const extensionReloaderPlugin =
       this.apply = () => { };
     };
 
+const sentryWebpackPluginInstance =
+  process.env.UPLOAD_SOURCEMAPS
+    ? sentryWebpackPlugin({
+      org: "witty-works",
+      project: "browser-extension",
+
+      // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
+      // and need `project:releases` and `org:read` scopes
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+    })
+    : () => {
+      this.apply = () => { };
+    };
+
+
 const getExtensionFileType = (browser) => {
   if (browser === 'opera') {
     return 'crx';
@@ -46,7 +62,8 @@ const getExtensionFileType = (browser) => {
 };
 
 module.exports = {
-  devtool: false, // https://github.com/webpack/webpack/issues/1194#issuecomment-560382342
+  devtool: nodeEnv === 'development' || process.env.UPLOAD_SOURCEMAPS
+    ? 'source-map' : false,
 
   stats: {
     all: false,
@@ -150,7 +167,6 @@ module.exports = {
     // Plugin to not generate js bundle for manifest entry
     new WextManifestWebpackPlugin(),
     // Generate sourcemaps
-    new webpack.SourceMapDevToolPlugin({ filename: false }),
     new ForkTsCheckerWebpackPlugin(),
     // environmental variables
     new webpack.EnvironmentPlugin(['NODE_ENV', 'TARGET_BROWSER']),
@@ -192,6 +208,7 @@ module.exports = {
     }),
     // plugin to enable browser reloading in development mode
     extensionReloaderPlugin,
+    sentryWebpackPluginInstance,
   ],
 
   optimization: {
