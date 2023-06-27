@@ -2,7 +2,6 @@ name: Upload sourcemaps to sentry
 
 on:
   push:
-    branches: [feature/upload-sourcemaps-to-sentry]
     tags:
       - '*'
 
