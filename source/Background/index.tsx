@@ -1,6 +1,5 @@
 import { browser } from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
 
 import {
   StorageKeys,
@@ -47,7 +46,7 @@ const onError = (error: string) => {
 Sentry.init({
   dsn: 'https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342',
   release: 'witty@' + wittyVersion,
-  integrations: [new BrowserTracing()],
+  integrations: [new Sentry.BrowserTracing()],
   sampleRate: 0.001,
   tracesSampleRate: 0.005,
 });
