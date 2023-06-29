@@ -18,6 +18,9 @@ import {
 } from './utils';
 import { setBaseUrls } from '../shared/ApiServices/requests';
 
+const sentryDSN = defaultConfig.SENTRY_DSN;
+const sentrySampleRate = defaultConfig.SENTRY_SAMPLE_RATE;
+const sentryTraceRate = defaultConfig.SENTRY_TRACE_RATE;
 const log = useLog('ContentScript index');
 const domain = getDomainWithoutSubdomain(window.location.hostname);
 
@@ -104,12 +107,14 @@ const storageChange = (changes: any) => {
 makeAuthRequest();
 browser.storage.onChanged.addListener(storageChange);
 
-Sentry.init({
-  dsn: 'https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342',
-  release: 'witty@' + wittyVersion,
-  integrations: [new Sentry.BrowserTracing()],
-  sampleRate: 0.001,
-  tracesSampleRate: 0.005,
-});
+if (sentryDSN) {
+  Sentry.init({
+    dsn: sentryDSN,
+    release: 'witty@' + wittyVersion,
+    integrations: [new Sentry.BrowserTracing()],
+    sampleRate: sentrySampleRate,
+    tracesSampleRate: sentryTraceRate,
+  });  
+}
 
 export {};
