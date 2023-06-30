@@ -47,6 +47,9 @@
     "value": true
   },
   "CASING_SITES": [],
+  "SENTRY_DSN": "",
+  "SENTRY_SAMPLE_RATE": 0.0,
+  "SENTRY_TRACE_RATE": 0.0,
   "API_DELAY": 800,
   "ACCESS_TOKEN": "",
   "REFRESH_TOKEN": "",

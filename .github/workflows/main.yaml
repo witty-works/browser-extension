@@ -8,6 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SENTRY_DSN: "https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342"
+      SENTRY_SAMPLE_RATE: 0.001
+      SENTRY_TRACE_RATE: 0.001
 
     steps:
       - uses: actions/checkout@v3
@@ -25,6 +29,15 @@ jobs:
           sed -r "s/DefaultBaseUrlKey = 'Dev'/DefaultBaseUrlKey = 'Prod'/" source/shared/constants.ts > constants.ts
           mv constants.ts source/shared/constants.ts
 
+      - name: Set Sentry Settings
+        run: |
+          sed -r "s#\"SENTRY_DSN\": \"\",#\"SENTRY_DSN\": \"${SENTRY_DSN}\",#" source/witty.config.json > witty.config.json
+          mv witty.config.json source/witty.config.json
+          sed -r "s#\"SENTRY_SAMPLE_RATE\": 0.0,#\"SENTRY_SAMPLE_RATE\": ${SENTRY_SAMPLE_RATE},#" source/witty.config.json > witty.config.json
+          mv witty.config.json source/witty.config.json
+          sed -r "s#\"SENTRY_TRACE_RATE\": 0.0,#\"SENTRY_TRACE_RATE\": ${SENTRY_TRACE_RATE},#" source/witty.config.json > witty.config.json
+          mv witty.config.json source/witty.config.json
+    
       - name: Remove git
         run: rm -rf .git
 
