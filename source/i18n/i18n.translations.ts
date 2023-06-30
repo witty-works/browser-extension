@@ -102,13 +102,15 @@ export const de = {
     ignore: 'ignorieren',
   },
   [namespaces.iconController]: {
-    limitReached: 'You have reached the limit',
+    totalMaxCharLengthReachedNotificationHeadline: 'Längere Texte verfassen?',
+    totalMaxCharLengthReachedNotificationText: 'Nur die ersten {{limit}} Zeichen wurden durch Witty analysiert. Upgrade um beliebig lange inklusive Texte zu schreiben.',
     subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
-    totalMaxCharLengthReachedNotificationHeadline: 'You have reached the limit',
+    totalMaxCharLengthReachedNotificationHeadline: 'Längere Texte verfassen?',
+    totalMaxCharLengthReachedNotificationText: 'Nur die ersten {{limit}} Zeichen wurden durch Witty analysiert. Upgrade um beliebig lange inklusive Texte zu schreiben.',
     subscriptionButton: 'Upgrade',
   },
 };
@@ -221,13 +223,15 @@ export const en = {
     reloadWebsite: 'Please reload the website',
   },
   [namespaces.iconController]: {
-    limitReached: 'You have reached the limit',
+    totalMaxCharLengthReachedNotificationHeadline: 'Writing longer texts?',
+    totalMaxCharLengthReachedNotificationText: 'Only the first {{limit}} characters were checked by Witty. Upgrade to write inclusively on unlimited text length.',
     subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
-    totalMaxCharLengthReachedNotificationHeadline: 'You have reached the limit',
+    totalMaxCharLengthReachedNotificationHeadline: 'Writing longer texts?',
+    totalMaxCharLengthReachedNotificationText: 'Only the first {{limit}} characters were checked by Witty. Upgrade to write inclusively on unlimited text length.',
     subscriptionButton: 'Upgrade',
   },
 
