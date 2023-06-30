@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../ApiServices/useAnalytics';
 import { getBaseUrls } from '../ApiServices/requests';
+import defaultConfig from '../../witty.config.json';
 
 interface IconControllerProps {
   element: CustomInputElement;
@@ -35,7 +36,7 @@ const IconController: React.FC<IconControllerProps> = ({
     elementRect = element.getBoundingClientRect();
   }
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
-  const { t, i18n } = useTranslation(namespaces.iconController);
+  const { t } = useTranslation(namespaces.iconController);
   const analytics = useAnalytics();
 
   browser.storage.local
@@ -104,7 +105,7 @@ const IconController: React.FC<IconControllerProps> = ({
             fontWeight: 600,
             color: 'white',
             fontFamily: 'Lato, Arial, Helvetica, sans-serif'
-          }}>{t('limitReached')}</div>
+          }}>{t('totalMaxCharLengthReachedNotificationHeadline')}</div>
           <CloseIcon  
             style={{cursor: 'pointer', marginRight: '-1em'}} 
             onClick = {() => {
@@ -127,15 +128,13 @@ const IconController: React.FC<IconControllerProps> = ({
           maxWidth: '100%',
           wordWrap: 'break-word'
         }}>
-        {i18n.language.split('-')[0] === 'en' ? 
-        <>With your current pricing plan, Witty only checks a limited text length. <a className="witty-works-link" href="https://dashboard.witty.works/team/subscription">Upgrade</a> now to <a className="witty-works-link" href="https://www.witty.works/pricing">Witty Teams</a>. You get:<ul><li>Unlimited text length</li><li>Unlimited analytics</li><li>Invite more team members</li></ul></> :
-        <>Mit Ihrem aktuellen Preisplan überprüft Witty nur eine begrenzte Textlänge. <a className="witty-works-link" href="https://dashboard.witty.works/team/subscription">Wechseln Sie</a> jetzt auf <a className="witty-works-link" href="https://www.witty.works/pricing">Witty Teams</a>. Vorteile:<ul><li>Unbegrenzte Textlänge</li><li>Unbegrenzte Statistiken</li><li>Mehr Teammitglieder einladen</li></ul></>
-        }
-          <div className='witty-works-ext-left' style={{ 
+        {t('totalMaxCharLengthReachedNotificationText', {limit: defaultConfig.TOTAL_MAX_CHAR_LENGTH})}
+          <div className='witty-works-ext-left  witty-works-ext-margin-top' style={{ 
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            alignItems: 'flex-start'
+            alignItems: 'flex-start',
+            marginTop: '1em'
           }}>
             <div className='witty-works-ext-button witty-works-ext-primary-button-red'
               style={{
