@@ -103,14 +103,14 @@ export const de = {
   },
   [namespaces.iconController]: {
     totalMaxCharLengthReachedNotificationHeadline: 'Längere Texte verfassen?',
-    totalMaxCharLengthReachedNotificationText: 'Nur die ersten {{limit}} Zeichen wurden durch Witty analysiert. Upgrade um beliebig lange inklusive Texte zu schreiben.',
+    totalMaxCharLengthReachedNotificationText: 'Nur die ersten {{limit}} von {{total}} Zeichen wurden durch Witty analysiert. Upgrade um beliebig lange inklusive Texte zu schreiben.',
     subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
     totalMaxCharLengthReachedNotificationHeadline: 'Längere Texte verfassen?',
-    totalMaxCharLengthReachedNotificationText: 'Nur die ersten {{limit}} Zeichen wurden durch Witty analysiert. Upgrade um beliebig lange inklusive Texte zu schreiben.',
+    totalMaxCharLengthReachedNotificationText: 'Nur die ersten {{limit}} von {{total}} Zeichen wurden durch Witty analysiert. Upgrade um beliebig lange inklusive Texte zu schreiben.',
     subscriptionButton: 'Upgrade',
   },
 };
@@ -224,14 +224,14 @@ export const en = {
   },
   [namespaces.iconController]: {
     totalMaxCharLengthReachedNotificationHeadline: 'Writing longer texts?',
-    totalMaxCharLengthReachedNotificationText: 'Only the first {{limit}} characters were checked by Witty. Upgrade to write inclusively on unlimited text length.',
+    totalMaxCharLengthReachedNotificationText: 'Only the first {{limit}} of {{total}} characters were checked by Witty. Upgrade to write inclusively on unlimited text length.',
     subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
     totalMaxCharLengthReachedNotificationHeadline: 'Writing longer texts?',
-    totalMaxCharLengthReachedNotificationText: 'Only the first {{limit}} characters were checked by Witty. Upgrade to write inclusively on unlimited text length.',
+    totalMaxCharLengthReachedNotificationText: 'Only the first {{limit}} of {{total}} characters were checked by Witty. Upgrade to write inclusively on unlimited text length.',
     subscriptionButton: 'Upgrade',
   },
 
