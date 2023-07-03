@@ -8,7 +8,7 @@ import WarningIcon from '../../assets/icons/wittyStateIndicator/witty-warning.sv
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { getZIndex, isTinyMceEditor } from '../DOMutils';
+import { isTinyMceEditor } from '../DOMutils';
 import CloseIcon from '../../assets/icons/close-white.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -52,9 +52,9 @@ const IconController: React.FC<IconControllerProps> = ({
     <div
       ref={ref}
       style={{
-        zIndex: getZIndex(element),
+        zIndex: 999999999,
         position: 'fixed',
-        margin: `10px`,
+        margin: '10px',
         top: `${elementRect.top - (isTinyMceEditor(element) ? 0 : windowScroll.top)}px`, //FUTURE TODO: problem with icon top position in iframes 
         right: `${window.innerWidth - elementRect.right}px`,
       }}
