@@ -15,6 +15,7 @@ import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../ApiServices/useAnalytics';
 import { getBaseUrls } from '../ApiServices/requests';
 import defaultConfig from '../../witty.config.json';
+import {getScrollableParentClosestToElement} from "../utils";
 
 interface IconControllerProps {
   element: CustomInputElement;
@@ -29,7 +30,7 @@ const IconController: React.FC<IconControllerProps> = ({
   elementRect,
   iconType,
   isHovered,
-  windowScroll,
+  windowScroll
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   if (!elementRect) {
@@ -48,15 +49,30 @@ const IconController: React.FC<IconControllerProps> = ({
       sendErrorToSentry(error);
     });
 
+  // used to try to stay on top of a scrollable input like in linkedin, may not be desirable
+  const scrollContainer = getScrollableParentClosestToElement(element);
+  const scrollContainerScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
+
   return (
     <div
       ref={ref}
       style={{
         zIndex: getZIndex(element),
-        position: 'fixed',
-        margin: `10px`,
-        top: `${elementRect.top - (isTinyMceEditor(element) ? 0 : windowScroll.top)}px`, //FUTURE TODO: problem with icon top position in iframes 
-        right: `${window.innerWidth - elementRect.right}px`,
+        position: 'absolute',
+        top: `${0 + scrollContainerScrollTop}px`,
+        left: `${0}px`,
+        width: elementRect.width,
+        padding: `10px`,
+        display: `flex`,
+        boxSizing: `border-box`,
+        justifyContent: `flex-end`,
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        maxHeight: elementRect.height,
+        // position: 'fixed',
+        // margin: `10px`,
+        // top: `${elementRect.top - (isTinyMceEditor(element) ? 0 : windowScroll.top)}px`, //FUTURE TODO: problem with icon top position in iframes
+        // right: `${window.innerWidth - elementRect.right}px`,
       }}
       onMouseDown={(e) => {
         e.stopPropagation();
