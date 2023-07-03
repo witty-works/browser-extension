@@ -6,12 +6,16 @@ import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 import { getBaseUrls } from '../shared/ApiServices/requests';
 import defaultConfig from '../witty.config.json';
+import { getTextDividedByNodes } from '../ContentScript/utils';
+import { CustomInputElement } from '../shared/types';
 
 interface NotificationProps {
   notificationType: String;
+  element: CustomInputElement | null;
 }
-const Notification: React.FC<NotificationProps> = ({notificationType}: NotificationProps) => {
+const Notification: React.FC<NotificationProps> = ({notificationType, element}: NotificationProps ) => {
   const { t } = useTranslation(namespaces.notifications);
+  const totalTextLength = element ? getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length : 0;
 
   let notificationHeadline = '';
   let notificationText = '';
@@ -23,7 +27,7 @@ const Notification: React.FC<NotificationProps> = ({notificationType}: Notificat
       break;
     case 'totalMaxCharLengthReached':
       notificationHeadline = t('totalMaxCharLengthReachedNotificationHeadline');
-      notificationText = t('totalMaxCharLengthReachedNotificationText', {limit: defaultConfig.TOTAL_MAX_CHAR_LENGTH});
+      notificationText = t('totalMaxCharLengthReachedNotificationText', {limit: defaultConfig.TOTAL_MAX_CHAR_LENGTH, total: totalTextLength});
       break;
   }
 

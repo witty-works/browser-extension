@@ -73,6 +73,7 @@ const ContentScriptApp: React.FC = () => {
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
   const [pinNotificationStored, setPinNotificationStored] = useState<boolean | null>(null);
+  const [, , elementRef] = useStateRef<CustomInputElement | null>(null);
 
   //observes iframes that are added to the DOM
   const observer = new MutationObserver(function (mutations) {
@@ -188,6 +189,7 @@ const ContentScriptApp: React.FC = () => {
       ReactDOM.render(
           <Notification
             notificationType={'pin'}
+            element={elementRef.current}
           />,
         document.body.insertBefore(
           notificationWrapper,
@@ -398,6 +400,7 @@ const ContentScriptApp: React.FC = () => {
                 parentElement &&
                   parentElement.insertBefore(highlightsContainer, input);
               }
+              elementRef.current = input;
               ReactDOM.render(<Input element={input} />, highlightsContainer);
             }
           });
