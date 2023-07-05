@@ -1351,6 +1351,7 @@ const Input: React.FC<{
       ReactDOM.render(
           <Notification
             notificationType={'totalMaxCharLengthReached'}
+            element={element}
           />,
         document.body.insertBefore(
           totalMaxCharLengthReachedNotificationWrapper,
