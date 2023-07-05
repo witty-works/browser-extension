@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import './styles.scss';
-import { CustomInputElement, Position } from '../types';
+import { CustomInputElement } from '../types';
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
@@ -8,7 +8,7 @@ import WarningIcon from '../../assets/icons/wittyStateIndicator/witty-warning.sv
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { getZIndex, isTinyMceEditor } from '../DOMutils';
+import { getZIndex } from '../DOMutils';
 import CloseIcon from '../../assets/icons/close-white.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -22,7 +22,6 @@ interface IconControllerProps {
   elementRect?: DOMRect;
   iconType: string;
   isHovered: boolean;
-  windowScroll: Position;
 }
 
 const IconController: React.FC<IconControllerProps> = ({
@@ -30,7 +29,6 @@ const IconController: React.FC<IconControllerProps> = ({
   elementRect,
   iconType,
   isHovered,
-  windowScroll
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   if (!elementRect) {
@@ -69,10 +67,6 @@ const IconController: React.FC<IconControllerProps> = ({
         pointerEvents: 'none',
         overflow: 'hidden',
         maxHeight: elementRect.height,
-        // position: 'fixed',
-        // margin: `10px`,
-        // top: `${elementRect.top - (isTinyMceEditor(element) ? 0 : windowScroll.top)}px`, //FUTURE TODO: problem with icon top position in iframes
-        // right: `${window.innerWidth - elementRect.right}px`,
       }}
       onMouseDown={(e) => {
         e.stopPropagation();

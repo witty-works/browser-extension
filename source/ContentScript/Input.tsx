@@ -772,7 +772,7 @@ const Input: React.FC<{
     let newNodesToCheck = nodesToCheck;
 
     let totalLength = nodesToCheck.reduce(
-      (prev: number, current: { node: string }) => prev + current.node.length,
+      (prev: number, current: { node: string }) => prev + current.node?.length || 0,
       0
     );
     while (totalLength < minCharLength) {
@@ -1797,7 +1797,6 @@ const Input: React.FC<{
           elementRect={elementRect}
           iconType={totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon}
           isHovered={isHovered}
-          windowScroll={windowScroll}
         />
       </WTags.WW_ACTIVITY_INDICATOR>
     </>
