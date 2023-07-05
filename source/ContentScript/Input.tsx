@@ -99,6 +99,7 @@ const Input: React.FC<{
   );
   const [, , prevCheckedNodesRef] = useStateRef([] as INodes[]);
   const [, , nodesStorageRef] = useStateRef([] as INodes[]);
+  const [, , firstNodeOfRequestRef] = useStateRef({} as INodes);
   const [selectedNodeWithAlertsIndex, setSelectedNodeWithAlertsIndex] =
     useState<number>(-1);
   const [selectedAlertIndex, setSelectedAlertIndex, prevSelectedAlertIndex] =
@@ -734,6 +735,8 @@ const Input: React.FC<{
     }
 
     if (nodesToCheck.length > 0) { 
+      firstNodeOfRequestRef.current = nodesToCheck[0];
+
       const nodesWithAlertsWithoutChangesAlerts = nodesWithAlertsRef.current.filter(
         (nodeWithAlerts) => {
           const nodeIndex = nodesToCheck.findIndex(
@@ -1231,7 +1234,7 @@ const Input: React.FC<{
                 : (elementXPathResult as XPathResult)
             );
 
-      const nodesWithAlertsTempWithRect = nodesWithAlertsTemp.map(
+      let nodesWithAlertsTempWithRect = nodesWithAlertsTemp.map(
         (nodeWithAlerts) => {
           const nodeWithAlertsWithRect = {
             ...nodeWithAlerts,
@@ -1267,6 +1270,20 @@ const Input: React.FC<{
         }
       );
 
+      if (firstNodeOfRequestRef.current?.node[0].match(/^[a-z]/)) {
+        // if firstNodeOfRequestRef.current is in alerts and it has the category orthography and startOffset 0, remove it from alerts -> soleves issues with text splitting
+        nodesWithAlertsTempWithRect = nodesWithAlertsTempWithRect && nodesWithAlertsTempWithRect.map((nodeWithAlerts) => {
+          const filteredAlerts = nodeWithAlerts.alerts.filter((alert) => {
+            return !(alert.data.category === 'orthography' && alert.startOffset === 0);
+          });
+      
+          return {
+            ...nodeWithAlerts,
+            alerts: filteredAlerts,
+          };
+        });
+      }
+      
       const mergedNodesWithAlerts = [
         ...nodesWithAlertsRef.current.filter(
           (nodeWithAlerts) =>
