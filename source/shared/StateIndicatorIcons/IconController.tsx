@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import './styles.scss';
-import { CustomInputElement, Position } from '../types';
+import { CustomInputElement } from '../types';
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
@@ -8,13 +8,13 @@ import WarningIcon from '../../assets/icons/wittyStateIndicator/witty-warning.sv
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { isTinyMceEditor } from '../DOMutils';
 import CloseIcon from '../../assets/icons/close-white.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../ApiServices/useAnalytics';
 import { getBaseUrls } from '../ApiServices/requests';
 import defaultConfig from '../../witty.config.json';
+import {getScrollableParentClosestToElement} from "../utils";
 import { getTextDividedByNodes } from '../../ContentScript/utils';
 
 interface IconControllerProps {
@@ -22,7 +22,6 @@ interface IconControllerProps {
   elementRect?: DOMRect;
   iconType: string;
   isHovered: boolean;
-  windowScroll: Position;
 }
 
 const IconController: React.FC<IconControllerProps> = ({
@@ -30,7 +29,6 @@ const IconController: React.FC<IconControllerProps> = ({
   elementRect,
   iconType,
   isHovered,
-  windowScroll,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   if (!elementRect) {
@@ -50,15 +48,26 @@ const IconController: React.FC<IconControllerProps> = ({
       sendErrorToSentry(error);
     });
 
+  // used to try to stay on top of a scrollable input like in linkedin, may not be desirable
+  const scrollContainer = getScrollableParentClosestToElement(element);
+  const scrollContainerScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
+
   return (
     <div
       ref={ref}
       style={{
         zIndex: 999999999,
-        position: 'fixed',
-        margin: '10px',
-        top: `${elementRect.top - (isTinyMceEditor(element) ? 0 : windowScroll.top)}px`, //FUTURE TODO: problem with icon top position in iframes 
-        right: `${window.innerWidth - elementRect.right}px`,
+        position: 'absolute',
+        top: `${0 + scrollContainerScrollTop}px`,
+        left: `${0}px`,
+        width: elementRect.width,
+        padding: `10px`,
+        display: `flex`,
+        boxSizing: `border-box`,
+        justifyContent: `flex-end`,
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        maxHeight: elementRect.height,
       }}
       onMouseDown={(e) => {
         e.stopPropagation();

@@ -51,6 +51,7 @@ const WW_CONTAINER_STYLE = `
   padding: 0px !important;
   margin: 0px !important;
   border: none !important;
+  align-self: flex-start !important;
   box-shadow: none !important;
   `;
 
@@ -323,7 +324,6 @@ const ContentScriptApp: React.FC = () => {
           }
           iconType={'passive'}
           isHovered={true}
-          windowScroll={{top: window.scrollY, left: window.scrollX}}
         />,
         hoveredIndicatorContainer
       );
