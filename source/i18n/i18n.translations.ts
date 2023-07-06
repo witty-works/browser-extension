@@ -112,6 +112,18 @@ export const de = {
     totalMaxCharLengthReachedNotificationHeadline: 'Längere Texte verfassen?',
     totalMaxCharLengthReachedNotificationText: 'Nur die ersten {{limit}} von {{total}} Zeichen wurden durch Witty analysiert. Upgrade um beliebig lange inklusive Texte zu schreiben.',
     subscriptionButton: 'Upgrade',
+    salesDemoNotificationHeadline: 'Learn more about Witty DE',
+    salesDemoNotificationText:
+      'Book a sales demo! Some bla bla text here DE',
+    salesDemoNotificationButton: 'Book DE',
+    inviteTeamNotificationHeadline: 'Invite your team DE',
+    inviteTeamNotificationText:
+      'Invite your team to Witty DE',
+    inviteTeamNotificationButton: 'Invite DE',
+    inviteFriendsNotificationHeadline: 'Invite your friends DE',
+    inviteFriendsNotificationText:
+      'Invite your friends to Witty DE',
+    inviteFriendsNotificationButton: 'Invite DE',
   },
 };
 
@@ -233,6 +245,18 @@ export const en = {
     totalMaxCharLengthReachedNotificationHeadline: 'Writing longer texts?',
     totalMaxCharLengthReachedNotificationText: 'Only the first {{limit}} of {{total}} characters were checked by Witty. Upgrade to write inclusively on unlimited text length.',
     subscriptionButton: 'Upgrade',
+    salesDemoNotificationHeadline: 'Learn more about Witty',
+    salesDemoNotificationText:
+      'Book a sales demo! Some bla bla text here',
+    salesDemoNotificationButton: 'Book',
+    inviteTeamNotificationHeadline: 'Invite your team',
+    inviteTeamNotificationText:
+      'Invite your team to Witty',
+    inviteTeamNotificationButton: 'Invite',
+    inviteFriendsNotificationHeadline: 'Invite your friends',
+    inviteFriendsNotificationText:
+      'Invite your friends to Witty',
+    inviteFriendsNotificationButton: 'Invite',
   },
 
 };

@@ -45,6 +45,11 @@ export enum StorageKeys {
 
   ID_WAS_ALIASED = 'idWasAliased',
   PIN_NOTIFICATION_SHOWED = 'pinNotificationShowed',
+  NUMBER_OF_ALTERNATIVES_ACCEPTED = 'numberOfAlternativesAccepted',
+
+  SALES_DEMO_FEATURE_FLAG = 'sales-demo-feature-flag',
+  INVITE_TEAM_FEATURE_FLAG = 'invite-team-feature-flag',
+  INVITE_FRIENDS_FEATURE_FLAG = 'invite-friends-feature-flag',
 }
 
 //nlp api, dashboard
