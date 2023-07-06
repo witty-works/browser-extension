@@ -182,7 +182,7 @@ export const getNodesWithinMaxCharLength = (
 ) => {
   let totalChars = 0;
   textDividedByNodes = textDividedByNodes.filter((node) => { //remove empty nodes
-    return node.textContent?.length && node.textContent?.length > 0;
+    return node?.textContent && node.textContent.length > 0;
   });
   const slice =
     direction == 'below'

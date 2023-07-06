@@ -686,6 +686,13 @@ const Input: React.FC<{
 
   const handleTextAndIcon = (nodes: any) => {
     const isTextAreaCheck = isTextArea(element);
+    const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
+    const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
+    if (totalTextLength < maxCharLength) {
+      prevCheckedNodesRef.current = []; //prevents displaced highlights when text is short
+      setRemoveHighlights(true);
+    } 
+
     let nodesToCheck = isTextAreaCheck ? nodes : nodes.filter((node: INodes) => {
       const nodeIndex = prevCheckedNodesRef.current.findIndex(
         (prevCheckedNode: INodes) =>
@@ -696,8 +703,6 @@ const Input: React.FC<{
     });
     nodesStorageRef.current = nodesToCheck;
     let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
-    const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
-    const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       analytics.maxCharLengthReachedLog('max_char_length_reached');
@@ -746,7 +751,7 @@ const Input: React.FC<{
       setNodesWithAlerts(nodesWithAlertsWithoutChangesAlerts);
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
-        
+
     if (newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
@@ -772,7 +777,7 @@ const Input: React.FC<{
     let newNodesToCheck = nodesToCheck;
 
     let totalLength = nodesToCheck.reduce(
-      (prev: number, current: { node: string }) => prev + current.node.length,
+      (prev: number, current: { node: string }) => prev + current.node?.length || 0,
       0
     );
     while (totalLength < minCharLength) {
@@ -1351,6 +1356,7 @@ const Input: React.FC<{
       ReactDOM.render(
           <Notification
             notificationType={'totalMaxCharLengthReached'}
+            element={element}
           />,
         document.body.insertBefore(
           totalMaxCharLengthReachedNotificationWrapper,
@@ -1369,7 +1375,7 @@ const Input: React.FC<{
       !isTextArea(element) 
     ) {
       let updatedAlerts: IAlert[] = [];
-      const nodesForCalculation = (totalMaxCharLengthReachedRef.current ? nodesWhithinMaxCharLengthRef.current : nodesStorageRef.current).filter((node: INodes) => {
+      const nodesForCalculation = nodesWhithinMaxCharLengthRef.current.filter((node: INodes) => {
         return node.node.length > 0;
       }).sort((a: INodes, b: INodes) => a.index - b.index);
       const lowestIndex = nodesForCalculation.reduce(
@@ -1797,7 +1803,6 @@ const Input: React.FC<{
           elementRect={elementRect}
           iconType={totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon}
           isHovered={isHovered}
-          windowScroll={windowScroll}
         />
       </WTags.WW_ACTIVITY_INDICATOR>
     </>
