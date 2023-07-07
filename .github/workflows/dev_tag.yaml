@@ -1,6 +1,9 @@
-name: Build dev extension
+name: Build dev extension from tag
 
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -8,6 +11,8 @@ jobs:
     env:
       SENTRY_DSN: "https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342"
       SENTRY_SAMPLE_RATE: 1.0
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      VERSION_STRING: witty@${{github.ref_name}}
 
     steps:
       - uses: actions/checkout@v3
@@ -21,14 +26,13 @@ jobs:
           sed -r "s/DefaultBaseUrlKey = 'Dev'/DefaultBaseUrlKey = 'Prod'/" source/shared/constants.ts > constants.ts
           mv constants.ts source/shared/constants.ts
 
-      - name: Set Sentry Settings
+      - name: Set Dev Sentry Settings
         run: |
           sed -r "s#\"SENTRY_DSN\": \"\",#\"SENTRY_DSN\": \"${SENTRY_DSN}\",#" source/witty.config.json > witty.config.json
           mv witty.config.json source/witty.config.json
           sed -r "s#\"SENTRY_SAMPLE_RATE\": 0.0,#\"SENTRY_SAMPLE_RATE\": ${SENTRY_SAMPLE_RATE},#" source/witty.config.json > witty.config.json
           mv witty.config.json source/witty.config.json
-          cat source/witty.config.json
-  
+
       - name: Install yarn
         run: |
           npm install --global yarn
@@ -44,11 +48,14 @@ jobs:
         run: |
           yarn install
 
-      - name: Build artifacts
+      - name: Build Dev artifacts
         run: |
-          yarn run build:chrome
+          env SENTRY_RELEASE=${VERSION_STRING}-chrome-dev yarn run build:chrome-with-sourcemaps
 
-      - name: Store Chrome Development artifacts
+      - name: Remove *.map files
+        run: rm -rf extension/chrome/js/*.map
+  
+      - name: Store Chrome Dev artifacts
         uses: actions/upload-artifact@v3
         with:
           name: chrome-dev

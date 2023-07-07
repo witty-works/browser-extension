@@ -1,4 +1,4 @@
-name: Build prod extension and source code
+name: Build prod extension and source code from tag
 
 on:
   push:
@@ -12,6 +12,8 @@ jobs:
       SENTRY_DSN: "https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342"
       SENTRY_SAMPLE_RATE: 0.001
       SENTRY_TRACE_RATE: 0.001
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      VERSION_STRING: witty@${{github.ref_name}}
 
     steps:
       - uses: actions/checkout@v3
@@ -29,7 +31,7 @@ jobs:
           sed -r "s/DefaultBaseUrlKey = 'Dev'/DefaultBaseUrlKey = 'Prod'/" source/shared/constants.ts > constants.ts
           mv constants.ts source/shared/constants.ts
 
-      - name: Set Sentry Settings
+      - name: Set Prod Sentry Settings
         run: |
           sed -r "s#\"SENTRY_DSN\": \"\",#\"SENTRY_DSN\": \"${SENTRY_DSN}\",#" source/witty.config.json > witty.config.json
           mv witty.config.json source/witty.config.json
@@ -37,7 +39,7 @@ jobs:
           mv witty.config.json source/witty.config.json
           sed -r "s#\"SENTRY_TRACE_RATE\": 0.0,#\"SENTRY_TRACE_RATE\": ${SENTRY_TRACE_RATE},#" source/witty.config.json > witty.config.json
           mv witty.config.json source/witty.config.json
-    
+
       - name: Remove git
         run: rm -rf .git
 
@@ -65,20 +67,30 @@ jobs:
         run: |
           yarn install
 
-      - name: Build artifacts
+      - name: Build Prod Chrome artifacts
         run: |
-          yarn run build
+          env SENTRY_RELEASE=${VERSION_STRING}-chrome-prod yarn run build:chrome-with-sourcemaps
 
-      - name: Store Chrome artifacts
+      - name: Remove *.map files
+        run: rm -rf extension/chrome/js/*.map
+  
+      - name: Store Chrome Prod artifacts
         uses: actions/upload-artifact@v3
         with:
           name: chrome
           path: |
             extension/chrome
 
-      - name: Store Firefox artifacts
+      - name: Build Prod Firefox artifacts
+        run: |
+          env SENTRY_RELEASE=${VERSION_STRING}-firefox-prod yarn run build:firefox-with-sourcemaps
+
+      - name: Remove *.map files
+        run: rm -rf extension/firefox/js/*.map
+  
+      - name: Store Firefox Prod artifacts
         uses: actions/upload-artifact@v3
         with:
           name: firefox
           path: |
-            extension/firefox.xpi
+            extension/firefox
