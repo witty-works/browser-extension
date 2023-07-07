@@ -150,6 +150,24 @@ const ContentScriptApp: React.FC = () => {
           orthography: result[StorageKeys.ORTHOGRAPHY].value,
         };
         setReqConfig(requestConfig);
+
+        if(result[StorageKeys.EXTENSION_WAS_UPDATED]) {
+          const notificationWrapper = document.createElement('div');
+          notificationWrapper.id = 'ww-notification';
+          ReactDOM.render(
+            <Notification
+              notificationType={'update'}
+              element={null}
+            />,
+            document.body.insertBefore(
+              notificationWrapper,
+              document.body.firstChild
+            )
+          );
+          browser.storage.local.set({
+            [StorageKeys.EXTENSION_WAS_UPDATED]: false,
+          });
+        }
       })
       .catch((error: unknown) => {
         log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);

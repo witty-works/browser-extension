@@ -124,6 +124,10 @@ export const de = {
     inviteFriendsNotificationText:
       'Invite your friends to Witty DE',
     inviteFriendsNotificationButton: 'Invite DE',
+    updateNotificationHeadline: 'Witty was updated DE',
+    updateNotificationText:
+      'Witty was updated text lala DE',
+    updateNotificationButton: 'Changes DE',
   },
 };
 
@@ -257,6 +261,10 @@ export const en = {
     inviteFriendsNotificationText:
       'Invite your friends to Witty',
     inviteFriendsNotificationButton: 'Invite',
+    updateNotificationHeadline: 'Witty was updated',
+    updateNotificationText:
+      'Witty was updated text lala',
+    updateNotificationButton: 'Changes',
   },
 
 };

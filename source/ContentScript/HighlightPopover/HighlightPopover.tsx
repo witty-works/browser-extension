@@ -188,7 +188,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     notificationWrapper.id = 'ww-notification';
     
     ReactDOM.render(
-      <Notification notificationType={type} />,
+      <Notification notificationType={type} element={element} />,
       document.body.insertBefore(notificationWrapper, document.body.firstChild)
     );
   };

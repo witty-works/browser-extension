@@ -50,6 +50,12 @@ const Notification: React.FC<NotificationProps> = ({notificationType, element}: 
       notificationText = t('inviteFriendsNotificationText');
       notificationButton = t('inviteFriendsNotificationButton');
       notificationLink = 'mailto:?subject=Check out Witty&body=Hey, I just found this great tool to improve my writing. It’s called Witty and it’s a browser extension that checks my writing for clarity, engagement, and tone. I think you’ll like it too. Check it out here: https://www.witty.works/';
+      break;
+    case 'update':
+      notificationHeadline = t('updateNotificationHeadline');
+      notificationText = t('updateNotificationText');
+      notificationButton = t('updateNotificationButton');
+      notificationLink = 'https://roadmap.witty.works/tabs/12-released';
   }
 
   return (
