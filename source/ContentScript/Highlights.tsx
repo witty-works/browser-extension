@@ -115,7 +115,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                       googleDocsToolbarLeftRect.left
                     : rect.left,
                   top: isGoogleDocs()
-                    ? rect.top - googleDocsToolbarTopRect.top
+                    ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
                     : rect.top +
                       doc.scrollTop -
                       (isFroalaEditor(element) ? windowScroll.top : 0) - 
