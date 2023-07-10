@@ -16,6 +16,7 @@ import { getBaseUrls } from '../ApiServices/requests';
 import defaultConfig from '../../witty.config.json';
 import {getScrollableParentClosestToElement} from "../utils";
 import { getTextDividedByNodes } from '../../ContentScript/utils';
+import { isGoogleDocs } from '../DOMutils';
 
 interface IconControllerProps {
   element: CustomInputElement;
@@ -31,8 +32,20 @@ const IconController: React.FC<IconControllerProps> = ({
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
+  const googleDocsIcon = isGoogleDocs();
+  let iconPositionGoogleDocs = { top: 0, left: 0 };
   if (!elementRect) {
     elementRect = element.getBoundingClientRect();
+  } else if (googleDocsIcon) {
+    if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
+    const correctedPosition = (
+      element.firstChild?.firstChild as HTMLElement
+    ).getBoundingClientRect();
+
+    iconPositionGoogleDocs = {
+      top: 250,
+      left: correctedPosition.left + correctedPosition.width + 20,
+    };
   }
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
   const { t } = useTranslation(namespaces.iconController);
@@ -57,16 +70,14 @@ const IconController: React.FC<IconControllerProps> = ({
       ref={ref}
       style={{
         zIndex: 999999999,
-        position: 'absolute',
-        top: `${0 + scrollContainerScrollTop}px`,
-        left: `${0}px`,
-        width: elementRect.width,
+        position: googleDocsIcon ? 'fixed' : 'absolute',
+        top: googleDocsIcon ? iconPositionGoogleDocs.top : `${0 + scrollContainerScrollTop}px`,
+        left: googleDocsIcon ? iconPositionGoogleDocs.left : `${0}px`,
+        width:  googleDocsIcon ? `50px` : elementRect.width,
         padding: `10px`,
         display: `flex`,
         boxSizing: `border-box`,
-        justifyContent: `flex-end`,
-        pointerEvents: 'none',
-        overflow: 'hidden',
+        justifyContent: `flex-end`, 
         maxHeight: elementRect.height,
       }}
       onMouseDown={(e) => {
@@ -94,7 +105,7 @@ const IconController: React.FC<IconControllerProps> = ({
         margin: '1em',
         right: 0,
         borderRadius: '4px',
-        left: '-300px',
+        left: googleDocsIcon ? '-300px' : `${elementRect.width - 350}px` ,
         top: '10px',
       }}>
         <div className="witty-works-warning-headline-wrapper"
