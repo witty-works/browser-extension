@@ -125,7 +125,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   return (
     <div
       ref={(ref) => {
-        if (ref !== null && divs.length > 0) {
+        if (ref !== null && divs.length > 0 && previousElement) {
           const refAsArrayOfText = Array.from(ref.childNodes).map(
             (node) => node.textContent
           );

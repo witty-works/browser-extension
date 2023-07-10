@@ -121,7 +121,7 @@ export const iframePositionRecquired = () => {
 };
 
 export const findElement = (node: Node, element: string): boolean => {
-  if (node.nodeName === element) {
+  if (node && node.nodeName === element) {
     return true;
   }
   return false;
