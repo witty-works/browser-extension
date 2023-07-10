@@ -184,7 +184,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const clickIgnoreTerm = () => {
     //Log when user chooses to ignore a term
     analytics.ignoreLog(data.alert);
-    addIgnoredTerm(data.alert.data.text);
+    addIgnoredTerm(data.alert.data?.text);
     hide();
   };
 
@@ -283,7 +283,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           >
             <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
               <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation.icon}</div>
-              {data.alert.data.explanation.text}
+              {data.alert.data.explanation?.text}
               {data.alert.data.explanation.context &&
                 ' (' + data.alert.data.explanation.context + ')'}
             </div>
@@ -359,7 +359,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           clickAlternative(' ', data.alert.data.category)
                         }
                       >
-                        {data.alert.data.text}
+                        {data.alert.data?.text}
                       </div>
                       {alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
@@ -372,7 +372,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       className='witty-works-ext-wittyworks-popover-alternative-btn-container'
                       key={`${index}-${alternative}-container`}
                       onMouseEnter={() => {
-                        setAlternativeHovered(alternative.text);
+                        setAlternativeHovered(alternative?.text);
                       }}
                       onMouseLeave={() => {
                         setAlternativeHovered(null);
@@ -382,12 +382,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
                         onClick={() =>
                           clickAlternative(
-                            data.alert.data.alternatives[index].text,
+                            data.alert.data.alternatives[index]?.text,
                             data.alert.data.category
                           )
                         }
                       >
-                        {alternative.text === ' ' ? (
+                        {alternative && alternative.text === ' ' ? (
                           <i>{t('removeSpaces')}</i>
                         ) : alternative.text.length > 25 &&
                           alternativeHovered !== alternative.text ? (
@@ -396,7 +396,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           alternative.text
                         )}
                       </div>
-                      {alternative.context && (
+                      {alternative && alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
                           {alternative.context.length > 25 &&
                           alternativeHovered !== alternative.text

@@ -595,7 +595,7 @@ const Input: React.FC<{
     const fistTextDiff = getFirstTextDiff(
       element,
       textDividedByNodesTextContent,
-      previousElementStateRef.current.text
+      previousElementStateRef.current?.text
     );
     previousElementStateRef.current = {
       text: textDividedByNodesTextContent,
@@ -1179,7 +1179,7 @@ const Input: React.FC<{
 
       const alertsWithoutIgnoredTerms: IAlert[] =
         alertsWithoutIgnoredCategories.filter(
-          (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
+          (alert: IAlert) => !ignoredTerms.includes(alert.data?.text)
         );
 
       //handle case where a word has multiple alerts of different gravity
@@ -1397,7 +1397,7 @@ const Input: React.FC<{
         const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
           elementEvaluation
             .snapshotItem(node.index)
-            ?.textContent?.includes(alert.data.text)
+            ?.textContent?.includes(alert.data?.text)
         );
 
         updatedAlerts = alertsRelevantToNode.map((alert: IAlert) => {
@@ -1458,13 +1458,13 @@ const Input: React.FC<{
           const alertsTemp: IAlert[] = alerts
             .filter(
               (alert: IAlert) =>
-                node.nodeValue && node.nodeValue.includes(alert.data.text)
+                node.nodeValue && node.nodeValue.includes(alert.data?.text)
             )
             .filter(
               (alert: IAlert) =>
                 (alert.startOffset >= textStartingAbsPosition &&
                   alert.endOffset <= textEndAbsPosition) ||
-                (isLinkedin() && alert.data.text.includes('#'))
+                (isLinkedin() && alert.data?.text.includes('#'))
             )
             .map((alert: IAlert) => {
               return {

@@ -123,7 +123,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                 };
               }
             );
-            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text))) {
+            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || (node.textContent && alert.data && !node.textContent.includes(alert.data.text)))) {
               return;
             } else {
               const newHighlight: Highlight = {
