@@ -76,43 +76,6 @@ const ContentScriptApp: React.FC = () => {
   const [pinNotificationStored, setPinNotificationStored] = useState<boolean | null>(null);
   const [, , elementRef] = useStateRef<CustomInputElement | null>(null);
 
-  //observes iframes that are added to the DOM
-  const observer = new MutationObserver(function (mutations) {
-    mutations.forEach(function (mutation) {
-      [].filter.call(mutation.addedNodes, function (node: HTMLElement) {
-        if (node?.nodeName == 'IFRAME') {
-          debouncedHandleIframeAdded();
-        }
-      });
-    });
-  });
-
-  //debounced handle iframe added, use debounce form lodash
-  const debouncedHandleIframeAdded = debounce(() => {
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach((iframe: HTMLIFrameElement) => {
-      if (iframe.contentDocument?.body) {
-        iframe.contentDocument.body.addEventListener(
-          'focusin',
-          handleFocusinElement
-        );
-      }
-    });
-
-    return () => {
-      iframes.forEach((iframe: HTMLIFrameElement) => {
-        if (iframe.contentDocument?.body) {
-          iframe.contentDocument.body.removeEventListener(
-            'focusin',
-            handleFocusinElement
-          );
-        }
-      });
-    };
-  }, 500);
-
-  observer.observe(document.body, { childList: true, subtree: true });
-
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
@@ -156,6 +119,9 @@ const ContentScriptApp: React.FC = () => {
 
     //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
+
+    // Setup mutation observers
+    setupMutationObservers();
 
     isGoogleDocs() && handleFocusinElement();
     !isGoogleDocs() &&
@@ -406,23 +372,67 @@ const ContentScriptApp: React.FC = () => {
     });
   };
 
-  // Check if tracked inputs exists or are still visible
-  // If not, remove them from the list of inputs. This way the highlights are also removed
-  const mutationObserver = new MutationObserver(() => {
-    inputsRef.current.forEach((input: CustomInputElement) => {
-      if (!nodeExistsInDOM(input) || !elementIsVisible(input))
-        setInputs([
-          ...inputsRef.current.filter(
-            (filterInput: CustomInputElement) => filterInput !== input
-          ),
-        ]);
-    });
-  });
+  const setupMutationObservers = () => {
+    console.log('setup mutation observers');
 
-  mutationObserver.observe(getActiveDocument().body, {
-    childList: true,
-    subtree: true,
-  });
+    // Check if tracked inputs exists or are still visible
+    // If not, remove them from the list of inputs. This way the highlights are also removed
+    const inputVisibilityObserver = new MutationObserver(() => {
+      inputsRef.current.forEach((input: CustomInputElement) => {
+        if (!nodeExistsInDOM(input) || !elementIsVisible(input))
+          setInputs([
+            ...inputsRef.current.filter(
+                (filterInput: CustomInputElement) => filterInput !== input
+            ),
+          ]);
+      });
+    });
+
+    inputVisibilityObserver.observe(getActiveDocument().body, {
+      childList: true,
+      subtree: true,
+    });
+
+    //observes iframes that are added to the DOM
+    const iframeAddedObserver = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        [].filter.call(mutation.addedNodes, function (node: HTMLElement) {
+          if (node?.nodeName == 'IFRAME') {
+            debouncedHandleIframeAdded();
+          }
+        });
+      });
+    });
+
+    //debounced handle iframe added, use debounce form lodash
+    const debouncedHandleIframeAdded = debounce(() => {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach((iframe: HTMLIFrameElement) => {
+        if (iframe.contentDocument?.body) {
+          iframe.contentDocument.body.addEventListener(
+              'focusin',
+              handleFocusinElement
+          );
+        }
+      });
+
+      return () => {
+        iframes.forEach((iframe: HTMLIFrameElement) => {
+          if (iframe.contentDocument?.body) {
+            iframe.contentDocument.body.removeEventListener(
+                'focusin',
+                handleFocusinElement
+            );
+          }
+        });
+      };
+    }, 500);
+
+    iframeAddedObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
 
   return <></>;
 };
