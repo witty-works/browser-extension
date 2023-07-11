@@ -373,8 +373,6 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const setupMutationObservers = () => {
-    console.log('setup mutation observers');
-
     // Check if tracked inputs exists or are still visible
     // If not, remove them from the list of inputs. This way the highlights are also removed
     const inputVisibilityObserver = new MutationObserver(() => {
