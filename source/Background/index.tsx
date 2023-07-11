@@ -49,7 +49,7 @@ const onError = (error: string) => {
 if (sentryDSN) {
   Sentry.init({
     dsn: sentryDSN,
-    release: 'witty@' + wittyVersion,
+    release: wittyVersion,
     integrations: [new Sentry.BrowserTracing()],
     sampleRate: sentrySampleRate,
     tracesSampleRate: sentryTraceRate,
