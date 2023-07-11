@@ -267,7 +267,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           }}
           style={{
             cursor:
-              data.alert.data.explanation && data.alert.data.explanation.url
+              data.alert.data.explanation?.url
                 ? 'pointer'
                 : 'default',
             backgroundColor: getColor(data.alert.data.gravity, userIsSignedIn).highlight,
@@ -287,7 +287,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               {data.alert.data.explanation.context &&
                 ' (' + data.alert.data.explanation.context + ')'}
             </div>
-            {data.alert.data.explanation && data.alert.data.explanation.url && (
+            {data.alert.data.explanation?.url && (
               <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
               style={{marginTop: showLearningBite ? '0em' : '1em'}}
               >
