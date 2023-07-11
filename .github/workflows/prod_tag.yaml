@@ -13,7 +13,7 @@ jobs:
       SENTRY_SAMPLE_RATE: 0.001
       SENTRY_TRACE_RATE: 0.001
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      VERSION_STRING: witty@${{github.ref_name}}
+      VERSION_STRING: ${{github.ref_name}}
 
     steps:
       - uses: actions/checkout@v3

@@ -49,7 +49,7 @@ const onError = (error: string) => {
 if (sentryDSN) {
   Sentry.init({
     dsn: sentryDSN,
-    release: 'witty@' + wittyVersion,
+    release: wittyVersion,
     integrations: [new Sentry.BrowserTracing()],
     sampleRate: sentrySampleRate,
     tracesSampleRate: sentryTraceRate,
@@ -132,8 +132,7 @@ const scanTabsToDetectStatus = () => {
       const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
       updateLabelChrome(domain);
     } else if (
-      defaultConfig.CHROME_AND_FIREFOX_SITES &&
-      defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
+      defaultConfig.CHROME_AND_FIREFOX_SITES?.includes(window.location.protocol)
     ) {
       removeBadge();
     }

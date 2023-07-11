@@ -57,7 +57,7 @@ const WW_CONTAINER_STYLE = `
 
 let activeDocument = document;
 export const setActiveDocument = (document: Document) => {
-  if (document && document.body) {
+  if (document?.body) {
     activeDocument = document;
   }
 };
@@ -80,7 +80,7 @@ const ContentScriptApp: React.FC = () => {
   const observer = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
       [].filter.call(mutation.addedNodes, function (node: HTMLElement) {
-        if (node.nodeName == 'IFRAME') {
+        if (node?.nodeName == 'IFRAME') {
           debouncedHandleIframeAdded();
         }
       });
@@ -90,8 +90,8 @@ const ContentScriptApp: React.FC = () => {
   //debounced handle iframe added, use debounce form lodash
   const debouncedHandleIframeAdded = debounce(() => {
     const iframes = document.querySelectorAll('iframe');
-    iframes.forEach((iframe: any) => {
-      if (iframe.contentDocument && iframe.contentDocument.body) {
+    iframes.forEach((iframe: HTMLIFrameElement) => {
+      if (iframe.contentDocument?.body) {
         iframe.contentDocument.body.addEventListener(
           'focusin',
           handleFocusinElement
@@ -100,8 +100,8 @@ const ContentScriptApp: React.FC = () => {
     });
 
     return () => {
-      iframes.forEach((iframe) => {
-        if (iframe.contentDocument && iframe.contentDocument.body) {
+      iframes.forEach((iframe: HTMLIFrameElement) => {
+        if (iframe.contentDocument?.body) {
           iframe.contentDocument.body.removeEventListener(
             'focusin',
             handleFocusinElement
@@ -139,11 +139,9 @@ const ContentScriptApp: React.FC = () => {
         //Define API requests config
         const requestConfig: RequestConfig = {
           disabled_categories: [
-            result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
-            result[StorageKeys.CASING_SITES] &&
-            result[StorageKeys.CASING_SITES].includes(
-              window.location.hostname.replace('www.', '')
-            )
+            result[StorageKeys.ORTHOGRAPHY]?.value === true ? '' : 'orthography',
+            result[StorageKeys.CASING_SITES]?.includes(
+              window.location.hostname.replace('www.', ''))
               ? 'casing'
               : '',
           ].filter((category) => category !== ''),
@@ -397,8 +395,7 @@ const ContentScriptApp: React.FC = () => {
               } else {
                 const parentElement =
                   input.tagName === 'rect' ? ancestor : input.parentElement;
-                parentElement &&
-                  parentElement.insertBefore(highlightsContainer, input);
+                  parentElement?.insertBefore(highlightsContainer, input);
               }
               elementRef.current = input;
               ReactDOM.render(<Input element={input} />, highlightsContainer);
