@@ -383,8 +383,7 @@ const Input: React.FC<{
       );
 
       const newSelectedAlertIndex =
-        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex] &&
-        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex].alerts.findIndex(
+        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex]?.alerts.findIndex(
           (alert) => alert === selectedAlert
         );
 
@@ -395,7 +394,7 @@ const Input: React.FC<{
         !totalMaxCharLengthReachedRef.current
       ) {
         const clickedElement = [] as ChildNode[];
-        if (!cloneRef.current || !cloneRef.current.childNodes) {
+        if (!cloneRef.current?.childNodes) {
           return;
         }
 
@@ -752,7 +751,7 @@ const Input: React.FC<{
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
 
-    if (newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
+    if (newTextToCheck.length === 0 || !newTextToCheck?.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
       setTextToCheck('');
@@ -909,8 +908,7 @@ const Input: React.FC<{
         const caretPos = caret.position;
 
         let selectedAlertIndex =
-          oneNodeWithAlerts &&
-          oneNodeWithAlerts.alerts.findIndex((alert: IAlert) => {
+          oneNodeWithAlerts?.alerts.findIndex((alert: IAlert) => {
             if (!alert) {
               return false;
             }
@@ -940,9 +938,7 @@ const Input: React.FC<{
             }
           );
 
-          selectedAlertIndex =
-            oneNodeWithAlerts &&
-            oneNodeWithAlerts.alerts.findIndex(
+          selectedAlertIndex = oneNodeWithAlerts?.alerts.findIndex(
               (alert: IAlert) =>
                 alert.startOffset === alertWithLargestStartoffset.startOffset
             );
@@ -1771,7 +1767,7 @@ const Input: React.FC<{
               nodesWithAlerts={nodesWithAlerts}
               element={element}
               elementRect={elementRect}
-              selectedAlert={popoverData && popoverData.alert}
+              selectedAlert={popoverData && popoverData?.alert}
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
