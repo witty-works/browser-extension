@@ -102,15 +102,15 @@ export const de = {
     ignore: 'ignorieren',
   },
   [namespaces.iconController]: {
-    totalMaxCharLengthReachedNotificationHeadline: 'Längere Texte verfassen?',
-    totalMaxCharLengthReachedNotificationText: 'Nur die ersten {{limit}} von {{total}} Zeichen wurden durch Witty analysiert. Upgrade um beliebig lange inklusive Texte zu schreiben.',
+    totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
+    totalMaxCharLengthReachedNotificationText: 'Witty Freemium prüft immer {{limit}} Zeichen. Für alle Texte, so oft du willst. Du liebst deine Texte grenzenlos? Hol dir alle Witty-Vorteile!',
     subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
-    totalMaxCharLengthReachedNotificationHeadline: 'Längere Texte verfassen?',
-    totalMaxCharLengthReachedNotificationText: 'Nur die ersten {{limit}} von {{total}} Zeichen wurden durch Witty analysiert. Upgrade um beliebig lange inklusive Texte zu schreiben.',
+    totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
+    totalMaxCharLengthReachedNotificationText: 'Witty Freemium prüft immer {{limit}} Zeichen. Für alle Texte, so oft du willst. Du liebst deine Texte grenzenlos? Hol dir alle Witty-Vorteile!',
     subscriptionButton: 'Upgrade',
   },
 };
@@ -223,15 +223,15 @@ export const en = {
     reloadWebsite: 'Please reload the website',
   },
   [namespaces.iconController]: {
-    totalMaxCharLengthReachedNotificationHeadline: 'Writing longer texts?',
-    totalMaxCharLengthReachedNotificationText: 'Only the first {{limit}} of {{total}} characters were checked by Witty. Upgrade to write inclusively on unlimited text length.',
+    totalMaxCharLengthReachedNotificationHeadline: 'Write long texts often?',
+    totalMaxCharLengthReachedNotificationText: 'Witty Freemium reviews {{limit}} characters of any text you write and as often as you like. Writing longer texts? Get all Witty benefits!',
     subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
-    totalMaxCharLengthReachedNotificationHeadline: 'Writing longer texts?',
-    totalMaxCharLengthReachedNotificationText: 'Only the first {{limit}} of {{total}} characters were checked by Witty. Upgrade to write inclusively on unlimited text length.',
+    totalMaxCharLengthReachedNotificationHeadline: 'Write long texts often?',
+    totalMaxCharLengthReachedNotificationText: 'Witty Freemium reviews {{limit}} characters of any text you write and as often as you like. Writing longer texts? Get all Witty benefits!',
     subscriptionButton: 'Upgrade',
   },
 

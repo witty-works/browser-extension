@@ -145,7 +145,7 @@ const ContentScriptApp: React.FC = () => {
               ? 'casing'
               : '',
           ].filter((category) => category !== ''),
-          orthography: result[StorageKeys.ORTHOGRAPHY].value,
+          orthography: result[StorageKeys.ORTHOGRAPHY]?.value,
         };
         setReqConfig(requestConfig);
       })
