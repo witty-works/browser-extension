@@ -83,7 +83,7 @@ export const isLinkedin = (): boolean => {
 
 export const isHTMLElementContentEditable = (element: Element): boolean => {
   const elementAsHtmlElement = element as HTMLElement;
-  return elementAsHtmlElement.contentEditable === 'true';
+  return elementAsHtmlElement?.contentEditable === 'true';
 };
 
 export const isChatGpt = () => {
