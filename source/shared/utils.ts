@@ -220,7 +220,8 @@ export const getCorrectedPosition = (
   parentElement: HTMLElement | null,
   element: HTMLElement
 ) => {
-  const parentRect = parentElement && parentElement.getBoundingClientRect();
+  const parentRect = parentElement?.getBoundingClientRect();
+
   if (requiresRectRecalculation(element)) {
     elementRect = element.getBoundingClientRect();
   }
@@ -229,8 +230,8 @@ export const getCorrectedPosition = (
     ? {
         top: navigator.userAgent.match(/firefox|fxios/i) && !isGoogleDocs()
           ? 0
-          : elementRect.top - parentRect.top,
-        left: elementRect.left - parentRect.left,
+          : elementRect.top - parentRect.top - window.scrollY,
+        left: elementRect.left - parentRect.left - window.scrollX,
       }
     : {
         top: elementRect.top,

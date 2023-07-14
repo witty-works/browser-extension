@@ -88,12 +88,7 @@ const Input: React.FC<{
   const [removeHighlights, setRemoveHighlights] = useState<boolean>(false);
   const [forceHighlightUpdate, setForceHighlightUpdate] =
     useState<boolean>(false);
-  const [windowScroll, setWindowScroll] = useState<Position>({
-    top:  window.scrollY,
-    left: window.scrollX,
-  } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
@@ -223,7 +218,6 @@ const Input: React.FC<{
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
-    window.addEventListener('scroll', handleWindowScrollEvent);
     if(!isGoogleDocs()) {
       element.addEventListener('focusout', handleFocusoutEvent);
       element.addEventListener('focusin', handleFocusinEvent);
@@ -260,7 +254,6 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
-      window.removeEventListener('scroll', handleWindowScrollEvent);
       if(!isGoogleDocs()) {
         element.removeEventListener('focusout', handleFocusoutEvent);
         element.removeEventListener('focusin', handleFocusinEvent);
@@ -292,12 +285,6 @@ const Input: React.FC<{
     };
   }, []);
 
-  const handleWindowScrollEvent = () => {
-    setWindowScroll({
-      top: window.scrollY,
-      left: window.scrollX,
-    });
-  };
   //GOOGLE DOCS WORKAROUND
   const handleDocumentClickEvent = () => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
@@ -1771,7 +1758,6 @@ const Input: React.FC<{
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
-              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
@@ -1788,7 +1774,6 @@ const Input: React.FC<{
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
-              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
