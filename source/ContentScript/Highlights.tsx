@@ -4,7 +4,6 @@ import { CustomInputElement, Highlight, IAlert, INodeWithAlerts, Position } from
 import { getColor } from '../shared/constants';
 import {
   getZIndex,
-  isFroalaEditor,
   isGoogleDocs,
   isGreenhouse,
   isTextArea,
@@ -31,7 +30,6 @@ interface HighlightsProps {
   userIsSignedIn: boolean;
   removeHighlights: boolean;
   forceHighlightUpdate: boolean;
-  windowScroll: Position;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
@@ -43,9 +41,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   userIsSignedIn,
   removeHighlights,
   forceHighlightUpdate,
-  windowScroll,
-}: HighlightsProps) => {
-  
+}: HighlightsProps) => {  
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
 
@@ -118,7 +114,6 @@ const Highlights: React.FC<HighlightsProps> = ({
                     ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
                     : rect.top +
                       doc.scrollTop -
-                      (isFroalaEditor(element) ? windowScroll.top : 0) - 
                       (isTextArea(element) ? elementScroll.top : 0),
                 };
               }
@@ -143,7 +138,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
 
     setHighlights(highlightsTemp);
-  }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll, windowScroll]);
+  }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
