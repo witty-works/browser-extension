@@ -1,5 +1,6 @@
 {
   "DISABLED_SITES": [
+    "notion.so",
     "deepl.com",
     "productboard.com",
     "trello.com"
@@ -33,7 +34,6 @@
     "linkedin.com",
     "github.com",
     "prospective.ch",
-    "notion.so",
     "bamboohr.com",
     "slack.com"
   ],

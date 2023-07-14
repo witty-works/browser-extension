@@ -145,7 +145,7 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   if (isGoogleDocs()) {
     const clone = document.querySelector('ww-clone');
     let divs = [] as Node[];
-    if (clone && clone.firstChild) {
+    if (clone?.firstChild) {
       for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
         const divElement = clone.firstChild.childNodes[i];
         divs.push(divElement);
@@ -166,9 +166,7 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
     const nodes = [] as Node[];
     for (let i = 0; i < elementEvaluation.snapshotLength; i++) {
       const node = elementEvaluation.snapshotItem(i);
-      if (node) {
-        nodes.push(node);
-      }
+      node && nodes.push(node);
     }
     return nodes;
   }
