@@ -556,7 +556,7 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
+  const handleKeyupEvent = debounce((event?: Event, gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
     event && (abortBackgroundWorkerRef.current = true);
 
@@ -610,7 +610,7 @@ const Input: React.FC<{
           textWithinMaxCharLength
         );
     }
-  };
+  }, 500);
 
   const getTextWithinMaxCharLength = (
     currentNode: number,
@@ -628,7 +628,7 @@ const Input: React.FC<{
       'below',
       textDividedByNodes,
       currentNode,
-      charLengthLeft
+      currentNode === 0 ? charLengthLeft * 2 : charLengthLeft
     );
     const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
       'above',
