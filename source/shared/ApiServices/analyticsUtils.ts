@@ -6,30 +6,32 @@ import { sendErrorToSentry } from '../errorUtils';
 import { storeInLocalStorage } from '../utils';
 
 export const aliasId = async (userId: string, appId: string) => {
-  const request = {
-    api_key: POSTHOG_API_KEY_EU,
-    properties: {
-      distinct_id: appId,
-      alias: userId,
-    },
-    timestamp: new Date().toISOString(),
-    context: '{}',
-    type: 'alias',
-    event: '$create_alias',
-  };
+  try {
+    const request = {
+      api_key: POSTHOG_API_KEY_EU,
+      properties: {
+        distinct_id: appId,
+        alias: userId,
+      },
+      timestamp: new Date().toISOString(),
+      context: '{}',
+      type: 'alias',
+      event: '$create_alias',
+    };
+  
+    const response = await fetch('https://eu.posthog.com/capture/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
 
-  const response = await fetch('https://eu.posthog.com/capture/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  }).catch((error) => {
+    if (response && response.status === 200) {
+      storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, true);
+    }
+  } catch (error) {
     sendErrorToSentry(error);
-  });
-
-  if (response && response.status === 200) {
-    storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, true);
   }
 };
 

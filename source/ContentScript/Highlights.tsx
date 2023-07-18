@@ -83,16 +83,11 @@ const Highlights: React.FC<HighlightsProps> = ({
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
           try {
-            if (
-              node.textContent &&
-              (alert.endOffset > node.textContent.length ||
-                alert.startOffset > node.textContent.length)
-            ) {
-              return;
+            if (alert.endOffset <= node.textContent.length && alert.startOffset <= node.textContent.length) {
+              range.selectNode(node);
+              range.setStart(node, alert.startOffset);
+              range.setEnd(node, alert.endOffset);
             }
-            range.selectNode(node);
-            range.setStart(node, alert.startOffset);
-            range.setEnd(node, alert.endOffset);
           } catch (error) {
             sendErrorToSentry(error);
           }

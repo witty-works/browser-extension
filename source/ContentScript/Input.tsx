@@ -738,7 +738,7 @@ const Input: React.FC<{
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
 
-    if (newTextToCheck.length === 0 || !newTextToCheck?.match(/[a-zA-Z0-9.:;,?!]/i)) {
+    if (newTextToCheck.length === 0 || (newTextToCheck && !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i))) {
       setActiveIcon('active');
       setAlerts([]);
       setTextToCheck('');
