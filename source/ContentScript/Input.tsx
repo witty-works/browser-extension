@@ -574,6 +574,20 @@ const Input: React.FC<{
       : getInputText(element);
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
+
+    if ( //if previously checked text is the same as current return
+    nextTextDividedByNodes &&  
+    prevCheckedNodesRef.current &&
+    prevCheckedNodesRef.current.length > 0 &&
+    prevCheckedNodesRef.current.length === nextTextDividedByNodes.length &&
+    prevCheckedNodesRef.current.every(
+      (prevCheckedNode: INodes, index: number) =>
+        prevCheckedNode?.node === nextTextDividedByNodes[index].textContent
+    )
+  ) {
+    return;
+  }
+
     const textDividedByNodesTextContent = isTextArea(element)
       ? nextText
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
@@ -671,17 +685,6 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (nodes: any) => {
-    if ( //if previously checked text is the same as current return
-      prevCheckedNodesRef.current.length > 0 &&
-      prevCheckedNodesRef.current.length === nodes.length &&
-      prevCheckedNodesRef.current.every(
-        (prevCheckedNode: INodes, index: number) =>
-          prevCheckedNode.node === nodes[index].node
-      )
-    ) {
-      return;
-    }
-
     const isTextAreaCheck = isTextArea(element);
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
     const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
