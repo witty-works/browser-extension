@@ -574,6 +574,20 @@ const Input: React.FC<{
       : getInputText(element);
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
+
+    if ( //if previously checked text is the same as current return
+    nextTextDividedByNodes &&  
+    prevCheckedNodesRef.current &&
+    prevCheckedNodesRef.current.length > 0 &&
+    prevCheckedNodesRef.current.length === nextTextDividedByNodes.length &&
+    prevCheckedNodesRef.current.every(
+      (prevCheckedNode: INodes, index: number) =>
+        prevCheckedNode?.node === nextTextDividedByNodes[index].textContent
+    )
+  ) {
+    return;
+  }
+
     const textDividedByNodesTextContent = isTextArea(element)
       ? nextText
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
@@ -718,7 +732,7 @@ const Input: React.FC<{
     }
     
     //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
-    if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
+    if (!isTextAreaCheck && newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
       nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
       newTextToCheck = nodesToCheck.map((node: any) => node.node).join('\n');
       nodesStorageRef.current = nodesToCheck;
@@ -738,7 +752,7 @@ const Input: React.FC<{
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
 
-    if (newTextToCheck.length === 0 || !newTextToCheck?.match(/[a-zA-Z0-9.:;,?!]/i)) {
+    if (newTextToCheck?.length === 0 || (newTextToCheck && !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i))) {
       setActiveIcon('active');
       setAlerts([]);
       setTextToCheck('');

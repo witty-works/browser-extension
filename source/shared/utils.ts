@@ -3,7 +3,7 @@ import { useAnalytics } from './ApiServices/useAnalytics';
 import { DEV_ENV, StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import { isGoogleDocs, requiresRectRecalculation } from './DOMutils';
+import { isGoogleDocs, isTextArea, requiresRectRecalculation } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 import { getToken } from './ApiServices/requests';
 
@@ -215,28 +215,26 @@ export const updateLabelChrome = (domain: string) => {
   });
 };
 
-export const getCorrectedPosition = (
-  elementRect: DOMRect,
-  parentElement: HTMLElement | null,
-  element: HTMLElement
-) => {
+export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLElement | null, element: HTMLElement) => {
   const parentRect = parentElement?.getBoundingClientRect();
+  const isFirefox = navigator.userAgent.match(/firefox|fxios/i);
+  const textArea = isTextArea(element);
 
   if (requiresRectRecalculation(element)) {
     elementRect = element.getBoundingClientRect();
   }
 
-  return parentRect && !isObjectEmpty(parentRect)
-    ? {
-        top: navigator.userAgent.match(/firefox|fxios/i) && !isGoogleDocs()
-          ? 0
-          : elementRect.top - parentRect.top - window.scrollY,
-        left: elementRect.left - parentRect.left - window.scrollX,
-      }
-    : {
-        top: elementRect.top,
-        left: elementRect.left,
-      };
+  if (parentRect && !isObjectEmpty(parentRect)) {
+    const scrollY = textArea ? 0 : window.scrollY;
+    const scrollX = textArea ? 0 : window.scrollX;
+
+    const top = isFirefox && !isGoogleDocs() ? 0 : elementRect.top - parentRect.top - scrollY;
+    const left = elementRect.left - parentRect.left - scrollX;
+
+    return { top, left };
+  }
+
+  return { top: elementRect.top, left: elementRect.left };
 };
 
 export const getCorrectedPositionCanvas = (element: HTMLElement) => {
