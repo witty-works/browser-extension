@@ -264,3 +264,20 @@ export const getScrollableParentClosestToElement = (element: HTMLElement) => {
   }
   return document.body;
 };
+
+export const getFrameDepth = (windowToIdentify: Window): number => {
+  if (windowToIdentify === window.top) {
+    return 0;
+  }
+  else if (windowToIdentify.parent === window.top) {
+    return 1;
+  }
+
+  return 1 + getFrameDepth (windowToIdentify.parent);
+};
+
+export const shouldInjectIntoWindow = (windowToCheck: Window) => {
+  const frameDepth = getFrameDepth(windowToCheck);
+  const isVisible = windowToCheck.innerWidth >= 10 && windowToCheck.innerHeight >= 10;
+  return frameDepth < 2 && isVisible;
+};
