@@ -574,6 +574,20 @@ const Input: React.FC<{
       : getInputText(element);
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
+
+    if ( //if previously checked text is the same as current return
+    nextTextDividedByNodes &&  
+    prevCheckedNodesRef.current &&
+    prevCheckedNodesRef.current.length > 0 &&
+    prevCheckedNodesRef.current.length === nextTextDividedByNodes.length &&
+    prevCheckedNodesRef.current.every(
+      (prevCheckedNode: INodes, index: number) =>
+        prevCheckedNode?.node === nextTextDividedByNodes[index].textContent
+    )
+  ) {
+    return;
+  }
+
     const textDividedByNodesTextContent = isTextArea(element)
       ? nextText
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
