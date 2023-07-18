@@ -671,6 +671,17 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (nodes: any) => {
+    if ( //if previously checked text is the same as current return
+      prevCheckedNodesRef.current.length > 0 &&
+      prevCheckedNodesRef.current.length === nodes.length &&
+      prevCheckedNodesRef.current.every(
+        (prevCheckedNode: INodes, index: number) =>
+          prevCheckedNode.node === nodes[index].node
+      )
+    ) {
+      return;
+    }
+
     const isTextAreaCheck = isTextArea(element);
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
     const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
