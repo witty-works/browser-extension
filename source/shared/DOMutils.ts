@@ -62,6 +62,11 @@ export const isFroalaEditor = (element: Element): boolean => {
   return !!foralaEditor;
 };
 
+export const isRedactorEditor = (element: Element): boolean => {
+  const redactorEditor = element.closest('.redactor_html-editor');
+  return !!redactorEditor;
+};
+
 export const isGreenhouse = (): boolean => {
   return window.location.hostname.includes('greenhouse');
 };
@@ -97,7 +102,9 @@ export const isInputElement = (element: Element) =>
 
 export const getZIndex = (element: Element) => {
   return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail()
-    ? 501
+    ? 501 
+    : isRedactorEditor(element) 
+    ? 999999999 //TEMP TEST
     : 'auto';
 };
 
