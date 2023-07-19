@@ -1647,7 +1647,7 @@ const Input: React.FC<{
   }, [checkEndpointError, authErrorResponse]);
 
   useEffect(() => {
-    if (refreshTokenError?.status === 403) {
+    if (refreshTokenError) {
       logOut();
       return;
     }
