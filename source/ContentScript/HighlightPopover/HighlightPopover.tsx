@@ -282,10 +282,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             }}
           >
             <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-              <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation.icon}</div>
+              <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation?.icon}</div>
               {data.alert.data.explanation?.text}
-              {data.alert.data.explanation.context &&
-                ' (' + data.alert.data.explanation.context + ')'}
+              {data.alert.data.explanation?.context &&
+                ' (' + data.alert.data.explanation?.context + ')'}
             </div>
             {data.alert.data.explanation?.url && (
               <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
@@ -293,7 +293,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               >
                 <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
                     {t('learnMore')}
-                    {data.alert.data.explanation.content === 'video' && (
+                    {data.alert.data.explanation?.content === 'video' && (
                       <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
                     )}
                   <div
@@ -321,7 +321,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <LoadingIcon />
           </div>
           <iframe
-            src={data.alert.data.explanation.url}
+            src={data.alert.data.explanation?.url}
             style={{
               display: iframeLoaded ? 'flex' : 'none',
             }}
