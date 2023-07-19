@@ -88,12 +88,7 @@ const Input: React.FC<{
   const [removeHighlights, setRemoveHighlights] = useState<boolean>(false);
   const [forceHighlightUpdate, setForceHighlightUpdate] =
     useState<boolean>(false);
-  const [windowScroll, setWindowScroll] = useState<Position>({
-    top:  window.scrollY,
-    left: window.scrollX,
-  } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
@@ -223,7 +218,6 @@ const Input: React.FC<{
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
-    window.addEventListener('scroll', handleWindowScrollEvent);
     if(!isGoogleDocs()) {
       element.addEventListener('focusout', handleFocusoutEvent);
       element.addEventListener('focusin', handleFocusinEvent);
@@ -260,7 +254,6 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
-      window.removeEventListener('scroll', handleWindowScrollEvent);
       if(!isGoogleDocs()) {
         element.removeEventListener('focusout', handleFocusoutEvent);
         element.removeEventListener('focusin', handleFocusinEvent);
@@ -292,12 +285,6 @@ const Input: React.FC<{
     };
   }, []);
 
-  const handleWindowScrollEvent = () => {
-    setWindowScroll({
-      top: window.scrollY,
-      left: window.scrollX,
-    });
-  };
   //GOOGLE DOCS WORKAROUND
   const handleDocumentClickEvent = () => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
@@ -569,7 +556,7 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
+  const handleKeyupEvent = debounce((event?: Event, gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
     event && (abortBackgroundWorkerRef.current = true);
 
@@ -587,6 +574,20 @@ const Input: React.FC<{
       : getInputText(element);
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
+
+    if ( //if previously checked text is the same as current return
+    nextTextDividedByNodes &&  
+    prevCheckedNodesRef.current &&
+    prevCheckedNodesRef.current.length > 0 &&
+    prevCheckedNodesRef.current.length === nextTextDividedByNodes.length &&
+    prevCheckedNodesRef.current.every(
+      (prevCheckedNode: INodes, index: number) =>
+        prevCheckedNode?.node === nextTextDividedByNodes[index].textContent
+    )
+  ) {
+    return;
+  }
+
     const textDividedByNodesTextContent = isTextArea(element)
       ? nextText
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
@@ -623,7 +624,7 @@ const Input: React.FC<{
           textWithinMaxCharLength
         );
     }
-  };
+  }, 500);
 
   const getTextWithinMaxCharLength = (
     currentNode: number,
@@ -641,7 +642,7 @@ const Input: React.FC<{
       'below',
       textDividedByNodes,
       currentNode,
-      charLengthLeft
+      currentNode === 0 ? charLengthLeft * 2 : charLengthLeft
     );
     const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
       'above',
@@ -731,7 +732,7 @@ const Input: React.FC<{
     }
     
     //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
-    if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
+    if (!isTextAreaCheck && newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
       nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
       newTextToCheck = nodesToCheck.map((node: any) => node.node).join('\n');
       nodesStorageRef.current = nodesToCheck;
@@ -751,7 +752,7 @@ const Input: React.FC<{
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
 
-    if (newTextToCheck.length === 0 || !newTextToCheck?.match(/[a-zA-Z0-9.:;,?!]/i)) {
+    if (newTextToCheck?.length === 0 || (newTextToCheck && !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i))) {
       setActiveIcon('active');
       setAlerts([]);
       setTextToCheck('');
@@ -1771,7 +1772,6 @@ const Input: React.FC<{
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
-              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
@@ -1788,7 +1788,6 @@ const Input: React.FC<{
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
-              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>

@@ -71,47 +71,11 @@ const ContentScriptApp: React.FC = () => {
     {} as RequestConfig
   );
   const [, setInputs, inputsRef] = useStateRef([] as CustomInputElement[]);
+  const [, setInputsMap, inputsMapRef] = useStateRef(new Map());
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
   const [pinNotificationStored, setPinNotificationStored] = useState<boolean | null>(null);
   const [, , elementRef] = useStateRef<CustomInputElement | null>(null);
-
-  //observes iframes that are added to the DOM
-  const observer = new MutationObserver(function (mutations) {
-    mutations.forEach(function (mutation) {
-      [].filter.call(mutation.addedNodes, function (node: HTMLElement) {
-        if (node?.nodeName == 'IFRAME') {
-          debouncedHandleIframeAdded();
-        }
-      });
-    });
-  });
-
-  //debounced handle iframe added, use debounce form lodash
-  const debouncedHandleIframeAdded = debounce(() => {
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach((iframe: HTMLIFrameElement) => {
-      if (iframe.contentDocument?.body) {
-        iframe.contentDocument.body.addEventListener(
-          'focusin',
-          handleFocusinElement
-        );
-      }
-    });
-
-    return () => {
-      iframes.forEach((iframe: HTMLIFrameElement) => {
-        if (iframe.contentDocument?.body) {
-          iframe.contentDocument.body.removeEventListener(
-            'focusin',
-            handleFocusinElement
-          );
-        }
-      });
-    };
-  }, 500);
-
-  observer.observe(document.body, { childList: true, subtree: true });
 
   const log = useLog('ContentScriptApp');
 
@@ -157,9 +121,14 @@ const ContentScriptApp: React.FC = () => {
     //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
 
+    // Setup mutation observers
+    setupMutationObservers();
+
     isGoogleDocs() && handleFocusinElement();
     !isGoogleDocs() &&
       document.addEventListener('focusin', handleFocusinElement, true);
+    !isGoogleDocs() &&
+      document.addEventListener('focusout', handleFocusoutElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
 
@@ -272,8 +241,26 @@ const ContentScriptApp: React.FC = () => {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
-      handleNewInput(); //ensures update
+      handleNewInput().then(addedInputsMap => {
+        const mergedInputsMap = new Map([...inputsMapRef.current, ...addedInputsMap]);
+        setInputsMap(mergedInputsMap);
+      }); //ensures update
     }
+  };
+
+  const handleFocusoutElement = (event?: Event) => {
+    let target = event?.target as CustomInputElement;
+
+    if (!inputsRef.current.includes(target) || !inputsMapRef.current.has(target)) {
+      return;
+    }
+
+    removeOldInput(inputsMapRef.current.get(target));
+
+    setInputs(inputsRef.current.filter(input => input !== target));
+    const inputsMap = inputsMapRef.current;
+    inputsMap.delete(target);
+    setInputsMap(inputsMap);
   };
 
   const handleMouseOver = (event: MouseEvent) => {
@@ -341,7 +328,9 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleNewInput = () => {
-    browser.storage.local.get().then((result) => {
+    return browser.storage.local.get().then((result) => {
+      const addedInputsMap = new Map();
+
       const disabledDomains = [
         ...(result[StorageKeys.DOMAINS]?.type === 'deny' && result[StorageKeys.DOMAINS]?.list || []),
         ...(result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK] || []),
@@ -399,30 +388,91 @@ const ContentScriptApp: React.FC = () => {
               }
               elementRef.current = input;
               ReactDOM.render(<Input element={input} />, highlightsContainer);
+
+              addedInputsMap.set(input, highlightsContainer);
             }
           });
         }
       }
+
+      return addedInputsMap;
     });
   };
 
-  // Check if tracked inputs exists or are still visible
-  // If not, remove them from the list of inputs. This way the highlights are also removed
-  const mutationObserver = new MutationObserver(() => {
-    inputsRef.current.forEach((input: CustomInputElement) => {
-      if (!nodeExistsInDOM(input) || !elementIsVisible(input))
-        setInputs([
-          ...inputsRef.current.filter(
-            (filterInput: CustomInputElement) => filterInput !== input
-          ),
-        ]);
-    });
-  });
+  const removeOldInput = (container: HTMLElement | undefined) => {
+    if (!container) {
+      return;
+    }
 
-  mutationObserver.observe(getActiveDocument().body, {
-    childList: true,
-    subtree: true,
-  });
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+  };
+
+  const setupMutationObservers = () => {
+    // Check if tracked inputs exists or are still visible
+    // If not, remove them from the list of inputs. This way the highlights are also removed
+    const inputVisibilityObserver = new MutationObserver(() => {
+      inputsRef.current.forEach((input: CustomInputElement) => {
+        if (!nodeExistsInDOM(input) || !elementIsVisible(input)) {
+          removeOldInput(inputsMapRef.current.get(input));
+
+          setInputs([
+            ...inputsRef.current.filter(
+                (filterInput: CustomInputElement) => filterInput !== input
+            ),
+          ]);
+          const inputsMap = inputsMapRef.current;
+          inputsMap.delete(input);
+          setInputsMap(inputsMap);
+        }
+      });
+    });
+
+    inputVisibilityObserver.observe(getActiveDocument().body, {
+      childList: true,
+      subtree: true,
+    });
+
+    //observes iframes that are added to the DOM
+    const iframeAddedObserver = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        [].filter.call(mutation.addedNodes, function (node: HTMLElement) {
+          if (node?.nodeName == 'IFRAME') {
+            debouncedHandleIframeAdded();
+          }
+        });
+      });
+    });
+
+    //debounced handle iframe added, use debounce form lodash
+    const debouncedHandleIframeAdded = debounce(() => {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach((iframe: HTMLIFrameElement) => {
+        if (iframe.contentDocument?.body) {
+          iframe.contentDocument.body.addEventListener(
+              'focusin',
+              handleFocusinElement
+          );
+        }
+      });
+
+      return () => {
+        iframes.forEach((iframe: HTMLIFrameElement) => {
+          if (iframe.contentDocument?.body) {
+            iframe.contentDocument.body.removeEventListener(
+                'focusin',
+                handleFocusinElement
+            );
+          }
+        });
+      };
+    }, 500);
+
+    iframeAddedObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
 
   return <></>;
 };
