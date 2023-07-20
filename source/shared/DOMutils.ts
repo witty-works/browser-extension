@@ -104,7 +104,7 @@ export const getZIndex = (element: Element) => {
   return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail()
     ? 501 
     : isRedactorEditor(element) 
-    ? 999999999 //TEMP TEST
+    ? 9999998 //make sure highlights are the second largest (smaller than popover)
     : 'auto';
 };
 
