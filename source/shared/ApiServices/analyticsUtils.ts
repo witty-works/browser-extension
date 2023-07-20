@@ -2,11 +2,9 @@ import { IAlert } from '../types';
 import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
 import { POSTHOG_API_KEY_EU, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { sendErrorToSentry } from '../errorUtils';
 import { storeInLocalStorage } from '../utils';
 
 export const aliasId = async (userId: string, appId: string) => {
-  try {
     const request = {
       api_key: POSTHOG_API_KEY_EU,
       properties: {
@@ -30,9 +28,6 @@ export const aliasId = async (userId: string, appId: string) => {
     if (response && response.status === 200) {
       storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, true);
     }
-  } catch (error) {
-    sendErrorToSentry(error);
-  }
 };
 
 export const captureEvent = (eventName: string, eventData: object) => {

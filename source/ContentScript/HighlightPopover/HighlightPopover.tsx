@@ -80,14 +80,23 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       if (iframePositionRecquired()) {
         const iframes = document.getElementsByTagName('iframe');
         const iframe = Array.from(iframes).find((iframe) => {
-          const iframeDoc =
-            iframe.contentDocument || iframe.contentWindow?.document;
-          return iframeDoc?.contains(dat.node);
+          try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+            return iframeDoc?.contains(dat.node);
+          } catch (error) {
+            console.error('Failed to access iframe content: ', error);
+            return false;
+          }
         });
-        if (iframe?.getBoundingClientRect())
-          iframeRects = iframe?.getBoundingClientRect();
+        try {
+          if (iframe?.getBoundingClientRect()) {
+            iframeRects = iframe?.getBoundingClientRect();
+          }
+        } catch (error) {
+          console.error('Failed to get iframe bounding rect: ', error);
+        }
       }
-
+  
       const scrollParentScrollTop = getScrollParent(element)?.scrollTop;
       const scrollTop = (!isTextArea(element) && scrollParentScrollTop) ? scrollParentScrollTop : 0;
       const calcNewX: number =
