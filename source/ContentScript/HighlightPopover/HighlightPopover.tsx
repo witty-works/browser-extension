@@ -25,6 +25,7 @@ import { iframePositionRecquired, isTextArea } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollParent } from '../utils';
 import { getScrollableParentClosestToElement } from '../../shared/utils';
+import ReactDOM from 'react-dom';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -80,14 +81,23 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       if (iframePositionRecquired()) {
         const iframes = document.getElementsByTagName('iframe');
         const iframe = Array.from(iframes).find((iframe) => {
-          const iframeDoc =
-            iframe.contentDocument || iframe.contentWindow?.document;
-          return iframeDoc?.contains(dat.node);
+          try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+            return iframeDoc?.contains(dat.node);
+          } catch (error) {
+            console.error('Failed to access iframe content: ', error);
+            return false;
+          }
         });
-        if (iframe?.getBoundingClientRect())
-          iframeRects = iframe?.getBoundingClientRect();
+        try {
+          if (iframe?.getBoundingClientRect()) {
+            iframeRects = iframe?.getBoundingClientRect();
+          }
+        } catch (error) {
+          console.error('Failed to get iframe bounding rect: ', error);
+        }
       }
-
+  
       const scrollParentScrollTop = getScrollParent(element)?.scrollTop;
       const scrollTop = (!isTextArea(element) && scrollParentScrollTop) ? scrollParentScrollTop : 0;
       const calcNewX: number =
@@ -170,9 +180,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const hidePopover = () => {
     analytics.popoverLogs(data.alert, 'popover_close');
-    hide();
     setShowLearningBite(false);
     setIframeLoaded(false);
+
+    hide();
+    //in case input is removed from the dom before popover is closed (clicking outside the element), also remove it here
+    const popoverContainer = window.document.getElementsByTagName('ww-popover')[0];
+    ReactDOM.unmountComponentAtNode(popoverContainer as HTMLElement);
   };
 
   const clickAlternative = (alternative: string, category: string) => {

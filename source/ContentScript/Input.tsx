@@ -752,7 +752,7 @@ const Input: React.FC<{
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
 
-    if (newTextToCheck?.length === 0 || (newTextToCheck && !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i))) {
+    if (typeof newTextToCheck !== 'string' || newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
       setTextToCheck('');
@@ -1693,6 +1693,11 @@ const Input: React.FC<{
       popoverData.alert.plan === 'witty_free' &&
       !popoverData.alert.data.explanation //if no explanation returned, its a premium feature
     ) {
+      if (!document.querySelector(WTags.WW_POPOVER)) {
+        const element = document.createElement(WTags.WW_POPOVER);
+        document.body.appendChild(element);
+      }
+    
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverUpgrade
