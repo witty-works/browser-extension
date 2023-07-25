@@ -13,7 +13,7 @@ jobs:
       SENTRY_SAMPLE_RATE: 0.001
       SENTRY_TRACE_RATE: 0.001
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      VERSION_STRING: ${{github.ref_name}}
+      SENTRY_VERSION_STRING: ${{github.ref_name}}
 
     steps:
       - uses: actions/checkout@v3
@@ -69,7 +69,7 @@ jobs:
 
       - name: Build Prod Chrome artifacts
         run: |
-          env SENTRY_RELEASE=${VERSION_STRING}-chrome-prod yarn run build:chrome-with-sourcemaps
+          yarn run build:chrome-with-sourcemaps
 
       - name: Remove *.map files
         run: rm -rf extension/chrome/js/*.map
@@ -83,7 +83,7 @@ jobs:
 
       - name: Build Prod Firefox artifacts
         run: |
-          env SENTRY_RELEASE=${VERSION_STRING}-firefox-prod yarn run build:firefox-with-sourcemaps
+          yarn run build:firefox-with-sourcemaps
 
       - name: Remove *.map files
         run: rm -rf extension/firefox/js/*.map
