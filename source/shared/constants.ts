@@ -45,6 +45,7 @@ export enum StorageKeys {
 
   ID_WAS_ALIASED = 'idWasAliased',
   PIN_NOTIFICATION_SHOWED = 'pinNotificationShowed',
+  TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED = 'totalMaxCharLengthNotificationShowed',
 }
 
 //nlp api, dashboard
