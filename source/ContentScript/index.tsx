@@ -5,7 +5,7 @@ import {
   StorageKeys,
   wittyVersion,
   exposeWittyIdAllowList,
-  DefaultBaseUrlKey,
+  DefaultBaseUrlKey, WTags,
 } from '../shared/constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
@@ -17,12 +17,16 @@ import {
   makeAuthRequest,
 } from './utils';
 import { setBaseUrls } from '../shared/ApiServices/requests';
+import {generateUUID} from "posthog-js-lite/dist/src/utils/utils";
+import ReactDOM from "react-dom";
 
 const sentryDSN = defaultConfig.SENTRY_DSN;
 const sentrySampleRate = defaultConfig.SENTRY_SAMPLE_RATE;
 const sentryTraceRate = defaultConfig.SENTRY_TRACE_RATE;
 const log = useLog('ContentScript index');
 const domain = getDomainWithoutSubdomain(window.location.hostname);
+
+const scriptId = generateUUID(window);
 
 document.body.appendChild(document.createElement('witty-is-installed'));
 const wittyIsInstalledElement = document.querySelector('witty-is-installed');
@@ -67,9 +71,9 @@ browser.storage.local
       isOnPersonalDomainList ||
       defaultConfig.DISABLED_SITES.includes(domain)
     ) {
-      customRender(false);
+      customRender(false, scriptId);
     } else {
-      customRender(true);
+      customRender(true, scriptId);
     }
   })
   .catch((error: string) => {
@@ -82,13 +86,13 @@ const storageChange = (changes: any) => {
   for (let item of changedItems) {
     switch (item) {
       case StorageKeys.ORGANIZATION_DOMAINS:
-        handleDomainsFromDashboard(changes[item].newValue);
+        handleDomainsFromDashboard(changes[item].newValue, scriptId);
         break;
       case StorageKeys.DOMAINS:
         if (changes[item].newValue.includes(domain)) {
-          customRender(false);
+          customRender(false, scriptId);
         } else {
-          customRender(true);
+          customRender(true, scriptId);
         }
         break;
 
@@ -98,7 +102,8 @@ const storageChange = (changes: any) => {
             .map((d: string) => d.split('-')[0])
             .includes(domain)
             ? false
-            : true
+            : true,
+            scriptId
         );
         break;
     }
@@ -106,6 +111,26 @@ const storageChange = (changes: any) => {
 };
 makeAuthRequest();
 browser.storage.onChanged.addListener(storageChange);
+
+const orphanMessageId = browser.runtime.id + 'orphanCheck';
+window.dispatchEvent(new Event(orphanMessageId));
+window.addEventListener(orphanMessageId, unregisterOrphan);
+
+function unregisterOrphan() {
+  if (browser.runtime.id) {
+    return;
+  }
+
+  const container = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
+  if (container) {
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+  }
+
+  browser.storage.onChanged.removeListener(storageChange);
+  window.removeEventListener(orphanMessageId, unregisterOrphan);
+  return true;
+}
 
 if (sentryDSN) {
   Sentry.init({
