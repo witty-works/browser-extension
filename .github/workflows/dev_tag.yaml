@@ -13,7 +13,6 @@ jobs:
       SENTRY_SAMPLE_RATE: 1.0
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_VERSION_STRING: ${{github.ref_name}}
-      NODE_ENV: development
 
     steps:
       - uses: actions/checkout@v3
