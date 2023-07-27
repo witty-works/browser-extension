@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
@@ -141,10 +141,10 @@ const ContentScriptApp: React.FC = () => {
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
 
-      !isGoogleDocs() &&
-        document.removeEventListener('focusin', handleFocusinElement);
-      document.removeEventListener('mouseover', handleMouseOver);
-      document.removeEventListener('mouseout', handleMouseOut);
+      document.removeEventListener('focusin', handleFocusinElement, true);
+      document.removeEventListener('focusout', handleFocusoutElement, true);
+      document.removeEventListener('mouseover', handleMouseOver, true);
+      document.removeEventListener('mouseout', handleMouseOut, true);
     };
   }, []);
 
@@ -170,7 +170,7 @@ const ContentScriptApp: React.FC = () => {
 
   //TODO specify changes type
   //TODO review all cases
-  const storageChange = (changes: any) => {
+  const storageChange = useCallback((changes: any) => {
     // TODO fix this changes: any ^
     let changedItems = Object.keys(changes);
 
@@ -212,13 +212,13 @@ const ContentScriptApp: React.FC = () => {
           break;
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     setRequestConfig(reqConfig);
   }, [reqConfig]);
 
-  const handleFocusinElement = (event?: Event) => {
+  const handleFocusinElement = useCallback((event?: Event) => {
     let target = event?.target as CustomInputElement;
     //if no target, target is the child of #docs-texteventtarget-descendant
     if (isGoogleDocs()) {
@@ -246,9 +246,9 @@ const ContentScriptApp: React.FC = () => {
         setInputsMap(mergedInputsMap);
       }); //ensures update
     }
-  };
+  }, []);
 
-  const handleFocusoutElement = (event?: Event) => {
+  const handleFocusoutElement = useCallback((event?: Event) => {
     let target = event?.target as CustomInputElement;
 
     if (!inputsRef.current.includes(target) || !inputsMapRef.current.has(target)) {
@@ -261,9 +261,9 @@ const ContentScriptApp: React.FC = () => {
     const inputsMap = inputsMapRef.current;
     inputsMap.delete(target);
     setInputsMap(inputsMap);
-  };
+  }, []);
 
-  const handleMouseOver = (event: MouseEvent) => {
+  const handleMouseOver = useCallback((event: MouseEvent) => {
     const target = event.target as CustomInputElement;
 
     //TODO FIX Avoiding a specific tag (e.g. 'P') is a temp solution that works in sites like Gmail
@@ -277,12 +277,12 @@ const ContentScriptApp: React.FC = () => {
       return;
 
     setHoveredElement(target);
-  };
+  }, []);
 
-  const handleMouseOut = (event: MouseEvent) => {
+  const handleMouseOut = useCallback((event: MouseEvent) => {
     const target = event.target as CustomInputElement;
     if (hoveredElementRef.current?.isEqualNode(target)) setHoveredElement(null);
-  };
+  }, []);
 
   useEffect(() => {
     if (hoveredElementRef.current) {

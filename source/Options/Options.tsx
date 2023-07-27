@@ -10,16 +10,9 @@ const Options: React.FC = () => {
   const [refreshToken, setRefreshToken] = useState<string>('');
 
   useEffect(() => {
-    window.addEventListener('load', onOptionsLoad);
-    return () => {
-      window.removeEventListener('load', onOptionsLoad);
-    };
-  }, []);
-
-  const onOptionsLoad = (event: Event) => {
     try {
       const searchParams = new URLSearchParams(
-        (event.currentTarget as Window).location.search
+        window.location.search
       );
 
       if ([...searchParams].length > 0) {
@@ -35,13 +28,12 @@ const Options: React.FC = () => {
             'noopener'
           );
         });
-       
+
       }
     } catch (error) {
       sendErrorToSentry(error);
     }
-  };
-
+  }, []);
   useEffect(() => {
     setToken(accessToken);
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, accessToken);

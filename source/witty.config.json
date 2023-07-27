@@ -1,11 +1,11 @@
 {
   "DISABLED_SITES": [
-    "notion.so",
     "deepl.com",
     "productboard.com",
     "trello.com"
   ],
   "ACTIVE_SITES": [
+    "notion.so",
     "whatsapp.com",
     "airbnb.com",
     "joomla.org",

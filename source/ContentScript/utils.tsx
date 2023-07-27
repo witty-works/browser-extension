@@ -62,15 +62,20 @@ export const getInputText = (element: CustomInputElement | any) => {
   }
 };
 
-export const customRender = (enabled: boolean) => {
+export const customRender = (enabled: boolean, scriptId: string) => {
   if (!document.querySelector(WTags.WW_POPOVER)) {
     const element = document.createElement(WTags.WW_POPOVER);
     document.body.appendChild(element);
   }
 
+  if (!document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)) {
+    const element = document.createElement(`${WTags.WW_POPOVER}-${scriptId}`);
+    document.body.appendChild(element);
+  }
+
   ReactDOM.render(
     enabled ? <ContentScriptApp /> : <></>,
-    document.querySelector(WTags.WW_POPOVER)
+    document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)
   );
 
   //if more than one container is found, remove all of except the first one. If witty disabled, remove all.
@@ -82,7 +87,7 @@ export const customRender = (enabled: boolean) => {
   }
 };
 
-export const handleDomainsFromDashboard = (newValue: any) => {
+export const handleDomainsFromDashboard = (newValue: any, scriptId: string) => {
   if (
     (newValue.type === 'deny' &&
       newValue.list.includes(
@@ -93,9 +98,9 @@ export const handleDomainsFromDashboard = (newValue: any) => {
         getDomainWithoutSubdomain(window.location.hostname)
       ))
   ) {
-    customRender(false);
+    customRender(false, scriptId);
   } else {
-    customRender(true);
+    customRender(true, scriptId);
   }
 };
 

@@ -43,9 +43,9 @@ const sentryWebpackPluginInstance =
       // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
       // and need `project:releases` and `org:read` scopes
       authToken: process.env.SENTRY_AUTH_TOKEN,
-      // https://github.com/getsentry/sentry-webpack-plugin/issues/449
-      // release: `${process.env.VERSION_STRING}-${targetBrowser}-${nodeEnv}`,
-      // cleanArtifacts: true,
+      release: {
+        name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}-${nodeEnv}`
+      },
     })
     : () => {
       this.apply = () => { };
