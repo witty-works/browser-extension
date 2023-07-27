@@ -147,6 +147,8 @@ const Input: React.FC<{
     [element]
   );
   const debouncedMutation = debounce(() => {
+    const cloneContainer = document.querySelector(WTags.WW_CLONE);
+    if (!cloneContainer) return;
     //if no text, remove highlights
     if (!element.querySelector('g')) {
       setAlerts([]);
@@ -171,7 +173,7 @@ const Input: React.FC<{
         .getPropertyValue('z-index');
       return parseInt(zIndex);
     }) as number[];
-    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs() ) {
+    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs()) {
       previouslyCheckedPagesGoogleDocs.current = [
         ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
       ];
