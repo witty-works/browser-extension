@@ -104,10 +104,9 @@ const IconController: React.FC<IconControllerProps> = ({
         backgroundColor: '#f5f5f5',
         zIndex: 'auto',
         margin: '1em',
-        right: 0,
         borderRadius: '4px',
-        left: googleDocsIcon ? '-300px' : `${elementRect.width - 350}px` ,
-        top: '10px',
+        top: `${0 + scrollContainerScrollTop}px`,
+        left: '-300px',
       }}>
         <div className="witty-works-warning-headline-wrapper"
         style={{

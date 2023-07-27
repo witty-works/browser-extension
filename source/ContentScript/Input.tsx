@@ -689,6 +689,7 @@ const Input: React.FC<{
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
     const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
     if (totalTextLength < maxCharLength) {
+      localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'false');
       prevCheckedNodesRef.current = []; //prevents displaced highlights when text is short
       setRemoveHighlights(true);
     } 
@@ -1350,6 +1351,7 @@ const Input: React.FC<{
     if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
       const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
       totalMaxCharLengthReachedNotificationWrapper.id = 'ww-notification';
+      if (localStorage.getItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED) === 'true') return;
       ReactDOM.render(
           <Notification
             notificationType={'totalMaxCharLengthReached'}
@@ -1360,6 +1362,7 @@ const Input: React.FC<{
           document.body.firstChild
         )
       );
+      localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'true');
     }
   }, [totalMaxCharLengthReachedRef.current]);
 
