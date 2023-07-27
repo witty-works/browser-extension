@@ -105,7 +105,6 @@ const IconController: React.FC<IconControllerProps> = ({
         zIndex: 'auto',
         margin: '1em',
         borderRadius: '4px',
-        top: `${0 + scrollContainerScrollTop}px`,
         left: '-300px',
       }}>
         <div className="witty-works-warning-headline-wrapper"

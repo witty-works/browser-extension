@@ -7,7 +7,7 @@ import defaultConfig from '../witty.config.json';
 import { WTags, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
-import Notification from '../Notifications/Notification';
+// import Notification from '../Notifications/Notification'; //Temporarily removed until we have a better solution
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -689,7 +689,7 @@ const Input: React.FC<{
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
     const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
     if (totalTextLength < maxCharLength) {
-      localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'false');
+      // localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'false');
       prevCheckedNodesRef.current = []; //prevents displaced highlights when text is short
       setRemoveHighlights(true);
     } 
@@ -1347,24 +1347,24 @@ const Input: React.FC<{
     } 
   };
   
-  useEffect(() => {
-    if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
-      const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
-      totalMaxCharLengthReachedNotificationWrapper.id = 'ww-notification';
-      if (localStorage.getItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED) === 'true') return;
-      ReactDOM.render(
-          <Notification
-            notificationType={'totalMaxCharLengthReached'}
-            element={element}
-          />,
-        document.body.insertBefore(
-          totalMaxCharLengthReachedNotificationWrapper,
-          document.body.firstChild
-        )
-      );
-      localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'true');
-    }
-  }, [totalMaxCharLengthReachedRef.current]);
+  // useEffect(() => {
+  //   if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
+  //     const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
+  //     totalMaxCharLengthReachedNotificationWrapper.id = 'ww-notification';
+  //     if (localStorage.getItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED) === 'true') return;
+  //     ReactDOM.render(
+  //         <Notification
+  //           notificationType={'totalMaxCharLengthReached'}
+  //           element={element}
+  //         />,
+  //       document.body.insertBefore(
+  //         totalMaxCharLengthReachedNotificationWrapper,
+  //         document.body.firstChild
+  //       )
+  //     );
+  //     localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'true');
+  //   }
+  // }, [totalMaxCharLengthReachedRef.current]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
