@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import {browser, Tabs} from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
 
 import {
@@ -49,7 +49,7 @@ const onError = (error: string) => {
 if (sentryDSN) {
   Sentry.init({
     dsn: sentryDSN,
-    release: 'witty@' + wittyVersion,
+    release: wittyVersion,
     integrations: [new Sentry.BrowserTracing()],
     sampleRate: sentrySampleRate,
     tracesSampleRate: sentryTraceRate,
@@ -87,8 +87,84 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'update') {
     //Set icon according to the saved settings
     scanTabsToDetectStatus();
+    reInjectContentScripts();
   }
 });
+
+const reInjectContentScripts = () => {
+  const manifest = browser.runtime.getManifest();
+  // @ts-ignore
+  const scripts = manifest.content_scripts;
+
+  const matchPattern = (pattern: string, url: string): boolean => {
+    // Parse pattern
+    let [patternScheme, patternHost] = pattern.split("://");
+    let [patternDomain, patternPath] = patternHost.split("/", 2);
+
+    // Parse URL
+    let urlObj = new URL(url);
+    let urlDomain = urlObj.hostname;
+    let urlPath = urlObj.pathname;
+
+    // Check scheme
+    if (patternScheme !== "*" && patternScheme !== urlObj.protocol.replace(":", "")) {
+      return false;
+    }
+
+    // Check domain
+    if (patternDomain !== "*" && !urlDomain.endsWith(patternDomain.replace("*.", ""))) {
+      return false;
+    }
+
+    // Check path
+    return !(patternPath !== "*" && !urlPath.startsWith("/" + patternPath));
+  }
+
+  const matchUrl = (url: string, patterns: string[]): boolean => {
+    for (let pattern of patterns) {
+      if (matchPattern(pattern, url)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
+  const injectIntoTab = (tab: Tabs.Tab) => {
+    if (!tab.url || tab.url.match(/(chrome):\/\//gi)) {
+      return;
+    }
+
+    scripts.forEach((script: { js: any; matches: any; }) => {
+      const js = script.js;
+      const matches = script.matches;
+
+      if (!matchUrl(tab.url!, matches)) {
+        return;
+      }
+
+      js.forEach((scriptToInject: string) => {
+        browser.tabs.executeScript(tab.id!, {
+          file: scriptToInject,
+          allFrames: true
+        });
+      });
+    });
+  };
+
+  browser.windows.getAll({ populate: true }).then((windows) => {
+    windows.forEach((window) => {
+      if (!window || !window.tabs) {
+        return;
+      }
+
+      window.tabs.forEach(tab => {
+        injectIntoTab(tab);
+      });
+    });
+  });
+};
 
 const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
   //Check if setting is already defined in the local storage
@@ -128,12 +204,11 @@ const setSettings = () => {
 
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-    if (tabs.length != 0, tabs[0].url) {
+    if (tabs.length != 0 && tabs[0].url) {
       const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
       updateLabelChrome(domain);
     } else if (
-      defaultConfig.CHROME_AND_FIREFOX_SITES &&
-      defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)
+      defaultConfig.CHROME_AND_FIREFOX_SITES?.includes(window.location.protocol)
     ) {
       removeBadge();
     }

@@ -62,6 +62,11 @@ export const isFroalaEditor = (element: Element): boolean => {
   return !!foralaEditor;
 };
 
+export const isRedactorEditor = (element: Element): boolean => {
+  const redactorEditor = element.closest('.redactor_html-editor');
+  return !!redactorEditor;
+};
+
 export const isGreenhouse = (): boolean => {
   return window.location.hostname.includes('greenhouse');
 };
@@ -83,7 +88,7 @@ export const isLinkedin = (): boolean => {
 
 export const isHTMLElementContentEditable = (element: Element): boolean => {
   const elementAsHtmlElement = element as HTMLElement;
-  return elementAsHtmlElement.contentEditable === 'true';
+  return elementAsHtmlElement?.contentEditable === 'true';
 };
 
 export const isChatGpt = () => {
@@ -97,7 +102,9 @@ export const isInputElement = (element: Element) =>
 
 export const getZIndex = (element: Element) => {
   return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail()
-    ? 501
+    ? 501 
+    : isRedactorEditor(element) 
+    ? 9999998 //make sure highlights are the second largest (smaller than popover)
     : 'auto';
 };
 
@@ -121,7 +128,7 @@ export const iframePositionRecquired = () => {
 };
 
 export const findElement = (node: Node, element: string): boolean => {
-  if (node.nodeName === element) {
+  if (node && node.nodeName === element) {
     return true;
   }
   return false;

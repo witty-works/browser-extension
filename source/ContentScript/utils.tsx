@@ -62,15 +62,20 @@ export const getInputText = (element: CustomInputElement | any) => {
   }
 };
 
-export const customRender = (enabled: boolean) => {
+export const customRender = (enabled: boolean, scriptId: string) => {
   if (!document.querySelector(WTags.WW_POPOVER)) {
     const element = document.createElement(WTags.WW_POPOVER);
     document.body.appendChild(element);
   }
 
+  if (!document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)) {
+    const element = document.createElement(`${WTags.WW_POPOVER}-${scriptId}`);
+    document.body.appendChild(element);
+  }
+
   ReactDOM.render(
     enabled ? <ContentScriptApp /> : <></>,
-    document.querySelector(WTags.WW_POPOVER)
+    document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)
   );
 
   //if more than one container is found, remove all of except the first one. If witty disabled, remove all.
@@ -82,7 +87,7 @@ export const customRender = (enabled: boolean) => {
   }
 };
 
-export const handleDomainsFromDashboard = (newValue: any) => {
+export const handleDomainsFromDashboard = (newValue: any, scriptId: string) => {
   if (
     (newValue.type === 'deny' &&
       newValue.list.includes(
@@ -93,9 +98,9 @@ export const handleDomainsFromDashboard = (newValue: any) => {
         getDomainWithoutSubdomain(window.location.hostname)
       ))
   ) {
-    customRender(false);
+    customRender(false, scriptId);
   } else {
-    customRender(true);
+    customRender(true, scriptId);
   }
 };
 
@@ -145,7 +150,7 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   if (isGoogleDocs()) {
     const clone = document.querySelector('ww-clone');
     let divs = [] as Node[];
-    if (clone && clone.firstChild) {
+    if (clone?.firstChild) {
       for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
         const divElement = clone.firstChild.childNodes[i];
         divs.push(divElement);
@@ -166,9 +171,7 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
     const nodes = [] as Node[];
     for (let i = 0; i < elementEvaluation.snapshotLength; i++) {
       const node = elementEvaluation.snapshotItem(i);
-      if (node) {
-        nodes.push(node);
-      }
+      node && nodes.push(node);
     }
     return nodes;
   }
@@ -182,7 +185,7 @@ export const getNodesWithinMaxCharLength = (
 ) => {
   let totalChars = 0;
   textDividedByNodes = textDividedByNodes.filter((node) => { //remove empty nodes
-    return node.textContent?.length && node.textContent?.length > 0;
+    return node?.textContent && node.textContent.length > 0;
   });
   const slice =
     direction == 'below'

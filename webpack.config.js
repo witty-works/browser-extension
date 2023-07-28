@@ -35,7 +35,7 @@ const extensionReloaderPlugin =
     };
 
 const sentryWebpackPluginInstance =
-  process.env.UPLOAD_SOURCEMAPS
+  process.env.SENTRY_SOURCEMAPS && process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_VERSION_STRING
     ? sentryWebpackPlugin({
       org: "witty-works",
       project: "browser-extension",
@@ -43,7 +43,9 @@ const sentryWebpackPluginInstance =
       // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
       // and need `project:releases` and `org:read` scopes
       authToken: process.env.SENTRY_AUTH_TOKEN,
-      release: process.env.SENTRY_RELEASE,
+      release: {
+        name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`
+      },
     })
     : () => {
       this.apply = () => { };
@@ -63,8 +65,7 @@ const getExtensionFileType = (browser) => {
 };
 
 module.exports = {
-  devtool: nodeEnv === 'development' || process.env.UPLOAD_SOURCEMAPS
-    ? 'source-map' : false,
+  devtool: 'source-map',
 
   stats: {
     all: false,

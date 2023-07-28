@@ -35,10 +35,10 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
 
   for (const pageElementContainingSvg of pageElementsContainingSvg) {
     const innerElement = pageElementContainingSvg?.childNodes[0] as CustomInputElement;
-    if (!innerElement || !innerElement.childNodes) continue;
+    if (!innerElement?.childNodes) continue;
     for (const childNode of innerElement.childNodes) {
       const gElement = childNode as CustomInputElement;
-      if (!gElement || !gElement.childNodes) continue;
+      if (!gElement?.childNodes) continue;
       for (const rectElement of gElement.childNodes) {
         const svgRectElement = rectElement as SVGRectElement;
         const areaLabel = svgRectElement.getAttribute('aria-label');
@@ -125,7 +125,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   return (
     <div
       ref={(ref) => {
-        if (ref !== null && divs.length > 0) {
+        if (ref !== null && divs.length > 0 && previousElement) {
           const refAsArrayOfText = Array.from(ref.childNodes).map(
             (node) => node.textContent
           );

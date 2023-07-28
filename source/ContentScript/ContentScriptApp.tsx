@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
@@ -51,12 +51,13 @@ const WW_CONTAINER_STYLE = `
   padding: 0px !important;
   margin: 0px !important;
   border: none !important;
+  align-self: flex-start !important;
   box-shadow: none !important;
   `;
 
 let activeDocument = document;
 export const setActiveDocument = (document: Document) => {
-  if (document && document.body) {
+  if (document?.body) {
     activeDocument = document;
   }
 };
@@ -70,46 +71,11 @@ const ContentScriptApp: React.FC = () => {
     {} as RequestConfig
   );
   const [, setInputs, inputsRef] = useStateRef([] as CustomInputElement[]);
+  const [, setInputsMap, inputsMapRef] = useStateRef(new Map());
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
   const [pinNotificationStored, setPinNotificationStored] = useState<boolean | null>(null);
-
-  //observes iframes that are added to the DOM
-  const observer = new MutationObserver(function (mutations) {
-    mutations.forEach(function (mutation) {
-      [].filter.call(mutation.addedNodes, function (node: HTMLElement) {
-        if (node.nodeName == 'IFRAME') {
-          debouncedHandleIframeAdded();
-        }
-      });
-    });
-  });
-
-  //debounced handle iframe added, use debounce form lodash
-  const debouncedHandleIframeAdded = debounce(() => {
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach((iframe: any) => {
-      if (iframe.contentDocument && iframe.contentDocument.body) {
-        iframe.contentDocument.body.addEventListener(
-          'focusin',
-          handleFocusinElement
-        );
-      }
-    });
-
-    return () => {
-      iframes.forEach((iframe) => {
-        if (iframe.contentDocument && iframe.contentDocument.body) {
-          iframe.contentDocument.body.removeEventListener(
-            'focusin',
-            handleFocusinElement
-          );
-        }
-      });
-    };
-  }, 500);
-
-  observer.observe(document.body, { childList: true, subtree: true });
+  const [, , elementRef] = useStateRef<CustomInputElement | null>(null);
 
   const log = useLog('ContentScriptApp');
 
@@ -137,15 +103,13 @@ const ContentScriptApp: React.FC = () => {
         //Define API requests config
         const requestConfig: RequestConfig = {
           disabled_categories: [
-            result[StorageKeys.ORTHOGRAPHY].value === true ? '' : 'orthography',
-            result[StorageKeys.CASING_SITES] &&
-            result[StorageKeys.CASING_SITES].includes(
-              window.location.hostname.replace('www.', '')
-            )
+            result[StorageKeys.ORTHOGRAPHY]?.value === true ? '' : 'orthography',
+            result[StorageKeys.CASING_SITES]?.includes(
+              window.location.hostname.replace('www.', ''))
               ? 'casing'
               : '',
           ].filter((category) => category !== ''),
-          orthography: result[StorageKeys.ORTHOGRAPHY].value,
+          orthography: result[StorageKeys.ORTHOGRAPHY]?.value,
         };
         setReqConfig(requestConfig);
       })
@@ -157,9 +121,14 @@ const ContentScriptApp: React.FC = () => {
     //Add event listeners
     browser.storage.onChanged.addListener(storageChange);
 
+    // Setup mutation observers
+    setupMutationObservers();
+
     isGoogleDocs() && handleFocusinElement();
     !isGoogleDocs() &&
       document.addEventListener('focusin', handleFocusinElement, true);
+    !isGoogleDocs() &&
+      document.addEventListener('focusout', handleFocusoutElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
 
@@ -172,10 +141,10 @@ const ContentScriptApp: React.FC = () => {
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
 
-      !isGoogleDocs() &&
-        document.removeEventListener('focusin', handleFocusinElement);
-      document.removeEventListener('mouseover', handleMouseOver);
-      document.removeEventListener('mouseout', handleMouseOut);
+      document.removeEventListener('focusin', handleFocusinElement, true);
+      document.removeEventListener('focusout', handleFocusoutElement, true);
+      document.removeEventListener('mouseover', handleMouseOver, true);
+      document.removeEventListener('mouseout', handleMouseOut, true);
     };
   }, []);
 
@@ -188,6 +157,7 @@ const ContentScriptApp: React.FC = () => {
       ReactDOM.render(
           <Notification
             notificationType={'pin'}
+            element={elementRef.current}
           />,
         document.body.insertBefore(
           notificationWrapper,
@@ -200,7 +170,7 @@ const ContentScriptApp: React.FC = () => {
 
   //TODO specify changes type
   //TODO review all cases
-  const storageChange = (changes: any) => {
+  const storageChange = useCallback((changes: any) => {
     // TODO fix this changes: any ^
     let changedItems = Object.keys(changes);
 
@@ -242,13 +212,13 @@ const ContentScriptApp: React.FC = () => {
           break;
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     setRequestConfig(reqConfig);
   }, [reqConfig]);
 
-  const handleFocusinElement = (event?: Event) => {
+  const handleFocusinElement = useCallback((event?: Event) => {
     let target = event?.target as CustomInputElement;
     //if no target, target is the child of #docs-texteventtarget-descendant
     if (isGoogleDocs()) {
@@ -271,11 +241,29 @@ const ContentScriptApp: React.FC = () => {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
-      handleNewInput(); //ensures update
+      handleNewInput().then(addedInputsMap => {
+        const mergedInputsMap = new Map([...inputsMapRef.current, ...addedInputsMap]);
+        setInputsMap(mergedInputsMap);
+      }); //ensures update
     }
-  };
+  }, []);
 
-  const handleMouseOver = (event: MouseEvent) => {
+  const handleFocusoutElement = useCallback((event?: Event) => {
+    let target = event?.target as CustomInputElement;
+
+    if (!inputsRef.current.includes(target) || !inputsMapRef.current.has(target)) {
+      return;
+    }
+
+    removeOldInput(inputsMapRef.current.get(target));
+
+    setInputs(inputsRef.current.filter(input => input !== target));
+    const inputsMap = inputsMapRef.current;
+    inputsMap.delete(target);
+    setInputsMap(inputsMap);
+  }, []);
+
+  const handleMouseOver = useCallback((event: MouseEvent) => {
     const target = event.target as CustomInputElement;
 
     //TODO FIX Avoiding a specific tag (e.g. 'P') is a temp solution that works in sites like Gmail
@@ -289,12 +277,12 @@ const ContentScriptApp: React.FC = () => {
       return;
 
     setHoveredElement(target);
-  };
+  }, []);
 
-  const handleMouseOut = (event: MouseEvent) => {
+  const handleMouseOut = useCallback((event: MouseEvent) => {
     const target = event.target as CustomInputElement;
     if (hoveredElementRef.current?.isEqualNode(target)) setHoveredElement(null);
-  };
+  }, []);
 
   useEffect(() => {
     if (hoveredElementRef.current) {
@@ -321,7 +309,6 @@ const ContentScriptApp: React.FC = () => {
           }
           iconType={'passive'}
           isHovered={true}
-          windowScroll={{top: window.scrollY, left: window.scrollX}}
         />,
         hoveredIndicatorContainer
       );
@@ -341,7 +328,9 @@ const ContentScriptApp: React.FC = () => {
   };
 
   const handleNewInput = () => {
-    browser.storage.local.get().then((result) => {
+    return browser.storage.local.get().then((result) => {
+      const addedInputsMap = new Map();
+
       const disabledDomains = [
         ...(result[StorageKeys.DOMAINS]?.type === 'deny' && result[StorageKeys.DOMAINS]?.list || []),
         ...(result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK] || []),
@@ -395,34 +384,95 @@ const ContentScriptApp: React.FC = () => {
               } else {
                 const parentElement =
                   input.tagName === 'rect' ? ancestor : input.parentElement;
-                parentElement &&
-                  parentElement.insertBefore(highlightsContainer, input);
+                  parentElement?.insertBefore(highlightsContainer, input);
               }
+              elementRef.current = input;
               ReactDOM.render(<Input element={input} />, highlightsContainer);
+
+              addedInputsMap.set(input, highlightsContainer);
             }
           });
         }
       }
+
+      return addedInputsMap;
     });
   };
 
-  // Check if tracked inputs exists or are still visible
-  // If not, remove them from the list of inputs. This way the highlights are also removed
-  const mutationObserver = new MutationObserver(() => {
-    inputsRef.current.forEach((input: CustomInputElement) => {
-      if (!nodeExistsInDOM(input) || !elementIsVisible(input))
-        setInputs([
-          ...inputsRef.current.filter(
-            (filterInput: CustomInputElement) => filterInput !== input
-          ),
-        ]);
-    });
-  });
+  const removeOldInput = (container: HTMLElement | undefined) => {
+    if (!container) {
+      return;
+    }
 
-  mutationObserver.observe(getActiveDocument().body, {
-    childList: true,
-    subtree: true,
-  });
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+  };
+
+  const setupMutationObservers = () => {
+    // Check if tracked inputs exists or are still visible
+    // If not, remove them from the list of inputs. This way the highlights are also removed
+    const inputVisibilityObserver = new MutationObserver(() => {
+      inputsRef.current.forEach((input: CustomInputElement) => {
+        if (!nodeExistsInDOM(input) || !elementIsVisible(input)) {
+          removeOldInput(inputsMapRef.current.get(input));
+
+          setInputs([
+            ...inputsRef.current.filter(
+                (filterInput: CustomInputElement) => filterInput !== input
+            ),
+          ]);
+          const inputsMap = inputsMapRef.current;
+          inputsMap.delete(input);
+          setInputsMap(inputsMap);
+        }
+      });
+    });
+
+    inputVisibilityObserver.observe(getActiveDocument().body, {
+      childList: true,
+      subtree: true,
+    });
+
+    //observes iframes that are added to the DOM
+    const iframeAddedObserver = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        [].filter.call(mutation.addedNodes, function (node: HTMLElement) {
+          if (node?.nodeName == 'IFRAME') {
+            debouncedHandleIframeAdded();
+          }
+        });
+      });
+    });
+
+    //debounced handle iframe added, use debounce form lodash
+    const debouncedHandleIframeAdded = debounce(() => {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach((iframe: HTMLIFrameElement) => {
+        if (iframe.contentDocument?.body) {
+          iframe.contentDocument.body.addEventListener(
+              'focusin',
+              handleFocusinElement
+          );
+        }
+      });
+
+      return () => {
+        iframes.forEach((iframe: HTMLIFrameElement) => {
+          if (iframe.contentDocument?.body) {
+            iframe.contentDocument.body.removeEventListener(
+                'focusin',
+                handleFocusinElement
+            );
+          }
+        });
+      };
+    }, 500);
+
+    iframeAddedObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
 
   return <></>;
 };

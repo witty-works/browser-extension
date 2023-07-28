@@ -283,7 +283,7 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     if (!authResponseConfig?.organization_config) return;
     if (
-      authResponseConfig.organization_config['orthography'].value !=
+      authResponseConfig.organization_config['orthography']?.value !=
         orthography.value
     ) {
       setLocalConfigDiffersFromDashboard(true);

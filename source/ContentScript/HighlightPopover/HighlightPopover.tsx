@@ -25,6 +25,7 @@ import { iframePositionRecquired, isTextArea } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollParent } from '../utils';
 import { getScrollableParentClosestToElement } from '../../shared/utils';
+import ReactDOM from 'react-dom';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -80,14 +81,23 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       if (iframePositionRecquired()) {
         const iframes = document.getElementsByTagName('iframe');
         const iframe = Array.from(iframes).find((iframe) => {
-          const iframeDoc =
-            iframe.contentDocument || iframe.contentWindow?.document;
-          return iframeDoc?.contains(dat.node);
+          try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+            return iframeDoc?.contains(dat.node);
+          } catch (error) {
+            console.error('Failed to access iframe content: ', error);
+            return false;
+          }
         });
-        if (iframe?.getBoundingClientRect())
-          iframeRects = iframe?.getBoundingClientRect();
+        try {
+          if (iframe?.getBoundingClientRect()) {
+            iframeRects = iframe?.getBoundingClientRect();
+          }
+        } catch (error) {
+          console.error('Failed to get iframe bounding rect: ', error);
+        }
       }
-
+  
       const scrollParentScrollTop = getScrollParent(element)?.scrollTop;
       const scrollTop = (!isTextArea(element) && scrollParentScrollTop) ? scrollParentScrollTop : 0;
       const calcNewX: number =
@@ -170,9 +180,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   const hidePopover = () => {
     analytics.popoverLogs(data.alert, 'popover_close');
-    hide();
     setShowLearningBite(false);
     setIframeLoaded(false);
+
+    hide();
+    //in case input is removed from the dom before popover is closed (clicking outside the element), also remove it here
+    const popoverContainer = window.document.getElementsByTagName('ww-popover')[0];
+    ReactDOM.unmountComponentAtNode(popoverContainer as HTMLElement);
   };
 
   const clickAlternative = (alternative: string, category: string) => {
@@ -184,7 +198,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const clickIgnoreTerm = () => {
     //Log when user chooses to ignore a term
     analytics.ignoreLog(data.alert);
-    addIgnoredTerm(data.alert.data.text);
+    addIgnoredTerm(data.alert.data?.text);
     hide();
   };
 
@@ -267,7 +281,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           }}
           style={{
             cursor:
-              data.alert.data.explanation && data.alert.data.explanation.url
+              data.alert.data.explanation?.url
                 ? 'pointer'
                 : 'default',
             backgroundColor: getColor(data.alert.data.gravity, userIsSignedIn).highlight,
@@ -282,18 +296,18 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             }}
           >
             <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-              <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation.icon}</div>
-              {data.alert.data.explanation.text}
-              {data.alert.data.explanation.context &&
-                ' (' + data.alert.data.explanation.context + ')'}
+              <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation?.icon}</div>
+              {data.alert.data.explanation?.text}
+              {data.alert.data.explanation?.context &&
+                ' (' + data.alert.data.explanation?.context + ')'}
             </div>
-            {data.alert.data.explanation && data.alert.data.explanation.url && (
+            {data.alert.data.explanation?.url && (
               <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
               style={{marginTop: showLearningBite ? '0em' : '1em'}}
               >
                 <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
                     {t('learnMore')}
-                    {data.alert.data.explanation.content === 'video' && (
+                    {data.alert.data.explanation?.content === 'video' && (
                       <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
                     )}
                   <div
@@ -321,7 +335,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <LoadingIcon />
           </div>
           <iframe
-            src={data.alert.data.explanation.url}
+            src={data.alert.data.explanation?.url}
             style={{
               display: iframeLoaded ? 'flex' : 'none',
             }}
@@ -359,7 +373,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           clickAlternative(' ', data.alert.data.category)
                         }
                       >
-                        {data.alert.data.text}
+                        {data.alert.data?.text}
                       </div>
                       {alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
@@ -372,7 +386,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       className='witty-works-ext-wittyworks-popover-alternative-btn-container'
                       key={`${index}-${alternative}-container`}
                       onMouseEnter={() => {
-                        setAlternativeHovered(alternative.text);
+                        setAlternativeHovered(alternative?.text);
                       }}
                       onMouseLeave={() => {
                         setAlternativeHovered(null);
@@ -382,12 +396,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
                         onClick={() =>
                           clickAlternative(
-                            data.alert.data.alternatives[index].text,
+                            data.alert.data.alternatives[index]?.text,
                             data.alert.data.category
                           )
                         }
                       >
-                        {alternative.text === ' ' ? (
+                        {alternative && alternative.text === ' ' ? (
                           <i>{t('removeSpaces')}</i>
                         ) : alternative.text.length > 25 &&
                           alternativeHovered !== alternative.text ? (
@@ -396,7 +410,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           alternative.text
                         )}
                       </div>
-                      {alternative.context && (
+                      {alternative && alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
                           {alternative.context.length > 25 &&
                           alternativeHovered !== alternative.text

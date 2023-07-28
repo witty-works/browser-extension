@@ -5,11 +5,11 @@ import {
   StorageKeys,
   wittyVersion,
   exposeWittyIdAllowList,
-  DefaultBaseUrlKey,
+  DefaultBaseUrlKey, WTags,
 } from '../shared/constants';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
-import { getDomainWithoutSubdomain, shouldInjectIntoWindow } from '../shared/utils';
+import {getDomainWithoutSubdomain, shouldInjectIntoWindow} from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import {
   customRender,
@@ -17,6 +17,8 @@ import {
   makeAuthRequest,
 } from './utils';
 import { setBaseUrls } from '../shared/ApiServices/requests';
+import {generateUUID} from "posthog-js-lite/dist/src/utils/utils";
+import ReactDOM from "react-dom";
 
 const initialize = () => {
   const sentryDSN = defaultConfig.SENTRY_DSN;
@@ -24,6 +26,8 @@ const initialize = () => {
   const sentryTraceRate = defaultConfig.SENTRY_TRACE_RATE;
   const log = useLog('ContentScript index');
   const domain = getDomainWithoutSubdomain(window.location.hostname);
+
+  const scriptId = generateUUID(window);
 
   document.body.appendChild(document.createElement('witty-is-installed'));
   const wittyIsInstalledElement = document.querySelector('witty-is-installed');
@@ -68,9 +72,9 @@ const initialize = () => {
             isOnPersonalDomainList ||
             defaultConfig.DISABLED_SITES.includes(domain)
         ) {
-          customRender(false);
+          customRender(false, scriptId);
         } else {
-          customRender(true);
+          customRender(true, scriptId);
         }
       })
       .catch((error: string) => {
@@ -83,13 +87,13 @@ const initialize = () => {
     for (let item of changedItems) {
       switch (item) {
         case StorageKeys.ORGANIZATION_DOMAINS:
-          handleDomainsFromDashboard(changes[item].newValue);
+          handleDomainsFromDashboard(changes[item].newValue, scriptId);
           break;
         case StorageKeys.DOMAINS:
           if (changes[item].newValue.includes(domain)) {
-            customRender(false);
+            customRender(false, scriptId);
           } else {
-            customRender(true);
+            customRender(true, scriptId);
           }
           break;
 
@@ -99,20 +103,40 @@ const initialize = () => {
                   .map((d: string) => d.split('-')[0])
                   .includes(domain)
                   ? false
-                  : true
+                  : true,
+              scriptId
           );
           break;
       }
     }
   };
-
   makeAuthRequest();
   browser.storage.onChanged.addListener(storageChange);
+
+  const orphanMessageId = browser.runtime.id + 'orphanCheck';
+  window.dispatchEvent(new Event(orphanMessageId));
+  window.addEventListener(orphanMessageId, unregisterOrphan);
+
+  function unregisterOrphan() {
+    if (browser.runtime.id) {
+      return;
+    }
+
+    const container = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
+    if (container) {
+      ReactDOM.unmountComponentAtNode(container);
+      container.remove();
+    }
+
+    browser.storage.onChanged.removeListener(storageChange);
+    window.removeEventListener(orphanMessageId, unregisterOrphan);
+    return true;
+  }
 
   if (sentryDSN) {
     Sentry.init({
       dsn: sentryDSN,
-      release: 'witty@' + wittyVersion,
+      release: wittyVersion,
       integrations: [new Sentry.BrowserTracing()],
       sampleRate: sentrySampleRate,
       tracesSampleRate: sentryTraceRate,
