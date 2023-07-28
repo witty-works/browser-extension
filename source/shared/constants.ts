@@ -52,6 +52,7 @@ export enum StorageKeys {
   INVITE_FRIENDS_FEATURE_FLAG = 'invite-friends-feature-flag',
 
   EXTENSION_WAS_UPDATED = 'extensionWasUpdated',
+  TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED = 'totalMaxCharLengthNotificationShowed',
 }
 
 //nlp api, dashboard

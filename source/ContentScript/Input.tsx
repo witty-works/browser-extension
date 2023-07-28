@@ -7,7 +7,7 @@ import defaultConfig from '../witty.config.json';
 import { WTags, StorageKeys } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
-import Notification from '../Notifications/Notification';
+// import Notification from '../Notifications/Notification'; //Temporarily removed until we have a better solution
 import TextAreaClone from './TextAreaClone';
 import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -88,12 +88,7 @@ const Input: React.FC<{
   const [removeHighlights, setRemoveHighlights] = useState<boolean>(false);
   const [forceHighlightUpdate, setForceHighlightUpdate] =
     useState<boolean>(false);
-  const [windowScroll, setWindowScroll] = useState<Position>({
-    top:  window.scrollY,
-    left: window.scrollX,
-  } as Position);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-
   const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
@@ -152,6 +147,8 @@ const Input: React.FC<{
     [element]
   );
   const debouncedMutation = debounce(() => {
+    const cloneContainer = document.querySelector(WTags.WW_CLONE);
+    if (!cloneContainer) return;
     //if no text, remove highlights
     if (!element.querySelector('g')) {
       setAlerts([]);
@@ -176,7 +173,7 @@ const Input: React.FC<{
         .getPropertyValue('z-index');
       return parseInt(zIndex);
     }) as number[];
-    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs() ) {
+    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs()) {
       previouslyCheckedPagesGoogleDocs.current = [
         ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
       ];
@@ -223,7 +220,6 @@ const Input: React.FC<{
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
-    window.addEventListener('scroll', handleWindowScrollEvent);
     if(!isGoogleDocs()) {
       element.addEventListener('focusout', handleFocusoutEvent);
       element.addEventListener('focusin', handleFocusinEvent);
@@ -260,7 +256,6 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
-      window.removeEventListener('scroll', handleWindowScrollEvent);
       if(!isGoogleDocs()) {
         element.removeEventListener('focusout', handleFocusoutEvent);
         element.removeEventListener('focusin', handleFocusinEvent);
@@ -292,12 +287,6 @@ const Input: React.FC<{
     };
   }, []);
 
-  const handleWindowScrollEvent = () => {
-    setWindowScroll({
-      top: window.scrollY,
-      left: window.scrollX,
-    });
-  };
   //GOOGLE DOCS WORKAROUND
   const handleDocumentClickEvent = () => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
@@ -383,8 +372,7 @@ const Input: React.FC<{
       );
 
       const newSelectedAlertIndex =
-        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex] &&
-        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex].alerts.findIndex(
+        updatedNodesWithAlerts[newSelectedNodeWithAlertsIndex]?.alerts.findIndex(
           (alert) => alert === selectedAlert
         );
 
@@ -395,7 +383,7 @@ const Input: React.FC<{
         !totalMaxCharLengthReachedRef.current
       ) {
         const clickedElement = [] as ChildNode[];
-        if (!cloneRef.current || !cloneRef.current.childNodes) {
+        if (!cloneRef.current?.childNodes) {
           return;
         }
 
@@ -570,7 +558,7 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = (event?: Event, gDocs?: boolean) => {
+  const handleKeyupEvent = debounce((event?: Event, gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
     event && (abortBackgroundWorkerRef.current = true);
 
@@ -588,6 +576,20 @@ const Input: React.FC<{
       : getInputText(element);
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
+
+    if ( //if previously checked text is the same as current return
+    nextTextDividedByNodes &&  
+    prevCheckedNodesRef.current &&
+    prevCheckedNodesRef.current.length > 0 &&
+    prevCheckedNodesRef.current.length === nextTextDividedByNodes.length &&
+    prevCheckedNodesRef.current.every(
+      (prevCheckedNode: INodes, index: number) =>
+        prevCheckedNode?.node === nextTextDividedByNodes[index].textContent
+    )
+  ) {
+    return;
+  }
+
     const textDividedByNodesTextContent = isTextArea(element)
       ? nextText
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
@@ -595,7 +597,7 @@ const Input: React.FC<{
     const fistTextDiff = getFirstTextDiff(
       element,
       textDividedByNodesTextContent,
-      previousElementStateRef.current.text
+      previousElementStateRef.current?.text
     );
     previousElementStateRef.current = {
       text: textDividedByNodesTextContent,
@@ -624,7 +626,7 @@ const Input: React.FC<{
           textWithinMaxCharLength
         );
     }
-  };
+  }, 500);
 
   const getTextWithinMaxCharLength = (
     currentNode: number,
@@ -642,7 +644,7 @@ const Input: React.FC<{
       'below',
       textDividedByNodes,
       currentNode,
-      charLengthLeft
+      currentNode === 0 ? charLengthLeft * 2 : charLengthLeft
     );
     const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
       'above',
@@ -686,6 +688,14 @@ const Input: React.FC<{
 
   const handleTextAndIcon = (nodes: any) => {
     const isTextAreaCheck = isTextArea(element);
+    const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
+    const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
+    if (totalTextLength < maxCharLength) {
+      // localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'false');
+      prevCheckedNodesRef.current = []; //prevents displaced highlights when text is short
+      setRemoveHighlights(true);
+    } 
+
     let nodesToCheck = isTextAreaCheck ? nodes : nodes.filter((node: INodes) => {
       const nodeIndex = prevCheckedNodesRef.current.findIndex(
         (prevCheckedNode: INodes) =>
@@ -696,8 +706,6 @@ const Input: React.FC<{
     });
     nodesStorageRef.current = nodesToCheck;
     let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
-    const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
-    const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       analytics.maxCharLengthReachedLog('max_char_length_reached');
@@ -727,7 +735,7 @@ const Input: React.FC<{
     }
     
     //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
-    if (newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
+    if (!isTextAreaCheck && newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
       nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
       newTextToCheck = nodesToCheck.map((node: any) => node.node).join('\n');
       nodesStorageRef.current = nodesToCheck;
@@ -746,8 +754,8 @@ const Input: React.FC<{
       setNodesWithAlerts(nodesWithAlertsWithoutChangesAlerts);
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
-        
-    if (newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
+
+    if (typeof newTextToCheck !== 'string' || newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
       setTextToCheck('');
@@ -904,8 +912,7 @@ const Input: React.FC<{
         const caretPos = caret.position;
 
         let selectedAlertIndex =
-          oneNodeWithAlerts &&
-          oneNodeWithAlerts.alerts.findIndex((alert: IAlert) => {
+          oneNodeWithAlerts?.alerts.findIndex((alert: IAlert) => {
             if (!alert) {
               return false;
             }
@@ -935,9 +942,7 @@ const Input: React.FC<{
             }
           );
 
-          selectedAlertIndex =
-            oneNodeWithAlerts &&
-            oneNodeWithAlerts.alerts.findIndex(
+          selectedAlertIndex = oneNodeWithAlerts?.alerts.findIndex(
               (alert: IAlert) =>
                 alert.startOffset === alertWithLargestStartoffset.startOffset
             );
@@ -1174,7 +1179,7 @@ const Input: React.FC<{
 
       const alertsWithoutIgnoredTerms: IAlert[] =
         alertsWithoutIgnoredCategories.filter(
-          (alert: IAlert) => !ignoredTerms.includes(alert.data.text)
+          (alert: IAlert) => !ignoredTerms.includes(alert.data?.text)
         );
 
       //handle case where a word has multiple alerts of different gravity
@@ -1344,22 +1349,24 @@ const Input: React.FC<{
     } 
   };
   
-  useEffect(() => {
-    if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
-      const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
-      totalMaxCharLengthReachedNotificationWrapper.id = 'ww-notification';
-      ReactDOM.render(
-          <Notification
-            notificationType={'totalMaxCharLengthReached'}
-            element={element}
-          />,
-        document.body.insertBefore(
-          totalMaxCharLengthReachedNotificationWrapper,
-          document.body.firstChild
-        )
-      );
-    }
-  }, [totalMaxCharLengthReachedRef.current]);
+  // useEffect(() => {
+  //   if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
+  //     const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
+  //     totalMaxCharLengthReachedNotificationWrapper.id = 'ww-notification';
+  //     if (localStorage.getItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED) === 'true') return;
+  //     ReactDOM.render(
+  //         <Notification
+  //           notificationType={'totalMaxCharLengthReached'}
+  //           element={element}
+  //         />,
+  //       document.body.insertBefore(
+  //         totalMaxCharLengthReachedNotificationWrapper,
+  //         document.body.firstChild
+  //       )
+  //     );
+  //     localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'true');
+  //   }
+  // }, [totalMaxCharLengthReachedRef.current]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
@@ -1370,7 +1377,7 @@ const Input: React.FC<{
       !isTextArea(element) 
     ) {
       let updatedAlerts: IAlert[] = [];
-      const nodesForCalculation = (totalMaxCharLengthReachedRef.current ? nodesWhithinMaxCharLengthRef.current : nodesStorageRef.current).filter((node: INodes) => {
+      const nodesForCalculation = nodesWhithinMaxCharLengthRef.current.filter((node: INodes) => {
         return node.node.length > 0;
       }).sort((a: INodes, b: INodes) => a.index - b.index);
       const lowestIndex = nodesForCalculation.reduce(
@@ -1392,7 +1399,7 @@ const Input: React.FC<{
         const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
           elementEvaluation
             .snapshotItem(node.index)
-            ?.textContent?.includes(alert.data.text)
+            ?.textContent?.includes(alert.data?.text)
         );
 
         updatedAlerts = alertsRelevantToNode.map((alert: IAlert) => {
@@ -1453,13 +1460,13 @@ const Input: React.FC<{
           const alertsTemp: IAlert[] = alerts
             .filter(
               (alert: IAlert) =>
-                node.nodeValue && node.nodeValue.includes(alert.data.text)
+                node.nodeValue && node.nodeValue.includes(alert.data?.text)
             )
             .filter(
               (alert: IAlert) =>
                 (alert.startOffset >= textStartingAbsPosition &&
                   alert.endOffset <= textEndAbsPosition) ||
-                (isLinkedin() && alert.data.text.includes('#'))
+                (isLinkedin() && alert.data?.text.includes('#'))
             )
             .map((alert: IAlert) => {
               return {
@@ -1645,7 +1652,7 @@ const Input: React.FC<{
   }, [checkEndpointError, authErrorResponse]);
 
   useEffect(() => {
-    if (refreshTokenError?.status === 403) {
+    if (refreshTokenError) {
       logOut();
       return;
     }
@@ -1691,6 +1698,11 @@ const Input: React.FC<{
       popoverData.alert.plan === 'witty_free' &&
       !popoverData.alert.data.explanation //if no explanation returned, its a premium feature
     ) {
+      if (!document.querySelector(WTags.WW_POPOVER)) {
+        const element = document.createElement(WTags.WW_POPOVER);
+        document.body.appendChild(element);
+      }
+    
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverUpgrade
@@ -1766,11 +1778,10 @@ const Input: React.FC<{
               nodesWithAlerts={nodesWithAlerts}
               element={element}
               elementRect={elementRect}
-              selectedAlert={popoverData && popoverData.alert}
+              selectedAlert={popoverData && popoverData?.alert}
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
-              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
@@ -1787,7 +1798,6 @@ const Input: React.FC<{
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
-              windowScroll={windowScroll}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>

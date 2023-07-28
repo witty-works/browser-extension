@@ -218,7 +218,6 @@ export interface ICheckResultLogItems {
   response__organizationId?: string;
   response__plan?: string;
   response__data__text: string;
-  response__data__context: string;
   response__data__category: string;
   response__data__subcategory: string;
   response__data__start: number;

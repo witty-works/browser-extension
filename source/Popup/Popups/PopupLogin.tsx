@@ -66,9 +66,10 @@ const PopupLogin: React.FC = () => {
     }
   };
 
-  const logIn = async (urls: string) => {
+  const logIn = async (urls: string, register = false) => {
     const optionsPageUrl = browser.extension.getURL('options.html');
-    const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
+    const registerString = register ? 'register=true&' : '';
+    const url = `${BaseUrls[urls].dashboard}browser-login?${registerString}redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
     if (!window.open(url, '_blank')) {
       setPopupsBlocked(true);
       setLoginUrl(url);
@@ -144,7 +145,7 @@ const PopupLogin: React.FC = () => {
             <span
               className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
               onClick={() => {
-                logIn(urls).catch((error) => {
+                logIn(urls, true).catch((error) => {
                   log(`logIn Error: ${error}`, logTypes.ERROR);
                   sendErrorToSentry(error);
                   setPopupsBlocked(true);

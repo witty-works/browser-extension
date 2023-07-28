@@ -2,35 +2,32 @@ import { IAlert } from '../types';
 import PostHog from 'posthog-js-lite'
 import { POSTHOG_API_KEY_EU, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
-import { sendErrorToSentry } from '../errorUtils';
 import { storeInLocalStorage } from '../utils';
 
 export const aliasId = async (userId: string, appId: string) => {
-  const request = {
-    api_key: POSTHOG_API_KEY_EU,
-    properties: {
-      distinct_id: appId,
-      alias: userId,
-    },
-    timestamp: new Date().toISOString(),
-    context: '{}',
-    type: 'alias',
-    event: '$create_alias',
-  };
+    const request = {
+      api_key: POSTHOG_API_KEY_EU,
+      properties: {
+        distinct_id: appId,
+        alias: userId,
+      },
+      timestamp: new Date().toISOString(),
+      context: '{}',
+      type: 'alias',
+      event: '$create_alias',
+    };
+  
+    const response = await fetch('https://eu.posthog.com/capture/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
 
-  const response = await fetch('https://eu.posthog.com/capture/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  }).catch((error) => {
-    sendErrorToSentry(error);
-  });
-
-  if (response && response.status === 200) {
-    storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, true);
-  }
+    if (response && response.status === 200) {
+      storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, true);
+    }
 };
 
 export const captureEvent = (eventName: string, eventData: object) => {

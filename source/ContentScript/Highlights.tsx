@@ -4,7 +4,6 @@ import { CustomInputElement, Highlight, IAlert, INodeWithAlerts, Position } from
 import { getColor } from '../shared/constants';
 import {
   getZIndex,
-  isFroalaEditor,
   isGoogleDocs,
   isGreenhouse,
   isTextArea,
@@ -31,7 +30,6 @@ interface HighlightsProps {
   userIsSignedIn: boolean;
   removeHighlights: boolean;
   forceHighlightUpdate: boolean;
-  windowScroll: Position;
 }
 
 const Highlights: React.FC<HighlightsProps> = ({
@@ -43,9 +41,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   userIsSignedIn,
   removeHighlights,
   forceHighlightUpdate,
-  windowScroll,
-}: HighlightsProps) => {
-  
+}: HighlightsProps) => {  
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
 
@@ -87,16 +83,11 @@ const Highlights: React.FC<HighlightsProps> = ({
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
           try {
-            if (
-              node.textContent &&
-              (alert.endOffset > node.textContent.length ||
-                alert.startOffset > node.textContent.length)
-            ) {
-              return;
+            if (alert.endOffset <= node.textContent.length && alert.startOffset <= node.textContent.length) {
+              range.selectNode(node);
+              range.setStart(node, alert.startOffset);
+              range.setEnd(node, alert.endOffset);
             }
-            range.selectNode(node);
-            range.setStart(node, alert.startOffset);
-            range.setEnd(node, alert.endOffset);
           } catch (error) {
             sendErrorToSentry(error);
           }
@@ -115,15 +106,14 @@ const Highlights: React.FC<HighlightsProps> = ({
                       googleDocsToolbarLeftRect.left
                     : rect.left,
                   top: isGoogleDocs()
-                    ? rect.top - googleDocsToolbarTopRect.top
+                    ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
                     : rect.top +
                       doc.scrollTop -
-                      (isFroalaEditor(element) ? windowScroll.top : 0) - 
                       (isTextArea(element) ? elementScroll.top : 0),
                 };
               }
             );
-            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || node.textContent && !node.textContent.includes(alert.data.text))) {
+            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || (node.textContent && alert.data && !node.textContent.includes(alert.data.text)))) {
               return;
             } else {
               const newHighlight: Highlight = {
@@ -143,7 +133,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     });
 
     setHighlights(highlightsTemp);
-  }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll, windowScroll]);
+  }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

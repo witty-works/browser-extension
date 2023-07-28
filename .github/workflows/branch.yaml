@@ -1,16 +1,13 @@
-name: Upload sourcemaps to sentry
+name: Build dev extension from branch
 
 on:
   push:
-    tags:
-      - '*'
+    branches-ignore:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      SENTRY_RELEASE: witty@${{github.ref_name}}
 
     steps:
       - uses: actions/checkout@v3
@@ -34,6 +31,13 @@ jobs:
         run: |
           yarn install
 
-      - name: Upload sourcemaps to sentry
+      - name: Build artifacts
         run: |
-          yarn run sentry:sourcemaps
+          yarn run build:chrome
+
+      - name: Store Chrome Development artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: chrome-dev
+          path: |
+            extension/chrome
