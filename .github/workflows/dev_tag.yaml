@@ -12,7 +12,7 @@ jobs:
       SENTRY_DSN: "https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342"
       SENTRY_SAMPLE_RATE: 1.0
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      SENTRY_VERSION_STRING: ${{github.ref_name}}
+      SENTRY_VERSION_STRING: ${{github.ref_name}}-dev
 
     steps:
       - uses: actions/checkout@v3

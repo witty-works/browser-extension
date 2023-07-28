@@ -13,8 +13,7 @@ jobs:
       SENTRY_SAMPLE_RATE: 0.001
       SENTRY_TRACE_RATE: 0.001
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      SENTRY_VERSION_STRING: ${{github.ref_name}}
-      NODE_ENV: production
+      SENTRY_VERSION_STRING: ${{github.ref_name}}-prod
 
     steps:
       - uses: actions/checkout@v3

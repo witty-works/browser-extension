@@ -35,7 +35,7 @@ const extensionReloaderPlugin =
     };
 
 const sentryWebpackPluginInstance =
-  process.env.SENTRY_SOURCEMAPS && process.env.SENTRY_AUTH_TOKEN
+  process.env.SENTRY_SOURCEMAPS && process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_VERSION_STRING
     ? sentryWebpackPlugin({
       org: "witty-works",
       project: "browser-extension",
@@ -44,7 +44,7 @@ const sentryWebpackPluginInstance =
       // and need `project:releases` and `org:read` scopes
       authToken: process.env.SENTRY_AUTH_TOKEN,
       release: {
-        name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}-${nodeEnv}`
+        name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`
       },
     })
     : () => {
