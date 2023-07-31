@@ -281,7 +281,7 @@ const ContentScriptApp: React.FC = () => {
 
   const handleMouseOut = useCallback((event: MouseEvent) => {
     const target = event.target as CustomInputElement;
-    if (hoveredElementRef.current?.isEqualNode(target)) setHoveredElement(null);
+    if (!hoveredElementRef.current?.isEqualNode(target)) setHoveredElement(null);
   }, []);
 
   useEffect(() => {
