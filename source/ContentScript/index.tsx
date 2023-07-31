@@ -17,8 +17,8 @@ import {
   makeAuthRequest,
 } from './utils';
 import { setBaseUrls } from '../shared/ApiServices/requests';
-import {generateUUID} from "posthog-js-lite/dist/src/utils/utils";
 import ReactDOM from "react-dom";
+import { v4 as uuidv4 } from 'uuid';
 
 const sentryDSN = defaultConfig.SENTRY_DSN;
 const sentrySampleRate = defaultConfig.SENTRY_SAMPLE_RATE;
@@ -26,7 +26,7 @@ const sentryTraceRate = defaultConfig.SENTRY_TRACE_RATE;
 const log = useLog('ContentScript index');
 const domain = getDomainWithoutSubdomain(window.location.hostname);
 
-const scriptId = generateUUID(window);
+const scriptId = uuidv4();
 
 document.body.appendChild(document.createElement('witty-is-installed'));
 const wittyIsInstalledElement = document.querySelector('witty-is-installed');
