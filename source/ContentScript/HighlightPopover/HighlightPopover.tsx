@@ -78,7 +78,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     options: dat,
     fn: ({ placement, rects }: any) => {
       let iframeRects = { top: 0, left: 0, bottom: 0, right: 0 };
-      if (iframePositionRecquired()) {
+      if (iframePositionRecquired(element)) {
         const iframes = document.getElementsByTagName('iframe');
         const iframe = Array.from(iframes).find((iframe) => {
           try {
