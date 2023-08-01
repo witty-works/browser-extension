@@ -106,13 +106,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         ? dat.position.y +
           dat.position.height +
           iframeRects.top +
-          doc.scrollTop +
-          scrollTop
+          doc.scrollTop
+          //scrollTop
         : dat.position.y -
           rects.floating.height +
           iframeRects.top +
-          doc.scrollTop +
-          scrollTop;
+          doc.scrollTop
+          //scrollTop;
       return {
         x: showLearningBiteRef.current ? calcNewX / 2 : calcNewX,
         y: calcNewY,

@@ -807,7 +807,7 @@ const Input: React.FC<{
     } 
 
     !isGoogleDocs() && setElementScroll({
-        top: isTextArea(element) ? element.scrollTop : firstScrollableParentRef.current.scrollTop,
+        top: isTextArea(element) ? element.scrollTop : 0,
         left: isTextArea(element) ? element.scrollLeft : firstScrollableParentRef.current.scrollLeft,
       });
   };
