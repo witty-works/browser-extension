@@ -62,6 +62,10 @@ export const isFroalaEditor = (element: Element): boolean => {
   return !!foralaEditor;
 };
 
+export const isHubspot = (): boolean => {
+  return window.location.hostname.includes('hubspot');
+};
+
 export const isRedactorEditor = (element: Element): boolean => {
   const redactorEditor = element.closest('.redactor_html-editor');
   return !!redactorEditor;

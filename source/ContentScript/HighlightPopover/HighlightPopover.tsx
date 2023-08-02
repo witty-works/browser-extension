@@ -24,6 +24,7 @@ import { getBaseUrls } from '../../shared/ApiServices/requests';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollableParentClosestToElement } from '../../shared/utils';
+import { isHubspot } from '../../shared/DOMutils';
 import ReactDOM from 'react-dom';
 export interface PopoverData {
   index: number;
@@ -224,7 +225,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           >
             <WittyLogo alt={t('wittyLogo')} />
           </a>
-          <div className='witty-works-ext-container-row'>
+          {!isHubspot() && <div className='witty-works-ext-container-row'>
             <div
               className={
                 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
@@ -255,7 +256,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             >
               <NextIcon alt={t('next')} />
             </div>
-          </div>
+          </div>}
 
           <div
             className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
