@@ -58,7 +58,7 @@ export const isBambooHr = (): boolean => {
 };
 
 export const isFroalaEditor = (element: Element): boolean => {
-  const foralaEditor = element.closest('.fr-element');
+  const foralaEditor = element.closest('.fr-element') || element.closest('.fr-view');
   return !!foralaEditor;
 };
 
@@ -123,8 +123,9 @@ export const requiresRectRecalculation = (element: Element) => {
   );
 };
 
-export const iframePositionRecquired = () => {
-  return isTypo3() || isGreenhouse();
+export const iframePositionRecquired = (element: Element) => {
+  // maybe isTypo3() and isGreenhose() conditions can be substituted by elementWithinIframe()
+  return isTypo3() || isGreenhouse() || elementWithinIframe(element);
 };
 
 export const findElement = (node: Node, element: string): boolean => {
@@ -140,6 +141,10 @@ export const nodeExistsInDOM = (node: Node): boolean =>
 export const elementIsVisible = (element: Element): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();
   return rect.width > 0 && rect.height > 0 ? true : false;
+};
+
+export const elementWithinIframe = (element: Element): boolean => {
+    return !!element.ownerDocument.defaultView?.frameElement;
 };
 
 export const textIsLight = (color: any) => {

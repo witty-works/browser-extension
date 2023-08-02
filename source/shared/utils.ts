@@ -223,10 +223,10 @@ export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLEl
   if (requiresRectRecalculation(element)) {
     elementRect = element.getBoundingClientRect();
   }
-
-  if (parentRect && !isObjectEmpty(parentRect)) {
-    const scrollY = textArea ? 0 : window.scrollY;
-    const scrollX = textArea ? 0 : window.scrollX;
+const topLevelWindow = element.ownerDocument.defaultView;
+  if (parentRect && !isObjectEmpty(parentRect) && topLevelWindow) {
+    const scrollY = textArea ? 0 : topLevelWindow.scrollY;
+    const scrollX = textArea ? 0 : topLevelWindow.scrollX;
 
     const top = isFirefox && !isGoogleDocs() ? 0 : elementRect.top - parentRect.top - scrollY;
     const left = elementRect.left - parentRect.left - scrollX;
@@ -262,4 +262,21 @@ export const getScrollableParentClosestToElement = (element: HTMLElement) => {
       return parent;
   }
   return document.body;
+};
+
+export const getFrameDepth = (windowToIdentify: Window): number => {
+  if (windowToIdentify === window.top) {
+    return 0;
+  }
+  else if (windowToIdentify.parent === window.top) {
+    return 1;
+  }
+
+  return 1 + getFrameDepth (windowToIdentify.parent);
+};
+
+export const shouldInjectIntoWindow = (windowToCheck: Window) => {
+  const frameDepth = getFrameDepth(windowToCheck);
+  const isVisible = windowToCheck.innerWidth >= 10 && windowToCheck.innerHeight >= 10;
+  return frameDepth < 2 && isVisible;
 };

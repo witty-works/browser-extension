@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_appName__",
-  "version": "1.29.9",
+  "version": "1.29.9.1",
   "default_locale": "en",
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -48,7 +48,8 @@
     {
       "matches": ["http://*/*", "https://*/*"],
       "js": ["js/contentScript.bundle.js"],
-      "css": ["css/contentScript.css"]
+      "css": ["css/contentScript.css"],
+      "all_frames": true
     },
     {
       "matches": ["https://docs.google.com/document/*"],

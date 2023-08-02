@@ -807,7 +807,7 @@ const Input: React.FC<{
     } 
 
     !isGoogleDocs() && setElementScroll({
-        top: isTextArea(element) ? element.scrollTop : firstScrollableParentRef.current.scrollTop,
+        top: isTextArea(element) ? element.scrollTop : 0,
         left: isTextArea(element) ? element.scrollLeft : firstScrollableParentRef.current.scrollLeft,
       });
   };
@@ -1272,8 +1272,20 @@ const Input: React.FC<{
         }
       );
 
+      const nodesWithAlertWithoutIgnoredTerm = nodesWithAlertsRef.current.map((nodeWithAlerts) => {
+        const alertsWithoutIgnoredTerms = nodeWithAlerts.alerts.filter((alert: IAlert) => {
+          return !ignoredTerms.includes(alert.data?.text);
+        });
+        return {
+          ...nodeWithAlerts,
+          alerts: alertsWithoutIgnoredTerms,
+        }
+      }).filter((nodeWithAlerts) => {
+        return nodeWithAlerts.alerts.length > 0;
+      });
+
       const mergedNodesWithAlerts = [
-        ...nodesWithAlertsRef.current.filter(
+        ...nodesWithAlertWithoutIgnoredTerm.filter(
           (nodeWithAlerts) =>
             !nodesWithAlertsTempWithRect
               .map((nodeWithAlerts) => nodeWithAlerts.nodeIndex)
