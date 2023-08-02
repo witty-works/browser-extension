@@ -58,7 +58,7 @@ export const isBambooHr = (): boolean => {
 };
 
 export const isFroalaEditor = (element: Element): boolean => {
-  const foralaEditor = element.closest('.fr-element');
+  const foralaEditor = element.closest('.fr-element') || element.closest('.fr-view');
   return !!foralaEditor;
 };
 

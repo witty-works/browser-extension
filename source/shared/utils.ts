@@ -223,10 +223,10 @@ export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLEl
   if (requiresRectRecalculation(element)) {
     elementRect = element.getBoundingClientRect();
   }
-
-  if (parentRect && !isObjectEmpty(parentRect)) {
-    const scrollY = textArea ? 0 : window.scrollY;
-    const scrollX = textArea ? 0 : window.scrollX;
+const topLevelWindow = element.ownerDocument.defaultView;
+  if (parentRect && !isObjectEmpty(parentRect) && topLevelWindow) {
+    const scrollY = textArea ? 0 : topLevelWindow.scrollY;
+    const scrollX = textArea ? 0 : topLevelWindow.scrollX;
 
     const top = isFirefox && !isGoogleDocs() ? 0 : elementRect.top - parentRect.top - scrollY;
     const left = elementRect.left - parentRect.left - scrollX;
