@@ -63,6 +63,12 @@ export const getInputText = (element: CustomInputElement | any) => {
 };
 
 export const customRender = (enabled: boolean, scriptId: string) => {
+  if (enabled) {
+    document.documentElement.setAttribute('witty-is-enabled', 'true');
+  } else {
+    document.documentElement.removeAttribute('witty-is-enabled');
+  }
+
   if (!document.querySelector(WTags.WW_POPOVER)) {
     const element = document.createElement(WTags.WW_POPOVER);
     document.body.appendChild(element);
