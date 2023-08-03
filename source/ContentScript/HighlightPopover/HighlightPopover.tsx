@@ -186,8 +186,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     ReactDOM.unmountComponentAtNode(popoverContainer as HTMLElement);
   };
 
-  const clickAlternative = (alternative: string, category: string) => {
+  const clickAlternative = (e: MouseEvent, alternative: string, category: string) => {
     //Log the clicked alternative
+    e.preventDefault();
+    e.stopImmediatePropagation();
     analytics.alternativeLog(data.alert, alternative);
     updateTextWithAlternative(alternative, category);
   };
@@ -366,8 +368,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
                         key={`${index}-remove-it`}
                         //string can not be empty because of replacement issue on firefox
-                        onClick={() =>
-                          clickAlternative(' ', data.alert.data.category)
+                        onPointerDown={(e) =>
+                          clickAlternative(e.nativeEvent,' ', data.alert.data.category)
                         }
                       >
                         {data.alert.data?.text}
@@ -391,8 +393,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     >
                       <div
                         className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
-                        onClick={() =>
+                        onPointerDown={(e) =>
                           clickAlternative(
+                            e.nativeEvent,
                             data.alert.data.alternatives[index]?.text,
                             data.alert.data.category
                           )

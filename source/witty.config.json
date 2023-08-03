@@ -1,8 +1,7 @@
 {
   "DISABLED_SITES": [
     "deepl.com",
-    "productboard.com",
-    "trello.com"
+    "productboard.com"
   ],
   "ACTIVE_SITES": [
     "notion.so",
