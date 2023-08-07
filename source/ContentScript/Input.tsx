@@ -1349,7 +1349,7 @@ const Input: React.FC<{
       const mergedCheckEndpointResponseWithoutOrthography = {
         ...mergedCheckEndpointResponse,
         results: mergedCheckEndpointResponse.results.filter((result: any) => {
-          return result.category !== 'orthography';
+          return result.category !== 'orthography' && result.category?.length > 0 && result.subcategory?.length > 0;
         }),
       };
       
