@@ -6,6 +6,10 @@
     background-image: none !important;
 }
 
+[witty-is-enabled=true] .ng.LI {
+    background-image: none !important;
+}
+
 [witty-is-enabled=true] .pl {
   display: none;
 }
