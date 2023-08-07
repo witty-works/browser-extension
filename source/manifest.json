@@ -56,6 +56,10 @@
       "js": ["assets/googleDocsSupport.js"],
       "all_frames": false,
       "run_at": "document_start"
+    },
+    {
+      "matches": ["https://docs.google.com/document/*", "https://mail.google.com/mail/*"],
+      "css": ["assets/gmailSpellCheck.css"]
     }
   ],
   "web_accessible_resources": [
@@ -63,6 +67,7 @@
     "assets/icons/w-logo-wire-color.svg",
     "assets/icons/popover/ignore.svg",
     "assets/icons/popover/arrow.svg",
-    "assets/icons/popover/settings.svg"
+    "assets/icons/popover/settings.svg",
+    "assets/googleDocsSpellCheck.js"
   ]
 }
