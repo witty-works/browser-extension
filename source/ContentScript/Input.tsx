@@ -193,7 +193,7 @@ const Input: React.FC<{
       .get(null)
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
-        setUserIsSignedIn(result[StorageKeys.ACCESS_TOKEN] as boolean);
+        setUserIsSignedIn(!!result[StorageKeys.ACCESS_TOKEN]);
         result[StorageKeys.PLAN] === 'witty_free' && (isWittyPremiumUserRef.current = false);
         if (
           result[StorageKeys.PLAN] === 'witty_free' &&
@@ -708,12 +708,12 @@ const Input: React.FC<{
     let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
-      analytics.maxCharLengthReachedLog('max_char_length_reached');
+      userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');
       const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
       newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
     } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {  
       totalMaxCharLengthReachedRef.current = true;
-      analytics.maxCharLengthReachedLog('max_char_length_reached');
+      userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');
       abortBackgroundWorkerRef.current = true;  
       const prevCheckedNodesRefWithoutNodesToCheck = prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
         const nodeIndex = nodesToCheck.findIndex((node: INodes) => node.index === prevCheckedNode.index);
@@ -1104,7 +1104,7 @@ const Input: React.FC<{
 
     setActiveIcon('active');
     checkLogEventIdRef.current = Math.random().toString(36).substring(2, 15);
-    analytics.checkLog(
+    userIsSignedIn && analytics.checkLog(
       checkEndpointResponse,
       authResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
@@ -1345,10 +1345,17 @@ const Input: React.FC<{
       results: newResults as any,
     } : undefined;
   
-    if (mergedCheckEndpointResponse) {
+    if (mergedCheckEndpointResponse && userIsSignedIn && isWittyPremiumUserRef.current) {
+      const mergedCheckEndpointResponseWithoutOrthography = {
+        ...mergedCheckEndpointResponse,
+        results: mergedCheckEndpointResponse.results.filter((result: any) => {
+          return result.category !== 'orthography' && result.category?.length > 0 && result.subcategory?.length > 0;
+        }),
+      };
+      
       const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
 
-      mergedCheckEndpointResponse.results.forEach((result: any) => {
+      mergedCheckEndpointResponseWithoutOrthography.results.forEach((result: any) => {
         analytics.checkResultLog(
           result,
           authResponse,
