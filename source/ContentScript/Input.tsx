@@ -71,7 +71,7 @@ const Input: React.FC<{
   }>({ text: [], position: {} as DOMRect });
 
   const [, , nodesWhithinMaxCharLengthRef] = useStateRef<
-    { node: string; index: number; rawNode: Node }[]
+    { node: string; index: number; startIndex: number, endIndex: number, rawNode: Node }[]
   >([]);
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
@@ -657,6 +657,8 @@ const Input: React.FC<{
       {
         node: currentNodeRaw.textContent as string,
         index: currentNode,
+        startIndex: 0,
+        endIndex: currentNodeRaw.textContent?.length || 0,
         rawNode: currentNodeRaw,
       },
     ];
@@ -676,6 +678,8 @@ const Input: React.FC<{
         {
           node: shortenedText,
           index: currentNode,
+          startIndex: 0,
+          endIndex: shortenedText.length,
           rawNode: currentNodeRaw,
         },
       ];
@@ -705,7 +709,10 @@ const Input: React.FC<{
       return nodeIndex === -1;
     });
     nodesStorageRef.current = nodesToCheck;
-    let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
+    let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => {
+      return node.startIndex ? node.node.slice(node.startIndex) :
+          (node.endIndex ? node.node.slice(0, node.endIndex) : node.node)
+    }).join('\n');
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');
@@ -1404,6 +1411,8 @@ const Input: React.FC<{
         Infinity
       );
 
+      const nodesStartIndex = nodesForCalculation.length > 0 ? nodesForCalculation[0].startIndex : 0;
+
       nodesForCalculation.forEach((node) => {
         let absolutePositionOfFirstCharOfNode = 0;
         for (
@@ -1424,8 +1433,8 @@ const Input: React.FC<{
         updatedAlerts = alertsRelevantToNode.map((alert: IAlert) => {
           return {
             ...alert,
-            startOffset: alert.startOffset - absolutePositionOfFirstCharOfNode,
-            endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode,
+            startOffset: alert.startOffset - absolutePositionOfFirstCharOfNode + nodesStartIndex,
+            endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode + nodesStartIndex,
           };
         });
 

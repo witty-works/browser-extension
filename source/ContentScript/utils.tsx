@@ -222,6 +222,8 @@ export const getNodesWithinMaxCharLength = (
       const newNode = {
         node: node.textContent as string,
         index: textDividedByNodes.indexOf(node),
+        startIndex: 0,
+        endIndex: 0,
         rawNode: node,
       };
       return newNode;
@@ -245,7 +247,7 @@ export const getNodesWithinMaxCharLength = (
   const lastNodeSentence = sentences.find((sentence) => {
       return direction === 'above' ?
           sentence.start <= lastNodeOffset && sentence.end >= lastNodeOffset :
-          sentence.start >= lastNodeOffset && sentence.end >= lastNodeOffset + lastNode.node.length - 1;
+          sentence.start <= lastNodeOffset + lastNode.node.length && sentence.end >= lastNodeOffset + lastNode.node.length;
   });
 
   if (!lastNodeSentence) {
@@ -267,10 +269,13 @@ export const getNodesWithinMaxCharLength = (
   const firstNodeIndex = direction === 'above' ? lastNodeSentenceNode.index : nodesWhithinMaxCharLength[0].index;
   const lastNodeIndex = direction === 'above' ? nodesWhithinMaxCharLength[0].index : lastNodeSentenceNode.index;
 
-  let nodesWithinMaxCharLengthAdjusted = textDividedByNodes.slice(firstNodeIndex, lastNodeIndex + 1).map((node) => {
+  const adjustedSlice = textDividedByNodes.slice(firstNodeIndex, lastNodeIndex + 1);
+  let nodesWithinMaxCharLengthAdjusted = adjustedSlice.map((node, index) => {
         return {
             node: node.textContent as string,
             index: textDividedByNodes.indexOf(node),
+            startIndex: direction === 'above' ? (index == 0 ? lastNodeSentence.start - nodeOffsetMap[firstNodeIndex].offset : 0) : 0,
+            endIndex: direction === 'below' ? (index === adjustedSlice.length - 1 ? lastNodeSentence.end - nodeOffsetMap[lastNodeIndex].offset : 0) : 0,
             rawNode: node,
         };
   });
@@ -301,7 +306,7 @@ const splitIntoSentences = (text: string): SentenceInfo[] => {
     if (sentence) {
       sentences.push({
         sentence: sentence,
-        start: lastEnd + 1,
+        start: lastEnd,
         end: end
       });
     }
@@ -314,7 +319,7 @@ const splitIntoSentences = (text: string): SentenceInfo[] => {
     if (sentence) {
       sentences.push({
         sentence: sentence,
-        start: lastEnd + 1,
+        start: lastEnd,
         end: text.length
       });
     }
