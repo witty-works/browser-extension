@@ -193,6 +193,22 @@ export const getNodesWithinMaxCharLength = (
   textDividedByNodes = textDividedByNodes.filter((node) => { //remove empty nodes
     return node?.textContent && node.textContent.length > 0;
   });
+
+  // prepare sentences and node offset map
+  const text = textDividedByNodes.map((node) => node.textContent).join('');
+  // node map with text offsets
+  let nodeMapOffset = 0;
+  const nodeOffsetMap = textDividedByNodes.map((node, index) => {
+    const newNode = {
+      index,
+      offset: nodeMapOffset,
+      end: nodeMapOffset + (node.textContent?.length || 0),
+    };
+    nodeMapOffset += node.textContent?.length || 0;
+    return newNode;
+  });
+  const sentences = splitIntoSentences(text);
+
   const slice =
     direction == 'below'
       ? textDividedByNodes.slice(currentNode + 1)
@@ -218,8 +234,94 @@ export const getNodesWithinMaxCharLength = (
     }).sort((a, b) => {
       return direction == 'below' ? a.index - b.index : b.index - a.index;
     });
-  return nodesWhithinMaxCharLength;
+
+  if (nodesWhithinMaxCharLength.length === 0) {
+    return nodesWhithinMaxCharLength;
+  }
+
+  // find the sentence at the start/end of the last node
+  const lastNode = nodesWhithinMaxCharLength[nodesWhithinMaxCharLength.length - 1];
+  const lastNodeOffset = nodeOffsetMap[lastNode.index].offset;
+  const lastNodeSentence = sentences.find((sentence) => {
+      return direction === 'above' ?
+          sentence.start <= lastNodeOffset && sentence.end >= lastNodeOffset :
+          sentence.start >= lastNodeOffset && sentence.end >= lastNodeOffset + lastNode.node.length - 1;
+  });
+
+  if (!lastNodeSentence) {
+    return nodesWhithinMaxCharLength;
+  }
+
+  // find the node that contains the start/end of sentence
+  const lastNodeSentenceNode = nodeOffsetMap.find((node) => {
+      return direction === 'above' ?
+          lastNodeSentence.start >= node.offset && lastNodeSentence.start <= node.end :
+          lastNodeSentence.end >= node.offset && lastNodeSentence.end <= node.end;
+  });
+
+  if (!lastNodeSentenceNode) {
+      return nodesWhithinMaxCharLength;
+  }
+
+  // now we know if we need to add more nodes so that the sentence is complete
+  const firstNodeIndex = direction === 'above' ? lastNodeSentenceNode.index : nodesWhithinMaxCharLength[0].index;
+  const lastNodeIndex = direction === 'above' ? nodesWhithinMaxCharLength[0].index : lastNodeSentenceNode.index;
+
+  let nodesWithinMaxCharLengthAdjusted = textDividedByNodes.slice(firstNodeIndex, lastNodeIndex + 1).map((node) => {
+        return {
+            node: node.textContent as string,
+            index: textDividedByNodes.indexOf(node),
+            rawNode: node,
+        };
+  });
+  nodesWithinMaxCharLengthAdjusted = direction === 'above' ? nodesWithinMaxCharLengthAdjusted.reverse() : nodesWithinMaxCharLengthAdjusted;
+  return nodesWithinMaxCharLengthAdjusted;
 };
+
+type SentenceInfo = {
+  sentence: string;
+  start: number;
+  end: number;
+}
+
+// proof-of-concept split into sentences function
+const splitIntoSentences = (text: string): SentenceInfo[] => {
+  // Using a simple regex to split by sentences.
+  // This might not catch all edge cases.
+  const sentenceEndings = /(?=[^])(?:\P{Sentence_Terminal}|\p{Sentence_Terminal}(?!['"`\p{Close_Punctuation}\p{Final_Punctuation}\s]))*(?:\p{Sentence_Terminal}+['"`\p{Close_Punctuation}\p{Final_Punctuation}]*|$)/guy;
+  const sentences: SentenceInfo[] = [];
+
+  let match;
+  let lastEnd = 0;
+  while ((match = sentenceEndings.exec(text)) !== null) {
+    const end = match.index + match[0].length;
+    const sentence = text.substring(lastEnd, end).trim();
+
+    // We avoid pushing empty sentences (like trailing spaces or newlines)
+    if (sentence) {
+      sentences.push({
+        sentence: sentence,
+        start: lastEnd + 1,
+        end: end
+      });
+    }
+    lastEnd = end;
+  }
+
+  // Handling the case where there's content after the last punctuation mark
+  if (lastEnd < text.length) {
+    const sentence = text.substring(lastEnd).trim();
+    if (sentence) {
+      sentences.push({
+        sentence: sentence,
+        start: lastEnd + 1,
+        end: text.length
+      });
+    }
+  }
+
+  return sentences;
+}
 
 export const makeAuthRequest = () => {
   browser.storage.local.get(null).then((result) => {
