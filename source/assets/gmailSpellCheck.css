@@ -1,0 +1,15 @@
+[witty-is-enabled=true] .kix-spell-bubble {
+    display: none !important;
+}
+
+[witty-is-enabled=true] .ng.Lm {
+    background-image: none !important;
+}
+
+[witty-is-enabled=true] .ng.LI {
+    background-image: none !important;
+}
+
+[witty-is-enabled=true] .pl {
+  display: none;
+}
