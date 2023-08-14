@@ -128,6 +128,9 @@ export const de = {
     updateNotificationText:
       'Witty was updated text lala DE',
     updateNotificationButton: 'Changes DE',
+    minVersionNotInstalledNotificationHeadline: 'You need to update Witty DE',
+    minVersionNotInstalledNotificationText: 'Please update Witty to the latest version. DE',
+    minVersionNotInstalledNotificationButton: 'Update DE',
   },
 };
 
@@ -265,6 +268,9 @@ export const en = {
     updateNotificationText:
       'Witty was updated text lala',
     updateNotificationButton: 'Changes',
+    minVersionNotInstalledNotificationHeadline: 'You need to update Witty',
+    minVersionNotInstalledNotificationText: 'Please update Witty to the latest version.',
+    minVersionNotInstalledNotificationButton: 'Update',
   },
 
 };

@@ -53,10 +53,12 @@ import {
   getScrollParent,
   getTextDividedByNodes,
   updateConfig,
+  compareVersion,
 } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
 import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
+import Notification from '../Notifications/Notification';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -455,6 +457,19 @@ const Input: React.FC<{
   useEffect(() => {
     if (!authResponse) return;
     updateConfig(authResponse);
+    const browserExtensionVersion = browser.runtime.getManifest().version;
+    const minVersion = authResponse?.min_version ? authResponse?.min_version : '0.0.0'; //not needed once this has been implemented
+    if (compareVersion(browserExtensionVersion, minVersion)) {
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+      ReactDOM.render(
+        <Notification
+          notificationType={'min_version_not_installed'}
+          element={element}
+        />,
+        document.body.insertBefore(notificationWrapper, document.body.firstChild)
+      );  
+    }
   }, [authResponse]);
 
   useEffect(() => {

@@ -60,6 +60,7 @@ export interface IAuthResponse {
   config: ResponseConfig;
   organization_config: ResponseConfig;
   plan: string;
+  min_version: string;
 
   //private account
   id: string;

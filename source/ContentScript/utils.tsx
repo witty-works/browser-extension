@@ -43,6 +43,17 @@ export const updateConfig = (response: IAuthResponse) => {
   });
 };
 
+export const compareVersion = (currentVersion: string, minVersion: string) => {
+  const currentVersionArray = currentVersion.split('.');
+  const minVersionArray = minVersion.split('.');
+  for (let i = 0; i < currentVersionArray.length; i++) {
+    if (parseInt(currentVersionArray[i]) < parseInt(minVersionArray[i])) {
+      return true;
+    }
+  }
+  return false;
+}; 
+
 export const getInputText = (element: CustomInputElement | any) => {
   if (isGoogleDocs()) {
     let text = '';

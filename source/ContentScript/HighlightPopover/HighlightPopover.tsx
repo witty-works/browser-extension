@@ -23,7 +23,6 @@ import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
-import { getScrollParent } from '../utils';
 import { getScrollableParentClosestToElement, storeInLocalStorage } from '../../shared/utils';
 import { browser } from 'webextension-polyfill-ts';
 import ReactDOM from 'react-dom';
