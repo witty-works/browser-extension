@@ -1,5 +1,5 @@
 import { IAlert } from '../types';
-import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
+import PostHog from 'posthog-js-lite'
 import { POSTHOG_API_KEY_EU, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 import { storeInLocalStorage } from '../utils';
@@ -36,14 +36,38 @@ export const captureEvent = (eventName: string, eventData: object) => {
     const organizationId = result[StorageKeys.ORGANIZATION_ID];
     const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];
     const appId = result[StorageKeys.APP_ID];
+    const featureFlags = [
+      {
+        flag: 'sales-demo-feature-flag',
+        storageKey: StorageKeys.SALES_DEMO_FEATURE_FLAG
+      },
+      {
+        flag: 'invite-team-feature-flag',
+        storageKey: StorageKeys.INVITE_TEAM_FEATURE_FLAG
+      },
+      {
+        flag: 'invite-friends-feature-flag',
+        storageKey: StorageKeys.INVITE_FRIENDS_FEATURE_FLAG
+      },
+    ];
 
     !idWasAliased && userId && aliasId(userId, appId);
 
-    const ph = browserPostHog(POSTHOG_API_KEY_EU, {
-      apiHost: 'https://eu.posthog.com',
-    });
+    const ph = new PostHog(POSTHOG_API_KEY_EU, {
+      host: 'https://eu.posthog.com',
+      bootstrap : {
+        distinctId: userId ? userId : appId, ////make sure that this is equivalent to ph.session.distinctId
+      },
+    })
 
-    ph.session.distinctId = userId ? userId : appId;
+    function storeEnabledFeatureFlags() {
+      for (const featureFlag of featureFlags) {
+        storeInLocalStorage(featureFlag.storageKey, ph.getFeatureFlagPayload(featureFlag.flag));
+      }
+    }
+    
+    ph.onFeatureFlags(storeEnabledFeatureFlags); // Ensure flags are loaded before usage.
+    storeEnabledFeatureFlags();
 
     if (organizationId) {
       ph.capture(eventName, {
