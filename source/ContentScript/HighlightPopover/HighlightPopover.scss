@@ -212,7 +212,6 @@
   padding-bottom: 0em;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
 }
 
 .witty-works-ext-wittyworks-container {
@@ -234,15 +233,15 @@
 
 //Alignments
 .witty-works-ext-justify-start {
-  justify-content: flex-start;
+  justify-content: flex-start !important;
 }
 
 .witty-works-ext-justify-end {
-  justify-content: flex-end;
+  justify-content: flex-end !important;
 }
 
 .witty-works-ext-justify-space-between {
-  justify-content: space-between;
+  justify-content: space-between !important;
 }
 
 .witty-works-ext-center {
