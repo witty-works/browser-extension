@@ -92,13 +92,14 @@ const IconController: React.FC<IconControllerProps> = ({
       {userIsLoggedIn && iconType == 'warning' && <WarningIcon style = {{cursor: 'pointer'}} onClick = {() => {
         const maxLengthWarning = element.ownerDocument.getElementById("maxLengthWarning");
         if (!maxLengthWarning) return;
-        maxLengthWarning.style.visibility = maxLengthWarning.style.visibility == "visible" ? "hidden" : "visible";
-        maxLengthWarning.style.visibility == "visible" && analytics.maxCharLengthReachedLog('max_char_length_icon_clicked');
+        maxLengthWarning.style.display = maxLengthWarning.style.display == "block" ? "none" : "block";
+        maxLengthWarning.style.display == "block" && analytics.maxCharLengthReachedLog('max_char_length_icon_clicked');
       }}/>}
   
       <div id="maxLengthWarning" className="witty-works-warning-wrapper" 
-      style={{ 
-        visibility: 'hidden',
+      style={{
+        display: 'none',
+        visibility: 'visible',
         position: 'absolute',
         width: '300px',
         backgroundColor: '#f5f5f5',
@@ -132,7 +133,7 @@ const IconController: React.FC<IconControllerProps> = ({
             onClick = {() => {
               const maxLengthWarning = element.ownerDocument.getElementById("maxLengthWarning");
               if (!maxLengthWarning) return;
-              maxLengthWarning.style.visibility = "hidden";
+              maxLengthWarning.style.display = "none";
           }}/>
         </div>
         <div className="witty-works-warning-text" style={{
