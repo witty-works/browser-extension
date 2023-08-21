@@ -65,6 +65,31 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
   };
 };
 
+//WIP
+export const getAiAlternatives = (sentence: string): IRequest => {
+  return {
+    url: createUrl(BASE_URL_API, 'v2.3/ai-alternatives'),
+    config: {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+      body: sentence
+        ? JSON.stringify({
+            sentence: sentence,
+            id: appID,
+            client: wittyVersion,
+            config: filteredRequestConfig,
+            config_hash: configHash,
+            organization_config_hash: organizationConfigHash,
+          })
+        : null,
+    },
+  };
+};
+
 export const getConfiguration = (): IRequest => {
   return {
     url: BASE_URL_API && createUrl(BASE_URL_API, 'v2.0/auth'),

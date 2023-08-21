@@ -100,6 +100,7 @@ export const de = {
     previous: 'zurück',
     close: 'schliessen',
     ignore: 'ignorieren',
+    reformulateWithAi: 'Mit AI umformulieren',
   },
   [namespaces.iconController]: {
     totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
@@ -217,6 +218,7 @@ export const en = {
     previous: 'previous',
     close: 'close',
     ignore: 'ignore',
+    reformulateWithAi: 'Reformulate with AI',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',

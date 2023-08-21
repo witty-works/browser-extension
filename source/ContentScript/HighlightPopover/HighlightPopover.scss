@@ -42,6 +42,10 @@
   &.witty-works-ext-remove-text {
     text-decoration: line-through !important;
   }
+
+  &:hover {
+    background-color: $opaqueGreen;
+  }
 }
 
 .witty-works-ext-ignore-color-transformer {
@@ -333,4 +337,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.witty-works-ext-loading-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: $white;
+  min-height: 320px;
 }

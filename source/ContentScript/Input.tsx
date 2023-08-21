@@ -1507,9 +1507,12 @@ const Input: React.FC<{
     return nodesWithAlertsTemp;
   };
 
-  const updateTextWithAlternative = (alternative: string, category: string) => {
+  const updateTextWithAlternative = (alternative: string, category: string, replaceSentence: boolean) => {
+    //find sentence start and end here? or let them insert it themselves (will have to find correct node (might be previous/next node + sentence start/end))?
     const node = popoverData?.node as Node;
     const alert = selectedAlert as IAlert;
+    console.log('popoverData', replaceSentence,  popoverData)
+    console.log('node', node, 'alert', alert);
 
     if (isTextArea(element) || isInputText(element)) {
       element.selectionStart =

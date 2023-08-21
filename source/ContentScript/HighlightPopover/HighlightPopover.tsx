@@ -37,7 +37,7 @@ interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
   hide: () => void;
-  updateTextWithAlternative: (alternative: string, category: string) => void;
+  updateTextWithAlternative: (alternative: string, category: string, replaceSentence: boolean) => void;
   addIgnoredTerm: (term: string) => void;
   movePopoverNextOrPrev: (direction: string) => void;
   userIsSignedIn: boolean;
@@ -62,6 +62,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
     useStateRef<boolean>(false);
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
+  const [reformulateWithAi, setReformulateWithAi] = useState<boolean>(false);
+  const [aiAlternatives, setAiAlternatives] = useState<string[]>([]);
 
   useEffect(() => {
     analytics.popoverLogs(data.alert, 'popover_open');
@@ -71,6 +73,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     //Dynamically sets the language depending on the text language
     i18n.changeLanguage(data.alert.data.language);
   }, [data.alert.data.language]);
+
+  useEffect(() => {
+    //make request to get the ai alternatives here, then set alternatives (setSentenceToAnalyse)
+    setTimeout(() => {
+      setAiAlternatives(['Alternative sentence 1', 'Alternative sentence 2', 'Alternative sentence 3']);
+    }, 3000);
+  }, [reformulateWithAi]);
 
   const elementCords = (dat: PopoverData) => ({
     name: 'elementCords',
@@ -186,12 +195,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     ReactDOM.unmountComponentAtNode(popoverContainer as HTMLElement);
   };
 
-  const clickAlternative = (e: MouseEvent, alternative: string, category: string) => {
+  const clickAlternative = (e: MouseEvent, alternative: string, category: string, replaceSentence: boolean) => {
     //Log the clicked alternative
     e.preventDefault();
     e.stopImmediatePropagation();
     analytics.alternativeLog(data.alert, alternative);
-    updateTextWithAlternative(alternative, category);
+    updateTextWithAlternative(alternative, category, replaceSentence);
   };
 
   const clickIgnoreTerm = () => {
@@ -369,7 +378,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         key={`${index}-remove-it`}
                         //string can not be empty because of replacement issue on firefox
                         onPointerDown={(e) =>
-                          clickAlternative(e.nativeEvent,' ', data.alert.data.category)
+                          clickAlternative(e.nativeEvent,' ', data.alert.data.category, false)
                         }
                       >
                         {data.alert.data?.text}
@@ -397,7 +406,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           clickAlternative(
                             e.nativeEvent,
                             data.alert.data.alternatives[index]?.text,
-                            data.alert.data.category
+                            data.alert.data.category, 
+                            false
                           )
                         }
                       >
@@ -410,19 +420,48 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           alternative.text
                         )}
                       </div>
-                      {alternative && alternative.context && (
-                        <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                          {alternative.context.length > 25 &&
-                          alternativeHovered !== alternative.text
-                            ? alternative.context.substring(0, 25) + '...'
-                            : alternative.context}
+                      {alternative?.context && (
+                        <>
+                          <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                            {alternative.context.length > 25 &&
+                            alternativeHovered !== alternative.text
+                              ? alternative.context.substring(0, 25) + '...'
+                              : alternative.context}
+                          </div>
 
-                        </div>
+                          <div className='witty-works-ext-button witty-works-ext-primary-button-red'
+                            onClick={() => {setReformulateWithAi(true); }}
+                          >
+                            {t('reformulateWithAi')}
+                          </div>   
+                        </>
                       )}
                     </div>
                   )
                 )}
               </div>
+              {reformulateWithAi && aiAlternatives.length === 0 &&
+                <div className='witty-works-ext-loading-icon-container'>  
+                  <LoadingIcon />
+                </div>}         
+                        
+              {reformulateWithAi && aiAlternatives.length > 0 &&
+                <div style={{flexDirection: 'column', alignItems: 'flex-start'}}>
+                  {aiAlternatives.map((alternative, index) =>
+                    <div
+                      className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right witty-works-ext-margin-top'
+                      key={`${index}-${alternative}-container`}
+                      onPointerDown={(e) =>
+                      clickAlternative(
+                        e.nativeEvent,
+                        alternative,
+                        data.alert.data.category,
+                        true
+                      )}
+                      >
+                        {alternative}
+                    </div>)}
+                </div>}
             </div>
           </>
         )}
