@@ -16,7 +16,7 @@ import { getBaseUrls } from '../ApiServices/requests';
 import defaultConfig from '../../witty.config.json';
 import {getScrollableParentClosestToElement} from "../utils";
 import { getTextDividedByNodes } from '../../ContentScript/utils';
-import { isGoogleDocs, isHubspot, isWittyEditor } from '../DOMutils';
+import { isGoogleDocs, isHubspot } from '../DOMutils';
 
 interface IconControllerProps {
   element: CustomInputElement;
@@ -64,8 +64,8 @@ const IconController: React.FC<IconControllerProps> = ({
   // used to try to stay on top of a scrollable input like in linkedin, may not be desirable
   const scrollContainer = getScrollableParentClosestToElement(element);
   const scrollContainerScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
-  const subtractionFromLeft = isHubspot() || isWittyEditor() ? 10 : 50;
-
+  const parentWidth = element.parentElement?.getBoundingClientRect().width || 0;
+  const elementWidth = isHubspot() ? parentWidth - 5 : elementRect.width;
   return (
     <div
       ref={ref}
@@ -75,7 +75,7 @@ const IconController: React.FC<IconControllerProps> = ({
         top: googleDocsIcon ? iconPositionGoogleDocs.top : `${0 + scrollContainerScrollTop}px`,
         left: googleDocsIcon ? iconPositionGoogleDocs.left : `${0}px`,
         width: '50px',
-        marginLeft:  googleDocsIcon ? '0px' : `${elementRect.width - subtractionFromLeft}px`,
+        marginLeft:  googleDocsIcon ? '0px' : `${elementWidth - 50}px`,
         padding: `10px`,
         display: `flex`,
         boxSizing: `border-box`,
