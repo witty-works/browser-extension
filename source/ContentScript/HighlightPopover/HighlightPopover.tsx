@@ -401,14 +401,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           )
                         }
                       >
-                        {alternative && alternative.text === ' ' ? (
-                          <i>{t('removeSpaces')}</i>
-                        ) : alternative.text.length > 25 &&
-                          alternativeHovered !== alternative.text ? (
-                          alternative.text.substring(0, 25) + '...'
-                        ) : (
-                          alternative.text
-                        )}
+                        {alternative && alternative.text === ' ' 
+                          ? (<i>{t('removeSpaces')}</i>) 
+                          : alternative.text.length > 20 && alternative.context && alternativeHovered !== alternative.text 
+                          ? (alternative.text.substring(0, 20) + '...') 
+                          : alternative.text.length > 35 && alternativeHovered !== alternative.text 
+                          ? (alternative.text.substring(0, 35) + '...') 
+                          : alternative.text
+                        }
                       </div>
                       {alternative && alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
@@ -416,7 +416,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           alternativeHovered !== alternative.text
                             ? alternative.context.substring(0, 25) + '...'
                             : alternative.context}
-
                         </div>
                       )}
                     </div>
