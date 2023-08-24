@@ -2,18 +2,25 @@ import { useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
 import { getAiAlternatives } from './requests';
 import { IRequest, ICheckResponse } from '../types';
-import { checkResponseSchema } from './validationSchemas';
 
-export const useCheckEndpoint = () => {
-  const [sentenceToAnalyze, setSentenceToAnalyse] = useState<string>('');
+export const useLlmEndpoint = () => {
+  const [aiAlternativeData, setAiAlternativeData] = useState<{
+    sentenceToAnalyze: string;
+    wordToBeReplaced: string;
+    alternative: string;
+  }>({
+    sentenceToAnalyze: '',
+    wordToBeReplaced: '',
+    alternative: '',
+  });
   const request: IRequest = useMemo(() => {
-    return getAiAlternatives(sentenceToAnalyze);
-  }, [sentenceToAnalyze]);
+    return getAiAlternatives(aiAlternativeData.sentenceToAnalyze, aiAlternativeData.wordToBeReplaced, aiAlternativeData.alternative);
+  }, [aiAlternativeData]);
 
-  const [checkResponse, errorResponse] = useApiResults<ICheckResponse>(
+  const [aiAlternativeResponse, aiAlternativeErrorResponse] = useApiResults<ICheckResponse>( //TODO: change type here after api is ready
     request,
-    checkResponseSchema,
+    null,
   );
 
-  return [checkResponse, errorResponse, setSentenceToAnalyse] as const;
+  return [aiAlternativeResponse, aiAlternativeErrorResponse, setAiAlternativeData] as const;
 };

@@ -66,7 +66,7 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
 };
 
 //WIP
-export const getAiAlternatives = (sentence: string): IRequest => {
+export const getAiAlternatives = (originalSentence: string, wordToBeReplaced: string, alternative: string): IRequest => {
   return {
     url: createUrl(BASE_URL_API, 'v2.3/ai-alternatives'),
     config: {
@@ -76,16 +76,16 @@ export const getAiAlternatives = (sentence: string): IRequest => {
         'Content-Type': 'application/json',
         Authorization: token ? `Bearer ${token}` : '',
       },
-      body: sentence
-        ? JSON.stringify({
-            sentence: sentence,
-            id: appID,
-            client: wittyVersion,
-            config: filteredRequestConfig,
-            config_hash: configHash,
-            organization_config_hash: organizationConfigHash,
-          })
-        : null,
+      body: JSON.stringify({
+        originalSentence: originalSentence,
+        wordToBeReplaced: wordToBeReplaced,
+        alternative: alternative,
+        id: appID,
+        client: wittyVersion,
+        config: filteredRequestConfig,
+        config_hash: configHash,
+        organization_config_hash: organizationConfigHash,
+      }),
     },
   };
 };

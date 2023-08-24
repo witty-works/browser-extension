@@ -47,6 +47,7 @@ import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import GoogleDocsClone from './GoogleDocsClone';
 import {
+  escapeRegExp,
   getFirstTextDiff,
   getInputText,
   getNodesWithinMaxCharLength,
@@ -1507,26 +1508,41 @@ const Input: React.FC<{
     return nodesWithAlertsTemp;
   };
 
-  const updateTextWithAlternative = (alternative: string, category: string, replaceSentence: boolean) => {
-    //find sentence start and end here? or let them insert it themselves (will have to find correct node (might be previous/next node + sentence start/end))?
+  const updateTextWithAlternative = (alternative: string, category: string, replaceSentence: boolean) => { //replaceSentence currently only textArea
     const node = popoverData?.node as Node;
     const alert = selectedAlert as IAlert;
-    console.log('popoverData', replaceSentence,  popoverData)
-    console.log('node', node, 'alert', alert);
 
     if (isTextArea(element) || isInputText(element)) {
-      element.selectionStart =
-        alternative == ' ' &&
-        category !== 'orthography' &&
-        alert.startOffset !== 0
-          ? alert.startOffset - 1
-          : alert.startOffset;
-      element.selectionEnd =
-        alternative == ' ' && category !== 'orthography'
-          ? alert.endOffset + 1
-          : alert.endOffset;
-      //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
-      getActiveDocument().execCommand('insertText', false, alternative);
+        let updatedText = element.value;
+        if (replaceSentence) {
+          const targetText = escapeRegExp(alert.data.text);
+          const regex = new RegExp(`(?:^|\\.\\s+|!\\s+|\\?\\s+)([^.!?]*\\b${targetText}\\s*[^.!?]*[.!?])`, 'g');
+          const matchedSentences = [...updatedText.matchAll(regex)];
+
+          for (const match of matchedSentences) {
+            const sentence = match[1];
+            const matchStartIndex = match.index || 0;
+            if (sentence.includes(targetText) && matchStartIndex <= alert.startOffset && alert.startOffset <= (matchStartIndex + sentence.length)) {
+              updatedText = updatedText.replace(sentence, alternative);
+                break;
+            }
+          }
+          element.value = updatedText;
+        } else {
+          element.selectionStart =
+            alternative == ' ' &&
+            category !== 'orthography' &&
+            alert.startOffset !== 0
+              ? alert.startOffset - 1
+              : alert.startOffset;
+          element.selectionEnd =
+            alternative == ' ' && category !== 'orthography'
+              ? alert.endOffset + 1
+              : alert.endOffset;
+      
+          //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
+          getActiveDocument().execCommand('insertText', false, alternative);
+        }
     } else {
       const range = getActiveDocument().createRange();
 

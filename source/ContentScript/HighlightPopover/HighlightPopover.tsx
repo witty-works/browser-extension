@@ -21,10 +21,11 @@ import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { getBaseUrls } from '../../shared/ApiServices/requests';
-import { iframePositionRecquired } from '../../shared/DOMutils';
+import { iframePositionRecquired, isTextArea } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollableParentClosestToElement } from '../../shared/utils';
 import ReactDOM from 'react-dom';
+// import { useLlmEndpoint } from '../../shared/ApiServices/useLLMEndpoint';
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -62,8 +63,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
     useStateRef<boolean>(false);
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
-  const [reformulateWithAi, setReformulateWithAi] = useState<boolean>(false);
+  const [selectedAlternative, setSelectedAlternative] = useState<string>('');
   const [aiAlternatives, setAiAlternatives] = useState<string[]>([]);
+  // const [aiAlternativeResponse, aiAlternativeErrorResponse, setAiAlternativeData] = useLlmEndpoint();
 
   useEffect(() => {
     analytics.popoverLogs(data.alert, 'popover_open');
@@ -75,11 +77,30 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   }, [data.alert.data.language]);
 
   useEffect(() => {
-    //make request to get the ai alternatives here, then set alternatives (setSentenceToAnalyse)
+    //add when ready
+    // if (!selectedAlternative) return;
+    // const updatedText = element.textContent || '';
+    // const wordToBeReplaced = data.alert.data.text;
+    // const regex = new RegExp(`(?:^|\\.\\s+|!\\s+|\\?\\s+)([^.!?]*\\b${wordToBeReplaced}\\s*[^.!?]*[.!?])`, 'g');
+    // const matchedSentences = [...updatedText.matchAll(regex)];
+    // for (const match of matchedSentences) {
+    //   const sentence = match[1];
+    //   const matchStartIndex = match.index || 0;
+    //   if (sentence.includes(wordToBeReplaced) && matchStartIndex <= data.alert.startOffset && data.alert.startOffset <= (matchStartIndex + sentence.length)) {
+    //     setAiAlternativeData({
+    //       sentenceToAnalyze: sentence,
+    //       wordToBeReplaced: wordToBeReplaced,
+    //       alternative: selectedAlternative,
+    //   }
+    //   )}
+    // }
+
+    // console.log('response: ', aiAlternativeResponse, aiAlternativeErrorResponse);
     setTimeout(() => {
-      setAiAlternatives(['Alternative sentence 1', 'Alternative sentence 2', 'Alternative sentence 3']);
+      setAiAlternatives(['This is an alternative sentence 1', 'This is an Alternative sentence 2']);
     }, 3000);
-  }, [reformulateWithAi]);
+
+  }, [selectedAlternative]);
 
   const elementCords = (dat: PopoverData) => ({
     name: 'elementCords',
@@ -366,7 +387,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
                 {t('insteadTry')}
               </div>
-              <div>
+               <div style={{display: selectedAlternative ? 'none' : 'block'}}>
                 {data.alert.data.alternatives.map((alternative, index) =>
                   alternative.remove ? (
                     <div
@@ -383,11 +404,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       >
                         {data.alert.data?.text}
                       </div>
-                      {alternative.context && (
+                      {/* Lukas: are there other context options than inspiration? */}
+                      {/* {alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
                           {alternative.context}
                         </div>
-                      )}
+                      )} */}
                     </div>
                   ) : (
                     <div
@@ -422,30 +444,30 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       </div>
                       {alternative?.context && (
                         <>
-                          <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                          {/* <div className='witty-works-ext-wittyworks-popover-alternative-context'>
                             {alternative.context.length > 25 &&
                             alternativeHovered !== alternative.text
                               ? alternative.context.substring(0, 25) + '...'
                               : alternative.context}
-                          </div>
+                          </div> */}
 
-                          <div className='witty-works-ext-button witty-works-ext-primary-button-red'
-                            onClick={() => {setReformulateWithAi(true); }}
+                          {isTextArea(element) && <div className='witty-works-ext-button witty-works-ext-primary-button-red'
+                            onClick={() => { setSelectedAlternative(alternative.text) }}
                           >
                             {t('reformulateWithAi')}
-                          </div>   
+                          </div>}   
                         </>
                       )}
                     </div>
                   )
                 )}
               </div>
-              {reformulateWithAi && aiAlternatives.length === 0 &&
+              {selectedAlternative && aiAlternatives.length === 0 &&
                 <div className='witty-works-ext-loading-icon-container'>  
                   <LoadingIcon />
                 </div>}         
                         
-              {reformulateWithAi && aiAlternatives.length > 0 &&
+              {selectedAlternative && aiAlternatives.length > 0 &&
                 <div style={{flexDirection: 'column', alignItems: 'flex-start'}}>
                   {aiAlternatives.map((alternative, index) =>
                     <div
