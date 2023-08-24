@@ -403,8 +403,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       >
                         {alternative && alternative.text === ' ' 
                           ? (<i>{t('removeSpaces')}</i>) 
-                          : alternative.text.length > 20 && alternative.context && alternativeHovered !== alternative.text 
-                          ? (alternative.text.substring(0, 20) + '...') 
+                          : alternative.text.length > 25 && alternative.context && alternativeHovered !== alternative.text 
+                          ? (alternative.text.substring(0, 25) + '...') 
                           : alternative.text.length > 35 && alternativeHovered !== alternative.text 
                           ? (alternative.text.substring(0, 35) + '...') 
                           : alternative.text
