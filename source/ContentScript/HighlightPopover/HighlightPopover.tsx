@@ -269,57 +269,61 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
         </div>
 
-        <div className='witty-works-ext-separator' />
 
         {/* LEARNIGN BITES */}
-        <div
-          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
-          onClick={() => {
-            analytics.popoverLogs(data.alert, 'learning_bites');
-            setShowLearningBite(!showLearningBite);
-          }}
-          style={{
-            cursor:
-              data.alert.data.explanation?.url
-                ? 'pointer'
-                : 'default',
-            backgroundColor: getColor(data.alert.data.gravity, userIsSignedIn).highlight,
-          }}
-        >
-          <div
-            className='witty-works-ext-lato-popover-text witty-works-ext-justify-space-between'
+        {data.alert.data.explanation?.text &&
+          <>
+          <div className='witty-works-ext-separator' />
+
+          <div 
+            className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
+            onClick={() => {
+              analytics.popoverLogs(data.alert, 'learning_bites');
+              setShowLearningBite(!showLearningBite);
+            }}
             style={{
-              display: 'flex',
-              flexDirection: showLearningBite ? 'row' : 'column',
-              alignItems: showLearningBite ? 'center' : 'flex-start',
+              cursor:
+                data.alert.data.explanation?.url
+                  ? 'pointer'
+                  : 'default',
+              backgroundColor: getColor(data.alert.data.gravity, userIsSignedIn).highlight,
             }}
           >
-            <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-              <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation?.icon}</div>
-              {data.alert.data.explanation?.text}
-              {data.alert.data.explanation?.context &&
-                ' (' + data.alert.data.explanation?.context + ')'}
-            </div>
-            {data.alert.data.explanation?.url && (
-              <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
-              style={{marginTop: showLearningBite ? '0em' : '1em'}}
-              >
-                <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
-                    {t('learnMore')}
-                    {data.alert.data.explanation?.content === 'video' && (
-                      <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
-                    )}
-                  <div
-                    className='witty-works-ext-margin-left'
-                    style={{ pointerEvents: 'none' }}
-                  >
-                    {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+            <div
+              className='witty-works-ext-lato-popover-text witty-works-ext-justify-space-between'
+              style={{
+                display: 'flex',
+                flexDirection: showLearningBite ? 'row' : 'column',
+                alignItems: showLearningBite ? 'center' : 'flex-start',
+              }}
+            >
+              <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+                <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation?.icon}</div>
+                {data.alert.data.explanation?.text}
+                {data.alert.data.explanation?.context &&
+                  ' (' + data.alert.data.explanation?.context + ')'}
+              </div>
+              {data.alert.data.explanation?.url && (
+                <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+                style={{marginTop: showLearningBite ? '0em' : '1em'}}
+                >
+                  <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
+                      {t('learnMore')}
+                      {data.alert.data.explanation?.content === 'video' && (
+                        <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
+                      )}
+                    <div
+                      className='witty-works-ext-margin-left'
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        </>}
         <div
           style={{
             display: showLearningBite ? 'flex' : 'none',
