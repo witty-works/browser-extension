@@ -459,7 +459,7 @@ const Input: React.FC<{
     updateConfig(authResponse);
     const browserExtensionVersion = browser.runtime.getManifest().version;
     const minVersion = authResponse?.min_version ? authResponse?.min_version : '0.0.0'; //not needed once this has been implemented
-    if (compareVersion(browserExtensionVersion, minVersion)) {
+    if (compareVersion(browserExtensionVersion, minVersion) && window.top) {
       const notificationWrapper = document.createElement('div');
       notificationWrapper.id = 'ww-notification';
       ReactDOM.render(
@@ -467,7 +467,7 @@ const Input: React.FC<{
           notificationType={'min_version_not_installed'}
           element={element}
         />,
-        document.body.insertBefore(notificationWrapper, document.body.firstChild)
+        window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
       );  
     }
   }, [authResponse]);

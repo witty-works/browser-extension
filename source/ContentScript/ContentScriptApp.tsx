@@ -114,18 +114,7 @@ const ContentScriptApp: React.FC = () => {
         setReqConfig(requestConfig);
 
         if(result[StorageKeys.EXTENSION_WAS_UPDATED]) {
-          const notificationWrapper = document.createElement('div');
-          notificationWrapper.id = 'ww-notification';
-          ReactDOM.render(
-            <Notification
-              notificationType={'update'}
-              element={null}
-            />,
-            document.body.insertBefore(
-              notificationWrapper,
-              document.body.firstChild
-            )
-          );
+          renderNotification('update');
           browser.storage.local.set({
             [StorageKeys.EXTENSION_WAS_UPDATED]: false,
           });
@@ -170,21 +159,28 @@ const ContentScriptApp: React.FC = () => {
     if(pinNotificationStored === null || window.location.href.includes(getBaseUrls().dashboard)) return;
 
     if (!pinNotificationStored) {
-      const notificationWrapper = document.createElement('div');
-      notificationWrapper.id = 'ww-notification';
-      ReactDOM.render(
-          <Notification
-            notificationType={'pin'}
-            element={elementRef.current}
-          />,
-        document.body.insertBefore(
-          notificationWrapper,
-          document.body.firstChild
-        )
-      );
+      renderNotification('pin');
       storeInLocalStorage(StorageKeys.PIN_NOTIFICATION_SHOWED, true);
     }
   }, [pinNotificationStored]);
+
+  const renderNotification = (notificationType: string) => {
+    if(!window.top) return;
+    const notificationWrapper = document.createElement('div');
+    notificationWrapper.id = 'ww-notification';
+    const activeDocument = getActiveDocument();
+
+    ReactDOM.render(
+      <Notification
+        notificationType={notificationType}
+        element={elementRef.current}
+      />,
+      window.top.document.body.insertBefore(
+        notificationWrapper,
+        window.top.document.body.firstChild
+      )
+    );
+  }
 
   //TODO specify changes type
   //TODO review all cases

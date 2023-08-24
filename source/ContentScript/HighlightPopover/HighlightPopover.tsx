@@ -194,12 +194,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] ? storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1 : 1);
   
   const renderNotification = (type: string) => {
+    if(!window.top) return;
     const notificationWrapper = document.createElement('div');
     notificationWrapper.id = 'ww-notification';
     
     ReactDOM.render(
       <Notification notificationType={type} element={element} />,
-      document.body.insertBefore(notificationWrapper, document.body.firstChild)
+      window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
     );
   };
 
