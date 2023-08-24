@@ -168,7 +168,6 @@ const ContentScriptApp: React.FC = () => {
     if(!window.top) return;
     const notificationWrapper = document.createElement('div');
     notificationWrapper.id = 'ww-notification';
-    const activeDocument = getActiveDocument();
 
     ReactDOM.render(
       <Notification
