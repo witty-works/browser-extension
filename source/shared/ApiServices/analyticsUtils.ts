@@ -32,55 +32,62 @@ export const aliasId = async (userId: string, appId: string) => {
 
 export const captureEvent = (eventName: string, eventData: object) => {
   browser.storage.local.get().then((result) => {
-    const userId = result[StorageKeys.USER_ID];
-    const organizationId = result[StorageKeys.ORGANIZATION_ID];
-    const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];
-    const appId = result[StorageKeys.APP_ID];
-    const featureFlags = [
-      {
-        flag: 'sales-demo-feature-flag',
-        storageKey: StorageKeys.SALES_DEMO_FEATURE_FLAG
-      },
-      {
-        flag: 'invite-team-feature-flag',
-        storageKey: StorageKeys.INVITE_TEAM_FEATURE_FLAG
-      },
-      {
-        flag: 'invite-friends-feature-flag',
-        storageKey: StorageKeys.INVITE_FRIENDS_FEATURE_FLAG
-      },
-    ];
+    try {
+      const userId = result[StorageKeys.USER_ID];
+      const organizationId = result[StorageKeys.ORGANIZATION_ID];
+      const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];
+      const appId = result[StorageKeys.APP_ID];
+      const featureFlags = [
+        {
+          flag: 'sales-demo-feature-flag',
+          storageKey: StorageKeys.SALES_DEMO_FEATURE_FLAG
+        },
+        {
+          flag: 'invite-team-feature-flag',
+          storageKey: StorageKeys.INVITE_TEAM_FEATURE_FLAG
+        },
+        {
+          flag: 'invite-friends-feature-flag',
+          storageKey: StorageKeys.INVITE_FRIENDS_FEATURE_FLAG
+        },
+      ];
 
-    !idWasAliased && userId && aliasId(userId, appId);
+          if (!idWasAliased && userId) {
+            aliasId(userId, appId);
+          }
 
-    const ph = new PostHog(POSTHOG_API_KEY_EU, {
-      host: 'https://eu.posthog.com',
-      bootstrap : {
-        distinctId: userId ? userId : appId, ////make sure that this is equivalent to ph.session.distinctId
-      },
-    })
+      const ph = new PostHog(POSTHOG_API_KEY_EU, {
+        host: 'https://eu.posthog.com',
+        bootstrap : {
+          distinctId: userId ? userId : appId, ////make sure that this is equivalent to ph.session.distinctId
+        },
+      })
 
-    function storeEnabledFeatureFlags() {
-      for (const featureFlag of featureFlags) {
-        storeInLocalStorage(featureFlag.storageKey, ph.getFeatureFlagPayload(featureFlag.flag));
+      function storeEnabledFeatureFlags() {
+        for (const featureFlag of featureFlags) {
+          storeInLocalStorage(featureFlag.storageKey, ph.getFeatureFlagPayload(featureFlag.flag));
+        }
+      }
+      
+      ph.onFeatureFlags(storeEnabledFeatureFlags); // Ensure flags are loaded before usage.
+      storeEnabledFeatureFlags();
+
+      if (organizationId) {
+        ph.capture(eventName, {
+          ...eventData,
+          request__app_id: appId,
+          $groups: {
+            organization: organizationId,
+          },
+        });
+      } else {
+        ph.capture(eventName, {
+          ...eventData,
+        });
       }
     }
-    
-    ph.onFeatureFlags(storeEnabledFeatureFlags); // Ensure flags are loaded before usage.
-    storeEnabledFeatureFlags();
-
-    if (organizationId) {
-      ph.capture(eventName, {
-        ...eventData,
-        request__app_id: appId,
-        $groups: {
-          organization: organizationId,
-        },
-      });
-    } else {
-      ph.capture(eventName, {
-        ...eventData,
-      });
+    catch (e) {
+      console.log(e);
     }
   });
 };
