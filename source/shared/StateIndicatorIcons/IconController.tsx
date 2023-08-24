@@ -67,7 +67,6 @@ const IconController: React.FC<IconControllerProps> = ({
   const parentWidth = element.parentElement?.getBoundingClientRect().width || 0;
   const elementWidth = isHubspot() ? parentWidth - 5 : elementRect.width;
   const positionLeft = isWittyEditor() ? -(elementRect.width * 0.05) : isTrello() ? 28 : 50; 
-  console.log('elementWidth - positionLeft', elementWidth, positionLeft)
   return (
     <div
       ref={ref}
