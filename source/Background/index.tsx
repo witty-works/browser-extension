@@ -227,11 +227,11 @@ const storageChange = (changes: { [key: string]: any }) => {
     if (key === StorageKeys.ORGANIZATION_DOMAINS) {
       if (
         (changes[key].newValue.type === 'deny' &&
-          changes[key].newValue.list.includes(
+          changes[key].newValue.list?.includes(
             getDomainWithoutSubdomain(window.location.hostname)
           )) ||
         (changes[key].newValue.type === 'allow' &&
-          !changes[key].newValue.list.includes(
+          !changes[key].newValue.list?.includes(
             getDomainWithoutSubdomain(window.location.hostname)
           ))
       ) {
@@ -241,7 +241,7 @@ const storageChange = (changes: { [key: string]: any }) => {
       }
     }
     if (key === StorageKeys.DOMAINS) {
-      changes[key].newValue.list.includes(
+      changes[key].newValue.list?.includes(
         getDomainWithoutSubdomain(window.location.hostname)
       )
         ? addInactiveBadge()

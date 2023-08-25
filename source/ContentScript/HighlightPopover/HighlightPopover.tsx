@@ -20,7 +20,6 @@ import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
-import { getBaseUrls } from '../../shared/ApiServices/requests';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollableParentClosestToElement } from '../../shared/utils';
@@ -269,57 +268,61 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
         </div>
 
-        <div className='witty-works-ext-separator' />
 
         {/* LEARNIGN BITES */}
-        <div
-          className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
-          onClick={() => {
-            analytics.popoverLogs(data.alert, 'learning_bites');
-            setShowLearningBite(!showLearningBite);
-          }}
-          style={{
-            cursor:
-              data.alert.data.explanation?.url
-                ? 'pointer'
-                : 'default',
-            backgroundColor: getColor(data.alert.data.gravity, userIsSignedIn).highlight,
-          }}
-        >
-          <div
-            className='witty-works-ext-lato-popover-text witty-works-ext-justify-space-between'
+        {data.alert.data.explanation?.text &&
+          <>
+          <div className='witty-works-ext-separator' />
+
+          <div 
+            className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
+            onClick={() => {
+              analytics.popoverLogs(data.alert, 'learning_bites');
+              setShowLearningBite(!showLearningBite);
+            }}
             style={{
-              display: 'flex',
-              flexDirection: showLearningBite ? 'row' : 'column',
-              alignItems: showLearningBite ? 'center' : 'flex-start',
+              cursor:
+                data.alert.data.explanation?.url
+                  ? 'pointer'
+                  : 'default',
+              backgroundColor: getColor(data.alert.data.gravity, userIsSignedIn).highlight,
             }}
           >
-            <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-              <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation?.icon}</div>
-              {data.alert.data.explanation?.text}
-              {data.alert.data.explanation?.context &&
-                ' (' + data.alert.data.explanation?.context + ')'}
-            </div>
-            {data.alert.data.explanation?.url && (
-              <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
-              style={{marginTop: showLearningBite ? '0em' : '1em'}}
-              >
-                <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
-                    {t('learnMore')}
-                    {data.alert.data.explanation?.content === 'video' && (
-                      <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
-                    )}
-                  <div
-                    className='witty-works-ext-margin-left'
-                    style={{ pointerEvents: 'none' }}
-                  >
-                    {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+            <div
+              className='witty-works-ext-lato-popover-text witty-works-ext-justify-space-between'
+              style={{
+                display: 'flex',
+                flexDirection: showLearningBite ? 'row' : 'column',
+                alignItems: showLearningBite ? 'center' : 'flex-start',
+              }}
+            >
+              <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+                <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation?.icon}</div>
+                {data.alert.data.explanation?.text}
+                {data.alert.data.explanation?.context &&
+                  ' (' + data.alert.data.explanation?.context + ')'}
+              </div>
+              {data.alert.data.explanation?.url && (
+                <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+                style={{marginTop: showLearningBite ? '0em' : '1em'}}
+                >
+                  <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
+                      {t('learnMore')}
+                      {data.alert.data.explanation?.content === 'video' && (
+                        <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
+                      )}
+                    <div
+                      className='witty-works-ext-margin-left'
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        </>}
         <div
           style={{
             display: showLearningBite ? 'flex' : 'none',
@@ -401,14 +404,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           )
                         }
                       >
-                        {alternative && alternative.text === ' ' ? (
-                          <i>{t('removeSpaces')}</i>
-                        ) : alternative.text.length > 25 &&
-                          alternativeHovered !== alternative.text ? (
-                          alternative.text.substring(0, 25) + '...'
-                        ) : (
-                          alternative.text
-                        )}
+                        {alternative && alternative.text === ' ' 
+                          ? (<i>{t('removeSpaces')}</i>) 
+                          : alternative.text.length > 25 && alternative.context && alternativeHovered !== alternative.text 
+                          ? (alternative.text.substring(0, 25) + '...') 
+                          : alternative.text.length > 35 && alternativeHovered !== alternative.text 
+                          ? (alternative.text.substring(0, 35) + '...') 
+                          : alternative.text
+                        }
                       </div>
                       {alternative && alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
@@ -416,7 +419,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           alternativeHovered !== alternative.text
                             ? alternative.context.substring(0, 25) + '...'
                             : alternative.context}
-
                         </div>
                       )}
                     </div>
@@ -440,22 +442,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               {t('ignoreTerm')}
             </span>
           </div>
-          {data.alert.plan == 'witty_free' && (
-            <div
-              className='witty-works-ext-left'
-              style={{ marginBottom: '1em' }}
-            >
-              <div
-                className='witty-works-ext-button witty-works-ext-primary-button-red'
-                onClick={() => {
-                  analytics.dashboardLog('button_popover');
-                  window.open(getBaseUrls().dashboard, '_blank');
-                }}
-              >
-                {t('customizeSuggestions')}
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>
