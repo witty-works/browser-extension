@@ -1513,36 +1513,31 @@ const Input: React.FC<{
     const alert = selectedAlert as IAlert;
 
     if (isTextArea(element) || isInputText(element)) {
-        let updatedText = element.value;
-        if (replaceSentence) {
+      let updatedText = element.value;
+      if (replaceSentence) {
           const targetText = escapeRegExp(alert.data.text);
-          const regex = new RegExp(`(?:^|\\.\\s+|!\\s+|\\?\\s+)([^.!?]*\\b${targetText}\\s*[^.!?]*[.!?])`, 'g');
+          const regex = new RegExp(
+              `(?:^|\\.\\s+|!\\s+|\\?\\s+)([^.!?]*\\b${targetText}\\s*[^.!?]*[.!?])|([^.!?\n]+$)`, 'g'
+          );
           const matchedSentences = [...updatedText.matchAll(regex)];
-
           for (const match of matchedSentences) {
-            const sentence = match[1];
-            const matchStartIndex = match.index || 0;
-            if (sentence.includes(targetText) && matchStartIndex <= alert.startOffset && alert.startOffset <= (matchStartIndex + sentence.length)) {
-              updatedText = updatedText.replace(sentence, alternative);
-                break;
-            }
+              const sentence = match[1] || match[2];
+              const matchStartIndex = match.index || 0;
+              if (sentence.includes(targetText) && matchStartIndex <= alert.startOffset && alert.startOffset <= (matchStartIndex + sentence.length)) {
+                element.selectionStart = matchStartIndex + 1;
+                element.selectionEnd = matchStartIndex + sentence.length;
+              }
           }
-          element.value = updatedText;
-        } else {
-          element.selectionStart =
-            alternative == ' ' &&
-            category !== 'orthography' &&
-            alert.startOffset !== 0
-              ? alert.startOffset - 1
-              : alert.startOffset;
-          element.selectionEnd =
-            alternative == ' ' && category !== 'orthography'
-              ? alert.endOffset + 1
-              : alert.endOffset;
-      
-          //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
-          getActiveDocument().execCommand('insertText', false, alternative);
-        }
+      } else {
+        element.selectionStart = alternative == ' ' && category !== 'orthography' && alert.startOffset !== 0
+          ? alert.startOffset - 1
+          : alert.startOffset;
+        element.selectionEnd = alternative == ' ' && category !== 'orthography'
+          ? alert.endOffset + 1
+          : alert.endOffset;
+      }
+       //execCommand IS DEPRECATED, but it's the only way to enable undo/redo for now
+       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
 
