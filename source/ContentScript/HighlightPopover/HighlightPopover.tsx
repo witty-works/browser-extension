@@ -27,7 +27,6 @@ import { getScrollableParentClosestToElement, storeInLocalStorage } from '../../
 import { browser } from 'webextension-polyfill-ts';
 import ReactDOM from 'react-dom';
 import Notification from '../../Notifications/Notification';
-import defaultConfig from '../../witty.config.json';
 
 export interface PopoverData {
   index: number;
@@ -212,29 +211,23 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
     browser.storage.local.get(null).then((result) => {
       const {
-        ALTERNATIVES_ACCEPTED_TO_TRIGGER_SALES_DEMO_NOTIFICATION: salesDemoTrigger,
-        ALTERNATIVES_ACCEPTED_TO_TRIGGER_INVITE_TEAM_NOTIFICATION: teamInviteTrigger,
-        ALTERNATIVES_ACCEPTED_TO_TRIGGER_INVITE_FRIEND_NOTIFICATION: friendInviteTrigger
-      } = defaultConfig;
-
-      const {
         [StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]: alternativesAccepted,
         [StorageKeys.SALES_DEMO_FEATURE_FLAG]: salesDemoFlag,
         [StorageKeys.INVITE_TEAM_FEATURE_FLAG]: teamInviteFlag,
         [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
       } = result;
     
-      if (!salesDemoFlag || !teamInviteFlag || !friendInviteFlag) { //reset counter if a feature flag is diabled, maybe need to rethink this?
+      if (!salesDemoFlag.active || !teamInviteFlag.active || !friendInviteFlag.active) { //reset counter if a feature flag is diabled, maybe need to rethink this?
         storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0); 
       } else {
         const incrementedAlternativesAccepted = alternativesAccepted + 1;
         if (
-          (incrementedAlternativesAccepted === salesDemoTrigger && salesDemoFlag) ||
-          (incrementedAlternativesAccepted === teamInviteTrigger && teamInviteFlag) ||
-          (incrementedAlternativesAccepted === friendInviteTrigger && friendInviteFlag)
+          (incrementedAlternativesAccepted === salesDemoFlag.triggerNumber && salesDemoFlag.active) ||
+          (incrementedAlternativesAccepted === teamInviteFlag.triggerNumber && teamInviteFlag.active) ||
+          (incrementedAlternativesAccepted === friendInviteFlag.triggerNumber && friendInviteFlag.active)
         ) {
-          const notificationType = incrementedAlternativesAccepted === salesDemoTrigger ? 'salesDemo'
-            : incrementedAlternativesAccepted === teamInviteTrigger ? 'inviteTeam'
+          const notificationType = incrementedAlternativesAccepted === salesDemoFlag.triggerNumber ? 'salesDemo'
+            : incrementedAlternativesAccepted === teamInviteFlag.triggerNumber ? 'inviteTeam'
             : 'inviteFriends';
     
           renderNotification(notificationType);
