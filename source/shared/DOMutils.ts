@@ -22,6 +22,10 @@ export const isGmail = (): boolean => {
   return window.location.hostname === 'mail.google.com';
 };
 
+export const isHubspot = (): boolean => {
+  return window.location.hostname.includes('hubspot');
+};
+
 export const isWittyEditor = (): boolean => {
   const dashboardBaseUrls = Object.values(BaseUrls).map(
     (baseUrl) => baseUrl.dashboard
@@ -31,9 +35,12 @@ export const isWittyEditor = (): boolean => {
     .reduce((acc, curr) => {
       return acc || curr;
     }, false);
-
   return window.location.href.includes('editor') && isDashboard;
 };
+
+export const isTrello = (): boolean => {
+  return window.location.hostname.includes('trello');
+}
 
 export const isGoogleSheets = (): boolean => {
   return window.location.href.includes('docs.google.com/spreadsheets');

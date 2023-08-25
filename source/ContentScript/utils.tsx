@@ -96,11 +96,11 @@ export const customRender = (enabled: boolean, scriptId: string) => {
 export const handleDomainsFromDashboard = (newValue: any, scriptId: string) => {
   if (
     (newValue.type === 'deny' &&
-      newValue.list.includes(
+      newValue.list?.includes(
         getDomainWithoutSubdomain(window.location.hostname)
       )) ||
     (newValue.type === 'allow' &&
-      !newValue.list.includes(
+      !newValue.list?.includes(
         getDomainWithoutSubdomain(window.location.hostname)
       ))
   ) {
