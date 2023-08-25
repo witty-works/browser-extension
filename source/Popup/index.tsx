@@ -19,9 +19,9 @@ const renderPopup = async (isLocked: boolean = false) => {
         return;
       }
       let domain = getDomainWithoutSubdomain(window.location.hostname);
-      if (
-        !window.location.protocol.includes('http') &&
-        !window.location.protocol.includes('https')
+      if ((!window.location.protocol.includes('http') &&
+        !window.location.protocol.includes('https')) || 
+        (!domain)
       ) {
         domain = '';
       }
@@ -72,6 +72,7 @@ const renderPopup = async (isLocked: boolean = false) => {
         .then((tabs) => {
           if (tabs.length != 0 && tabs[0].url) {
             domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
+            if (!domain) return;
             const domainIsConfirmedByUser =
               domainsConfirmedToNotWork
                 .map((d: string) => {
@@ -139,11 +140,11 @@ const storageChange = (changes: any) => {
       case StorageKeys.ORGANIZATION_DOMAINS:
         if (
           (changes[item].newValue.type === 'deny' &&
-            changes[item].newValue.list.includes(
+            changes[item].newValue.list?.includes(
               getDomainWithoutSubdomain(window.location.hostname)
             )) ||
           (changes[item].newValue.type === 'allow' &&
-            !changes[item].newValue.list.includes(
+            !changes[item].newValue.list?.includes(
               getDomainWithoutSubdomain(window.location.hostname)
             ))
         ) {
