@@ -20,7 +20,6 @@ import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
 import './HighlightPopover.scss';
 import { getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
-import { getBaseUrls } from '../../shared/ApiServices/requests';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollableParentClosestToElement } from '../../shared/utils';
@@ -439,22 +438,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               {t('ignoreTerm')}
             </span>
           </div>
-          {data.alert.plan == 'witty_free' && (
-            <div
-              className='witty-works-ext-left'
-              style={{ marginBottom: '1em' }}
-            >
-              <div
-                className='witty-works-ext-button witty-works-ext-primary-button-red'
-                onClick={() => {
-                  analytics.dashboardLog('button_popover');
-                  window.open(getBaseUrls().dashboard, '_blank');
-                }}
-              >
-                {t('customizeSuggestions')}
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>
