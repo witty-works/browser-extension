@@ -61,7 +61,7 @@ const Notification: React.FC<NotificationProps> = ({notificationType, element}: 
       notificationHeadline = t('minVersionNotInstalledNotificationHeadline');
       notificationText = t('minVersionNotInstalledNotificationText');
       notificationButton = t('minVersionNotInstalledNotificationButton');
-      notificationLink = 'https://chrome.google.com/webstore/detail/witty-your-inclusive-writ';
+      notificationLink = 'https://www.witty.works/en/help/how-can-i-update-witty';
       break;
   }
 
