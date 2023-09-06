@@ -53,7 +53,6 @@ import {
   getScrollParent,
   getTextDividedByNodes,
   updateConfig,
-  compareVersion,
 } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
@@ -457,19 +456,6 @@ const Input: React.FC<{
   useEffect(() => {
     if (!authResponse) return;
     updateConfig(authResponse);
-    const browserExtensionVersion = browser.runtime.getManifest().version;
-    const minVersion = authResponse?.min_version ? authResponse?.min_version : '0.0.0'; //not needed once this has been implemented
-    if (compareVersion(browserExtensionVersion, minVersion) && window.top) {
-      const notificationWrapper = document.createElement('div');
-      notificationWrapper.id = 'ww-notification';
-      ReactDOM.render(
-        <Notification
-          notificationType={'min_version_not_installed'}
-          element={element}
-        />,
-        window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
-      );  
-    }
   }, [authResponse]);
 
   useEffect(() => {
@@ -1675,7 +1661,17 @@ const Input: React.FC<{
         .catch((error: unknown) => {
           sendErrorToSentry(error);
         });
-    } 
+    } else if (authErrorResponse?.status === 400 && window.top) {//400 means means min version not installed
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+      ReactDOM.render(
+        <Notification
+          notificationType={'min_version_not_installed'}
+          element={element}
+        />,
+        window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
+      );
+    }
     else if(checkEndpointError?.status === 500) { 
       abortBackgroundWorkerRef.current = true; //stop sending requests if server is down
     }
