@@ -87,6 +87,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'update') {
     //Set icon according to the saved settings
     scanTabsToDetectStatus();
+    !DEV_ENV && browser.storage.local.set({ [StorageKeys.EXTENSION_WAS_UPDATED]: true });
     reInjectContentScripts();
   }
 });

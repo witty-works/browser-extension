@@ -19,6 +19,8 @@ const Notification: React.FC<NotificationProps> = ({notificationType, element}: 
 
   let notificationHeadline = '';
   let notificationText = '';
+  let notificationButton = '';
+  let notificationLink = '';
 
   switch (notificationType) {
     case 'pin':
@@ -28,6 +30,38 @@ const Notification: React.FC<NotificationProps> = ({notificationType, element}: 
     case 'totalMaxCharLengthReached':
       notificationHeadline = t('totalMaxCharLengthReachedNotificationHeadline');
       notificationText = t('totalMaxCharLengthReachedNotificationText', {limit: defaultConfig.TOTAL_MAX_CHAR_LENGTH, total: totalTextLength});
+      notificationButton = t('subscriptionButton');
+      notificationLink = getBaseUrls().dashboard + 'team/subscription';
+      break;
+    case 'salesDemo':
+      notificationHeadline = t('salesDemoNotificationHeadline');
+      notificationText = t('salesDemoNotificationText');
+      notificationButton = t('salesDemoNotificationButton');
+      notificationLink = 'https://www.witty.works/demo';
+      break;
+    case 'inviteTeam':
+      notificationHeadline = t('inviteTeamNotificationHeadline');
+      notificationText = t('inviteTeamNotificationText');
+      notificationButton = t('inviteTeamNotificationButton');
+      notificationLink = getBaseUrls().dashboard + 'team/show';
+      break;
+    case 'inviteFriends': 
+      notificationHeadline = t('inviteFriendsNotificationHeadline');
+      notificationText = t('inviteFriendsNotificationText');
+      notificationButton = t('inviteFriendsNotificationButton');
+      notificationLink = 'mailto:?subject=Check out Witty&body=Hey, I just found this great tool to improve my writing. It’s called Witty and it’s a browser extension that checks my writing for clarity, engagement, and tone. I think you’ll like it too. Check it out here: https://www.witty.works/';
+      break;
+    case 'update':
+      notificationHeadline = t('updateNotificationHeadline');
+      notificationText = t('updateNotificationText');
+      notificationButton = t('updateNotificationButton');
+      notificationLink = 'https://roadmap.witty.works/tabs/12-released';
+      break;
+    case 'min_version_not_installed':
+      notificationHeadline = t('minVersionNotInstalledNotificationHeadline');
+      notificationText = t('minVersionNotInstalledNotificationText');
+      notificationButton = t('minVersionNotInstalledNotificationButton');
+      notificationLink = 'https://www.witty.works/en/help/how-can-i-update-witty';
       break;
   }
 
@@ -40,11 +74,11 @@ const Notification: React.FC<NotificationProps> = ({notificationType, element}: 
       <div className="witty-works-ext-container-row">
         {notificationType == 'pin' && <WittyIcon className="witty-works-notification-icon"/>}
         <div className="witty-works-notification-text"><div dangerouslySetInnerHTML={{__html: notificationText}}></div>
-        {notificationType == 'totalMaxCharLengthReached' && 
-          <div className='witty-works-ext-left witty-works-ext-margin-top'>
+        {notificationButton && 
+          <div className='witty-works-ext-left'>
             <div className='witty-works-ext-button witty-works-ext-primary-button-red'
-              onClick={() => { window.open(getBaseUrls().dashboard + 'team/subscription', '_blank'); }}>
-              {t('subscriptionButton')}
+              onClick={() => { window.open(notificationLink, '_blank'); }}>
+              {notificationButton}
             </div>
           </div>
         }

@@ -111,6 +111,25 @@ export const de = {
     totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
     totalMaxCharLengthReachedNotificationText: 'Witty Freemium prüft immer {{limit}} Zeichen. Für alle Texte, so oft du willst. Du liebst deine Texte grenzenlos? Hol dir alle Witty-Vorteile!',
     subscriptionButton: 'Upgrade',
+    salesDemoNotificationHeadline: 'Learn more about Witty DE',
+    salesDemoNotificationText:
+      'Book a sales demo! Some bla bla text here DE',
+    salesDemoNotificationButton: 'Book DE',
+    inviteTeamNotificationHeadline: 'Invite your team DE',
+    inviteTeamNotificationText:
+      'Invite your team to Witty DE',
+    inviteTeamNotificationButton: 'Invite DE',
+    inviteFriendsNotificationHeadline: 'Invite your friends DE',
+    inviteFriendsNotificationText:
+      'Invite your friends to Witty DE',
+    inviteFriendsNotificationButton: 'Invite DE',
+    updateNotificationHeadline: 'Witty was updated DE',
+    updateNotificationText:
+      'Witty was updated text lala DE',
+    updateNotificationButton: 'Changes DE',
+    minVersionNotInstalledNotificationHeadline: 'You need to update Witty DE',
+    minVersionNotInstalledNotificationText: 'Please update Witty to the latest version. DE',
+    minVersionNotInstalledNotificationButton: 'Update DE',
   },
 };
 
@@ -231,6 +250,25 @@ export const en = {
     totalMaxCharLengthReachedNotificationHeadline: 'Write long texts often?',
     totalMaxCharLengthReachedNotificationText: 'Witty Freemium reviews {{limit}} characters of any text you write and as often as you like. Writing longer texts? Get all Witty benefits!',
     subscriptionButton: 'Upgrade',
+    salesDemoNotificationHeadline: 'Learn more about Witty',
+    salesDemoNotificationText:
+      'Book a sales demo! Some bla bla text here',
+    salesDemoNotificationButton: 'Book',
+    inviteTeamNotificationHeadline: 'Invite your team',
+    inviteTeamNotificationText:
+      'Invite your team to Witty',
+    inviteTeamNotificationButton: 'Invite',
+    inviteFriendsNotificationHeadline: 'Invite your friends',
+    inviteFriendsNotificationText:
+      'Invite your friends to Witty',
+    inviteFriendsNotificationButton: 'Invite',
+    updateNotificationHeadline: 'Witty was updated',
+    updateNotificationText:
+      'Witty was updated text lala',
+    updateNotificationButton: 'Changes',
+    minVersionNotInstalledNotificationHeadline: 'You need to update Witty',
+    minVersionNotInstalledNotificationText: 'Please update Witty to the latest version.',
+    minVersionNotInstalledNotificationButton: 'Update',
   },
 
 };
