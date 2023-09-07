@@ -255,3 +255,18 @@ export interface IgnoredCategory {
   category: string;
   timestamp: number;
 }
+
+export interface FeatureFlag {
+  notificationHeadline_en: string;
+  notificationHeadline_de: string;
+  notificationText_en: string;
+  notificationText_de: string;
+  notificationButton_en: string;
+  notificationButton_de: string;
+}
+
+export interface FeatureFlags {
+  salesDemoFlag: FeatureFlag | null;
+  teamInviteFlag: FeatureFlag | null;
+  friendInviteFlag: FeatureFlag | null;
+}
