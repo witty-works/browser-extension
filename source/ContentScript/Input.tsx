@@ -1092,6 +1092,8 @@ const Input: React.FC<{
     }
 
     if (!checkEndpointResponse) return;
+    document.documentElement.setAttribute('witty-could-determine-lang', 'true');
+
     setRemoveHighlights(false);
 
     setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
@@ -1643,6 +1645,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointError?.status === 422) {
+      document.documentElement.setAttribute('witty-could-determine-lang', 'false');
       setAlerts([]);
     } else if (
       checkEndpointError?.status == 403 ||
