@@ -108,7 +108,7 @@ const Popup: React.FC<PopupProps> = ({
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
   const [teamName, setTeamName] = useState<string>('');
   const domainExists = domain && domain.length > 0;
-  const [targetDomain, setTargetDomain] = useState<string>('');
+  const [iFrameDomains, setIFrameDomains] = useState<string[]>([]);
 
   useEffect(() => {
     !domainOnActiveOrDisabledList && !domainIsConfirmedByUser && domainExists
@@ -129,8 +129,7 @@ const Popup: React.FC<PopupProps> = ({
             ? result[StorageKeys.ACCESS_TOKEN]
             : ''
         );
-        setTargetDomain(result[StorageKeys.TARGET_DOMAIN]);
-        console.log('targetDomain', result[StorageKeys.TARGET_DOMAIN]);
+        setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS]);
         setEnabled({
           enabled:
             !domainsConfirmedToNotWork
@@ -323,16 +322,12 @@ const Popup: React.FC<PopupProps> = ({
     }
 
     setEnabled({ enabled: !enabled.enabled, updateDashboard: true })
-
-    let relevantDomain = domain;
-    console.log('targetDomain', targetDomain, domain)
-    if (targetDomain !== domain) {
-      relevantDomain = targetDomain;
-    }
+    const domains = (iFrameDomains ? [domain, ...iFrameDomains] : [domain]).filter((item, index, array) => array.indexOf(item) === index);
+  
       setDomainsDisabledLocally(
         enabled.enabled
-          ? [...domainsDisabledLocally, relevantDomain].filter((item, index, array) => array.indexOf(item) === index)
-          : domainsDisabledLocally.filter((item: string) => item !== relevantDomain)
+          ? [...domainsDisabledLocally, ...domains].filter((item, index, array) => array.indexOf(item) === index)
+          : domainsDisabledLocally.filter((item: string) => domains.includes(item))
       );
   };
 

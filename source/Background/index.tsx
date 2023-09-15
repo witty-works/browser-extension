@@ -207,6 +207,31 @@ const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs.length != 0 && tabs[0].url) {
       const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
+
+      browser.tabs
+        .executeScript(tabs[0].id!, {
+          code: `
+          Array.from(document.querySelectorAll('iframe')).map((iframe) => {
+            return iframe.src;
+          });
+        `,
+        })
+        .then((result) => {
+          const iframes = result[0];
+          if (iframes) {
+            const iframeDomains = iframes.map((iframe: string) =>
+              getDomainWithoutSubdomain(new URL(iframe).hostname)
+            );
+            browser.storage.local.set({
+              [StorageKeys.IFRAME_DOMAINS]: iframeDomains,
+            });
+          } else {
+            browser.storage.local.set({
+              [StorageKeys.IFRAME_DOMAINS]: [],
+            });
+          }
+        });
+
       updateLabelChrome(domain);
     } else if (
       defaultConfig.CHROME_AND_FIREFOX_SITES?.includes(window.location.protocol)

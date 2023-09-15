@@ -66,13 +66,8 @@ const scriptId = uuidv4();
                 result[StorageKeys.ORGANIZATION_DOMAINS].list &&
                 !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
-<<<<<<< HEAD
             const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
-            console.log('DOMAINS, ',result[StorageKeys.DOMAINS]);
 
-=======
-        const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && (result[StorageKeys.DOMAINS]?.includes(domain) || domain.includes('hubspot') && result[StorageKeys.DOMAINS]?.includes('hubspot.com')); //workaround for hubspot preview
->>>>>>> 0218901c9440f0f833f74015d2d81724e89739bf
         if (
             isOnOrgDomainList ||
             isOnPersonalDomainList ||

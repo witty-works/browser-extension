@@ -58,8 +58,6 @@ const WW_CONTAINER_STYLE = `
 let activeDocument = document;
 export const setActiveDocument = (document: Document) => {
   if (document?.body) {
-    const activeDocumentDomain = getDomainWithoutSubdomain(document.location.hostname);
-    storeInLocalStorage(StorageKeys.TARGET_DOMAIN, activeDocumentDomain); 
     activeDocument = document;
   }
 };
