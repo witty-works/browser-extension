@@ -71,7 +71,7 @@ export const BaseUrls: IBaseUrls = {
     dashboard: 'https://dashboard.witty.works/',
   },
   Dev: {
-    api: 'https://dev-54ta5gq-him65foajgj5c.fr-4.platformsh.site/',
+    api: 'https://dev-54ta5gq-2ycn7tlsdvd2o.fr-4.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
   },
   Local: {
