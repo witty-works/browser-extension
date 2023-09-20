@@ -479,7 +479,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         <>
           <div
             onClick={() => clickIgnoreTerm()}
-            className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
+            className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'
           >
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
               <IgnoreIcon alt={t('ignore')} />
