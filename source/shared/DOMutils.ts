@@ -26,6 +26,16 @@ export const isHubspot = (): boolean => {
   return window.location.hostname.includes('hubspot');
 };
 
+export const isMicrosoftOnline = (topWindowUrl: string | null = ''): boolean => {  
+  const appTypes = ['xlsx', 'pptx', 'docx'];
+  const topWindow = window.top;
+  if (!topWindow) return false;
+  if (!topWindowUrl) {
+    topWindowUrl = topWindow.location.href;
+  }
+  return topWindowUrl.includes('sharepoint.com') && appTypes.some(app => topWindowUrl?.includes(app));
+}
+
 export const isWittyEditor = (): boolean => {
   const dashboardBaseUrls = Object.values(BaseUrls).map(
     (baseUrl) => baseUrl.dashboard

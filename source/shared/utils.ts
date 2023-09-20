@@ -3,7 +3,7 @@ import { useAnalytics } from './ApiServices/useAnalytics';
 import { DEV_ENV, StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import { isGoogleDocs, isTextArea, requiresRectRecalculation } from './DOMutils';
+import { isGoogleDocs, isMicrosoftOnline, isTextArea, requiresRectRecalculation } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 import { getToken } from './ApiServices/requests';
 
@@ -195,24 +195,28 @@ export const updateLabelChrome = (domain: string) => {
           })
           .includes(domain)
       : false;
-
-    const domainOnDisabledSitesList =
-      defaultConfig.DISABLED_SITES.includes(domain);
-
-    const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
-    if (
-      isLocked ||
-      isDisabled ||
-      domainConfirmedToNotWork ||
-      domainOnDisabledSitesList
-    ) {
-      addInactiveBadge();
-    } else if (numberOfNotifications > 0) {
-      addNotificationBadge(numberOfNotifications);
-    } else {
-      removeBadge();
-    }
-  });
+      
+      browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+        if (!tabs[0] || !tabs[0].url) return;
+        
+        const domainOnDisabledSitesList =
+        defaultConfig.DISABLED_SITES.includes(domain) || isMicrosoftOnline(new URL(tabs[0].url).href);
+  
+        const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
+        if (
+          isLocked ||
+          isDisabled ||
+          domainConfirmedToNotWork ||
+          domainOnDisabledSitesList
+        ) {
+          addInactiveBadge();
+        } else if (numberOfNotifications > 0) {
+          addNotificationBadge(numberOfNotifications);
+        } else {
+          removeBadge();
+        }
+      });
+    })
 };
 
 export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLElement | null, element: HTMLElement) => {

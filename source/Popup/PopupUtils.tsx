@@ -5,6 +5,7 @@ import Popup from './Popups/Popup';
 import PopupDomainDeactivated from './Popups/PopupDomainDeactivated';
 import PopupLogin from './Popups/PopupLogin';
 import defaultConfig from '../witty.config.json';
+import { isMicrosoftOnline } from '../shared/DOMutils';
 
 export const renderUserNotLoggedIn = () => {
   ReactDOM.render(
@@ -46,6 +47,7 @@ export const renderMainPopup = (
 export const renderPopupChrome = (
   appId: string,
   domain: string,
+  currentWindowUrl: string | null,
   domainOnActiveOrDisabledList: boolean,
   domainIsConfirmedByUser: boolean,
   domainsConfirmedToNotWork: string[],
@@ -62,7 +64,7 @@ export const renderPopupChrome = (
       result[StorageKeys.ORGANIZATION_DOMAINS].list &&
       !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
-  if (defaultConfig.DISABLED_SITES.includes(domain)) {
+  if (defaultConfig.DISABLED_SITES.includes(domain) || isMicrosoftOnline(currentWindowUrl)) {
     renderDomainDeactivated(appId, domain);
   } else {
     renderMainPopup(
