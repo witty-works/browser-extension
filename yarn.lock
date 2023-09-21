@@ -2264,6 +2264,11 @@
   dependencies:
     source-map "^0.6.1"
 
+"@types/uuid@^9.0.2":
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.2.tgz#ede1d1b1e451548d44919dc226253e32a6952c4b"
+  integrity sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==
+
 "@types/webpack-sources@*":
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@types/webpack-sources/-/webpack-sources-2.1.1.tgz#6af17e3a3ded71eec2b98008d7c12f498a0a4506"
@@ -8346,10 +8351,10 @@ postcss@^8.2.15, postcss@^8.3.0:
     nanoid "^3.1.23"
     source-map-js "^0.6.2"
 
-posthog-js-lite@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/posthog-js-lite/-/posthog-js-lite-0.0.5.tgz#984a619190d1c4ef003cb81194d0a6276491d2e8"
-  integrity sha512-xHVZ9qbBdoqK7G1JVA4k6nheWu50aiEwjJIPQw7Zhi705aX5wr2W8zxdmvtadeEE5qbJNg+/uZ7renOQoqcbJw==
+posthog-js-lite@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/posthog-js-lite/-/posthog-js-lite-2.4.0.tgz#9212a1767b356d47906fb30bd52542798a20783b"
+  integrity sha512-BslsygPtDEeFIIRgW9za0mzTtZGv5iy5HrmpRd5KIUPtd3J24mItFMhf8cU9GguqS+oq/Dugt2K2ijpC8mSlzQ==
 
 prelude-ls@^1.2.1:
   version "1.2.1"

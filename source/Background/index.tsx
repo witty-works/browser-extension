@@ -67,7 +67,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   analytics.extensionInstallationAndUpdateLog(details.reason);
   browser.browserAction.setIcon(WittyIconActive);
   if (!DEV_ENV)
-    browser.runtime.setUninstallURL('https://www.witty.works/goodbye');
+    browser.runtime.setUninstallURL(`https://www.witty.works/goodbye?witty_version=${wittyVersion}&witty_browser=${navigator.userAgent}`);
   if (details.reason === 'install') {
     //Set default settings
     setSettings();
@@ -87,6 +87,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
   if (details.reason === 'update') {
     //Set icon according to the saved settings
     scanTabsToDetectStatus();
+    !DEV_ENV && browser.storage.local.set({ [StorageKeys.EXTENSION_WAS_UPDATED]: true });
     reInjectContentScripts();
   }
 });

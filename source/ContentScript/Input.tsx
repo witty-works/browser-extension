@@ -57,6 +57,7 @@ import {
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
 import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
+import Notification from '../Notifications/Notification';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -1091,6 +1092,8 @@ const Input: React.FC<{
     }
 
     if (!checkEndpointResponse) return;
+    document.documentElement.setAttribute('witty-could-determine-lang', 'true');
+
     setRemoveHighlights(false);
 
     setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
@@ -1642,6 +1645,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointError?.status === 422) {
+      document.documentElement.setAttribute('witty-could-determine-lang', 'false');
       setAlerts([]);
     } else if (
       checkEndpointError?.status == 403 ||
@@ -1660,7 +1664,17 @@ const Input: React.FC<{
         .catch((error: unknown) => {
           sendErrorToSentry(error);
         });
-    } 
+    } else if (authErrorResponse?.status === 400 && window.top) {//400 means means min version not installed
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+      ReactDOM.render(
+        <Notification
+          notificationType={'min_version_not_installed'}
+          element={element}
+        />,
+        window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
+      );
+    }
     else if(checkEndpointError?.status === 500) { 
       abortBackgroundWorkerRef.current = true; //stop sending requests if server is down
     }

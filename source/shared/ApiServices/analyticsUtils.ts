@@ -1,5 +1,5 @@
 import { IAlert } from '../types';
-import { browserPostHog } from 'posthog-js-lite/dist/src/targets/browser';
+import PostHog from 'posthog-js-lite'
 import { POSTHOG_API_KEY_EU, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 import { storeInLocalStorage } from '../utils';
@@ -31,44 +31,65 @@ export const aliasId = async (userId: string, appId: string) => {
 };
 
 export const captureEvent = (eventName: string, eventData: object) => {
-  browser.storage.local.get()
-    .then((result) => {
-      try {
-        const userId = result[StorageKeys.USER_ID];
-        const organizationId = result[StorageKeys.ORGANIZATION_ID];
-        const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];
-        const appId = result[StorageKeys.APP_ID];
+  browser.storage.local.get().then((result) => {
+    try {
+      const userId = result[StorageKeys.USER_ID];
+      const organizationId = result[StorageKeys.ORGANIZATION_ID];
+      const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];
+      const appId = result[StorageKeys.APP_ID];
+      const featureFlags = [
+        {
+          flag: 'sales-demo-feature-flag',
+          storageKey: StorageKeys.SALES_DEMO_FEATURE_FLAG
+        },
+        {
+          flag: 'invite-team-feature-flag',
+          storageKey: StorageKeys.INVITE_TEAM_FEATURE_FLAG
+        },
+        {
+          flag: 'invite-friends-feature-flag',
+          storageKey: StorageKeys.INVITE_FRIENDS_FEATURE_FLAG
+        },
+      ];
 
-        if (!idWasAliased && userId) {
-          aliasId(userId, appId);
+          if (!idWasAliased && userId) {
+            aliasId(userId, appId);
+          }
+
+      const ph = new PostHog(POSTHOG_API_KEY_EU, {
+        host: 'https://eu.posthog.com',
+        bootstrap : {
+          distinctId: userId ? userId : appId, ////make sure that this is equivalent to ph.session.distinctId
+        },
+      })
+
+      function storeEnabledFeatureFlags() {
+        for (const featureFlag of featureFlags) {
+          storeInLocalStorage(featureFlag.storageKey, ph.getFeatureFlagPayload(featureFlag.flag));
         }
-
-        const ph = browserPostHog(POSTHOG_API_KEY_EU, {
-          apiHost: 'https://eu.posthog.com',
-        });
-
-        ph.session.distinctId = userId ? userId : appId;
-
-        if (organizationId) {
-          ph.capture(eventName, {
-            ...eventData,
-            request__app_id: appId,
-            $groups: {
-              organization: organizationId,
-            },
-          });
-        } else {
-          ph.capture(eventName, {
-            ...eventData,
-          });
-        }
-      } catch (error) {
-        console.error('Error occurred during captureEvent execution:', error);
       }
-    })
-    .catch(error => {
-      console.error('Failed to retrieve data from browser storage:', error);
-    });
+      
+      ph.onFeatureFlags(storeEnabledFeatureFlags); // Ensure flags are loaded before usage.
+      storeEnabledFeatureFlags();
+
+      if (organizationId) {
+        ph.capture(eventName, {
+          ...eventData,
+          request__app_id: appId,
+          $groups: {
+            organization: organizationId,
+          },
+        });
+      } else {
+        ph.capture(eventName, {
+          ...eventData,
+        });
+      }
+    }
+    catch (e) {
+      console.log(e);
+    }
+  });
 };
 
 export const getResponseData = (logResponse: IAlert) => {

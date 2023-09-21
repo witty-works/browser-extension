@@ -110,9 +110,6 @@ Copy `.env.example` to `.env` and adjust the values accordingly.
 ```
 PREMIUM_TEST_USER_EMAIL = 'witty.works.premium.user@gmail.com'
 PREMIUM_TEST_USER_PASSWORD = '<can be found in 1Password>'
-PROXY_SERVER = '<can be found in 1Password>'
-PROXY_USERNAME = '<can be found in 1Password>'
-PROXY_PASSWORD = '<can be found in 1Password>'
 HTACCESS_USERNAME = 'witty'
 HTACCESS_PASSWORD = '<can be found in 1Password>'
 ```

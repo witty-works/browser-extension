@@ -90,6 +90,7 @@ const renderPopup = async (isLocked: boolean = false) => {
             renderPopupChrome(
               appId,
               domain,
+              new URL(tabs[0].url).href,
               domainOnActiveOrDisabledList,
               domainIsConfirmedByUser,
               domainsConfirmedToNotWork,

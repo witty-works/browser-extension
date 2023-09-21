@@ -45,6 +45,13 @@ export enum StorageKeys {
 
   ID_WAS_ALIASED = 'idWasAliased',
   PIN_NOTIFICATION_SHOWED = 'pinNotificationShowed',
+  NUMBER_OF_ALTERNATIVES_ACCEPTED = 'numberOfAlternativesAccepted',
+
+  SALES_DEMO_FEATURE_FLAG = 'sales-demo-feature-flag',
+  INVITE_TEAM_FEATURE_FLAG = 'invite-team-feature-flag',
+  INVITE_FRIENDS_FEATURE_FLAG = 'invite-friends-feature-flag',
+
+  EXTENSION_WAS_UPDATED = 'extensionWasUpdated',
   TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED = 'totalMaxCharLengthNotificationShowed',
 }
 
@@ -64,7 +71,7 @@ export const BaseUrls: IBaseUrls = {
     dashboard: 'https://dashboard.witty.works/',
   },
   Dev: {
-    api: 'https://dev-54ta5gq-him65foajgj5c.fr-4.platformsh.site/',
+    api: 'https://dev-54ta5gq-2ycn7tlsdvd2o.fr-4.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
   },
   Local: {

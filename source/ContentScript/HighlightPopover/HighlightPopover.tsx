@@ -18,12 +18,15 @@ import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
 
 import './HighlightPopover.scss';
-import { getColor } from '../../shared/constants';
+import { StorageKeys, getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
-import { getScrollableParentClosestToElement } from '../../shared/utils';
+import { getScrollableParentClosestToElement, storeInLocalStorage } from '../../shared/utils';
+import { browser } from 'webextension-polyfill-ts';
 import ReactDOM from 'react-dom';
+import Notification from '../../Notifications/Notification';
+
 export interface PopoverData {
   index: number;
   totalAlerts: number;
@@ -184,12 +187,55 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     const popoverContainer = window.document.getElementsByTagName('ww-popover')[0];
     ReactDOM.unmountComponentAtNode(popoverContainer as HTMLElement);
   };
+  
+  const incrementAlternativesAccepted = (storage: any) => 
+    storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] ? storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1 : 1);
+  
+  const renderNotification = (type: string) => {
+    if(!window.top) return;
+    const notificationWrapper = document.createElement('div');
+    notificationWrapper.id = 'ww-notification';
+    
+    ReactDOM.render(
+      <Notification notificationType={type} element={element} />,
+      window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
+    );
+  };
 
   const clickAlternative = (e: MouseEvent, alternative: string, category: string) => {
     //Log the clicked alternative
     e.preventDefault();
     e.stopImmediatePropagation();
     analytics.alternativeLog(data.alert, alternative);
+
+    browser.storage.local.get(null).then((result) => {
+      const {
+        [StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]: alternativesAccepted,
+        [StorageKeys.SALES_DEMO_FEATURE_FLAG]: salesDemoFlag,
+        [StorageKeys.INVITE_TEAM_FEATURE_FLAG]: teamInviteFlag,
+        [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
+      } = result;
+    
+      if (!salesDemoFlag.active || !teamInviteFlag.active || !friendInviteFlag.active) { //reset counter if a feature flag is diabled, maybe need to rethink this?
+        storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0); 
+      } else {
+        const incrementedAlternativesAccepted = alternativesAccepted + 1;
+        if (
+          (incrementedAlternativesAccepted === salesDemoFlag.triggerNumber && salesDemoFlag.active) ||
+          (incrementedAlternativesAccepted === teamInviteFlag.triggerNumber && teamInviteFlag.active) ||
+          (incrementedAlternativesAccepted === friendInviteFlag.triggerNumber && friendInviteFlag.active)
+        ) {
+          const notificationType = incrementedAlternativesAccepted === salesDemoFlag.triggerNumber ? 'salesDemo'
+            : incrementedAlternativesAccepted === teamInviteFlag.triggerNumber ? 'inviteTeam'
+            : 'inviteFriends';
+    
+          renderNotification(notificationType);
+        }
+      }
+      incrementAlternativesAccepted(result);
+    });
+    
+
     updateTextWithAlternative(alternative, category);
   };
 
@@ -433,7 +479,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         <>
           <div
             onClick={() => clickIgnoreTerm()}
-            className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
+            className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'
           >
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
               <IgnoreIcon alt={t('ignore')} />

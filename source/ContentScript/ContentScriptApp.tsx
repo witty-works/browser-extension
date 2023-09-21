@@ -112,6 +112,13 @@ const ContentScriptApp: React.FC = () => {
           orthography: result[StorageKeys.ORTHOGRAPHY]?.value,
         };
         setReqConfig(requestConfig);
+
+        if(result[StorageKeys.EXTENSION_WAS_UPDATED]) {
+          renderNotification('update');
+          browser.storage.local.set({
+            [StorageKeys.EXTENSION_WAS_UPDATED]: false,
+          });
+        }
       })
       .catch((error: unknown) => {
         log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
@@ -152,21 +159,27 @@ const ContentScriptApp: React.FC = () => {
     if(pinNotificationStored === null || window.location.href.includes(getBaseUrls().dashboard)) return;
 
     if (!pinNotificationStored) {
-      const notificationWrapper = document.createElement('div');
-      notificationWrapper.id = 'ww-notification';
-      ReactDOM.render(
-          <Notification
-            notificationType={'pin'}
-            element={elementRef.current}
-          />,
-        document.body.insertBefore(
-          notificationWrapper,
-          document.body.firstChild
-        )
-      );
+      renderNotification('pin');
       storeInLocalStorage(StorageKeys.PIN_NOTIFICATION_SHOWED, true);
     }
   }, [pinNotificationStored]);
+
+  const renderNotification = (notificationType: string) => {
+    if(!window.top) return;
+    const notificationWrapper = document.createElement('div');
+    notificationWrapper.id = 'ww-notification';
+
+    ReactDOM.render(
+      <Notification
+        notificationType={notificationType}
+        element={elementRef.current}
+      />,
+      window.top.document.body.insertBefore(
+        notificationWrapper,
+        window.top.document.body.firstChild
+      )
+    );
+  }
 
   //TODO specify changes type
   //TODO review all cases
