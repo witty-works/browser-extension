@@ -947,24 +947,30 @@ const Input: React.FC<{
   }): void => {
     setAlerts([]);
     setTextToCheck('');
-    const textDividedByNodes = getTextDividedByNodes(element);
-
-    if (isGoogleDocs() && caret.position) {
+    if (isGoogleDocs() && caret.position) {      
+      const nodeIsChecked = prevCheckedNodesRef.current.find((prevCheckedNode) =>
+        prevCheckedNode.rawNode === cloneRef.current?.childNodes[caret.position as number]
+      );
+      if (nodeIsChecked) return;
       const textWithinMaxCharLength = getTextWithinMaxCharLength(
         caret.position,
         cloneRef.current?.childNodes[caret.position]
       );
-      textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
-    } else if (!isGoogleDocs()) {
-      let clickedNode = caret.element;
+      if (!textWithinMaxCharLength) return;
+      handleTextAndIcon(textWithinMaxCharLength)
+    } else if (!isGoogleDocs() && caret.element) {
+      const textDividedByNodes = getTextDividedByNodes(element);
+      const clickedNodeAlreadyChecked = prevCheckedNodesRef.current.find(
+        (prevCheckedNode) => prevCheckedNode.rawNode === caret.element
+      );
+      if (clickedNodeAlreadyChecked) return;
 
-      if (clickedNode) {
-        const textWithinMaxCharLength = getTextWithinMaxCharLength(
-          textDividedByNodes.indexOf(clickedNode),
+      const textWithinMaxCharLength = getTextWithinMaxCharLength(
+        textDividedByNodes.indexOf(caret.element),
           caret.element
         );
-        textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
-      }
+        if (!textWithinMaxCharLength) return;
+        handleTextAndIcon(textWithinMaxCharLength);
     }
   };
 
