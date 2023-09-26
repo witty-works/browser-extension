@@ -158,6 +158,7 @@ exports.unlockAllToggles = async function (page) {
         await page.click('[title="Quit Tour"]');
     }
 
+    //no longer on dashboard:
     // //style
     // const styleToggleForce = await page.waitForSelector('.py-10:nth-child(5) .guidelines-form-section--apply-for-all .slider');
     // const backgroundColorStyleForce = await styleToggleForce.evaluate((el) => {
@@ -169,13 +170,13 @@ exports.unlockAllToggles = async function (page) {
     // await page.click('.py-10:nth-child(5) .button');
 
     //orthography
-    const orthographyToggleForce = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
-    const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue('background-color');
-    }
-    );
-    if (backgroundColorOrthographyForce !== 'rgb(204, 204, 204)') {
-        await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
-    }
+    // const orthographyToggleForce = await page.waitForSelector('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
+    // const backgroundColorOrthographyForce = await orthographyToggleForce.evaluate((el) => {
+    //     return window.getComputedStyle(el).getPropertyValue('background-color');
+    // }
+    // );
+    // if (backgroundColorOrthographyForce !== 'rgb(204, 204, 204)') {
+    //     await page.click('.py-10:nth-child(3) .guidelines-form-section--apply-for-all .slider');
+    // }
     await page.click('.py-10:nth-child(3) .button');
 }
