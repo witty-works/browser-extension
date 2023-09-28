@@ -477,16 +477,13 @@ const Input: React.FC<{
     );
 
     //fiter out nodes that have been checked before and have not changed
-    const textDividedByNodesWithoutCheckedNodes = textDividedByNodes.filter(
-      (node) => {
-        const nodeIsChecked = prevCheckedNodesRef.current.find(
-          (prevNode) =>
-          prevNode.rawNode && prevNode.rawNode === node 
+    const textDividedByNodesWithoutCheckedNodes = textDividedByNodes.filter((node) => {
+        const nodeIsChecked = prevCheckedNodesRef.current.find((prevCheckedNode) =>
+          prevCheckedNode.rawNode === node 
         );
-        return !nodeIsChecked || nodeIsChecked.node.length > 0; 
+        return !nodeIsChecked; 
       }
     );
-
     const nodesWithinBackgroundRequestLength = [] as {
       text: string;
       nodes: {
@@ -500,7 +497,6 @@ const Input: React.FC<{
     textDividedByNodesWithoutCheckedNodes.forEach((node) => {
       const text = node.textContent ? node.textContent : '';
       const index = textDividedByNodes.indexOf(node);
-      if(text.length > 0) {
         if (
           textLength + (node.textContent ? node.textContent.length : 0) <=
           backgroundRequestCharLength
@@ -529,18 +525,19 @@ const Input: React.FC<{
           });
           textLength = node.textContent ? node.textContent.length : 0;
         }
-      }
     });
     
     const interval = setInterval(() => {
-      if (nodesWithinBackgroundRequestLength.length == 0 || abortBackgroundWorkerRef.current) {
+      if (nodesWithinBackgroundRequestLength.length === 0 || abortBackgroundWorkerRef.current) {
         abortBackgroundWorkerRef.current = false;
         clearInterval(interval);
         setBackgroundWorkerStarted(false);
         return;
+      } else {
+        const nextText = nodesWithinBackgroundRequestLength.shift();
+        nextText?.nodes && (nodesWhithinMaxCharLengthRef.current = nextText.nodes);
+        handleTextAndIcon(nextText?.nodes);
       }
-      const nextText = nodesWithinBackgroundRequestLength.shift();
-      handleTextAndIcon(nextText?.nodes);
     }, backgroundRequestInterval);
   };
 
@@ -618,13 +615,13 @@ const Input: React.FC<{
       const nodeAtFirstTextDiff =
         nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
 
-      const textWithinMaxCharLength = getTextWithinMaxCharLength(
+      const nodesWithinMaxCharLength = getTextWithinMaxCharLength(
         fistTextDiff ? fistTextDiff.node : 0,
         nodeAtFirstTextDiff
       );
-      textWithinMaxCharLength &&
+      nodesWithinMaxCharLength &&
         handleTextAndIcon(
-          textWithinMaxCharLength
+          nodesWithinMaxCharLength
         );
     }
   }, 500);
@@ -645,7 +642,7 @@ const Input: React.FC<{
       'below',
       textDividedByNodes,
       currentNode,
-      currentNode === 0 ? charLengthLeft * 2 : charLengthLeft
+      charLengthLeft
     );
     const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
       'above',
@@ -690,21 +687,14 @@ const Input: React.FC<{
   const handleTextAndIcon = (nodes: any) => {
     const isTextAreaCheck = isTextArea(element);
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
-    const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length;
-    if (totalTextLength < maxCharLength) {
+    const allNodes = getTextDividedByNodes(element).map((node: any) => node.rawNode);
+    const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : allNodes.join('').length;
+    if (totalTextLength < maxCharLength) { //for short text ONLY!
       // localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'false');
-      prevCheckedNodesRef.current = []; //prevents displaced highlights when text is short
-      setRemoveHighlights(true);
-    } 
-
-    let nodesToCheck = isTextAreaCheck ? nodes : nodes.filter((node: INodes) => {
-      const nodeIndex = prevCheckedNodesRef.current.findIndex(
-        (prevCheckedNode: INodes) =>
-          prevCheckedNode.rawNode === node.rawNode && //important for highlight placement -> problem with new text 
-          prevCheckedNode.node === node.node 
-        );
-      return nodeIndex === -1;
-    });
+      // prevCheckedNodesRef.current = []; //prevents displaced highlights when text is short -> makes flickering long text (improve condition)
+      setRemoveHighlights(true); //cause of flickering highlights when typing
+    }
+    let nodesToCheck = nodes; //not needed anymore as whatever is passed to handleTextAndIcon is already within max char length
     nodesStorageRef.current = nodesToCheck;
     let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
@@ -712,24 +702,10 @@ const Input: React.FC<{
       userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');
       const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
       newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
-    } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {  
+    } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');
-      abortBackgroundWorkerRef.current = true;  
-      const prevCheckedNodesRefWithoutNodesToCheck = prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
-        const nodeIndex = nodesToCheck.findIndex((node: INodes) => node.index === prevCheckedNode.index);
-        return nodeIndex === -1;
-      });
-      prevCheckedNodesRef.current = prevCheckedNodesRefWithoutNodesToCheck;
-
-      const allNodes = [...prevCheckedNodesRefWithoutNodesToCheck, ...nodesToCheck]
-        .sort((a: any, b: any) => a.index - b.index)
-        .map((node: any) => node.rawNode)
-      if (allNodes.length === 0) return;  
-
-      const nodesWithinTotalMaxCharLength = getNodesWithinMaxCharLength('below', allNodes, -1, totalMaxCharLength*2);
-      newTextToCheck = nodesWithinTotalMaxCharLength.map((node) => node.node).join('\n');
-    } else {  
+    } else {
       isTextAreaCheck && (newTextToCheck = nodes[0]); 
       totalMaxCharLengthReachedRef.current = false;
       abortBackgroundWorkerRef.current = false;
@@ -971,24 +947,30 @@ const Input: React.FC<{
   }): void => {
     setAlerts([]);
     setTextToCheck('');
-    const textDividedByNodes = getTextDividedByNodes(element);
-
-    if (isGoogleDocs() && caret.position) {
+    if (isGoogleDocs() && caret.position) {      
+      const nodeIsChecked = prevCheckedNodesRef.current.find((prevCheckedNode) =>
+        prevCheckedNode.rawNode === cloneRef.current?.childNodes[caret.position as number]
+      );
+      if (nodeIsChecked) return;
       const textWithinMaxCharLength = getTextWithinMaxCharLength(
         caret.position,
         cloneRef.current?.childNodes[caret.position]
       );
-      textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
-    } else if (!isGoogleDocs()) {
-      let clickedNode = caret.element;
+      if (!textWithinMaxCharLength) return;
+      handleTextAndIcon(textWithinMaxCharLength)
+    } else if (!isGoogleDocs() && caret.element) {
+      const textDividedByNodes = getTextDividedByNodes(element);
+      const clickedNodeAlreadyChecked = prevCheckedNodesRef.current.find(
+        (prevCheckedNode) => prevCheckedNode.rawNode === caret.element
+      );
+      if (clickedNodeAlreadyChecked) return;
 
-      if (clickedNode) {
-        const textWithinMaxCharLength = getTextWithinMaxCharLength(
-          textDividedByNodes.indexOf(clickedNode),
+      const textWithinMaxCharLength = getTextWithinMaxCharLength(
+        textDividedByNodes.indexOf(caret.element),
           caret.element
         );
-        textWithinMaxCharLength && handleTextAndIcon(textWithinMaxCharLength);
-      }
+        if (!textWithinMaxCharLength) return;
+        handleTextAndIcon(textWithinMaxCharLength);
     }
   };
 
@@ -1080,6 +1062,7 @@ const Input: React.FC<{
   }, [selectedNodeWithAlertsIndex, selectedAlertIndex]);
 
   useEffect(() => {
+    if (!checkEndpointResponse) return;
     if (
       !backgroundWorkerStarted &&
       !isTextArea(element) && //does not work on textArea yet
@@ -1090,8 +1073,8 @@ const Input: React.FC<{
       backgroundWorker(element);
       setBackgroundWorkerStarted(true);
     }
+    document.documentElement.setAttribute('witty-could-determine-lang', 'true');
 
-    if (!checkEndpointResponse) return;
     setRemoveHighlights(false);
 
     setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
@@ -1643,6 +1626,7 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (checkEndpointError?.status === 422) {
+      document.documentElement.setAttribute('witty-could-determine-lang', 'false');
       setAlerts([]);
     } else if (
       checkEndpointError?.status == 403 ||

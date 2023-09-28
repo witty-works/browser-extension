@@ -1,15 +1,11 @@
-[witty-is-enabled=true] .kix-spell-bubble {
-    display: none !important;
-}
-
-[witty-is-enabled=true] .ng.Lm {
+[witty-is-enabled=true][witty-could-determine-lang=true] .ng.Lm {
     background-image: none !important;
 }
 
-[witty-is-enabled=true] .ng.LI {
+[witty-is-enabled=true][witty-could-determine-lang=true] .ng.LI {
     background-image: none !important;
 }
 
-[witty-is-enabled=true] .pl {
+[witty-is-enabled=true][witty-could-determine-lang=true] .pl {
   display: none;
 }

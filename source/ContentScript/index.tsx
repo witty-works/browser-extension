@@ -19,6 +19,7 @@ import {
 import { setBaseUrls } from '../shared/ApiServices/requests';
 import ReactDOM from "react-dom";
 import { v4 as uuidv4 } from 'uuid';
+import { isMicrosoftOnline } from '../shared/DOMutils';
 
 const initialize = () => {
   const sentryDSN = defaultConfig.SENTRY_DSN;
@@ -71,7 +72,8 @@ const scriptId = uuidv4();
         if (
             isOnOrgDomainList ||
             isOnPersonalDomainList ||
-            defaultConfig.DISABLED_SITES.includes(domain)
+            defaultConfig.DISABLED_SITES.includes(domain) ||
+            isMicrosoftOnline(window.top?.location.href)
         ) {
           customRender(false, scriptId);
         } else {

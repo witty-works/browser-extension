@@ -111,13 +111,13 @@ export const de = {
     totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
     totalMaxCharLengthReachedNotificationText: 'Witty Freemium prüft immer {{limit}} Zeichen. Für alle Texte, so oft du willst. Du liebst deine Texte grenzenlos? Hol dir alle Witty-Vorteile!',
     subscriptionButton: 'Upgrade',
-    updateNotificationHeadline: 'Witty was updated DE',
+    updateNotificationHeadline: 'Witty wurde aktualisiert',
     updateNotificationText:
-      'Witty was updated text lala DE',
-    updateNotificationButton: 'Changes DE',
-    minVersionNotInstalledNotificationHeadline: 'You need to update Witty DE',
-    minVersionNotInstalledNotificationText: 'Please update Witty to the latest version. DE',
-    minVersionNotInstalledNotificationButton: 'Update DE',
+      'Witty wurde auf die neuste version aktualisiert.',
+    updateNotificationButton: 'Änderungen',
+    minVersionNotInstalledNotificationHeadline: 'Du must Witty aktualisieren',
+    minVersionNotInstalledNotificationText: 'Um Witty weiterhin nutzen zu können, müsst Du Witty auf eine neuere Version aktualisieren.',
+    minVersionNotInstalledNotificationButton: 'Aktualisieren',
   },
 };
 
@@ -240,11 +240,11 @@ export const en = {
     subscriptionButton: 'Upgrade',
     updateNotificationHeadline: 'Witty was updated',
     updateNotificationText:
-      'Witty was updated text lala',
-    updateNotificationButton: 'Changes',
+      'Witty was updated to the latest version.',
+    updateNotificationButton: 'View changes',
     minVersionNotInstalledNotificationHeadline: 'You need to update Witty',
-    minVersionNotInstalledNotificationText: 'Please update Witty to the latest version.',
-    minVersionNotInstalledNotificationButton: 'Update',
+    minVersionNotInstalledNotificationText: 'In order to continue using Witty, you need to update Witty to a newer version.',
+    minVersionNotInstalledNotificationButton: 'How to update',
   },
 
 };
