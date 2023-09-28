@@ -69,9 +69,9 @@ const Popup: React.FC<PopupProps> = ({
     enabled: true,
     updateDashboard: false,
   } as EnableWittyToggle);
-  const [domainsDisabledLocally, setDomainsDisabledLocally] = useState<
-    string[]
-  >([]);
+  const [initialDomainsDisabledLocally, setInitialDomainsDisabledLocally] = useState<
+  string[]
+>([]);
   const [orthography, setOrthography] = useState<ConfigProperty>(
     defaultConfig.ORTHOGRAPHY
   );
@@ -157,7 +157,7 @@ const Popup: React.FC<PopupProps> = ({
 
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
 
-        setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
+        setInitialDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
       })
 
@@ -202,21 +202,13 @@ const Popup: React.FC<PopupProps> = ({
   }, [casingSites.length]);
 
   useEffect(() => {
-    if (domain) {
-      if (enabled.updateDashboard) {
-        handleDomainToUpdate({
-          domain: domain,
-          enabled: enabled.enabled,
-        });
-      }
-
-      !enabled &&
-        storeInLocalStorage(StorageKeys.DOMAINS, [
-          ...domainsDisabledLocally,
-          domain,
-        ]);
+    if(!domain) return;
+    if (enabled.updateDashboard) {
+      handleDomainToUpdate({
+        domain: domain,
+        enabled: enabled.enabled,
+      });
     }
-    setWittyIcon(enabled.enabled);
   }, [enabled]);
 
   useEffect(() => {
@@ -301,18 +293,16 @@ const Popup: React.FC<PopupProps> = ({
     // }
   }, [authErrorResponse]);
 
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.DOMAINS, domainsDisabledLocally);
-  }, [domainsDisabledLocally.length]);
 
-  const setWittyIcon = (state: boolean) => {
-    state ? removeBadge() : addInactiveBadge();
+  const setWittyIcon = (enabled: boolean) => {
+    enabled ? removeBadge() : addInactiveBadge();
   };
 
   const handleEnableToggle = () => {
+    const isEnabled = !enabled.enabled;
     if (isLocked) return;
 
-    if (domainIsSetAsNotWorking && !enabled.enabled) {
+    if (domainIsSetAsNotWorking && isEnabled) {
       setDomainIsSetToNotWorking(false);
       setShowSurvey(true);
       storeInLocalStorage(
@@ -320,15 +310,18 @@ const Popup: React.FC<PopupProps> = ({
         domainsConfirmedToNotWork.filter((d) => d.split('-')[0] !== domain)
       );
     }
-
-    setEnabled({ enabled: !enabled.enabled, updateDashboard: true })
     const domains = (iFrameDomains ? [domain, ...iFrameDomains] : [domain]).filter((item, index, array) => array.indexOf(item) === index);
-  
-      setDomainsDisabledLocally(
-        enabled.enabled
-          ? [...domainsDisabledLocally, ...domains].filter((item, index, array) => array.indexOf(item) === index)
-          : domainsDisabledLocally.filter((item: string) => domains.includes(item))
-      );
+
+    const newDomainsDisabledLocally = (
+      isEnabled
+        ? initialDomainsDisabledLocally.filter((item: string) => domains.includes(item)) //remove domain and iframe domains
+        : [...initialDomainsDisabledLocally, ...domains].filter((item, index, array) => array.indexOf(item) === index) //add domain and iframe domains, make sure unique
+    ) as string[];
+
+    storeInLocalStorage(StorageKeys.DOMAINS, newDomainsDisabledLocally);
+
+    setWittyIcon(isEnabled);
+    setEnabled({ enabled: isEnabled, updateDashboard: true });
   };
 
   const handleCasingToggle = () => {

@@ -93,6 +93,7 @@ const scriptId = uuidv4();
           handleDomainsFromDashboard(changes[item].newValue, scriptId);
           break;
         case StorageKeys.DOMAINS:
+          console.log('domains changed', changes[item].newValue);
           if (changes[item].newValue.includes(domain) || (domain.includes('hubspot') && changes[item].newValue.includes('hubspot.com'))) {
             customRender(false, scriptId);
           } else {

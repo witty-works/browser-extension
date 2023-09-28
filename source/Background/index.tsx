@@ -220,7 +220,7 @@ const scanTabsToDetectStatus = () => {
           const iframes = result[0];
           if (iframes) {
             const iframeDomains = iframes.map((iframe: string) =>
-              getDomainWithoutSubdomain(new URL(iframe).hostname)
+            iframe && getDomainWithoutSubdomain(new URL(iframe).hostname)
             );
             browser.storage.local.set({
               [StorageKeys.IFRAME_DOMAINS]: iframeDomains,
