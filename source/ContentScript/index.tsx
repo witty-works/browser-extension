@@ -67,7 +67,8 @@ const scriptId = uuidv4();
                 result[StorageKeys.ORGANIZATION_DOMAINS].list &&
                 !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
-        const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
+            const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
+
         if (
             isOnOrgDomainList ||
             isOnPersonalDomainList ||
@@ -92,7 +93,8 @@ const scriptId = uuidv4();
           handleDomainsFromDashboard(changes[item].newValue, scriptId);
           break;
         case StorageKeys.DOMAINS:
-          if (changes[item].newValue.includes(domain)) {
+          console.log('domains changed', changes[item].newValue);
+          if (changes[item].newValue.includes(domain) || (domain.includes('hubspot') && changes[item].newValue.includes('hubspot.com'))) {
             customRender(false, scriptId);
           } else {
             customRender(true, scriptId);

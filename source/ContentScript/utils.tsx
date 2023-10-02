@@ -94,6 +94,7 @@ export const customRender = (enabled: boolean, scriptId: string) => {
 };
 
 export const handleDomainsFromDashboard = (newValue: any, scriptId: string) => {
+  console.log('handleDomainsFromDashboard', newValue)
   if (
     (newValue.type === 'deny' &&
       newValue.list?.includes(
