@@ -92,13 +92,6 @@ export const isTypo3 = (): boolean => {
   return window.location.hostname.includes('typo3');
 };
 
-export const isLinkedInMessage = (): boolean => {
-  return (
-    !!getActiveDocument().querySelector('.msg-form__contenteditable') &&
-    isLinkedin()
-  );
-};
-
 export const isLinkedin = (): boolean => {
   return window.location.hostname === 'www.linkedin.com';
 };
@@ -127,15 +120,12 @@ export const getZIndex = (element: Element) => {
 
 export const requiresRectRecalculation = (element: Element) => {
   const domain = getDomainWithoutSubdomain(window.location.hostname);
-  const pathContainsMessaging = window.location.pathname.includes('messaging');
 
   return (
     isTextArea(element) ||
-    (domain === 'linkedin.com' && pathContainsMessaging) ||
-    domain === 'personio.de' || //exception for linkedin messaging and personio
+    domain === 'personio.de' ||
     isCkEditor(element) ||
     isTinyMceEditor(element) ||
-    isLinkedInMessage() ||
     isBambooHr()
   );
 };
