@@ -83,8 +83,8 @@ const Input: React.FC<{
 
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [elementScroll, setElementScroll] = useState<Position>({
-    top: 0,
-    left: 0,
+    top: isTextArea(element) ? element.scrollTop : 0,
+    left: isTextArea(element) ? element.scrollLeft : 0,
   } as Position);
   const [removeHighlights, setRemoveHighlights] = useState<boolean>(false);
   const [forceHighlightUpdate, setForceHighlightUpdate] =
