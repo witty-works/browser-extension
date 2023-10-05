@@ -96,7 +96,7 @@
     "mockzilla": "^0.9.0",
     "mockzilla-webextension": "^0.9.0",
     "optimize-css-assets-webpack-plugin": "^5.0.6",
-    "postcss": "^8.3.0",
+    "postcss": "^8.4.31",
     "postcss-loader": "^4.3.0",
     "prettier": "^2.3.0",
     "react-svg-loader": "^3.0.3",
