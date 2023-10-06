@@ -55,7 +55,6 @@ export const de = {
     enableWittyFailed:
       'Currently unable to sync with the Witty Dashboard, try again later.',
     lockedInfo: 'Diese Funktion wurde von deiner*m Team-Admin gesetzt.',
-    resetSettings: 'Einstellungen zurücksetzen',
     loggedInTo: 'Logged in to',
     popupsBlocked: 'Popups sind blockiert',
     popupsBlockedText:
@@ -177,7 +176,6 @@ export const en = {
     enableWittyFailed:
       'Die Synchronisierung mit Witty Dashboard ist aktuell nicht möglich, versuchen Sie es später noch einmal.',
     lockedInfo: 'This feature has been locked by your team admin.',
-    resetSettings: 'Reset settings',
     loggedInTo: 'Logged in to',
     popupsBlocked: 'Popups are blocked',
     popupsBlockedText:
