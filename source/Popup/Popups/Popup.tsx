@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import {
   ConfigProperty,
   EnableWittyToggle,
-  IAuthResponse,
 } from '../../shared/types';
 import {
   StorageKeys,
@@ -93,18 +92,13 @@ const Popup: React.FC<PopupProps> = ({
         .map((d: string) => d.split('-')[0])
         .includes(domain)
     );
-  const [resetSettings, setResetSettings] = useState<boolean>(false);
   const log = useLog('Popup');
   const analytics = useAnalytics();
   const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
-  const [localConfigDiffersFromDashboard, setLocalConfigDiffersFromDashboard] =
-    useState<boolean>(false);
   const onStorageError = (error: unknown) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
   };
-  const [authResponseConfig, setAuthResponseConfig] =
-    useState<IAuthResponse | null>(null);
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
   const [teamName, setTeamName] = useState<string>('');
   const domainExists = domain && domain.length > 0;
@@ -248,7 +242,6 @@ const Popup: React.FC<PopupProps> = ({
         });
       }
       
-      setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
       authResponse.organization_name &&
@@ -257,8 +250,8 @@ const Popup: React.FC<PopupProps> = ({
         switch (key) {
           case 'orthography':
             if (
-              (authResponse.organization_config[key].status == 'force' && !authResponse.organization_config[key].value && localConfigDiffersFromDashboard) ||
-              resetSettings
+              authResponse.organization_config[key].status == 'force' && 
+              !authResponse.organization_config[key].value
             ) {
               setOrthography(authResponse.organization_config[key]);
             } else {
@@ -270,21 +263,8 @@ const Popup: React.FC<PopupProps> = ({
             break;
         }
       }
-      setResetSettings(false);
     }
-  }, [authResponse, resetSettings]);
-
-  useEffect(() => {
-    if (!authResponseConfig?.organization_config) return;
-    if (
-      authResponseConfig.organization_config['orthography']?.value !=
-        orthography.value
-    ) {
-      setLocalConfigDiffersFromDashboard(true);
-    } else {
-      setLocalConfigDiffersFromDashboard(false);
-    }
-  }, [authResponseConfig, orthography]);
+  }, [authResponse]);
 
   useEffect(() => {
     DEV_ENV && console.log('authErrorResponse', authErrorResponse);
@@ -449,28 +429,16 @@ const Popup: React.FC<PopupProps> = ({
                 setOrthography({
                   ...orthography,
                   value:
-                    orthography.status === 'force'  && orthography.value == true && !localConfigDiffersFromDashboard
+                    orthography.status === 'force'  && orthography.value == true
                       ? orthography.value
                       : !orthography.value,
                 });
               }}
               label={t('spellChecking')}
-              locked={orthography.status === 'force' && orthography.value == true && !localConfigDiffersFromDashboard}
+              locked={orthography.status === 'force' && orthography.value == true}
               userIsLoggedIn={userIsLoggedIn}
             />
        
-            {localConfigDiffersFromDashboard && (
-              <div className='witty-works-ext-wittyworks-container witty-works-ext-left'>
-                <div
-                  className='witty-works-ext-button witty-works-ext-secondary-button-red'
-                  onClick={() => {
-                    setResetSettings(true);
-                  }}
-                >
-                  {t('resetSettings')}
-                </div>
-              </div>
-            )}
             {
               <div className='witty-works-ext-left'>
                 <div
@@ -523,8 +491,7 @@ const Popup: React.FC<PopupProps> = ({
           <div
             className='witty-works-ext-lato-popup-text'
             style={{
-              marginTop:
-                localConfigDiffersFromDashboard || hasWittyTeams ? '-0.5em' : 0,
+              marginTop: hasWittyTeams ? '-0.5em' : 0,
             }}
           >
             {t('loggedInTo') + ' "' + teamName + '"'}
