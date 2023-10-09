@@ -67,7 +67,8 @@ const scriptId = uuidv4();
                 result[StorageKeys.ORGANIZATION_DOMAINS].list &&
                 !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
-        const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
+            const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
+
         if (
             isOnOrgDomainList ||
             isOnPersonalDomainList ||

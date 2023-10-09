@@ -53,6 +53,8 @@ export enum StorageKeys {
 
   EXTENSION_WAS_UPDATED = 'extensionWasUpdated',
   TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED = 'totalMaxCharLengthNotificationShowed',
+
+  IFRAME_DOMAINS = 'iframeDomains',
 }
 
 //nlp api, dashboard

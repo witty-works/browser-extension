@@ -73,14 +73,13 @@ const IconController: React.FC<IconControllerProps> = ({
       style={{
         zIndex: 999999999,
         position: googleDocsIcon ? 'fixed' : 'absolute',
-        top: googleDocsIcon ? iconPositionGoogleDocs.top : `${0 + scrollContainerScrollTop}px`,
+        top: googleDocsIcon ? iconPositionGoogleDocs.top : `${scrollContainerScrollTop + 8}px`, //add padding like this to minimize clickable area
         left: googleDocsIcon ? iconPositionGoogleDocs.left : `${0}px`,
-        width: '50px',
-        marginLeft:  googleDocsIcon ? '0px' : `${elementWidth - positionLeft}px`,
-        padding: `10px`,
-        display: `flex`,
-        boxSizing: `border-box`,
-        justifyContent: `flex-end`, 
+        marginLeft:  googleDocsIcon ? '0px' : `${elementWidth - positionLeft + 20}px`, //add padding like this to minimize clickable area
+        pointerEvents: iconType !== 'warning' ? 'none' : 'auto',
+        display: 'flex',
+        boxSizing: 'border-box',
+        justifyContent: 'flex-end', 
         maxHeight: elementRect.height,
       }}
       onMouseDown={(e) => {

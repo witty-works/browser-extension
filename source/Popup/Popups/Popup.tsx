@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import {
   ConfigProperty,
   EnableWittyToggle,
-  IAuthResponse,
 } from '../../shared/types';
 import {
   StorageKeys,
@@ -69,9 +68,9 @@ const Popup: React.FC<PopupProps> = ({
     enabled: true,
     updateDashboard: false,
   } as EnableWittyToggle);
-  const [domainsDisabledLocally, setDomainsDisabledLocally] = useState<
-    string[]
-  >([]);
+  const [initialDomainsDisabledLocally, setInitialDomainsDisabledLocally] = useState<
+  string[]
+>([]);
   const [orthography, setOrthography] = useState<ConfigProperty>(
     defaultConfig.ORTHOGRAPHY
   );
@@ -93,21 +92,17 @@ const Popup: React.FC<PopupProps> = ({
         .map((d: string) => d.split('-')[0])
         .includes(domain)
     );
-  const [resetSettings, setResetSettings] = useState<boolean>(false);
   const log = useLog('Popup');
   const analytics = useAnalytics();
   const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
-  const [localConfigDiffersFromDashboard, setLocalConfigDiffersFromDashboard] =
-    useState<boolean>(false);
   const onStorageError = (error: unknown) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
   };
-  const [authResponseConfig, setAuthResponseConfig] =
-    useState<IAuthResponse | null>(null);
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
   const [teamName, setTeamName] = useState<string>('');
   const domainExists = domain && domain.length > 0;
+  const [iFrameDomains, setIFrameDomains] = useState<string[]>([]);
 
   useEffect(() => {
     !domainOnActiveOrDisabledList && !domainIsConfirmedByUser && domainExists
@@ -128,6 +123,7 @@ const Popup: React.FC<PopupProps> = ({
             ? result[StorageKeys.ACCESS_TOKEN]
             : ''
         );
+        setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS]);
         setEnabled({
           enabled:
             !domainsConfirmedToNotWork
@@ -155,7 +151,7 @@ const Popup: React.FC<PopupProps> = ({
 
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
 
-        setDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
+        setInitialDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
       })
 
@@ -200,21 +196,13 @@ const Popup: React.FC<PopupProps> = ({
   }, [casingSites.length]);
 
   useEffect(() => {
-    if (domain) {
-      if (enabled.updateDashboard) {
-        handleDomainToUpdate({
-          domain: domain,
-          enabled: enabled.enabled,
-        });
-      }
-
-      !enabled &&
-        storeInLocalStorage(StorageKeys.DOMAINS, [
-          ...domainsDisabledLocally,
-          domain,
-        ]);
+    if(!domain) return;
+    if (enabled.updateDashboard) {
+      handleDomainToUpdate({
+        domain: domain,
+        enabled: enabled.enabled,
+      });
     }
-    setWittyIcon(enabled.enabled);
   }, [enabled]);
 
   useEffect(() => {
@@ -254,7 +242,6 @@ const Popup: React.FC<PopupProps> = ({
         });
       }
       
-      setAuthResponseConfig(authResponse);
       setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
       authResponse.organization_name &&
@@ -263,8 +250,8 @@ const Popup: React.FC<PopupProps> = ({
         switch (key) {
           case 'orthography':
             if (
-              (authResponse.organization_config[key].status == 'force' && !authResponse.organization_config[key].value && localConfigDiffersFromDashboard) ||
-              resetSettings
+              authResponse.organization_config[key].status == 'force' && 
+              !authResponse.organization_config[key].value
             ) {
               setOrthography(authResponse.organization_config[key]);
             } else {
@@ -276,21 +263,8 @@ const Popup: React.FC<PopupProps> = ({
             break;
         }
       }
-      setResetSettings(false);
     }
-  }, [authResponse, resetSettings]);
-
-  useEffect(() => {
-    if (!authResponseConfig?.organization_config) return;
-    if (
-      authResponseConfig.organization_config['orthography']?.value !=
-        orthography.value
-    ) {
-      setLocalConfigDiffersFromDashboard(true);
-    } else {
-      setLocalConfigDiffersFromDashboard(false);
-    }
-  }, [authResponseConfig, orthography]);
+  }, [authResponse]);
 
   useEffect(() => {
     DEV_ENV && console.log('authErrorResponse', authErrorResponse);
@@ -299,18 +273,16 @@ const Popup: React.FC<PopupProps> = ({
     // }
   }, [authErrorResponse]);
 
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.DOMAINS, domainsDisabledLocally);
-  }, [domainsDisabledLocally.length]);
 
-  const setWittyIcon = (state: boolean) => {
-    state ? removeBadge() : addInactiveBadge();
+  const setWittyIcon = (enabled: boolean) => {
+    enabled ? removeBadge() : addInactiveBadge();
   };
 
   const handleEnableToggle = () => {
+    const isEnabled = !enabled.enabled;
     if (isLocked) return;
 
-    if (domainIsSetAsNotWorking && !enabled.enabled) {
+    if (domainIsSetAsNotWorking && isEnabled) {
       setDomainIsSetToNotWorking(false);
       setShowSurvey(true);
       storeInLocalStorage(
@@ -318,15 +290,18 @@ const Popup: React.FC<PopupProps> = ({
         domainsConfirmedToNotWork.filter((d) => d.split('-')[0] !== domain)
       );
     }
+    const domains = (iFrameDomains ? [domain, ...iFrameDomains] : [domain]).filter((item, index, array) => array.indexOf(item) === index);
 
-    setEnabled({ enabled: !enabled.enabled, updateDashboard: true });
+    const newDomainsDisabledLocally = (
+      isEnabled
+        ? initialDomainsDisabledLocally.filter((item: string) => domains.includes(item)) //remove domain and iframe domains
+        : [...initialDomainsDisabledLocally, ...domains].filter((item, index, array) => array.indexOf(item) === index) //add domain and iframe domains, make sure unique
+    ) as string[];
 
-    if (domainExists)
-      setDomainsDisabledLocally(
-        enabled.enabled
-          ? [...domainsDisabledLocally, domain]
-          : domainsDisabledLocally.filter((item: string) => item !== domain)
-      );
+    storeInLocalStorage(StorageKeys.DOMAINS, newDomainsDisabledLocally);
+
+    setWittyIcon(isEnabled);
+    setEnabled({ enabled: isEnabled, updateDashboard: true });
   };
 
   const handleCasingToggle = () => {
@@ -454,28 +429,16 @@ const Popup: React.FC<PopupProps> = ({
                 setOrthography({
                   ...orthography,
                   value:
-                    orthography.status === 'force'  && orthography.value == true && !localConfigDiffersFromDashboard
+                    orthography.status === 'force'  && orthography.value == true
                       ? orthography.value
                       : !orthography.value,
                 });
               }}
               label={t('spellChecking')}
-              locked={orthography.status === 'force' && orthography.value == true && !localConfigDiffersFromDashboard}
+              locked={orthography.status === 'force' && orthography.value == true}
               userIsLoggedIn={userIsLoggedIn}
             />
        
-            {localConfigDiffersFromDashboard && (
-              <div className='witty-works-ext-wittyworks-container witty-works-ext-left'>
-                <div
-                  className='witty-works-ext-button witty-works-ext-secondary-button-red'
-                  onClick={() => {
-                    setResetSettings(true);
-                  }}
-                >
-                  {t('resetSettings')}
-                </div>
-              </div>
-            )}
             {
               <div className='witty-works-ext-left'>
                 <div
@@ -528,8 +491,7 @@ const Popup: React.FC<PopupProps> = ({
           <div
             className='witty-works-ext-lato-popup-text'
             style={{
-              marginTop:
-                localConfigDiffersFromDashboard || hasWittyTeams ? '-0.5em' : 0,
+              marginTop: hasWittyTeams ? '-0.5em' : 0,
             }}
           >
             {t('loggedInTo') + ' "' + teamName + '"'}
