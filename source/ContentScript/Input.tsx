@@ -195,7 +195,7 @@ const Input: React.FC<{
       .then((result) => {
         setDebounceDelay(result[StorageKeys.API_DELAY] as number);
         setUserIsSignedIn(!!result[StorageKeys.ACCESS_TOKEN]);
-        result[StorageKeys.PLAN] === 'witty_free' && (isWittyPremiumUserRef.current = false);
+        (result[StorageKeys.PLAN] === 'witty_free' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
         if (
           result[StorageKeys.PLAN] === 'witty_free' &&
           result[StorageKeys.IGNORED_CATEGORIES]
@@ -687,7 +687,7 @@ const Input: React.FC<{
   const handleTextAndIcon = (nodes: any) => {
     const isTextAreaCheck = isTextArea(element);
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
-    const allNodes = getTextDividedByNodes(element).map((node: any) => node.rawNode);
+    const allNodes = getTextDividedByNodes(element).map((node: any) => node.textContent);
     const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : allNodes.join('').length;
     if (totalTextLength < maxCharLength) { //for short text ONLY!
       // localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'false');
@@ -1067,7 +1067,8 @@ const Input: React.FC<{
       !backgroundWorkerStarted &&
       !isTextArea(element) && //does not work on textArea yet
       !isGoogleDocs() && //google docs is handled on mutation
-      getInputText(element).length > maxCharLength
+      getInputText(element).length > maxCharLength && 
+      isWittyPremiumUserRef.current //no long text handling freemium users, could also use totalMaxCharLengthReachedRef.current, but this is safer
     ) {
       abortBackgroundWorkerRef.current = false;
       backgroundWorker(element);
@@ -1338,7 +1339,6 @@ const Input: React.FC<{
       };
       
       const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-
       mergedCheckEndpointResponseWithoutOrthography.results.forEach((result: any) => {
         analytics.checkResultLog(
           result,
