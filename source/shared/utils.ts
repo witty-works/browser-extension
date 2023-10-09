@@ -52,7 +52,7 @@ export const storeInLocalStorage = (key: string, value: any) => {
       const componentName = 'Utils';
       const message = `onBrowserStorage Error: ${error}`;
 
-      console.log(
+      DEV_ENV && console.log(
         `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
         `color: #55B8E9`,
         `color: #5fca7d`,
