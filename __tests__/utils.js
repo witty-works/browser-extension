@@ -18,7 +18,7 @@ exports.loginPopupPage = async function (page, extensionId, context) {
 }
 
 exports.loginDashboard = async function (email, password, page) {
-    await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en');
+    await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site');
     await page.type('#signInName', email);
     await page.type('#password', password);
     await page.click('#next');
