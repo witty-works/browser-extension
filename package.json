@@ -7,8 +7,7 @@
   "author": "abhijithvijayan <email@abhijithvijayan.in> (https://abhijithvijayan.in)",
   "license": "MIT",
   "engines": {
-    "node": "^16.15",
-    "yarn": ">= 1.0.0"
+    "node": "^16.15"
   },
   "engineStrict": true,
   "scripts": {
@@ -20,7 +19,7 @@
     "build:opera": "cross-env NODE_ENV=production cross-env TARGET_BROWSER=opera webpack",
     "build:chrome-with-sourcemaps": "cross-env NODE_ENV=production cross-env SENTRY_SOURCEMAPS=true TARGET_BROWSER=chrome webpack",
     "build:firefox-with-sourcemaps": "cross-env NODE_ENV=production cross-env SENTRY_SOURCEMAPS=true TARGET_BROWSER=firefox webpack",
-    "build": "yarn run build:firefox && yarn run build:chrome",
+    "build": "npm run build:firefox && npm run build:chrome",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "test": "npx playwright test"
@@ -52,8 +51,6 @@
     "webextension-polyfill-ts": "^0.25.0"
   },
   "devDependencies": {
-    "@abhijithvijayan/eslint-config": "2.6.3",
-    "@abhijithvijayan/eslint-config-airbnb": "^1.0.2",
     "@abhijithvijayan/tsconfig": "^1.3.0",
     "@babel/core": "^7.14.3",
     "@babel/eslint-parser": "^7.12.16",
@@ -91,8 +88,6 @@
     "fork-ts-checker-webpack-plugin": "^6.2.10",
     "html-webpack-plugin": "^4.5.2",
     "mini-css-extract-plugin": "^1.6.0",
-    "mockzilla": "^0.9.0",
-    "mockzilla-webextension": "^0.9.0",
     "optimize-css-assets-webpack-plugin": "^6.0.1",
     "postcss": "^8.4.31",
     "postcss-loader": "^4.3.0",
