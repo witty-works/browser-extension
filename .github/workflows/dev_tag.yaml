@@ -33,24 +33,20 @@ jobs:
           sed -r "s#\"SENTRY_SAMPLE_RATE\": 0.0,#\"SENTRY_SAMPLE_RATE\": ${SENTRY_SAMPLE_RATE},#" source/witty.config.json > witty.config.json
           mv witty.config.json source/witty.config.json
 
-      - name: Install yarn
-        run: |
-          npm install --global yarn
-
-      - id: cache-yarn
+      - id: cache-npm
         uses: actions/cache@v3
         with:
           path: ./node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        if: steps.cache-npm.outputs.cache-hit != 'true'
         run: |
-          yarn install
+          npm ci
 
       - name: Build Dev artifacts
         run: |
-          yarn run build:chrome-with-sourcemaps
+          npm run build:chrome-with-sourcemaps
 
       - name: Remove *.map files
         run: rm -rf extension/chrome/js/*.map

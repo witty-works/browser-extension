@@ -2,8 +2,8 @@
 
 ## Requirements to start
 
-- [Node.js](https://nodejs.org)
-- [Yarn](https://yarnpkg.com) v1 or v2 installed
+- [Node.js](https://nodejs.org) 18+
+- [npm](https://www.npmjs.com/)
 
 # Get the code
 
@@ -13,17 +13,17 @@ Clone repo `git clone https://github.com/witty-works/browser-extension.git`
 
 Go to project directory `cd browser-extension`
 
-Ensure you are using node 16.15.1.
+Ensure you are using node 18+
 
-Run `yarn install` to install dependencies.
+Run `npm install` to install dependencies.
 
 ## Development
 
 From inside the directory, start the development server depending on the browser you are using
 
-- Chrome: `yarn run dev:chrome`
-- Firefox: `yarn run dev:firefox`
-- Opera: `yarn run dev:opera`
+- Chrome: `npm run dev:chrome`
+- Firefox: `npm run dev:firefox`
+- Opera: `npm run dev:opera`
 
 This will run in the background, watching for changes and rebuilding the project automatically.
 
@@ -31,10 +31,10 @@ This will run in the background, watching for changes and rebuilding the project
 
 You can several options:
 
-- `yarn run build:chrome` to build chrome extension
-- `yarn run build:firefox` to build firefox addon
-- `yarn run build:opera` to build opera extension
-- `yarn run build` builds and packs extensions all at once to `extension/BROWSER` directory respectively.
+- `npm run build:chrome` to build chrome extension
+- `npm run build:firefox` to build firefox addon
+- `npm run build:opera` to build opera extension
+- `npm run build` builds and packs extensions all at once to `extension/BROWSER` directory respectively.
 
 **Note:** By default the `manifest.json` is set with version `0.0.0`. The webpack loader will update the version in the build with that of the `package.json` version. In order to release a new version, update version in `package.json` and run script.
 
@@ -114,7 +114,7 @@ HTACCESS_USERNAME = 'witty'
 HTACCESS_PASSWORD = '<can be found in 1Password>'
 ```
 
-To run locally: From inside the directory just run `yarn run test` (runs in linux environment)
+To run locally: From inside the directory just run `npm run test` (runs in linux environment)
 You can watch the tests executing on http://localhost:6080/  (PW: vscode)
 
 test-results folder will be created with screenshots for manual debuging
