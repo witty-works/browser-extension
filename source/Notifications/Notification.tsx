@@ -70,7 +70,7 @@ const Notification: React.FC<NotificationProps> = ({
     case 'totalMaxCharLengthReached':
       notificationHeadline = t('totalMaxCharLengthReachedNotificationHeadline');
       notificationText = t('totalMaxCharLengthReachedNotificationText', {
-        limit: defaultConfig.TOTAL_MAX_CHAR_LENGTH,
+        limit: defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM,
         total: totalTextLength,
       });
       notificationButton = t('subscriptionButton');

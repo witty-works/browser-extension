@@ -112,9 +112,8 @@ const Input: React.FC<{
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
-  const maxCharLength = defaultConfig.MAX_CHAR_LENGTH;
   const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
-  const totalMaxCharLength = defaultConfig.TOTAL_MAX_CHAR_LENGTH;
+  const totalMaxCharLength = defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM;
   const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
   const backgroundRequestCharLength =
     defaultConfig.BACKGROUND_REQUEST_CHAR_LENGTH;
@@ -128,6 +127,7 @@ const Input: React.FC<{
   >([]);
   const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
+  const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
