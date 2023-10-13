@@ -12,12 +12,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Install Yarn Dependencies
+      - name: Install dependencies
         uses: actions/setup-node@v3
         with:
           node-version: '16'
-          cache: 'yarn'
-      - run: yarn install --frozen-lockfile # optional, --immutable
+      - run: npm ci
 
       - name: Enable testing mode
         run: |
@@ -25,7 +24,7 @@ jobs:
           mv constants.ts source/shared/constants.ts
 
       - name: Build artifacts
-        run: yarn build:chrome
+        run: npm run build:chrome
 
       - name: Install Playwright
         run: npx playwright install --with-deps
@@ -36,7 +35,7 @@ jobs:
           PREMIUM_TEST_USER_PASSWORD: ${{ secrets.PREMIUM_TEST_USER_PASSWORD }}
           HTACCESS_USERNAME: ${{ secrets.HTACCESS_USERNAME }}
           HTACCESS_PASSWORD: ${{ secrets.HTACCESS_PASSWORD }}
-        run: xvfb-run yarn test
+        run: xvfb-run npm test
 
       - name: Upload test results
         if: ${{ failure() }}

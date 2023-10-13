@@ -10,6 +10,7 @@ import {
   IDashboardLogRequest,
   ICheckResultLogItems,
   ICheckResponseResult,
+  IFeatureFlagItems,
 } from '../types';
 import {
   captureEvent,
@@ -148,5 +149,15 @@ export const useAnalytics = () => {
     async maxCharLengthReachedLog(eventName: string) {
       captureEvent(eventName, getRequestData());
     },
+
+    async featureFlagLog(flagName: string, accepted: boolean) {
+      const featureFlagItems: IFeatureFlagItems = {
+        request__type: 'feature_flag',
+        flag__name: flagName,
+        flag__accepted: accepted, //true if action button clicked, false if x clicked
+        ...getRequestData(),
+      };
+      captureEvent('feature_flag', featureFlagItems);
+    }
   };
 };

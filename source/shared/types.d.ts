@@ -178,6 +178,13 @@ export interface ILogItems {
   response__data__alternatives: IAlternatives[];
   response__data__gravity: number;
 }
+
+export interface IFeatureFlagItems {
+  request__type: string;
+  flag__name: string;
+  flag__accepted: boolean;
+}
+
 export interface IAlternativeLogItems extends ILogItems {
   request__alternative: string;
 }
