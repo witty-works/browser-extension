@@ -10,6 +10,7 @@ import { getTextDividedByNodes } from '../ContentScript/utils';
 import { CustomInputElement, FeatureFlags } from '../shared/types';
 import { browser } from 'webextension-polyfill-ts';
 import { StorageKeys } from '../shared/constants';
+import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 interface NotificationProps {
   notificationType: string;
@@ -61,6 +62,8 @@ const Notification: React.FC<NotificationProps> = ({
   let notificationText = '';
   let notificationButton = '';
   let notificationLink = '';
+  const isFeatureFlagNotification = notificationType === 'salesDemo' || notificationType === 'inviteTeam' || notificationType === 'inviteFriends';
+  const analytics = useAnalytics();
 
   switch (notificationType) {
     case 'pin':
@@ -134,6 +137,7 @@ const Notification: React.FC<NotificationProps> = ({
         <CloseIcon
           onClick={() => {
             const notificationWrapper = document.getElementsByClassName('witty-works-notification-wrapper')[0];
+            isFeatureFlagNotification && analytics.featureFlagLog(notificationType, false);
             if (notificationWrapper) {
               notificationWrapper.remove();
             }
@@ -151,6 +155,13 @@ const Notification: React.FC<NotificationProps> = ({
                 className="witty-works-ext-button witty-works-ext-primary-button-red"
                 onClick={() => {
                   window.open(notificationLink, '_blank');
+                  isFeatureFlagNotification && analytics.featureFlagLog(notificationType, true);
+
+                  //close notification once it has been clicked 
+                  const notificationWrapper = document.getElementsByClassName('witty-works-notification-wrapper')[0];
+                  if (notificationWrapper) {
+                    notificationWrapper.remove();
+                  }
                 }}
               >
                 {notificationButton}
