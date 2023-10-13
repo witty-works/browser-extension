@@ -83,6 +83,7 @@ browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
         ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,
         });
     });
+    reInjectContentScripts();
   }
   if (details.reason === 'update') {
     //Set icon according to the saved settings
@@ -137,17 +138,26 @@ const reInjectContentScripts = () => {
       return;
     }
 
-    scripts.forEach((script: { js: any; matches: any; }) => {
-      const js = script.js;
+    scripts.forEach((script: { js: any; matches: any; css: any}) => {
+      const jsFiles = script.js || [];
+      const cssFiles = script.css || []; // Get CSS files from the manifest
       const matches = script.matches;
 
       if (!matchUrl(tab.url!, matches)) {
         return;
       }
 
-      js.forEach((scriptToInject: string) => {
+      jsFiles.forEach((scriptToInject: string) => {
         browser.tabs.executeScript(tab.id!, {
           file: scriptToInject,
+          allFrames: true
+        });
+      });
+  
+      // Inject CSS files
+      cssFiles.forEach((cssToInject: string) => {
+        browser.tabs.insertCSS(tab.id!, {
+          file: cssToInject,
           allFrames: true
         });
       });
