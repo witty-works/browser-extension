@@ -151,7 +151,7 @@ const IconController: React.FC<IconControllerProps> = ({
           maxWidth: '100%',
           wordWrap: 'break-word'
         }}>
-        {t('totalMaxCharLengthReachedNotificationText', {limit: defaultConfig.TOTAL_MAX_CHAR_LENGTH, total: totalTextLength})}
+        {t('totalMaxCharLengthReachedNotificationText', {limit: defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM, total: totalTextLength})}
           <div className='witty-works-ext-left  witty-works-ext-margin-top' style={{ 
             display: 'flex',
             flexDirection: 'column',
