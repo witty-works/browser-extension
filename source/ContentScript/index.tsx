@@ -67,13 +67,19 @@ const scriptId = uuidv4();
                 result[StorageKeys.ORGANIZATION_DOMAINS].list &&
                 !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
-            const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
-
+          const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
+          let parentUrl;
+          try {
+              parentUrl = window.top?.location.href;
+          } catch (error) {
+              parentUrl = null;
+              console.warn("Can't access top window URL due to cross-origin restrictions.");
+          }
         if (
             isOnOrgDomainList ||
             isOnPersonalDomainList ||
             defaultConfig.DISABLED_SITES.includes(domain) ||
-            isMicrosoftOnline(window.top?.location.href)
+            isMicrosoftOnline(parentUrl)
         ) {
           customRender(false, scriptId);
         } else {
