@@ -217,7 +217,7 @@ const Input: React.FC<{
       });
 
     browser.storage.onChanged.addListener(storageChange);
-    const newScrollableParent = getScrollParent(element);
+    const newScrollableParent = getScrollParent(element) ?? element;
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
@@ -227,11 +227,7 @@ const Input: React.FC<{
     }
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
-    firstScrollableParentRef.current.addEventListener(
-      'scroll',
-      handleElementScrollEvent,
-      true
-    );
+    newScrollableParent.addEventListener('scroll', handleElementScrollEvent);
 
     element.addEventListener('dblclick', handleElementClickEvent as any);
     element.addEventListener('click', handleElementClickEvent as any);
@@ -242,7 +238,7 @@ const Input: React.FC<{
         'click',
         handleDocumentClickEvent as EventListener
       );
-      document.addEventListener('scroll', handleElementScrollEvent, true);
+      document.addEventListener('scroll', handleElementScrollEvent);
       window.addEventListener('resize', handleDocumentResizeEvent);
     }
 
@@ -262,7 +258,7 @@ const Input: React.FC<{
         element.removeEventListener('focusin', handleFocusinEvent);
       }
 
-      firstScrollableParentRef.current.removeEventListener(
+      newScrollableParent.removeEventListener(
         'scroll',
         handleElementScrollEvent
       );
