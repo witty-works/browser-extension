@@ -73,7 +73,6 @@ const scriptId = uuidv4();
               parentUrl = window.top?.location.href;
           } catch (error) {
               parentUrl = null;
-              console.warn("Can't access top window URL due to cross-origin restrictions.");
           }
         if (
             isOnOrgDomainList ||
