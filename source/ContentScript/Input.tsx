@@ -1701,6 +1701,11 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
+    const popoverElement = document.querySelector(WTags.WW_POPOVER) || document.createElement(WTags.WW_POPOVER);
+    if (!document.body.contains(popoverElement)) {
+      const element = document.createElement(WTags.WW_POPOVER);
+      document.body.appendChild(element);
+    }
     //Show/Hide the popover
     if (
       popoverData &&
@@ -1708,11 +1713,6 @@ const Input: React.FC<{
       popoverData.alert.plan === 'witty_free' &&
       !popoverData.alert.data.explanation //if no explanation returned, its a premium feature
     ) {
-      if (!document.querySelector(WTags.WW_POPOVER)) {
-        const element = document.createElement(WTags.WW_POPOVER);
-        document.body.appendChild(element);
-      }
-    
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverUpgrade

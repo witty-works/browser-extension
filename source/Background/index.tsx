@@ -147,7 +147,7 @@ const reInjectContentScripts = () => {
       const cssFiles = script.css || []; // Get CSS files from the manifest
       const matches = script.matches;
 
-      if (!matchUrl(tab.url!, matches)) {
+      if (!matchUrl(tab.url!, matches) || jsFiles.length === 0) {
         return;
       }
 
