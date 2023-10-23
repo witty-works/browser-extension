@@ -217,7 +217,7 @@ const Input: React.FC<{
       });
 
     browser.storage.onChanged.addListener(storageChange);
-    const newScrollableParent = getScrollParent(element);
+    const newScrollableParent = getScrollParent(element) ?? element;
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
@@ -227,11 +227,7 @@ const Input: React.FC<{
     }
     element.addEventListener('mouseover', handleMouseoverEvent);
     element.addEventListener('mouseout', handleMouseoutEvent);
-    firstScrollableParentRef.current.addEventListener(
-      'scroll',
-      handleElementScrollEvent,
-      true
-    );
+    newScrollableParent.addEventListener('scroll', handleElementScrollEvent);
 
     element.addEventListener('dblclick', handleElementClickEvent as any);
     element.addEventListener('click', handleElementClickEvent as any);
@@ -242,7 +238,7 @@ const Input: React.FC<{
         'click',
         handleDocumentClickEvent as EventListener
       );
-      document.addEventListener('scroll', handleElementScrollEvent, true);
+      document.addEventListener('scroll', handleElementScrollEvent);
       window.addEventListener('resize', handleDocumentResizeEvent);
     }
 
@@ -262,7 +258,7 @@ const Input: React.FC<{
         element.removeEventListener('focusin', handleFocusinEvent);
       }
 
-      firstScrollableParentRef.current.removeEventListener(
+      newScrollableParent.removeEventListener(
         'scroll',
         handleElementScrollEvent
       );
@@ -1705,6 +1701,11 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
+    const popoverElement = document.querySelector(WTags.WW_POPOVER) || document.createElement(WTags.WW_POPOVER);
+    if (!document.body.contains(popoverElement)) {
+      const element = document.createElement(WTags.WW_POPOVER);
+      document.body.appendChild(element);
+    }
     //Show/Hide the popover
     if (
       popoverData &&
@@ -1712,11 +1713,6 @@ const Input: React.FC<{
       popoverData.alert.plan === 'witty_free' &&
       !popoverData.alert.data.explanation //if no explanation returned, its a premium feature
     ) {
-      if (!document.querySelector(WTags.WW_POPOVER)) {
-        const element = document.createElement(WTags.WW_POPOVER);
-        document.body.appendChild(element);
-      }
-    
       ReactDOM.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverUpgrade

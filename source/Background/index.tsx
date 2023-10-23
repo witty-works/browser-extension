@@ -61,37 +61,41 @@ const addEventListeners = () => {
   browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
   browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
   browser.storage.onChanged.addListener(storageChange);
+
+  browser.runtime.onUpdateAvailable.addListener(() => {
+    browser.runtime.reload();
+  });
+
+  browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
+    analytics.extensionInstallationAndUpdateLog(details.reason);
+    browser.browserAction.setIcon(WittyIconActive);
+    if (!DEV_ENV)
+      browser.runtime.setUninstallURL(`https://www.witty.works/goodbye?witty_version=${wittyVersion}&witty_browser=${navigator.userAgent}`);
+    if (details.reason === 'install') {
+      //Set default settings
+      setSettings();
+      browser.storage.local.get(null).then((result) => {
+        const optionsPageUrl = browser.extension.getURL('options.html');
+        const urls = result[StorageKeys.API_ENDPOINT_KEY]
+          ? result[StorageKeys.API_ENDPOINT_KEY]
+          : DefaultBaseUrlKey;
+  
+        !TESTING &&
+          browser.tabs.create({
+            url: `
+          ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,
+          });
+      });
+      reInjectContentScripts();
+    }
+    if (details.reason === 'update') {
+      //Set icon according to the saved settings
+      scanTabsToDetectStatus();
+      !DEV_ENV && browser.storage.local.set({ [StorageKeys.EXTENSION_WAS_UPDATED]: true });
+      reInjectContentScripts();
+    }
+  });
 };
-
-browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
-  analytics.extensionInstallationAndUpdateLog(details.reason);
-  browser.browserAction.setIcon(WittyIconActive);
-  if (!DEV_ENV)
-    browser.runtime.setUninstallURL(`https://www.witty.works/goodbye?witty_version=${wittyVersion}&witty_browser=${navigator.userAgent}`);
-  if (details.reason === 'install') {
-    //Set default settings
-    setSettings();
-    browser.storage.local.get(null).then((result) => {
-      const optionsPageUrl = browser.extension.getURL('options.html');
-      const urls = result[StorageKeys.API_ENDPOINT_KEY]
-        ? result[StorageKeys.API_ENDPOINT_KEY]
-        : DefaultBaseUrlKey;
-
-      !TESTING &&
-        browser.tabs.create({
-          url: `
-        ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,
-        });
-    });
-    reInjectContentScripts();
-  }
-  if (details.reason === 'update') {
-    //Set icon according to the saved settings
-    scanTabsToDetectStatus();
-    !DEV_ENV && browser.storage.local.set({ [StorageKeys.EXTENSION_WAS_UPDATED]: true });
-    reInjectContentScripts();
-  }
-});
 
 const reInjectContentScripts = () => {
   const manifest = browser.runtime.getManifest();
@@ -143,7 +147,7 @@ const reInjectContentScripts = () => {
       const cssFiles = script.css || []; // Get CSS files from the manifest
       const matches = script.matches;
 
-      if (!matchUrl(tab.url!, matches)) {
+      if (!matchUrl(tab.url!, matches) || jsFiles.length === 0) {
         return;
       }
 
