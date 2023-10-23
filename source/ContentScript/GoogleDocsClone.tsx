@@ -71,6 +71,16 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
           elementStylesFont = elementStylesFont.replace(extractedFont[0], '');
           elementStylesFontArray = elementStylesFont.split(' ');
         }
+        const extractedTransform = svgRectElement.getAttribute('transform');
+        console.log('extractedTransform', extractedTransform)
+
+        let scaleX = 1;
+        if (extractedTransform) {
+            const matrixMatch = extractedTransform.match(/matrix\(([^,]+),[^,]+,[^,]+,([^,]+),[^,]+,[^,]+\)/);
+            if (matrixMatch) {
+                scaleX = parseFloat(matrixMatch[1]);
+            }
+        }
         const elementStyles = window.getComputedStyle(svgRectElement);
         const correctedPosition = getCorrectedPosition(
           elementRect,
@@ -90,8 +100,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
                   height: elementRect.height,
                   fontWeight:
                     elementStylesFontArray[elementStylesFontArray.length - 3],
-                  fontSize:
-                    elementStylesFontArray[elementStylesFontArray.length - 2],
+                  fontSize: `${parseFloat(elementStylesFontArray[elementStylesFontArray.length - 2]) * scaleX}px`,
                   fontFamily: extractedFont
                     ? extractedFont[1]
                     : elementStyles.fontFamily,
