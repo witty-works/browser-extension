@@ -262,6 +262,7 @@ const ContentScriptApp: React.FC = () => {
   }, []);
 
   const handleFocusoutElement = useCallback((event?: Event) => {
+    return;
     let target = event?.target as CustomInputElement;
 
     if (!inputsRef.current.includes(target) || !inputsMapRef.current.has(target)) {

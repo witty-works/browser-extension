@@ -80,7 +80,6 @@ const Input: React.FC<{
   const analytics = useAnalytics();
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLElement);
   const elementRect = useResizeObserver(element);
-
   const [alerts, setAlerts] = useState<IAlert[]>([]);
   const [elementScroll, setElementScroll] = useState<Position>({
     top: isTextArea(element) ? element.scrollTop : 0,
@@ -128,6 +127,7 @@ const Input: React.FC<{
   const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
   const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
+
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -147,6 +147,7 @@ const Input: React.FC<{
     },
     [element]
   );
+
   const debouncedMutation = debounce(() => {
     const cloneContainer = document.querySelector(WTags.WW_CLONE);
     if (!cloneContainer) return;
@@ -783,6 +784,7 @@ const Input: React.FC<{
         top: isTextArea(element) ? element.scrollTop : 0,
         left: isTextArea(element) ? element.scrollLeft : firstScrollableParentRef.current.scrollLeft,
       });
+      console.log('scrolling', firstScrollableParentRef.current, element);
   };
 
   const debouncedScroll = debounce(() => {

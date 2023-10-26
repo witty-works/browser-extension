@@ -44,6 +44,7 @@ const Highlights: React.FC<HighlightsProps> = ({
 }: HighlightsProps) => {  
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
+  console.log('elementScroll', elementScroll, doc.scrollTop, isTextArea(element));
 
   const [highlights, setHighlights] = useStateRef<Highlight[]>([]);
   const correctedPosition = isGoogleDocs()
