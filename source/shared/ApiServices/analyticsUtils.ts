@@ -1,12 +1,12 @@
 import { IAlert } from '../types';
 import PostHog from 'posthog-js-lite'
-import { POSTHOG_API_KEY_EU, StorageKeys, wittyVersion } from '../constants';
+import { POSTHOG_API_URL, POSTHOG_API_KEY, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 import { storeInLocalStorage } from '../utils';
 
 export const aliasId = async (userId: string, appId: string) => {
     const request = {
-      api_key: POSTHOG_API_KEY_EU,
+      api_key: POSTHOG_API_KEY,
       properties: {
         distinct_id: appId,
         alias: userId,
@@ -17,7 +17,7 @@ export const aliasId = async (userId: string, appId: string) => {
       event: '$create_alias',
     };
   
-    const response = await fetch('https://eu.posthog.com/capture/', {
+    const response = await fetch(POSTHOG_API_URL + '/capture/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,8 +56,8 @@ export const captureEvent = (eventName: string, eventData: object) => {
             aliasId(userId, appId);
           }
 
-      const ph = new PostHog(POSTHOG_API_KEY_EU, {
-        host: 'https://eu.posthog.com',
+      const ph = new PostHog(POSTHOG_API_KEY, {
+        host: POSTHOG_API_URL,
         bootstrap : {
           distinctId: userId ? userId : appId, ////make sure that this is equivalent to ph.session.distinctId
         },

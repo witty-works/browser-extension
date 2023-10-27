@@ -8,9 +8,13 @@ export const DEV_ENV = true;
 //Testing
 export const TESTING = false;
 
-export const POSTHOG_API_KEY_EU = DEV_ENV
-  ? 'phc_DUofw8HC9GUENhXmZ8Wan7DGAvmWFrFnNCxoViLmuhx'
+export const POSTHOG_API_KEY = DEV_ENV
+  ? 'phc_QiISRw0yFAsndXqYD0HmfGvHaOBMxb57ZRIxlimvR64'
   : 'phc_i1tlvuh1iecIOSEr0QmTEIklrsSJGhULpUwUlf8fkkl';
+
+export const POSTHOG_API_URL = DEV_ENV
+? 'https://app.posthog.com'
+: 'https://eu.posthog.com';
 
 //Storage
 export enum StorageKeys {
