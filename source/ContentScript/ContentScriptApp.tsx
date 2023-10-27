@@ -134,8 +134,6 @@ const ContentScriptApp: React.FC = () => {
     isGoogleDocs() && handleFocusinElement();
     !isGoogleDocs() &&
       document.addEventListener('focusin', handleFocusinElement, true);
-    !isGoogleDocs() &&
-      document.addEventListener('focusout', handleFocusoutElement, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
 
@@ -147,9 +145,7 @@ const ContentScriptApp: React.FC = () => {
 
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
-
       document.removeEventListener('focusin', handleFocusinElement, true);
-      document.removeEventListener('focusout', handleFocusoutElement, true);
       document.removeEventListener('mouseover', handleMouseOver, true);
       document.removeEventListener('mouseout', handleMouseOut, true);
     };
@@ -259,21 +255,6 @@ const ContentScriptApp: React.FC = () => {
         setInputsMap(mergedInputsMap);
       }); //ensures update
     }
-  }, []);
-
-  const handleFocusoutElement = useCallback((event?: Event) => {
-    let target = event?.target as CustomInputElement;
-
-    if (!inputsRef.current.includes(target) || !inputsMapRef.current.has(target)) {
-      return;
-    }
-
-    removeOldInput(inputsMapRef.current.get(target));
-
-    setInputs(inputsRef.current.filter(input => input !== target));
-    const inputsMap = inputsMapRef.current;
-    inputsMap.delete(target);
-    setInputsMap(inputsMap);
   }, []);
 
   const handleMouseOver = useCallback((event: MouseEvent) => {
