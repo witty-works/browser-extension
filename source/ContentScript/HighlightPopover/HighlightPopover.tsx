@@ -177,8 +177,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     if (hasClickedOutsidePopOver && !hasClickedThisHighlight) hidePopover();
   };
 
-  const hidePopover = () => {
-    analytics.popoverLogs(data.alert, 'popover_close');
+  const hidePopover = (logClose: boolean = false) => {
+    logClose && analytics.popoverLogs(data.alert, 'popover_close');
     setShowLearningBite(false);
     setIframeLoaded(false);
 
@@ -307,7 +307,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div
             className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
             onClick={() => {
-              hidePopover();
+              hidePopover(true);
             }}
           >
             <CloseIcon alt={t('close')} />
