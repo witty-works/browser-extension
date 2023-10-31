@@ -3,7 +3,7 @@ import PostHog from 'posthog-js-lite'
 import { POSTHOG_API_URL, POSTHOG_API_KEY, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 import { storeInLocalStorage } from '../utils';
-
+import defaultConfig from '../../witty.config.json';
 export const aliasId = async (userId: string, appId: string) => {
     const request = {
       api_key: POSTHOG_API_KEY,
@@ -33,6 +33,16 @@ export const aliasId = async (userId: string, appId: string) => {
 export const captureEvent = (eventName: string, eventData: object) => {
   browser.storage.local.get().then((result) => {
     try {
+      console.log('result', result);
+      const dailyPosthogEventsUsed = result[StorageKeys.DAILY_POSTHOG_EVENTS_USED];
+      console.log('dailyPosthogEventsUsed', dailyPosthogEventsUsed, 'defaultConfig.MAX_POSTHOG_LOG_EVENTS', defaultConfig.MAX_POSTHOG_LOG_EVENTS);
+      if (parseInt(dailyPosthogEventsUsed) >= defaultConfig.MAX_POSTHOG_LOG_EVENTS) {
+        console.log('Max number of PostHog events reached for today.');
+        return;
+      } else {
+        storeInLocalStorage(StorageKeys.DAILY_POSTHOG_EVENTS_USED, dailyPosthogEventsUsed ? parseInt(dailyPosthogEventsUsed) + 1 : 0);
+        console.log('PostHog event logged.');
+      }
       const userId = result[StorageKeys.USER_ID];
       const organizationId = result[StorageKeys.ORGANIZATION_ID];
       const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];
