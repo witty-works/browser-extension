@@ -33,16 +33,21 @@ export const aliasId = async (userId: string, appId: string) => {
 export const captureEvent = (eventName: string, eventData: object) => {
   browser.storage.local.get().then((result) => {
     try {
-      console.log('result', result);
-      const dailyPosthogEventsUsed = result[StorageKeys.DAILY_POSTHOG_EVENTS_USED];
-      console.log('dailyPosthogEventsUsed', dailyPosthogEventsUsed, 'defaultConfig.MAX_POSTHOG_LOG_EVENTS', defaultConfig.MAX_POSTHOG_LOG_EVENTS);
-      if (parseInt(dailyPosthogEventsUsed) >= defaultConfig.MAX_POSTHOG_LOG_EVENTS) {
-        console.log('Max number of PostHog events reached for today.');
-        return;
-      } else {
-        storeInLocalStorage(StorageKeys.DAILY_POSTHOG_EVENTS_USED, dailyPosthogEventsUsed ? parseInt(dailyPosthogEventsUsed) + 1 : 0);
-        console.log('PostHog event logged.');
+      const today = new Date().toISOString().split('T')[0];
+      
+      let dailyPosthogEventsUsed = result[StorageKeys.DAILY_POSTHOG_EVENTS_USED];
+            
+      if (!dailyPosthogEventsUsed || dailyPosthogEventsUsed.date !== today) {
+          dailyPosthogEventsUsed = { date: today, count: 0 };
       }
+      
+      if (parseInt(dailyPosthogEventsUsed.count) >= defaultConfig.MAX_POSTHOG_LOG_EVENTS) {
+          return;
+      } else {
+          dailyPosthogEventsUsed.count = dailyPosthogEventsUsed.count ? parseInt(dailyPosthogEventsUsed.count) + 1 : 1;
+          storeInLocalStorage(StorageKeys.DAILY_POSTHOG_EVENTS_USED, dailyPosthogEventsUsed);
+      }
+      
       const userId = result[StorageKeys.USER_ID];
       const organizationId = result[StorageKeys.ORGANIZATION_ID];
       const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];
