@@ -37,7 +37,7 @@ export const isMicrosoftOnline = (topWindowUrl: string | null = ''): boolean => 
 }
 
 export const isOffice = (): boolean => {
-  return window.location.hostname.includes('office');
+  return window.location.hostname.includes('office.com');
 }
 
 export const isWittyEditor = (): boolean => {
