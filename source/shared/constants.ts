@@ -60,6 +60,7 @@ export enum StorageKeys {
 
   IFRAME_DOMAINS = 'iframeDomains',
   DAILY_POSTHOG_EVENTS_USED = 'dailyPosthogEventsUsed',
+  LAST_CHECK_EVENT_TIME = 'lastCheckEventTime',
 }
 
 //nlp api, dashboard
