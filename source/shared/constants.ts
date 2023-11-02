@@ -59,6 +59,8 @@ export enum StorageKeys {
   TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED = 'totalMaxCharLengthNotificationShowed',
 
   IFRAME_DOMAINS = 'iframeDomains',
+  DAILY_POSTHOG_EVENTS_USED = 'dailyPosthogEventsUsed',
+  LAST_CHECK_EVENT_TIME = 'lastCheckEventTime',
 }
 
 //nlp api, dashboard
