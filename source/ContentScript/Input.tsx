@@ -105,9 +105,7 @@ const Input: React.FC<{
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
   const [elementXPathResult, setElementXPathResult] = useState<XPathResult>();
-  const [debounceDelay, setDebounceDelay] = useState<number>(
-    defaultConfig.API_DELAY
-  );
+  const [debounceDelay, setDebounceDelay] = useState<number>(defaultConfig.API_DELAY);
   const [isActive, setIsActive] = useState<boolean>(false);
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
@@ -193,9 +191,9 @@ const Input: React.FC<{
     browser.storage.local
       .get(null)
       .then((result) => {
-        setDebounceDelay(result[StorageKeys.API_DELAY] as number);
         setUserIsSignedIn(!!result[StorageKeys.ACCESS_TOKEN]);
         (result[StorageKeys.PLAN] === 'witty_free' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
+        setDebounceDelay(isWittyPremiumUserRef.current ? defaultConfig.API_DELAY : defaultConfig.API_DELAY_FREEMIUM);
         if (
           result[StorageKeys.PLAN] === 'witty_free' &&
           result[StorageKeys.IGNORED_CATEGORIES]
