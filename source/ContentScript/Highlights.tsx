@@ -132,8 +132,6 @@ const Highlights: React.FC<HighlightsProps> = ({
       }
     });
 
-    console.log('highlightsTemp', highlightsTemp)
-
     setHighlights(highlightsTemp);
   }, [nodesWithAlerts, elementRect, forceHighlightUpdate, elementScroll]);
 
@@ -155,8 +153,6 @@ const Highlights: React.FC<HighlightsProps> = ({
       const rulerElement = document.getElementById('kix-vertical-ruler');
       googleDocsRulerIsHidden = rulerElement?.style.display == 'none' || rulerElement?.offsetHeight == 0;
     }
-
-    console.log('highlights', highlights);
     
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
