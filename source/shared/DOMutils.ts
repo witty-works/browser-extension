@@ -36,6 +36,10 @@ export const isMicrosoftOnline = (topWindowUrl: string | null = ''): boolean => 
   return topWindowUrl.includes('sharepoint.com') && appTypes.some(app => topWindowUrl?.includes(app));
 }
 
+export const isOffice = (): boolean => {
+  return window.location.hostname.includes('office.com');
+}
+
 export const isWittyEditor = (): boolean => {
   const dashboardBaseUrls = Object.values(BaseUrls).map(
     (baseUrl) => baseUrl.dashboard

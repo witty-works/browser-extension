@@ -3,7 +3,7 @@ import PostHog from 'posthog-js-lite'
 import { POSTHOG_API_URL, POSTHOG_API_KEY, StorageKeys, wittyVersion } from '../constants';
 import { browser } from 'webextension-polyfill-ts';
 import { storeInLocalStorage } from '../utils';
-
+import defaultConfig from '../../witty.config.json';
 export const aliasId = async (userId: string, appId: string) => {
     const request = {
       api_key: POSTHOG_API_KEY,
@@ -33,6 +33,33 @@ export const aliasId = async (userId: string, appId: string) => {
 export const captureEvent = (eventName: string, eventData: object) => {
   browser.storage.local.get().then((result) => {
     try {
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const currentHour = now.getHours();
+      
+      let dailyPosthogEventsUsed = result[StorageKeys.DAILY_POSTHOG_EVENTS_USED];
+      let lastCheckEventTime = result[StorageKeys.LAST_CHECK_EVENT_TIME];
+
+      if (!dailyPosthogEventsUsed || dailyPosthogEventsUsed.date !== today) {
+        dailyPosthogEventsUsed = { date: today, count: 0 };
+      }
+      
+      if (eventName === 'check') {
+        const lastLoggedHour = lastCheckEventTime ? new Date(lastCheckEventTime).getHours() : null;
+
+        if (lastLoggedHour !== null && currentHour === lastLoggedHour) {
+          return;
+        }
+        browser.storage.local.set({ [StorageKeys.LAST_CHECK_EVENT_TIME]: now.toISOString() });
+      }
+      
+      if (parseInt(dailyPosthogEventsUsed.count) >= defaultConfig.MAX_POSTHOG_LOG_EVENTS) {
+        return;
+      } else {
+        dailyPosthogEventsUsed.count = dailyPosthogEventsUsed.count ? parseInt(dailyPosthogEventsUsed.count) + 1 : 1;
+        storeInLocalStorage(StorageKeys.DAILY_POSTHOG_EVENTS_USED, dailyPosthogEventsUsed);
+      }
+      
       const userId = result[StorageKeys.USER_ID];
       const organizationId = result[StorageKeys.ORGANIZATION_ID];
       const idWasAliased = result[StorageKeys.ID_WAS_ALIASED];

@@ -71,8 +71,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
-    i18n.changeLanguage(data.alert.data.language);
-  }, [data.alert.data.language]);
+    i18n.changeLanguage(data.alert.data?.language);
+  }, [data.alert.data?.language]);
 
   const elementCords = (dat: PopoverData) => ({
     name: 'elementCords',
@@ -316,7 +316,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
 
         {/* LEARNIGN BITES */}
-        {data.alert.data.explanation?.text &&
+        {data.alert.data?.explanation?.text &&
           <>
           <div className='witty-works-ext-separator' />
 
@@ -328,10 +328,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             }}
             style={{
               cursor:
-                data.alert.data.explanation?.url
+                data.alert.data?.explanation?.url
                   ? 'pointer'
                   : 'default',
-              backgroundColor: getColor(data.alert.data.gravity, userIsSignedIn).highlight,
+              backgroundColor: getColor(data.alert.data?.gravity, userIsSignedIn).highlight,
             }}
           >
             <div
@@ -343,18 +343,18 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               }}
             >
               <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-                <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data.explanation?.icon}</div>
-                {data.alert.data.explanation?.text}
-                {data.alert.data.explanation?.context &&
-                  ' (' + data.alert.data.explanation?.context + ')'}
+                <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data?.explanation?.icon}</div>
+                {data.alert.data?.explanation?.text}
+                {data.alert.data?.explanation?.context &&
+                  ' (' + data.alert.data?.explanation?.context + ')'}
               </div>
-              {data.alert.data.explanation?.url && (
+              {data.alert.data?.explanation?.url && (
                 <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
                 style={{marginTop: showLearningBite ? '0em' : '1em'}}
                 >
                   <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
                       {t('learnMore')}
-                      {data.alert.data.explanation?.content === 'video' && (
+                      {data.alert.data?.explanation?.content === 'video' && (
                         <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
                       )}
                     <div
@@ -383,7 +383,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <LoadingIcon />
           </div>
           <iframe
-            src={data.alert.data.explanation?.url}
+            src={data.alert.data?.explanation?.url}
             style={{
               display: iframeLoaded ? 'flex' : 'none',
             }}
@@ -396,7 +396,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         </div>
 
         {/* TRY INSTEAD */}
-        {data.alert.data.alternatives.length > 0 && !showLearningBite && (
+        {data.alert.data?.alternatives?.length > 0 && !showLearningBite && (
           <>
             <div
               className='witty-works-ext-separator'
@@ -407,7 +407,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 {t('insteadTry')}
               </div>
               <div>
-                {data.alert.data.alternatives.map((alternative, index) =>
+                {data.alert.data?.alternatives.map((alternative, index) =>
                   alternative.remove ? (
                     <div
                       className='witty-works-ext-wittyworks-popover-alternative-btn-container'
@@ -418,7 +418,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         key={`${index}-remove-it`}
                         //string can not be empty because of replacement issue on firefox
                         onPointerDown={(e) =>
-                          clickAlternative(e.nativeEvent,' ', data.alert.data.category)
+                          clickAlternative(e.nativeEvent,' ', data.alert.data?.category)
                         }
                       >
                         {data.alert.data?.text}
@@ -445,8 +445,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         onPointerDown={(e) =>
                           clickAlternative(
                             e.nativeEvent,
-                            data.alert.data.alternatives[index]?.text,
-                            data.alert.data.category
+                            data.alert.data?.alternatives[index]?.text,
+                            data.alert.data?.category
                           )
                         }
                       >
