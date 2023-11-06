@@ -526,10 +526,10 @@ const Input: React.FC<{
     } else {
       !isGoogleDocs() && setAlerts([]);
       const nodeAtFirstTextDiff =
-        nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
+        nextTextDividedByNodes[fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0];
 
       const nodesWithinMaxCharLength = getTextWithinMaxCharLength(
-        fistTextDiff ? fistTextDiff.node : 0,
+        fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0,
         nodeAtFirstTextDiff
       );
       nodesWithinMaxCharLength &&
