@@ -91,7 +91,6 @@ const Highlights: React.FC<HighlightsProps> = ({
           } catch (error) {
             sendErrorToSentry(error);
           }
-          console.log('elementScroll.top', elementScroll.top)
           const rangeRects = range.getClientRects();
           for (let i = 0; i < rangeRects.length; i++) {
             const rects: DOMRect[] = [rangeRects[i]].map(

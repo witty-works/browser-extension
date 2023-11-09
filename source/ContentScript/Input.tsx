@@ -28,6 +28,7 @@ import {
   isGoogleDocs,
   isLinkedin,
   isNotion,
+  isProspective,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -215,7 +216,8 @@ const Input: React.FC<{
       });
 
     browser.storage.onChanged.addListener(storageChange);
-    const newScrollableParent = getScrollParent(element) ?? element;
+    const scrollParent = getScrollParent(element);
+    const newScrollableParent = (!isProspective() && scrollParent) ? scrollParent : element;
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
