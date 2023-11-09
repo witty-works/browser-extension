@@ -52,10 +52,6 @@ export const isWittyEditor = (): boolean => {
   return window.location.href.includes('editor') && isDashboard;
 };
 
-export const isProspective = (): boolean => {
-  return window.location.hostname.includes('prospective.ch');
-}
-
 export const isTrello = (): boolean => {
   return window.location.hostname.includes('trello');
 }
