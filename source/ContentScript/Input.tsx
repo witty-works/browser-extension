@@ -777,7 +777,6 @@ const Input: React.FC<{
       setActiveIcon('loading');
       debouncedScroll();
     } 
-    console.log('handleElementScrollEvent', element, element.scrollTop)
 
     !isGoogleDocs() && setElementScroll({
         top: isTextArea(element) ? element.scrollTop : 0,

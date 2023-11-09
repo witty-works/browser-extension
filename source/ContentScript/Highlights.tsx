@@ -91,6 +91,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           } catch (error) {
             sendErrorToSentry(error);
           }
+          
           const rangeRects = range.getClientRects();
           for (let i = 0; i < rangeRects.length; i++) {
             const rects: DOMRect[] = [rangeRects[i]].map(
