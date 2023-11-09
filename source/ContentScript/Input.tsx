@@ -215,7 +215,8 @@ const Input: React.FC<{
       });
 
     browser.storage.onChanged.addListener(storageChange);
-    const newScrollableParent = getScrollParent(element) ?? element;
+    const scrollParent = getScrollParent(element);
+    const newScrollableParent = (!isTextArea(element) && scrollParent) ? scrollParent : element;
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
