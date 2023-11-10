@@ -27,13 +27,15 @@ export const isHubspot = (): boolean => {
 };
 
 export const isMicrosoftOnline = (topWindowUrl: string | null = ''): boolean => {  
-  const appTypes = ['xlsx', 'pptx', 'docx'];
-  const topWindow = window.top;
-  if (!topWindow) return false;
-  if (!topWindowUrl) {
-    topWindowUrl = topWindow.location.href;
-  }
-  return topWindowUrl.includes('sharepoint.com') && appTypes.some(app => topWindowUrl?.includes(app));
+  console.log('isMicrosoftOnline', topWindowUrl);
+  return false;
+  // const appTypes = ['xlsx', 'pptx', 'docx'];
+  // const topWindow = window.top;
+  // if (!topWindow) return false;
+  // if (!topWindowUrl) {
+  //   topWindowUrl = topWindow.location.href;
+  // }
+  // return topWindowUrl.includes('sharepoint.com') && appTypes.some(app => topWindowUrl?.includes(app));
 }
 
 export const isOffice = (): boolean => {
