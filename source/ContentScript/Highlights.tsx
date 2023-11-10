@@ -46,7 +46,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
 
   const [highlights, setHighlights] = useStateRef<Highlight[]>([]);
-  const correctedPosition = isGoogleDocs()
+  const correctedPosition = isGoogleDocs(element)
     ? getCorrectedPositionCanvas(element)
     : getCorrectedPosition(
         elementRect,
@@ -56,7 +56,7 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   const canvasSize = {
     width: elementRect.width,
-    height: isGoogleDocs() //2000 is about the height of two pages in google docs
+    height: isGoogleDocs(element) //2000 is about the height of two pages in google docs
       ? 2000
       : isGreenhouse()
       ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
@@ -70,7 +70,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     const highlightsTemp: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
     let googleDocsToolbarLeftRect = {} as DOMRect;
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       googleDocsToolbarTopRect = getActiveDocument()
         .getElementsByClassName('kix-document-top-shadow-inner')[0]
         ?.getBoundingClientRect();
@@ -100,12 +100,12 @@ const Highlights: React.FC<HighlightsProps> = ({
                   ...rect,
                   width: rect.width,
                   height: rect.height,
-                  left: isGoogleDocs()
+                  left: isGoogleDocs(element)
                     ? rect.left -
                       googleDocsToolbarLeftRect.width -
                       googleDocsToolbarLeftRect.left
                     : rect.left,
-                  top: isGoogleDocs()
+                  top: isGoogleDocs(element)
                     ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
                     : rect.top +
                       doc.scrollTop -
@@ -113,7 +113,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                 };
               }
             );
-            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || (node.textContent && alert.data && !node.textContent.includes(alert.data.text)))) {
+            if (isGoogleDocs(element) && (rects[0].top < 0 || rects[0].top > window.innerHeight || (node.textContent && alert.data && !node.textContent.includes(alert.data.text)))) {
               return;
             } else {
               const newHighlight: Highlight = {
@@ -149,7 +149,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     let googleDocsRulerIsHidden = false;
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       const rulerElement = document.getElementById('kix-vertical-ruler');
       googleDocsRulerIsHidden = rulerElement?.style.display == 'none' || rulerElement?.offsetHeight == 0;
     }

@@ -131,7 +131,7 @@ const Input: React.FC<{
   )?.contentDocument.activeElement;
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
-      if (isGoogleDocs()) {
+      if (isGoogleDocs(element)) {
         setIsActive(true);
         setActiveIcon('loading');
         debouncedMutation();
@@ -172,7 +172,7 @@ const Input: React.FC<{
         .getPropertyValue('z-index');
       return parseInt(zIndex);
     }) as number[];
-    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs()) {
+    if (!pagesZIndex.every((page) => previouslyCheckedPagesGoogleDocs.current.includes(page)) && isGoogleDocs(element)) {
       previouslyCheckedPagesGoogleDocs.current = [
         ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
       ];
@@ -219,7 +219,7 @@ const Input: React.FC<{
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
-    if(!isGoogleDocs()) {
+    if(!isGoogleDocs(element)) {
       element.addEventListener('focusout', handleFocusoutEvent);
       element.addEventListener('focusin', handleFocusinEvent);
     }
@@ -230,7 +230,7 @@ const Input: React.FC<{
     element.addEventListener('dblclick', handleElementClickEvent as any);
     element.addEventListener('click', handleElementClickEvent as any);
 
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
       document.addEventListener(
         'click',
@@ -251,7 +251,7 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
-      if(!isGoogleDocs()) {
+      if(!isGoogleDocs(element)) {
         element.removeEventListener('focusout', handleFocusoutEvent);
         element.removeEventListener('focusin', handleFocusinEvent);
       }
@@ -264,7 +264,7 @@ const Input: React.FC<{
       element.removeEventListener('dblclick', handleElementClickEvent as any);
       element.removeEventListener('click', handleElementClickEvent as any);
 
-      if (isGoogleDocs()) {
+      if (isGoogleDocs(element)) {
         googleDocsEventTarget.removeEventListener(
           'focusout',
           handleFocusoutEvent
@@ -287,7 +287,7 @@ const Input: React.FC<{
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
     const activeDocument = getActiveDocument();
     if (
-      isGoogleDocs() &&
+      isGoogleDocs(element) &&
       !activeDocument.getElementById('witty-works-ext-popover')
     ) {
       const alertsInRange = [] as IAlert[];
@@ -554,7 +554,7 @@ const Input: React.FC<{
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
     event && (abortBackgroundWorkerRef.current = true);
 
-    !isGoogleDocs() &&
+    !isGoogleDocs(element) &&
       browser.storage.local
         .get(StorageKeys.ORTHOGRAPHY)
         .then((result) => {
@@ -563,7 +563,7 @@ const Input: React.FC<{
         .catch((error: unknown) => {
           sendErrorToSentry(error);
         });
-    let nextText: string = isGoogleDocs()
+    let nextText: string = isGoogleDocs(element)
       ? getInputText(cloneRef.current)
       : getInputText(element);
 
@@ -605,7 +605,7 @@ const Input: React.FC<{
       setUnchangedAlertsTextarea(unchangedAlerts[0]);
       handleTextAndIcon([nextText]);
     } else {
-      !isGoogleDocs() && setAlerts([]);
+      !isGoogleDocs(element) && setAlerts([]);
       const nodeAtFirstTextDiff =
         nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
 
@@ -777,7 +777,7 @@ const Input: React.FC<{
       debouncedScroll();
     } 
 
-    !isGoogleDocs() && setElementScroll({
+    !isGoogleDocs(element) && setElementScroll({
         top: isTextArea(element) ? element.scrollTop : 0,
         left: isTextArea(element) ? element.scrollLeft : firstScrollableParentRef.current.scrollLeft,
       });
@@ -797,7 +797,7 @@ const Input: React.FC<{
   const docTextEvaluation = (element: HTMLElement, clone: HTMLElement) => {
     const elementEvaluation: XPathResult = getActiveDocument().evaluate(
       './/text()',
-      isGoogleDocs() && clone.nodeType == 1 ? clone : element,
+      isGoogleDocs(element) && clone.nodeType == 1 ? clone : element,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
@@ -808,7 +808,7 @@ const Input: React.FC<{
 
   const updateCloneData = (newClone: HTMLDivElement) => {
     setClone(newClone);
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       handleKeyupEvent();
     }
   };
@@ -900,7 +900,7 @@ const Input: React.FC<{
           getInputText(element).length > maxCharLength &&
           !isTextArea(element) &&
           selectedAlerts.length == 0 &&
-          !isGoogleDocs() && 
+          !isGoogleDocs(element) && 
           !totalMaxCharLengthReachedRef.current
         ) {
           handleElementClickLongText(caret);
@@ -927,7 +927,7 @@ const Input: React.FC<{
       } else if (
         getInputText(element).length > maxCharLength &&
         !isTextArea(element) &&
-        !isGoogleDocs() &&
+        !isGoogleDocs(element) &&
         !totalMaxCharLengthReachedRef.current
       ) {
         handleElementClickLongText(caret);
@@ -941,7 +941,7 @@ const Input: React.FC<{
   }): void => {
     setAlerts([]);
     setTextToCheck('');
-    if (isGoogleDocs() && caret.position) {      
+    if (isGoogleDocs(element) && caret.position) {      
       const nodeIsChecked = prevCheckedNodesRef.current.find((prevCheckedNode) =>
         prevCheckedNode.rawNode === cloneRef.current?.childNodes[caret.position as number]
       );
@@ -952,7 +952,7 @@ const Input: React.FC<{
       );
       if (!textWithinMaxCharLength) return;
       handleTextAndIcon(textWithinMaxCharLength)
-    } else if (!isGoogleDocs() && caret.element) {
+    } else if (!isGoogleDocs(element) && caret.element) {
       const textDividedByNodes = getTextDividedByNodes(element);
       const clickedNodeAlreadyChecked = prevCheckedNodesRef.current.find(
         (prevCheckedNode) => prevCheckedNode.rawNode === caret.element
@@ -1060,7 +1060,7 @@ const Input: React.FC<{
     if (
       !backgroundWorkerStarted &&
       !isTextArea(element) && //does not work on textArea yet
-      !isGoogleDocs() && //google docs is handled on mutation
+      !isGoogleDocs(element) && //google docs is handled on mutation
       getInputText(element).length > maxCharLength && 
       isWittyPremiumUserRef.current //no long text handling freemium users, could also use totalMaxCharLengthReachedRef.current, but this is safer
     ) {
@@ -1204,7 +1204,7 @@ const Input: React.FC<{
             ]
           : getNodesWithRecalculatedPositionAlerts(
               alertsWithoutIgnoredTermsGravityReduced,
-              isGoogleDocs()
+              isGoogleDocs(element)
                 ? getActiveDocument().evaluate(
                     './/text()',
                     clone,
@@ -1446,7 +1446,7 @@ const Input: React.FC<{
               : textStartingAbsPosition + node.nodeValue.length;
 
           if (nodesWhithinMaxCharLengthRef.current.length == 0) {
-            const nextText: string = isGoogleDocs()
+            const nextText: string = isGoogleDocs(element)
               ? getInputText(cloneRef.current)
               : getInputText(element);
             if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
@@ -1549,7 +1549,7 @@ const Input: React.FC<{
             element.dispatchEvent(event);
           }, 200);
         }, 200);
-      } else if (isGoogleDocs()) {
+      } else if (isGoogleDocs(element)) {
         setIsActive(true);
         setActiveIcon('loading');
         setAlerts([]);
@@ -1611,7 +1611,7 @@ const Input: React.FC<{
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
-    if (!isCkEditor(element) && !isGoogleDocs()) {
+    if (!isCkEditor(element) && !isGoogleDocs(element)) {
       handleTextAndIcon([]); //ensures update 
       const event = new Event('keyup', { bubbles: true });
       element.dispatchEvent(event);
@@ -1777,8 +1777,8 @@ const Input: React.FC<{
           />
         </WTags.WW_CLONE>
       )}
-      {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
-      {(isGoogleDocs() || !isTextArea(element)) && !isActive && nodesWithAlerts.length > 0 && (
+      {isGoogleDocs(element) && <WTags.WW_CLONE></WTags.WW_CLONE>}
+      {(isGoogleDocs(element) || !isTextArea(element)) && !isActive && nodesWithAlerts.length > 0 && (
         <WTags.WW_HIGHLIGHTS>
           <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
             <Highlights

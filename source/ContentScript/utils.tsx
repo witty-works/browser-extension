@@ -44,7 +44,7 @@ export const updateConfig = (response: IAuthResponse) => {
 };
 
 export const getInputText = (element: CustomInputElement | any) => {
-  if (isGoogleDocs()) {
+  if (isGoogleDocs(element)) {
     let text = '';
     if (element.childNodes) {
       for (let i = 0; i < element.childNodes.length; i++) {
@@ -153,7 +153,7 @@ export const getFirstTextDiff = (
 };
 
 export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
-  if (isGoogleDocs()) {
+  if (isGoogleDocs(element)) {
     const clone = document.querySelector('ww-clone');
     let divs = [] as Node[];
     if (clone?.firstChild) {

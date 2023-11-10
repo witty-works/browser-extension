@@ -232,7 +232,7 @@ const topLevelWindow = element.ownerDocument.defaultView;
     const scrollY = textArea ? 0 : topLevelWindow.scrollY;
     const scrollX = textArea ? 0 : topLevelWindow.scrollX;
 
-    const top = isFirefox && !isGoogleDocs() ? 0 : elementRect.top - parentRect.top - scrollY;
+    const top = isFirefox && !isGoogleDocs(element) ? 0 : elementRect.top - parentRect.top - scrollY;
     const left = elementRect.left - parentRect.left - scrollX;
 
     return { top, left };

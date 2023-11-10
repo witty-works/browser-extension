@@ -14,7 +14,13 @@ export const isTextArea = (
 export const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
 
-export const isGoogleDocs = (): boolean => {
+export const isGoogleDocs = (element?: HTMLElement): boolean => {
+  console.log('isGoogleDocs', window.location.href.includes('docs.google.com/document'), element, isHTMLElementContentEditable(element as HTMLElement));
+  if (element) {
+    console.log('returning', window.location.href.includes('docs.google.com/document') && !isHTMLElementContentEditable(element))
+    return window.location.href.includes('docs.google.com/document') && !isHTMLElementContentEditable(element)
+  }
+  console.log('returning' , window.location.href.includes('docs.google.com/document'))
   return window.location.href.includes('docs.google.com/document');
 };
 
@@ -100,29 +106,28 @@ export const isLinkedin = (): boolean => {
   return window.location.hostname === 'www.linkedin.com';
 };
 
-export const isHTMLElementContentEditable = (element: Element): boolean => {
-  const elementAsHtmlElement = element as HTMLElement;
-  return elementAsHtmlElement?.contentEditable === 'true';
+export const isHTMLElementContentEditable = (element: HTMLElement): boolean => {
+  return element?.contentEditable === 'true';
 };
 
 export const isChatGpt = () => {
   return window.location.href.includes('chat.openai.com') ? true : false;
 };
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
-export const isInputElement = (element: Element) =>
+export const isInputElement = (element: HTMLElement) =>
   isTextArea(element) ||
   // isInputText(element) ||      Temporaly disabled as it could capture passwords
   isHTMLElementContentEditable(element);
 
-export const getZIndex = (element: Element) => {
-  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail()
+export const getZIndex = (element: HTMLElement) => {
+  return isGoogleDocs(element) || isBambooHr() || isFroalaEditor(element) || isGmail()
     ? 501 
     : isRedactorEditor(element) 
     ? 9999998 //make sure highlights are the second largest (smaller than popover)
     : 'auto';
 };
 
-export const requiresRectRecalculation = (element: Element) => {
+export const requiresRectRecalculation = (element: HTMLElement) => {
   const domain = getDomainWithoutSubdomain(window.location.hostname);
 
   return (
@@ -134,7 +139,7 @@ export const requiresRectRecalculation = (element: Element) => {
   );
 };
 
-export const iframePositionRecquired = (element: Element) => {
+export const iframePositionRecquired = (element: HTMLElement) => {
   // maybe isTypo3() and isGreenhose() conditions can be substituted by elementWithinIframe()
   return isTypo3() || isGreenhouse() || elementWithinIframe(element);
 };
@@ -149,12 +154,12 @@ export const findElement = (node: Node, element: string): boolean => {
 export const nodeExistsInDOM = (node: Node): boolean =>
   getActiveDocument().body.contains(node);
 
-export const elementIsVisible = (element: Element): boolean => {
+export const elementIsVisible = (element: HTMLElement): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();
   return rect.width > 0 && rect.height > 0 ? true : false;
 };
 
-export const elementWithinIframe = (element: Element): boolean => {
+export const elementWithinIframe = (element: HTMLElement): boolean => {
     return !!element.ownerDocument.defaultView?.frameElement;
 };
 

@@ -133,7 +133,7 @@ const ContentScriptApp: React.FC = () => {
     setupMutationObservers();
 
     isGoogleDocs() && handleFocusinElement();
-    !isGoogleDocs() &&
+    // !isGoogleDocs() &&
       document.addEventListener('focusin', handleFocusinElement, true);
     !isGoogleDocs() &&
       document.addEventListener('focusout', handleFocusoutElement, true);
@@ -234,7 +234,7 @@ const ContentScriptApp: React.FC = () => {
   const handleFocusinElement = useCallback((event?: Event) => {
     let target = event?.target as CustomInputElement;
     //if no target, target is the child of #docs-texteventtarget-descendant
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(target)) {
       target = document.querySelector(
         '.kix-rotatingtilemanager'
       ) as CustomInputElement;
@@ -247,7 +247,7 @@ const ContentScriptApp: React.FC = () => {
 
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
-      (isGoogleDocs() && target) ||
+      (isGoogleDocs(target) && target) ||
       (isChatGpt() && target) ||
       isNotion()
     ) {
@@ -270,7 +270,6 @@ const ContentScriptApp: React.FC = () => {
     ) {
       return;
     }
-
     let target = event?.target as CustomInputElement;
 
     if (!inputsRef.current.includes(target) || !inputsMapRef.current.has(target)) {
@@ -366,8 +365,9 @@ const ContentScriptApp: React.FC = () => {
             index === self.findIndex((t) => t.isEqualNode(input))
         );
 
+        console.log('filteredInputs[0]', filteredInputs[0])
         //> 1 prevents issues when starting with empty doc
-        if (isGoogleDocs() && filteredInputs.length > 1) {
+        if (filteredInputs.length > 1 && isGoogleDocs(filteredInputs[0])) {
           //remove any input that does not contain <g> as a child
           filteredInputs = inputsRef.current.filter((input) => {
             const gElements = input.querySelectorAll('g');
