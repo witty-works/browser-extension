@@ -208,7 +208,6 @@ export interface ICheckLogItems {
   request__lang: string;
   request__client: string;
   request__text__length: number;
-  request__is_auto_triggered: boolean;
   response__organizationId?: string;
   response__plan?: string;
   response__results: ICheckResponseResult[];
@@ -222,7 +221,6 @@ export interface ICheckResultLogItems {
   request__lang: string;
   request__client: string;
   request__text__length: number;
-  request__is_auto_triggered: boolean;
   response__organizationId?: string;
   response__plan?: string;
   response__data__text: string;

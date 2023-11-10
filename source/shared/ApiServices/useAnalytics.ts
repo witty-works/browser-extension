@@ -25,7 +25,6 @@ export const useAnalytics = () => {
       authResponse: IAuthResponse | null,
       inputLength: number,
       requestType: string,
-      isAutoTriggered: boolean,
       checkLogEventId: string,
     ) {
       const checkResponseResultsWithoutContext = checkResponse.results.map(
@@ -39,7 +38,6 @@ export const useAnalytics = () => {
         request__id: checkLogEventId,
         request__type: requestType,
         request__text__length: inputLength,
-        request__is_auto_triggered: isAutoTriggered,
         ...getRequestData(),
         response__results: checkResponseResultsWithoutContext,
         response__language: checkResponse.language,
@@ -58,14 +56,12 @@ export const useAnalytics = () => {
       authResponse: IAuthResponse | null,
       inputLength: number,
       requestType: string,
-      isAutoTriggered: boolean,
       checkLogEventId: string,
     ) {
       const checkLogItems: ICheckResultLogItems = {
         request__id: checkLogEventId,
         request__type: requestType,
         request__text__length: inputLength,
-        request__is_auto_triggered: isAutoTriggered,
         ...getRequestData(),
         response__data__text: checkResponse.text,
         response__data__category: checkResponse.category,
