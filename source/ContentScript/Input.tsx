@@ -113,11 +113,6 @@ const Input: React.FC<{
   const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
   const totalMaxCharLength = defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM;
   const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
-  const backgroundRequestCharLength =
-    defaultConfig.BACKGROUND_REQUEST_CHAR_LENGTH;
-  const backgroundRequestInterval = defaultConfig.BACKGROUND_REQUEST_INTERVAL;
-  const [backgroundWorkerStarted, setBackgroundWorkerStarted] = useState(false);
-  const [, , abortBackgroundWorkerRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
   const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
@@ -176,10 +171,6 @@ const Input: React.FC<{
       previouslyCheckedPagesGoogleDocs.current = [
         ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
       ];
-      if (prevCheckedNodesRef.current.length > 0 ) {
-        abortBackgroundWorkerRef.current = false;
-        backgroundWorker(cloneRef.current);
-      }
     }
   }, 500);
 
@@ -215,7 +206,8 @@ const Input: React.FC<{
       });
 
     browser.storage.onChanged.addListener(storageChange);
-    const newScrollableParent = getScrollParent(element) ?? element;
+    const scrollParent = getScrollParent(element);
+    const newScrollableParent = (!isTextArea(element) && scrollParent) ? scrollParent : element;
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
@@ -427,11 +419,11 @@ const Input: React.FC<{
    if (isNotion()) {
       document
         .querySelector('.notion-frame')
-        ?.addEventListener('keyup', handleKeyupEvent);
+        ?.addEventListener('keyup', handleKeyupEvent as any)
     } else {
-      element.addEventListener('keyup', handleKeyupEvent);
+      element.addEventListener('keyup', handleKeyupEvent as any);
     }
-    element.addEventListener('paste', handleKeyupEvent);
+    element.addEventListener('paste', handleKeyupEvent as any);
 
 
     return () => {
@@ -439,11 +431,11 @@ const Input: React.FC<{
       if (isNotion()) {
         document
           .querySelector('.notion-frame')
-          ?.removeEventListener('keyup', handleKeyupEvent);
+          ?.removeEventListener('keyup', handleKeyupEvent as any);
       } else {
-        element.removeEventListener('keyup', handleKeyupEvent);
+        element.removeEventListener('keyup', handleKeyupEvent as any);
       }
-      element.removeEventListener('paste', handleKeyupEvent);
+      element.removeEventListener('paste', handleKeyupEvent as any);
     };
   }, [debounceDelay]);
 
@@ -464,77 +456,6 @@ const Input: React.FC<{
     if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
-  //divides the nodes into chunks of length backgroundRequestCharLength, send chunks to api with interval backgroundRequestInterval
-  const backgroundWorker = (element: HTMLElement) => {
-    const textDividedByNodes = getTextDividedByNodes(
-      element as CustomInputElement
-    );
-
-    //fiter out nodes that have been checked before and have not changed
-    const textDividedByNodesWithoutCheckedNodes = textDividedByNodes.filter((node) => {
-        const nodeIsChecked = prevCheckedNodesRef.current.find((prevCheckedNode) =>
-          prevCheckedNode.rawNode === node 
-        );
-        return !nodeIsChecked; 
-      }
-    );
-    const nodesWithinBackgroundRequestLength = [] as {
-      text: string;
-      nodes: {
-        node: string;
-        index: number;
-        rawNode: Node;
-      }[];
-    }[];
-
-    let textLength = 0;
-    textDividedByNodesWithoutCheckedNodes.forEach((node) => {
-      const text = node.textContent ? node.textContent : '';
-      const index = textDividedByNodes.indexOf(node);
-        if (
-          textLength + (node.textContent ? node.textContent.length : 0) <=
-          backgroundRequestCharLength
-        ) {
-          textLength += node.textContent ? node.textContent.length : 0;
-          const lastNode = nodesWithinBackgroundRequestLength.pop();
-
-          if (lastNode) {
-            lastNode.text += text;
-            lastNode.nodes.push({
-              node: text,
-              index: index,
-              rawNode: node,
-            });
-            nodesWithinBackgroundRequestLength.push(lastNode);
-          } else {
-            nodesWithinBackgroundRequestLength.push({
-              text: text,
-              nodes: [{ node: text, index: index, rawNode: node }],
-            });
-          }
-        } else {
-          nodesWithinBackgroundRequestLength.push({
-            text: node.textContent ? node.textContent : '',
-            nodes: [{ node: text, index: index, rawNode: node }],
-          });
-          textLength = node.textContent ? node.textContent.length : 0;
-        }
-    });
-    
-    const interval = setInterval(() => {
-      if (nodesWithinBackgroundRequestLength.length === 0 || abortBackgroundWorkerRef.current) {
-        abortBackgroundWorkerRef.current = false;
-        clearInterval(interval);
-        setBackgroundWorkerStarted(false);
-        return;
-      } else {
-        const nextText = nodesWithinBackgroundRequestLength.shift();
-        nextText?.nodes && (nodesWhithinMaxCharLengthRef.current = nextText.nodes);
-        handleTextAndIcon(nextText?.nodes);
-      }
-    }, backgroundRequestInterval);
-  };
-
   const handleFocusoutEvent = () => {
     setActiveIcon('passive');
     setAlerts([]);
@@ -550,9 +471,8 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = debounce((event?: Event, gDocs?: boolean) => {
+  const handleKeyupEvent = debounce((gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
-    event && (abortBackgroundWorkerRef.current = true);
 
     !isGoogleDocs() &&
       browser.storage.local
@@ -607,10 +527,10 @@ const Input: React.FC<{
     } else {
       !isGoogleDocs() && setAlerts([]);
       const nodeAtFirstTextDiff =
-        nextTextDividedByNodes[fistTextDiff ? fistTextDiff.node : 0];
+        nextTextDividedByNodes[fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0];
 
       const nodesWithinMaxCharLength = getTextWithinMaxCharLength(
-        fistTextDiff ? fistTextDiff.node : 0,
+        fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0,
         nodeAtFirstTextDiff
       );
       nodesWithinMaxCharLength &&
@@ -702,7 +622,6 @@ const Input: React.FC<{
     } else {
       isTextAreaCheck && (newTextToCheck = nodes[0]); 
       totalMaxCharLengthReachedRef.current = false;
-      abortBackgroundWorkerRef.current = false;
     }
     
     //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
@@ -845,9 +764,7 @@ const Input: React.FC<{
     setIgnoredCategoriesFromStorage(newIgnoredCategories);
   };
 
-  const handleElementClickEvent = debounce((event: MouseEvent) => {
-    abortBackgroundWorkerRef.current = true;
-    
+  const handleElementClickEvent = debounce((event: MouseEvent) => {    
     const target = event.target as CustomInputElement;
 
     // Get caret data
@@ -1057,21 +974,8 @@ const Input: React.FC<{
 
   useEffect(() => {
     if (!checkEndpointResponse) return;
-    if (
-      !backgroundWorkerStarted &&
-      !isTextArea(element) && //does not work on textArea yet
-      !isGoogleDocs() && //google docs is handled on mutation
-      getInputText(element).length > maxCharLength && 
-      isWittyPremiumUserRef.current //no long text handling freemium users, could also use totalMaxCharLengthReachedRef.current, but this is safer
-    ) {
-      abortBackgroundWorkerRef.current = false;
-      backgroundWorker(element);
-      setBackgroundWorkerStarted(true);
-    }
     document.documentElement.setAttribute('witty-could-determine-lang', 'true');
-
     setRemoveHighlights(false);
-
     setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
 
     checkEndpointResponse.notifications
@@ -1088,7 +992,6 @@ const Input: React.FC<{
       authResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
       'check',
-      backgroundWorkerStarted,
       checkLogEventIdRef.current
     );
   
@@ -1285,7 +1188,6 @@ const Input: React.FC<{
         const nodeIndex = nodesStorageRef.current.findIndex((node: INodes) => node.index === prevCheckedNode.index);
         return nodeIndex === -1;
       }), ...nodesStorageRef.current].sort((a: INodes, b: INodes) => a.index - b.index);
-
       nodesStorageRef.current = [];
     }
   }, [
@@ -1339,7 +1241,6 @@ const Input: React.FC<{
           authResponse,
           textContentLength,
           'check_result',
-          backgroundWorkerStarted,
           checkLogEventIdRef.current,
         )
       });
@@ -1649,9 +1550,6 @@ const Input: React.FC<{
         />,
         window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
       );
-    }
-    else if(checkEndpointError?.status === 500) { 
-      abortBackgroundWorkerRef.current = true; //stop sending requests if server is down
     }
     log(
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
