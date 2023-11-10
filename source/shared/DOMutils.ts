@@ -15,12 +15,9 @@ export const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
 
 export const isGoogleDocs = (element?: HTMLElement): boolean => {
-  console.log('isGoogleDocs', window.location.href.includes('docs.google.com/document'), element, isHTMLElementContentEditable(element as HTMLElement));
   if (element) {
-    console.log('returning', window.location.href.includes('docs.google.com/document') && !isHTMLElementContentEditable(element))
     return window.location.href.includes('docs.google.com/document') && !isHTMLElementContentEditable(element)
   }
-  console.log('returning' , window.location.href.includes('docs.google.com/document'))
   return window.location.href.includes('docs.google.com/document');
 };
 
@@ -32,14 +29,16 @@ export const isHubspot = (): boolean => {
   return window.location.hostname.includes('hubspot');
 };
 
-export const isMicrosoftOnline = (topWindowUrl: string | null = ''): boolean => {  
-  const appTypes = ['xlsx', 'pptx', 'docx'];
-  const topWindow = window.top;
-  if (!topWindow) return false;
-  if (!topWindowUrl) {
-    topWindowUrl = topWindow.location.href;
-  }
-  return topWindowUrl.includes('sharepoint.com') && appTypes.some(app => topWindowUrl?.includes(app));
+export const isMicrosoftOnline = (topWindowUrl: string | null = ''): boolean => { 
+  console.log('topWindowUrl', topWindowUrl) 
+  return false;
+  // const appTypes = ['xlsx', 'pptx', 'docx'];
+  // const topWindow = window.top;
+  // if (!topWindow) return false;
+  // if (!topWindowUrl) {
+  //   topWindowUrl = topWindow.location.href;
+  // }
+  // return topWindowUrl.includes('sharepoint.com') && appTypes.some(app => topWindowUrl?.includes(app));
 }
 
 export const isOffice = (): boolean => {
