@@ -255,9 +255,13 @@ const ContentScriptApp: React.FC = () => {
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
       handleNewInput().then(addedInputsMap => {
-        const mergedInputsMap = new Map([...inputsMapRef.current, ...addedInputsMap]);
-        setInputsMap(mergedInputsMap);
-      }); //ensures update
+        if (addedInputsMap instanceof Map) {
+          const mergedInputsMap = new Map([...inputsMapRef.current, ...addedInputsMap]);
+          setInputsMap(mergedInputsMap);
+        }
+      }).catch((error) => {
+        sendErrorToSentry(error);
+      });
     }
   }, []);
 
@@ -418,6 +422,8 @@ const ContentScriptApp: React.FC = () => {
       }
 
       return addedInputsMap;
+    }).catch((error) => {
+      sendErrorToSentry(error);
     });
   };
 

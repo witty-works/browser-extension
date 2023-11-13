@@ -253,6 +253,8 @@ export const makeAuthRequest = () => {
           sendErrorToSentry(error);
         });
     }
+  }).catch((error) => {
+    sendErrorToSentry(error);
   });
 };
 

@@ -26,6 +26,7 @@ import { getScrollableParentClosestToElement, storeInLocalStorage } from '../../
 import { browser } from 'webextension-polyfill-ts';
 import ReactDOM from 'react-dom';
 import Notification from '../../Notifications/Notification';
+import { sendErrorToSentry } from '../../shared/errorUtils';
 
 export interface PopoverData {
   index: number;
@@ -233,9 +234,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         }
       }
       incrementAlternativesAccepted(result);
+    }).catch((error) => {
+     sendErrorToSentry(error);
     });
-    
-
     updateTextWithAlternative(alternative, category);
   };
 

@@ -85,6 +85,8 @@ const addEventListeners = () => {
             url: `
           ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,
           });
+      }).catch((error) => {
+        sendErrorToSentry(error);
       });
       reInjectContentScripts();
     }
@@ -178,6 +180,8 @@ const reInjectContentScripts = () => {
         injectIntoTab(tab);
       });
     });
+  }).catch((error) => {
+    sendErrorToSentry(error);
   });
 };
 
@@ -244,6 +248,8 @@ const scanTabsToDetectStatus = () => {
               [StorageKeys.IFRAME_DOMAINS]: [],
             });
           }
+        }).catch((error) => {
+          sendErrorToSentry(error);
         });
 
       updateLabelChrome(domain);

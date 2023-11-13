@@ -5,6 +5,7 @@ import { useLog, logTypes } from '../customHooks/useLog';
 import Ajv, { JSONSchemaType } from 'ajv';
 import { DEV_ENV, WTags } from '../constants';
 import { getActiveDocument } from '../../ContentScript/ContentScriptApp';
+import { sendErrorToSentry } from '../errorUtils';
 const ajv = new Ajv();
 
 const useApiResult = <TResponse,>(
@@ -70,6 +71,7 @@ const useApiResult = <TResponse,>(
           })
 
         .catch((error: Error) => {
+          sendErrorToSentry(error);
           log(error.message, logTypes.ERROR);
         });
       };
