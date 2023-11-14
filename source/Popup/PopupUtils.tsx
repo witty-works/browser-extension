@@ -47,7 +47,7 @@ export const renderMainPopup = (
 export const renderPopupChrome = (
   appId: string,
   domain: string,
-  currentWindowUrl: string | null,
+  currentWindowUrl: string | undefined,
   domainOnActiveOrDisabledList: boolean,
   domainIsConfirmedByUser: boolean,
   domainsConfirmedToNotWork: string[],

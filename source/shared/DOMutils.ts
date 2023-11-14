@@ -26,14 +26,9 @@ export const isHubspot = (): boolean => {
   return window.location.hostname.includes('hubspot');
 };
 
-export const isMicrosoftOnline = (topWindowUrl: string | null = ''): boolean => {  
+export const isMicrosoftOnline = (windowUrl: string = window?.location.href ?? ''): boolean => {
   const appTypes = ['xlsx', 'pptx', 'docx'];
-  const topWindow = window.top;
-  if (!topWindow) return false;
-  if (!topWindowUrl) {
-    topWindowUrl = topWindow.location.href;
-  }
-  return topWindowUrl.includes('sharepoint.com') && appTypes.some(app => topWindowUrl?.includes(app));
+  return (windowUrl.includes('sharepoint.com') && appTypes.some(app => windowUrl.includes(app))) || windowUrl.includes('officeapps'); // officeapps is for word iframe
 }
 
 export const isOffice = (): boolean => {

@@ -70,17 +70,11 @@ const scriptId = uuidv4();
                 !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
 
           const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
-          let parentUrl;
-          try {
-              parentUrl = window.top?.location.href;
-          } catch (error) {
-              parentUrl = null;
-          }
         if (
             isOnOrgDomainList ||
             isOnPersonalDomainList ||
             defaultConfig.DISABLED_SITES.includes(domain) ||
-            isMicrosoftOnline(parentUrl)
+            isMicrosoftOnline()
         ) {
           customRender(false, scriptId);
         } else {
