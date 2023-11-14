@@ -51,6 +51,8 @@ const scriptId = uuidv4();
         const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`;
         wittyIsInstalledElement?.setAttribute('login-url', url);
       }
+    }).catch((error) => {
+      sendErrorToSentry(error);
     });
   }
 
