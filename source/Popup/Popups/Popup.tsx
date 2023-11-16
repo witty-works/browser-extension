@@ -154,7 +154,6 @@ const Popup: React.FC<PopupProps> = ({
         setInitialDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
       })
-
       .catch(onStorageError);
   }, []);
 
@@ -369,8 +368,12 @@ const Popup: React.FC<PopupProps> = ({
             }, 3000);
             getNewAccessToken();
           }
+        }).catch((error) => {
+          sendErrorToSentry(error);
         });
       }
+    }).catch((error) => {
+      sendErrorToSentry(error);
     });
   };
 

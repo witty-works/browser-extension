@@ -128,6 +128,8 @@ export const getNewAccessToken = async () => {
       );
       storeInLocalStorage(StorageKeys.ACCESS_TOKEN, responseJson.access_token);
     });
+  }).catch((error) => {
+    sendErrorToSentry(error);
   });
 };
 
@@ -216,7 +218,9 @@ export const updateLabelChrome = (domain: string) => {
           removeBadge();
         }
       });
-    })
+    }).catch((error) => {
+      sendErrorToSentry(error);
+    });
 };
 
 export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLElement | null, element: HTMLElement) => {
