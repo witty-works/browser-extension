@@ -48,9 +48,12 @@ export const captureEvent = (eventName: string, eventData: object) => {
       if (eventName === 'check') {
         const lastLoggedHour = lastCheckEventTime ? new Date(lastCheckEventTime).getHours() : null;
 
+        console.log('lastLoggedHour', lastLoggedHour);
         if (lastLoggedHour !== null && currentHour === lastLoggedHour) {
+          console.log('returning')
           return;
         }
+        console.log('ESCAPED')
         browser.storage.local.set({ [StorageKeys.LAST_CHECK_EVENT_TIME]: now.toISOString() });
       }
       
