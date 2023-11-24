@@ -118,6 +118,7 @@ const Input: React.FC<{
   const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
     IAlert[]
   >([]);
+  const [, , previousScrollTopRef] = useStateRef<number>(0);
   const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
   const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
@@ -690,7 +691,8 @@ const Input: React.FC<{
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
-    if (!isTextArea(element)) {
+    if (!isTextArea(element) && previousScrollTopRef.current !== firstScrollableParentRef.current.scrollTop) {
+      previousScrollTopRef.current = firstScrollableParentRef.current.scrollTop;
       setIsActive(true);
       setActiveIcon('loading');
       debouncedScroll();

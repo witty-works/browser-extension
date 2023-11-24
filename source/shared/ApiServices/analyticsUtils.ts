@@ -4,6 +4,7 @@ import { POSTHOG_API_URL, POSTHOG_API_KEY, StorageKeys, wittyVersion } from '../
 import { browser } from 'webextension-polyfill-ts';
 import { storeInLocalStorage } from '../utils';
 import defaultConfig from '../../witty.config.json';
+import { sendErrorToSentry } from '../errorUtils';
 export const aliasId = async (userId: string, appId: string) => {
     const request = {
       api_key: POSTHOG_API_KEY,
@@ -116,6 +117,8 @@ export const captureEvent = (eventName: string, eventData: object) => {
     catch (e) {
       console.log(e);
     }
+  }).catch((error) => {
+    sendErrorToSentry(error);
   });
 };
 
