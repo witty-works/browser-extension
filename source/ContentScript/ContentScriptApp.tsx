@@ -81,6 +81,8 @@ const ContentScriptApp: React.FC = () => {
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
+    removeOldInput(undefined); //makes sure no old ww-containers are around
+    console.log('HERE')
     browser.storage.local
       .get(null)
       .then((result) => {

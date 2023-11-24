@@ -6,6 +6,7 @@ import defaultConfig from '../witty.config.json';
 import { isGoogleDocs, isMicrosoftOnline, isTextArea, requiresRectRecalculation } from './DOMutils';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 import { getToken } from './ApiServices/requests';
+import ReactDOM from 'react-dom';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -16,6 +17,7 @@ export const isFunction = (functionToCheck: Function) =>
   functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
 export const storeInLocalStorage = (key: string, value: any) => {
+  //deal with it here? 
   browser.storage.local
     .set({ [key]: value })
     .then(() => {
@@ -40,12 +42,15 @@ export const storeInLocalStorage = (key: string, value: any) => {
     .catch((error: unknown) => {
       //this error means that the extension was deactivated or uninstalled, in this case we delete the container
       if (error == 'Error: Extension context invalidated.') {
+        console.log('HERE 2')
         useAnalytics().extenstionStatusLog('deactivated');
-        const container = getActiveDocument().getElementsByTagName(
+        const wwContainers = getActiveDocument().getElementsByTagName(
           WTags.WW_CONTAINER
         );
-        if (container.length > 0) {
-          container[0].remove();
+        console.log('wwContainers', wwContainers)
+        for (let i = 0; i < wwContainers.length; i++) {
+          ReactDOM.unmountComponentAtNode(wwContainers[i]);
+          wwContainers[i].remove();
         }
       }
 
