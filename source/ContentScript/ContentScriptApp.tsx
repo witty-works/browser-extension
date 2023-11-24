@@ -433,7 +433,10 @@ const ContentScriptApp: React.FC = () => {
     }
 
     ReactDOM.unmountComponentAtNode(container);
-    container.remove();
+
+    if (container.parentNode) { // Check if the container is still part of the DOM
+      container.parentNode.removeChild(container); // Remove the container safely using its parent node
+    }
   };
 
   const setupMutationObservers = () => {
