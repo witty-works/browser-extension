@@ -1407,21 +1407,16 @@ const Input: React.FC<{
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-
-      range.setStart(
-        node,
-        alternative == ' ' &&
-          category !== 'orthography' &&
-          alert.startOffset !== 0
-          ? alert.startOffset - 1
-          : alert.startOffset
-      );
-      range.setEnd(
-        node,
-        alternative == ' ' && category !== 'orthography'
-          ? alert.endOffset + 1
-          : alert.endOffset
-      );
+      const startOffset = alternative === ' ' && category !== 'orthography' && alert.startOffset !== 0
+        ? alert.startOffset - 1
+        : alert.startOffset;
+      const endOffset = alternative === ' ' && category !== 'orthography'
+        ? alert.endOffset + 1
+        : alert.endOffset;
+    
+    range.setStart(node, startOffset);
+    range.setEnd(node, endOffset);
+    
       const sel = getActiveDocument().getSelection();
       if (!sel) return;
       sel.removeAllRanges();

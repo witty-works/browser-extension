@@ -237,12 +237,19 @@ const scanTabsToDetectStatus = () => {
         .then((result) => {
           const iframes = result[0];
           if (iframes) {
-            const iframeDomains = iframes.map((iframe: string) =>
-            iframe && getDomainWithoutSubdomain(new URL(iframe).hostname)
-            );
-            browser.storage.local.set({
+            const iframeDomains = iframes.map((iframe: string) => {
+              try {
+                  const url = new URL(iframe);
+                  return getDomainWithoutSubdomain(url.hostname);
+              } catch (e) {
+                  console.error("Invalid URL provided:", iframe, e);
+                  return null;
+              }
+          });
+      
+          browser.storage.local.set({
               [StorageKeys.IFRAME_DOMAINS]: iframeDomains,
-            });
+          });
           } else {
             browser.storage.local.set({
               [StorageKeys.IFRAME_DOMAINS]: [],
