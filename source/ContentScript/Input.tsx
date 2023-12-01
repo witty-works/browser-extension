@@ -1601,7 +1601,6 @@ const Input: React.FC<{
       const element = document.createElement(WTags.WW_POPOVER);
       document.body.appendChild(element);
     }
-    console.log('popoverData', popoverData)
     //Show/Hide the popover
     if (
       popoverData &&
