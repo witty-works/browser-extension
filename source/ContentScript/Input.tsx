@@ -101,6 +101,7 @@ const Input: React.FC<{
     useStateRef<number>(-1);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   const [popoverData, setPopoverData] = useState<PopoverData | null>(null);
+  const [, , previousPopoverDataRef] = useStateRef<PopoverData | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
@@ -614,12 +615,12 @@ const Input: React.FC<{
     let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
-      userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');
+      // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached'); //TEMP removed to save events
       const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
       newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
     } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
-      userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');
+      // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');//TEMP removed to save events
     } else {
       isTextAreaCheck && (newTextToCheck = nodes[0]); 
       totalMaxCharLengthReachedRef.current = false;
@@ -735,6 +736,7 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
+    popoverData !== null && (previousPopoverDataRef.current = popoverData);
     setPopoverData(null);
     setSelectedAlert(null);
     setSelectedAlertIndex(-1);
@@ -1599,6 +1601,7 @@ const Input: React.FC<{
       const element = document.createElement(WTags.WW_POPOVER);
       document.body.appendChild(element);
     }
+    console.log('popoverData', popoverData)
     //Show/Hide the popover
     if (
       popoverData &&
@@ -1611,6 +1614,7 @@ const Input: React.FC<{
           <HighlightPopoverUpgrade
             element={element}
             data={popoverData}
+            prevData={previousPopoverDataRef.current}
             hide={resetPopover}
             addIgnoredCategory={addIgnoredCategory}
           />
@@ -1623,6 +1627,7 @@ const Input: React.FC<{
           <HighlightPopover
             element={element}
             data={popoverData}
+            prevData={previousPopoverDataRef.current}
             hide={resetPopover}
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
@@ -1638,6 +1643,7 @@ const Input: React.FC<{
           <HighlightPopoverNotSignedIn
             element={element}
             data={popoverData}
+            prevData={previousPopoverDataRef.current}
             hide={resetPopover}
           />
         </Sentry.ErrorBoundary>,
