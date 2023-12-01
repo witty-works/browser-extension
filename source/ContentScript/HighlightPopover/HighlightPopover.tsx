@@ -39,6 +39,7 @@ export interface PopoverData {
 interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
+  prevData: PopoverData | null;
   hide: () => void;
   updateTextWithAlternative: (alternative: string, category: string) => void;
   addIgnoredTerm: (term: string) => void;
@@ -49,6 +50,7 @@ interface PopoverProps {
 const HighlightPopover: React.FC<PopoverProps> = ({
   element,
   data,
+  prevData,
   hide,
   updateTextWithAlternative,
   addIgnoredTerm,
@@ -56,7 +58,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   userIsSignedIn,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
-
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
   const [alternativeHovered, setAlternativeHovered] = useState<string | null>(
@@ -67,6 +68,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
 
   useEffect(() => {
+    if (prevData && prevData.alert.id === data.alert.id) {
+      return;
+    }
     analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
 
