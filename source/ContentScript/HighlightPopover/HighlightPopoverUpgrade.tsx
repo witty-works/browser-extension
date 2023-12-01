@@ -36,6 +36,7 @@ export interface PopoverData {
 interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
+  prevData: PopoverData | null;
   hide: () => void;
   addIgnoredCategory: (gravity: number, explanation: IExplanation) => void;
 }
@@ -43,6 +44,7 @@ interface PopoverProps {
 const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   element,
   data,
+  prevData,
   hide,
   addIgnoredCategory,
 }: PopoverProps) => {
@@ -59,6 +61,9 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   };
 
   useEffect(() => {
+    if (prevData && prevData.alert.id === data.alert.id) {
+      return;
+    }
     analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
 
