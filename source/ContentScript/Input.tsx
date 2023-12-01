@@ -28,6 +28,7 @@ import {
   isGoogleDocs,
   isLinkedin,
   isNotion,
+  isMicrosoftOnlineWord,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -464,6 +465,7 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = () => {
+    isMicrosoftOnlineWord(window.location.href) && handleKeyupEvent();
     setActiveIcon('active');
   };
 
@@ -527,13 +529,16 @@ const Input: React.FC<{
       handleTextAndIcon([nextText]);
     } else {
       !isGoogleDocs() && setAlerts([]);
+      console.log('nextTextDividedByNodes', nextTextDividedByNodes)
       const nodeAtFirstTextDiff =
         nextTextDividedByNodes[fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0];
-
+      console.log('fistTextDiff', fistTextDiff)
+      console.log('nodeAtFirstTextDiff', nodeAtFirstTextDiff)
       const nodesWithinMaxCharLength = getTextWithinMaxCharLength(
         fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0,
         nodeAtFirstTextDiff
       );
+      console.log('nodesWithinMaxCharLength', nodesWithinMaxCharLength)
       nodesWithinMaxCharLength &&
         handleTextAndIcon(
           nodesWithinMaxCharLength
@@ -545,20 +550,22 @@ const Input: React.FC<{
     currentNode: number,
     currentNodeRaw?: Node | null
   ) => {
+    console.log('getTextWithinMaxCharLength, currentNodeRaw', currentNodeRaw)
     if (!currentNodeRaw) return;
     const textDividedByNodes = getTextDividedByNodes(element);
     const textDividedByNodesTextContent = textDividedByNodes.map(
       (node) => node.textContent
     );
     const currentText = textDividedByNodesTextContent[currentNode];
-    if (!currentText) return;
-    const charLengthLeft = maxCharLength - currentText.length;
+    console.log('currentText', currentText)
+    const charLengthLeft = maxCharLength - (currentText?.length ? currentText.length : 0);
     const nodesWhithinMaxCharLengthBelowNode = getNodesWithinMaxCharLength(
       'below',
       textDividedByNodes,
       currentNode,
       charLengthLeft
     );
+    console.log('nodesWhithinMaxCharLengthBelowNode', nodesWhithinMaxCharLengthBelowNode)
     const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
       'above',
       textDividedByNodes,
@@ -566,6 +573,7 @@ const Input: React.FC<{
       charLengthLeft
     );
 
+    console.log('nodesWhithinMaxCharLengthAboveNode', nodesWhithinMaxCharLengthAboveNode)
     const currentNodeFormatted = [
       {
         node: currentNodeRaw.textContent as string,
@@ -582,8 +590,9 @@ const Input: React.FC<{
         (node, index, self) =>
           index === self.findIndex((t) => t.index === node.index)
       );
+    console.log('nodesWhithinMaxCharLength', nodesWhithinMaxCharLength)
 
-    if (currentText.length > maxCharLength) {
+    if (currentText && currentText.length > maxCharLength) {
       const shortenedText = currentText.slice(0, maxCharLength);
       nodesWhithinMaxCharLengthRef.current = [
         {
@@ -600,6 +609,7 @@ const Input: React.FC<{
   };
 
   const handleTextAndIcon = (nodes: any) => {
+    console.log('handleTextAndIcon')
     const isTextAreaCheck = isTextArea(element);
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
     const allNodes = getTextDividedByNodes(element).map((node: any) => node.textContent);
@@ -611,6 +621,7 @@ const Input: React.FC<{
     }
     let nodesToCheck = nodes; //not needed anymore as whatever is passed to handleTextAndIcon is already within max char length
     nodesStorageRef.current = nodesToCheck;
+    console.log('nodesToCheck', nodesToCheck)
     let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
@@ -624,7 +635,7 @@ const Input: React.FC<{
       isTextAreaCheck && (newTextToCheck = nodes[0]); 
       totalMaxCharLengthReachedRef.current = false;
     }
-    
+    console.log('newTextToCheck', newTextToCheck)
     //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
     if (!isTextAreaCheck && newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
       nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
@@ -645,7 +656,7 @@ const Input: React.FC<{
       setNodesWithAlerts(nodesWithAlertsWithoutChangesAlerts);
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
-
+    console.log('newTextToCheck', newTextToCheck)
     if (typeof newTextToCheck !== 'string' || newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
@@ -686,6 +697,7 @@ const Input: React.FC<{
   };
 
   const debouncedSetTextToCheck = debounce((text: string) => {
+    console.log('debouncedSetTextToCheck')
     //In this case always create a new string to force change the state of setTextToCheck
     setTextToCheck(text);
   }, debounceDelay);

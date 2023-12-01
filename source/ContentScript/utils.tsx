@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
-import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
+import { isGoogleDocs, isInputText, isMicrosoftOnlineWord, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, IAuthResponse } from '../shared/types';
 import {
   getDomainWithoutSubdomain,
@@ -117,7 +117,7 @@ export const getFirstTextDiff = (
 ) => {
   if (!newTextArray) return 0;
 
-  if (isTextArea(element)) {
+  if (isTextArea(element) || isMicrosoftOnlineWord(window.location.href)) {
     let i = 0;
     if (!previousTextArray || !newTextArray) return 0;
     while (
