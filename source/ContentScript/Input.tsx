@@ -616,8 +616,10 @@ const Input: React.FC<{
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached'); //TEMP removed to save events
-      const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
-      newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
+      if (nodes[0] && typeof nodes[0] === 'string') {
+        const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
+        newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
+      }
     } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');//TEMP removed to save events
@@ -1547,7 +1549,7 @@ const Input: React.FC<{
           notificationType={'min_version_not_installed'}
           element={element}
         />,
-        window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
+        window.top?.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
       );
     }
     log(
