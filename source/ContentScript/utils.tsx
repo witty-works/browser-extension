@@ -249,9 +249,6 @@ export const makeAuthRequest = () => {
             updateConfig(json);
           }
         })
-        .catch((error) => {
-          sendErrorToSentry(error);
-        });
     }
   }).catch((error) => {
     sendErrorToSentry(error);
