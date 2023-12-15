@@ -1038,10 +1038,17 @@ const Input: React.FC<{
   }, [checkEndpointResponse]);
 
   useEffect(() => {
+
     if (alerts.length === 0) {
       setRemoveHighlights(true);
       setForceHighlightUpdate(!forceHighlightUpdate);
-    } else {
+      return;
+    } 
+    console.log('Called',     alerts,
+    ignoredTerms,
+    elementXPathResult,
+    ignoredCategoriesFromStorage,
+    selectedAlertIndex,)
       let alertsWithoutIgnoredCategories = alerts;
 
       //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
@@ -1188,14 +1195,13 @@ const Input: React.FC<{
       );
       setTotalAlerts(totalAlerts);
       setNodesWithAlerts(mergedNodesWithAlerts);
-      logNewCheckResponses(nodesWithAlertsRef.current);
+      isWittyPremiumUserRef.current && userIsSignedIn && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);
 
       prevCheckedNodesRef.current = [...prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
         const nodeIndex = nodesStorageRef.current.findIndex((node: INodes) => node.index === prevCheckedNode.index);
         return nodeIndex === -1;
       }), ...nodesStorageRef.current].sort((a: INodes, b: INodes) => a.index - b.index);
       nodesStorageRef.current = [];
-    }
   }, [
     alerts,
     ignoredTerms,
@@ -1204,53 +1210,53 @@ const Input: React.FC<{
     selectedAlertIndex,
   ]);
 
-  const logNewCheckResponses = (newNodes: INodeWithAlerts[]) => {
+  const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: INodes[]) => {
     let newResults;
-  
+    console.log('newNodesWithAlerts', newNodesWithAlerts)
+    console.log('previouslyCheckedNodesWithAlerts', previouslyCheckedNodesWithAlerts)
     if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
       newResults = checkEndpointResponse.results.filter((alert) => {
         return !unchangedAlertsTextarea.map((alert) => alert.startOffset).includes(alert.start);
       });  
     } else {
-      newResults = newNodes.filter((nodeWithAlerts) => {
-        return nodesStorageRef.current.map((node) => node.rawNode).includes(nodeWithAlerts.node);
-      }).map((nodeWithAlerts) => {
-        const mergedAlerts = nodeWithAlerts.alerts.reduce((mergedAlerts, alert) => {
-          return {
-            ...mergedAlerts,
-            ...alert.data,
-          };
-        }, {}); 
-        return mergedAlerts;
-      });
+      newResults = newNodesWithAlerts.reduce((acc: any, nodeWithAlerts: INodeWithAlerts) => {
+        const newAlerts = nodeWithAlerts.alerts.filter(() => {
+          const prevCheckedNode = previouslyCheckedNodesWithAlerts.find((prevCheckedNode: INodes) => {
+            return prevCheckedNode.node === nodeWithAlerts.node?.nodeValue;
+          });
+          return !prevCheckedNode || prevCheckedNode.index !== nodeWithAlerts.nodeIndex;
+        });
+        return [...acc, ...newAlerts];
+      }
+      , []);
     }
 
     if (newResults.length === 0) return;
 
-    const mergedCheckEndpointResponse = checkEndpointResponse ? {
+    const mergedCheckEndpointResponse = {
       ...checkEndpointResponse,
-      results: newResults as any,
-    } : undefined;
+      results: newResults,
+    };
   
-    if (mergedCheckEndpointResponse && userIsSignedIn && isWittyPremiumUserRef.current) {
-      const mergedCheckEndpointResponseWithoutOrthography = {
-        ...mergedCheckEndpointResponse,
-        results: mergedCheckEndpointResponse.results.filter((result: any) => {
-          return result.category !== 'orthography' && result.category?.length > 0 && result.subcategory?.length > 0;
-        }),
-      };
+    const mergedCheckEndpointResponseWithoutOrthography = {
+      ...mergedCheckEndpointResponse,
+      results: mergedCheckEndpointResponse.results.filter((result: any) => {
+        return result.data.category !== 'orthography';
+      }),
+    };
       
-      const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-      mergedCheckEndpointResponseWithoutOrthography.results.forEach((result: any) => {
-        analytics.checkResultLog(
-          result,
-          authResponse,
-          textContentLength,
-          'check_result',
-          checkLogEventIdRef.current,
-        )
-      });
-    } 
+    if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
+      
+    const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
+    mergedCheckEndpointResponseWithoutOrthography.results.forEach((result: any) => {
+      analytics.checkResultLog(
+        result,
+        authResponse,
+        textContentLength,
+        'check_result',
+        checkLogEventIdRef.current,
+      )
+    });
   };
   
   // useEffect(() => {
