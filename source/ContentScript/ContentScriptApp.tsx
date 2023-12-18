@@ -165,21 +165,27 @@ const ContentScriptApp: React.FC = () => {
   }, [pinNotificationStored]);
 
   const renderNotification = (notificationType: string) => {
-    if(!window.top) return;
-    const notificationWrapper = document.createElement('div');
-    notificationWrapper.id = 'ww-notification';
-
-    ReactDOM.render(
-      <Notification
-        notificationType={notificationType}
-        element={elementRef.current}
-      />,
-      window.top.document.body.insertBefore(
-        notificationWrapper,
-        window.top.document.body.firstChild
-      )
-    );
-  }
+    try {
+      if (!window.top) return;
+  
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+  
+      ReactDOM.render(
+        <Notification
+          notificationType={notificationType}
+          element={elementRef.current}
+        />,
+        window.top.document.body.insertBefore(
+          notificationWrapper,
+          window.top.document.body.firstChild
+        )
+      );
+    } catch (error) {
+      DEV_ENV && console.error("Error in renderNotification:", error);
+    }
+  };
+  
 
   //TODO specify changes type
   //TODO review all cases

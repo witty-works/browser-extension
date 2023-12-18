@@ -4,7 +4,7 @@ import { browser } from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
 import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
-import { WTags, StorageKeys } from '../shared/constants';
+import { WTags, StorageKeys, DEV_ENV } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 // import Notification from '../Notifications/Notification'; //Temporarily removed until we have a better solution
@@ -1542,15 +1542,23 @@ const Input: React.FC<{
           sendErrorToSentry(error);
         });
     } else if (authErrorResponse?.status === 400 && window.top) {//400 means means min version not installed
-      const notificationWrapper = document.createElement('div');
-      notificationWrapper.id = 'ww-notification';
-      ReactDOM.render(
-        <Notification
-          notificationType={'min_version_not_installed'}
-          element={element}
-        />,
-        window.top?.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
-      );
+        try {      
+          const notificationWrapper = document.createElement('div');
+          notificationWrapper.id = 'ww-notification';
+      
+          ReactDOM.render(
+            <Notification
+              notificationType={'min_version_not_installed'}
+              element={element}
+            />,
+            window.top.document.body.insertBefore(
+              notificationWrapper,
+              window.top.document.body.firstChild
+            )
+          );
+        } catch (error) {
+          DEV_ENV && console.error("Error in renderNotification:", error);
+        }
     }
     log(
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
