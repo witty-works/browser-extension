@@ -152,7 +152,7 @@ const Notification: React.FC<NotificationProps> = ({
           {notificationButton && (
             <div className="witty-works-ext-left">
               <div
-                className="witty-works-ext-button witty-works-ext-primary-button-red"
+                className="witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top"
                 onClick={() => {
                   window.open(notificationLink, '_blank');
                   isFeatureFlagNotification && analytics.featureFlagLog(notificationType, true);
