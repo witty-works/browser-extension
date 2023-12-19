@@ -128,8 +128,6 @@ export const getNewAccessToken = async () => {
       );
       storeInLocalStorage(StorageKeys.ACCESS_TOKEN, responseJson.access_token);
     });
-  }).catch((error) => {
-    sendErrorToSentry(error);
   });
 };
 

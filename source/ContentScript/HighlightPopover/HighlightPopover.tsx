@@ -18,7 +18,7 @@ import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
 
 import './HighlightPopover.scss';
-import { StorageKeys, getColor } from '../../shared/constants';
+import { DEV_ENV, StorageKeys, getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
@@ -196,15 +196,27 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const incrementAlternativesAccepted = (storage: any) => 
     storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] ? storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1 : 1);
   
-  const renderNotification = (type: string) => {
-    if(!window.top) return;
-    const notificationWrapper = document.createElement('div');
-    notificationWrapper.id = 'ww-notification';
-    
-    ReactDOM.render(
-      <Notification notificationType={type} element={element} />,
-      window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
-    );
+
+  const renderNotification = (notificationType: string) => {
+    try {
+      if (!window.top) return;
+  
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+  
+      ReactDOM.render(
+        <Notification
+          notificationType={notificationType}
+          element={element}
+        />,
+        window.top.document.body.insertBefore(
+          notificationWrapper,
+          window.top.document.body.firstChild
+        )
+      );
+    } catch (error) {
+      DEV_ENV && console.error("Error in renderNotification:", error);
+    }
   };
 
   const clickAlternative = (e: MouseEvent, alternative: string, category: string) => {

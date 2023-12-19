@@ -32,7 +32,7 @@
 
 .witty-works-notification-text {
   color: black;
-  font-size: 12px;
+  font-size: 16px;
   padding: 1em;
   font-family: Lato, Arial, Helvetica, sans-serif;
   max-width: 100%;
@@ -84,4 +84,8 @@
 
 .witty-works-link, .witty-works-link:link, .witty-works-link:visited, .witty-works-link:hover, .witty-works-link:active {
   color: #9489db !important;
+}
+
+.witty-works-ext-margin-top {
+  margin-top: 1em;
 }

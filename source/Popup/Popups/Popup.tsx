@@ -368,8 +368,6 @@ const Popup: React.FC<PopupProps> = ({
             }, 3000);
             getNewAccessToken();
           }
-        }).catch((error) => {
-          sendErrorToSentry(error);
         });
       }
     }).catch((error) => {
