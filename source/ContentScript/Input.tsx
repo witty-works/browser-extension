@@ -1044,11 +1044,6 @@ const Input: React.FC<{
       setForceHighlightUpdate(!forceHighlightUpdate);
       return;
     } 
-    console.log('Called',     alerts,
-    ignoredTerms,
-    elementXPathResult,
-    ignoredCategoriesFromStorage,
-    selectedAlertIndex,)
       let alertsWithoutIgnoredCategories = alerts;
 
       //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
@@ -1212,8 +1207,6 @@ const Input: React.FC<{
 
   const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: INodes[]) => {
     let newResults;
-    console.log('newNodesWithAlerts', newNodesWithAlerts)
-    console.log('previouslyCheckedNodesWithAlerts', previouslyCheckedNodesWithAlerts)
     if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
       newResults = checkEndpointResponse.results.filter((alert) => {
         return !unchangedAlertsTextarea.map((alert) => alert.startOffset).includes(alert.start);
@@ -1253,7 +1246,7 @@ const Input: React.FC<{
         result,
         authResponse,
         textContentLength,
-        'check_result',
+        'check_highlights',
         checkLogEventIdRef.current,
       )
     });
