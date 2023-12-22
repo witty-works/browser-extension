@@ -211,7 +211,7 @@ export interface ICheckLogItems {
   response__organizationId?: string;
   response__plan?: string;
   response__results: ICheckResponseResult[];
-  response__language: string;
+  response__data__language: string;
   response__limit_reached: boolean;
 }
 
@@ -226,15 +226,15 @@ export interface ICheckResultLogItems {
   response__data__text: string;
   response__data__category: string;
   response__data__subcategory: string;
-  response__data__start: number;
-  response__data__end: number;
+  response__startOffset: number;
+  response__endOffset: number;
   response__data__alternatives: IAlternatives[];
   response__data__label: string;
   response__data__explanation__text: string;
   response__data__explanation__icon: string;
   response__data__explanation__url: string;
   response__data__gravity: number;
-  response__language: string;
+  response__data__language: string;
   response__limit_reached: boolean;
 }
 
