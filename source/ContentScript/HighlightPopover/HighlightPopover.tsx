@@ -233,17 +233,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
       } = result;
     
-      if (!salesDemoFlag.active || !teamInviteFlag.active || !friendInviteFlag.active) { //reset counter if a feature flag is diabled, maybe need to rethink this?
+      if (!salesDemoFlag?.active || !teamInviteFlag?.active || !friendInviteFlag?.active) { //reset counter if a feature flag is diabled, maybe need to rethink this?
         storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0); 
       } else {
         const incrementedAlternativesAccepted = alternativesAccepted + 1;
         if (
-          (incrementedAlternativesAccepted === salesDemoFlag.triggerNumber && salesDemoFlag.active) ||
-          (incrementedAlternativesAccepted === teamInviteFlag.triggerNumber && teamInviteFlag.active) ||
-          (incrementedAlternativesAccepted === friendInviteFlag.triggerNumber && friendInviteFlag.active)
+          (incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber && salesDemoFlag?.active) ||
+          (incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber && teamInviteFlag?.active) ||
+          (incrementedAlternativesAccepted === friendInviteFlag?.triggerNumber && friendInviteFlag?.active)
         ) {
-          const notificationType = incrementedAlternativesAccepted === salesDemoFlag.triggerNumber ? 'salesDemo'
-            : incrementedAlternativesAccepted === teamInviteFlag.triggerNumber ? 'inviteTeam'
+          const notificationType = incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber 
+            ? 'salesDemo'
+            : incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber 
+            ? 'inviteTeam'
             : 'inviteFriends';
     
           renderNotification(notificationType);
