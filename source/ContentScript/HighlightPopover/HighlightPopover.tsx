@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
-import { CustomInputElement, IAlert } from '../../shared/types';
+import { CustomInputElement, IAlert, IAlternatives } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -265,6 +265,31 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     hide();
   };
 
+  const renderAlternative = (alternative: IAlternatives, alternativeHovered: string | null) => {
+    if (alternative && alternative.text === ' ') {
+      return <i>{t('removeSpaces')}</i>;
+    } else {
+      const regex = /\(\((.*?)\)\)/;
+      const matches = alternative.text.match(regex);
+      if (matches) {
+        const splitText = alternative.text.split(regex);
+        return (
+          <>
+            {splitText[0]} &nbsp; 
+            <b>{matches[1]}</b> &nbsp;
+            {splitText[2]}
+          </>
+        );
+      } else if (alternative.text.length > 25 && alternative.context && alternativeHovered !== alternative.text) {
+        return alternative.text.substring(0, 25) + '...';
+      } else if (alternative.text.length > 35 && alternativeHovered !== alternative.text) {
+        return alternative.text.substring(0, 35) + '...';
+      } else {
+        return alternative.text;
+      }
+    }
+  }
+  
   return (
     <div
       id='witty-works-ext-popover'
@@ -469,14 +494,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           )
                         }
                       >
-                        {alternative && alternative.text === ' ' 
-                          ? (<i>{t('removeSpaces')}</i>) 
-                          : alternative.text.length > 25 && alternative.context && alternativeHovered !== alternative.text 
-                          ? (alternative.text.substring(0, 25) + '...') 
-                          : alternative.text.length > 35 && alternativeHovered !== alternative.text 
-                          ? (alternative.text.substring(0, 35) + '...') 
-                          : alternative.text
-                        }
+                       {renderAlternative(alternative, alternativeHovered)}
                       </div>
                       {alternative && alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>
