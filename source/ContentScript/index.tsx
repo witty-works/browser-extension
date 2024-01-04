@@ -27,8 +27,7 @@ const initialize = () => {
   const sentryTraceRate = defaultConfig.SENTRY_TRACE_RATE;
   const log = useLog('ContentScript index');
   const domain = getDomainWithoutSubdomain(window.location.hostname);
-
-const scriptId = uuidv4();
+  const scriptId = uuidv4();
 
   document.body.appendChild(document.createElement('witty-is-installed'));
   const wittyIsInstalledElement = document.querySelector('witty-is-installed');
@@ -94,20 +93,19 @@ const scriptId = uuidv4();
           handleDomainsFromDashboard(changes[item].newValue, scriptId);
           break;
         case StorageKeys.DOMAINS:
-          if (changes[item].newValue.includes(domain)) {
-            customRender(false, scriptId);
-          } else {
-            customRender(true, scriptId);
-          }
+          setTimeout(() => {
+            if (changes[item].newValue.includes(domain)) {
+              customRender(false, scriptId);
+            } else {
+              customRender(true, scriptId);
+            }
+          }, 300);
           break;
-
         case StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK:
           customRender(
               changes[item].newValue
                   .map((d: string) => d.split('-')[0])
-                  .includes(domain)
-                  ? false
-                  : true,
+                  .includes(domain),
               scriptId
           );
           break;
