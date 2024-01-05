@@ -276,7 +276,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         return (
           <>
             {splitText[0]} &nbsp; 
-            <b>{matches[1]}</b> &nbsp;
+            {'['}<i>{matches[1]}</i>{']'}&nbsp;
             {splitText[2]}
           </>
         );
