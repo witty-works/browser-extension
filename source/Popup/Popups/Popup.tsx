@@ -117,7 +117,7 @@ const Popup: React.FC<PopupProps> = ({
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-        setUserIsLoggedIn(result[StorageKeys.ACCESS_TOKEN] ? true : false);
+        setUserIsLoggedIn(!!result[StorageKeys.ACCESS_TOKEN]);
         setAccessToken(
           result[StorageKeys.ACCESS_TOKEN]
             ? result[StorageKeys.ACCESS_TOKEN]
@@ -125,24 +125,16 @@ const Popup: React.FC<PopupProps> = ({
         );
         setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS]);
         setEnabled({
-          enabled:
-            !domainsConfirmedToNotWork
-              .map((d: string) => {
-                return d.split('-')[0];
-              })
-              .includes(domain) &&
+          enabled: 
+            !domainsConfirmedToNotWork.map((d: string) => { return d.split('-')[0] }).includes(domain) &&
             !defaultConfig.DISABLED_SITES.includes(domain) &&
             result[StorageKeys.ACCESS_TOKEN] &&
             !result[StorageKeys.DOMAINS].includes(domain) &&
-            !isLocked
-              ? true
-              : false,
+            !isLocked,
           updateDashboard: false,
         });
         setCasingSites(result[StorageKeys.CASING_SITES]);
-        result[StorageKeys.CASING_SITES] &&
-          result[StorageKeys.CASING_SITES].includes(domain) &&
-          setCasing(false);
+        result[StorageKeys.CASING_SITES]?.includes(domain) && setCasing(false);
 
         if (result[StorageKeys.NUMBER_OF_NOTIFICATIONS] > 0) {
           addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
@@ -162,26 +154,22 @@ const Popup: React.FC<PopupProps> = ({
 
     if (surveyResponse == 'yes') {
       //remove it from the 'not working' list before adding it to the 'working' list
-      domainsConfirmedToNotWork &&
-        domainsConfirmedToNotWork
-          .map((d) => d.split('-')[0])
-          .includes(domain) &&
-        storeInLocalStorage(
-          StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK,
-          domainsConfirmedToNotWork.filter((d) => d.split('-')[0] !== domain)
-        );
+        domainsConfirmedToNotWork?.map((d) => d.split('-')[0]).includes(domain) &&
+          storeInLocalStorage(
+            StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK,
+            domainsConfirmedToNotWork.filter((d) => d.split('-')[0] !== domain)
+          );
 
       storeInLocalStorage(StorageKeys.DOMAINS_CONFIRMED_TO_WORK, [
         ...domainsConfirmedToWork,
         domainWithTimeStamp,
       ]);
     } else if (surveyResponse == 'no') {
-      domainsConfirmedToWork &&
-        domainsConfirmedToWork.map((d) => d.split('-')[0]).includes(domain) &&
-        storeInLocalStorage(
-          StorageKeys.DOMAINS_CONFIRMED_TO_WORK,
-          domainsConfirmedToWork.filter((d) => d.split('-')[0] !== domain)
-        );
+        domainsConfirmedToWork?.map((d) => d.split('-')[0]).includes(domain) &&
+          storeInLocalStorage(
+            StorageKeys.DOMAINS_CONFIRMED_TO_WORK,
+            domainsConfirmedToWork.filter((d) => d.split('-')[0] !== domain)
+          );
 
       storeInLocalStorage(StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK, [
         ...domainsConfirmedToNotWork,
@@ -210,7 +198,7 @@ const Popup: React.FC<PopupProps> = ({
 
   useEffect(() => {
     setToken(accessToken);
-    setConfig(accessToken != '' ? true : false);
+    setConfig(accessToken !== '');
   }, [accessToken]);
 
   useEffect(() => {
@@ -241,7 +229,7 @@ const Popup: React.FC<PopupProps> = ({
         });
       }
       
-      setHasWittyTeams(authResponse.plan === 'witty_teams' ? true : false);
+      setHasWittyTeams(authResponse.plan === 'witty_teams');
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
       authResponse.organization_name &&
         setTeamName(authResponse.organization_name);
@@ -272,7 +260,6 @@ const Popup: React.FC<PopupProps> = ({
     // }
   }, [authErrorResponse]);
 
-
   const setWittyIcon = (enabled: boolean) => {
     enabled ? removeBadge() : addInactiveBadge();
   };
@@ -293,8 +280,8 @@ const Popup: React.FC<PopupProps> = ({
 
     const newDomainsDisabledLocally = (
       isEnabled
-        ? initialDomainsDisabledLocally.filter((item: string) => domains.includes(item)) //remove domain and iframe domains
-        : [...initialDomainsDisabledLocally, ...domains].filter((item, index, array) => array.indexOf(item) === index) //add domain and iframe domains, make sure unique
+        ? initialDomainsDisabledLocally.filter((item) => !domains.includes(item)) //remove domain and iFrame domains
+        : [...initialDomainsDisabledLocally, ...domains].filter((item, index, array) => array.indexOf(item) === index) // Add domain and iFrame domains, make sure unique
     ) as string[];
 
     storeInLocalStorage(StorageKeys.DOMAINS, newDomainsDisabledLocally);
@@ -405,13 +392,11 @@ const Popup: React.FC<PopupProps> = ({
               locked={isLocked}
             />
             {enabled.enabled && !showSurvey && (
-              <>
-                <Toggle
-                  on={casing}
-                  handleToggle={handleCasingToggle}
-                  label={t('caseSensitivity')}
-                />
-              </>
+              <Toggle
+                on={casing}
+                handleToggle={handleCasingToggle}
+                label={t('caseSensitivity')}
+              />
             )}
             <div className='witty-works-ext-separator' />
           </>
