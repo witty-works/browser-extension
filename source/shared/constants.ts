@@ -82,10 +82,6 @@ export const BaseUrls: IBaseUrls = {
     api: 'https://dev-54ta5gq-jyeciedibdzvq.fr-4.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
   },
-  PlatformShDev: {
-    api: 'https://dev-54ta5gq-2ycn7tlsdvd2o.fr-4.platformsh.site/',
-    dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
-  },
   Local: {
     api: 'http://127.0.0.1:8000/',
     dashboard: 'https://dashboard.lndo.site/',

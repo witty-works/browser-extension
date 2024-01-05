@@ -72,7 +72,6 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
           elementStylesFontArray = elementStylesFont.split(' ');
         }
         const extractedTransform = svgRectElement.getAttribute('transform');
-        console.log('extractedTransform', extractedTransform)
 
         let scaleX = 1;
         if (extractedTransform) {

@@ -293,13 +293,6 @@ const storageChange = (changes: { [key: string]: any }) => {
         removeBadge();
       }
     }
-    if (key === StorageKeys.DOMAINS) {
-      changes[key].newValue.list?.includes(
-        getDomainWithoutSubdomain(window.location.hostname)
-      )
-        ? addInactiveBadge()
-        : removeBadge();
-    }
     if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
       changes[key].newValue === 0
         ? removeBadge()
