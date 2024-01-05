@@ -1392,6 +1392,7 @@ const Input: React.FC<{
   };
 
   const updateTextWithAlternative = (alternative: string, category: string) => {
+    alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
     const node = popoverData?.node as Node;
     const alert = selectedAlert as IAlert;
 
