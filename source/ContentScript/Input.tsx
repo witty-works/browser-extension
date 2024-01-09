@@ -493,9 +493,6 @@ const Input: React.FC<{
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
 
-    console.log('prevCheckedNodesRef.current', prevCheckedNodesRef.current)
-    console.log('nextTextDividedByNodes', nextTextDividedByNodes)
-
     const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
   if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes)) {
     return;
