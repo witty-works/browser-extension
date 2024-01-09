@@ -52,6 +52,7 @@ import {
   getNodesWithinMaxCharLength,
   getScrollParent,
   getTextDividedByNodes,
+  shouldReturnEarly,
   updateConfig,
 } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
@@ -416,7 +417,8 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    handleKeyupEvent(); 
+    const event = new KeyboardEvent('keyup');
+    handleKeyupEvent(event);
 
    if (isNotion()) {
       document
@@ -473,7 +475,7 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = debounce((gDocs?: boolean) => {
+  const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent, gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     !isGoogleDocs() &&
@@ -494,19 +496,10 @@ const Input: React.FC<{
     console.log('prevCheckedNodesRef.current', prevCheckedNodesRef.current)
     console.log('nextTextDividedByNodes', nextTextDividedByNodes)
 
-  //   if ( //if previously checked text is the same as current return
-  //   nextTextDividedByNodes &&  
-  //   prevCheckedNodesRef.current &&
-  //   prevCheckedNodesRef.current.length > 0 &&
-  //   prevCheckedNodesRef.current.length === nextTextDividedByNodes.length &&
-  //   prevCheckedNodesRef.current.every(
-  //     (prevCheckedNode: INodes, index: number) =>
-  //       prevCheckedNode?.node === nextTextDividedByNodes[index].textContent
-  //   )
-  // ) {
-  //   console.log('prev checked return')
-  //   return;
-  // }
+    const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
+  if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes)) {
+    return;
+  }
 
     const textDividedByNodesTextContent = isTextArea(element)
       ? nextText
@@ -737,7 +730,8 @@ const Input: React.FC<{
   const updateCloneData = (newClone: HTMLDivElement) => {
     setClone(newClone);
     if (isGoogleDocs()) {
-      handleKeyupEvent();
+      const event = new KeyboardEvent('keyup');
+      handleKeyupEvent(event);
     }
   };
 
