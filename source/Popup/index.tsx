@@ -10,7 +10,7 @@ import {
   renderUserNotLoggedIn,
 } from './PopupUtils';
 
-const renderPopup = async (isLocked: boolean = false) => {
+const renderPopup = async () => {
   browser.storage.local
     .get(null)
     .then((result) => {
@@ -18,54 +18,20 @@ const renderPopup = async (isLocked: boolean = false) => {
         renderUserNotLoggedIn();
         return;
       }
+      
+      const appId = result[StorageKeys.APP_ID];
+      let isLocked = false;
       let domain = getDomainWithoutSubdomain(window.location.hostname);
-      if ((!window.location.protocol.includes('http') &&
-        !window.location.protocol.includes('https')) || 
-        (!domain)
-      ) {
+      if ((!window.location.protocol.includes('http') && !window.location.protocol.includes('https')) || (!domain)) {
         domain = '';
       }
 
       if (
-        (result[StorageKeys.ORGANIZATION_DOMAINS] &&
-          result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
-          result[StorageKeys.ORGANIZATION_DOMAINS].list &&
-          result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
-        (result[StorageKeys.ORGANIZATION_DOMAINS] &&
-          result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
-          result[StorageKeys.ORGANIZATION_DOMAINS].list &&
-          !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain))
+        (result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'deny' && result[StorageKeys.ORGANIZATION_DOMAINS]?.list?.includes(domain)) ||
+        (result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'allow' && !result[StorageKeys.ORGANIZATION_DOMAINS]?.list.includes(domain))
       ) {
         isLocked = true;
       }
-
-      const domainsConfrimedToWork = result[
-        StorageKeys.DOMAINS_CONFIRMED_TO_WORK
-      ]
-        ? result[StorageKeys.DOMAINS_CONFIRMED_TO_WORK].filter((d: string) => {
-            const domainTimestamp = d.split('-')[1];
-            const domainDate = new Date(parseInt(domainTimestamp));
-            const threeMonthsAgo = new Date();
-            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-            return domainDate > threeMonthsAgo;
-          })
-        : [];
-
-      const domainsConfirmedToNotWork = result[
-        StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK
-      ]
-        ? result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK].filter(
-            (d: string) => {
-              const domainTimestamp = d.split('-')[1];
-              const domainDate = new Date(parseInt(domainTimestamp));
-              const threeMonthsAgo = new Date();
-              threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-              return domainDate > threeMonthsAgo;
-            }
-          )
-        : [];
-
-      const appId = result[StorageKeys.APP_ID];
 
       browser.tabs
         .query({ active: true, currentWindow: true })
@@ -73,51 +39,9 @@ const renderPopup = async (isLocked: boolean = false) => {
           if (tabs.length != 0 && tabs[0].url) {
             domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
             if (!domain) return;
-            const domainIsConfirmedByUser =
-              domainsConfirmedToNotWork
-                .map((d: string) => {
-                  return d.split('-')[0];
-                })
-                .includes(domain) ||
-              domainsConfrimedToWork
-                .map((d: string) => {
-                  return d.split('-')[0];
-                })
-                .includes(domain);
-            const domainOnActiveOrDisabledList =
-              defaultConfig.ACTIVE_SITES.includes(domain) ||
-              defaultConfig.DISABLED_SITES.includes(domain);
-            renderPopupChrome(
-              appId,
-              domain,
-              new URL(tabs[0].url).href,
-              domainOnActiveOrDisabledList,
-              domainIsConfirmedByUser,
-              domainsConfirmedToNotWork,
-              domainsConfrimedToWork,
-              result
-            );
-          } else if (
-            defaultConfig.CHROME_AND_FIREFOX_SITES.includes(
-              window.location.protocol
-            )
-          ) {
-            const domainOnActiveOrDisabledList =
-              defaultConfig.ACTIVE_SITES.includes(domain) ||
-              defaultConfig.DISABLED_SITES.includes(domain);
-            const domainIsConfirmedByUser =
-              domainsConfirmedToNotWork.includes(domain) ||
-              domainsConfrimedToWork.includes(domain);
-
-            renderMainPopup(
-              appId,
-              domain,
-              domainOnActiveOrDisabledList,
-              domainIsConfirmedByUser,
-              domainsConfirmedToNotWork,
-              domainsConfrimedToWork,
-              isLocked
-            );
+            renderPopupChrome(appId, domain, new URL(tabs[0].url).href, isLocked);
+          } else if (defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)) {
+            renderMainPopup(appId, domain, isLocked);
           } else {
             renderDomainDeactivated(appId, domain);
           }
@@ -139,18 +63,7 @@ const storageChange = (changes: any) => {
         !changes[item].newValue && renderUserNotLoggedIn();
         break;
       case StorageKeys.ORGANIZATION_DOMAINS:
-        if (
-          (changes[item].newValue.type === 'deny' &&
-            changes[item].newValue.list?.includes(
-              getDomainWithoutSubdomain(window.location.hostname)
-            )) ||
-          (changes[item].newValue.type === 'allow' &&
-            !changes[item].newValue.list?.includes(
-              getDomainWithoutSubdomain(window.location.hostname)
-            ))
-        ) {
-          renderPopup(true);
-        }
+        renderPopup();
         break;
     }
   }

@@ -181,25 +181,13 @@ export const updateLabelChrome = (domain: string) => {
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-    const isDomainConfirmedNotToWork = (domains: string[]) => {
-      if (!domains) return false;
-
-      return domains.some((domainWithTimestamp) => {
-        const [currentDomain, timestamp] = domainWithTimestamp.split('-');
-        const domainDate = new Date(parseInt(timestamp));
-        return currentDomain === domain && domainDate > threeMonthsAgo;
-      });
-    };
-
-    const domainConfirmedToNotWork = isDomainConfirmedNotToWork(result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK]);
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      if (!tabs[0] || !tabs[0].url) return;
-
+      if (!tabs[0]?.url) return;
+      
       const domainOnDisabledSitesList = defaultConfig.DISABLED_SITES.includes(domain) || isMicrosoftOnline(new URL(tabs[0].url).href);
-
       const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
       
-      if (isLocked || isDisabled || domainConfirmedToNotWork || domainOnDisabledSitesList) {
+      if (isLocked || isDisabled || domainOnDisabledSitesList) {
         addInactiveBadge();
       } else if (numberOfNotifications > 0) {
         addNotificationBadge(numberOfNotifications);
