@@ -733,6 +733,7 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
+    event?.stopPropagation();
     popoverData !== null && (previousPopoverDataRef.current = popoverData);
     setPopoverData(null);
     setSelectedAlert(null);
