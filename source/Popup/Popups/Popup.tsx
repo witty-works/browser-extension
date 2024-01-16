@@ -46,72 +46,57 @@ import { updateConfig } from '../../ContentScript/utils';
 interface PopupProps {
   appId: string;
   domain: string;
-  domainOnActiveOrDisabledList: boolean;
-  domainIsConfirmedByUser: boolean;
-  domainsConfirmedToNotWork: string[];
-  domainsConfirmedToWork: string[];
   isLocked: boolean;
 }
 
 const Popup: React.FC<PopupProps> = ({
   appId,
   domain,
-  domainOnActiveOrDisabledList,
-  domainIsConfirmedByUser,
-  domainsConfirmedToNotWork,
-  domainsConfirmedToWork,
   isLocked,
 }: PopupProps) => {
   if (TESTING) domain = 'platformsh.site';
   const { t } = useTranslation([namespaces.pages.popup]);
-  const [enabled, setEnabled] = useState<EnableWittyToggle>({
-    enabled: true,
-    updateDashboard: false,
-  } as EnableWittyToggle);
-  const [initialDomainsDisabledLocally, setInitialDomainsDisabledLocally] = useState<
-  string[]
->([]);
-  const [orthography, setOrthography] = useState<ConfigProperty>(
-    defaultConfig.ORTHOGRAPHY
-  );
-  const [updatingDashboardFailed, setUpdatingDashboardFailed] =
-    useState<boolean>(false);
-  const [casing, setCasing] = useState<boolean>(true);
-  const [casingSites, setCasingSites] = useState<string[]>(
-    defaultConfig.CASING_SITES
-  );
-  const [showSurvey, setShowSurvey] = useState<boolean>(false);
-  const [surveyResponse, setSurveyResponse] = useState<string>('');
-  const [numberOfNotifications, setNumberOfNotifications] =
-    useState<number>(-1);
-  const [accessToken, setAccessToken] = useState<string>('');
-  const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
-  const [domainIsSetAsNotWorking, setDomainIsSetToNotWorking] =
-    useState<boolean>(
-      domainsConfirmedToNotWork
-        .map((d: string) => d.split('-')[0])
-        .includes(domain)
-    );
-  const log = useLog('Popup');
   const analytics = useAnalytics();
-  const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
+  const domainExists = domain && domain.length > 0;
+
+  const log = useLog('Popup');
   const onStorageError = (error: unknown) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
   };
+
+  const [enabled, setEnabled] = useState<EnableWittyToggle>({
+    enabled: true,
+    updateDashboard: false,
+  } as EnableWittyToggle);
+  const [initialDomainsDisabledLocally, setInitialDomainsDisabledLocally] = useState<string[]>([]);
+  const [orthography, setOrthography] = useState<ConfigProperty>(defaultConfig.ORTHOGRAPHY);
+  const [casing, setCasing] = useState<boolean>(true);
+  const [casingSites, setCasingSites] = useState<string[]>(defaultConfig.CASING_SITES);
+  const [updatingDashboardFailed, setUpdatingDashboardFailed] = useState<boolean>(false);
+
+  const [showSurvey, setShowSurvey] = useState<boolean>(false);
+  const [domainsWhereSurveyHasBeenAnswered, setDomainsWhereSurveyHasBeenAnswered] =
+    useState<string[]>([]);
+  const [surveyResponse, setSurveyResponse] = useState<string>('');
+  const [numberOfNotifications, setNumberOfNotifications] = useState<number>(-1);
+  const [accessToken, setAccessToken] = useState<string>('');
+  const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
+  const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
   const [teamName, setTeamName] = useState<string>('');
-  const domainExists = domain && domain.length > 0;
   const [iFrameDomains, setIFrameDomains] = useState<string[]>([]);
 
   useEffect(() => {
-    !domainOnActiveOrDisabledList && !domainIsConfirmedByUser && domainExists
-      ? setShowSurvey(true)
-      : setShowSurvey(false);
-
     browser.storage.local
       .get(null)
       .then((result) => {
+        domainExists && setDomainsWhereSurveyHasBeenAnswered(
+          result[StorageKeys.DOMAINS_WHERE_SURVEY_HAS_BEEN_ANSWERED]
+        );
+        domainExists && setShowSurvey(
+          !result[StorageKeys.DOMAINS_WHERE_SURVEY_HAS_BEEN_ANSWERED]?.includes(domain)
+        );
         setBaseUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
@@ -126,7 +111,6 @@ const Popup: React.FC<PopupProps> = ({
         setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS]);
         setEnabled({
           enabled: 
-            !domainsConfirmedToNotWork.map((d: string) => { return d.split('-')[0] }).includes(domain) &&
             !defaultConfig.DISABLED_SITES.includes(domain) &&
             result[StorageKeys.ACCESS_TOKEN] &&
             !result[StorageKeys.DOMAINS].includes(domain) &&
@@ -149,38 +133,10 @@ const Popup: React.FC<PopupProps> = ({
       .catch(onStorageError);
   }, []);
 
-  useEffect(() => {
-    const domainWithTimeStamp = `${domain}-${new Date().getTime()}`;
-
-    if (surveyResponse == 'yes') {
-      //remove it from the 'not working' list before adding it to the 'working' list
-        domainsConfirmedToNotWork?.map((d) => d.split('-')[0]).includes(domain) &&
-          storeInLocalStorage(
-            StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK,
-            domainsConfirmedToNotWork.filter((d) => d.split('-')[0] !== domain)
-          );
-
-      storeInLocalStorage(StorageKeys.DOMAINS_CONFIRMED_TO_WORK, [
-        ...domainsConfirmedToWork,
-        domainWithTimeStamp,
-      ]);
-    } else if (surveyResponse == 'no') {
-        domainsConfirmedToWork?.map((d) => d.split('-')[0]).includes(domain) &&
-          storeInLocalStorage(
-            StorageKeys.DOMAINS_CONFIRMED_TO_WORK,
-            domainsConfirmedToWork.filter((d) => d.split('-')[0] !== domain)
-          );
-
-      storeInLocalStorage(StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK, [
-        ...domainsConfirmedToNotWork,
-        domainWithTimeStamp,
-      ]);
-    }
-  }, [surveyResponse]);
 
   useEffect(() => {
     storeInLocalStorage(StorageKeys.CASING_SITES, casingSites);
-  }, [casingSites.length]);
+  }, [casingSites]);
 
   useEffect(() => {
     if(!domain) return;
@@ -204,35 +160,21 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     if (authResponse) {
       updateConfig(authResponse);
-      if (
-        (authResponse.domains &&
-        authResponse.domains.type === 'deny' &&
-        authResponse.domains.list.includes(domain)) ||
-        (authResponse.domains &&
-          authResponse.domains.type === 'allow' &&
-          !authResponse.domains.list.includes(domain)) ||
-        (authResponse.organization_domains &&
-          authResponse.organization_domains.type === 'deny' &&
-          authResponse.organization_domains.list.includes(domain)) ||
-        (authResponse.organization_domains &&
-          authResponse.organization_domains.type === 'allow' &&
-          !authResponse.organization_domains.list.includes(domain))
-      ) {
-        setEnabled({
-          enabled: false,
-          updateDashboard: false,
-        });
-      } else {
-        setEnabled({
-          enabled: true,
-          updateDashboard: false,
-        });
-      }
-      
+      const domainAllowed =
+        (authResponse.domains?.type === 'deny' && authResponse.domains.list.includes(domain)) ||
+        (authResponse.domains?.type === 'allow' && !authResponse.domains.list.includes(domain)) ||
+        (authResponse.organization_domains?.type === 'deny' && authResponse.organization_domains.list.includes(domain)) ||
+        (authResponse.organization_domains?.type === 'allow' && !authResponse.organization_domains.list.includes(domain));
+  
+      setEnabled({
+        enabled: !domainAllowed,
+        updateDashboard: false,
+      });
+    
       setHasWittyTeams(authResponse.plan === 'witty_teams');
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
-      authResponse.organization_name &&
-        setTeamName(authResponse.organization_name);
+      authResponse.organization_name && setTeamName(authResponse.organization_name);
+
       for (let key in authResponse.organization_config) {
         switch (key) {
           case 'orthography':
@@ -264,18 +206,12 @@ const Popup: React.FC<PopupProps> = ({
     enabled ? removeBadge() : addInactiveBadge();
   };
 
-  const handleEnableToggle = () => {
-    const isEnabled = !enabled.enabled;
+  const handleEnable = (surveyResponse?: string) => {
+    const isEnabled = surveyResponse === 'yes' ? true 
+      : surveyResponse === 'no' ? false 
+      : !enabled.enabled;
     if (isLocked) return;
 
-    if (domainIsSetAsNotWorking && isEnabled) {
-      setDomainIsSetToNotWorking(false);
-      setShowSurvey(true);
-      storeInLocalStorage(
-        StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK,
-        domainsConfirmedToNotWork.filter((d) => d.split('-')[0] !== domain)
-      );
-    }
     const domains = (iFrameDomains ? [domain, ...iFrameDomains] : [domain]).filter((item, index, array) => array.indexOf(item) === index);
 
     const newDomainsDisabledLocally = (
@@ -301,7 +237,7 @@ const Popup: React.FC<PopupProps> = ({
       );
   };
 
-  function logOut() {
+  const logOut = () => {
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
     setToken('');
@@ -309,83 +245,65 @@ const Popup: React.FC<PopupProps> = ({
     addLoginBadge();
   }
 
-  function handleClickSurveyResponseYes() {
-    setSurveyResponse('yes');
+  function handleClickSurveyResponse(clickedAlternative: string, eventName: string) {
+    setSurveyResponse(clickedAlternative);
+    handleEnable(clickedAlternative);
     setShowSurvey(false);
-    analytics.urlLog(domain, 'wittyWorksAsExpected');
+    storeInLocalStorage(
+      StorageKeys.DOMAINS_WHERE_SURVEY_HAS_BEEN_ANSWERED,
+      domainsWhereSurveyHasBeenAnswered.concat(domain)
+    );
+    analytics.urlLog(domain, eventName);
   }
 
-  function handleClickSurveyResponseNo() {
-    setSurveyResponse('no');
-    setEnabled({ enabled: false, updateDashboard: false });
-    setSurveyResponse('');
-    setDomainIsSetToNotWorking(true);
-    analytics.urlLog(domain, 'wittyDoesNotWorkAsExpected');
-  }
+  const handleClickSurveyResponseYes = () => handleClickSurveyResponse('yes', 'wittyWorksAsExpected')
+  const handleClickSurveyResponseNo = () => handleClickSurveyResponse('no', 'wittyDoesNotWorkAsExpected')
 
-  function handleClickDashboard() {
+  const handleClickDashboard = () => {
     analytics.dashboardLog('button_popup');
     window.open(getBaseUrls().dashboard + 'editor', '_blank');
   }
 
   const handleDomainToUpdate = (domain: any) => {
-    browser.storage.local.get().then((result) => {
-      if (
-        result[StorageKeys.ACCESS_TOKEN] 
-      ) {
-        fetch(
-          createUrl(getBaseUrls().dashboard,
-            `api/user/language/domains?` +
-              new URLSearchParams({
-                domain: domain.domain,
-              })
-          ),
-          {
-            method: domain.enabled ? 'DELETE' : 'PUT',
-            headers: {
-              Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
-            },
-          }
-        ).then(async (response) => {
-          if (response.status == 403) {
-            setUpdatingDashboardFailed(true);
-            setEnabled({ enabled: !enabled.enabled, updateDashboard: false });
-            setTimeout(() => {
-              setUpdatingDashboardFailed(false);
-            }, 3000);
-            getNewAccessToken();
-          }
-        });
+    fetch(
+      createUrl(getBaseUrls().dashboard, `api/user/language/domains?` + new URLSearchParams({ domain: domain.domain }) ),
+      {
+        method: domain.enabled ? 'DELETE' : 'PUT',
+         headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       }
-    }).catch((error) => {
-      sendErrorToSentry(error);
+    ).then(async (response) => {
+      if (surveyResponse === 'no') {
+        window.open('https://www.witty.works/report-a-bug', '_blank', 'noopener');
+      }
+      if (response.status == 403) {
+        setUpdatingDashboardFailed(true);
+        setEnabled({ enabled: !enabled.enabled, updateDashboard: false });
+        setTimeout(() => {
+          setUpdatingDashboardFailed(false);
+        }, 3000);
+        getNewAccessToken();
+      }
     });
   };
 
   return (
     <>
-      {numberOfNotifications > 0 ? (
-        <PopupHeaderNotification />
-      ) : (
-        <PopupHeader appId={appId} />
-      )}
+      {numberOfNotifications > 0 ? <PopupHeaderNotification /> : <PopupHeader appId={appId} />}
       <div className='witty-works-ext-section'>
         {domainExists && ( 
           <>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
               <div className='witty-works-ext-lato-popup-title'>
-                {domainIsSetAsNotWorking
-                  ? t('websiteSettingsDeactivated', { domain: domain })
-                  : t('websiteSettings', { domain: domain })}
+                {t('websiteSettings', { domain: domain })}
               </div>
             </div>
             <Toggle
               on={enabled.enabled}
-              handleToggle={handleEnableToggle}
+              handleToggle={handleEnable}
               label={
-                domainIsSetAsNotWorking
-                  ? t('tryAgainOnThisWebsite')
-                  : updatingDashboardFailed
+                updatingDashboardFailed
                   ? t('enableWittyFailed')
                   : t('enableWitty')
               }
@@ -424,20 +342,15 @@ const Popup: React.FC<PopupProps> = ({
               locked={orthography.status === 'force' && orthography.value == true}
               userIsLoggedIn={userIsLoggedIn}
             />
-       
-            {
-              <div className='witty-works-ext-left'>
-                <div
-                  className='witty-works-ext-button witty-works-ext-primary-button-red'
-                  onClick={handleClickDashboard}
-                >
-                  {t('goToDashboard')}
-                </div>
-              </div>
-            }
+            <div className='witty-works-ext-left'>
+              <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={handleClickDashboard}>
+                {t('goToDashboard')}
+              </button>
+            </div>       
           </div>
         )}
       </div>
+
       {showSurvey && enabled.enabled && (
         <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
           <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
@@ -448,38 +361,20 @@ const Popup: React.FC<PopupProps> = ({
               {t('doesWittyWork')}
             </div>
           </div>
-          {surveyResponse === '' && (
-            <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top'>
-              {t('doesWittyWorkExplanation')}
-            </div>
-          )}
-          {!surveyResponse && (
-            <div className='witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
-              <div
-                className='witty-works-ext-button witty-works-ext-primary-button-red'
-                onClick={handleClickSurveyResponseYes}
-              >
-                {t('surveyButtonYes')}
-              </div>
-              <div
-                className='witty-works-ext-button witty-works-ext-secondary-button-red'
-                onClick={handleClickSurveyResponseNo}
-              >
-                {t('surveyButtonNo')}
-              </div>
-            </div>
-          )}
+          <div className='witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
+            <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={handleClickSurveyResponseYes}>
+              {t('surveyButtonYes')}
+            </button>
+            <button className='witty-works-ext-button witty-works-ext-secondary-button-red' onClick={handleClickSurveyResponseNo}>
+              {t('surveyButtonNo')}
+            </button>
+          </div>
         </div>
       )}
 
       {teamName && (
         <div className='witty-works-ext-section'>
-          <div
-            className='witty-works-ext-lato-popup-text'
-            style={{
-              marginTop: hasWittyTeams ? '-0.5em' : 0,
-            }}
-          >
+          <div className='witty-works-ext-lato-popup-text' style={{ marginTop: hasWittyTeams ? '-0.5em' : 0 }}>
             {t('loggedInTo') + ' "' + teamName + '"'}
           </div>
         </div>
@@ -491,12 +386,9 @@ const Popup: React.FC<PopupProps> = ({
           <ApiSelector />
           <DelaySelector />
           <div className='witty-works-ext-left'>
-            <div
-              className='witty-works-ext-button witty-works-ext-primary-button-red'
-              onClick={logOut}
-            >
+            <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={logOut}>
               {t('signOut')}
-            </div>
+            </button>
           </div>
         </div>
       )}

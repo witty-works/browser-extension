@@ -365,7 +365,6 @@ const ContentScriptApp: React.FC = () => {
 
       const disabledDomains = [
         ...(result[StorageKeys.DOMAINS]?.type === 'deny' && result[StorageKeys.DOMAINS]?.list || []),
-        ...(result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK] || []),
         ...(result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'deny' && result[StorageKeys.ORGANIZATION_DOMAINS]?.list || []), //could be something wrong here, what if its an allow list? 
       ];
       const domain = getDomainWithoutSubdomain(window.location.hostname);
