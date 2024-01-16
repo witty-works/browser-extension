@@ -101,14 +101,6 @@ const initialize = () => {
             }
           }, 300);
           break;
-        case StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK:
-          customRender(
-              changes[item].newValue
-                  .map((d: string) => d.split('-')[0])
-                  .includes(domain),
-              scriptId
-          );
-          break;
       }
     }
   };

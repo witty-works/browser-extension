@@ -37,8 +37,7 @@ export enum StorageKeys {
 
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 
-  DOMAINS_CONFIRMED_TO_WORK = 'domainsConfirmedToWork',
-  DOMAINS_CONFIRMED_TO_NOT_WORK = 'domainsConfirmedNotToWork',
+  DOMAINS_WHERE_SURVEY_HAS_BEEN_ANSWERED = 'domainsWhereSurveyHasBeenAnswered',
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
 
   REDIRECT_URL_LOGIN = 'redirectUrlLogin',
