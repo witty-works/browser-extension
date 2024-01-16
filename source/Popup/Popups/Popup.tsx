@@ -275,7 +275,7 @@ const Popup: React.FC<PopupProps> = ({
       }
     ).then(async (response) => {
       if (surveyResponse === 'no') {
-        window.open('https://www.witty.works/report-a-bug','_blank');
+        window.open('https://www.witty.works/report-a-bug', '_blank', 'noopener');
       }
       if (response.status == 403) {
         setUpdatingDashboardFailed(true);
