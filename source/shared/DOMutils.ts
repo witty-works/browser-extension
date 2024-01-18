@@ -22,6 +22,10 @@ export const isGmail = (): boolean => {
   return window.location.hostname === 'mail.google.com';
 };
 
+export const isGoogleSearch = (): boolean => {
+  return window.location.hostname === 'www.google.com';
+}
+
 export const isHubspot = (): boolean => {
   return window.location.hostname.includes('hubspot');
 };
@@ -33,6 +37,10 @@ export const isMicrosoftOnline = (windowUrl: string = window?.location.href ?? '
 
 export const isOffice = (): boolean => {
   return window.location.hostname.includes('office.com');
+}
+
+export const isOutlook = (): boolean => {
+  return window.location.hostname.includes('outlook.office365.com');
 }
 
 export const isWittyEditor = (): boolean => {
