@@ -29,7 +29,8 @@ import {
   isNotion,
   isGoogleSheets,
   isWittyEditor,
-  isOffice
+  isOffice,
+  isGoogleSearch
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -81,6 +82,8 @@ const ContentScriptApp: React.FC = () => {
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
+    if (isGoogleSearch()) return;
+
     browser.storage.local
       .get(null)
       .then((result) => {
