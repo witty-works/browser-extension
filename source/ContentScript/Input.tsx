@@ -28,6 +28,7 @@ import {
   isGoogleDocs,
   isLinkedin,
   isNotion,
+  isOutlook,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -1497,6 +1498,15 @@ const Input: React.FC<{
 
         resetPopover();
       } else {
+        if (isOutlook()) { //dispatch KeyboardEvent to enable undo/redo outlook
+          const deleteSelectedText = new KeyboardEvent('keydown', {
+            key: 'Delete',
+            bubbles: true,
+            cancelable: true,
+          });
+          node.dispatchEvent(deleteSelectedText);
+        }
+
         getActiveDocument().execCommand('insertText', false, alternative);
       }
     }
