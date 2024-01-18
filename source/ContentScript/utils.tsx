@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
 import { isGoogleDocs, isInputText, isMicrosoftOnlineWord, isTextArea } from '../shared/DOMutils';
-import { CustomInputElement, IAuthResponse } from '../shared/types';
+import { CustomInputElement, IAuthResponse, INodes } from '../shared/types';
 import {
   getDomainWithoutSubdomain,
   storeInLocalStorage,
@@ -249,9 +249,6 @@ export const makeAuthRequest = () => {
             updateConfig(json);
           }
         })
-        .catch((error) => {
-          sendErrorToSentry(error);
-        });
     }
   }).catch((error) => {
     sendErrorToSentry(error);
@@ -273,3 +270,14 @@ export const getScrollParent = (
     );
   }
 };
+
+const areNodesEqual = (node1: INodes, node2: Node): boolean => {
+  return node1.node === node2.textContent;
+}
+
+export const shouldReturnEarly = (prevNodes: INodes[] | null, currentNodes: Node[] | null): boolean => {
+  if (!prevNodes || !currentNodes || prevNodes.length !== currentNodes.length) {
+    return false;
+  }
+  return prevNodes.every((node, index) => areNodesEqual(node, currentNodes[index]));
+}

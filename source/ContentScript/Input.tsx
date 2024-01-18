@@ -4,7 +4,7 @@ import { browser } from 'webextension-polyfill-ts';
 import * as Sentry from '@sentry/react';
 import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
-import { WTags, StorageKeys } from '../shared/constants';
+import { WTags, StorageKeys, DEV_ENV } from '../shared/constants';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 // import Notification from '../Notifications/Notification'; //Temporarily removed until we have a better solution
@@ -29,6 +29,7 @@ import {
   isLinkedin,
   isNotion,
   isMicrosoftOnlineWord,
+  isOutlook,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -53,6 +54,7 @@ import {
   getNodesWithinMaxCharLength,
   getScrollParent,
   getTextDividedByNodes,
+  shouldReturnEarly,
   updateConfig,
 } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
@@ -102,6 +104,7 @@ const Input: React.FC<{
     useStateRef<number>(-1);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
   const [popoverData, setPopoverData] = useState<PopoverData | null>(null);
+  const [, , previousPopoverDataRef] = useStateRef<PopoverData | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
@@ -416,7 +419,8 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    handleKeyupEvent(); 
+    const event = new KeyboardEvent('keyup');
+    handleKeyupEvent(event);
 
    if (isNotion()) {
       document
@@ -465,7 +469,8 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = () => {
-    isMicrosoftOnlineWord(window.location.href) && handleKeyupEvent();
+    const event = new KeyboardEvent('keyup');
+    isMicrosoftOnlineWord(window.location.href) && handleKeyupEvent(event);
     setActiveIcon('active');
   };
 
@@ -474,7 +479,7 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = debounce((gDocs?: boolean) => {
+  const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent, gDocs?: boolean) => {
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     !isGoogleDocs() &&
@@ -492,16 +497,8 @@ const Input: React.FC<{
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
 
-    if ( //if previously checked text is the same as current return
-    nextTextDividedByNodes &&  
-    prevCheckedNodesRef.current &&
-    prevCheckedNodesRef.current.length > 0 &&
-    prevCheckedNodesRef.current.length === nextTextDividedByNodes.length &&
-    prevCheckedNodesRef.current.every(
-      (prevCheckedNode: INodes, index: number) =>
-        prevCheckedNode?.node === nextTextDividedByNodes[index].textContent
-    )
-  ) {
+    const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
+  if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes)) {
     return;
   }
 
@@ -625,12 +622,14 @@ const Input: React.FC<{
     let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
-      userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');
-      const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
-      newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
+      // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached'); //TEMP removed to save events
+      if (nodes[0] && typeof nodes[0] === 'string') {
+        const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
+        newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
+      }
     } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
-      userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');
+      // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');//TEMP removed to save events
     } else {
       isTextAreaCheck && (newTextToCheck = nodes[0]); 
       totalMaxCharLengthReachedRef.current = false;
@@ -742,11 +741,14 @@ const Input: React.FC<{
   const updateCloneData = (newClone: HTMLDivElement) => {
     setClone(newClone);
     if (isGoogleDocs()) {
-      handleKeyupEvent();
+      const event = new KeyboardEvent('keyup');
+      handleKeyupEvent(event);
     }
   };
 
   const resetPopover = () => {
+    event?.stopPropagation();
+    popoverData !== null && (previousPopoverDataRef.current = popoverData);
     setPopoverData(null);
     setSelectedAlert(null);
     setSelectedAlertIndex(-1);
@@ -1046,10 +1048,12 @@ const Input: React.FC<{
   }, [checkEndpointResponse]);
 
   useEffect(() => {
+
     if (alerts.length === 0) {
       setRemoveHighlights(true);
       setForceHighlightUpdate(!forceHighlightUpdate);
-    } else {
+      return;
+    } 
       let alertsWithoutIgnoredCategories = alerts;
 
       //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
@@ -1196,14 +1200,13 @@ const Input: React.FC<{
       );
       setTotalAlerts(totalAlerts);
       setNodesWithAlerts(mergedNodesWithAlerts);
-      logNewCheckResponses(nodesWithAlertsRef.current);
+      isWittyPremiumUserRef.current && userIsSignedIn && DEV_ENV && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);//TEMP: only log check_highlights in dev_env
 
       prevCheckedNodesRef.current = [...prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
         const nodeIndex = nodesStorageRef.current.findIndex((node: INodes) => node.index === prevCheckedNode.index);
         return nodeIndex === -1;
       }), ...nodesStorageRef.current].sort((a: INodes, b: INodes) => a.index - b.index);
       nodesStorageRef.current = [];
-    }
   }, [
     alerts,
     ignoredTerms,
@@ -1212,53 +1215,51 @@ const Input: React.FC<{
     selectedAlertIndex,
   ]);
 
-  const logNewCheckResponses = (newNodes: INodeWithAlerts[]) => {
+  const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: INodes[]) => {
     let newResults;
-  
     if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
       newResults = checkEndpointResponse.results.filter((alert) => {
         return !unchangedAlertsTextarea.map((alert) => alert.startOffset).includes(alert.start);
       });  
     } else {
-      newResults = newNodes.filter((nodeWithAlerts) => {
-        return nodesStorageRef.current.map((node) => node.rawNode).includes(nodeWithAlerts.node);
-      }).map((nodeWithAlerts) => {
-        const mergedAlerts = nodeWithAlerts.alerts.reduce((mergedAlerts, alert) => {
-          return {
-            ...mergedAlerts,
-            ...alert.data,
-          };
-        }, {}); 
-        return mergedAlerts;
-      });
+      newResults = newNodesWithAlerts.reduce((acc: any, nodeWithAlerts: INodeWithAlerts) => {
+        const newAlerts = nodeWithAlerts.alerts.filter(() => {
+          const prevCheckedNode = previouslyCheckedNodesWithAlerts.find((prevCheckedNode: INodes) => {
+            return prevCheckedNode.node === nodeWithAlerts.node?.nodeValue;
+          });
+          return !prevCheckedNode || prevCheckedNode.index !== nodeWithAlerts.nodeIndex;
+        });
+        return [...acc, ...newAlerts];
+      }
+      , []);
     }
 
     if (newResults.length === 0) return;
 
-    const mergedCheckEndpointResponse = checkEndpointResponse ? {
+    const mergedCheckEndpointResponse = {
       ...checkEndpointResponse,
-      results: newResults as any,
-    } : undefined;
+      results: newResults,
+    };
   
-    if (mergedCheckEndpointResponse && userIsSignedIn && isWittyPremiumUserRef.current) {
-      const mergedCheckEndpointResponseWithoutOrthography = {
-        ...mergedCheckEndpointResponse,
-        results: mergedCheckEndpointResponse.results.filter((result: any) => {
-          return result.category !== 'orthography' && result.category?.length > 0 && result.subcategory?.length > 0;
-        }),
-      };
+    const mergedCheckEndpointResponseWithoutOrthography = {
+      ...mergedCheckEndpointResponse,
+      results: mergedCheckEndpointResponse.results.filter((result: any) => {
+        return result.data.category !== 'orthography';
+      }),
+    };
       
-      const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-      mergedCheckEndpointResponseWithoutOrthography.results.forEach((result: any) => {
-        analytics.checkResultLog(
-          result,
-          authResponse,
-          textContentLength,
-          'check_result',
-          checkLogEventIdRef.current,
-        )
-      });
-    } 
+    if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
+      
+    const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
+    mergedCheckEndpointResponseWithoutOrthography.results.forEach((result: any) => {
+      analytics.checkResultLog(
+        result,
+        authResponse,
+        textContentLength,
+        'check_highlights',
+        checkLogEventIdRef.current,
+      )
+    });
   };
   
   // useEffect(() => {
@@ -1401,6 +1402,7 @@ const Input: React.FC<{
   };
 
   const updateTextWithAlternative = (alternative: string, category: string) => {
+    alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
     const node = popoverData?.node as Node;
     const alert = selectedAlert as IAlert;
 
@@ -1419,21 +1421,16 @@ const Input: React.FC<{
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-
-      range.setStart(
-        node,
-        alternative == ' ' &&
-          category !== 'orthography' &&
-          alert.startOffset !== 0
-          ? alert.startOffset - 1
-          : alert.startOffset
-      );
-      range.setEnd(
-        node,
-        alternative == ' ' && category !== 'orthography'
-          ? alert.endOffset + 1
-          : alert.endOffset
-      );
+      const startOffset = alternative === ' ' && category !== 'orthography' && alert.startOffset !== 0
+        ? alert.startOffset - 1
+        : alert.startOffset;
+      const endOffset = alternative === ' ' && category !== 'orthography'
+        ? alert.endOffset + 1
+        : alert.endOffset;
+    
+    range.setStart(node, startOffset);
+    range.setEnd(node, endOffset);
+    
       const sel = getActiveDocument().getSelection();
       if (!sel) return;
       sel.removeAllRanges();
@@ -1514,6 +1511,15 @@ const Input: React.FC<{
 
         resetPopover();
       } else {
+        if (isOutlook()) { //dispatch KeyboardEvent to enable undo/redo outlook
+          const deleteSelectedText = new KeyboardEvent('keydown', {
+            key: 'Delete',
+            bubbles: true,
+            cancelable: true,
+          });
+          node.dispatchEvent(deleteSelectedText);
+        }
+
         getActiveDocument().execCommand('insertText', false, alternative);
       }
     }
@@ -1555,15 +1561,23 @@ const Input: React.FC<{
           sendErrorToSentry(error);
         });
     } else if (authErrorResponse?.status === 400 && window.top) {//400 means means min version not installed
-      const notificationWrapper = document.createElement('div');
-      notificationWrapper.id = 'ww-notification';
-      ReactDOM.render(
-        <Notification
-          notificationType={'min_version_not_installed'}
-          element={element}
-        />,
-        window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
-      );
+        try {      
+          const notificationWrapper = document.createElement('div');
+          notificationWrapper.id = 'ww-notification';
+      
+          ReactDOM.render(
+            <Notification
+              notificationType={'min_version_not_installed'}
+              element={element}
+            />,
+            window.top.document.body.insertBefore(
+              notificationWrapper,
+              window.top.document.body.firstChild
+            )
+          );
+        } catch (error) {
+          DEV_ENV && console.error("Error in renderNotification:", error);
+        }
     }
     log(
       `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
@@ -1628,6 +1642,7 @@ const Input: React.FC<{
           <HighlightPopoverUpgrade
             element={element}
             data={popoverData}
+            prevData={previousPopoverDataRef.current}
             hide={resetPopover}
             addIgnoredCategory={addIgnoredCategory}
           />
@@ -1640,6 +1655,7 @@ const Input: React.FC<{
           <HighlightPopover
             element={element}
             data={popoverData}
+            prevData={previousPopoverDataRef.current}
             hide={resetPopover}
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
@@ -1655,6 +1671,7 @@ const Input: React.FC<{
           <HighlightPopoverNotSignedIn
             element={element}
             data={popoverData}
+            prevData={previousPopoverDataRef.current}
             hide={resetPopover}
           />
         </Sentry.ErrorBoundary>,

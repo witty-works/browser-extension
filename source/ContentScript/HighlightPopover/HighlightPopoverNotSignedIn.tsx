@@ -37,12 +37,14 @@ export interface PopoverData {
 interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
+  prevData: PopoverData | null;
   hide: () => void;
 }
 
 const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   element,
   data,
+  prevData,
   hide,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
@@ -62,6 +64,9 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   };
 
   useEffect(() => {
+    if (prevData && prevData.alert.id === data.alert.id) {
+      return;
+    }
     analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
 

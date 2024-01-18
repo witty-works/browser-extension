@@ -29,7 +29,8 @@ import {
   isNotion,
   isGoogleSheets,
   isWittyEditor,
-  isOffice
+  isOffice,
+  isGoogleSearch
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -81,6 +82,8 @@ const ContentScriptApp: React.FC = () => {
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
+    if (isGoogleSearch()) return;
+
     browser.storage.local
       .get(null)
       .then((result) => {
@@ -165,21 +168,27 @@ const ContentScriptApp: React.FC = () => {
   }, [pinNotificationStored]);
 
   const renderNotification = (notificationType: string) => {
-    if(!window.top) return;
-    const notificationWrapper = document.createElement('div');
-    notificationWrapper.id = 'ww-notification';
-
-    ReactDOM.render(
-      <Notification
-        notificationType={notificationType}
-        element={elementRef.current}
-      />,
-      window.top.document.body.insertBefore(
-        notificationWrapper,
-        window.top.document.body.firstChild
-      )
-    );
-  }
+    try {
+      if (!window.top) return;
+  
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+  
+      ReactDOM.render(
+        <Notification
+          notificationType={notificationType}
+          element={elementRef.current}
+        />,
+        window.top.document.body.insertBefore(
+          notificationWrapper,
+          window.top.document.body.firstChild
+        )
+      );
+    } catch (error) {
+      DEV_ENV && console.error("Error in renderNotification:", error);
+    }
+  };
+  
 
   //TODO specify changes type
   //TODO review all cases
@@ -359,7 +368,6 @@ const ContentScriptApp: React.FC = () => {
 
       const disabledDomains = [
         ...(result[StorageKeys.DOMAINS]?.type === 'deny' && result[StorageKeys.DOMAINS]?.list || []),
-        ...(result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK] || []),
         ...(result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'deny' && result[StorageKeys.ORGANIZATION_DOMAINS]?.list || []), //could be something wrong here, what if its an allow list? 
       ];
       const domain = getDomainWithoutSubdomain(window.location.hostname);
@@ -433,7 +441,13 @@ const ContentScriptApp: React.FC = () => {
     }
 
     ReactDOM.unmountComponentAtNode(container);
-    container.remove();
+
+    //using setTimeout with a delay of 0 to push the removeChild operation to the end of the event queue
+    setTimeout(() => {
+      if (container.parentNode?.contains(container)) {
+        container.parentNode.removeChild(container);
+      }
+    }, 0);  
   };
 
   const setupMutationObservers = () => {

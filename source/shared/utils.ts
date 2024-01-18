@@ -16,6 +16,9 @@ export const isFunction = (functionToCheck: Function) =>
   functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
 export const storeInLocalStorage = (key: string, value: any) => {
+  if (!key) {
+    return;
+  }
   browser.storage.local
     .set({ [key]: value })
     .then(() => {
@@ -128,8 +131,6 @@ export const getNewAccessToken = async () => {
       );
       storeInLocalStorage(StorageKeys.ACCESS_TOKEN, responseJson.access_token);
     });
-  }).catch((error) => {
-    sendErrorToSentry(error);
   });
 };
 
@@ -169,58 +170,34 @@ export const updateLabelChrome = (domain: string) => {
       return;
     }
 
-    const isLocked =
-      (result[StorageKeys.ORGANIZATION_DOMAINS] &&
-        result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
-        result[StorageKeys.ORGANIZATION_DOMAINS].list &&
-        result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
-      (result[StorageKeys.ORGANIZATION_DOMAINS] &&
-        result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
-        result[StorageKeys.ORGANIZATION_DOMAINS].list &&
-        !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
+    const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
+    const domainList = Array.isArray(orgDomains?.list) ? orgDomains.list : [];
+    const isLocked = orgDomains 
+      ? (orgDomains.type === 'deny' && domainList.includes(domain)) || 
+        (orgDomains.type === 'allow' && !domainList.includes(domain))
+      : false;
 
     const isDisabled = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-    const domainConfirmedToNotWork = result[
-      StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK
-    ]
-      ? result[StorageKeys.DOMAINS_CONFIRMED_TO_NOT_WORK]
-          .filter((domain: string) => {
-            const domainTimestamp = domain.split('-')[1];
-            const domainDate = new Date(parseInt(domainTimestamp));
-            const threeMonthsAgo = new Date();
-            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-            return domainDate > threeMonthsAgo;
-          })
-          .map((d: string) => {
-            return d.split('-')[0];
-          })
-          .includes(domain)
-      : false;
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      if (!tabs[0]?.url) return;
       
-      browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-        if (!tabs[0] || !tabs[0].url) return;
-        
-        const domainOnDisabledSitesList =
-        defaultConfig.DISABLED_SITES.includes(domain) || isMicrosoftOnline(new URL(tabs[0].url).href);
-  
-        const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
-        if (
-          isLocked ||
-          isDisabled ||
-          domainConfirmedToNotWork ||
-          domainOnDisabledSitesList
-        ) {
-          addInactiveBadge();
-        } else if (numberOfNotifications > 0) {
-          addNotificationBadge(numberOfNotifications);
-        } else {
-          removeBadge();
-        }
-      });
+      const domainOnDisabledSitesList = defaultConfig.DISABLED_SITES.includes(domain) || isMicrosoftOnline(new URL(tabs[0].url).href);
+      const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
+      
+      if (isLocked || isDisabled || domainOnDisabledSitesList) {
+        addInactiveBadge();
+      } else if (numberOfNotifications > 0) {
+        addNotificationBadge(numberOfNotifications);
+      } else {
+        removeBadge();
+      }
     }).catch((error) => {
       sendErrorToSentry(error);
     });
+  });
 };
 
 export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLElement | null, element: HTMLElement) => {

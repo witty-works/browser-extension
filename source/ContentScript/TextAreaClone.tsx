@@ -23,6 +23,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
     element
   );
 
+  const paddingLeftAndRight = elementStyles.paddingLeft && elementStyles.paddingRight ? parseInt(elementStyles.paddingLeft.split('px')[0]) + parseInt(elementStyles.paddingRight.split('px')[0]) : 0;
   return (
     <div
       ref={(ref) => {
@@ -44,7 +45,7 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           paddingLeft: elementStyles.paddingLeft,
           paddingRight: elementStyles.paddingRight,
           paddingBottom: elementStyles.paddingBottom,
-          width: elementRect.width,
+          width: elementRect.width - paddingLeftAndRight,
           height: elementRect.height,
           fontSize: elementStyles.fontSize,
           fontWeight: elementStyles.fontWeight,

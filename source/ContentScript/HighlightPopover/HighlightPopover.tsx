@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
-import { CustomInputElement, IAlert } from '../../shared/types';
+import { CustomInputElement, IAlert, IAlternatives } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -18,7 +18,7 @@ import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
 
 import './HighlightPopover.scss';
-import { StorageKeys, getColor } from '../../shared/constants';
+import { DEV_ENV, StorageKeys, getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
@@ -39,6 +39,7 @@ export interface PopoverData {
 interface PopoverProps {
   element: CustomInputElement;
   data: PopoverData;
+  prevData: PopoverData | null;
   hide: () => void;
   updateTextWithAlternative: (alternative: string, category: string) => void;
   addIgnoredTerm: (term: string) => void;
@@ -49,6 +50,7 @@ interface PopoverProps {
 const HighlightPopover: React.FC<PopoverProps> = ({
   element,
   data,
+  prevData,
   hide,
   updateTextWithAlternative,
   addIgnoredTerm,
@@ -56,7 +58,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   userIsSignedIn,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
-
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
   const [alternativeHovered, setAlternativeHovered] = useState<string | null>(
@@ -67,6 +68,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
 
   useEffect(() => {
+    if (prevData && prevData.alert.id === data.alert.id) {
+      return;
+    }
     analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
 
@@ -192,15 +196,27 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const incrementAlternativesAccepted = (storage: any) => 
     storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] ? storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1 : 1);
   
-  const renderNotification = (type: string) => {
-    if(!window.top) return;
-    const notificationWrapper = document.createElement('div');
-    notificationWrapper.id = 'ww-notification';
-    
-    ReactDOM.render(
-      <Notification notificationType={type} element={element} />,
-      window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild)
-    );
+
+  const renderNotification = (notificationType: string) => {
+    try {
+      if (!window.top) return;
+  
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+  
+      ReactDOM.render(
+        <Notification
+          notificationType={notificationType}
+          element={element}
+        />,
+        window.top.document.body.insertBefore(
+          notificationWrapper,
+          window.top.document.body.firstChild
+        )
+      );
+    } catch (error) {
+      DEV_ENV && console.error("Error in renderNotification:", error);
+    }
   };
 
   const clickAlternative = (e: MouseEvent, alternative: string, category: string) => {
@@ -217,17 +233,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
       } = result;
     
-      if (!salesDemoFlag.active || !teamInviteFlag.active || !friendInviteFlag.active) { //reset counter if a feature flag is diabled, maybe need to rethink this?
+      if (!salesDemoFlag?.active || !teamInviteFlag?.active || !friendInviteFlag?.active) { //reset counter if a feature flag is diabled, maybe need to rethink this?
         storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0); 
       } else {
         const incrementedAlternativesAccepted = alternativesAccepted + 1;
         if (
-          (incrementedAlternativesAccepted === salesDemoFlag.triggerNumber && salesDemoFlag.active) ||
-          (incrementedAlternativesAccepted === teamInviteFlag.triggerNumber && teamInviteFlag.active) ||
-          (incrementedAlternativesAccepted === friendInviteFlag.triggerNumber && friendInviteFlag.active)
+          (incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber && salesDemoFlag?.active) ||
+          (incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber && teamInviteFlag?.active) ||
+          (incrementedAlternativesAccepted === friendInviteFlag?.triggerNumber && friendInviteFlag?.active)
         ) {
-          const notificationType = incrementedAlternativesAccepted === salesDemoFlag.triggerNumber ? 'salesDemo'
-            : incrementedAlternativesAccepted === teamInviteFlag.triggerNumber ? 'inviteTeam'
+          const notificationType = incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber 
+            ? 'salesDemo'
+            : incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber 
+            ? 'inviteTeam'
             : 'inviteFriends';
     
           renderNotification(notificationType);
@@ -247,6 +265,31 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     hide();
   };
 
+  const renderAlternative = (alternative: IAlternatives, alternativeHovered: string | null) => {
+    if (alternative && alternative.text === ' ') {
+      return <i>{t('removeSpaces')}</i>;
+    } else {
+      const regex = /\(\((.*?)\)\)/;
+      const matches = alternative.text.match(regex);
+      if (matches) {
+        const splitText = alternative.text.split(regex);
+        return (
+          <>
+            {splitText[0]} &nbsp; 
+            {'['}<i>{matches[1]}</i>{']'}&nbsp;
+            {splitText[2]}
+          </>
+        );
+      } else if (alternative.text.length > 25 && alternative.context && alternativeHovered !== alternative.text) {
+        return alternative.text.substring(0, 25) + '...';
+      } else if (alternative.text.length > 35 && alternativeHovered !== alternative.text) {
+        return alternative.text.substring(0, 35) + '...';
+      } else {
+        return alternative.text;
+      }
+    }
+  }
+  
   return (
     <div
       id='witty-works-ext-popover'
@@ -451,14 +494,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           )
                         }
                       >
-                        {alternative && alternative.text === ' ' 
-                          ? (<i>{t('removeSpaces')}</i>) 
-                          : alternative.text.length > 25 && alternative.context && alternativeHovered !== alternative.text 
-                          ? (alternative.text.substring(0, 25) + '...') 
-                          : alternative.text.length > 35 && alternativeHovered !== alternative.text 
-                          ? (alternative.text.substring(0, 35) + '...') 
-                          : alternative.text
-                        }
+                       {renderAlternative(alternative, alternativeHovered)}
                       </div>
                       {alternative && alternative.context && (
                         <div className='witty-works-ext-wittyworks-popover-alternative-context'>

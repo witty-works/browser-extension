@@ -37,8 +37,7 @@ export enum StorageKeys {
 
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 
-  DOMAINS_CONFIRMED_TO_WORK = 'domainsConfirmedToWork',
-  DOMAINS_CONFIRMED_TO_NOT_WORK = 'domainsConfirmedNotToWork',
+  DOMAINS_WHERE_SURVEY_HAS_BEEN_ANSWERED = 'domainsWhereSurveyHasBeenAnswered',
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
 
   REDIRECT_URL_LOGIN = 'redirectUrlLogin',
@@ -79,7 +78,7 @@ export const BaseUrls: IBaseUrls = {
     dashboard: 'https://dashboard.witty.works/',
   },
   Dev: {
-    api: 'https://dev-54ta5gq-2ycn7tlsdvd2o.fr-4.platformsh.site/',
+    api: 'https://dev-54ta5gq-jyeciedibdzvq.fr-4.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
   },
   Local: {
