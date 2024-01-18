@@ -39,6 +39,10 @@ export const isOffice = (): boolean => {
   return window.location.hostname.includes('office.com');
 }
 
+export const isOutlook = (): boolean => {
+  return window.location.hostname.includes('outlook.office365.com');
+}
+
 export const isWittyEditor = (): boolean => {
   const dashboardBaseUrls = Object.values(BaseUrls).map(
     (baseUrl) => baseUrl.dashboard
