@@ -30,21 +30,21 @@ export const isHubspot = (): boolean => {
   return window.location.hostname.includes('hubspot');
 };
 
-export const isMicrosoftOnline = (topWindowUrl: string | null = ''): boolean => {  
-  console.log('isMicrosoftOnline', topWindowUrl)
-  return false;
-  // const appTypes = ['xlsx', 'pptx'];
-  // const topWindow = window.top;
-  // if (!topWindow) return false;
-  // if (!topWindowUrl) {
-  //   topWindowUrl = topWindow.location.href;
-  // }
-  // return topWindowUrl.includes('sharepoint.com') && appTypes.some(app => topWindowUrl?.includes(app));
+export const isMicrosoftOnline = (windowUrl: string): boolean => {
+  console.log('isMicrosoftOnlineWord() || isOutlook()', isMicrosoftOnlineWord(windowUrl) || isOutlook(), windowUrl)
+  if(isMicrosoftOnlineWord(windowUrl) || isOutlook()) {
+    return false;
+  } else {
+    const appTypes = ['chc-excel', '.xlsx', 'chc-powerpoint', 'sharepoint.com'];
+    console.log('isMicrosoftOnline', windowUrl, '!!!!', appTypes.some(app => windowUrl.includes(app)))
+    return appTypes.some(app => windowUrl.includes(app));
+  }
 }
 
-export const isMicrosoftOnlineWord = (windowUrl: string = ''): boolean => {
-  console.log('isMicrosoftOnlineWord',  windowUrl.includes('wordeditorframe.aspx'))
-  return windowUrl.includes('wordeditorframe.aspx');
+export const isMicrosoftOnlineWord = (windowUrl: string): boolean => {
+  const triggerWords = ['chc-word-edit', 'wordeditorframe', '.docx'];
+  console.log('isMicrosoftOnlineWord',triggerWords.some(word => windowUrl.includes(word)))
+  return triggerWords.some(word => windowUrl.includes(word));
 }
 
 export const isOffice = (): boolean => {

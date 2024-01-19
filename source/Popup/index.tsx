@@ -4,7 +4,6 @@ import { getDomainWithoutSubdomain } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import {
-  renderDomainDeactivated,
   renderMainPopup,
   renderPopupChrome,
   renderUserNotLoggedIn,
@@ -37,13 +36,11 @@ const renderPopup = async () => {
         .query({ active: true, currentWindow: true })
         .then((tabs) => {
           if (tabs.length != 0 && tabs[0].url) {
-            domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
+            domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);  
             if (!domain) return;
             renderPopupChrome(appId, domain, new URL(tabs[0].url).href, isLocked);
           } else if (defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)) {
             renderMainPopup(appId, domain, isLocked);
-          } else {
-            renderDomainDeactivated(appId, domain);
           }
         })
         .catch((error: unknown) => {
