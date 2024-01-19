@@ -1204,6 +1204,7 @@ const Input: React.FC<{
 
   const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: INodes[]) => {
     let newResults;
+    console.log('previouslyCheckedNodesWithAlerts', previouslyCheckedNodesWithAlerts);
     if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
       newResults = checkEndpointResponse.results.filter((alert) => {
         return !unchangedAlertsTextarea.map((alert) => alert.startOffset).includes(alert.start);
@@ -1217,8 +1218,7 @@ const Input: React.FC<{
           return !prevCheckedNode || prevCheckedNode.index !== nodeWithAlerts.nodeIndex;
         });
         return [...acc, ...newAlerts];
-      }
-      , []);
+      }, []);
     }
 
     if (newResults.length === 0) return;
@@ -1236,6 +1236,7 @@ const Input: React.FC<{
     };
       
     if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
+    console.log('mergedCheckEndpointResponseWithoutOrthography', mergedCheckEndpointResponseWithoutOrthography);
       
     const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
     mergedCheckEndpointResponseWithoutOrthography.results.forEach((result: any) => {
