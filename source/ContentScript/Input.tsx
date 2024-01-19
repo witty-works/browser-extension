@@ -469,8 +469,10 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = () => {
-    const event = new KeyboardEvent('keyup');
-    isMicrosoftOnlineWord(window.location.href) && handleKeyupEvent(event);
+    if (isMicrosoftOnlineWord(window.location.href)) {
+      const event = new KeyboardEvent('keyup');
+      handleKeyupEvent(event);
+    } 
     setActiveIcon('active');
   };
 
@@ -688,7 +690,6 @@ const Input: React.FC<{
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
-    console.log('handleElementScrollEvent', firstScrollableParentRef.current.scrollTop);
     if (!isTextArea(element) && previousScrollTopRef.current !== firstScrollableParentRef.current.scrollTop) {
       previousScrollTopRef.current = firstScrollableParentRef.current.scrollTop;
       setIsActive(true);

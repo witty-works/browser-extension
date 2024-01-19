@@ -31,19 +31,16 @@ export const isHubspot = (): boolean => {
 };
 
 export const isMicrosoftOnline = (windowUrl: string): boolean => {
-  console.log('isMicrosoftOnlineWord() || isOutlook()', isMicrosoftOnlineWord(windowUrl) || isOutlook(), windowUrl)
   if(isMicrosoftOnlineWord(windowUrl) || isOutlook()) {
     return false;
   } else {
     const appTypes = ['chc-excel', '.xlsx', 'chc-powerpoint', 'sharepoint.com'];
-    console.log('isMicrosoftOnline', windowUrl, '!!!!', appTypes.some(app => windowUrl.includes(app)))
     return appTypes.some(app => windowUrl.includes(app));
   }
 }
 
 export const isMicrosoftOnlineWord = (windowUrl: string): boolean => {
   const triggerWords = ['chc-word-edit', 'wordeditorframe', '.docx'];
-  console.log('isMicrosoftOnlineWord',triggerWords.some(word => windowUrl.includes(word)))
   return triggerWords.some(word => windowUrl.includes(word));
 }
 

@@ -66,7 +66,6 @@ const Highlights: React.FC<HighlightsProps> = ({
   useEffect(() => {
     if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
       setHighlights([]);
-    console.log('highlights triggered', elementScroll)
 
     const highlightsTemp: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
