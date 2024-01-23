@@ -16,7 +16,7 @@ import { getBaseUrls } from '../ApiServices/requests';
 import defaultConfig from '../../witty.config.json';
 import {getScrollableParentClosestToElement} from "../utils";
 import { getTextDividedByNodes } from '../../ContentScript/utils';
-import { isGoogleDocs, isHubspot, isTrello, isWittyEditor } from '../DOMutils';
+import { isGoogleDocs, isHubspot, isMicrosoftOnlineWord, isTrello, isWittyEditor } from '../DOMutils';
 
 interface IconControllerProps {
   element: CustomInputElement;
@@ -32,14 +32,14 @@ const IconController: React.FC<IconControllerProps> = ({
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const googleDocsIcon = isGoogleDocs();
+  const fixedPositionIcon = isMicrosoftOnlineWord(window.location.href) || isGoogleDocs();
   let iconPositionGoogleDocs = { top: 0, left: 0 };
   if (!elementRect) {
     elementRect = element.getBoundingClientRect();
-  } else if (googleDocsIcon) {
+  } else if (fixedPositionIcon) {
     if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
     const correctedPosition = (
-      element.firstChild?.firstChild as HTMLElement
+      element as HTMLElement
     ).getBoundingClientRect();
 
     iconPositionGoogleDocs = {
@@ -72,10 +72,10 @@ const IconController: React.FC<IconControllerProps> = ({
       ref={ref}
       style={{
         zIndex: 999999999,
-        position: googleDocsIcon ? 'fixed' : 'absolute',
-        top: googleDocsIcon ? iconPositionGoogleDocs.top : `${scrollContainerScrollTop + 8}px`, //add padding like this to minimize clickable area
-        left: googleDocsIcon ? iconPositionGoogleDocs.left : `${0}px`,
-        marginLeft:  googleDocsIcon ? '0px' : `${elementWidth - positionLeft + 20}px`, //add padding like this to minimize clickable area
+        position: fixedPositionIcon ? 'fixed' : 'absolute',
+        top: fixedPositionIcon ? iconPositionGoogleDocs.top : `${scrollContainerScrollTop + 8}px`, //add padding like this to minimize clickable area
+        left: fixedPositionIcon ? iconPositionGoogleDocs.left : `${0}px`,
+        marginLeft:  fixedPositionIcon ? '0px' : `${elementWidth - positionLeft + 20}px`, //add padding like this to minimize clickable area
         pointerEvents: iconType !== 'warning' ? 'none' : 'auto',
         display: 'flex',
         boxSizing: 'border-box',

@@ -73,7 +73,7 @@ const initialize = () => {
             isOnOrgDomainList ||
             isOnPersonalDomainList ||
             defaultConfig.DISABLED_SITES.includes(domain) ||
-            isMicrosoftOnline()
+            isMicrosoftOnline(window.location.href)
         ) {
           customRender(false, scriptId);
         } else {
