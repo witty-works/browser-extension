@@ -38,8 +38,8 @@ export const renderMainPopup = (
 export const renderPopupChrome = (
   appId: string,
   domain: string,
-  currentWindowUrl: string | undefined,
-  isLocked: boolean
+  currentWindowUrl: string,
+  isLocked: boolean,
 ) => {
   if (defaultConfig.DISABLED_SITES.includes(domain) || isMicrosoftOnline(currentWindowUrl)) {
     renderDomainDeactivated(appId, domain);

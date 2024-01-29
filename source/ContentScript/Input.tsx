@@ -28,6 +28,7 @@ import {
   isGoogleDocs,
   isLinkedin,
   isNotion,
+  isMicrosoftOnlineWord,
   isOutlook,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
@@ -468,6 +469,10 @@ const Input: React.FC<{
   };
 
   const handleFocusinEvent = () => {
+    if (isMicrosoftOnlineWord(window.location.href)) {
+      const event = new KeyboardEvent('keyup');
+      handleKeyupEvent(event);
+    } 
     setActiveIcon('active');
   };
 
@@ -525,7 +530,6 @@ const Input: React.FC<{
       !isGoogleDocs() && setAlerts([]);
       const nodeAtFirstTextDiff =
         nextTextDividedByNodes[fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0];
-
       const nodesWithinMaxCharLength = getTextWithinMaxCharLength(
         fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0,
         nodeAtFirstTextDiff
@@ -547,8 +551,7 @@ const Input: React.FC<{
       (node) => node.textContent
     );
     const currentText = textDividedByNodesTextContent[currentNode];
-    if (!currentText) return;
-    const charLengthLeft = maxCharLength - currentText.length;
+    const charLengthLeft = maxCharLength - (currentText?.length ? currentText.length : 0);
     const nodesWhithinMaxCharLengthBelowNode = getNodesWithinMaxCharLength(
       'below',
       textDividedByNodes,
@@ -579,7 +582,7 @@ const Input: React.FC<{
           index === self.findIndex((t) => t.index === node.index)
       );
 
-    if (currentText.length > maxCharLength) {
+    if (currentText && currentText.length > maxCharLength) {
       const shortenedText = currentText.slice(0, maxCharLength);
       nodesWhithinMaxCharLengthRef.current = [
         {
@@ -622,7 +625,6 @@ const Input: React.FC<{
       isTextAreaCheck && (newTextToCheck = nodes[0]); 
       totalMaxCharLengthReachedRef.current = false;
     }
-    
     //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
     if (!isTextAreaCheck && newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
       nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
@@ -643,7 +645,6 @@ const Input: React.FC<{
       setNodesWithAlerts(nodesWithAlertsWithoutChangesAlerts);
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
-
     if (typeof newTextToCheck !== 'string' || newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);

@@ -270,15 +270,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       return <i>{t('removeSpaces')}</i>;
     } else {
       const regex = /\(\((.*?)\)\)/;
-      const matches = alternative.text.match(regex);
+      const matches = RegExp(regex).exec(alternative.text);
       if (matches) {
         const splitText = alternative.text.split(regex);
         return (
-          <>
-            {splitText[0]} &nbsp; 
-            {'['}<i>{matches[1]}</i>{']'}&nbsp;
+          <span>
+            {splitText[0]}&nbsp; 
+            {'['}<i>{splitText[1]}</i>{']'}&nbsp;
             {splitText[2]}
-          </>
+          </span>
         );
       } else if (alternative.text.length > 25 && alternative.context && alternativeHovered !== alternative.text) {
         return alternative.text.substring(0, 25) + '...';
@@ -288,7 +288,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         return alternative.text;
       }
     }
-  }
+  } 
   
   return (
     <div

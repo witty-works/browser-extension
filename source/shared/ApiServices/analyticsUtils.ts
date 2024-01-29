@@ -56,10 +56,9 @@ export const captureEvent = (eventName: string, eventData: object) => {
       
       if (parseInt(dailyPosthogEventsUsed.count) >= defaultConfig.MAX_POSTHOG_LOG_EVENTS) {
         return;
-      } else {
-        dailyPosthogEventsUsed.count = dailyPosthogEventsUsed.count ? parseInt(dailyPosthogEventsUsed.count) + 1 : 1;
-        storeInLocalStorage(StorageKeys.DAILY_POSTHOG_EVENTS_USED, dailyPosthogEventsUsed);
       }
+      dailyPosthogEventsUsed.count = dailyPosthogEventsUsed.count ? parseInt(dailyPosthogEventsUsed.count) + 1 : 1;
+      storeInLocalStorage(StorageKeys.DAILY_POSTHOG_EVENTS_USED, dailyPosthogEventsUsed);
       
       const userId = result[StorageKeys.USER_ID];
       const organizationId = result[StorageKeys.ORGANIZATION_ID];

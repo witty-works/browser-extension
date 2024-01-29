@@ -30,9 +30,18 @@ export const isHubspot = (): boolean => {
   return window.location.hostname.includes('hubspot');
 };
 
-export const isMicrosoftOnline = (windowUrl: string = window?.location.href ?? ''): boolean => {
-  const appTypes = ['xlsx', 'pptx', 'docx'];
-  return (windowUrl.includes('sharepoint.com') && appTypes.some(app => windowUrl.includes(app))) || windowUrl.includes('officeapps'); // officeapps is for word iframe
+export const isMicrosoftOnline = (windowUrl: string): boolean => {
+  if(isMicrosoftOnlineWord(windowUrl) || isOutlook()) {
+    return false;
+  } else {
+    const appTypes = ['chc-excel', '.xlsx', 'chc-powerpoint', 'sharepoint.com'];
+    return appTypes.some(app => windowUrl.includes(app));
+  }
+}
+
+export const isMicrosoftOnlineWord = (windowUrl: string): boolean => {
+  const triggerWords = ['chc-word-edit', 'wordeditorframe', '.docx'];
+  return triggerWords.some(word => windowUrl.includes(word));
 }
 
 export const isOffice = (): boolean => {
