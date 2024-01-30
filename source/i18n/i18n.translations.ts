@@ -97,7 +97,9 @@ export const de = {
     next: 'vor',
     previous: 'zurück',
     close: 'schliessen',
-    ignore: 'ignorieren',
+    ignoreOnce: 'Ignore once DE',
+    ignorePermanently: 'Ignore permanently DE',
+    applyIgnoreSetting: 'Apply DE',
   },
   [namespaces.iconController]: {
     totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
@@ -219,7 +221,9 @@ export const en = {
     next: 'next',
     previous: 'previous',
     close: 'close',
-    ignore: 'ignore',
+    ignoreOnce: 'Ignore once',
+    ignorePermanently: 'Ignore permanently',
+    applyIgnoreSetting: 'Apply',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',

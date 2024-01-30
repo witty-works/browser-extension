@@ -9,13 +9,15 @@ import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
-import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
 import VideoIcon from '../../assets/icons/popover/video.svg';
 import ArrowUpIcon from '../../assets/icons/popover/arrow-up.svg';
 import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
+import CheckIcon from '../../assets/icons/popover/arrow-up.svg'; //TODO: add nice icon
+import ErrorIcon from '../../assets/icons/popover/close.svg';//TODO: add nice icon
+
 
 import './HighlightPopover.scss';
 import { DEV_ENV, StorageKeys, getColor } from '../../shared/constants';
@@ -27,6 +29,7 @@ import { browser } from 'webextension-polyfill-ts';
 import ReactDOM from 'react-dom';
 import Notification from '../../Notifications/Notification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
+import { createUrl, getBaseUrls } from '../../shared/ApiServices/requests';
 
 export interface PopoverData {
   index: number;
@@ -66,6 +69,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
     useStateRef<boolean>(false);
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
+  const [accessToken, setAccessToken] = useState<string>('');
+  const [isLoadingIgnoreEndpoint, setIsLoadingIgnoreEndpoint] = useState(false);
+  const [isSuccessIgnoreEndpoint, setIsSuccessIgnoreEndpoint] = useState(false);
+  const [isErrorIgnoreEndpoint, setIsErrorIgnoreEndpoint] = useState(false);
 
   useEffect(() => {
     if (prevData && prevData.alert.id === data.alert.id) {
@@ -128,6 +135,16 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
+
+  useEffect(() => {
+    browser.storage.local.get(null).then((result) => {
+      setAccessToken(
+        result[StorageKeys.ACCESS_TOKEN]
+          ? result[StorageKeys.ACCESS_TOKEN]
+          : ''
+      );
+    });
+  }, []);
 
   useEffect(() => {
     reference(element);
@@ -258,12 +275,45 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     updateTextWithAlternative(alternative, category);
   };
 
-  const clickIgnoreTerm = () => {
-    //Log when user chooses to ignore a term
+  const handleIgnoreClick = (ignoreType: string) => {
+    console.log('ignoreType', ignoreType, data.alert.data?.text);
     analytics.ignoreLog(data.alert);
-    addIgnoredTerm(data.alert.data?.text);
-    hide();
+    if(ignoreType === 'ignore_once') {
+      addIgnoredTerm(data.alert.data?.text);
+      hide();
+    } else if (ignoreType === 'ignore_permanently') {
+      makePersistIgnoreRequest(data.alert.data?.text);
+    }
+  }
+
+  const makePersistIgnoreRequest = (word: any) => {
+    setIsLoadingIgnoreEndpoint(true);
+    setIsSuccessIgnoreEndpoint(false);
+    setIsErrorIgnoreEndpoint(false);
+  
+    fetch(
+      createUrl(getBaseUrls().dashboard, `api/user/language/ignore-words?false_positive=${word}`),
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        }
+      }
+    ).then(async (response) => {
+      setIsLoadingIgnoreEndpoint(false);
+      if (response.status === 204) {
+        setIsSuccessIgnoreEndpoint(true);
+      } else {
+        setIsErrorIgnoreEndpoint(true);
+      }
+    }).catch((error) => {
+      setIsLoadingIgnoreEndpoint(false);
+      setIsErrorIgnoreEndpoint(true);
+      sendErrorToSentry(error);
+    });
   };
+  
+
 
   const renderAlternative = (alternative: IAlternatives, alternativeHovered: string | null) => {
     if (alternative && alternative.text === ' ') {
@@ -300,7 +350,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         left: `${x}px`,
         maxWidth: `${showLearningBite ? 850 : 350}px`,
       }}
-      onMouseDown={(e) => e.preventDefault()}
+      // onMouseDown={(e) => e.preventDefault()
+      // }
     >
       <div
         id='witty-works-ext-popover-content'
@@ -396,7 +447,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
                 style={{marginTop: showLearningBite ? '0em' : '1em'}}
                 >
-                  <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
+                  <div className='witty-works-ext-dropdown-select witty-works-ext-container-row'>
                       {t('learnMore')}
                       {data.alert.data?.explanation?.content === 'video' && (
                         <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
@@ -513,19 +564,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         )}
       </div>
       {!showLearningBite && (
-        <>
-          <div
-            onClick={() => clickIgnoreTerm()}
-            className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'
-          >
-            <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
-              <IgnoreIcon alt={t('ignore')} />
-            </span>
-            <span className='witty-works-ext-lato-popover-text-gray'>
-              {t('ignoreTerm')}
-            </span>
+          <div className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
+              <select className='witty-works-ext-dropdown-select' id='witty-works-ext-ignore-select'>
+                <option value='ignore_once'>{t('ignoreOnce')}</option>
+                <option value='ignore_permanently'>{t('ignorePermanently')}</option>
+              </select>
+              <div className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-cursor-pointer' 
+                onClick={() => handleIgnoreClick((document.querySelector('#witty-works-ext-ignore-select') as HTMLSelectElement).value)}>
+                {t('applyIgnoreSetting')}
+              </div>
+              {isLoadingIgnoreEndpoint && <LoadingIcon />}
+              {isSuccessIgnoreEndpoint && <CheckIcon />}
+              {isErrorIgnoreEndpoint&& <ErrorIcon />}
           </div>
-        </>
       )}
     </div>
   );
