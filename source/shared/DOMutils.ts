@@ -30,13 +30,24 @@ export const isHubspot = (): boolean => {
   return window.location.hostname.includes('hubspot');
 };
 
+//can be removed when powerpoint works
 export const isMicrosoftOnline = (windowUrl: string): boolean => {
-  if(isMicrosoftOnlineWord(windowUrl) || isOutlook()) {
+  if(isMicrosoftOnlineWord(windowUrl) || isOutlook() || isMicrosoftOnlineExcel(windowUrl)) {
     return false;
   } else {
-    const appTypes = ['chc-excel', '.xlsx', 'chc-powerpoint', 'sharepoint.com'];
+    const appTypes = ['chc-powerpoint', '.pptx'];
     return appTypes.some(app => windowUrl.includes(app));
   }
+}
+
+export const isMicrosoftOnlineExcel = (windowUrl: string): boolean => {
+  const triggerWords = ['chc-excel', '.xlsx'];
+  return triggerWords.some(word => windowUrl.includes(word));
+}
+
+export const isMicrosoftOnlinePowerPoint = (windowUrl: string): boolean => {
+  const triggerWords = ['chc-powerpoint', '.pptx'];
+  return triggerWords.some(word => windowUrl.includes(word));
 }
 
 export const isMicrosoftOnlineWord = (windowUrl: string): boolean => {
