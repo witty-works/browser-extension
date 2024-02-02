@@ -539,7 +539,7 @@ const Input: React.FC<{
           nodesWithinMaxCharLength
         );
     }
-  }, 500);
+  }, debounceDelay);
 
   const getTextWithinMaxCharLength = (
     currentNode: number,
