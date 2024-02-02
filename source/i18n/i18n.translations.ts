@@ -99,7 +99,7 @@ export const de = {
     close: 'schliessen',
     ignoreOnce: 'Ignore once DE',
     ignorePermanently: 'Ignore permanently DE',
-    applyIgnoreSetting: 'Apply DE',
+    reduceDimension: 'Reduce dimension DE',
   },
   [namespaces.iconController]: {
     totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
@@ -223,7 +223,7 @@ export const en = {
     close: 'close',
     ignoreOnce: 'Ignore once',
     ignorePermanently: 'Ignore permanently',
-    applyIgnoreSetting: 'Apply',
+    reduceDimension: 'Reduce dimension',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',

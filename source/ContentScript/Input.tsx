@@ -740,11 +740,6 @@ const Input: React.FC<{
     setPopoverData(null);
     setSelectedAlert(null);
     setSelectedAlertIndex(-1);
-    //force request in case of new ignored terms
-    const keyPressEvent = new KeyboardEvent('keyup', {
-      key: 'z',
-    });
-    handleKeyupEvent(keyPressEvent);
   };
 
   const addIgnoredTerm = (term: string): void => {
