@@ -16,7 +16,7 @@ import { getBaseUrls } from '../ApiServices/requests';
 import defaultConfig from '../../witty.config.json';
 import {getScrollableParentClosestToElement} from "../utils";
 import { getTextDividedByNodes } from '../../ContentScript/utils';
-import { isGoogleDocs, isHubspot, isMicrosoftOnlineWord, isTrello, isWittyEditor } from '../DOMutils';
+import { isGoogleDocs, isHubspot, isMicrosoftOnlineExcel, isMicrosoftOnlineWord, isTrello, isWittyEditor } from '../DOMutils';
 
 interface IconControllerProps {
   element: CustomInputElement;
@@ -73,7 +73,7 @@ const IconController: React.FC<IconControllerProps> = ({
       style={{
         zIndex: 999999999,
         position: fixedPositionIcon ? 'fixed' : 'absolute',
-        top: fixedPositionIcon ? iconPositionGoogleDocs.top : `${scrollContainerScrollTop + 8}px`, //add padding like this to minimize clickable area
+        top: fixedPositionIcon ? iconPositionGoogleDocs.top : `${scrollContainerScrollTop + (isMicrosoftOnlineExcel(window.location.href) ? 0 : 8)}px`, //add padding like this to minimize clickable area
         left: fixedPositionIcon ? iconPositionGoogleDocs.left : `${0}px`,
         marginLeft:  fixedPositionIcon ? '0px' : `${elementWidth - positionLeft + 20}px`, //add padding like this to minimize clickable area
         pointerEvents: iconType !== 'warning' ? 'none' : 'auto',

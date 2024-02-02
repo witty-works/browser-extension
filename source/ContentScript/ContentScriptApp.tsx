@@ -30,7 +30,8 @@ import {
   isGoogleSheets,
   isWittyEditor,
   isOffice,
-  isGoogleSearch
+  isGoogleSearch,
+  isMicrosoftOnlineExcel
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -243,6 +244,12 @@ const ContentScriptApp: React.FC = () => {
   const handleFocusinElement = useCallback((event?: Event) => {
     let target = event?.target as CustomInputElement;
     //if no target, target is the child of #docs-texteventtarget-descendant
+
+    //excel only active in formula bar
+    if(isMicrosoftOnlineExcel(window.location.href) && target?.id && !target.id.includes('formulaBar')) {
+      return;
+    }
+  
     if (isGoogleDocs()) {
       target = document.querySelector(
         '.kix-rotatingtilemanager'
