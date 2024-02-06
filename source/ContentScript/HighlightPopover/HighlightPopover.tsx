@@ -70,8 +70,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [showIgnoreSection, setShowIgnoreSection] = useState<boolean>(false);
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [accessToken, setAccessToken] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState<string>('');
+  const [isSuccess, setIsSuccess] = useState<string>('');
+  const [isFailure, setIsFailure] = useState<string>('');
 
   useEffect(() => {
     if (prevData && prevData.alert.id === data.alert.id) {
@@ -275,23 +276,23 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   const handleIgnoreClick = (ignoreType: string) => () => {
-    console.log('ignoreType', ignoreType, data.alert.data?.text);
     analytics.ignoreLog(data.alert);
     if(ignoreType === 'ignore_once') {
       addIgnoredTerm(data.alert.data?.text);
       hide();
     } else if (ignoreType === 'ignore_permanently') {
       const requestUrlIgnore = createUrl(getBaseUrls().dashboard, `api/user/language/ignore-words?false_positive=${data.alert.data?.text}`);
-      makeDashboardRequest(requestUrlIgnore);
+      makeDashboardRequest(requestUrlIgnore, ignoreType);
     } else if (ignoreType === 'reduce_dimension') {
-      const requestUrlReduce = createUrl(getBaseUrls().dashboard, `api/user/language/customize-witty?diversity_dimension=${data.alert.data?.subcategory}?direction=down`);
-      makeDashboardRequest(requestUrlReduce);
+      const requestUrlReduce = createUrl(getBaseUrls().dashboard, `api/user/language/customize-witty?diverssity_dimension=${data.alert.data?.subcategory}&direction=down`);
+      makeDashboardRequest(requestUrlReduce, ignoreType);
     }
   };
 
-  const makeDashboardRequest = (requestUrl: string) => {
-    setIsLoading(true);
-    setIsSuccess(false);
+  const makeDashboardRequest = (requestUrl: string, ignoreType: string) => {
+    setIsLoading(ignoreType);
+    setIsSuccess('');
+    setIsFailure('');
     fetch(
       requestUrl,
       {
@@ -301,12 +302,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         }
       }
     ).then(async (response) => {
-        setIsLoading(false);
+        setIsLoading('');
       if (response.status === 204) {
-        setIsSuccess(true);
+        setIsSuccess(ignoreType);
+        setTimeout(() => {
+          hide();
+        }, 1000);
       }
     }).catch((error) => {
-      setIsLoading(false);
+      setIsFailure(ignoreType);
       sendErrorToSentry(error);
     });
   };
@@ -573,32 +577,33 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
             <button
               className='witty-works-ext-secondary-button-red'
-              onClick={() => handleIgnoreClick('ignore_once')}
+              onClick={handleIgnoreClick('ignore_once')}
               style={{padding: '2px 6px'}}
             >
                 {t('ignoreOnce')}
               </button>
-              {isLoading ? <LoadingIcon /> : isSuccess ? <CheckIcon /> : <ErrorIcon />}
             </div>
             <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
             <button
-              className='witty-works-ext-secondary-button-red'
-              onClick={() => handleIgnoreClick('ignore_permanently')}
-              style={{padding: '2px 6px'}}
+              className='witty-works-ext-secondary-button-red witty-works-ext-margin-right witty-works-ext-ignore-button'
+              onClick={handleIgnoreClick('ignore_permanently')}
             >
                 {t('ignorePermanently')}
               </button>
-              {isLoading ? <LoadingIcon /> : isSuccess ? <CheckIcon /> : <ErrorIcon />}
+              {isLoading === 'ignore_permanently' && <LoadingIcon />}
+              {isSuccess === 'ignore_permanently' && <CheckIcon />}
+              {isFailure === 'ignore_permanently' && <ErrorIcon />}
             </div>
             <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
             <button
-              className='witty-works-ext-secondary-button-red'
-              onClick={() => handleIgnoreClick('reduce_dimension')}
-              style={{padding: '2px 6px'}}
+              className='witty-works-ext-secondary-button-red witty-works-ext-margin-right witty-works-ext-ignore-button'
+              onClick={handleIgnoreClick('reduce_dimension')}
             >
                 {t('reduceDimension')}
               </button>
-              {isLoading ? <LoadingIcon /> : isSuccess ? <CheckIcon /> : <ErrorIcon />}
+              {isLoading === 'reduce_dimension' && <LoadingIcon />}
+              {isSuccess === 'reduce_dimension' && <CheckIcon />}
+              {isFailure === 'reduce_dimension' && <ErrorIcon />}            
             </div>
           </div>
         </>
