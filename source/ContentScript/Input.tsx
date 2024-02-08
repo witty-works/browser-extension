@@ -1212,7 +1212,7 @@ const Input: React.FC<{
     selectedAlertIndex,
   ]);
 
-  const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: any) => {
+  const logNewCheckResponses = async (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: any) => {
     let newResults;
     if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
       newResults = checkEndpointResponse.results.filter((alert) => {
@@ -1255,15 +1255,19 @@ const Input: React.FC<{
       
     if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
     const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-    mergedCheckEndpointResponseWithoutOrthography.results.forEach((result: any) => {
+    for (const result of mergedCheckEndpointResponseWithoutOrthography.results) {
       analytics.checkResultLog(
-        result,
+        result.data,
         authResponse,
         textContentLength,
         'check_highlights',
         checkLogEventIdRef.current,
-      )
-    });
+      );
+  
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  
+  
   };
   
   // useEffect(() => {
