@@ -1212,7 +1212,7 @@ const Input: React.FC<{
     selectedAlertIndex,
   ]);
 
-  const logNewCheckResponses = async (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: any) => {
+  const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: any) => {
     let newResults;
     if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
       newResults = checkEndpointResponse.results.filter((alert) => {
@@ -1263,11 +1263,7 @@ const Input: React.FC<{
         'check_highlights',
         checkLogEventIdRef.current,
       );
-  
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-  
-  
+    };
   };
   
   // useEffect(() => {

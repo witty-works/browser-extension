@@ -14,7 +14,6 @@ import {
 } from '../types';
 import {
   captureEvent,
-  debouncedCaptureEvent,
   getRequestData,
   getResponseData,
 } from './analyticsUtils';
@@ -49,7 +48,7 @@ export const useAnalytics = () => {
         response__results: checkResponseResultsWithoutContext,
       };
 
-      debouncedCaptureEvent(requestType, checkLogItems);
+      captureEvent(requestType, checkLogItems);
     },
 
     async checkResultLog(

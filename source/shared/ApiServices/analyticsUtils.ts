@@ -5,7 +5,6 @@ import { browser } from 'webextension-polyfill-ts';
 import { storeInLocalStorage } from '../utils';
 import defaultConfig from '../../witty.config.json';
 import { sendErrorToSentry } from '../errorUtils';
-import { debounce } from 'lodash';
 
 export const aliasId = async (userId: string, appId: string) => {
     const request = {
@@ -34,7 +33,6 @@ export const aliasId = async (userId: string, appId: string) => {
 };
 
 export const captureEvent = (eventName: string, eventData: object) => {
-  console.log('captureEventCalled')
   browser.storage.local.get().then((result) => {
     try {
       const now = new Date();
@@ -104,7 +102,6 @@ export const captureEvent = (eventName: string, eventData: object) => {
       storeEnabledFeatureFlags();
 
       if (organizationId) {
-        console.log('LOGGING', eventName, eventData)
         ph.capture(eventName, {
           ...eventData,
           request__app_id: appId,
@@ -113,7 +110,6 @@ export const captureEvent = (eventName: string, eventData: object) => {
           },
         });
       } else {
-        console.log('FAILED')
         ph.capture(eventName, {
           ...eventData,
         });
@@ -126,8 +122,6 @@ export const captureEvent = (eventName: string, eventData: object) => {
     sendErrorToSentry(error);
   });
 };
-
-export const debouncedCaptureEvent = debounce(captureEvent, 1900);
 
 export const getResponseData = (logResponse: IAlert) => {
   return {
