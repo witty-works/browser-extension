@@ -100,6 +100,8 @@ export const de = {
     ignoreOnce: 'Ignore once DE',
     ignorePermanently: 'Ignore permanently DE',
     reduceDimension: 'Reduce dimension DE',
+    failedRequestText: 'Failed, try again DE',
+    lockedByAdmin: 'Locked by admin DE',
   },
   [namespaces.iconController]: {
     totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
@@ -224,6 +226,8 @@ export const en = {
     ignoreOnce: 'Ignore once',
     ignorePermanently: 'Ignore permanently',
     reduceDimension: 'Reduce dimension',
+    failedRequestText: 'Failed, try again',
+    lockedByAdmin: 'Locked by admin',
   },
   [namespaces.errors]: {
     errorMessageGenericTitle: 'Ouch! Something went wrong!',

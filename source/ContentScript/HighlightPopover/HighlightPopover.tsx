@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
-import { CustomInputElement, IAlert, IAlternatives } from '../../shared/types';
+import { CustomInputElement, IAlert, IAlternatives, ResponseConfig } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -17,7 +17,7 @@ import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
 import CheckIcon from '../../assets/icons/popover/success.svg';
 import ErrorIcon from '../../assets/icons/popover/failure.svg';
-
+import LockIcon from '../../assets/icons/popover/lock.svg';
 
 import './HighlightPopover.scss';
 import { DEV_ENV, StorageKeys, getColor } from '../../shared/constants';
@@ -37,6 +37,7 @@ export interface PopoverData {
   alert: IAlert;
   position: DOMRect;
   node: Node;
+  organizationConfig?: ResponseConfig;
 }
 
 interface PopoverProps {
@@ -73,6 +74,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [isLoading, setIsLoading] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<string>('');
   const [isFailure, setIsFailure] = useState<string>('');
+  const [diversityDimensionLocked, setDiversityDimensionLocked] = useState<boolean>(false);
 
   useEffect(() => {
     if (prevData && prevData.alert.id === data.alert.id) {
@@ -137,6 +139,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   });
 
   useEffect(() => {
+    const organizationConfigSubCategories = data?.organizationConfig?.categories as any;
+    const currentWordSubCategory = data?.alert?.data?.subcategory;
+    const currentWordCategoryLocked = organizationConfigSubCategories?.[currentWordSubCategory]?.status === 'force';
+    setDiversityDimensionLocked(currentWordCategoryLocked);
+    
     browser.storage.local.get(null).then((result) => {
       setAccessToken(
         result[StorageKeys.ACCESS_TOKEN]
@@ -279,12 +286,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     analytics.ignoreLog(data.alert);
     if(ignoreType === 'ignore_once') {
       addIgnoredTerm(data.alert.data?.text);
-      hide();
+      hidePopover();
     } else if (ignoreType === 'ignore_permanently') {
       const requestUrlIgnore = createUrl(getBaseUrls().dashboard, `api/user/language/ignore-words?false_positive=${data.alert.data?.text}`);
       makeDashboardRequest(requestUrlIgnore, ignoreType);
     } else if (ignoreType === 'reduce_dimension') {
-      const requestUrlReduce = createUrl(getBaseUrls().dashboard, `api/user/language/customize-witty?diverssity_dimension=${data.alert.data?.subcategory}&direction=down`);
+      const requestUrlReduce = createUrl(getBaseUrls().dashboard, `api/user/language/customize-witty?diversity_dimension=${data.alert.data?.subcategory}&direction=down`);
       makeDashboardRequest(requestUrlReduce, ignoreType);
     }
   };
@@ -304,13 +311,16 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     ).then(async (response) => {
         setIsLoading('');
       if (response.status === 204) {
+        addIgnoredTerm(data.alert.data?.text);
         setIsSuccess(ignoreType);
         setTimeout(() => {
-          hide();
+          hidePopover();
         }, 1000);
+      } else {
+        setIsLoading('');
+        setIsFailure(ignoreType);
       }
     }).catch((error) => {
-      setIsFailure(ignoreType);
       sendErrorToSentry(error);
     });
   };
@@ -339,7 +349,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       }
     }
   } 
-  
+
   return (
     <div
       id='witty-works-ext-popover'
@@ -350,8 +360,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         left: `${x}px`,
         maxWidth: `${showLearningBite ? 850 : 350}px`,
       }}
-      // onMouseDown={(e) => e.preventDefault()
-      // }
+      onMouseDown={(e) => e.preventDefault()}
     >
       <div
         id='witty-works-ext-popover-content'
@@ -592,18 +601,20 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               </button>
               {isLoading === 'ignore_permanently' && <LoadingIcon />}
               {isSuccess === 'ignore_permanently' && <CheckIcon />}
-              {isFailure === 'ignore_permanently' && <ErrorIcon />}
+              {isFailure === 'ignore_permanently' &&  <><ErrorIcon /> <span className='witty-works-ext-margin-left'>{t('failedRequestText')}</span></>}
             </div>
             <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
-            <button
-              className='witty-works-ext-secondary-button-red witty-works-ext-margin-right witty-works-ext-ignore-button'
-              onClick={handleIgnoreClick('reduce_dimension')}
-            >
-                {t('reduceDimension')}
-              </button>
-              {isLoading === 'reduce_dimension' && <LoadingIcon />}
-              {isSuccess === 'reduce_dimension' && <CheckIcon />}
-              {isFailure === 'reduce_dimension' && <ErrorIcon />}            
+              <button
+                className='witty-works-ext-secondary-button-red witty-works-ext-margin-right witty-works-ext-ignore-button'
+                onClick={handleIgnoreClick('reduce_dimension')}
+                style={{ pointerEvents: diversityDimensionLocked ? 'none' : 'auto' }}
+              >
+                  {t('reduceDimension')}
+                </button>
+                {diversityDimensionLocked && <><LockIcon /> <span className='witty-works-ext-margin-left'>{t('lockedByAdmin')}</span></>}
+                {isLoading === 'reduce_dimension' && <LoadingIcon />}
+                {isSuccess === 'reduce_dimension' && <CheckIcon />}
+                {isFailure === 'reduce_dimension' && <><ErrorIcon /> <span className='witty-works-ext-margin-left'>{t('failedRequestText')}</span></>}
             </div>
           </div>
         </>

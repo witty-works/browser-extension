@@ -972,6 +972,7 @@ const Input: React.FC<{
         alert: selectedAlert,
         position: clickedRect,
         node: nodeText,
+        organizationConfig: authResponse?.organization_config,
       });
     }
   }, [selectedNodeWithAlertsIndex, selectedAlertIndex]);
