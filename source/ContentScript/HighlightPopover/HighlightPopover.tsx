@@ -141,7 +141,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   useEffect(() => {
     const organizationConfigSubCategories = data?.organizationConfig?.categories as any;
     const currentWordSubCategory = data?.alert?.data?.subcategory;
-    const currentWordCategoryLocked = organizationConfigSubCategories?.[currentWordSubCategory]?.status === 'force';
+    const currentWordCategoryLocked = organizationConfigSubCategories?.[currentWordSubCategory]?.value;
     setDiversityDimensionLocked(currentWordCategoryLocked);
     
     browser.storage.local.get(null).then((result) => {
