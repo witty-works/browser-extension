@@ -5,6 +5,7 @@ import { browser } from 'webextension-polyfill-ts';
 import { storeInLocalStorage } from '../utils';
 import defaultConfig from '../../witty.config.json';
 import { sendErrorToSentry } from '../errorUtils';
+
 export const aliasId = async (userId: string, appId: string) => {
     const request = {
       api_key: POSTHOG_API_KEY,
