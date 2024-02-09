@@ -32,7 +32,7 @@ const IconController: React.FC<IconControllerProps> = ({
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const fixedPositionIcon = isMicrosoftOnlineWord(window.location.href) || isGoogleDocs();
+  const fixedPositionIcon = isGoogleDocs();
   let iconPositionGoogleDocs = { top: 0, left: 0 };
   if (!elementRect) {
     elementRect = element.getBoundingClientRect();
@@ -40,11 +40,11 @@ const IconController: React.FC<IconControllerProps> = ({
     if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
     let gDocsPage = element.querySelectorAll('.kix-page-paginated');
 
-    if(gDocsPage.length === 0) {//for pageless format
+    if(gDocsPage?.length === 0) {//for pageless format
       gDocsPage = element?.childNodes[0]?.childNodes as NodeListOf<Element>; 
     }
 
-    if(gDocsPage.length > 0) {
+    if(gDocsPage?.length > 0) {
       elementRect = (gDocsPage[0]).getBoundingClientRect();
     }
 
@@ -80,7 +80,7 @@ const IconController: React.FC<IconControllerProps> = ({
         zIndex: 999999999,
         position: fixedPositionIcon ? 'fixed' : 'absolute',
         top: fixedPositionIcon ? iconPositionGoogleDocs.top : `${scrollContainerScrollTop + (isMicrosoftOnlineExcel(window.location.href) ? 0 : 8)}px`, //add padding like this to minimize clickable area
-        left: fixedPositionIcon ? iconPositionGoogleDocs.left : `${0}px`,
+        left: fixedPositionIcon ? iconPositionGoogleDocs.left : isMicrosoftOnlineWord(window.location.href) ? `${25}px` : `${0}px`,
         marginLeft:  fixedPositionIcon ? '0px' : `${elementWidth - positionLeft + 20}px`, //add padding like this to minimize clickable area
         pointerEvents: iconType !== 'warning' ? 'none' : 'auto',
         display: 'flex',
