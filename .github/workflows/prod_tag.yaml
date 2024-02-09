@@ -70,6 +70,17 @@ jobs:
       - name: Remove *.map files
         run: rm -rf extension/chrome/js/*.map
   
+      - name: Store Chrome Prod artifacts with hardcoded key
+        uses: actions/upload-artifact@v3
+        with:
+          name: chrome-self-hosted
+          path: |
+            extension/chrome
+
+      - name: Remove key in manifest
+        run: |
+          sed -i '/"key":/d' extension/chrome/manifest.json
+    
       - name: Store Chrome Prod artifacts
         uses: actions/upload-artifact@v3
         with:

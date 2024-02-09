@@ -47,10 +47,14 @@ jobs:
       - name: Build Dev artifacts
         run: |
           npm run build:chrome-with-sourcemaps
+  
+      - name: Remove key in manifest
+        run: |
+          sed -i '/"key":/d' extension/chrome/manifest.json
 
       - name: Remove *.map files
         run: rm -rf extension/chrome/js/*.map
-  
+
       - name: Store Chrome Dev artifacts
         uses: actions/upload-artifact@v3
         with:
