@@ -972,6 +972,7 @@ const Input: React.FC<{
         alert: selectedAlert,
         position: clickedRect,
         node: nodeText,
+        organizationConfig: authResponse?.organization_config,
       });
     }
   }, [selectedNodeWithAlertsIndex, selectedAlertIndex]);
@@ -1190,10 +1191,20 @@ const Input: React.FC<{
       setNodesWithAlerts(mergedNodesWithAlerts);
       isWittyPremiumUserRef.current && userIsSignedIn && DEV_ENV && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);//TEMP: only log check_highlights in dev_env
 
+      const nodeStorageRefWithAlerts = nodesStorageRef.current.map((node: INodes) => {
+        const nodeWithAlerts = mergedNodesWithAlerts.find((nodeWithAlerts: INodeWithAlerts) => {
+          return nodeWithAlerts.nodeIndex === node.index;
+        });
+        return {
+          ...node,
+          alerts: nodeWithAlerts ? nodeWithAlerts.alerts : [],
+        }
+      });
+
       prevCheckedNodesRef.current = [...prevCheckedNodesRef.current.filter((prevCheckedNode: INodes) => {
-        const nodeIndex = nodesStorageRef.current.findIndex((node: INodes) => node.index === prevCheckedNode.index);
+        const nodeIndex = nodeStorageRefWithAlerts.findIndex((node: INodes) => node.index === prevCheckedNode.index);
         return nodeIndex === -1;
-      }), ...nodesStorageRef.current].sort((a: INodes, b: INodes) => a.index - b.index);
+      }), ...nodeStorageRefWithAlerts].sort((a: INodes, b: INodes) => a.index - b.index);
       nodesStorageRef.current = [];
   }, [
     alerts,
@@ -1203,23 +1214,31 @@ const Input: React.FC<{
     selectedAlertIndex,
   ]);
 
-  const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: INodes[]) => {
+  const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: any) => {
     let newResults;
     if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
       newResults = checkEndpointResponse.results.filter((alert) => {
-        return !unchangedAlertsTextarea.map((alert) => alert.startOffset).includes(alert.start);
-      });  
+        return !unchangedAlertsTextarea.some((prevAlert) => prevAlert.startOffset === alert.start);
+      });
     } else {
       newResults = newNodesWithAlerts.reduce((acc: any, nodeWithAlerts: INodeWithAlerts) => {
-        const newAlerts = nodeWithAlerts.alerts.filter(() => {
-          const prevCheckedNode = previouslyCheckedNodesWithAlerts.find((prevCheckedNode: INodes) => {
+        let newAlerts = nodeWithAlerts.alerts.filter(() => {
+          const prevCheckedNode = previouslyCheckedNodesWithAlerts.find((prevCheckedNode: INodeWithAlerts) => {
             return prevCheckedNode.node === nodeWithAlerts.node?.nodeValue;
           });
           return !prevCheckedNode || prevCheckedNode.index !== nodeWithAlerts.nodeIndex;
         });
+        
+        // Filtering out alerts that were already checked
+        newAlerts = newAlerts.filter((alert) => {
+          return !previouslyCheckedNodesWithAlerts.some((prevCheckedNode: any) => {
+            return prevCheckedNode.alerts.some((prevAlert: any) => {
+              return prevAlert.startOffset === alert.startOffset && prevAlert.endOffset === alert.endOffset;
+            });
+          });
+        });    
         return [...acc, ...newAlerts];
-      }
-      , []);
+      }, []);    
     }
 
     if (newResults.length === 0) return;
@@ -1237,17 +1256,16 @@ const Input: React.FC<{
     };
       
     if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
-      
     const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-    mergedCheckEndpointResponseWithoutOrthography.results.forEach((result: any) => {
+    for (const result of mergedCheckEndpointResponseWithoutOrthography.results) {
       analytics.checkResultLog(
-        result,
+        result.data,
         authResponse,
         textContentLength,
         'check_highlights',
         checkLogEventIdRef.current,
-      )
-    });
+      );
+    };
   };
   
   // useEffect(() => {

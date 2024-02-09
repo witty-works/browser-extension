@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
-import { CustomInputElement, IAlert, IAlternatives } from '../../shared/types';
+import { CustomInputElement, IAlert, IAlternatives, ResponseConfig } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -9,13 +9,15 @@ import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
-import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
 import VideoIcon from '../../assets/icons/popover/video.svg';
 import ArrowUpIcon from '../../assets/icons/popover/arrow-up.svg';
 import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
+import CheckIcon from '../../assets/icons/popover/success.svg';
+import ErrorIcon from '../../assets/icons/popover/failure.svg';
+import LockIcon from '../../assets/icons/popover/lock.svg';
 
 import './HighlightPopover.scss';
 import { DEV_ENV, StorageKeys, getColor } from '../../shared/constants';
@@ -27,6 +29,7 @@ import { browser } from 'webextension-polyfill-ts';
 import ReactDOM from 'react-dom';
 import Notification from '../../Notifications/Notification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
+import { createUrl, getBaseUrls } from '../../shared/ApiServices/requests';
 
 export interface PopoverData {
   index: number;
@@ -34,6 +37,7 @@ export interface PopoverData {
   alert: IAlert;
   position: DOMRect;
   node: Node;
+  organizationConfig?: ResponseConfig;
 }
 
 interface PopoverProps {
@@ -63,9 +67,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [alternativeHovered, setAlternativeHovered] = useState<string | null>(
     null
   );
-  const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
-    useStateRef<boolean>(false);
+  const [showLearningBite, setShowLearningBite, showLearningBiteRef] = useStateRef<boolean>(false);
+  const [showIgnoreSection, setShowIgnoreSection] = useState<boolean>(false);
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
+  const [accessToken, setAccessToken] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<string>('');
+  const [isSuccess, setIsSuccess] = useState<string>('');
+  const [isFailure, setIsFailure] = useState<string>('');
+  const [diversityDimensionLocked, setDiversityDimensionLocked] = useState<boolean>(false);
 
   useEffect(() => {
     if (prevData && prevData.alert.id === data.alert.id) {
@@ -128,6 +137,21 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
+
+  useEffect(() => {
+    const organizationConfigSubCategories = data?.organizationConfig?.categories as any;
+    const currentWordSubCategory = data?.alert?.data?.subcategory;
+    const currentWordCategoryLocked = organizationConfigSubCategories?.[currentWordSubCategory]?.value;
+    setDiversityDimensionLocked(currentWordCategoryLocked);
+    
+    browser.storage.local.get(null).then((result) => {
+      setAccessToken(
+        result[StorageKeys.ACCESS_TOKEN]
+          ? result[StorageKeys.ACCESS_TOKEN]
+          : ''
+      );
+    });
+  }, []);
 
   useEffect(() => {
     reference(element);
@@ -258,11 +282,47 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     updateTextWithAlternative(alternative, category);
   };
 
-  const clickIgnoreTerm = () => {
-    //Log when user chooses to ignore a term
+  const handleIgnoreClick = (ignoreType: string) => () => {
     analytics.ignoreLog(data.alert);
-    addIgnoredTerm(data.alert.data?.text);
-    hide();
+    if(ignoreType === 'ignore_once') {
+      addIgnoredTerm(data.alert.data?.text);
+      hidePopover();
+    } else if (ignoreType === 'ignore_permanently') {
+      const requestUrlIgnore = createUrl(getBaseUrls().dashboard, `api/user/language/ignore-words?false_positive=${data.alert.data?.text}`);
+      makeDashboardRequest(requestUrlIgnore, ignoreType);
+    } else if (ignoreType === 'reduce_dimension') {
+      const requestUrlReduce = createUrl(getBaseUrls().dashboard, `api/user/language/customize-witty?diversity_dimension=${data.alert.data?.subcategory}&direction=down`);
+      makeDashboardRequest(requestUrlReduce, ignoreType);
+    }
+  };
+
+  const makeDashboardRequest = (requestUrl: string, ignoreType: string) => {
+    setIsLoading(ignoreType);
+    setIsSuccess('');
+    setIsFailure('');
+    fetch(
+      requestUrl,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        }
+      }
+    ).then(async (response) => {
+        setIsLoading('');
+      if (response.status === 204) {
+        addIgnoredTerm(data.alert.data?.text);
+        setIsSuccess(ignoreType);
+        setTimeout(() => {
+          hidePopover();
+        }, 1000);
+      } else {
+        setIsLoading('');
+        setIsFailure(ignoreType);
+      }
+    }).catch((error) => {
+      sendErrorToSentry(error);
+    });
   };
 
   const renderAlternative = (alternative: IAlternatives, alternativeHovered: string | null) => {
@@ -289,7 +349,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       }
     }
   } 
-  
+
   return (
     <div
       id='witty-works-ext-popover'
@@ -396,7 +456,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
                 style={{marginTop: showLearningBite ? '0em' : '1em'}}
                 >
-                  <div className='witty-works-ext-secondary-button-red witty-works-ext-container-row'>
+                  <div className='witty-works-ext-dropdown-select witty-works-ext-container-row'>
                       {t('learnMore')}
                       {data.alert.data?.explanation?.content === 'video' && (
                         <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
@@ -438,14 +498,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             }}
           ></iframe>
         </div>
+        <div className='witty-works-ext-separator' style={{ marginBottom: '1em', marginTop: '1em' }} />
 
         {/* TRY INSTEAD */}
-        {data.alert.data?.alternatives?.length > 0 && !showLearningBite && (
+        {data.alert.data?.alternatives?.length > 0 && !showLearningBite && !showIgnoreSection && (
           <>
-            <div
-              className='witty-works-ext-separator'
-              style={{ marginBottom: '1em', marginTop: '1em' }}
-            />
             <div className='witty-works-ext-wittyworks-popover-row'>
               <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
                 {t('insteadTry')}
@@ -514,16 +571,51 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       </div>
       {!showLearningBite && (
         <>
-          <div
-            onClick={() => clickIgnoreTerm()}
-            className='witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'
+          <button onClick={() => { setShowIgnoreSection(!showIgnoreSection); }}
+            className='witty-works-ext-cursor-pointer witty-works-ext-ignore-section witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-ignore-color-transformer'
           >
-            <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
-              <IgnoreIcon alt={t('ignore')} />
-            </span>
-            <span className='witty-works-ext-lato-popover-text-gray'>
+            <span className='witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>
               {t('ignoreTerm')}
             </span>
+            <span style={{ pointerEvents: 'none' }}>
+              {showIgnoreSection ? <ArrowUpIcon /> : <ArrowDownIcon />}
+            </span>
+          </button>
+
+          <div style={{ display: showIgnoreSection ? 'flex' : 'none', flexDirection: 'column'}}>
+          <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
+            <button
+              className='witty-works-ext-secondary-button-red'
+              onClick={handleIgnoreClick('ignore_once')}
+              style={{padding: '2px 6px'}}
+            >
+                {t('ignoreOnce')}
+              </button>
+            </div>
+            <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
+            <button
+              className='witty-works-ext-secondary-button-red witty-works-ext-margin-right witty-works-ext-ignore-button'
+              onClick={handleIgnoreClick('ignore_permanently')}
+            >
+                {t('ignorePermanently')}
+              </button>
+              {isLoading === 'ignore_permanently' && <LoadingIcon />}
+              {isSuccess === 'ignore_permanently' && <CheckIcon />}
+              {isFailure === 'ignore_permanently' &&  <><ErrorIcon /> <span className='witty-works-ext-margin-left'>{t('failedRequestText')}</span></>}
+            </div>
+            <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
+              <button
+                className='witty-works-ext-secondary-button-red witty-works-ext-margin-right witty-works-ext-ignore-button'
+                onClick={handleIgnoreClick('reduce_dimension')}
+                style={{ pointerEvents: diversityDimensionLocked ? 'none' : 'auto' }}
+              >
+                  {t('reduceDimension')}
+                </button>
+                {diversityDimensionLocked && <><LockIcon /> <span className='witty-works-ext-margin-left'>{t('lockedByAdmin')}</span></>}
+                {isLoading === 'reduce_dimension' && <LoadingIcon />}
+                {isSuccess === 'reduce_dimension' && <CheckIcon />}
+                {isFailure === 'reduce_dimension' && <><ErrorIcon /> <span className='witty-works-ext-margin-left'>{t('failedRequestText')}</span></>}
+            </div>
           </div>
         </>
       )}

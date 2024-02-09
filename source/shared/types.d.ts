@@ -18,6 +18,7 @@ export interface IEndpointError {
 
 export interface ResponseConfig {
   orthography: ConfigProperty;
+  categories?: ConfigProperty;
 }
 export interface RequestConfig extends ResponseConfig {
   disabled_categories: string[];
