@@ -85,27 +85,27 @@ export const maximumImportanceToBoolean = (value: number) =>
 export const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
 export const addNotificationBadge = (numberOfNotifications: number) => {
-  browser.browserAction.setBadgeBackgroundColor({
+  browser.browserAction?.setBadgeBackgroundColor({
     color: '#E6635A',
   });
 
-  browser.browserAction.setBadgeText({
+  browser.browserAction?.setBadgeText({
     text: numberOfNotifications.toString(),
   });
 };
 
 export const addInactiveBadge = () => {
-  browser.browserAction.setBadgeBackgroundColor({
+  browser.browserAction?.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
-  browser.browserAction.setBadgeText({ text: 'OFF' });
+  browser.browserAction?.setBadgeText({ text: 'OFF' });
 };
 
 export const addLoginBadge = () => {
-  browser.browserAction.setBadgeBackgroundColor({
+  browser.browserAction?.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
-  browser.browserAction.setBadgeText({ text: 'Login' });
+  browser.browserAction?.setBadgeText({ text: 'Login' });
 };
 
 export const getNewAccessToken = async () => {
@@ -144,7 +144,7 @@ export const logOut = () => {
 };
 
 export const removeBadge = () => {
-  browser.browserAction.setBadgeText({ text: '' });
+  browser.browserAction?.setBadgeText({ text: '' });
 };
 
 export const getRandomToken = () => {
