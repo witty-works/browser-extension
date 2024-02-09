@@ -18,8 +18,10 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
 }: GoogleDocsCloneProps) => {
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
   const divs = [] as JSX.Element[];
-  const pages = element.querySelectorAll('.kix-page-paginated');
-
+  let pages = element.querySelectorAll('.kix-page-paginated') 
+  if(pages.length === 0) {
+    pages = element?.childNodes[0]?.childNodes as NodeListOf<Element>; //for pageless format
+  }
   //find index of child of pages that has a grandchild containing g
   const childNodeIndex = Array.from(pages).map((page) =>
     Array.from(page?.childNodes).findIndex(
