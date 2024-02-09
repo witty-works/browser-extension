@@ -39,9 +39,11 @@ const IconController: React.FC<IconControllerProps> = ({
   } else if (fixedPositionIcon) {
     if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
     let gDocsPage = element.querySelectorAll('.kix-page-paginated');
+    let widthAdjustment = + 20;
 
     if(gDocsPage?.length === 0) {//for pageless format
       gDocsPage = element?.childNodes[0]?.childNodes as NodeListOf<Element>; 
+      widthAdjustment = - 15;
     }
 
     if(gDocsPage?.length > 0) {
@@ -50,7 +52,7 @@ const IconController: React.FC<IconControllerProps> = ({
 
     iconPositionGoogleDocs = {
       top: 250,
-      left: elementRect.left + elementRect.width + 20,
+      left: elementRect.left + elementRect.width + widthAdjustment,
     };
   }
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
