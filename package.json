@@ -1,13 +1,12 @@
 {
-  "name": "web-extension-starter",
-  "version": "2.0.0",
-  "description": "Web extension starter using react and typescript",
+  "name": "witty",
+  "version": "1.x",
+  "description": "Witty - inclusive writing assistant",
   "private": true,
-  "repository": "https://github.com/abhijithvijayan/web-extension-starter.git",
-  "author": "abhijithvijayan <email@abhijithvijayan.in> (https://abhijithvijayan.in)",
-  "license": "MIT",
+  "author": "Solveig Helland <solveig.helland@witty.works>",
+  "license": "proprietary",
   "engines": {
-    "node": "^16.15"
+    "node": "^18.0"
   },
   "engineStrict": true,
   "scripts": {
