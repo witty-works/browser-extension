@@ -27,6 +27,7 @@ import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollableParentClosestToElement, storeInLocalStorage } from '../../shared/utils';
 import { browser } from 'webextension-polyfill-ts';
 import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import Notification from '../../Notifications/Notification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { createUrl, getBaseUrls } from '../../shared/ApiServices/requests';
@@ -221,15 +222,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       const notificationWrapper = document.createElement('div');
       notificationWrapper.id = 'ww-notification';
   
-      ReactDOM.render(
+      window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild);
+      const root = createRoot(notificationWrapper);
+      
+      root.render(
         <Notification
           notificationType={notificationType}
           element={element}
-        />,
-        window.top.document.body.insertBefore(
-          notificationWrapper,
-          window.top.document.body.firstChild
-        )
+        />
       );
     } catch (error) {
       DEV_ENV && console.error("Error in renderNotification:", error);

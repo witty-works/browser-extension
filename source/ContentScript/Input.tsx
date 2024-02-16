@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { browser } from 'webextension-polyfill-ts';
-
+import { createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import ReactDOM from 'react-dom';
 import defaultConfig from '../witty.config.json';
@@ -153,14 +153,18 @@ const Input: React.FC<{
       setAlerts([]);
     }
     setTextToCheck('');
-    ReactDOM.render(
+
+    const container = document.querySelector(WTags.WW_CLONE);
+    if (!container) return;
+    const root = createRoot(container);
+
+    root.render(
       <GoogleDocsClone
         element={element}
         previousElement={previousElementStateRef.current}
         updateClone={updateCloneData}
-      />,
-      document.querySelector(WTags.WW_CLONE)
-    );
+      />
+    );  
     setIsActive(false);
     setActiveIcon('active');
 
@@ -1570,16 +1574,15 @@ const Input: React.FC<{
         try {      
           const notificationWrapper = document.createElement('div');
           notificationWrapper.id = 'ww-notification';
-      
-          ReactDOM.render(
+          
+          window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild);
+          const root = createRoot(notificationWrapper);
+        
+          root.render(
             <Notification
               notificationType={'min_version_not_installed'}
               element={element}
-            />,
-            window.top.document.body.insertBefore(
-              notificationWrapper,
-              window.top.document.body.firstChild
-            )
+            />
           );
         } catch (error) {
           DEV_ENV && console.error("Error in renderNotification:", error);
@@ -1636,14 +1639,17 @@ const Input: React.FC<{
       const element = document.createElement(WTags.WW_POPOVER);
       document.body.appendChild(element);
     }
+    const container = document.querySelector(WTags.WW_POPOVER);
+    if (!container) return;
+    const root = createRoot(container);
     //Show/Hide the popover
     if (
       popoverData &&
       userIsSignedIn &&
       popoverData.alert.plan === 'witty_free' &&
-      !popoverData.alert.data.explanation //if no explanation returned, its a premium feature
+      !popoverData.alert.data.explanation // if no explanation returned, it's a premium feature
     ) {
-      ReactDOM.render(
+      root.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverUpgrade
             element={element}
@@ -1652,11 +1658,10 @@ const Input: React.FC<{
             hide={resetPopover}
             addIgnoredCategory={addIgnoredCategory}
           />
-        </Sentry.ErrorBoundary>,
-        document.querySelector(WTags.WW_POPOVER)
+        </Sentry.ErrorBoundary>
       );
     } else if (popoverData && userIsSignedIn) {
-      ReactDOM.render(
+      root.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
             element={element}
@@ -1668,11 +1673,10 @@ const Input: React.FC<{
             movePopoverNextOrPrev={movePopoverNextOrPrev}
             userIsSignedIn={userIsSignedIn}
           />
-        </Sentry.ErrorBoundary>,
-        document.querySelector(WTags.WW_POPOVER)
+        </Sentry.ErrorBoundary>
       );
     } else if (popoverData && !userIsSignedIn) {
-      ReactDOM.render(
+      root.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverNotSignedIn
             element={element}
@@ -1680,8 +1684,7 @@ const Input: React.FC<{
             prevData={previousPopoverDataRef.current}
             hide={resetPopover}
           />
-        </Sentry.ErrorBoundary>,
-        document.querySelector(WTags.WW_POPOVER)
+        </Sentry.ErrorBoundary>
       );
     } else {
       const popoverElement = document.querySelector(WTags.WW_POPOVER);
