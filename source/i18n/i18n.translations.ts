@@ -65,7 +65,7 @@ export const de = {
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
     learnMore: 'Warum',
-    ignoreTerm: 'Ignorieren',
+    ignoreTerm: 'Weniger unterstreichen?',
     whyQuestionMark: 'Warum?',
     alertOftotal: 'von',
     removeSpaces: 'Extra Leerzeichen entfernen',
@@ -191,7 +191,7 @@ export const en = {
   [namespaces.popover]: {
     insteadTry: 'Try instead ...',
     learnMore: 'Why',
-    ignoreTerm: 'Ignore',
+    ignoreTerm: 'Highlight less?',
     whyQuestionMark: 'Why?',
     alertOftotal: 'of',
     removeSpaces: '(Remove extra spaces)',
