@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { browser } from 'webextension-polyfill-ts';
 import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
 import { isGoogleDocs, isInputText, isMicrosoftOnlineWord, isTextArea } from '../shared/DOMutils';
@@ -79,10 +79,12 @@ export const customRender = (enabled: boolean, scriptId: string) => {
     document.body.appendChild(element);
   }
 
-  ReactDOM.render(
-    enabled ? <ContentScriptApp /> : <></>,
-    document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)
-  );
+  const container = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
+
+  if (container) {
+    const root = createRoot(container); // Create a root for the container
+    root.render(enabled ? <ContentScriptApp /> : <></>); // Conditionally render the component
+  }
 
   //if more than one container is found, remove all of except the first one. If witty disabled, remove all.
   const containers = getActiveDocument().querySelectorAll(WTags.WW_CONTAINER);
