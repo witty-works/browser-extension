@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { browser } from 'webextension-polyfill-ts';
-import { createRoot } from 'react-dom/client';
+import { Root, createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import defaultConfig from '../witty.config.json';
 import { WTags, StorageKeys, DEV_ENV } from '../shared/constants';
@@ -102,7 +102,7 @@ const Input: React.FC<{
   const [selectedAlertIndex, setSelectedAlertIndex, prevSelectedAlertIndex] =
     useStateRef<number>(-1);
   const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
-  const [popoverData, setPopoverData] = useState<PopoverData | null>(null);
+  const [, , popoverDataRef] = useStateRef<PopoverData | null>(null);
   const [, , previousPopoverDataRef] = useStateRef<PopoverData | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
@@ -125,6 +125,7 @@ const Input: React.FC<{
   const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
   const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
+  const [, , popoverRootRef] = useStateRef<Root | null>(null);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
@@ -739,8 +740,10 @@ const Input: React.FC<{
 
   const resetPopover = () => {
     event?.stopPropagation();
-    popoverData !== null && (previousPopoverDataRef.current = popoverData);
-    setPopoverData(null);
+    popoverDataRef.current !== null && (previousPopoverDataRef.current = popoverDataRef.current);
+    popoverDataRef.current = null;
+    popoverRootRef.current?.unmount();
+    popoverRootRef.current = null;
     setSelectedAlert(null);
     setSelectedAlertIndex(-1);
   };
@@ -969,7 +972,7 @@ const Input: React.FC<{
           0
         );
 
-      setPopoverData({
+      popoverDataRef.current = ({
         index: currentAlertIndex,
         totalAlerts: totalAlerts,
         alert: selectedAlert,
@@ -1412,7 +1415,7 @@ const Input: React.FC<{
 
   const updateTextWithAlternative = (alternative: string, category: string) => {
     alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
-    const node = popoverData?.node as Node;
+    const node = popoverDataRef.current?.node as Node;
     const alert = selectedAlert as IAlert;
 
     if (isTextArea(element) || isInputText(element)) {
@@ -1633,38 +1636,35 @@ const Input: React.FC<{
   };
 
   useEffect(() => {
-    const popoverElement = document.querySelector(WTags.WW_POPOVER) || document.createElement(WTags.WW_POPOVER);
-    if (!document.body.contains(popoverElement)) {
-      const element = document.createElement(WTags.WW_POPOVER);
-      document.body.appendChild(element);
+    if (!popoverRootRef.current) {
+      const popoverElement = document.createElement(WTags.WW_POPOVER);
+      document.body.appendChild(popoverElement);
+      popoverRootRef.current = createRoot(popoverElement);
     }
-    const container = document.querySelector(WTags.WW_POPOVER);
-    if (!container) return;
-    const root = createRoot(container);
     //Show/Hide the popover
     if (
-      popoverData &&
+      previousPopoverDataRef.current &&
       userIsSignedIn &&
-      popoverData.alert.plan === 'witty_free' &&
-      !popoverData.alert.data.explanation // if no explanation returned, it's a premium feature
+      popoverDataRef.current?.alert.plan === 'witty_free' &&
+      !popoverDataRef.current?.alert.data.explanation // if no explanation returned, it's a premium feature
     ) {
-      root.render(
+      popoverRootRef.current?.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverUpgrade
             element={element}
-            data={popoverData}
+            data={popoverDataRef.current}
             prevData={previousPopoverDataRef.current}
             hide={resetPopover}
             addIgnoredCategory={addIgnoredCategory}
           />
         </Sentry.ErrorBoundary>
       );
-    } else if (popoverData && userIsSignedIn) {
-      root.render(
+    } else if (popoverDataRef.current && userIsSignedIn) {
+      popoverRootRef.current?.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
             element={element}
-            data={popoverData}
+            data={popoverDataRef.current}
             prevData={previousPopoverDataRef.current}
             hide={resetPopover}
             updateTextWithAlternative={updateTextWithAlternative}
@@ -1674,24 +1674,19 @@ const Input: React.FC<{
           />
         </Sentry.ErrorBoundary>
       );
-    } else if (popoverData && !userIsSignedIn) {
-      root.render(
+    } else if (popoverDataRef.current && !userIsSignedIn) {
+      popoverRootRef.current?.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverNotSignedIn
             element={element}
-            data={popoverData}
+            data={popoverDataRef.current}
             prevData={previousPopoverDataRef.current}
             hide={resetPopover}
           />
         </Sentry.ErrorBoundary>
       );
-    } else {
-      const popoverElements = document.getElementsByTagName(WTags.WW_POPOVER);
-      Array.from(popoverElements).forEach((popoverElement) => {
-        popoverElement.remove();
-    });
     }
-  }, [popoverData]);
+  }, [popoverDataRef.current]);
 
   return (
     <>
@@ -1723,7 +1718,7 @@ const Input: React.FC<{
               nodesWithAlerts={nodesWithAlerts}
               element={element}
               elementRect={elementRect}
-              selectedAlert={popoverData && popoverData?.alert}
+              selectedAlert={popoverDataRef.current && popoverDataRef.current?.alert}
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
