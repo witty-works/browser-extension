@@ -182,9 +182,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   const handleClickOutside = (event: MouseEvent) => {
-    const hasClickedOutsidePopOver: boolean | null =
-      refs.floating.current &&
-      !refs.floating.current.contains(event.target as HTMLElement);
+    const hasClickedOutsidePopOver = !refs.floating.current?.contains(event.target as HTMLElement);
 
     const doc = getActiveDocument().documentElement || getActiveDocument().body;
     const posX = event.pageX + doc.scrollLeft;
