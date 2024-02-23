@@ -1632,25 +1632,10 @@ const Input: React.FC<{
     }
   };
 
-  // const getOrCreateRoot = (container: Element): Root => {
-  //   const containerId = container.id;
-  
-  //   if (!rootsRef.current[containerId]) {
-  //     console.log('Creating new root', rootsRef.current)
-  //     rootsRef.current[containerId] = createRoot(container);
-  //     console.log('Created new root', rootsRef.current)
-  //   } else {
-  //     console.log('Using existing root', rootsRef.current[containerId])
-  //   }
-  
-  //   return rootsRef.current[containerId];
-  // }
-
   useEffect(() => {
     const popoverElement = document.querySelector(WTags.WW_POPOVER) || document.createElement(WTags.WW_POPOVER);
     if (!document.body.contains(popoverElement)) {
       const element = document.createElement(WTags.WW_POPOVER);
-      // element.id = 'ww-popover';
       document.body.appendChild(element);
     }
     const container = document.querySelector(WTags.WW_POPOVER);
