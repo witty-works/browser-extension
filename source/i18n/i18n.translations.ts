@@ -115,7 +115,7 @@ export const de = {
     subscriptionButton: 'Upgrade',
     updateNotificationHeadline: 'Witty wurde aktualisiert',
     updateNotificationText:
-      'Witty wurde auf die neuste version aktualisiert.',
+      'Witty wurde auf die neuste Version aktualisiert.',
     updateNotificationButton: 'Änderungen',
     minVersionNotInstalledNotificationHeadline: 'Du must Witty aktualisieren',
     minVersionNotInstalledNotificationText: 'Um Witty weiterhin nutzen zu können, müsst Du Witty auf eine neuere Version aktualisieren.',
