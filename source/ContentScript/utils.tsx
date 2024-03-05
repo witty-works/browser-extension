@@ -12,7 +12,6 @@ import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
 import { createUrl } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
 
-
 export const updateConfig = (response: IAuthResponse) => {
   storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response?.organization_id);
   storeInLocalStorage(StorageKeys.USER_ID, response?.id);
@@ -274,7 +273,6 @@ export const getScrollParent = (
   }
 };
 
-
 const areNodesEqual = (node1: INodes, node2: Node): boolean => {
   return node1.node === node2.textContent;
 }
@@ -285,4 +283,3 @@ export const shouldReturnEarly = (prevNodes: INodes[] | null, currentNodes: Node
   }
   return prevNodes.every((node, index) => areNodesEqual(node, currentNodes[index]));
 }
-

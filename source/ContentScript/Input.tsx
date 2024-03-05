@@ -101,7 +101,7 @@ const Input: React.FC<{
     useState<number>(-1);
   const [selectedAlertIndex, setSelectedAlertIndex, prevSelectedAlertIndex] =
     useStateRef<number>(-1);
-  const [selectedAlert, setSelectedAlert] = useState<IAlert | null>(null);
+  const [, , selectedAlertRef] = useStateRef<IAlert | null>(null);
   const [, , popoverDataRef] = useStateRef<PopoverData | null>(null);
   const [, , previousPopoverDataRef] = useStateRef<PopoverData | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
@@ -744,7 +744,7 @@ const Input: React.FC<{
     popoverDataRef.current = null;
     popoverRootRef.current?.unmount();
     popoverRootRef.current = null;
-    setSelectedAlert(null);
+    selectedAlertRef.current = null;
     setSelectedAlertIndex(-1);
   };
 
@@ -935,7 +935,7 @@ const Input: React.FC<{
         nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
 
       const selectedAlert = oneNodeWithAlerts.alerts[selectedAlertIndex];
-      setSelectedAlert(selectedAlert);
+      selectedAlertRef.current = selectedAlert;
 
       const range = getActiveDocument().createRange();
       const nodeText = oneNodeWithAlerts.node;
@@ -980,6 +980,7 @@ const Input: React.FC<{
         node: nodeText,
         organizationConfig: authResponse?.organization_config,
       });
+      renderPopover();
     }
   }, [selectedNodeWithAlertsIndex, selectedAlertIndex]);
 
@@ -1043,7 +1044,6 @@ const Input: React.FC<{
   }, [checkEndpointResponse]);
 
   useEffect(() => {
-
     if (alerts.length === 0) {
       setRemoveHighlights(true);
       setForceHighlightUpdate(!forceHighlightUpdate);
@@ -1416,7 +1416,7 @@ const Input: React.FC<{
   const updateTextWithAlternative = (alternative: string, category: string) => {
     alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
     const node = popoverDataRef.current?.node as Node;
-    const alert = selectedAlert as IAlert;
+    const alert = selectedAlertRef.current as IAlert;
 
     if (isTextArea(element) || isInputText(element)) {
       element.selectionStart =
@@ -1635,7 +1635,7 @@ const Input: React.FC<{
     }
   };
 
-  useEffect(() => {
+const renderPopover = () => {
     if (!popoverRootRef.current) {
       const popoverElement = document.createElement(WTags.WW_POPOVER);
       document.body.appendChild(popoverElement);
@@ -1685,8 +1685,10 @@ const Input: React.FC<{
           />
         </Sentry.ErrorBoundary>
       );
+    } else {
+      resetPopover();
     }
-  }, [popoverDataRef.current]);
+  };
 
   return (
     <>
@@ -1734,7 +1736,7 @@ const Input: React.FC<{
               nodesWithAlerts={nodesWithAlerts}
               element={element}
               elementRect={elementRect}
-              selectedAlert={selectedAlert}
+              selectedAlert={selectedAlertRef.current}
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
