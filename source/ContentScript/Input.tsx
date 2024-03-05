@@ -93,7 +93,7 @@ const Input: React.FC<{
   const [forceHighlightUpdate, setForceHighlightUpdate] =
     useState<boolean>(false);
   const [ignoredTerms, setIgnoredTerms] = useState<string[]>([]);
-  const [nodesWithAlerts, setNodesWithAlerts, nodesWithAlertsRef] = useStateRef(
+  const [, , nodesWithAlertsRef] = useStateRef(
     [] as INodeWithAlerts[]
   );
   const [, , prevCheckedNodesRef] = useStateRef([] as INodes[]);
@@ -646,7 +646,7 @@ const Input: React.FC<{
           return nodeIndex === -1;
         }
       );
-      setNodesWithAlerts(nodesWithAlertsWithoutChangesAlerts);
+      nodesWithAlertsRef.current = nodesWithAlertsWithoutChangesAlerts;
     } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
     if (typeof newTextToCheck !== 'string' || newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -774,7 +774,6 @@ const Input: React.FC<{
 
   const handleElementClickEvent = debounce((event: MouseEvent) => {    
     const target = event.target as CustomInputElement;
-
     // Get caret data
     const caret: { position: number | null; element: Node | null } =
       isTextArea(element) || isInputText(element)
@@ -791,7 +790,7 @@ const Input: React.FC<{
     if (event.detail === 2 && caret.position) {
       caret.position = caret.position + 1;
     }
-    if (caret.element && caret.position && caret.position > -1) {
+    if (caret.element && caret.position !== null) {
       // Find out if the clicked element has alerts
       const selectedNodeWithAlertsIndex: number =
       nodesWithAlertsRef.current.findIndex(
@@ -1192,7 +1191,7 @@ const Input: React.FC<{
         0
       );
       setTotalAlerts(totalAlerts);
-      setNodesWithAlerts(mergedNodesWithAlerts);
+      nodesWithAlertsRef.current = mergedNodesWithAlerts;
       isWittyPremiumUserRef.current && userIsSignedIn && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);
 
       const nodeStorageRefWithAlerts = nodesStorageRef.current.map((node: INodes) => {
@@ -1716,12 +1715,12 @@ const Input: React.FC<{
         </WTags.WW_CLONE>
       )}
       {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
-      {(isGoogleDocs() || !isTextArea(element)) && !isActive && nodesWithAlerts.length > 0 && (
+      {(isGoogleDocs() || !isTextArea(element)) && !isActive && nodesWithAlertsRef.current.length > 0 && (
         <WTags.WW_HIGHLIGHTS>
           <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
             <Highlights
               elementScroll={elementScroll}
-              nodesWithAlerts={nodesWithAlerts}
+              nodesWithAlerts={nodesWithAlertsRef.current}
               element={element}
               elementRect={elementRect}
               selectedAlert={popoverData && popoverData?.alert}
@@ -1737,7 +1736,7 @@ const Input: React.FC<{
           <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
             <Highlights
               elementScroll={elementScroll}
-              nodesWithAlerts={nodesWithAlerts}
+              nodesWithAlerts={nodesWithAlertsRef.current}
               element={element}
               elementRect={elementRect}
               selectedAlert={selectedAlert}
