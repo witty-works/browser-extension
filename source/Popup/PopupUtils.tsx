@@ -1,38 +1,27 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { Root, createRoot } from 'react-dom/client';
 import Popup from './Popups/Popup';
 import PopupDomainDeactivated from './Popups/PopupDomainDeactivated';
 import PopupLogin from './Popups/PopupLogin';
 import defaultConfig from '../witty.config.json';
 import { isMicrosoftOnline } from '../shared/DOMutils';
 
+  const container = document.getElementById('witty-works-ext-popup-root');
+  let root: null | Root = null;
+  if (container) {
+    root = createRoot(container);
+  }
+
 export const renderUserNotLoggedIn = () => {
-  ReactDOM.render(
-    <PopupLogin />,
-    document.getElementById('witty-works-ext-popup-root')
-  );
+  root?.render(<PopupLogin />);
 };
 
 export const renderDomainDeactivated = (appId: string, domain: string) => {
-  ReactDOM.render(
-    <PopupDomainDeactivated appId={appId} domain={domain} />,
-    document.getElementById('witty-works-ext-popup-root')
-  );
+  root?.render(<PopupDomainDeactivated appId={appId} domain={domain} />);
 };
 
-export const renderMainPopup = (
-  appId: string,
-  domain: string,
-  isLocked: boolean
-) => {
-  ReactDOM.render(
-    <Popup
-      appId={appId}
-      domain={domain}
-      isLocked={isLocked}
-    />,
-    document.getElementById('witty-works-ext-popup-root')
-  );
+export const renderMainPopup = (appId: string, domain: string, isLocked: boolean) => {
+  root?.render(<Popup appId={appId} domain={domain} isLocked={isLocked} />);
 };
 
 export const renderPopupChrome = (

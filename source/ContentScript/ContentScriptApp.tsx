@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { browser } from 'webextension-polyfill-ts';
 
 import { CustomInputElement, RequestConfig } from '../shared/types';
@@ -59,6 +59,7 @@ const WW_CONTAINER_STYLE = `
   `;
 
 let activeDocument = document;
+
 export const setActiveDocument = (document: Document) => {
   if (document?.body) {
     activeDocument = document;
@@ -174,17 +175,16 @@ const ContentScriptApp: React.FC = () => {
   
       const notificationWrapper = document.createElement('div');
       notificationWrapper.id = 'ww-notification';
-  
-      ReactDOM.render(
+      window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild);
+
+      const root = createRoot(notificationWrapper);
+      root.render(
         <Notification
           notificationType={notificationType}
           element={elementRef.current}
-        />,
-        window.top.document.body.insertBefore(
-          notificationWrapper,
-          window.top.document.body.firstChild
-        )
+        />
       );
+
     } catch (error) {
       DEV_ENV && console.error("Error in renderNotification:", error);
     }
@@ -342,7 +342,9 @@ const ContentScriptApp: React.FC = () => {
         hoveredIndicatorContainer,
         hoveredElementRef.current
       );
-      ReactDOM.render(
+    
+      const root = createRoot(hoveredIndicatorContainer);
+      root.render(
         <StateIndicatorIcon
           element={
             hoveredElementRef.current.tagName === 'TEXTAREA'
@@ -351,8 +353,7 @@ const ContentScriptApp: React.FC = () => {
           }
           iconType={'passive'}
           isHovered={true}
-        />,
-        hoveredIndicatorContainer
+        />
       );
     } else {
       removeAllHoverIndicators();
@@ -360,15 +361,11 @@ const ContentScriptApp: React.FC = () => {
   }, [hoveredElementRef.current]);
 
   const removeAllHoverIndicators = () => {
-    const indicatorElements = getActiveDocument().querySelectorAll(
-      WTags.WW_MOUSEOVER_INDICATOR
-    );
+    const indicatorElements = getActiveDocument().querySelectorAll(WTags.WW_MOUSEOVER_INDICATOR);
     for (let element of indicatorElements) {
-      ReactDOM.unmountComponentAtNode(element);
       element.remove();
     }
   };
-
   const handleNewInput = () => {
     return browser.storage.local.get().then((result) => {
       const addedInputsMap = new Map();
@@ -428,7 +425,8 @@ const ContentScriptApp: React.FC = () => {
                   parentElement?.insertBefore(highlightsContainer, input);
               }
               elementRef.current = input;
-              ReactDOM.render(<Input element={input} />, highlightsContainer);
+              const root = createRoot(highlightsContainer);
+              root.render(<Input element={input} />);
 
               addedInputsMap.set(input, highlightsContainer);
             }
@@ -446,8 +444,6 @@ const ContentScriptApp: React.FC = () => {
     if (!container) {
       return;
     }
-
-    ReactDOM.unmountComponentAtNode(container);
 
     //using setTimeout with a delay of 0 to push the removeChild operation to the end of the event queue
     setTimeout(() => {
