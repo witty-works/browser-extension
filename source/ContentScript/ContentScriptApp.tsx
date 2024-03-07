@@ -364,7 +364,6 @@ const ContentScriptApp: React.FC = () => {
   const removeAllHoverIndicators = () => {
     const indicatorElements = getActiveDocument().querySelectorAll(WTags.WW_MOUSEOVER_INDICATOR);
     for (let element of indicatorElements) {
-      ReactDOM.unmountComponentAtNode(element);
       element.remove();
     }
   };
@@ -446,8 +445,6 @@ const ContentScriptApp: React.FC = () => {
     if (!container) {
       return;
     }
-
-    ReactDOM.unmountComponentAtNode(container);
 
     //using setTimeout with a delay of 0 to push the removeChild operation to the end of the event queue
     setTimeout(() => {

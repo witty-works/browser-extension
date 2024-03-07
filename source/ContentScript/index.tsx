@@ -17,7 +17,6 @@ import {
   makeAuthRequest,
 } from './utils';
 import { setBaseUrls } from '../shared/ApiServices/requests';
-import ReactDOM from "react-dom";
 import { v4 as uuidv4 } from 'uuid';
 import { isMicrosoftOnline } from '../shared/DOMutils';
 
@@ -118,7 +117,6 @@ const initialize = () => {
 
     const container = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
     if (container) {
-      ReactDOM.unmountComponentAtNode(container);
       container.remove();
     }
 

@@ -26,7 +26,6 @@ import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollableParentClosestToElement, storeInLocalStorage } from '../../shared/utils';
 import { browser } from 'webextension-polyfill-ts';
-import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import Notification from '../../Notifications/Notification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
@@ -183,9 +182,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   const handleClickOutside = (event: MouseEvent) => {
-    const hasClickedOutsidePopOver: boolean | null =
-      refs.floating.current &&
-      !refs.floating.current.contains(event.target as HTMLElement);
+    const hasClickedOutsidePopOver = !refs.floating.current?.contains(event.target as HTMLElement);
 
     const doc = getActiveDocument().documentElement || getActiveDocument().body;
     const posX = event.pageX + doc.scrollLeft;
@@ -207,8 +204,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
     hide();
     //in case input is removed from the dom before popover is closed (clicking outside the element), also remove it here
-    const popoverContainer = window.document.getElementsByTagName('ww-popover')[0];
-    ReactDOM.unmountComponentAtNode(popoverContainer as HTMLElement);
+    const popoverContainers = window.document.getElementsByTagName('ww-popover');
+      Array.from(popoverContainers).forEach((popoverContainer) => {
+        popoverContainer.remove();
+    });
   };
   
   const incrementAlternativesAccepted = (storage: any) => 
