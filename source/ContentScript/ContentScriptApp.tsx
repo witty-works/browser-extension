@@ -39,7 +39,6 @@ import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import debounce from 'lodash.debounce';
 import { getDomainWithoutSubdomain, storeInLocalStorage } from '../shared/utils';
 import Notification from '../Notifications/Notification';
-import ReactDOM from 'react-dom';
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
   z-index: auto !important;

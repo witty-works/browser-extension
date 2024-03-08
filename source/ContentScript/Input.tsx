@@ -1642,7 +1642,6 @@ const renderPopover = () => {
     }
     const container = document.querySelector(WTags.WW_POPOVER);
     if (!container) return;
-    const root = createRoot(container);
     //Show/Hide the popover
     if (
       previousPopoverDataRef.current &&
