@@ -37,7 +37,6 @@ import {
 import PopupHeader from '../PopupComponents/PopupHeader';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
-import ThinkingEmoji from '../../assets/icons/popup/thinkingEmoji.svg';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
@@ -74,11 +73,6 @@ const Popup: React.FC<PopupProps> = ({
   const [casing, setCasing] = useState<boolean>(true);
   const [casingSites, setCasingSites] = useState<string[]>(defaultConfig.CASING_SITES);
   const [updatingDashboardFailed, setUpdatingDashboardFailed] = useState<boolean>(false);
-
-  const [showSurvey, setShowSurvey] = useState<boolean>(false);
-  const [domainsWhereSurveyHasBeenAnswered, setDomainsWhereSurveyHasBeenAnswered] =
-    useState<string[]>([]);
-  const [surveyResponse, setSurveyResponse] = useState<string>('');
   const [numberOfNotifications, setNumberOfNotifications] = useState<number>(-1);
   const [accessToken, setAccessToken] = useState<string>('');
   const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
@@ -91,12 +85,6 @@ const Popup: React.FC<PopupProps> = ({
     browser.storage.local
       .get(null)
       .then((result) => {
-        domainExists && setDomainsWhereSurveyHasBeenAnswered(
-          result[StorageKeys.DOMAINS_WHERE_SURVEY_HAS_BEEN_ANSWERED]
-        );
-        domainExists && setShowSurvey(
-          !result[StorageKeys.DOMAINS_WHERE_SURVEY_HAS_BEEN_ANSWERED]?.includes(domain)
-        );
         setBaseUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
@@ -206,10 +194,8 @@ const Popup: React.FC<PopupProps> = ({
     enabled ? removeBadge() : addInactiveBadge();
   };
 
-  const handleEnable = (surveyResponse?: string) => {
-    const isEnabled = surveyResponse === 'yes' ? true 
-      : surveyResponse === 'no' ? false 
-      : !enabled.enabled;
+  const handleEnable = () => {
+    const isEnabled = !enabled.enabled;
     if (isLocked) return;
 
     const domains = (iFrameDomains ? [domain, ...iFrameDomains] : [domain]).filter((item, index, array) => array.indexOf(item) === index);
@@ -245,20 +231,6 @@ const Popup: React.FC<PopupProps> = ({
     addLoginBadge();
   }
 
-  function handleClickSurveyResponse(clickedAlternative: string, eventName: string) {
-    setSurveyResponse(clickedAlternative);
-    handleEnable(clickedAlternative);
-    setShowSurvey(false);
-    storeInLocalStorage(
-      StorageKeys.DOMAINS_WHERE_SURVEY_HAS_BEEN_ANSWERED,
-      domainsWhereSurveyHasBeenAnswered.concat(domain)
-    );
-    analytics.urlLog(domain, eventName);
-  }
-
-  const handleClickSurveyResponseYes = () => handleClickSurveyResponse('yes', 'wittyWorksAsExpected')
-  const handleClickSurveyResponseNo = () => handleClickSurveyResponse('no', 'wittyDoesNotWorkAsExpected')
-
   const handleClickDashboard = () => {
     analytics.dashboardLog('button_popup');
     window.open(getBaseUrls().dashboard + 'editor', '_blank');
@@ -274,9 +246,6 @@ const Popup: React.FC<PopupProps> = ({
         },
       }
     ).then(async (response) => {
-      if (surveyResponse === 'no') {
-        window.open('https://www.witty.works/report-a-bug', '_blank', 'noopener');
-      }
       if (response.status == 403) {
         setUpdatingDashboardFailed(true);
         setEnabled({ enabled: !enabled.enabled, updateDashboard: false });
@@ -309,7 +278,7 @@ const Popup: React.FC<PopupProps> = ({
               }
               locked={isLocked}
             />
-            {enabled.enabled && !showSurvey && (
+            {enabled.enabled && (
               <Toggle
                 on={casing}
                 handleToggle={handleCasingToggle}
@@ -320,7 +289,7 @@ const Popup: React.FC<PopupProps> = ({
           </>
         )}
 
-        {enabled.enabled && (!showSurvey || TESTING) && (
+        {enabled.enabled && (
           <div className='witty-works-ext-margin-top'>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
               <div className='witty-works-ext-lato-popup-title'>
@@ -350,27 +319,6 @@ const Popup: React.FC<PopupProps> = ({
           </div>
         )}
       </div>
-
-      {showSurvey && enabled.enabled && (
-        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
-          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-            <div className='witty-works-ext-margin-right'>
-              <ThinkingEmoji />
-            </div>
-            <div className='witty-works-ext-lato-small-paragraph-title-h4'>
-              {t('doesWittyWork')}
-            </div>
-          </div>
-          <div className='witty-works-ext-container-row witty-works-ext-justify-start witty-works-ext-margin-top'>
-            <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={handleClickSurveyResponseYes}>
-              {t('surveyButtonYes')}
-            </button>
-            <button className='witty-works-ext-button witty-works-ext-secondary-button-red' onClick={handleClickSurveyResponseNo}>
-              {t('surveyButtonNo')}
-            </button>
-          </div>
-        </div>
-      )}
 
       {teamName && (
         <div className='witty-works-ext-section'>

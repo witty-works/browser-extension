@@ -1640,6 +1640,8 @@ const renderPopover = () => {
       document.body.appendChild(popoverElement);
       popoverRootRef.current = createRoot(popoverElement);
     }
+    const container = document.querySelector(WTags.WW_POPOVER);
+    if (!container) return;
     //Show/Hide the popover
     if (
       previousPopoverDataRef.current &&

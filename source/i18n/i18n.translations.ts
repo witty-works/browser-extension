@@ -41,12 +41,6 @@ export const de = {
     signUp: 'Registrieren',
     doesWittyWork: 'Funktioniert Witty hier?',
     doesWittyWorkExplanation: 'Lass es uns wissen.',
-    surveyButtonYes: 'Ja',
-    surveyButtonNo: 'Nein',
-    resultSurveyPositive: 'JA, Witty funktioniert! Danke für die Hilfe.',
-    resultSurveyNegative:
-      'Vielen Danke für deine Hilfe. Wir werden Witty auf dieser Website deaktivieren und uns das Problem ansehen.',
-    finishSurvey: 'Umfrage beenden',
     tryAgain: 'Erneut versuchen',
     understood: 'Verstanden',
     websiteSettingsDeactivated:
@@ -165,12 +159,6 @@ export const en = {
     signUp: 'Sign up',
     doesWittyWork: 'Does Witty work here?',
     doesWittyWorkExplanation: 'Please help us to find out.',
-    surveyButtonYes: 'Yes',
-    surveyButtonNo: 'No',
-    resultSurveyPositive: 'YESSS, Witty works! Thanks for helping.',
-    resultSurveyNegative:
-      'Thanks for letting us know. We will deactivate Witty on this website and look into the issue.',
-    finishSurvey: 'Finish survey',
     tryAgain: 'Try again',
     understood: 'Understood',
     websiteSettingsDeactivated:
