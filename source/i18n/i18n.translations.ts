@@ -55,6 +55,9 @@ export const de = {
       'Um dich anzumelden, kopiere bitte den Link in die Adressleiste deines Browsers.',
     copyLink: 'Link kopieren',
     copiedConfirmation: 'URL Kopiert',
+    upgradeHeadline: 'Upgrade to Witty Premium DE',
+    upgradeText: 'You need to have a subscription for witty to check your text. DE',
+    upgradeButton: 'Upgrade DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -173,6 +176,9 @@ export const en = {
       "To log in, please copy and paste the link into your browser's URL bar.",
     copyLink: 'Copy Link',
     copiedConfirmation: 'link Copied',
+    upgradeHeadline: 'Upgrade to Witty Premium',
+    upgradeText: 'You need to have a subscription for witty to check your text.',
+    upgradeButton: 'Upgrade',
   },
 
   [namespaces.popover]: {

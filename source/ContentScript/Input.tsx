@@ -121,6 +121,7 @@ const Input: React.FC<{
   const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
     IAlert[]
   >([]);
+  const [, , hasWittyLicense] = useStateRef<boolean>(true);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
   const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
@@ -192,6 +193,7 @@ const Input: React.FC<{
       .get(null)
       .then((result) => {
         setUserIsSignedIn(!!result[StorageKeys.ACCESS_TOKEN]);
+        hasWittyLicense.current = !!result[StorageKeys.PLAN];
         (result[StorageKeys.PLAN] === 'witty_free' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
         setDebounceDelay(isWittyPremiumUserRef.current ? defaultConfig.API_DELAY : defaultConfig.API_DELAY_FREEMIUM);
         if (
@@ -486,6 +488,7 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent, gDocs?: boolean) => {
+    if (!hasWittyLicense.current) return; //dont do any checks for users without witty license
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     !isGoogleDocs() &&
@@ -1272,7 +1275,7 @@ const Input: React.FC<{
       );
     };
   };
-  
+
   // useEffect(() => {
   //   if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
   //     const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
@@ -1625,12 +1628,15 @@ const Input: React.FC<{
     for (let item of changedItems) {
       switch (item) {
         case StorageKeys.ACCESS_TOKEN:
-          setUserIsSignedIn(changes[item].newValue == '' ? false : true);
-          setConfigHasChanged(changes[item].newValue == '' ? false : true);
+          setUserIsSignedIn(changes[item].newValue);
+          setConfigHasChanged(changes[item].newValue);
           setTextToCheck('');
           setTextToCheck(currentTextToCheck);
           break;
-      }
+        case StorageKeys.PLAN:
+          hasWittyLicense.current = !!changes[item].newValue;
+          break;
+      } 
     }
   };
 
@@ -1671,7 +1677,6 @@ const renderPopover = () => {
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
             movePopoverNextOrPrev={movePopoverNextOrPrev}
-            userIsSignedIn={userIsSignedIn}
           />
         </Sentry.ErrorBoundary>
       );
@@ -1722,7 +1727,6 @@ const renderPopover = () => {
               element={element}
               elementRect={elementRect}
               selectedAlert={popoverDataRef.current && popoverDataRef.current?.alert}
-              userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
             />
@@ -1738,21 +1742,20 @@ const renderPopover = () => {
               element={element}
               elementRect={elementRect}
               selectedAlert={selectedAlertRef.current}
-              userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
       )}
-      <WTags.WW_ACTIVITY_INDICATOR>
+      {hasWittyLicense.current && <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
           element={element}
           elementRect={elementRect}
           iconType={totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon}
           isHovered={isHovered}
         />
-      </WTags.WW_ACTIVITY_INDICATOR>
+      </WTags.WW_ACTIVITY_INDICATOR>}
     </>
     
   );
