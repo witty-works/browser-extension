@@ -75,7 +75,6 @@ const Popup: React.FC<PopupProps> = ({
   const [updatingDashboardFailed, setUpdatingDashboardFailed] = useState<boolean>(false);
   const [numberOfNotifications, setNumberOfNotifications] = useState<number>(-1);
   const [accessToken, setAccessToken] = useState<string>('');
-  const [userIsLoggedIn, setUserIsLoggedIn] = useState<boolean>(false);
   const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
   const [teamName, setTeamName] = useState<string>('');
@@ -90,7 +89,6 @@ const Popup: React.FC<PopupProps> = ({
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-        setUserIsLoggedIn(!!result[StorageKeys.ACCESS_TOKEN]);
         setAccessToken(
           result[StorageKeys.ACCESS_TOKEN]
             ? result[StorageKeys.ACCESS_TOKEN]
@@ -227,7 +225,6 @@ const Popup: React.FC<PopupProps> = ({
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
     setToken('');
-    setUserIsLoggedIn(false);
     addLoginBadge();
   }
 
@@ -289,35 +286,11 @@ const Popup: React.FC<PopupProps> = ({
           </>
         )}
 
-        {enabled.enabled && (
-          <div className='witty-works-ext-margin-top'>
-            <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
-              <div className='witty-works-ext-lato-popup-title'>
-                {t('globalSettings')}
-              </div>
-            </div>
-            <Toggle
-              on={orthography.value as boolean}
-              handleToggle={() => {
-                setOrthography({
-                  ...orthography,
-                  value:
-                    orthography.status === 'force'  && orthography.value == true
-                      ? orthography.value
-                      : !orthography.value,
-                });
-              }}
-              label={t('spellChecking')}
-              locked={orthography.status === 'force' && orthography.value == true}
-              userIsLoggedIn={userIsLoggedIn}
-            />
-            <div className='witty-works-ext-left'>
-              <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={handleClickDashboard}>
-                {t('goToDashboard')}
-              </button>
-            </div>       
-          </div>
-        )}
+        <div className='witty-works-ext-left witty-works-ext-margin-top'>
+          <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={handleClickDashboard}>
+            {t('goToDashboard')}
+          </button>
+        </div>       
       </div>
 
       {teamName && (
