@@ -17,7 +17,6 @@ export const de = {
   [namespaces.pages.popup]: {
     enableWitty: 'Witty aktivieren',
     websiteSettings: 'Einstellungen für {{domain}}',
-    caseSensitivity: 'Gross- & Kleinschreibung',
     developmentSettings: 'Entwicklungs-Einstellungen',
     spellChecking: 'Grammatik & Rechtschreibung',
     thanks: 'Danke für deinen Beitrag!',
@@ -134,7 +133,6 @@ export const en = {
   [namespaces.pages.popup]: {
     enableWitty: 'Enable Witty',
     websiteSettings: 'Settings for {{domain}}',
-    caseSensitivity: 'Check upper & lower case',
     developmentSettings: 'Development Settings',
     spellChecking: 'Check grammar & spelling',
     thanks: 'Thanks for your feedback!',

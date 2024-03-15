@@ -70,8 +70,6 @@ const Popup: React.FC<PopupProps> = ({
   } as EnableWittyToggle);
   const [initialDomainsDisabledLocally, setInitialDomainsDisabledLocally] = useState<string[]>([]);
   const [orthography, setOrthography] = useState<ConfigProperty>(defaultConfig.ORTHOGRAPHY);
-  const [casing, setCasing] = useState<boolean>(true);
-  const [casingSites, setCasingSites] = useState<string[]>(defaultConfig.CASING_SITES);
   const [updatingDashboardFailed, setUpdatingDashboardFailed] = useState<boolean>(false);
   const [numberOfNotifications, setNumberOfNotifications] = useState<number>(-1);
   const [accessToken, setAccessToken] = useState<string>('');
@@ -103,8 +101,6 @@ const Popup: React.FC<PopupProps> = ({
             !isLocked,
           updateDashboard: false,
         });
-        setCasingSites(result[StorageKeys.CASING_SITES]);
-        result[StorageKeys.CASING_SITES]?.includes(domain) && setCasing(false);
 
         if (result[StorageKeys.NUMBER_OF_NOTIFICATIONS] > 0) {
           addNotificationBadge(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
@@ -118,11 +114,6 @@ const Popup: React.FC<PopupProps> = ({
       })
       .catch(onStorageError);
   }, []);
-
-
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.CASING_SITES, casingSites);
-  }, [casingSites]);
 
   useEffect(() => {
     if(!domain) return;
@@ -210,17 +201,6 @@ const Popup: React.FC<PopupProps> = ({
     setEnabled({ enabled: isEnabled, updateDashboard: true });
   };
 
-  const handleCasingToggle = () => {
-    setCasing(!casing);
-
-    if (domainExists)
-      setCasingSites(
-        casing
-          ? [...casingSites, domain]
-          : casingSites.filter((item: string) => item !== domain)
-      );
-  };
-
   const logOut = () => {
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
@@ -275,13 +255,6 @@ const Popup: React.FC<PopupProps> = ({
               }
               locked={isLocked}
             />
-            {enabled.enabled && (
-              <Toggle
-                on={casing}
-                handleToggle={handleCasingToggle}
-                label={t('caseSensitivity')}
-              />
-            )}
             <div className='witty-works-ext-separator' />
           </>
         )}
