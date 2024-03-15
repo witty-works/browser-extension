@@ -21,6 +21,7 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import { storeInLocalStorage } from '../../shared/utils';
 
 const PopupUpgrade: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
@@ -50,6 +51,12 @@ const PopupUpgrade: React.FC = () => {
   const handleUpgradeClick = () => {
     analytics.dashboardLog('upgrade_popup');
     window.open(getBaseUrls().dashboard + 'team/subscription', '_blank');
+  }
+
+  const logOut = () => {
+    storeInLocalStorage(StorageKeys.PLAN, '');
+    storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
+    storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
   }
 
   return (
@@ -91,6 +98,11 @@ const PopupUpgrade: React.FC = () => {
           <h2>{t('developmentSettings')}</h2>
           <ApiSelector />
           <DelaySelector />
+          <div className='witty-works-ext-left'>
+            <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={logOut}>
+              {t('signOut')}
+            </button>
+          </div>
         </div>
       )}
     </>

@@ -274,7 +274,7 @@ const storageChange = (changes: { [key: string]: any }) => {
     if (key === StorageKeys.ACCESS_TOKEN && !changes[key].newValue) {
       addBadge('Login');
     } else if (key === StorageKeys.PLAN && !changes[key].newValue) {
-      addBadge('Upgrade'); //TODO LUKAS: replace with shorteer text that fits in the badge
+      addBadge('OFF');
     } else if (key === StorageKeys.ORGANIZATION_DOMAINS) {
       if (
         (changes[key].newValue.type === 'deny' &&

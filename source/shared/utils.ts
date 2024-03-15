@@ -162,7 +162,7 @@ export const updateLabelChrome = (domain: string) => {
       addBadge('Login');
       return;
     } else if (!result[StorageKeys.PLAN]) {
-      addBadge('Upgrade');//TODO LUKAS: replace with shorteer text that fits in the badge
+      addBadge('OFF');
       return;
     }
 
