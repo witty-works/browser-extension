@@ -77,6 +77,8 @@ const Popup: React.FC<PopupProps> = ({
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
   const [teamName, setTeamName] = useState<string>('');
   const [iFrameDomains, setIFrameDomains] = useState<string[]>([]);
+  const [hrFeatures, setHrFeatures] = useState<boolean>(true);
+  const [hrFeaturesDisabledDomains, setHrFeaturesDisabledDomains] = useState<string[]>([]);
 
   useEffect(() => {
     browser.storage.local
@@ -108,9 +110,12 @@ const Popup: React.FC<PopupProps> = ({
         }
 
         setOrthography(result[StorageKeys.ORTHOGRAPHY]);
-
         setInitialDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
+        setHrFeaturesDisabledDomains(result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS] || []);
+        if (result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS].includes(domain)) {
+          setHrFeatures(false);
+        }
       })
       .catch(onStorageError);
   }, []);
@@ -201,6 +206,14 @@ const Popup: React.FC<PopupProps> = ({
     setEnabled({ enabled: isEnabled, updateDashboard: true });
   };
 
+  const handleHrFeatures = () => {
+    const newHrFeaturesDisabledDomains = hrFeatures
+      ? [...hrFeaturesDisabledDomains, domain]
+      : hrFeaturesDisabledDomains.filter((item) => item !== domain);
+    storeInLocalStorage(StorageKeys.HR_FEATURES_DISABLED_DOMAINS, newHrFeaturesDisabledDomains);
+    setHrFeatures(!hrFeatures);
+  };
+
   const logOut = () => {
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
@@ -254,6 +267,14 @@ const Popup: React.FC<PopupProps> = ({
                   : t('enableWitty')
               }
               locked={isLocked}
+            />
+            
+            <Toggle
+              on={hrFeatures}
+              handleToggle={handleHrFeatures}
+              label={
+                t('hrFeatures')
+              }
             />
             <div className='witty-works-ext-separator' />
           </>

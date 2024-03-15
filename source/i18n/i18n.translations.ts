@@ -53,6 +53,7 @@ export const de = {
       'Um dich anzumelden, kopiere bitte den Link in die Adressleiste deines Browsers.',
     copyLink: 'Link kopieren',
     copiedConfirmation: 'URL Kopiert',
+    hrFeatures: 'HR Funktionen',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -169,6 +170,7 @@ export const en = {
       "To log in, please copy and paste the link into your browser's URL bar.",
     copyLink: 'Copy Link',
     copiedConfirmation: 'link Copied',
+    hrFeatures: 'HR Features',
   },
 
   [namespaces.popover]: {
