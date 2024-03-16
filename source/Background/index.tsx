@@ -11,8 +11,7 @@ import {
   BaseUrls,
 } from '../shared/constants';
 import {
-  addInactiveBadge,
-  addLoginBadge,
+  addBadge,
   addNotificationBadge,
   getDomainWithoutSubdomain,
   getRandomToken,
@@ -272,12 +271,11 @@ const storageChange = (changes: { [key: string]: any }) => {
   const changedItems = Object.keys(changes);
 
   changedItems.forEach((key) => {
-    if (key === StorageKeys.ACCESS_TOKEN) {
-      if (!changes[key].newValue) {
-        addLoginBadge();
-      }
-    }
-    if (key === StorageKeys.ORGANIZATION_DOMAINS) {
+    if (key === StorageKeys.ACCESS_TOKEN && !changes[key].newValue) {
+      addBadge('Login');
+    } else if (key === StorageKeys.PLAN && !changes[key].newValue) {
+      addBadge('OFF');
+    } else if (key === StorageKeys.ORGANIZATION_DOMAINS) {
       if (
         (changes[key].newValue.type === 'deny' &&
           changes[key].newValue.list?.includes(
@@ -288,15 +286,14 @@ const storageChange = (changes: { [key: string]: any }) => {
             getDomainWithoutSubdomain(window.location.hostname)
           ))
       ) {
-        addInactiveBadge();
-      } else {
-        removeBadge();
-      }
-    }
-    if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
+        addBadge('OFF');
+      } 
+    } else if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
       changes[key].newValue === 0
         ? removeBadge()
         : addNotificationBadge(changes[key].newValue);
+    } else {
+      removeBadge();
     }
   });
 };

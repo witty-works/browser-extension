@@ -94,19 +94,12 @@ export const addNotificationBadge = (numberOfNotifications: number) => {
   });
 };
 
-export const addInactiveBadge = () => {
+export const addBadge = (text: string) => {
   browser.browserAction?.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
-  browser.browserAction?.setBadgeText({ text: 'OFF' });
-};
-
-export const addLoginBadge = () => {
-  browser.browserAction?.setBadgeBackgroundColor({
-    color: [190, 190, 190, 230],
-  });
-  browser.browserAction?.setBadgeText({ text: 'Login' });
-};
+  browser.browserAction?.setBadgeText({ text: text });
+}
 
 export const getNewAccessToken = async () => {
   browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
@@ -140,7 +133,8 @@ export const logOut = () => {
   storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
   storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
   storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
-  addLoginBadge();
+  storeInLocalStorage(StorageKeys.PLAN, '');
+  addBadge('Login');
 };
 
 export const removeBadge = () => {
@@ -164,9 +158,11 @@ export const getRandomToken = () => {
 
 export const updateLabelChrome = (domain: string) => {
   browser.storage.local.get(null).then((result) => {
-    const userLoggedIn = result[StorageKeys.ACCESS_TOKEN];
-    if (!userLoggedIn) {
-      addLoginBadge();
+    if (!result[StorageKeys.ACCESS_TOKEN]) {
+      addBadge('Login');
+      return;
+    } else if (!result[StorageKeys.PLAN]) {
+      addBadge('OFF');
       return;
     }
 
@@ -188,7 +184,7 @@ export const updateLabelChrome = (domain: string) => {
       const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
       
       if (isLocked || isDisabled || domainOnDisabledSitesList) {
-        addInactiveBadge();
+        addBadge('OFF');
       } else if (numberOfNotifications > 0) {
         addNotificationBadge(numberOfNotifications);
       } else {

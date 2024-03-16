@@ -13,8 +13,7 @@ import {
   TESTING,
 } from '../../shared/constants';
 import {
-  addInactiveBadge,
-  addLoginBadge,
+  addBadge,
   addNotificationBadge,
   getNewAccessToken,
   removeBadge,
@@ -180,7 +179,7 @@ const Popup: React.FC<PopupProps> = ({
   }, [authErrorResponse]);
 
   const setWittyIcon = (enabled: boolean) => {
-    enabled ? removeBadge() : addInactiveBadge();
+    enabled ? removeBadge() : addBadge('OFF');
   };
 
   const handleEnable = () => {
@@ -202,10 +201,10 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   const logOut = () => {
+    storeInLocalStorage(StorageKeys.PLAN, '');
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
     setToken('');
-    addLoginBadge();
   }
 
   const handleClickDashboard = () => {

@@ -1,5 +1,4 @@
 import { browser } from 'webextension-polyfill-ts';
-import { IExplanation } from './types';
 export const wittyVersion = browser.runtime.getManifest().version;
 
 //Development
@@ -119,44 +118,33 @@ interface IHighlightColors {
 }
 
 const inclusiveGreen: IHighlightColors = {
-  default: '#BCD485',
-  highlight: '#D3E4AC',
   hover: '#BCD485',
+  default: '#D3E4AC',
+  highlight: '#BCD485',
 };
 
 const styleYellow: IHighlightColors = {
-  default: '#F6EC6B',
-  highlight: '#FFFFD3',
   hover: '#F6EC6B',
+  default: '#FFFFD3',
+  highlight: '#F6EC6B',
 };
 
 const unconsciousBiasAndGenderedOrange: IHighlightColors = {
-  default: '#EB9F46',
-  highlight: '#F8E7CB',
   hover: '#EB9F46',
-};
-
-const disabledGrey: IHighlightColors = {
-  default: '#BEBEBE',
-  highlight: '#BEBEBE',
-  hover: '#BEBEBE',
+  default: '#F8E7CB',
+  highlight: '#EB9F46',
 };
 
 const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
-  default: '#E6635A',
-  highlight: '#F7D4D4',
   hover: '#E6635A',
+  default: '#F7D4D4',
+  highlight: '#E6635A',
 };
 
 export const getColor = (
   gravity: number,
-  userIsSignedIn: boolean,
-  hasExplanation?: IExplanation,
-  plan?: string
 ): IHighlightColors => {
-  if (!userIsSignedIn) return disabledGrey;
-  else if (!hasExplanation && plan === 'witty_free') return disabledGrey;
-  else if (!gravity) return inclusiveGreen;
+  if (!gravity) return inclusiveGreen;
   else if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
   else if (gravity > 2.5) return styleYellow;
   else return unconsciousBiasAndGenderedOrange;
