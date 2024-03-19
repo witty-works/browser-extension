@@ -110,7 +110,7 @@ const ContentScriptApp: React.FC = () => {
         const domain = getDomainWithoutSubdomain(window.location.hostname);
         const isHrFeatureDisabled = result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS]?.includes(domain);
         const requestConfig: RequestConfig = {
-          addons: isHrFeatureDisabled ? ['hr'] : [],
+          addons: isHrFeatureDisabled ? [] : ['hr'],
         };
         setReqConfig(requestConfig);
 
@@ -211,8 +211,8 @@ const ContentScriptApp: React.FC = () => {
             ...reqConfigRef.current,
             addons: 
               changes[item].newValue.includes(getDomainWithoutSubdomain(window.location.hostname))
-                ? [...reqConfigRef.current.addons, 'hr']
-                : reqConfigRef.current.addons.filter((addon) => addon !== 'hr'),
+                ? reqConfigRef.current.addons.filter((addon) => addon !== 'hr')
+                : [...reqConfigRef.current.addons, 'hr'],
             });
             break;
       }
