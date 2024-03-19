@@ -54,6 +54,9 @@ export const de = {
     copyLink: 'Link kopieren',
     copiedConfirmation: 'URL Kopiert',
     hrFeatures: 'HR Funktionen',
+    upgradeHeadline: 'Upgrade to Witty Premium DE',
+    upgradeText: 'You need to have a subscription for witty to check your text. DE',
+    upgradeButton: 'Upgrade DE',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -171,6 +174,9 @@ export const en = {
     copyLink: 'Copy Link',
     copiedConfirmation: 'link Copied',
     hrFeatures: 'HR Features',
+    upgradeHeadline: 'Upgrade to Witty Premium',
+    upgradeText: 'You need to have a subscription for witty to check your text.',
+    upgradeButton: 'Upgrade',
   },
 
   [namespaces.popover]: {

@@ -21,6 +21,7 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import Star from '../../assets/icons/popup/star.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
+import { addBadge } from '../../shared/utils';
 
 const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
@@ -36,6 +37,7 @@ const PopupLogin: React.FC = () => {
   };
 
   useEffect(() => {
+    addBadge('Login')
     browser.storage.local
       .get(null)
       .then((result) => {

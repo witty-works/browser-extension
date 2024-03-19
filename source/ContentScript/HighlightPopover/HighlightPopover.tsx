@@ -48,7 +48,6 @@ interface PopoverProps {
   updateTextWithAlternative: (alternative: string, category: string) => void;
   addIgnoredTerm: (term: string) => void;
   movePopoverNextOrPrev: (direction: string) => void;
-  userIsSignedIn: boolean;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -59,7 +58,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   updateTextWithAlternative,
   addIgnoredTerm,
   movePopoverNextOrPrev: updatePopover,
-  userIsSignedIn,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
@@ -424,7 +422,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 data.alert.data?.explanation?.url
                   ? 'pointer'
                   : 'default',
-              backgroundColor: getColor(data.alert.data?.gravity, userIsSignedIn).highlight,
+              backgroundColor: getColor(data.alert.data?.gravity).default,
             }}
           >
             <div

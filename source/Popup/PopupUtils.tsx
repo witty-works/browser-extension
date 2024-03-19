@@ -5,6 +5,7 @@ import PopupDomainDeactivated from './Popups/PopupDomainDeactivated';
 import PopupLogin from './Popups/PopupLogin';
 import defaultConfig from '../witty.config.json';
 import { isMicrosoftOnline } from '../shared/DOMutils';
+import PopupUpgrade from './Popups/PopupUpgrade';
 
   const container = document.getElementById('witty-works-ext-popup-root');
   let root: null | Root = null;
@@ -15,6 +16,10 @@ import { isMicrosoftOnline } from '../shared/DOMutils';
 export const renderUserNotLoggedIn = () => {
   root?.render(<PopupLogin />);
 };
+
+export const renderUpgradePopup = () => {
+  root?.render(<PopupUpgrade/>);
+}
 
 export const renderDomainDeactivated = (appId: string, domain: string) => {
   root?.render(<PopupDomainDeactivated appId={appId} domain={domain} />);
