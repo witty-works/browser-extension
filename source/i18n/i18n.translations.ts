@@ -57,6 +57,7 @@ export const de = {
     upgradeHeadline: 'Upgrade to Witty Premium DE',
     upgradeText: 'You need to have a subscription for witty to check your text. DE',
     upgradeButton: 'Upgrade DE',
+    beta: 'Beta',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -177,6 +178,7 @@ export const en = {
     upgradeHeadline: 'Upgrade to Witty Premium',
     upgradeText: 'You need to have a subscription for witty to check your text.',
     upgradeButton: 'Upgrade',
+    beta: 'Beta',
   },
 
   [namespaces.popover]: {

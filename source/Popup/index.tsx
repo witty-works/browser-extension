@@ -66,6 +66,9 @@ const storageChange = (changes: any) => {
       case StorageKeys.ORGANIZATION_DOMAINS:
         renderPopup();
         break;
+      case StorageKeys.PLAN:
+        renderPopup();
+        break;
     }
   }
 };

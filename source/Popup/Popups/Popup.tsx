@@ -274,6 +274,7 @@ const Popup: React.FC<PopupProps> = ({
               label={
                 t('hrFeatures')
               }
+              hrFeatureToggle={true}
             />
             <div className='witty-works-ext-separator' />
           </>

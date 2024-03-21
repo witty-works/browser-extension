@@ -14,6 +14,7 @@ interface ToggleProps {
   locked?: boolean;
   hasWittyTeams?: boolean;
   userIsLoggedIn?: boolean;
+  hrFeatureToggle?: boolean;
 }
 
 const Toggle: React.FC<ToggleProps> = ({
@@ -23,6 +24,7 @@ const Toggle: React.FC<ToggleProps> = ({
   locked,
   hasWittyTeams = true,
   userIsLoggedIn = true,
+  hrFeatureToggle = false,
 }: ToggleProps) => {
   const { t } = useTranslation([namespaces.pages.popup]);
   const scale = 0.35;
@@ -61,6 +63,11 @@ const Toggle: React.FC<ToggleProps> = ({
             </div>
           </div>
         )}
+        {hrFeatureToggle &&
+          <div className='witty-works-beta-label witty-works-ext-strong-gradient-background'>
+            {t('beta')}
+          </div>
+        }
 
         <label
           style={{
