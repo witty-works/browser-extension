@@ -1211,6 +1211,7 @@ const Input: React.FC<{
         return nodeIndex === -1;
       }), ...nodeStorageRefWithAlerts].sort((a: INodes, b: INodes) => a.index - b.index);
       nodesStorageRef.current = [];
+      setForceHighlightUpdate(!forceHighlightUpdate);
   }, [
     alerts,
     ignoredTerms,
@@ -1640,6 +1641,8 @@ const renderPopover = () => {
       document.body.appendChild(popoverElement);
       popoverRootRef.current = createRoot(popoverElement);
     }
+    const container = document.querySelector(WTags.WW_POPOVER);
+    if (!container) return;
     //Show/Hide the popover
     if (
       previousPopoverDataRef.current &&
@@ -1719,23 +1722,7 @@ const renderPopover = () => {
               nodesWithAlerts={nodesWithAlertsRef.current}
               element={element}
               elementRect={elementRect}
-              selectedAlert={popoverDataRef.current && popoverDataRef.current?.alert}
-              userIsSignedIn={userIsSignedIn}
-              removeHighlights={removeHighlights}
-              forceHighlightUpdate={forceHighlightUpdate}
-            />
-          </Sentry.ErrorBoundary>
-        </WTags.WW_HIGHLIGHTS>
-      )}
-      {isTextArea(element) && (
-        <WTags.WW_HIGHLIGHTS>
-          <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
-            <Highlights
-              elementScroll={elementScroll}
-              nodesWithAlerts={nodesWithAlertsRef.current}
-              element={element}
-              elementRect={elementRect}
-              selectedAlert={selectedAlertRef.current}
+              selectedAlert={isTextArea(element)  ? selectedAlertRef.current : popoverDataRef.current && popoverDataRef.current?.alert}
               userIsSignedIn={userIsSignedIn}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}

@@ -16,9 +16,7 @@ export const de = {
   },
   [namespaces.pages.popup]: {
     enableWitty: 'Witty aktivieren',
-    globalSettings: 'Schnell-Einstellungen',
     websiteSettings: 'Einstellungen für {{domain}}',
-    caseSensitivity: 'Gross- & Kleinschreibung',
     developmentSettings: 'Entwicklungs-Einstellungen',
     spellChecking: 'Grammatik & Rechtschreibung',
     thanks: 'Danke für deinen Beitrag!',
@@ -41,12 +39,6 @@ export const de = {
     signUp: 'Registrieren',
     doesWittyWork: 'Funktioniert Witty hier?',
     doesWittyWorkExplanation: 'Lass es uns wissen.',
-    surveyButtonYes: 'Ja',
-    surveyButtonNo: 'Nein',
-    resultSurveyPositive: 'JA, Witty funktioniert! Danke für die Hilfe.',
-    resultSurveyNegative:
-      'Vielen Danke für deine Hilfe. Wir werden Witty auf dieser Website deaktivieren und uns das Problem ansehen.',
-    finishSurvey: 'Umfrage beenden',
     tryAgain: 'Erneut versuchen',
     understood: 'Verstanden',
     websiteSettingsDeactivated:
@@ -140,9 +132,7 @@ export const en = {
   },
   [namespaces.pages.popup]: {
     enableWitty: 'Enable Witty',
-    globalSettings: 'Quick settings',
     websiteSettings: 'Settings for {{domain}}',
-    caseSensitivity: 'Check upper & lower case',
     developmentSettings: 'Development Settings',
     spellChecking: 'Check grammar & spelling',
     thanks: 'Thanks for your feedback!',
@@ -165,12 +155,6 @@ export const en = {
     signUp: 'Sign up',
     doesWittyWork: 'Does Witty work here?',
     doesWittyWorkExplanation: 'Please help us to find out.',
-    surveyButtonYes: 'Yes',
-    surveyButtonNo: 'No',
-    resultSurveyPositive: 'YESSS, Witty works! Thanks for helping.',
-    resultSurveyNegative:
-      'Thanks for letting us know. We will deactivate Witty on this website and look into the issue.',
-    finishSurvey: 'Finish survey',
     tryAgain: 'Try again',
     understood: 'Understood',
     websiteSettingsDeactivated:
