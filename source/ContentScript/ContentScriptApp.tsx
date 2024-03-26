@@ -107,15 +107,10 @@ const ContentScriptApp: React.FC = () => {
         setPinNotificationStored(result[StorageKeys.PIN_NOTIFICATION_SHOWED]);
         
         //Define API requests config
+        const domain = getDomainWithoutSubdomain(window.location.hostname);
+        const isHrFeatureDisabled = result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS]?.includes(domain);
         const requestConfig: RequestConfig = {
-          disabled_categories: [
-            result[StorageKeys.ORTHOGRAPHY]?.value === true ? '' : 'orthography',
-            result[StorageKeys.CASING_SITES]?.includes(
-              window.location.hostname.replace('www.', ''))
-              ? 'casing'
-              : '',
-          ].filter((category) => category !== ''),
-          orthography: result[StorageKeys.ORTHOGRAPHY]?.value,
+          addons: isHrFeatureDisabled ? [] : ['hr'],
         };
         setReqConfig(requestConfig);
 
@@ -211,28 +206,15 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.ORGANIZATION_CONFIG_HASH:
           setOrganizationConfigHash(changes[item].newValue);
           break;
-        case StorageKeys.ORTHOGRAPHY:
+        case StorageKeys.HR_FEATURES_DISABLED_DOMAINS:
           setReqConfig({
             ...reqConfigRef.current,
-            disabled_categories: changes[item].newValue.value
-              ? reqConfigRef.current.disabled_categories.filter(
-                  (category) => category !== 'orthography'
-                )
-              : [...reqConfigRef.current.disabled_categories, 'orthography'],
-          });
-          break;
-        case StorageKeys.CASING_SITES:
-          setReqConfig({
-            ...reqConfigRef.current,
-            disabled_categories: changes[item].newValue.includes(
-              window.location.hostname.replace('www.', '')
-            )
-              ? [...reqConfigRef.current.disabled_categories, 'casing']
-              : reqConfigRef.current.disabled_categories.filter(
-                  (category) => category !== 'casing'
-                ),
-          });
-          break;
+            addons: 
+              changes[item].newValue.includes(getDomainWithoutSubdomain(window.location.hostname))
+                ? reqConfigRef.current.addons.filter((addon) => addon !== 'hr')
+                : [...reqConfigRef.current.addons, 'hr'],
+            });
+            break;
       }
     }
   }, []);

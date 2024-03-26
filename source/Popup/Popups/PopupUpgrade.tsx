@@ -13,6 +13,7 @@ import {
   appID,
   getBaseUrls,
   setBaseUrls,
+  setToken,
 } from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
@@ -22,17 +23,30 @@ import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import { storeInLocalStorage } from '../../shared/utils';
+import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
+import { updateConfig } from '../../ContentScript/utils';
 
 const PopupUpgrade: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
   const [teamName, setTeamName] = useState<string>('');
   const log = useLog('PopupLogin');
+  const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
   const analytics = useAnalytics();
-  
+
   const onStorageError = (error: unknown) => {
     log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
   };
+
+  useEffect(() => {
+    if (authResponse) {
+      updateConfig(authResponse);
+    }
+  }, [authResponse]);
+
+  useEffect(() => {
+    DEV_ENV && console.log('authErrorResponse', authErrorResponse);
+  }, [authErrorResponse]);
 
   useEffect(() => {
     browser.storage.local
@@ -44,6 +58,8 @@ const PopupUpgrade: React.FC = () => {
             : DefaultBaseUrlKey
         );
         setTeamName(result[StorageKeys.TEAM_NAME]);
+        setToken(result[StorageKeys.ACCESS_TOKEN]);
+        result[StorageKeys.ACCESS_TOKEN] && setConfig(true);
       })
       .catch(onStorageError);
   }, []);

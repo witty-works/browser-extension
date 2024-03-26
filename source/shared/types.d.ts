@@ -20,12 +20,8 @@ export interface ResponseConfig {
   orthography: ConfigProperty;
   categories?: ConfigProperty;
 }
-export interface RequestConfig extends ResponseConfig {
-  disabled_categories: string[];
-}
-
-export interface FilteredRequestConfig {
-  disabled_categories: string[];
+export interface RequestConfig {
+  addons: string[];
 }
 export interface ConfigProperty {
   value: string | string[] | boolean | number;

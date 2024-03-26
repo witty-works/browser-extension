@@ -1,4 +1,4 @@
-import { FilteredRequestConfig, IRequest, RequestConfig } from '../types';
+import { IRequest, RequestConfig } from '../types';
 import { BaseUrls, wittyVersion } from '../constants';
 
 let BASE_URL_API: string = '';
@@ -10,7 +10,6 @@ let organizationConfigHash: string = '';
 export let appID: string = ''; // TODO context hook
 
 export let requestConfig: RequestConfig = {} as RequestConfig;
-let filteredRequestConfig = {} as FilteredRequestConfig;
 
 export const createUrl = (base: string, path: string): string =>
   `${base}${path}`;
@@ -26,9 +25,6 @@ export const getBaseUrls = () => {
 
 export const setRequestConfig = (reqConfig: RequestConfig) => {
   requestConfig = reqConfig;
-  filteredRequestConfig = {
-    disabled_categories: reqConfig.disabled_categories,
-  };
 };
 
 export const setAppID = (id: string) => (appID = id);
@@ -56,7 +52,7 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
             lang: 'auto',
             id: appID,
             client: wittyVersion,
-            config: filteredRequestConfig,
+            config: requestConfig,
             config_hash: configHash,
             organization_config_hash: organizationConfigHash,
           })
