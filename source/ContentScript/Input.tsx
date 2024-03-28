@@ -1085,11 +1085,11 @@ const Input: React.FC<{
         return [alert0, ...alerts]
           .filter(Boolean)
           .reduce((minAlert, currentAlert) =>
-            minAlert.data.category === 'orthography' &&
-            currentAlert.data.category !== 'orthography'
+            minAlert.data?.category === 'orthography' &&
+            currentAlert.data?.category !== 'orthography'
               ? currentAlert
-              : minAlert.data.category !== 'orthography' &&
-                currentAlert.data.category === 'orthography'
+              : minAlert.data?.category !== 'orthography' &&
+                currentAlert.data?.category === 'orthography'
               ? minAlert
               : minAlert.data.gravity === currentAlert.data.gravity
               ? minAlert
@@ -1260,14 +1260,14 @@ const Input: React.FC<{
     const mergedCheckEndpointResponseWithoutOrthography = {
       ...mergedCheckEndpointResponse,
       results: mergedCheckEndpointResponse.results.filter((result: any) => {
-        return result.data.category !== 'orthography';
+        return result.data?.category !== 'orthography';
       }),
     };
       
     if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
     const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
     for (const result of mergedCheckEndpointResponseWithoutOrthography.results) {
-      analytics.checkResultLog(
+      result.data && analytics.checkResultLog(
         result.data,
         authResponse,
         textContentLength,
@@ -1416,34 +1416,25 @@ const Input: React.FC<{
     return nodesWithAlertsTemp;
   };
 
-  const updateTextWithAlternative = (alternative: string, category: string) => {
+  const updateTextWithAlternative = (alternative: string) => {
     alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
     const node = popoverDataRef.current?.node as Node;
     const alert = selectedAlertRef.current as IAlert;
 
     if (isTextArea(element) || isInputText(element)) {
-      element.selectionStart =
-        alternative == ' ' &&
-        category !== 'orthography' &&
-        alert.startOffset !== 0
-          ? alert.startOffset - 1
-          : alert.startOffset;
-      element.selectionEnd =
-        alternative == ' ' && category !== 'orthography'
-          ? alert.endOffset + 1
+      element.selectionStart = alert.startOffset;
+      element.selectionEnd = alternative === ''
+          ? alert.endOffset - 1
           : alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-      const startOffset = alternative === ' ' && category !== 'orthography' && alert.startOffset !== 0
-        ? alert.startOffset - 1
-        : alert.startOffset;
-      const endOffset = alternative === ' ' && category !== 'orthography'
-        ? alert.endOffset + 1
-        : alert.endOffset;
+      const endOffset = alternative === '' 
+        ? alert.endOffset - 1 
+        : alert.endOffset
     
-    range.setStart(node, startOffset);
+    range.setStart(node,  alert.startOffset);
     range.setEnd(node, endOffset);
     
       const sel = getActiveDocument().getSelection();

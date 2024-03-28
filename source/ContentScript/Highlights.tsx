@@ -159,7 +159,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       const colours = getColor(highlight.data.gravity);
       const hoverColor = colours.hover;
       const highlightColor = colours.highlight;
-      const dashedLine = highlight.data.category == 'orthography';
+      const dashedLine = highlight.data?.category == 'orthography';
       const roundedHighlight = new Path2D();
       const params = {
         context,
