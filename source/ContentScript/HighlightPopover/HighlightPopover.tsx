@@ -45,7 +45,7 @@ interface PopoverProps {
   data: PopoverData;
   prevData: PopoverData | null;
   hide: () => void;
-  updateTextWithAlternative: (alternative: string, category: string) => void;
+  updateTextWithAlternative: (alternative: string) => void;
   addIgnoredTerm: (term: string) => void;
   movePopoverNextOrPrev: (direction: string) => void;
 }
@@ -233,7 +233,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     }
   };
 
-  const clickAlternative = (e: MouseEvent, alternative: string, category: string) => {
+  const clickAlternative = (e: MouseEvent, alternative: string) => {
     //Log the clicked alternative
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -269,7 +269,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     }).catch((error) => {
      sendErrorToSentry(error);
     });
-    updateTextWithAlternative(alternative, category);
+    updateTextWithAlternative(alternative);
   };
 
   const handleIgnoreClick = (ignoreType: string) => () => {
@@ -313,7 +313,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   const renderAlternative = (alternative: IAlternatives, alternativeHovered: string | null) => {
-    if (alternative && alternative.text === ' ') {
+    if (alternative && alternative.text === '') {
       return <i>{t('removeSpaces')}</i>;
     } else {
       const regex = /\(\((.*?)\)\)/;
@@ -363,10 +363,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <WittyLogo alt={t('wittyLogo')} />
           </a>
           <div className='witty-works-ext-container-row'>
-            <div
-              className={
-                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
-              }
+            <button
+              className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               style={data.index === 1 ? { display: 'none' } : {}}
               onClick={() => {
                 data.index !== 1 && updatePopover('previous');
@@ -375,12 +373,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               }}
             >
               <PreviousIcon alt={t('previous')} />
-            </div>
+            </button>
             <div className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>{`${
               data.index
             }
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
-            <div
+            <button
               className={
                 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
               }
@@ -392,17 +390,17 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               }}
             >
               <NextIcon alt={t('next')} />
-            </div>
+            </button>
           </div>
 
-          <div
+          <button
             className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
             onClick={() => {
               hidePopover(true);
             }}
           >
             <CloseIcon alt={t('close')} />
-          </div>
+          </button>
         </div>
 
 
@@ -492,84 +490,69 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
         {/* TRY INSTEAD */}
         {data.alert.data?.alternatives?.length > 0 && !showLearningBite && (
-          <>
-            <div className='witty-works-ext-wittyworks-popover-row'>
-              <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
-                {t('insteadTry')}
-              </div>
-              <div>
-                {data.alert.data?.alternatives.map((alternative, index) =>
-                  alternative.remove ? (
-                    <div
-                      className='witty-works-ext-wittyworks-popover-alternative-btn-container'
-                      key={`${index}-${alternative}-container`}
-                    >
-                      <div
-                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
-                        key={`${index}-remove-it`}
-                        //string can not be empty because of replacement issue on firefox
-                        onPointerDown={(e) =>
-                          clickAlternative(e.nativeEvent,' ', data.alert.data?.category)
-                        }
-                      >
-                        {data.alert.data?.text}
-                      </div>
-                      {alternative.context && (
-                        <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                          {alternative.context}
-                        </div>
-                      )}
+        <div className='witty-works-ext-wittyworks-popover-row'>
+          <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
+            {t('insteadTry')}
+          </div>
+          <div>
+            {data.alert.data?.alternatives.map((alternative, index) =>
+              alternative.remove ? (
+                <div
+                  className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                  key={`${index}-${alternative}-container`}
+                >
+                  <div
+                    className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
+                    key={`${index}-remove-it`} //string can not be empty because of replacement issue on firefox
+                    onPointerDown={(e) => clickAlternative(e.nativeEvent,' ')}
+                  >
+                    {data.alert.data?.text}
+                  </div>
+                  {alternative.context && (
+                    <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                      {alternative.context}
                     </div>
-                  ) : (
-                    <div
-                      className='witty-works-ext-wittyworks-popover-alternative-btn-container'
-                      key={`${index}-${alternative}-container`}
-                      onMouseEnter={() => {
-                        setAlternativeHovered(alternative?.text);
-                      }}
-                      onMouseLeave={() => {
-                        setAlternativeHovered(null);
-                      }}
-                    >
-                      <div
-                        className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
-                        onPointerDown={(e) =>
-                          clickAlternative(
-                            e.nativeEvent,
-                            data.alert.data?.alternatives[index]?.text,
-                            data.alert.data?.category
-                          )
-                        }
-                      >
-                       {renderAlternative(alternative, alternativeHovered)}
-                      </div>
-                      {alternative && alternative.context && (
-                        <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                          {alternative.context.length > 25 &&
-                          alternativeHovered !== alternative.text
-                            ? alternative.context.substring(0, 25) + '...'
-                            : alternative.context}
-                        </div>
-                      )}
+                  )}
+                </div>
+              ) : (
+                <button
+                  className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                  key={`${index}-${alternative}-container`}
+                  onMouseEnter={() => { setAlternativeHovered(alternative?.text) }}
+                  onMouseLeave={() => { setAlternativeHovered(null) }}
+                >
+                  <div
+                    className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
+                    onPointerDown={(e) => clickAlternative(e.nativeEvent, data.alert.data?.alternatives[index]?.text)}
+                  >
+                   {renderAlternative(alternative, alternativeHovered)}
+                  </div>
+                  {alternative && alternative.context && (
+                    <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                      {alternative.context.length > 25 &&
+                      alternativeHovered !== alternative.text
+                        ? alternative.context.substring(0, 25) + '...'
+                        : alternative.context}
                     </div>
-                  )
-                )}
-              </div>
-            </div>
-          </>
-        )}
+                  )}
+                </button>
+              )
+            )}
+          </div>
+        </div>
+      )}
       </div>
       {!showLearningBite && (
         <div className='witty-works-ext-container-row'>
-          <div onClick={handleIgnoreClick('ignore_once')} className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'>
+          <button onClick={handleIgnoreClick('ignore_once')} className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'>
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
               <IgnoreIcon alt={t('ignore_once')} />
             </span>
             <span className='witty-works-ext-lato-popover-text-gray'>
               {t('ignoreOnce')}
             </span>
-          </div>
-          <div  onClick={handleIgnoreClick('ignore_permanently')} className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'>
+          </button>
+          <button  onClick={handleIgnoreClick('ignore_permanently')} className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'>
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
               <IgnoreIcon alt={t('ignore_once')} />
             </span>
@@ -579,7 +562,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             {isLoading === 'ignore_permanently' && <LoadingIcon />}
             {isSuccess === 'ignore_permanently' && <CheckIcon />}
             {isFailure === 'ignore_permanently' &&  <><ErrorIcon /> <span className='witty-works-ext-margin-left'>{t('failedRequestText')}</span></>}
-          </div>
+          </button>
         </div>
       )}
     </div>
