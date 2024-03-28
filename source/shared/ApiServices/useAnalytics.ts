@@ -68,7 +68,8 @@ export const useAnalytics = () => {
           ? authResponse.organization_id
           : undefined,
         response__plan: authResponse ? authResponse.plan : undefined,
-        response__data__text: checkResponse.text,
+        response__data__text: checkResponse.text_id,
+        response__data__text__matched: checkResponse.text,
         response__data__category: checkResponse.category,
         response__data__subcategory: checkResponse.subcategory,
         response__startOffset: checkResponse.start,

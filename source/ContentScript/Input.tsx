@@ -1032,6 +1032,7 @@ const Input: React.FC<{
           subcategory: result.subcategory,
           context: result.context,
           text: result.text,
+          text_id: result.text_id,
           label: result.label,
           explanation: result.explanation,
           alternatives: result.alternatives,

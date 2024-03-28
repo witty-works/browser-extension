@@ -39,6 +39,7 @@ export interface ICheckResponse {
 
 export interface ICheckResponseResult {
   text: string;
+  text_id: string;
   context: string;
   category: string;
   subcategory: string;
@@ -127,6 +128,7 @@ export interface IAlert {
 }
 export interface IAlertContentData {
   text: string;
+  text_id: string;
   context: string;
   category: string;
   subcategory: string;
@@ -168,6 +170,8 @@ export interface ILogItems {
   response__data__subcategory: string;
   response__data__context: string;
   response__data__text: string;
+  response__data__text__matched: string;
+  
   response__data__label: string;
   response__data__explanation__text: string;
   response__data__explanation__icon: string;
@@ -221,6 +225,7 @@ export interface ICheckResultLogItems {
   response__organizationId?: string;
   response__plan?: string;
   response__data__text: string;
+  response__data__text__matched: string;
   response__data__category: string;
   response__data__subcategory: string;
   response__startOffset: number;
