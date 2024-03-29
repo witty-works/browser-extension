@@ -121,6 +121,7 @@ const Input: React.FC<{
   const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
     IAlert[]
   >([]);
+  const [, , hasWittyLicense] = useStateRef<boolean>(true);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
   const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
@@ -192,6 +193,7 @@ const Input: React.FC<{
       .get(null)
       .then((result) => {
         setUserIsSignedIn(!!result[StorageKeys.ACCESS_TOKEN]);
+        hasWittyLicense.current = !!result[StorageKeys.PLAN];
         (result[StorageKeys.PLAN] === 'witty_free' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
         setDebounceDelay(isWittyPremiumUserRef.current ? defaultConfig.API_DELAY : defaultConfig.API_DELAY_FREEMIUM);
         if (
@@ -486,6 +488,7 @@ const Input: React.FC<{
   };
 
   const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent, gDocs?: boolean) => {
+    if (!hasWittyLicense.current) return; //dont do any checks for users without witty license
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
 
     !isGoogleDocs() &&
@@ -1029,6 +1032,7 @@ const Input: React.FC<{
           subcategory: result.subcategory,
           context: result.context,
           text: result.text,
+          text_id: result.text_id,
           label: result.label,
           explanation: result.explanation,
           alternatives: result.alternatives,
@@ -1081,11 +1085,11 @@ const Input: React.FC<{
         return [alert0, ...alerts]
           .filter(Boolean)
           .reduce((minAlert, currentAlert) =>
-            minAlert.data.category === 'orthography' &&
-            currentAlert.data.category !== 'orthography'
+            minAlert.data?.category === 'orthography' &&
+            currentAlert.data?.category !== 'orthography'
               ? currentAlert
-              : minAlert.data.category !== 'orthography' &&
-                currentAlert.data.category === 'orthography'
+              : minAlert.data?.category !== 'orthography' &&
+                currentAlert.data?.category === 'orthography'
               ? minAlert
               : minAlert.data.gravity === currentAlert.data.gravity
               ? minAlert
@@ -1211,6 +1215,7 @@ const Input: React.FC<{
         return nodeIndex === -1;
       }), ...nodeStorageRefWithAlerts].sort((a: INodes, b: INodes) => a.index - b.index);
       nodesStorageRef.current = [];
+      setForceHighlightUpdate(!forceHighlightUpdate);
   }, [
     alerts,
     ignoredTerms,
@@ -1256,14 +1261,14 @@ const Input: React.FC<{
     const mergedCheckEndpointResponseWithoutOrthography = {
       ...mergedCheckEndpointResponse,
       results: mergedCheckEndpointResponse.results.filter((result: any) => {
-        return result.data.category !== 'orthography';
+        return result.data?.category !== 'orthography';
       }),
     };
       
     if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
     const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
     for (const result of mergedCheckEndpointResponseWithoutOrthography.results) {
-      analytics.checkResultLog(
+      result.data && analytics.checkResultLog(
         result.data,
         authResponse,
         textContentLength,
@@ -1272,7 +1277,7 @@ const Input: React.FC<{
       );
     };
   };
-  
+
   // useEffect(() => {
   //   if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
   //     const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
@@ -1412,34 +1417,25 @@ const Input: React.FC<{
     return nodesWithAlertsTemp;
   };
 
-  const updateTextWithAlternative = (alternative: string, category: string) => {
+  const updateTextWithAlternative = (alternative: string) => {
     alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
     const node = popoverDataRef.current?.node as Node;
     const alert = selectedAlertRef.current as IAlert;
 
     if (isTextArea(element) || isInputText(element)) {
-      element.selectionStart =
-        alternative == ' ' &&
-        category !== 'orthography' &&
-        alert.startOffset !== 0
-          ? alert.startOffset - 1
-          : alert.startOffset;
-      element.selectionEnd =
-        alternative == ' ' && category !== 'orthography'
-          ? alert.endOffset + 1
+      element.selectionStart = alert.startOffset;
+      element.selectionEnd = alternative === ''
+          ? alert.endOffset - 1
           : alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-      const startOffset = alternative === ' ' && category !== 'orthography' && alert.startOffset !== 0
-        ? alert.startOffset - 1
-        : alert.startOffset;
-      const endOffset = alternative === ' ' && category !== 'orthography'
-        ? alert.endOffset + 1
-        : alert.endOffset;
+      const endOffset = alternative === '' 
+        ? alert.endOffset - 1 
+        : alert.endOffset
     
-    range.setStart(node, startOffset);
+    range.setStart(node,  alert.startOffset);
     range.setEnd(node, endOffset);
     
       const sel = getActiveDocument().getSelection();
@@ -1625,12 +1621,15 @@ const Input: React.FC<{
     for (let item of changedItems) {
       switch (item) {
         case StorageKeys.ACCESS_TOKEN:
-          setUserIsSignedIn(changes[item].newValue == '' ? false : true);
-          setConfigHasChanged(changes[item].newValue == '' ? false : true);
+          setUserIsSignedIn(changes[item].newValue);
+          setConfigHasChanged(changes[item].newValue);
           setTextToCheck('');
           setTextToCheck(currentTextToCheck);
           break;
-      }
+        case StorageKeys.PLAN:
+          hasWittyLicense.current = !!changes[item].newValue;
+          break;
+      } 
     }
   };
 
@@ -1640,6 +1639,8 @@ const renderPopover = () => {
       document.body.appendChild(popoverElement);
       popoverRootRef.current = createRoot(popoverElement);
     }
+    const container = document.querySelector(WTags.WW_POPOVER);
+    if (!container) return;
     //Show/Hide the popover
     if (
       previousPopoverDataRef.current &&
@@ -1669,7 +1670,6 @@ const renderPopover = () => {
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
             movePopoverNextOrPrev={movePopoverNextOrPrev}
-            userIsSignedIn={userIsSignedIn}
           />
         </Sentry.ErrorBoundary>
       );
@@ -1711,7 +1711,7 @@ const renderPopover = () => {
         </WTags.WW_CLONE>
       )}
       {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
-      {(isGoogleDocs() || !isTextArea(element)) && !isActive && nodesWithAlertsRef.current.length > 0 && (
+      {!isActive && nodesWithAlertsRef.current.length > 0 && (
         <WTags.WW_HIGHLIGHTS>
           <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
             <Highlights
@@ -1719,38 +1719,21 @@ const renderPopover = () => {
               nodesWithAlerts={nodesWithAlertsRef.current}
               element={element}
               elementRect={elementRect}
-              selectedAlert={popoverDataRef.current && popoverDataRef.current?.alert}
-              userIsSignedIn={userIsSignedIn}
+              selectedAlert={isTextArea(element)  ? selectedAlertRef.current : popoverDataRef.current && popoverDataRef.current?.alert}
               removeHighlights={removeHighlights}
               forceHighlightUpdate={forceHighlightUpdate}
             />
           </Sentry.ErrorBoundary>
         </WTags.WW_HIGHLIGHTS>
       )}
-      {isTextArea(element) && (
-        <WTags.WW_HIGHLIGHTS>
-          <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
-            <Highlights
-              elementScroll={elementScroll}
-              nodesWithAlerts={nodesWithAlertsRef.current}
-              element={element}
-              elementRect={elementRect}
-              selectedAlert={selectedAlertRef.current}
-              userIsSignedIn={userIsSignedIn}
-              removeHighlights={removeHighlights}
-              forceHighlightUpdate={forceHighlightUpdate}
-            />
-          </Sentry.ErrorBoundary>
-        </WTags.WW_HIGHLIGHTS>
-      )}
-      <WTags.WW_ACTIVITY_INDICATOR>
+      {hasWittyLicense.current && <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
           element={element}
           elementRect={elementRect}
           iconType={totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon}
           isHovered={isHovered}
         />
-      </WTags.WW_ACTIVITY_INDICATOR>
+      </WTags.WW_ACTIVITY_INDICATOR>}
     </>
     
   );

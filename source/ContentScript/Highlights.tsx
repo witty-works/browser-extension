@@ -27,7 +27,6 @@ interface HighlightsProps {
   element: CustomInputElement;
   elementRect: DOMRect;
   selectedAlert: IAlert | null;
-  userIsSignedIn: boolean;
   removeHighlights: boolean;
   forceHighlightUpdate: boolean;
 }
@@ -38,7 +37,6 @@ const Highlights: React.FC<HighlightsProps> = ({
   element,
   elementRect,
   selectedAlert,
-  userIsSignedIn,
   removeHighlights,
   forceHighlightUpdate,
 }: HighlightsProps) => {  
@@ -158,23 +156,10 @@ const Highlights: React.FC<HighlightsProps> = ({
       if (highlight.rects && highlight.rects.length === 0) return;
 
       const [rect] = highlight.rects;
-      const hoverColor = `${
-        getColor(
-          highlight.data.gravity,
-          userIsSignedIn,
-          highlight.data.explanation,
-          highlight.plan
-        ).default
-      }`;
-      const highlightColor = `${
-        getColor(
-          highlight.data.gravity,
-          userIsSignedIn,
-          highlight.data.explanation,
-          highlight.plan
-        ).hover
-      }`;
-      const dashedLine = highlight.data.category == 'orthography';
+      const colours = getColor(highlight.data.gravity);
+      const hoverColor = colours.hover;
+      const highlightColor = colours.highlight;
+      const dashedLine = highlight.data?.category == 'orthography';
       const roundedHighlight = new Path2D();
       const params = {
         context,

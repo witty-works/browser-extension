@@ -1,11 +1,12 @@
 import defaultConfig from '../witty.config.json';
 import { browser } from 'webextension-polyfill-ts';
-import { getDomainWithoutSubdomain } from '../shared/utils';
+import {getDomainWithoutSubdomain } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import {
   renderMainPopup,
   renderPopupChrome,
+  renderUpgradePopup,
   renderUserNotLoggedIn,
 } from './PopupUtils';
 
@@ -15,6 +16,9 @@ const renderPopup = async () => {
     .then((result) => {
       if (!result[StorageKeys.ACCESS_TOKEN]) {
         renderUserNotLoggedIn();
+        return;
+      } else if (!result[StorageKeys.PLAN]) {
+        renderUpgradePopup();
         return;
       }
       
@@ -60,6 +64,9 @@ const storageChange = (changes: any) => {
         !changes[item].newValue && renderUserNotLoggedIn();
         break;
       case StorageKeys.ORGANIZATION_DOMAINS:
+        renderPopup();
+        break;
+      case StorageKeys.PLAN:
         renderPopup();
         break;
     }

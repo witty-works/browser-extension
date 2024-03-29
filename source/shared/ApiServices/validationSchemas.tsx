@@ -42,6 +42,10 @@ export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
       description: 'the problematic word',
       type: 'string',
     },
+    text_id: {
+      description: 'the text_id of the problematic word',
+      type: 'string',
+    },
     context: {
       description: 'the context of the problematic word',
       type: 'string',
