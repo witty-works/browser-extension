@@ -112,7 +112,7 @@ const Popup: React.FC<PopupProps> = ({
         setInitialDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
         setHrFeaturesDisabledDomains(result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS] || []);
-        if (result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS].includes(domain)) {
+        if (result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS]?.includes(domain)) {
           setHrFeatures(false);
         }
       })
