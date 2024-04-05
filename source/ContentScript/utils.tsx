@@ -117,11 +117,12 @@ export const getFirstTextDiff = (
   previousTextArray: string[] | string,
   newTextArray: string[] | string
 ) => {
-  if (!newTextArray) return 0;
+  const defaultReturnValue = { node: 0, position: 0 };
+  if (!newTextArray) return defaultReturnValue;
 
   if (isTextArea(element) || isMicrosoftOnlineWord(window.location.href)) {
     let i = 0;
-    if (!previousTextArray || !newTextArray) return 0;
+    if (!previousTextArray || !newTextArray) return defaultReturnValue;
     while (
       i < previousTextArray.length &&
       i < newTextArray.length &&
@@ -141,7 +142,7 @@ export const getFirstTextDiff = (
     let position = 0;
     const previousText = previousTextArray[node];
     const nextText = newTextArray[node];
-    if (!previousText || !nextText) return;
+    if (!previousText || !nextText) return defaultReturnValue;
     while (
       position < previousText.length &&
       position < nextText.length &&
