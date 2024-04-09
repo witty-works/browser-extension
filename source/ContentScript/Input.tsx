@@ -109,7 +109,6 @@ const Input: React.FC<{
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
   const [elementXPathResult, setElementXPathResult] = useState<XPathResult>();
   const [debounceDelay, setDebounceDelay] = useState<number>(defaultConfig.API_DELAY);
-  const [isActive, setIsActive] = useState<boolean>(false);
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
@@ -118,22 +117,20 @@ const Input: React.FC<{
   const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
-  const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<
-    IAlert[]
-  >([]);
+  const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<IAlert[]>([]);
   const [, , hasWittyLicense] = useStateRef<boolean>(true);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
   const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
   const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
   const [, , popoverRootRef] = useStateRef<Root | null>(null);
+  const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument.activeElement;
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       if (isGoogleDocs()) {
-        setIsActive(true);
         setActiveIcon('loading');
         debouncedMutation();
       } else {
@@ -166,7 +163,6 @@ const Input: React.FC<{
         updateClone={updateCloneData}
       />
     );  
-    setIsActive(false);
     setActiveIcon('active');
 
     //Deals with new pages getting rendered in google docs
@@ -210,6 +206,7 @@ const Input: React.FC<{
             return diffDays < 7;
           });
           setIgnoredCategoriesFromStorage(filteredIgnoredCategories);
+          elementSpellcheckRef.current = result[StorageKeys.ORTHOGRAPHY];
         }
       })
       .catch((error: unknown) => {
@@ -490,63 +487,47 @@ const Input: React.FC<{
   const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent, gDocs?: boolean) => {
     if (!hasWittyLicense.current) return; //dont do any checks for users without witty license
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
-
-    !isGoogleDocs() &&
-      browser.storage.local
-        .get(StorageKeys.ORTHOGRAPHY)
-        .then((result) => {
-          element.spellcheck = !result[StorageKeys.ORTHOGRAPHY];
-        })
-        .catch((error: unknown) => {
-          sendErrorToSentry(error);
-        });
-    let nextText: string = isGoogleDocs()
-      ? getInputText(cloneRef.current)
-      : getInputText(element);
-
-    const nextTextDividedByNodes = getTextDividedByNodes(element);
-
     const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
-  if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes)) {
-    return;
-  }
+    !isGoogleDocs() && (element.spellcheck = !elementSpellcheckRef.current)
 
+    const nextText: string = getInputText(isGoogleDocs() ? cloneRef.current : element);
+    const nextTextDividedByNodes = getTextDividedByNodes(element);
+    if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes)) return;
     const textDividedByNodesTextContent = isTextArea(element)
       ? nextText
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
 
-    const fistTextDiff = getFirstTextDiff(
-      element,
-      textDividedByNodesTextContent,
-      previousElementStateRef.current?.text
-    );
-    previousElementStateRef.current = {
-      text: textDividedByNodesTextContent,
-      position: element.getBoundingClientRect(),
-    };
-    if (isTextArea(element) && fistTextDiff) {
+    const fistTextDiff = getFirstTextDiff(element, textDividedByNodesTextContent, previousElementStateRef.current?.text); 
+    if (isTextArea(element)) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
           (alert) => alert.startOffset < fistTextDiff.position
         )
       );
-      unchangedAlerts[0] && setAlerts(unchangedAlerts[0]);
+      unchangedAlerts.length > 0 && setAlerts(unchangedAlerts[0]);
       setUnchangedAlertsTextarea(unchangedAlerts[0]);
       handleTextAndIcon([nextText]);
     } else {
       !isGoogleDocs() && setAlerts([]);
-      const nodeAtFirstTextDiff =
-        nextTextDividedByNodes[fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0];
-      const nodesWithinMaxCharLength = getTextWithinMaxCharLength(
-        fistTextDiff && !totalMaxCharLengthReachedRef.current ? fistTextDiff.node : 0,
-        nodeAtFirstTextDiff
+      nodesWithAlertsRef.current = nodesWithAlertsRef.current.filter(  //remove nodes after first diff from nodesWithAlertsRef.current to prevent highlight displacement
+        (nodeWithAlerts) => nodeWithAlerts.nodeIndex && nodeWithAlerts.nodeIndex <= fistTextDiff.node
       );
-      nodesWithinMaxCharLength &&
-        handleTextAndIcon(
-          nodesWithinMaxCharLength
-        );
+      //remove nodes within firstextdiff where position is after cursor
+      nodesWithAlertsRef.current = nodesWithAlertsRef.current.map((nodeWithAlerts) => {
+        if (nodeWithAlerts.nodeIndex === fistTextDiff.node) {
+          nodeWithAlerts.alerts = nodeWithAlerts.alerts.filter(
+            (alert) => alert.endOffset <= fistTextDiff.position
+          );
+        }
+        return nodeWithAlerts;
+      });
+      const nodeAtFirstTextDiff = nextTextDividedByNodes[fistTextDiff.node];
+      const nodesWithinMaxCharLength = getTextWithinMaxCharLength(fistTextDiff.node, nodeAtFirstTextDiff);
+      nodesWithinMaxCharLength && handleTextAndIcon(nodesWithinMaxCharLength);
     }
-  }, debounceDelay);
+
+    previousElementStateRef.current = { text: textDividedByNodesTextContent, position: element.getBoundingClientRect() };
+  }, 200); //for getFirstTextDiff not to be overwhemled by too many calls. There is a seperate debounce for requests. 
 
   const getTextWithinMaxCharLength = (
     currentNode: number,
@@ -610,11 +591,9 @@ const Input: React.FC<{
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
     const allNodes = getTextDividedByNodes(element).map((node: any) => node.textContent);
     const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : allNodes.join('').length;
-    if (totalTextLength < maxCharLength) { //for short text ONLY!
-      // localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'false');
-      // prevCheckedNodesRef.current = []; //prevents displaced highlights when text is short -> makes flickering long text (improve condition)
-      setRemoveHighlights(true); //cause of flickering highlights when typing
-    }
+    // if (totalTextLength < maxCharLength) {
+    //   // localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'false');
+    // }
     let nodesToCheck = nodes; //not needed anymore as whatever is passed to handleTextAndIcon is already within max char length
     nodesStorageRef.current = nodesToCheck;
     let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
@@ -639,18 +618,6 @@ const Input: React.FC<{
       nodesStorageRef.current = nodesToCheck;
     }
 
-    if (nodesToCheck.length > 0) { 
-      const nodesWithAlertsWithoutChangesAlerts = nodesWithAlertsRef.current.filter(
-        (nodeWithAlerts) => {
-          const nodeIndex = nodesToCheck.findIndex(
-            (nodeToCheck: { node: any; index: number | undefined }) => 
-              nodeToCheck.index === nodeWithAlerts.nodeIndex 
-            ); 
-          return nodeIndex === -1;
-        }
-      );
-      nodesWithAlertsRef.current = nodesWithAlertsWithoutChangesAlerts;
-    } 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
     if (typeof newTextToCheck !== 'string' || newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
@@ -699,7 +666,6 @@ const Input: React.FC<{
   const handleElementScrollEvent = () => {
     if (!isTextArea(element) && previousScrollTopRef.current !== firstScrollableParentRef.current.scrollTop) {
       previousScrollTopRef.current = firstScrollableParentRef.current.scrollTop;
-      setIsActive(true);
       setActiveIcon('loading');
       debouncedScroll();
     } 
@@ -711,7 +677,6 @@ const Input: React.FC<{
   };
 
   const debouncedScroll = debounce(() => {
-    setIsActive(false);
     setActiveIcon('active');
   }, debounceDelay);
 
@@ -1469,7 +1434,6 @@ const Input: React.FC<{
           }, 200);
         }, 200);
       } else if (isGoogleDocs()) {
-        setIsActive(true);
         setActiveIcon('loading');
         setAlerts([]);
 
@@ -1711,21 +1675,19 @@ const renderPopover = () => {
         </WTags.WW_CLONE>
       )}
       {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
-      {!isActive && nodesWithAlertsRef.current.length > 0 && (
-        <WTags.WW_HIGHLIGHTS>
-          <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
-            <Highlights
-              elementScroll={elementScroll}
-              nodesWithAlerts={nodesWithAlertsRef.current}
-              element={element}
-              elementRect={elementRect}
-              selectedAlert={isTextArea(element)  ? selectedAlertRef.current : popoverDataRef.current && popoverDataRef.current?.alert}
-              removeHighlights={removeHighlights}
-              forceHighlightUpdate={forceHighlightUpdate}
-            />
-          </Sentry.ErrorBoundary>
-        </WTags.WW_HIGHLIGHTS>
-      )}
+      <WTags.WW_HIGHLIGHTS>
+        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+          <Highlights
+            elementScroll={elementScroll}
+            nodesWithAlerts={nodesWithAlertsRef.current}
+            element={element}
+            elementRect={elementRect}
+            selectedAlert={isTextArea(element)  ? selectedAlertRef.current : popoverDataRef.current && popoverDataRef.current?.alert}
+            removeHighlights={removeHighlights}
+            forceHighlightUpdate={forceHighlightUpdate}
+          />
+        </Sentry.ErrorBoundary>
+      </WTags.WW_HIGHLIGHTS>
       {hasWittyLicense.current && <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
           element={element}
