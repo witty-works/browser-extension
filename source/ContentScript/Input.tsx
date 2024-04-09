@@ -510,8 +510,17 @@ const Input: React.FC<{
     } else {
       !isGoogleDocs() && setAlerts([]);
       nodesWithAlertsRef.current = nodesWithAlertsRef.current.filter(  //remove nodes after first diff from nodesWithAlertsRef.current to prevent highlight displacement
-        (nodeWithAlerts) => nodeWithAlerts.nodeIndex && nodeWithAlerts.nodeIndex < fistTextDiff.node
+        (nodeWithAlerts) => nodeWithAlerts.nodeIndex && nodeWithAlerts.nodeIndex <= fistTextDiff.node
       );
+      //remove nodes within firstextdiff where position is after cursor
+      nodesWithAlertsRef.current = nodesWithAlertsRef.current.map((nodeWithAlerts) => {
+        if (nodeWithAlerts.nodeIndex === fistTextDiff.node) {
+          nodeWithAlerts.alerts = nodeWithAlerts.alerts.filter(
+            (alert) => alert.endOffset <= fistTextDiff.position
+          );
+        }
+        return nodeWithAlerts;
+      });
       const nodeAtFirstTextDiff = nextTextDividedByNodes[fistTextDiff.node];
       const nodesWithinMaxCharLength = getTextWithinMaxCharLength(fistTextDiff.node, nodeAtFirstTextDiff);
       nodesWithinMaxCharLength && handleTextAndIcon(nodesWithinMaxCharLength);
