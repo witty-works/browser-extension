@@ -55,7 +55,7 @@ export const de = {
     copiedConfirmation: 'URL Kopiert',
     hrFeatures: 'Job Ads Add-On',
     upgradeHeadline: 'Hol dir ein Witty Abo',
-    upgradeText: 'Du benötigst ein Witty Abo, damit Witty deine Texte analysiet',
+    upgradeText: 'Du benötigst ein Witty Abo, damit Witty deine Texte analysiert',
     upgradeButton: 'Upgrade',
     beta: 'Beta',
   },
