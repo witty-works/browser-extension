@@ -27,20 +27,12 @@ export const updateConfig = (response: IAuthResponse) => {
     response?.organization_config_hash
   );
   storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
-  Object.keys(response.config).forEach((key) => {
-    const keysForPopover = ['orthography'];
-    if (
-      (keysForPopover.includes(key) &&
-        (response.config[key as keyof typeof response.config] as any).status ==
-          'force' && (response.config[key as keyof typeof response.config] as any).value) ||
-      !keysForPopover.includes(key)
-    ) {
-      storeInLocalStorage(
-        StorageKeys[key.toUpperCase() as keyof typeof StorageKeys],
-        response.config[key as keyof typeof response.config] || null
-      );
-    }
-  });
+  if (response?.organization_config?.categories) {
+    storeInLocalStorage(
+      StorageKeys.ORTHOGRAPHY,
+      response.organization_config.categories.orthography
+    );
+  }
 };
 
 export const getInputText = (element: CustomInputElement | any) => {
@@ -117,11 +109,12 @@ export const getFirstTextDiff = (
   previousTextArray: string[] | string,
   newTextArray: string[] | string
 ) => {
-  if (!newTextArray) return 0;
+  const defaultReturnValue = { node: 0, position: 0 };
+  if (!newTextArray) return defaultReturnValue;
 
   if (isTextArea(element) || isMicrosoftOnlineWord(window.location.href)) {
     let i = 0;
-    if (!previousTextArray || !newTextArray) return 0;
+    if (!previousTextArray || !newTextArray) return defaultReturnValue;
     while (
       i < previousTextArray.length &&
       i < newTextArray.length &&
@@ -141,7 +134,7 @@ export const getFirstTextDiff = (
     let position = 0;
     const previousText = previousTextArray[node];
     const nextText = newTextArray[node];
-    if (!previousText || !nextText) return;
+    if (!previousText || !nextText) return defaultReturnValue;
     while (
       position < previousText.length &&
       position < nextText.length &&
