@@ -192,6 +192,7 @@ const Input: React.FC<{
         hasWittyLicense.current = !!result[StorageKeys.PLAN];
         (result[StorageKeys.PLAN] === 'witty_free' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
         setDebounceDelay(isWittyPremiumUserRef.current ? defaultConfig.API_DELAY : defaultConfig.API_DELAY_FREEMIUM);
+        elementSpellcheckRef.current = result[StorageKeys.ORTHOGRAPHY]?.value;
         if (
           result[StorageKeys.PLAN] === 'witty_free' &&
           result[StorageKeys.IGNORED_CATEGORIES]
@@ -206,7 +207,6 @@ const Input: React.FC<{
             return diffDays < 7;
           });
           setIgnoredCategoriesFromStorage(filteredIgnoredCategories);
-          elementSpellcheckRef.current = result[StorageKeys.ORTHOGRAPHY];
         }
       })
       .catch((error: unknown) => {

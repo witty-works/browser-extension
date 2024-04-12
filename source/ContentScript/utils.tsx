@@ -27,20 +27,12 @@ export const updateConfig = (response: IAuthResponse) => {
     response?.organization_config_hash
   );
   storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
-  Object.keys(response.config).forEach((key) => {
-    const keysForPopover = ['orthography'];
-    if (
-      (keysForPopover.includes(key) &&
-        (response.config[key as keyof typeof response.config] as any).status ==
-          'force' && (response.config[key as keyof typeof response.config] as any).value) ||
-      !keysForPopover.includes(key)
-    ) {
-      storeInLocalStorage(
-        StorageKeys[key.toUpperCase() as keyof typeof StorageKeys],
-        response.config[key as keyof typeof response.config] || null
-      );
-    }
-  });
+  if (response?.organization_config?.categories) {
+    storeInLocalStorage(
+      StorageKeys.ORTHOGRAPHY,
+      response.organization_config.categories.orthography
+    );
+  }
 };
 
 export const getInputText = (element: CustomInputElement | any) => {
