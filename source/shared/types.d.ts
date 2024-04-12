@@ -18,7 +18,7 @@ export interface IEndpointError {
 
 export interface ResponseConfig {
   orthography: ConfigProperty;
-  categories?: ConfigProperty;
+  categories?: any;
 }
 export interface RequestConfig {
   addons: string[];

@@ -3,7 +3,6 @@ import { browser } from 'webextension-polyfill-ts';
 import { useTranslation } from 'react-i18next';
 
 import {
-  ConfigProperty,
   EnableWittyToggle,
 } from '../../shared/types';
 import {
@@ -68,7 +67,6 @@ const Popup: React.FC<PopupProps> = ({
     updateDashboard: false,
   } as EnableWittyToggle);
   const [initialDomainsDisabledLocally, setInitialDomainsDisabledLocally] = useState<string[]>([]);
-  const [orthography, setOrthography] = useState<ConfigProperty>(defaultConfig.ORTHOGRAPHY);
   const [updatingDashboardFailed, setUpdatingDashboardFailed] = useState<boolean>(false);
   const [numberOfNotifications, setNumberOfNotifications] = useState<number>(-1);
   const [accessToken, setAccessToken] = useState<string>('');
@@ -108,7 +106,6 @@ const Popup: React.FC<PopupProps> = ({
           setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
         }
 
-        setOrthography(result[StorageKeys.ORTHOGRAPHY]);
         setInitialDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
         setTeamName(result[StorageKeys.TEAM_NAME]);
         setHrFeaturesDisabledDomains(result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS] || []);
@@ -128,10 +125,6 @@ const Popup: React.FC<PopupProps> = ({
       });
     }
   }, [enabled]);
-
-  useEffect(() => {
-    storeInLocalStorage(StorageKeys.ORTHOGRAPHY, orthography);
-  }, [orthography]);
 
   useEffect(() => {
     setToken(accessToken);
@@ -156,22 +149,11 @@ const Popup: React.FC<PopupProps> = ({
       storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
       authResponse.organization_name && setTeamName(authResponse.organization_name);
 
-      for (let key in authResponse.organization_config) {
-        switch (key) {
-          case 'orthography':
-            if (
-              authResponse.organization_config[key].status == 'force' && 
-              !authResponse.organization_config[key].value
-            ) {
-              setOrthography(authResponse.organization_config[key]);
-            } else {
-              setOrthography({
-                ...orthography,
-                status: authResponse.organization_config[key].status,
-              });
-            }
-            break;
-        }
+      if (authResponse?.organization_config?.categories) {
+        storeInLocalStorage(
+          StorageKeys.ORTHOGRAPHY,
+          authResponse.organization_config.categories.orthography
+        );
       }
     }
   }, [authResponse]);
