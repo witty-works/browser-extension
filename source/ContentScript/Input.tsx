@@ -484,7 +484,7 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent, gDocs?: boolean) => {
+  const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent, gDocs?: boolean, keepHighlights?: boolean) => {
     if (!hasWittyLicense.current) return; //dont do any checks for users without witty license
     if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
     const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
@@ -499,28 +499,32 @@ const Input: React.FC<{
 
     const fistTextDiff = getFirstTextDiff(element, textDividedByNodesTextContent, previousElementStateRef.current?.text); 
     if (isTextArea(element)) {
-      const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
-        nodeWithAlerts.alerts.filter(
-          (alert) => alert.startOffset < fistTextDiff.position
-        )
-      );
-      unchangedAlerts.length > 0 && setAlerts(unchangedAlerts[0]);
-      setUnchangedAlertsTextarea(unchangedAlerts[0]);
+      if (!keepHighlights) {
+        const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
+          nodeWithAlerts.alerts.filter(
+            (alert) => alert.startOffset < fistTextDiff.position
+          )
+        );
+        unchangedAlerts.length > 0 && setAlerts(unchangedAlerts[0]); //is this needed?
+        setUnchangedAlertsTextarea(unchangedAlerts[0]);
+      }
       handleTextAndIcon([nextText]);
     } else {
       !isGoogleDocs() && setAlerts([]);
-      nodesWithAlertsRef.current = nodesWithAlertsRef.current.filter(  //remove nodes after first diff from nodesWithAlertsRef.current to prevent highlight displacement
-        (nodeWithAlerts) => nodeWithAlerts.nodeIndex && nodeWithAlerts.nodeIndex <= fistTextDiff.node
-      );
-      //remove nodes within firstextdiff where position is after cursor
-      nodesWithAlertsRef.current = nodesWithAlertsRef.current.map((nodeWithAlerts) => {
-        if (nodeWithAlerts.nodeIndex === fistTextDiff.node) {
-          nodeWithAlerts.alerts = nodeWithAlerts.alerts.filter(
-            (alert) => alert.endOffset <= fistTextDiff.position
-          );
-        }
-        return nodeWithAlerts;
-      });
+      if (!keepHighlights) {
+        nodesWithAlertsRef.current = nodesWithAlertsRef.current.filter(  //remove nodes after first diff from nodesWithAlertsRef.current to prevent highlight displacement
+          (nodeWithAlerts) => nodeWithAlerts.nodeIndex && nodeWithAlerts.nodeIndex <= fistTextDiff.node
+        );
+        //remove nodes within firstextdiff where position is after cursor
+        nodesWithAlertsRef.current = nodesWithAlertsRef.current.map((nodeWithAlerts) => {
+          if (nodeWithAlerts.nodeIndex === fistTextDiff.node) {
+            nodeWithAlerts.alerts = nodeWithAlerts.alerts.filter(
+              (alert) => alert.endOffset <= fistTextDiff.position
+            );
+          }
+          return nodeWithAlerts;
+        });
+      }
       const nodeAtFirstTextDiff = nextTextDividedByNodes[fistTextDiff.node];
       const nodesWithinMaxCharLength = getTextWithinMaxCharLength(fistTextDiff.node, nodeAtFirstTextDiff);
       nodesWithinMaxCharLength && handleTextAndIcon(nodesWithinMaxCharLength);
@@ -1386,6 +1390,27 @@ const Input: React.FC<{
     alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
     const node = popoverDataRef.current?.node as Node;
     const alert = selectedAlertRef.current as IAlert;
+    const textLengthDifference = alternative.length - alert.endOffset + alert.startOffset;
+    const alertsInParagraph = nodesWithAlertsRef.current.find((nodeWithAlerts) => nodeWithAlerts.node === node)?.alerts;
+    if (alertsInParagraph) { //update the start and end offset of alters that are after the alert that is being replaced
+      alertsInParagraph.forEach((compareAlert) => {
+        if (compareAlert.startOffset > alert.startOffset) {
+          compareAlert.startOffset += textLengthDifference;
+          compareAlert.endOffset += textLengthDifference;
+        }
+      });
+    }
+    //remove the alert that is being replaced 
+    nodesWithAlertsRef.current = nodesWithAlertsRef.current.map((nodeWithAlerts) => {
+      if (nodeWithAlerts.node === node) {
+        return {
+          ...nodeWithAlerts,
+          alerts: nodeWithAlerts.alerts.filter((nodeAlert) => nodeAlert.id !== alert.id)
+        }
+      }
+      return nodeWithAlerts;
+    }
+    );
 
     if (isTextArea(element) || isInputText(element)) {
       element.selectionStart = alert.startOffset;
@@ -1505,8 +1530,8 @@ const Input: React.FC<{
     }
     if (!isCkEditor(element) && !isGoogleDocs()) {
       handleTextAndIcon([]); //ensures update 
-      const event = new Event('keyup', { bubbles: true });
-      element.dispatchEvent(event);
+      const event = new KeyboardEvent('keyup');
+      handleKeyupEvent(event, false, true);
     }
   };
 
