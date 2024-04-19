@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      SENTRY_DSN: "https://658b8e1fd3954c7fb6acc851dda97a4d@o512991.ingest.sentry.io/6223342"
+      SENTRY_DSN: "https://2cb75085e6dba41ead4774395caa4641@o4507044685938688.ingest.de.sentry.io/4507044706713680"
       SENTRY_SAMPLE_RATE: 0.001
       SENTRY_TRACE_RATE: 0.001
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
