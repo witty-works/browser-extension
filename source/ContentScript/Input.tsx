@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { Root, createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import defaultConfig from '../witty.config.json';
@@ -1442,7 +1442,7 @@ const Input: React.FC<{
         node.dispatchEvent(deleteSelectedText);
 
         //Need to slow down the process for changes to be applied
-        setTimeout(() => {
+        // setTimeout(() => {
           const insertAlternative = new ClipboardEvent('paste', {
             clipboardData: new DataTransfer(),
             cancelable: true,
@@ -1452,12 +1452,12 @@ const Input: React.FC<{
           insertAlternative.clipboardData.setData('text/plain', alternative);
           node.dispatchEvent(insertAlternative);
 
-          setTimeout(() => {
+          // setTimeout(() => {
             setTextToCheck(getInputText(element));
             const event = new Event('keyup', { bubbles: true });
             element.dispatchEvent(event);
-          }, 200);
-        }, 200);
+        //   }, 200);
+        // }, 200);
       } else if (isGoogleDocs()) {
         setActiveIcon('loading');
         setAlerts([]);

@@ -1,4 +1,4 @@
-import {browser, Tabs} from 'webextension-polyfill-ts';
+import browser, { Tabs } from 'webextension-polyfill';
 import * as Sentry from '@sentry/react';
 
 import {
@@ -67,14 +67,14 @@ const addEventListeners = () => {
 
   browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
     analytics.extensionInstallationAndUpdateLog(details.reason);
-    browser.browserAction?.setIcon(WittyIconActive);
+    browser.action?.setIcon(WittyIconActive);
     if (!DEV_ENV)
       browser.runtime.setUninstallURL(`https://www.witty.works/goodbye?witty_version=${wittyVersion}&witty_browser=${navigator.userAgent}`);
     if (details.reason === 'install') {
       //Set default settings
       setSettings();
       browser.storage.local.get(null).then((result) => {
-        const optionsPageUrl = browser.extension.getURL('options.html');
+        const optionsPageUrl = browser.runtime.getURL('options.html');
         const urls = result[StorageKeys.API_ENDPOINT_KEY]
           ? result[StorageKeys.API_ENDPOINT_KEY]
           : DefaultBaseUrlKey;
@@ -143,7 +143,7 @@ const reInjectContentScripts = () => {
       return;
     }
 
-    scripts.forEach((script: { js: any; matches: any; css: any}) => {
+    scripts && scripts.forEach((script) => {
       const jsFiles = script.js || [];
       const cssFiles = script.css || []; // Get CSS files from the manifest
       const matches = script.matches;
@@ -153,17 +153,17 @@ const reInjectContentScripts = () => {
       }
 
       jsFiles.forEach((scriptToInject: string) => {
-        browser.tabs.executeScript(tab.id!, {
-          file: scriptToInject,
-          allFrames: true
+        browser.scripting.executeScript({ //executeScript, but should be ob since browser.scripting?
+          target: { tabId: tab.id! },
+          files: [scriptToInject],
         });
       });
   
       // Inject CSS files
       cssFiles.forEach((cssToInject: string) => {
-        browser.tabs.insertCSS(tab.id!, {
-          file: cssToInject,
-          allFrames: true
+        browser.scripting.insertCSS({
+          files: [cssToInject],
+          target: { tabId: tab.id! },
         });
       });
     });
@@ -225,16 +225,15 @@ const scanTabsToDetectStatus = () => {
     if (tabs.length != 0 && tabs[0].url) {
       const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
 
-      browser.tabs
-        .executeScript(tabs[0].id!, {
-          code: `
-          Array.from(document.querySelectorAll('iframe')).map((iframe) => {
-            return iframe.src;
-          });
-        `,
-        })
-        .then((result) => {
-          const iframes = result[0];
+      browser.scripting.executeScript({
+        target: { tabId: tabs[0].id! },
+        func: () => {
+          return Array.from(document.getElementsByTagName('iframe')).map(
+            (iframe) => iframe.src
+          );
+        }
+      }).then((result) => {
+          const iframes = result[0].result;
           if (iframes) {
             const iframeDomains = iframes.map((iframe: string) => {
               try {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -220,9 +220,9 @@ const Popup: React.FC<PopupProps> = ({
       if (response.status == 403) {
         setUpdatingDashboardFailed(true);
         setEnabled({ enabled: !enabled.enabled, updateDashboard: false });
-        setTimeout(() => {
+        // setTimeout(() => {
           setUpdatingDashboardFailed(false);
-        }, 3000);
+        // }, 3000);
         getNewAccessToken();
       }
     });

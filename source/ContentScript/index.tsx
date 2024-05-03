@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import {
   BaseUrls,
   StorageKeys,
@@ -41,7 +41,7 @@ const initialize = () => {
               : DefaultBaseUrlKey
       );
       if (!result[StorageKeys.ACCESS_TOKEN]) {
-        const optionsPageUrl = browser.extension.getURL('options.html');
+        const optionsPageUrl = browser.runtime.getURL('options.html');
         const urls = result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey;
@@ -92,13 +92,13 @@ const initialize = () => {
           handleDomainsFromDashboard(changes[item].newValue, scriptId);
           break;
         case StorageKeys.DOMAINS:
-          setTimeout(() => {
+          // setTimeout(() => {
             if (changes[item].newValue.includes(domain)) {
               customRender(false, scriptId);
             } else {
               customRender(true, scriptId);
             }
-          }, 300);
+          // }, 300);
           break;
       }
     }

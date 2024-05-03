@@ -25,7 +25,7 @@ import { getActiveDocument } from '../ContentScriptApp';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
 import { getScrollableParentClosestToElement, storeInLocalStorage } from '../../shared/utils';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { createRoot } from 'react-dom/client';
 import Notification from '../../Notifications/Notification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
@@ -300,9 +300,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       if (response.status === 204) {
         addIgnoredTerm(data.alert.data?.text);
         setIsSuccess(ignoreType);
-        setTimeout(() => {
+        // setTimeout(() => {
           hidePopover();
-        }, 1000);
+        // }, 1000);
       } else {
         setIsLoading('');
         setIsFailure(ignoreType);

@@ -1,5 +1,5 @@
 import defaultConfig from '../witty.config.json';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import {getDomainWithoutSubdomain } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 import { sendErrorToSentry } from '../shared/errorUtils';

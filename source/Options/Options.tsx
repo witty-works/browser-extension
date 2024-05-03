@@ -3,7 +3,7 @@ import { BaseUrls, DefaultBaseUrlKey, StorageKeys } from '../shared/constants';
 import { storeInLocalStorage } from '../shared/utils';
 import { setToken } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 
 const Options: React.FC = () => {
   const [accessToken, setAccessToken] = useState<string>('');

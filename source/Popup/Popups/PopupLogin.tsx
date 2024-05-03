@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { useTranslation } from 'react-i18next';
 import {
   StorageKeys,
@@ -69,7 +69,7 @@ const PopupLogin: React.FC = () => {
   };
 
   const logIn = async (urls: string, register = false) => {
-    const optionsPageUrl = browser.extension.getURL('options.html');
+    const optionsPageUrl = browser.runtime.getURL('options.html');
     const registerString = register ? 'register=true&' : '';
     const url = `${BaseUrls[urls].dashboard}browser-login?${registerString}redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
     if (!window.open(url, '_blank')) {
@@ -173,9 +173,9 @@ const PopupLogin: React.FC = () => {
               onClick={() => {
                 navigator.clipboard.writeText(loginUrl);
                 setDisplayCopiedMessage(true);
-                setTimeout(() => {
+                // setTimeout(() => {
                   setDisplayCopiedMessage(false);
-                }, 1500);
+                // }, 1500);
               }}
             >
               {t('copyLink')}

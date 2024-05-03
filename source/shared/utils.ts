@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { useAnalytics } from './ApiServices/useAnalytics';
 import { DEV_ENV, StorageKeys, wittyVersion, WTags } from './constants';
 import { sendErrorToSentry } from './errorUtils';
@@ -85,20 +85,20 @@ export const maximumImportanceToBoolean = (value: number) =>
 export const changeMaximumImportance = (value: boolean) => (value ? 3 : 2);
 
 export const addNotificationBadge = (numberOfNotifications: number) => {
-  browser.browserAction?.setBadgeBackgroundColor({
+  browser.action?.setBadgeBackgroundColor({
     color: '#E6635A',
   });
 
-  browser.browserAction?.setBadgeText({
+  browser.action?.setBadgeText({
     text: numberOfNotifications.toString(),
   });
 };
 
 export const addBadge = (text: string) => {
-  browser.browserAction?.setBadgeBackgroundColor({
+  browser.action?.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
-  browser.browserAction?.setBadgeText({ text: text });
+  browser.action?.setBadgeText({ text: text });
 }
 
 export const getNewAccessToken = async () => {
@@ -138,7 +138,7 @@ export const logOut = () => {
 };
 
 export const removeBadge = () => {
-  browser.browserAction?.setBadgeText({ text: '' });
+  browser.action?.setBadgeText({ text: '' });
 };
 
 export const getRandomToken = () => {
