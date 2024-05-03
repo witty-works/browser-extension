@@ -170,7 +170,7 @@ export const findElement = (node: Node, element: string): boolean => {
 };
 
 export const nodeExistsInDOM = (node: Node): boolean =>
-  getActiveDocument().body.contains(node);
+  getActiveDocument().body?.contains(node);
 
 export const elementIsVisible = (element: Element): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();

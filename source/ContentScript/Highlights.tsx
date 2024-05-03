@@ -100,8 +100,8 @@ const Highlights: React.FC<HighlightsProps> = ({
                   height: rect.height,
                   left: isGoogleDocs()
                     ? rect.left -
-                      googleDocsToolbarLeftRect.width -
-                      googleDocsToolbarLeftRect.left
+                      googleDocsToolbarLeftRect?.width -
+                      googleDocsToolbarLeftRect?.left
                     : rect.left,
                   top: isGoogleDocs()
                     ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
