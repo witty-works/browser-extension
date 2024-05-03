@@ -63,12 +63,12 @@ export const customRender = (enabled: boolean, scriptId: string) => {
 
   if (!document.querySelector(WTags.WW_POPOVER)) {
     const element = document.createElement(WTags.WW_POPOVER);
-    document.body.appendChild(element);
+    document.body?.appendChild(element);
   }
 
   if (!document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)) {
     const element = document.createElement(`${WTags.WW_POPOVER}-${scriptId}`);
-    document.body.appendChild(element);
+    document.body?.appendChild(element);
   }
 
   const container = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
@@ -261,7 +261,7 @@ export const getScrollParent = (
     return node;
   } else {
     return getScrollParent(
-      node.parentNode ? (node.parentNode as CustomInputElement) : null
+      node?.parentNode ? (node.parentNode as CustomInputElement) : null
     );
   }
 };
