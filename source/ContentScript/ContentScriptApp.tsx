@@ -429,7 +429,7 @@ const ContentScriptApp: React.FC = () => {
 
     //using setTimeout with a delay of 0 to push the removeChild operation to the end of the event queue
     setTimeout(() => {
-      if (container.parentNode?.contains(container)) {
+      if (container?.parentNode?.contains(container)) {
         container.parentNode.removeChild(container);
       }
     }, 0);  

@@ -515,7 +515,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   )}
                 </div>
               ) : (
-                <button
+                <div
                   className='witty-works-ext-wittyworks-popover-alternative-btn-container'
                   key={`${index}-${alternative}-container`}
                   onMouseEnter={() => { setAlternativeHovered(alternative?.text) }}
@@ -535,7 +535,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         : alternative.context}
                     </div>
                   )}
-                </button>
+                </div>
               )
             )}
           </div>

@@ -770,7 +770,7 @@ const Input: React.FC<{
       nodesWithAlertsRef.current.findIndex(
         (nodeWithAlerts: INodeWithAlerts) =>
           isTextArea(target) || isInputText(target)
-            ? nodeWithAlerts.node.parentNode === caret.element
+            ? nodeWithAlerts.node?.parentNode === caret.element
             : nodeWithAlerts.node === caret.element
       );
       setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
@@ -1500,7 +1500,7 @@ const Input: React.FC<{
           const script = ownerDocument.createElement('script');
           script.innerHTML = `(${replaceWithPaste})(${JSON.stringify(replacementText)})`;
           ownerDocument.head.appendChild(script);
-          script.parentNode ? script.parentNode.removeChild(script) : script.remove();
+          script?.parentNode ? script.parentNode.removeChild(script) : script.remove();
         } else {
           replaceWithPaste(replacementText);
         }
