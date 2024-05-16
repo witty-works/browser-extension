@@ -1424,15 +1424,15 @@ const Input: React.FC<{
       const endOffset = alternative === '' 
         ? alert.endOffset - 1 
         : alert.endOffset
-    
-    range.setStart(node,  alert.startOffset);
-    range.setEnd(node, endOffset);
-    
+      
+      range.setStart(node, alert.startOffset);
+      range.setEnd(node, endOffset);
+      
       const sel = getActiveDocument().getSelection();
       if (!sel) return;
       sel.removeAllRanges();
       sel.addRange(range);
-
+      
       if (isCkEditor(element)) {
         const deleteSelectedText = new KeyboardEvent('keydown', {
           key: 'Delete',
@@ -1440,24 +1440,27 @@ const Input: React.FC<{
           cancelable: true,
         });
         node.dispatchEvent(deleteSelectedText);
-
         //Need to slow down the process for changes to be applied
-        // setTimeout(() => {
-          const insertAlternative = new ClipboardEvent('paste', {
-            clipboardData: new DataTransfer(),
-            cancelable: true,
-            bubbles: true,
-          });
-          if (!insertAlternative.clipboardData) return;
-          insertAlternative.clipboardData.setData('text/plain', alternative);
-          node.dispatchEvent(insertAlternative);
-
-          // setTimeout(() => {
+        browser.alarms.create('firstAlarm', { delayInMinutes: 0.00333333 }); // 200 ms in minutes
+      
+        browser.alarms.onAlarm.addListener((alarm) => {
+          if (alarm.name === 'firstAlarm') {
+            const insertAlternative = new ClipboardEvent('paste', {
+              clipboardData: new DataTransfer(),
+              cancelable: true,
+              bubbles: true,
+            });
+            if (!insertAlternative.clipboardData) return;
+            insertAlternative.clipboardData.setData('text/plain', alternative);
+            node.dispatchEvent(insertAlternative);
+      
+            browser.alarms.create('secondAlarm', { delayInMinutes: 0.00333333 }); // 200 ms in minutes
+          } else if (alarm.name === 'secondAlarm') {
             setTextToCheck(getInputText(element));
             const event = new Event('keyup', { bubbles: true });
             element.dispatchEvent(event);
-        //   }, 200);
-        // }, 200);
+          }
+        });
       } else if (isGoogleDocs()) {
         setActiveIcon('loading');
         setAlerts([]);

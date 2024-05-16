@@ -101,7 +101,7 @@ const addEventListeners = () => {
 const reInjectContentScripts = () => {
   const manifest = browser.runtime.getManifest();
   // @ts-ignore
-  const scripts = manifest.content_scripts;
+  const scripts = manifest.content_scripts || [];
 
   const matchPattern = (pattern: string, url: string): boolean => {
     // Parse pattern
@@ -143,7 +143,7 @@ const reInjectContentScripts = () => {
       return;
     }
 
-    scripts && scripts.forEach((script) => {
+    scripts.forEach((script) => {
       const jsFiles = script.js || [];
       const cssFiles = script.css || []; // Get CSS files from the manifest
       const matches = script.matches;

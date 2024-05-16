@@ -217,14 +217,19 @@ const Popup: React.FC<PopupProps> = ({
         },
       }
     ).then(async (response) => {
-      if (response.status == 403) {
+      if (response.status === 403) {
         setUpdatingDashboardFailed(true);
         setEnabled({ enabled: !enabled.enabled, updateDashboard: false });
-        // setTimeout(() => {
-          setUpdatingDashboardFailed(false);
-        // }, 3000);
+        browser.alarms.create('resetUpdatingDashboardFailedAlarm', { delayInMinutes: 3 / 60 }); // 3000 ms in minutes
+        browser.alarms.onAlarm.addListener((alarm) => {
+          if (alarm.name === 'resetUpdatingDashboardFailedAlarm') {
+            setUpdatingDashboardFailed(false);
+          }
+        });
+      
         getNewAccessToken();
       }
+      
     });
   };
 

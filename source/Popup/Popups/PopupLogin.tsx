@@ -168,16 +168,23 @@ const PopupLogin: React.FC = () => {
             {t('popupsBlockedText')}
           </div>
           <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-            <div
-              className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
-              onClick={() => {
-                navigator.clipboard.writeText(loginUrl);
-                setDisplayCopiedMessage(true);
-                // setTimeout(() => {
+          <div
+            className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
+            onClick={() => {
+              navigator.clipboard.writeText(loginUrl);
+              setDisplayCopiedMessage(true);
+              browser.alarms.create('hideCopiedMessageAlarm', { delayInMinutes: 1.5 / 60 }); // 1500 ms in minutes
+
+              const alarmListener = (alarm : any) => {
+                if (alarm.name === 'hideCopiedMessageAlarm') {
                   setDisplayCopiedMessage(false);
-                // }, 1500);
-              }}
-            >
+                  // Clean up the alarm listener after it triggers
+                  browser.alarms.onAlarm.removeListener(alarmListener);
+                }
+              };
+              browser.alarms.onAlarm.addListener(alarmListener);
+            }}
+          >
               {t('copyLink')}
             </div>
             {displayCopiedMessage && (

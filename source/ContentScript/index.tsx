@@ -84,25 +84,29 @@ const initialize = () => {
         sendErrorToSentry(error);
       });
 
-  const storageChange = (changes: any) => {
-    let changedItems = Object.keys(changes);
-    for (let item of changedItems) {
-      switch (item) {
-        case StorageKeys.ORGANIZATION_DOMAINS:
-          handleDomainsFromDashboard(changes[item].newValue, scriptId);
-          break;
-        case StorageKeys.DOMAINS:
-          // setTimeout(() => {
-            if (changes[item].newValue.includes(domain)) {
-              customRender(false, scriptId);
-            } else {
-              customRender(true, scriptId);
-            }
-          // }, 300);
-          break;
-      }
-    }
-  };
+      const storageChange = (changes: any) => {
+        let changedItems = Object.keys(changes);
+        for (let item of changedItems) {
+          switch (item) {
+            case StorageKeys.ORGANIZATION_DOMAINS:
+              handleDomainsFromDashboard(changes[item].newValue, scriptId);
+              break;
+            case StorageKeys.DOMAINS:
+              browser.alarms.create('domainChangeAlarm', { delayInMinutes: 0.3 / 60 }); // 300 ms in minutes
+              browser.alarms.onAlarm.addListener((alarm) => {
+                if (alarm.name === 'domainChangeAlarm') {
+                  if (changes[item].newValue.includes(domain)) {
+                    customRender(false, scriptId);
+                  } else {
+                    customRender(true, scriptId);
+                  }
+                }
+              });
+              break;
+          }
+        }
+      };
+
   makeAuthRequest();
   browser.storage.onChanged.addListener(storageChange);
 

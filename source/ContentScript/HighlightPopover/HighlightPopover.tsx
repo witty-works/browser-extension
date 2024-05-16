@@ -297,13 +297,18 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       }
     ).then(async (response) => {
         setIsLoading('');
-      if (response.status === 204) {
-        addIgnoredTerm(data.alert.data?.text);
-        setIsSuccess(ignoreType);
-        // setTimeout(() => {
-          hidePopover();
-        // }, 1000);
-      } else {
+        if (response.status === 204) {
+          addIgnoredTerm(data.alert.data?.text);
+          setIsSuccess(ignoreType);
+          
+          browser.alarms.create('hidePopoverAlarm', { delayInMinutes: 1 / 60 }); // 1000 ms in minutes
+        
+          browser.alarms.onAlarm.addListener((alarm) => {
+            if (alarm.name === 'hidePopoverAlarm') {
+              hidePopover();
+            }
+          });
+        } else {
         setIsLoading('');
         setIsFailure(ignoreType);
       }
