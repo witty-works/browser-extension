@@ -1167,6 +1167,7 @@ const Input: React.FC<{
       );
       setTotalAlerts(totalAlerts);
       nodesWithAlertsRef.current = mergedNodesWithAlerts;
+      console.log('mergedNodesWithAlerts', mergedNodesWithAlerts);
       isWittyPremiumUserRef.current && userIsSignedIn && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);
 
       const nodeStorageRefWithAlerts = nodesStorageRef.current.map((node: INodes) => {

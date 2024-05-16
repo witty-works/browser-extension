@@ -17,7 +17,7 @@ export const drawLine = (params: any, color: string, dashedLine: boolean) => {
   context.lineCap = 'round';
   context.moveTo(x, y + rect.height);
   context.lineTo(x + rect.width, y + rect.height);
-  dashedLine ? (context.lineWidth = 3) : (context.lineWidth = 2);
+  context.lineWidth = dashedLine ? 3 : 2;
   context.strokeStyle = color;
   context.globalAlpha = 1;
   context.stroke();

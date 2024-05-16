@@ -62,8 +62,7 @@ const Highlights: React.FC<HighlightsProps> = ({
   };
 
   useEffect(() => {
-    if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights)
-      setHighlights([]);
+    if ((nodesWithAlerts && nodesWithAlerts.length === 0) || removeHighlights) setHighlights([]);
 
     const highlightsTemp: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
@@ -78,6 +77,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     }
     nodesWithAlerts.forEach(({ node, alerts }) => {
       if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
+        console.log('node', node)
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
           try {
@@ -89,9 +89,10 @@ const Highlights: React.FC<HighlightsProps> = ({
           } catch (error) {
             sendErrorToSentry(error);
           }
-          
+
           const rangeRects = range.getClientRects();
           for (let i = 0; i < rangeRects.length; i++) {
+            console.log('rangeRects', rangeRects[i])
             const rects: DOMRect[] = [rangeRects[i]].map(
               (rect: DOMRect) => {
                 return {
@@ -182,7 +183,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       }
     });
   }, [elementRect, highlights, selectedAlert]);
-
+  console.log('width', canvasSize.width, 'height', canvasSize.height, 'top', correctedPosition.top, 'left', correctedPosition.left)
   return (
     <canvas
       ref={canvasRef}
