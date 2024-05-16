@@ -90,6 +90,9 @@ module.exports = {
   },
 
   resolve: {
+    fallback: {
+      "url": require.resolve("url/")
+    },
     extensions: ['.ts', '.tsx', '.js', '.json'],
     alias: {
       'webextension-polyfill': path.resolve(
