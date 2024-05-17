@@ -173,7 +173,7 @@ export const updateLabelChrome = (domain: string) => {
         (orgDomains.type === 'allow' && !domainList.includes(domain))
       : false;
 
-    const isDisabled = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
+    const isDisabled = result[StorageKeys.DOMAINS]?.includes(domain);
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 

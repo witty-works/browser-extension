@@ -91,6 +91,8 @@ const Popup: React.FC<PopupProps> = ({
             ? result[StorageKeys.ACCESS_TOKEN]
             : ''
         );
+        console.log('iFrameDomains', result[StorageKeys.IFRAME_DOMAINS]);
+
         setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS]);
         setEnabled({
           enabled: 
@@ -168,12 +170,11 @@ const Popup: React.FC<PopupProps> = ({
   const setWittyIcon = (enabled: boolean) => {
     enabled ? removeBadge() : addBadge('OFF');
   };
-
   const handleEnable = () => {
     const isEnabled = !enabled.enabled;
     if (isLocked) return;
 
-    const domains = (iFrameDomains ? [domain, ...iFrameDomains] : [domain]).filter((item, index, array) => array.indexOf(item) === index);
+    const domains = [domain, ...iFrameDomains].filter((item, index, array) => array.indexOf(item) === index);
 
     const newDomainsDisabledLocally = (
       isEnabled
