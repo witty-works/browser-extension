@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BaseUrls, DefaultBaseUrlKey, StorageKeys } from '../shared/constants';
-import { storeInLocalStorage } from '../shared/utils';
+import { removeBadge, storeInLocalStorage } from '../shared/utils';
 import { setToken } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import browser from 'webextension-polyfill';
@@ -27,6 +27,7 @@ const Options: React.FC = () => {
             '_self',
             'noopener'
           );
+          removeBadge();
         });
 
       }
