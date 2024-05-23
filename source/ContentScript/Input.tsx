@@ -711,6 +711,11 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
+    //make sure there is no popover lingering
+    const popoverContainers = window.document.getElementsByTagName('ww-popover');
+    Array.from(popoverContainers).forEach((popoverContainer) => {
+      popoverContainer.remove();
+    });
     event?.stopPropagation();
     popoverDataRef.current !== null && (previousPopoverDataRef.current = popoverDataRef.current);
     popoverDataRef.current = null;
