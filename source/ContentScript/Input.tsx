@@ -1392,6 +1392,8 @@ const Input: React.FC<{
   };
 
   const updateTextWithAlternative = (alternative: string) => {
+    const isRemoveAlternative = alternative === ' ';
+    isRemoveAlternative && (alternative = '');
     alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
     const node = popoverDataRef.current?.node as Node;
     const alert = selectedAlertRef.current as IAlert;
@@ -1419,14 +1421,14 @@ const Input: React.FC<{
 
     if (isTextArea(element) || isInputText(element)) {
       element.selectionStart = alert.startOffset;
-      element.selectionEnd = alternative === ''
+      element.selectionEnd = isRemoveAlternative
           ? alert.endOffset - 1
           : alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-      const endOffset = alternative === '' 
+      const endOffset = isRemoveAlternative
         ? alert.endOffset - 1 
         : alert.endOffset
     
@@ -1487,7 +1489,7 @@ const Input: React.FC<{
           element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd));
 
         //if empty insert space
-        const replacementText = alternative == ' ' ? '   ' : alternative;
+        const replacementText = isRemoveAlternative ? '   ' : alternative;
         const replaceWithPaste = function(alternative: string) {
           const evt = new ClipboardEvent('paste', {
             clipboardData: new DataTransfer(),
