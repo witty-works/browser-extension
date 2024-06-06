@@ -161,9 +161,6 @@ export const updateLabelChrome = (domain: string) => {
     if (!result[StorageKeys.ACCESS_TOKEN]) {
       addBadge('Login');
       return;
-    } else if (!result[StorageKeys.PLAN]) {
-      addBadge('OFF');
-      return;
     }
 
     const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];

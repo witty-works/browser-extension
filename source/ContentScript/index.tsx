@@ -19,8 +19,6 @@ import { isMicrosoftOnline } from '../shared/DOMutils';
 const handleDomainsFromDashboard = (newValue: string | string[], scriptId: string) => {
   const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
     const currentDomainOnList = newValue?.includes(currentDomain) 
-    console.log('currentDomain', currentDomain, currentDomainOnList);
-    console.log('customRender', !currentDomainOnList, scriptId)
     customRender(!currentDomainOnList, scriptId);
 
 };
