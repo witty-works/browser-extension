@@ -17,6 +17,7 @@ import {
   getRandomToken,
   isFunction,
   removeBadge,
+  storeInLocalStorage,
   updateLabelChrome,
 } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
@@ -245,15 +246,10 @@ const scanTabsToDetectStatus = () => {
                   return null;
               }
           });
-      
-          browser.storage.local.set({
-              [StorageKeys.IFRAME_DOMAINS]: iframeDomains,
-          });
-          } else {
-            browser.storage.local.set({
-              [StorageKeys.IFRAME_DOMAINS]: [],
-            });
-          }
+          storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, iframeDomains);
+        } else {
+          storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, []);
+        }
         }).catch((error) => {
           sendErrorToSentry(error);
         });
@@ -292,8 +288,6 @@ const storageChange = (changes: { [key: string]: any }) => {
       changes[key].newValue === 0
         ? removeBadge()
         : addNotificationBadge(changes[key].newValue);
-    } else {
-      removeBadge();
     }
   });
 };

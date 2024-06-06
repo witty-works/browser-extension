@@ -161,9 +161,6 @@ export const updateLabelChrome = (domain: string) => {
     if (!result[StorageKeys.ACCESS_TOKEN]) {
       addBadge('Login');
       return;
-    } else if (!result[StorageKeys.PLAN]) {
-      addBadge('OFF');
-      return;
     }
 
     const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
@@ -173,7 +170,7 @@ export const updateLabelChrome = (domain: string) => {
         (orgDomains.type === 'allow' && !domainList.includes(domain))
       : false;
 
-    const isDisabled = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
+    const isDisabled = result[StorageKeys.DOMAINS]?.includes(domain);
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
