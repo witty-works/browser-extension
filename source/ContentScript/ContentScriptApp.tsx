@@ -139,7 +139,7 @@ const ContentScriptApp: React.FC = () => {
     document.addEventListener('mouseout', handleMouseOut, true);
 
     if (isWittyEditor()) {
-      const focusedElement = getActiveDocument().activeElement as HTMLElement;
+      const focusedElement = getActiveDocument()?.activeElement as HTMLElement;
       focusedElement?.blur();
       focusedElement?.focus();
     }

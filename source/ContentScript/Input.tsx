@@ -127,7 +127,7 @@ const Input: React.FC<{
   const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
-  )?.contentDocument.activeElement;
+  )?.contentDocument?.activeElement;
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       if (isGoogleDocs()) {
@@ -1494,7 +1494,7 @@ const Input: React.FC<{
           if (!evt.clipboardData) return;
           evt.clipboardData.items.add(alternative, 'text/plain');
           const eventTarget = (document.querySelector('.docs-texteventtarget-iframe') as any)
-              ?.contentDocument.activeElement;
+              ?.contentDocument?.activeElement;
           eventTarget && eventTarget.dispatchEvent(evt);
         };
         if (navigator.userAgent.match(/firefox|fxios/i)) {
