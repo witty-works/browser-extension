@@ -1,132 +1,100 @@
 import * as Sentry from '@sentry/react';
-import browser from 'webextension-polyfill';
+import { browser, Storage } from 'webextension-polyfill-ts';
 import {
   BaseUrls,
   StorageKeys,
   wittyVersion,
   exposeWittyIdAllowList,
-  DefaultBaseUrlKey, WTags,
+  DefaultBaseUrlKey,
+  WTags,
 } from '../shared/constants';
-import { useLog, logTypes } from '../shared/customHooks/useLog';
 import defaultConfig from '../witty.config.json';
-import {getDomainWithoutSubdomain, shouldInjectIntoWindow} from '../shared/utils';
+import { getDomainWithoutSubdomain, shouldInjectIntoWindow } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import {
-  customRender,
-  handleDomainsFromDashboard,
-  makeAuthRequest,
-} from './utils';
+import { customRender, makeAuthRequest } from './utils';
 import { setBaseUrls } from '../shared/ApiServices/requests';
 import { v4 as uuidv4 } from 'uuid';
 import { isMicrosoftOnline } from '../shared/DOMutils';
 
+const handleDomainsFromDashboard = (newValue: string | string[], scriptId: string) => {
+  const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
+    const currentDomainOnList = newValue?.includes(currentDomain) 
+    customRender(!currentDomainOnList, scriptId);
+
+};
+
+const storageChange = (changes: { [x: string]: Storage.StorageChange | { newValue: any; }; }, scriptId: string) => {
+  const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
+  const changedItems = Object.keys(changes);
+
+  for (let item of changedItems) {
+    if (item === StorageKeys.DOMAINS) {
+      handleDomainsFromDashboard(changes[item].newValue, scriptId);
+    }
+
+    if (item === StorageKeys.ORGANIZATION_DOMAINS) {
+      const orgDomains = changes[item].newValue;
+      const isOnOrgDomainList =
+        (orgDomains?.type === 'deny' && orgDomains.list?.includes(currentDomain)) ||
+        (orgDomains?.type === 'allow' && !orgDomains.list?.includes(currentDomain));
+      customRender(!isOnOrgDomainList, scriptId);
+    }
+  }
+};
+
 const initialize = () => {
   const sentryDSN = defaultConfig.SENTRY_DSN;
-  const sentrySampleRate = defaultConfig.SENTRY_SAMPLE_RATE;
-  const sentryTraceRate = defaultConfig.SENTRY_TRACE_RATE;
-  const log = useLog('ContentScript index');
+  const { SENTRY_SAMPLE_RATE: sentrySampleRate, SENTRY_TRACE_RATE: sentryTraceRate } = defaultConfig;
   const domain = getDomainWithoutSubdomain(window.location.hostname);
   const scriptId = uuidv4();
 
-  document.body.appendChild(document.createElement('witty-is-installed'));
-  const wittyIsInstalledElement = document.querySelector('witty-is-installed');
+  const wittyIsInstalledElement = document.createElement('witty-is-installed');
+  document.body.appendChild(wittyIsInstalledElement);
+
   if (exposeWittyIdAllowList.includes(domain)) {
-    wittyIsInstalledElement?.setAttribute('extension-id', browser.runtime.id);
-    wittyIsInstalledElement?.setAttribute('extension-version', wittyVersion);
+    wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
+    wittyIsInstalledElement.setAttribute('extension-version', wittyVersion);
 
     browser.storage.local.get(null).then((result) => {
-      setBaseUrls(
-          result[StorageKeys.API_ENDPOINT_KEY]
-              ? result[StorageKeys.API_ENDPOINT_KEY]
-              : DefaultBaseUrlKey
-      );
-      if (!result[StorageKeys.ACCESS_TOKEN]) {
-        const optionsPageUrl = browser.runtime.getURL('options.html');
-        const urls = result[StorageKeys.API_ENDPOINT_KEY]
-            ? result[StorageKeys.API_ENDPOINT_KEY]
-            : DefaultBaseUrlKey;
+      const apiEndpoint = result[StorageKeys.API_ENDPOINT_KEY] || DefaultBaseUrlKey;
+      setBaseUrls(apiEndpoint);
 
-        const url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`;
-        wittyIsInstalledElement?.setAttribute('login-url', url);
+      if (!result[StorageKeys.ACCESS_TOKEN]) {
+        const optionsPageUrl = browser.extension.getURL('options.html');
+        const loginUrl = `${BaseUrls[apiEndpoint].dashboard}browser-login?redirect_uri=${optionsPageUrl}`;
+        wittyIsInstalledElement.setAttribute('login-url', loginUrl);
       }
-    }).catch((error) => {
-      sendErrorToSentry(error);
-    });
+    }).catch(sendErrorToSentry);
   }
 
-  browser.storage.local
-      .get(null)
-      .then((result) => {
-        const isOnOrgDomainList =
-            (result[StorageKeys.ORGANIZATION_DOMAINS] &&
-                result[StorageKeys.ORGANIZATION_DOMAINS].type === 'deny' &&
-                result[StorageKeys.ORGANIZATION_DOMAINS].list &&
-                result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain)) ||
-            (result[StorageKeys.ORGANIZATION_DOMAINS] &&
-                result[StorageKeys.ORGANIZATION_DOMAINS].type === 'allow' &&
-                result[StorageKeys.ORGANIZATION_DOMAINS].list &&
-                !result[StorageKeys.ORGANIZATION_DOMAINS].list.includes(domain));
+  browser.storage.local.get(null).then((result) => {
+    const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
+    const isOnOrgDomainList =
+      (orgDomains?.type === 'deny' && orgDomains.list?.includes(domain)) ||
+      (orgDomains?.type === 'allow' && !orgDomains.list?.includes(domain));
 
-          const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.length !== 0 && result[StorageKeys.DOMAINS]?.includes(domain);
-        if (
-            isOnOrgDomainList ||
-            isOnPersonalDomainList ||
-            defaultConfig.DISABLED_SITES.includes(domain) ||
-            isMicrosoftOnline(window.location.href)
-        ) {
-          customRender(false, scriptId);
-        } else {
-          customRender(true, scriptId);
-        }
-      })
-      .catch((error: string) => {
-        log(`onBrowserStorage Error: ${error}`, logTypes.ERROR);
-        sendErrorToSentry(error);
-      });
+    const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.includes(domain);
+    const shouldDisable =
+      isOnOrgDomainList ||
+      isOnPersonalDomainList ||
+      defaultConfig.DISABLED_SITES.includes(domain) ||
+      isMicrosoftOnline(window.location.href);
+    customRender(!shouldDisable, scriptId);
+  }).catch(sendErrorToSentry);
 
-      const storageChange = (changes: any) => {
-        let changedItems = Object.keys(changes);
-        for (let item of changedItems) {
-          switch (item) {
-            case StorageKeys.ORGANIZATION_DOMAINS:
-              handleDomainsFromDashboard(changes[item].newValue, scriptId);
-              break;
-            case StorageKeys.DOMAINS:
-              browser.alarms.create('domainChangeAlarm', { delayInMinutes: 0.3 / 60 }); // 300 ms in minutes
-              browser.alarms.onAlarm.addListener((alarm) => {
-                if (alarm.name === 'domainChangeAlarm') {
-                  if (changes[item].newValue.includes(domain)) {
-                    customRender(false, scriptId);
-                  } else {
-                    customRender(true, scriptId);
-                  }
-                }
-              });
-              break;
-          }
-        }
-      };
-
+  browser.storage.onChanged.addListener((changes) => storageChange(changes, scriptId));
   makeAuthRequest();
-  browser.storage.onChanged.addListener(storageChange);
 
-  const orphanMessageId = browser.runtime.id + 'orphanCheck';
+  const orphanMessageId = `${browser.runtime.id}orphanCheck`;
   window.dispatchEvent(new Event(orphanMessageId));
   window.addEventListener(orphanMessageId, unregisterOrphan);
 
   function unregisterOrphan() {
-    if (browser.runtime.id) {
-      return;
+    if (!browser.runtime.id) {
+      document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)?.remove();
+      browser.storage.onChanged.removeListener((changes) => storageChange(changes, scriptId));
+      window.removeEventListener(orphanMessageId, unregisterOrphan);
     }
-
-    const container = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
-    if (container) {
-      container.remove();
-    }
-
-    browser.storage.onChanged.removeListener(storageChange);
-    window.removeEventListener(orphanMessageId, unregisterOrphan);
-    return true;
   }
 
   if (sentryDSN) {
@@ -138,10 +106,8 @@ const initialize = () => {
       tracesSampleRate: sentryTraceRate,
     });
   }
-}
+};
 
 if (shouldInjectIntoWindow(window.self)) {
   initialize();
 }
-
-export {};

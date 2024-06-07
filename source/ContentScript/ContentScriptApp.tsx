@@ -15,8 +15,6 @@ import {
   getBaseUrls,
   setAppID,
   setBaseUrls,
-  setConfigHash,
-  setOrganizationConfigHash,
   setRequestConfig,
   setToken,
 } from '../shared/ApiServices/requests';
@@ -96,8 +94,8 @@ const ContentScriptApp: React.FC = () => {
             : DefaultBaseUrlKey
         );
         setToken(result[StorageKeys.ACCESS_TOKEN]);
-        setConfigHash(result[StorageKeys.CONFIG_HASH]);
-        setOrganizationConfigHash(result[StorageKeys.ORGANIZATION_CONFIG_HASH]);
+        storeInLocalStorage(StorageKeys.CONFIG_HASH, result[StorageKeys.CONFIG_HASH]);
+        storeInLocalStorage(StorageKeys.ORGANIZATION_CONFIG_HASH, result[StorageKeys.ORGANIZATION_CONFIG_HASH]);
 
         //Enable/disable spellchecker on the website
         getActiveDocument().body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
@@ -141,7 +139,7 @@ const ContentScriptApp: React.FC = () => {
     document.addEventListener('mouseout', handleMouseOut, true);
 
     if (isWittyEditor()) {
-      const focusedElement = getActiveDocument().activeElement as HTMLElement;
+      const focusedElement = getActiveDocument()?.activeElement as HTMLElement;
       focusedElement?.blur();
       focusedElement?.focus();
     }
@@ -199,12 +197,6 @@ const ContentScriptApp: React.FC = () => {
           break;
         case StorageKeys.ACCESS_TOKEN:
           setToken(changes[item].newValue);
-          break;
-        case StorageKeys.CONFIG_HASH:
-          setConfigHash(changes[item].newValue);
-          break;
-        case StorageKeys.ORGANIZATION_CONFIG_HASH:
-          setOrganizationConfigHash(changes[item].newValue);
           break;
         case StorageKeys.HR_FEATURES_DISABLED_DOMAINS:
           setReqConfig({
@@ -267,8 +259,7 @@ const ContentScriptApp: React.FC = () => {
     if (
       isGoogleDocs() ||
       isOffice() ||
-      isWittyEditor() ||
-      DEV_ENV
+      isWittyEditor()
     ) {
       return;
     }
@@ -353,43 +344,34 @@ const ContentScriptApp: React.FC = () => {
       const addedInputsMap = new Map();
 
       const disabledDomains = [
-        ...(result[StorageKeys.DOMAINS]?.type === 'deny' && result[StorageKeys.DOMAINS]?.list || []),
+        ...(result[StorageKeys.DOMAINS]?.list || []),
         ...(result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'deny' && result[StorageKeys.ORGANIZATION_DOMAINS]?.list || []), //could be something wrong here, what if its an allow list? 
       ];
       const domain = getDomainWithoutSubdomain(window.location.hostname);
       if (!disabledDomains.includes(domain)) {
-        //filter out inputs that are the same
-        let filteredInputs = inputsRef.current.filter(
-          (input, index, self) =>
-            index === self.findIndex((t) => t.isEqualNode(input))
-        );
-
         //> 1 prevents issues when starting with empty doc
-        if (isGoogleDocs() && filteredInputs.length > 1) {
+        if (isGoogleDocs() && inputsRef.current.length > 1) {
           //remove any input that does not contain <g> as a child
-          filteredInputs = inputsRef.current.filter((input) => {
+          inputsRef.current.filter((input) => {
             const gElements = input.querySelectorAll('g');
             return gElements.length > 0;
           });
         }
-
-        if (filteredInputs && filteredInputs.length > 0) {
+        if (inputsRef.current.length > 0) {
           log(
             `Analyzed inputs:`,
             logTypes.INFO,
-            filteredInputs.length > 0 ? filteredInputs : 'None'
+            inputsRef.current.length > 0 ? inputsRef.current : 'None'
           );
-          filteredInputs.forEach((input: CustomInputElement) => {
+          inputsRef.current.forEach((input: CustomInputElement) => {
             if (!input.parentElement) return;
             const sibling = input.previousElementSibling as HTMLElement;
-            if (!sibling || sibling.tagName !== 'WW-CONTAINER') {
-              const highlightsContainer: HTMLElement =
-                getActiveDocument().createElement(WTags.WW_CONTAINER);
-              highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
+            if (sibling?.tagName === 'WW-CONTAINER') return;
+            const highlightsContainer: HTMLElement =
+              getActiveDocument().createElement(WTags.WW_CONTAINER);
+            highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
-              if (isGoogleSheets() && input.classList.contains('cell-input')) {
-                return;
-              }
+            if (isGoogleSheets() && input.classList.contains('cell-input')) return;
               //get first ancestior that is a div
               const ancestor = input.closest('div');
 
@@ -411,7 +393,6 @@ const ContentScriptApp: React.FC = () => {
               root.render(<Input element={input} />);
 
               addedInputsMap.set(input, highlightsContainer);
-            }
           });
         }
       }
@@ -476,6 +457,10 @@ const ContentScriptApp: React.FC = () => {
               'focusin',
               handleFocusinElement
           );
+          iframe.contentDocument.body.addEventListener(
+              'focusout',
+              handleFocusoutElement
+          );
         }
       });
 
@@ -485,6 +470,10 @@ const ContentScriptApp: React.FC = () => {
             iframe.contentDocument.body.removeEventListener(
                 'focusin',
                 handleFocusinElement
+            );
+            iframe.contentDocument.body.removeEventListener(
+                'focusout',
+                handleFocusoutElement
             );
           }
         });
