@@ -127,7 +127,7 @@ const Input: React.FC<{
   const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
-  )?.contentDocument.activeElement;
+  )?.contentDocument?.activeElement;
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       if (isGoogleDocs()) {
@@ -711,6 +711,11 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
+    //make sure there is no popover lingering
+    const popoverContainers = window.document.getElementsByTagName('ww-popover');
+    Array.from(popoverContainers).forEach((popoverContainer) => {
+      popoverContainer.remove();
+    });
     event?.stopPropagation();
     popoverDataRef.current !== null && (previousPopoverDataRef.current = popoverDataRef.current);
     popoverDataRef.current = null;
@@ -1387,6 +1392,8 @@ const Input: React.FC<{
   };
 
   const updateTextWithAlternative = (alternative: string) => {
+    const isRemoveAlternative = alternative === ' ';
+    isRemoveAlternative && (alternative = '');
     alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
     const node = popoverDataRef.current?.node as Node;
     const alert = selectedAlertRef.current as IAlert;
@@ -1413,20 +1420,15 @@ const Input: React.FC<{
     );
 
     if (isTextArea(element) || isInputText(element)) {
-      element.selectionStart = alert.startOffset;
-      element.selectionEnd = alternative === ''
-          ? alert.endOffset - 1
-          : alert.endOffset;
+      element.selectionStart = alert.startOffset - (isRemoveAlternative ? 1 : 0)
+      element.selectionEnd = alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-      const endOffset = alternative === '' 
-        ? alert.endOffset - 1 
-        : alert.endOffset
     
-    range.setStart(node,  alert.startOffset);
-    range.setEnd(node, endOffset);
+      range.setStart(node,  alert.startOffset - (isRemoveAlternative ? 1 : 0));
+      range.setEnd(node, alert.endOffset);
     
       const sel = getActiveDocument().getSelection();
       if (!sel) return;
@@ -1482,7 +1484,7 @@ const Input: React.FC<{
           element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd));
 
         //if empty insert space
-        const replacementText = alternative == ' ' ? '   ' : alternative;
+        const replacementText = isRemoveAlternative ? '   ' : alternative;
         const replaceWithPaste = function(alternative: string) {
           const evt = new ClipboardEvent('paste', {
             clipboardData: new DataTransfer(),
@@ -1492,7 +1494,7 @@ const Input: React.FC<{
           if (!evt.clipboardData) return;
           evt.clipboardData.items.add(alternative, 'text/plain');
           const eventTarget = (document.querySelector('.docs-texteventtarget-iframe') as any)
-              ?.contentDocument.activeElement;
+              ?.contentDocument?.activeElement;
           eventTarget && eventTarget.dispatchEvent(evt);
         };
         if (navigator.userAgent.match(/firefox|fxios/i)) {
