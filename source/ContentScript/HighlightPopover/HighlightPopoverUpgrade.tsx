@@ -19,7 +19,7 @@ import {
   DEV_ENV,
   StorageKeys,
 } from '../../shared/constants';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { getBaseUrls, setBaseUrls } from '../../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';

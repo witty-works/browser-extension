@@ -99,7 +99,7 @@ export const getToken = (refreshToken: string): IRequest => {
 //         ? result[StorageKeys.API_ENDPOINT_KEY]
 //         : DefaultBaseUrlKey
     
-//     const optionsPageUrl = browser.extension.getURL('options.html');
+//     const optionsPageUrl = browser.runtime.getURL('options.html');
 //     const target = `${BaseUrls[urls].dashboard}editor?onboarding=true`;
 //     url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${target}`;
 //   })

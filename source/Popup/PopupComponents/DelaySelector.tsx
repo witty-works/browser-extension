@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { dropdownOptions, StorageKeys } from '../../shared/constants';
 import '../styles.scss';
 import Dropdown from '../../shared/components/Dropdown/Dropdown';

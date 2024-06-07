@@ -8,7 +8,7 @@ import { getBaseUrls } from '../shared/ApiServices/requests';
 import defaultConfig from '../witty.config.json';
 import { getTextDividedByNodes } from '../ContentScript/utils';
 import { CustomInputElement, FeatureFlags } from '../shared/types';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { StorageKeys } from '../shared/constants';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 

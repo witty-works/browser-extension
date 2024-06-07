@@ -7,7 +7,7 @@ import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.sv
 import WarningIcon from '../../assets/icons/wittyStateIndicator/witty-warning.svg';
 import { sendErrorToSentry } from '../errorUtils';
 import { StorageKeys } from '../constants';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import CloseIcon from '../../assets/icons/close-white.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
