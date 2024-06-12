@@ -145,6 +145,7 @@ export interface IAlternatives {
   remove: boolean;
   inspiration: boolean;
   context: string;
+  url: string;
 }
 
 export interface IExplanation {
@@ -171,7 +172,7 @@ export interface ILogItems {
   response__data__context: string;
   response__data__text: string;
   response__data__text__matched: string;
-  
+
   response__data__label: string;
   response__data__explanation__text: string;
   response__data__explanation__icon: string;

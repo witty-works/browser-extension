@@ -90,6 +90,10 @@ export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
             description: 'the context of the alternative word',
             type: 'string',
           },
+          url: {
+            description: 'the url to blog article about the alternative',
+            type: 'string',
+          },
         },
         required: [],
       },
