@@ -33,7 +33,7 @@ import {
   getScrollableParentClosestToElement,
   storeInLocalStorage,
 } from '../../shared/utils';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { createRoot } from 'react-dom/client';
 import Notification from '../../Notifications/Notification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
@@ -334,9 +334,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         if (response.status === 204) {
           addIgnoredTerm(data.alert.data?.text);
           setIsSuccess(ignoreType);
-          setTimeout(() => {
-            hidePopover();
-          }, 1000);
+
+          browser.alarms.create('hidePopoverAlarm', { delayInMinutes: 1 / 60 }); // 1000 ms in minutes
+
+          browser.alarms.onAlarm.addListener((alarm) => {
+            if (alarm.name === 'hidePopoverAlarm') {
+              hidePopover();
+            }
+          });
         } else {
           setIsLoading('');
           setIsFailure(ignoreType);

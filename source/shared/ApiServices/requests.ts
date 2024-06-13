@@ -31,11 +31,6 @@ export const setAppID = (id: string) => (appID = id);
 
 export const setToken = (tok: string) => (token = tok);
 
-export const setConfigHash = (hash: string) => (configHash = hash);
-
-export const setOrganizationConfigHash = (hash: string) =>
-  (organizationConfigHash = hash);
-
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
     url: createUrl(BASE_URL_API, 'v2.4/check'),
@@ -104,7 +99,7 @@ export const getToken = (refreshToken: string): IRequest => {
 //         ? result[StorageKeys.API_ENDPOINT_KEY]
 //         : DefaultBaseUrlKey
 
-//     const optionsPageUrl = browser.extension.getURL('options.html');
+//     const optionsPageUrl = browser.runtime.getURL('options.html');
 //     const target = `${BaseUrls[urls].dashboard}editor?onboarding=true`;
 //     url = `${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${target}`;
 //   })

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -91,6 +91,8 @@ const Popup: React.FC<PopupProps> = ({
             ? result[StorageKeys.ACCESS_TOKEN]
             : ''
         );
+        console.log('iFrameDomains', result[StorageKeys.IFRAME_DOMAINS]);
+
         setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS]);
         setEnabled({
           enabled: 
@@ -168,12 +170,11 @@ const Popup: React.FC<PopupProps> = ({
   const setWittyIcon = (enabled: boolean) => {
     enabled ? removeBadge() : addBadge('OFF');
   };
-
   const handleEnable = () => {
     const isEnabled = !enabled.enabled;
     if (isLocked) return;
 
-    const domains = (iFrameDomains ? [domain, ...iFrameDomains] : [domain]).filter((item, index, array) => array.indexOf(item) === index);
+    const domains = [domain, ...iFrameDomains].filter((item, index, array) => array.indexOf(item) === index);
 
     const newDomainsDisabledLocally = (
       isEnabled
@@ -217,14 +218,19 @@ const Popup: React.FC<PopupProps> = ({
         },
       }
     ).then(async (response) => {
-      if (response.status == 403) {
+      if (response.status === 403) {
         setUpdatingDashboardFailed(true);
         setEnabled({ enabled: !enabled.enabled, updateDashboard: false });
-        setTimeout(() => {
-          setUpdatingDashboardFailed(false);
-        }, 3000);
+        browser.alarms.create('resetUpdatingDashboardFailedAlarm', { delayInMinutes: 3 / 60 }); // 3000 ms in minutes
+        browser.alarms.onAlarm.addListener((alarm) => {
+          if (alarm.name === 'resetUpdatingDashboardFailedAlarm') {
+            setUpdatingDashboardFailed(false);
+          }
+        });
+      
         getNewAccessToken();
       }
+      
     });
   };
 

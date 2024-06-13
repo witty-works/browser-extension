@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { Root, createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import defaultConfig from '../witty.config.json';
@@ -127,7 +127,7 @@ const Input: React.FC<{
   const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
-  )?.contentDocument.activeElement;
+  )?.contentDocument?.activeElement;
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       if (isGoogleDocs()) {
@@ -1392,6 +1392,8 @@ const Input: React.FC<{
   };
 
   const updateTextWithAlternative = (alternative: string) => {
+    const isRemoveAlternative = alternative === ' ';
+    isRemoveAlternative && (alternative = '');
     alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
     const node = popoverDataRef.current?.node as Node;
     const alert = selectedAlertRef.current as IAlert;
@@ -1418,26 +1420,21 @@ const Input: React.FC<{
     );
 
     if (isTextArea(element) || isInputText(element)) {
-      element.selectionStart = alert.startOffset;
-      element.selectionEnd = alternative === ''
-          ? alert.endOffset - 1
-          : alert.endOffset;
+      element.selectionStart = alert.startOffset - (isRemoveAlternative ? 1 : 0)
+      element.selectionEnd = alert.endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-      const endOffset = alternative === '' 
-        ? alert.endOffset - 1 
-        : alert.endOffset
     
-    range.setStart(node,  alert.startOffset);
-    range.setEnd(node, endOffset);
+      range.setStart(node,  alert.startOffset - (isRemoveAlternative ? 1 : 0));
+      range.setEnd(node, alert.endOffset);
     
       const sel = getActiveDocument().getSelection();
       if (!sel) return;
       sel.removeAllRanges();
       sel.addRange(range);
-
+      
       if (isCkEditor(element)) {
         const deleteSelectedText = new KeyboardEvent('keydown', {
           key: 'Delete',
@@ -1445,24 +1442,27 @@ const Input: React.FC<{
           cancelable: true,
         });
         node.dispatchEvent(deleteSelectedText);
-
         //Need to slow down the process for changes to be applied
-        setTimeout(() => {
-          const insertAlternative = new ClipboardEvent('paste', {
-            clipboardData: new DataTransfer(),
-            cancelable: true,
-            bubbles: true,
-          });
-          if (!insertAlternative.clipboardData) return;
-          insertAlternative.clipboardData.setData('text/plain', alternative);
-          node.dispatchEvent(insertAlternative);
-
-          setTimeout(() => {
+        browser.alarms.create('firstAlarm', { delayInMinutes: 0.00333333 }); // 200 ms in minutes
+      
+        browser.alarms.onAlarm.addListener((alarm) => {
+          if (alarm.name === 'firstAlarm') {
+            const insertAlternative = new ClipboardEvent('paste', {
+              clipboardData: new DataTransfer(),
+              cancelable: true,
+              bubbles: true,
+            });
+            if (!insertAlternative.clipboardData) return;
+            insertAlternative.clipboardData.setData('text/plain', alternative);
+            node.dispatchEvent(insertAlternative);
+      
+            browser.alarms.create('secondAlarm', { delayInMinutes: 0.00333333 }); // 200 ms in minutes
+          } else if (alarm.name === 'secondAlarm') {
             setTextToCheck(getInputText(element));
             const event = new Event('keyup', { bubbles: true });
             element.dispatchEvent(event);
-          }, 200);
-        }, 200);
+          }
+        });
       } else if (isGoogleDocs()) {
         setActiveIcon('loading');
         setAlerts([]);
@@ -1487,7 +1487,7 @@ const Input: React.FC<{
           element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd));
 
         //if empty insert space
-        const replacementText = alternative == ' ' ? '   ' : alternative;
+        const replacementText = isRemoveAlternative ? '   ' : alternative;
         const replaceWithPaste = function(alternative: string) {
           const evt = new ClipboardEvent('paste', {
             clipboardData: new DataTransfer(),
@@ -1497,7 +1497,7 @@ const Input: React.FC<{
           if (!evt.clipboardData) return;
           evt.clipboardData.items.add(alternative, 'text/plain');
           const eventTarget = (document.querySelector('.docs-texteventtarget-iframe') as any)
-              ?.contentDocument.activeElement;
+              ?.contentDocument?.activeElement;
           eventTarget && eventTarget.dispatchEvent(evt);
         };
         if (navigator.userAgent.match(/firefox|fxios/i)) {

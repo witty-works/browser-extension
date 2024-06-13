@@ -1,7 +1,7 @@
 import { IAlert } from '../types';
 import PostHog from 'posthog-js-lite'
 import { POSTHOG_API_URL, POSTHOG_API_KEY, StorageKeys, wittyVersion } from '../constants';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { storeInLocalStorage } from '../utils';
 import defaultConfig from '../../witty.config.json';
 import { sendErrorToSentry } from '../errorUtils';

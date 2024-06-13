@@ -1,38 +1,52 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
 import { isGoogleDocs, isInputText, isMicrosoftOnlineWord, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, IAuthResponse, INodes } from '../shared/types';
-import {
-  getDomainWithoutSubdomain,
-  storeInLocalStorage,
-} from '../shared/utils';
+import { storeInLocalStorage } from '../shared/utils';
 import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
 import { createUrl } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
 
 export const updateConfig = (response: IAuthResponse) => {
-  storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response?.organization_id);
-  storeInLocalStorage(StorageKeys.USER_ID, response?.id);
-  storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list);
-  storeInLocalStorage(StorageKeys.PLAN, response?.plan);
-  storeInLocalStorage(
-    StorageKeys.ORGANIZATION_DOMAINS,
-    response?.organization_domains
-  );
-  storeInLocalStorage(StorageKeys.CONFIG_HASH, response?.config_hash);
-  storeInLocalStorage(
-    StorageKeys.ORGANIZATION_CONFIG_HASH,
-    response?.organization_config_hash
-  );
-  storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
-  if (response?.organization_config?.categories) {
-    storeInLocalStorage(
-      StorageKeys.ORTHOGRAPHY,
-      response.organization_config.categories.orthography
-    );
-  }
+  browser.storage.local
+      .get(null)
+      .then((result) => {
+
+        if (
+          response?.config_hash ===
+          result[StorageKeys.CONFIG_HASH] &&
+          response?.organization_config_hash ===
+          result[StorageKeys.ORGANIZATION_CONFIG_HASH]
+        ) {
+          return; //config did not change
+        }
+        storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response?.organization_id);
+        storeInLocalStorage(StorageKeys.USER_ID, response?.id);
+        storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list); //type not relevant here -> always 'deny'
+        storeInLocalStorage(StorageKeys.PLAN, response?.plan);
+        storeInLocalStorage(
+          StorageKeys.ORGANIZATION_DOMAINS,
+          response?.organization_domains
+        );
+        storeInLocalStorage(StorageKeys.CONFIG_HASH, response?.config_hash);
+        storeInLocalStorage(
+          StorageKeys.ORGANIZATION_CONFIG_HASH,
+          response?.organization_config_hash
+        );
+        storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
+        if (response?.organization_config?.categories) {
+          storeInLocalStorage(
+            StorageKeys.ORTHOGRAPHY,
+            response.organization_config.categories.orthography
+          );
+        }
+        }
+    ).catch((error) => {
+      sendErrorToSentry(error);
+    }
+  ); 
 };
 
 export const getInputText = (element: CustomInputElement | any) => {
@@ -54,53 +68,40 @@ export const getInputText = (element: CustomInputElement | any) => {
   }
 };
 
-export const customRender = (enabled: boolean, scriptId: string) => {
+
+export const customRender = (enabled: boolean, scriptId: string) => {  
+  const doc = document.documentElement;
+  const body = document.body;
+
   if (enabled) {
-    document.documentElement.setAttribute('witty-is-enabled', 'true');
+    doc.setAttribute('witty-is-enabled', 'true');
   } else {
-    document.documentElement.removeAttribute('witty-is-enabled');
+    doc.removeAttribute('witty-is-enabled');
   }
 
-  if (!document.querySelector(WTags.WW_POPOVER)) {
-    const element = document.createElement(WTags.WW_POPOVER);
-    document.body?.appendChild(element);
+  let popoverElement = body?.querySelector(WTags.WW_POPOVER);
+  if (!popoverElement) {
+    popoverElement = document.createElement(WTags.WW_POPOVER);
+    body?.appendChild(popoverElement);
   }
 
-  if (!document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)) {
-    const element = document.createElement(`${WTags.WW_POPOVER}-${scriptId}`);
-    document.body?.appendChild(element);
+  let scriptPopoverElement = body?.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
+  if (!scriptPopoverElement) {
+    scriptPopoverElement = document.createElement(`${WTags.WW_POPOVER}-${scriptId}`);
+    body?.appendChild(scriptPopoverElement);
   }
 
-  const container = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
-
-  if (container) {
-    const root = createRoot(container); // Create a root for the container
-    root.render(enabled ? <ContentScriptApp /> : <></>); // Conditionally render the component
+  if (scriptPopoverElement) {
+    const root = createRoot(scriptPopoverElement);
+    root.render(enabled ? <ContentScriptApp /> : <></>);
   }
 
-  //if more than one container is found, remove all of except the first one. If witty disabled, remove all.
+  // Remove all extra WW_CONTAINER elements if witty is disabled or more than one is found
   const containers = getActiveDocument().querySelectorAll(WTags.WW_CONTAINER);
-  if (!containers) return;
-
-  for (let i = enabled ? 1 : 0; i < containers.length; i++) {
-    containers[i].remove();
-  }
-};
-
-export const handleDomainsFromDashboard = (newValue: any, scriptId: string) => {
-  if (
-    (newValue.type === 'deny' &&
-      newValue.list?.includes(
-        getDomainWithoutSubdomain(window.location.hostname)
-      )) ||
-    (newValue.type === 'allow' &&
-      !newValue.list?.includes(
-        getDomainWithoutSubdomain(window.location.hostname)
-      ))
-  ) {
-    customRender(false, scriptId);
-  } else {
-    customRender(true, scriptId);
+  if (containers) {
+    for (let i = enabled ? 1 : 0; i < containers.length; i++) {
+      containers[i].remove();
+    }
   }
 };
 
