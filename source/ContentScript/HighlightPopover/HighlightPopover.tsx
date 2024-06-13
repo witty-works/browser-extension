@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 
-import { CustomInputElement, IAlert, IAlternatives, ResponseConfig } from '../../shared/types';
+import {
+  CustomInputElement,
+  IAlert,
+  IAlternatives,
+  ResponseConfig,
+} from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -24,7 +29,10 @@ import { DEV_ENV, StorageKeys, getColor } from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
-import { getScrollableParentClosestToElement, storeInLocalStorage } from '../../shared/utils';
+import {
+  getScrollableParentClosestToElement,
+  storeInLocalStorage,
+} from '../../shared/utils';
 import browser from 'webextension-polyfill';
 import { createRoot } from 'react-dom/client';
 import Notification from '../../Notifications/Notification';
@@ -65,7 +73,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const [alternativeHovered, setAlternativeHovered] = useState<string | null>(
     null
   );
-  const [showLearningBite, setShowLearningBite, showLearningBiteRef] = useStateRef<boolean>(false);
+  const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
+    useStateRef<boolean>(false);
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [accessToken, setAccessToken] = useState<string>('');
   const [isLoading, setIsLoading] = useState<string>('');
@@ -93,7 +102,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         const iframes = document.getElementsByTagName('iframe');
         const iframe = Array.from(iframes).find((iframe) => {
           try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+            const iframeDoc =
+              iframe.contentDocument || iframe.contentWindow?.document;
             return iframeDoc?.contains(dat.node);
           } catch (error) {
             console.error('Failed to access iframe content: ', error);
@@ -108,20 +118,17 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           console.error('Failed to get iframe bounding rect: ', error);
         }
       }
-  
+
       const calcNewX: number =
         dat.position.x + iframeRects.left + doc.scrollLeft;
       const calcNewY: number = placement.includes('bottom')
-        ? dat.position.y +
-          dat.position.height +
-          iframeRects.top +
-          doc.scrollTop
-          //scrollTop
-        : dat.position.y -
+        ? dat.position.y + dat.position.height + iframeRects.top + doc.scrollTop
+        : //scrollTop
+          dat.position.y -
           rects.floating.height +
           iframeRects.top +
-          doc.scrollTop
-          //scrollTop;
+          doc.scrollTop;
+      //scrollTop;
       return {
         x: showLearningBiteRef.current ? calcNewX / 2 : calcNewX,
         y: calcNewY,
@@ -137,9 +144,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
       setAccessToken(
-        result[StorageKeys.ACCESS_TOKEN]
-          ? result[StorageKeys.ACCESS_TOKEN]
-          : ''
+        result[StorageKeys.ACCESS_TOKEN] ? result[StorageKeys.ACCESS_TOKEN] : ''
       );
     });
   }, []);
@@ -150,7 +155,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   }, [reference, showLearningBite]);
 
   useEffect(() => {
-    getScrollableParentClosestToElement(element)?.addEventListener('scroll', handleElementScroll);
+    getScrollableParentClosestToElement(element)?.addEventListener(
+      'scroll',
+      handleElementScroll
+    );
     element.addEventListener('scroll', handleElementScroll);
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('input', handleClickOutside as EventListener);
@@ -165,7 +173,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         'input',
         handleClickOutside as EventListener
       );
-      getScrollableParentClosestToElement(element)?.removeEventListener('scroll', handleElementScroll); 
+      getScrollableParentClosestToElement(element)?.removeEventListener(
+        'scroll',
+        handleElementScroll
+      );
       element.removeEventListener('scroll', handleElementScroll);
       getActiveDocument().removeEventListener('click', handleClickOutside);
       getActiveDocument().removeEventListener(
@@ -180,7 +191,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   const handleClickOutside = (event: MouseEvent) => {
-    const hasClickedOutsidePopOver = !refs.floating.current?.contains(event.target as HTMLElement);
+    const hasClickedOutsidePopOver = !refs.floating.current?.contains(
+      event.target as HTMLElement
+    );
 
     const doc = getActiveDocument().documentElement || getActiveDocument().body;
     const posX = event.pageX + doc.scrollLeft;
@@ -202,34 +215,39 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
     hide();
     //in case input is removed from the dom before popover is closed (clicking outside the element), also remove it here
-    const popoverContainers = window.document.getElementsByTagName('ww-popover');
-      Array.from(popoverContainers).forEach((popoverContainer) => {
-        popoverContainer.remove();
+    const popoverContainers =
+      window.document.getElementsByTagName('ww-popover');
+    Array.from(popoverContainers).forEach((popoverContainer) => {
+      popoverContainer.remove();
     });
   };
-  
-  const incrementAlternativesAccepted = (storage: any) => 
-    storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] ? storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1 : 1);
-  
+
+  const incrementAlternativesAccepted = (storage: any) =>
+    storeInLocalStorage(
+      StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED,
+      storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]
+        ? storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1
+        : 1
+    );
 
   const renderNotification = (notificationType: string) => {
     try {
       if (!window.top) return;
-  
+
       const notificationWrapper = document.createElement('div');
       notificationWrapper.id = 'ww-notification';
-  
-      window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild);
+
+      window.top.document.body.insertBefore(
+        notificationWrapper,
+        window.top.document.body.firstChild
+      );
       const root = createRoot(notificationWrapper);
-      
+
       root.render(
-        <Notification
-          notificationType={notificationType}
-          element={element}
-        />
+        <Notification notificationType={notificationType} element={element} />
       );
     } catch (error) {
-      DEV_ENV && console.error("Error in renderNotification:", error);
+      DEV_ENV && console.error('Error in renderNotification:', error);
     }
   };
 
@@ -239,46 +257,64 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     e.stopImmediatePropagation();
     analytics.alternativeLog(data.alert, alternative);
 
-    browser.storage.local.get(null).then((result) => {
-      const {
-        [StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]: alternativesAccepted,
-        [StorageKeys.SALES_DEMO_FEATURE_FLAG]: salesDemoFlag,
-        [StorageKeys.INVITE_TEAM_FEATURE_FLAG]: teamInviteFlag,
-        [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
-      } = result;
-    
-      if (!salesDemoFlag?.active || !teamInviteFlag?.active || !friendInviteFlag?.active) { //reset counter if a feature flag is diabled, maybe need to rethink this?
-        storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0); 
-      } else {
-        const incrementedAlternativesAccepted = alternativesAccepted + 1;
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        const {
+          [StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]: alternativesAccepted,
+          [StorageKeys.SALES_DEMO_FEATURE_FLAG]: salesDemoFlag,
+          [StorageKeys.INVITE_TEAM_FEATURE_FLAG]: teamInviteFlag,
+          [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
+        } = result;
+
         if (
-          (incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber && salesDemoFlag?.active) ||
-          (incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber && teamInviteFlag?.active) ||
-          (incrementedAlternativesAccepted === friendInviteFlag?.triggerNumber && friendInviteFlag?.active)
+          !salesDemoFlag?.active ||
+          !teamInviteFlag?.active ||
+          !friendInviteFlag?.active
         ) {
-          const notificationType = incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber 
-            ? 'salesDemo'
-            : incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber 
-            ? 'inviteTeam'
-            : 'inviteFriends';
-    
-          renderNotification(notificationType);
+          //reset counter if a feature flag is diabled, maybe need to rethink this?
+          storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0);
+        } else {
+          const incrementedAlternativesAccepted = alternativesAccepted + 1;
+          if (
+            (incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber &&
+              salesDemoFlag?.active) ||
+            (incrementedAlternativesAccepted ===
+              teamInviteFlag?.triggerNumber &&
+              teamInviteFlag?.active) ||
+            (incrementedAlternativesAccepted ===
+              friendInviteFlag?.triggerNumber &&
+              friendInviteFlag?.active)
+          ) {
+            const notificationType =
+              incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber
+                ? 'salesDemo'
+                : incrementedAlternativesAccepted ===
+                  teamInviteFlag?.triggerNumber
+                ? 'inviteTeam'
+                : 'inviteFriends';
+
+            renderNotification(notificationType);
+          }
         }
-      }
-      incrementAlternativesAccepted(result);
-    }).catch((error) => {
-     sendErrorToSentry(error);
-    });
+        incrementAlternativesAccepted(result);
+      })
+      .catch((error) => {
+        sendErrorToSentry(error);
+      });
     updateTextWithAlternative(alternative);
   };
 
   const handleIgnoreClick = (ignoreType: string) => () => {
     analytics.ignoreLog(data.alert);
-    if(ignoreType === 'ignore_once') {
+    if (ignoreType === 'ignore_once') {
       addIgnoredTerm(data.alert.data?.text);
       hidePopover();
     } else if (ignoreType === 'ignore_permanently') {
-      const requestUrlIgnore = createUrl(getBaseUrls().dashboard, `api/user/language/ignore-words?false_positive=${data.alert.data?.text}`);
+      const requestUrlIgnore = createUrl(
+        getBaseUrls().dashboard,
+        `api/user/language/ignore-words?false_positive=${data.alert.data?.text}`
+      );
       makeDashboardRequest(requestUrlIgnore, ignoreType);
     }
   };
@@ -287,37 +323,39 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     setIsLoading(ignoreType);
     setIsSuccess('');
     setIsFailure('');
-    fetch(
-      requestUrl,
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        }
-      }
-    ).then(async (response) => {
+    fetch(requestUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+      .then(async (response) => {
         setIsLoading('');
         if (response.status === 204) {
           addIgnoredTerm(data.alert.data?.text);
           setIsSuccess(ignoreType);
-          
+
           browser.alarms.create('hidePopoverAlarm', { delayInMinutes: 1 / 60 }); // 1000 ms in minutes
-        
+
           browser.alarms.onAlarm.addListener((alarm) => {
             if (alarm.name === 'hidePopoverAlarm') {
               hidePopover();
             }
           });
         } else {
-        setIsLoading('');
-        setIsFailure(ignoreType);
-      }
-    }).catch((error) => {
-      sendErrorToSentry(error);
-    });
+          setIsLoading('');
+          setIsFailure(ignoreType);
+        }
+      })
+      .catch((error) => {
+        sendErrorToSentry(error);
+      });
   };
 
-  const renderAlternative = (alternative: IAlternatives, alternativeHovered: string | null) => {
+  const renderAlternative = (
+    alternative: IAlternatives,
+    alternativeHovered: string | null
+  ) => {
     if (alternative && alternative.text === '') {
       return <i>{t('removeSpaces')}</i>;
     } else {
@@ -327,20 +365,29 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         const splitText = alternative.text.split(regex);
         return (
           <span>
-            {splitText[0]}&nbsp; 
-            {'['}<i>{splitText[1]}</i>{']'}&nbsp;
+            {splitText[0]}&nbsp;
+            {'['}
+            <i>{splitText[1]}</i>
+            {']'}&nbsp;
             {splitText[2]}
           </span>
         );
-      } else if (alternative.text.length > 25 && alternative.context && alternativeHovered !== alternative.text) {
+      } else if (
+        alternative.text.length > 25 &&
+        alternative.context &&
+        alternativeHovered !== alternative.text
+      ) {
         return alternative.text.substring(0, 25) + '...';
-      } else if (alternative.text.length > 35 && alternativeHovered !== alternative.text) {
+      } else if (
+        alternative.text.length > 35 &&
+        alternativeHovered !== alternative.text
+      ) {
         return alternative.text.substring(0, 35) + '...';
       } else {
         return alternative.text;
       }
     }
-  } 
+  };
 
   return (
     <div
@@ -408,64 +455,71 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </button>
         </div>
 
-
         {/* LEARNIGN BITES */}
-        {data.alert.data?.explanation?.text &&
+        {data.alert.data?.explanation?.text && (
           <>
-          <div className='witty-works-ext-separator' />
+            <div className='witty-works-ext-separator' />
 
-          <div 
-            className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
-            onClick={() => {
-              analytics.popoverLogs(data.alert, 'learning_bites');
-              setShowLearningBite(!showLearningBite);
-            }}
-            style={{
-              cursor:
-                data.alert.data?.explanation?.url
+            <div
+              className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
+              onClick={() => {
+                analytics.popoverLogs(data.alert, 'learning_bites');
+                setShowLearningBite(!showLearningBite);
+              }}
+              style={{
+                cursor: data.alert.data?.explanation?.url
                   ? 'pointer'
                   : 'default',
-              backgroundColor: getColor(data.alert.data?.gravity).default,
-            }}
-          >
-            <div
-              className='witty-works-ext-lato-popover-text witty-works-ext-justify-space-between'
-              style={{
-                display: 'flex',
-                flexDirection: showLearningBite ? 'row' : 'column',
-                alignItems: showLearningBite ? 'center' : 'flex-start',
+                backgroundColor: getColor(data.alert.data?.gravity).default,
               }}
             >
-              <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-                <div style={{ fontSize: '2em', marginRight: '0.5em' }}>{data.alert.data?.explanation?.icon}</div>
-                <div>
-                  <b>{data.alert.data?.label.split(':').pop()}</b><br />
-                  {data.alert.data?.explanation?.text}
-                  {data.alert.data?.explanation?.context &&
-                    ' (' + data.alert.data?.explanation?.context + ')'}
-                </div>
-              </div>
-              {data.alert.data?.explanation?.url && (
-                <div className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
-                style={{marginTop: showLearningBite ? '0em' : '1em'}}
-                >
-                  <div className='witty-works-ext-dropdown-select witty-works-ext-container-row'>
-                      {t('learnMore')}
-                      {data.alert.data?.explanation?.content === 'video' && (
-                        <VideoIcon className='witty-works-ext-margin-left' style={{ marginTop: '0.2em'}} alt={t('video')} />
-                      )}
-                    <div
-                      className='witty-works-ext-margin-left'
-                      style={{ pointerEvents: 'none' }}
-                    >
-                      {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
-                    </div>
+              <div
+                className='witty-works-ext-lato-popover-text witty-works-ext-justify-space-between'
+                style={{
+                  display: 'flex',
+                  flexDirection: showLearningBite ? 'row' : 'column',
+                  alignItems: showLearningBite ? 'center' : 'flex-start',
+                }}
+              >
+                <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
+                  <div style={{ fontSize: '2em', marginRight: '0.5em' }}>
+                    {data.alert.data?.explanation?.icon}
+                  </div>
+                  <div>
+                    <b>{data.alert.data?.label.split(':').pop()}</b>
+                    <br />
+                    {data.alert.data?.explanation?.text}
+                    {data.alert.data?.explanation?.context &&
+                      ' (' + data.alert.data?.explanation?.context + ')'}
                   </div>
                 </div>
-              )}
+                {data.alert.data?.explanation?.url && (
+                  <div
+                    className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+                    style={{ marginTop: showLearningBite ? '0em' : '1em' }}
+                  >
+                    <div className='witty-works-ext-dropdown-select witty-works-ext-container-row'>
+                      {t('learnMore')}
+                      {data.alert.data?.explanation?.content === 'video' && (
+                        <VideoIcon
+                          className='witty-works-ext-margin-left'
+                          style={{ marginTop: '0.2em' }}
+                          alt={t('video')}
+                        />
+                      )}
+                      <div
+                        className='witty-works-ext-margin-left'
+                        style={{ pointerEvents: 'none' }}
+                      >
+                        {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </>}
+          </>
+        )}
         <div
           style={{
             display: showLearningBite ? 'flex' : 'none',
@@ -491,65 +545,124 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             }}
           ></iframe>
         </div>
-        <div className='witty-works-ext-separator' style={{ marginBottom: '1em', marginTop: '1em' }} />
+        <div
+          className='witty-works-ext-separator'
+          style={{ marginBottom: '1em', marginTop: '1em' }}
+        />
 
         {/* TRY INSTEAD */}
         {data.alert.data?.alternatives?.length > 0 && !showLearningBite && (
-        <div className='witty-works-ext-wittyworks-popover-row'>
-          <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
-            {t('insteadTry')}
-          </div>
-          <div>
-            {data.alert.data?.alternatives.map((alternative, index) =>
-              alternative.remove ? (
-                <div
-                  className='witty-works-ext-wittyworks-popover-alternative-btn-container'
-                  key={`${index}-${alternative}-container`}
-                >
+          <div className='witty-works-ext-wittyworks-popover-row'>
+            <div className='witty-works-ext-wittyworks-popover-alternative-btn-container'>
+              {t('insteadTry')}
+            </div>
+            <div>
+              {data.alert.data?.alternatives.map((alternative, index) =>
+                alternative.remove ? (
                   <div
-                    className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
-                    key={`${index}-remove-it`} //string can not be empty because of replacement issue on firefox
-                    onPointerDown={(e) => clickAlternative(e.nativeEvent,' ')}
+                    className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                    key={`${index}-${alternative}-container`}
                   >
-                    {data.alert.data?.text}
-                  </div>
-                  {alternative.context && (
-                    <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                      {alternative.context}
+                    <div
+                      className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
+                      key={`${index}-remove-it`} //string can not be empty because of replacement issue on firefox
+                      onPointerDown={(e) =>
+                        clickAlternative(e.nativeEvent, ' ')
+                      }
+                    >
+                      {data.alert.data?.text}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div
-                  className='witty-works-ext-wittyworks-popover-alternative-btn-container'
-                  key={`${index}-${alternative}-container`}
-                  onMouseEnter={() => { setAlternativeHovered(alternative?.text) }}
-                  onMouseLeave={() => { setAlternativeHovered(null) }}
-                >
+                    {alternative.context && (
+                      <div className='witty-works-ext-wittyworks-popover-alternative-context'>
+                        {alternative.context}
+                      </div>
+                    )}
+                  </div>
+                ) : (
                   <div
-                    className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
-                    onPointerDown={(e) => clickAlternative(e.nativeEvent, data.alert.data?.alternatives[index]?.text)}
+                    className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                    key={`${index}-${alternative}-container`}
+                    onMouseEnter={() => {
+                      setAlternativeHovered(alternative?.text);
+                    }}
+                    onMouseLeave={() => {
+                      setAlternativeHovered(null);
+                    }}
                   >
-                   {renderAlternative(alternative, alternativeHovered)}
-                  </div>
-                  {alternative && alternative.context && (
-                    <div className='witty-works-ext-wittyworks-popover-alternative-context'>
-                      {alternative.context.length > 25 &&
-                      alternativeHovered !== alternative.text
-                        ? alternative.context.substring(0, 25) + '...'
-                        : alternative.context}
+                    <div
+                      className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
+                      onPointerDown={(e) =>
+                        clickAlternative(
+                          e.nativeEvent,
+                          data.alert.data?.alternatives[index]?.text
+                        )
+                      }
+                    >
+                      {renderAlternative(alternative, alternativeHovered)}
                     </div>
-                  )}
-                </div>
-              )
-            )}
+                    {alternative && alternative.context && (
+                      <div
+                        className='witty-works-ext-wittyworks-popover-alternative-context'
+                        style={{ color: 'black' }}
+                      >
+                        {alternative.url ? (
+                          <>
+                            {alternative.context.startsWith('💡') ? (
+                              <>
+                                <span style={{ whiteSpace: 'nowrap' }}>
+                                  <span>
+                                    {alternative.context.substring(0, 3)}
+                                  </span>
+                                  <a
+                                    href={alternative.url}
+                                    target='_blank'
+                                    style={{
+                                      textDecoration: 'underline',
+                                      color: 'black',
+                                    }}
+                                    rel='noopener noreferrer'
+                                  >
+                                    {alternative.context.substring(3)}
+                                  </a>
+                                </span>
+                              </>
+                            ) : (
+                              <a
+                                href={alternative.url}
+                                target='_blank'
+                                style={{
+                                  textDecoration: 'underline',
+                                  color: 'black',
+                                  whiteSpace: 'nowrap',
+                                }}
+                                rel='noopener noreferrer'
+                              >
+                                {alternative.context}
+                              </a>
+                            )}
+                          </>
+                        ) : (
+                          <span
+                            style={{ color: 'black', whiteSpace: 'nowrap' }}
+                          >
+                            {alternative.context}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
       {!showLearningBite && (
         <div className='witty-works-ext-container-row'>
-          <button onClick={handleIgnoreClick('ignore_once')} className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'>
+          <button
+            onClick={handleIgnoreClick('ignore_once')}
+            className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'
+          >
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
               <IgnoreIcon alt={t('ignore_once')} />
             </span>
@@ -557,7 +670,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               {t('ignoreOnce')}
             </span>
           </button>
-          <button  onClick={handleIgnoreClick('ignore_permanently')} className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'>
+          <button
+            onClick={handleIgnoreClick('ignore_permanently')}
+            className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'
+          >
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
               <IgnoreIcon alt={t('ignore_once')} />
             </span>
@@ -566,7 +682,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             </span>
             {isLoading === 'ignore_permanently' && <LoadingIcon />}
             {isSuccess === 'ignore_permanently' && <CheckIcon />}
-            {isFailure === 'ignore_permanently' &&  <><ErrorIcon /> <span className='witty-works-ext-margin-left'>{t('failedRequestText')}</span></>}
+            {isFailure === 'ignore_permanently' && (
+              <>
+                <ErrorIcon />{' '}
+                <span className='witty-works-ext-margin-left'>
+                  {t('failedRequestText')}
+                </span>
+              </>
+            )}
           </button>
         </div>
       )}
