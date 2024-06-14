@@ -18,8 +18,19 @@ import { isMicrosoftOnline } from '../shared/DOMutils';
 
 const handleDomainsFromDashboard = (newValue: string | string[], scriptId: string) => {
   const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
-    const currentDomainOnList = newValue?.includes(currentDomain) 
-    customRender(!currentDomainOnList, scriptId);
+  browser.storage.local.get(null).then((result) => {
+    const iframeDomains = result[StorageKeys.IFRAME_DOMAINS];
+    const currentDomainOrCurrentIframeDomainsisOnList = newValue?.includes(currentDomain) || newValue?.includes(iframeDomains);
+    console.log('newValue', newValue, 'currentDomain', currentDomain, 'iframeDomains', iframeDomains, newValue?.includes(iframeDomains), newValue?.includes(currentDomain) );
+    console.log('calling customRender3');
+
+    customRender(!currentDomainOrCurrentIframeDomainsisOnList, scriptId);
+  }
+  ).catch(sendErrorToSentry);
+
+
+
+
 
 };
 
@@ -37,6 +48,8 @@ const storageChange = (changes: { [x: string]: Storage.StorageChange | { newValu
       const isOnOrgDomainList =
         (orgDomains?.type === 'deny' && orgDomains.list?.includes(currentDomain)) ||
         (orgDomains?.type === 'allow' && !orgDomains.list?.includes(currentDomain));
+      console.log('calling customRender2');
+
       customRender(!isOnOrgDomainList, scriptId);
     }
   }
@@ -79,6 +92,7 @@ const initialize = () => {
       isOnPersonalDomainList ||
       defaultConfig.DISABLED_SITES.includes(domain) ||
       isMicrosoftOnline(window.location.href);
+    console.log('calling customRender1');
     customRender(!shouldDisable, scriptId);
   }).catch(sendErrorToSentry);
 

@@ -451,6 +451,28 @@ const ContentScriptApp: React.FC = () => {
     //debounced handle iframe added, use debounce form lodash
     const debouncedHandleIframeAdded = debounce(() => {
       const iframes = document.querySelectorAll('iframe');
+
+      //get currently set iframe domains
+      browser.storage.local.get(StorageKeys.IFRAME_DOMAINS).then((result) => {
+        const storedIframeDomains = result[StorageKeys.IFRAME_DOMAINS] || [];
+        const iframeDomains = Array.from(iframes).map((iframe: HTMLIFrameElement) => {
+          try {
+            const url = new URL(iframe.src);
+            return getDomainWithoutSubdomain(url.hostname);
+          } catch (e) {
+            console.error('Invalid URL provided:', iframe.src, e);
+            return null;
+          }
+        }
+        );
+        console.log('iframeDomains', iframeDomains);
+        //add to iframe_domains that are stored in local storage
+        storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, [...storedIframeDomains, ...iframeDomains]);
+      }
+      ).catch((error) => {
+        sendErrorToSentry(error);
+      }
+      );
       iframes.forEach((iframe: HTMLIFrameElement) => {
         if (iframe.contentDocument?.body) {
           iframe.contentDocument.body.addEventListener(

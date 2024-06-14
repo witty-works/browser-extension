@@ -25,6 +25,7 @@ export const updateConfig = (response: IAuthResponse) => {
         storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response?.organization_id);
         storeInLocalStorage(StorageKeys.USER_ID, response?.id);
         storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list); //type not relevant here -> always 'deny'
+        console.log('response?.domains.list', response?.domains.list);
         storeInLocalStorage(StorageKeys.PLAN, response?.plan);
         storeInLocalStorage(
           StorageKeys.ORGANIZATION_DOMAINS,
@@ -72,7 +73,7 @@ export const getInputText = (element: CustomInputElement | any) => {
 export const customRender = (enabled: boolean, scriptId: string) => {  
   const doc = document.documentElement;
   const body = document.body;
-
+  console.log('customRender enabled', enabled);
   if (enabled) {
     doc.setAttribute('witty-is-enabled', 'true');
   } else {

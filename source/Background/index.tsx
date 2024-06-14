@@ -247,7 +247,7 @@ const scanTabsToDetectStatus = () => {
           });
           storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, iframeDomains);
         } else {
-          storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, []);
+          // storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, []);
         }
         }).catch((error) => {
           sendErrorToSentry(error);
