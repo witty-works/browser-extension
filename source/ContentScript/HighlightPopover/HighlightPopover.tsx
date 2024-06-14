@@ -416,7 +416,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </a>
           <div className='witty-works-ext-container-row'>
             <button
-              className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
+              className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto witty-works-button'
               style={data.index === 1 ? { display: 'none' } : {}}
               onClick={() => {
                 data.index !== 1 && updatePopover('previous');
@@ -432,7 +432,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 ${t('alertOftotal')} ${data.totalAlerts}`}</div>
             <button
               className={
-                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto'
+                'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto witty-works-button'
               }
               style={data.index === data.totalAlerts ? { display: 'none' } : {}}
               onClick={() => {
@@ -446,7 +446,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </div>
 
           <button
-            className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+            className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-button'
             onClick={() => {
               hidePopover(true);
             }}
@@ -661,7 +661,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         <div className='witty-works-ext-container-row'>
           <button
             onClick={handleIgnoreClick('ignore_once')}
-            className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'
+            className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top witty-works-button'
           >
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
               <IgnoreIcon alt={t('ignore_once')} />
@@ -672,7 +672,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </button>
           <button
             onClick={handleIgnoreClick('ignore_permanently')}
-            className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top'
+            className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top witty-works-button'
           >
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
               <IgnoreIcon alt={t('ignore_once')} />
