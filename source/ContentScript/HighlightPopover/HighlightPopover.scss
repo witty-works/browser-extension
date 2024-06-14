@@ -1,10 +1,19 @@
 @import '../../styles/variables';
 @import '../../styles/fonts';
 
-button {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
+.witty-works-button { //neutralizes default button styling
+  background-color: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  color: inherit !important;
+  text-align: inherit !important;
+  text-transform: none !important;
+  line-height: inherit !important;
 }
 
 #witty-works-ext-popover {
