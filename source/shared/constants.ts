@@ -1,4 +1,4 @@
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 export const wittyVersion = browser.runtime.getManifest().version;
 
 //Development

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { useTranslation } from 'react-i18next';
 import {
   StorageKeys,
@@ -69,7 +69,7 @@ const PopupLogin: React.FC = () => {
   };
 
   const logIn = async (urls: string, register = false) => {
-    const optionsPageUrl = browser.extension.getURL('options.html');
+    const optionsPageUrl = browser.runtime.getURL('options.html');
     const registerString = register ? 'register=true&' : '';
     const url = `${BaseUrls[urls].dashboard}browser-login?${registerString}redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
     if (!window.open(url, '_blank')) {
@@ -168,16 +168,23 @@ const PopupLogin: React.FC = () => {
             {t('popupsBlockedText')}
           </div>
           <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-            <div
-              className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
-              onClick={() => {
-                navigator.clipboard.writeText(loginUrl);
-                setDisplayCopiedMessage(true);
-                setTimeout(() => {
+          <div
+            className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
+            onClick={() => {
+              navigator.clipboard.writeText(loginUrl);
+              setDisplayCopiedMessage(true);
+              browser.alarms.create('hideCopiedMessageAlarm', { delayInMinutes: 1.5 / 60 }); // 1500 ms in minutes
+
+              const alarmListener = (alarm : any) => {
+                if (alarm.name === 'hideCopiedMessageAlarm') {
                   setDisplayCopiedMessage(false);
-                }, 1500);
-              }}
-            >
+                  // Clean up the alarm listener after it triggers
+                  browser.alarms.onAlarm.removeListener(alarmListener);
+                }
+              };
+              browser.alarms.onAlarm.addListener(alarmListener);
+            }}
+          >
               {t('copyLink')}
             </div>
             {displayCopiedMessage && (

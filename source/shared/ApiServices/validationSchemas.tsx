@@ -1,40 +1,34 @@
-import { ICheckResponse, ICheckResponseResult, ConfigProperty } from '../types';
-import { JSONSchemaType } from 'ajv';
+import { Schema } from 'jsonschema';
 
-export const checkResponseOrgConfigPropertySchema: JSONSchemaType<ConfigProperty> =
-  {
-    type: 'object',
-    properties: {
-      value: {
-        anyOf: [
-          {
+export const checkResponseOrgConfigPropertySchema: Schema = {
+  type: 'object',
+  properties: {
+    value: {
+      anyOf: [
+        { type: 'string' },
+        {
+          type: 'array',
+          items: {
             type: 'string',
+            title: 'config type string[]',
           },
-          {
-            type: 'array',
-            items: {
-              title: 'config type string[]',
-              type: 'string',
-            },
-          },
-          {
-            type: 'boolean',
-          },
-          {
-            type: 'number',
-          },
-        ],
-      },
-      status: {
-        type: 'string',
-        nullable: true,
-      },
+        },
+        { type: 'boolean' },
+        { type: 'number' },
+      ],
     },
-    required: ['value'],
-    additionalProperties: false,
-  };
+    status: {
+      anyOf: [
+        { type: 'string' },
+        { type: 'null' },
+      ],
+    },
+  },
+  required: ['value'],
+  additionalProperties: false,
+};
 
-export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
+export const checkResponseResultSchema: Schema = {
   title: 'checkResponseResult',
   type: 'object',
   properties: {
@@ -67,8 +61,7 @@ export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
       type: 'integer',
     },
     alternatives: {
-      description:
-        'the list of alternative words to replace the problematic word',
+      description: 'the list of alternative words to replace the problematic word',
       type: 'array',
       items: {
         title: 'alternative',
@@ -88,6 +81,10 @@ export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
           },
           context: {
             description: 'the context of the alternative word',
+            type: 'string',
+          },
+          url: {
+            description: 'the url to blog article about the alternative',
             type: 'string',
           },
         },
@@ -141,7 +138,7 @@ export const checkResponseResultSchema: JSONSchemaType<ICheckResponseResult> = {
   required: ['text', 'start', 'end'],
 };
 
-export const checkResponseSchema: JSONSchemaType<ICheckResponse> = {
+export const checkResponseSchema: Schema = {
   title: 'checkResponse',
   description: 'response from the /check NLP API endpoint',
   type: 'object',

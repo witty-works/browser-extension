@@ -20,7 +20,7 @@ import {
   DEV_ENV,
   StorageKeys,
 } from '../../shared/constants';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { setBaseUrls } from '../../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
@@ -71,7 +71,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   }, [data]);
 
   const logIn = async (urls: string, register = false) => {
-    const optionsPageUrl = browser.extension.getURL('options.html');
+    const optionsPageUrl = browser.runtime.getURL('options.html');
     const registerString = register ? 'register=true&' : '';
     const url = `${BaseUrls[urls].dashboard}browser-login?${registerString}redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
     if (!window.open(url, '_blank')) {
@@ -317,9 +317,12 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
                 onClick={() => {
                   navigator.clipboard.writeText(loginUrl);
                   setDisplayCopiedMessage(true);
-                  setTimeout(() => {
-                    setDisplayCopiedMessage(false);
-                  }, 1500);
+                  browser.alarms.create('hideCopiedMessageAlarm', { delayInMinutes: 1.5 / 60 }); // 1500 ms in minutes
+                  browser.alarms.onAlarm.addListener((alarm) => {
+                    if (alarm.name === 'hideCopiedMessageAlarm') {
+                      setDisplayCopiedMessage(false);
+                    }
+                  });
                 }}
               >
                 {t('copyLink')}

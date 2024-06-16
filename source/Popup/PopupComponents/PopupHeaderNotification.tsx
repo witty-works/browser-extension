@@ -1,5 +1,5 @@
 import React from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 
 import SettingsWithNotification from '../../assets/icons/popup/settingsWithNotification.svg';
 import Logo from '../../assets/icons/witty-logo-color.svg';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { browser } from 'webextension-polyfill-ts';
+import browser from 'webextension-polyfill';
 import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
 import { isGoogleDocs, isInputText, isMicrosoftOnlineWord, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, IAuthResponse, INodes } from '../shared/types';
