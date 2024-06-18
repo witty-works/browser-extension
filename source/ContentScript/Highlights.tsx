@@ -4,8 +4,10 @@ import { CustomInputElement, Highlight, IAlert, INodeWithAlerts, Position } from
 import { getColor } from '../shared/constants';
 import {
   getZIndex,
+  isGmail,
   isGoogleDocs,
   isGreenhouse,
+  isHubspot,
   isTextArea,
   nodeExistsInDOM,
 } from '../shared/DOMutils';
@@ -58,7 +60,9 @@ const Highlights: React.FC<HighlightsProps> = ({
       ? 2000
       : isGreenhouse()
       ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
-      : elementRect.height //prevents expanding contenteditable gmail: - correctedPosition.top,
+      : isGmail() || isHubspot()
+      ? elementRect.height - correctedPosition.top //prevents expanding canvas when scrolling
+      : elementRect.height 
   };
 
   useEffect(() => {
