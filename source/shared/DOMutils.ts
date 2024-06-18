@@ -111,6 +111,10 @@ export const isRedactorEditor = (element: Element): boolean => {
   return !!redactorEditor;
 };
 
+export const isRecruitee = (): boolean => {
+  return window.location.hostname.includes('recruitee.com');
+}
+
 export const isGreenhouse = (): boolean => {
   return window.location.hostname.includes('greenhouse');
 };
@@ -140,7 +144,7 @@ export const isInputElement = (element: Element) =>
 export const getZIndex = (element: Element) => {
   return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail()
     ? 501 
-    : isRedactorEditor(element) 
+    : isRedactorEditor(element) || isRecruitee()
     ? 9999998 //make sure highlights are the second largest (smaller than popover)
     : 'auto';
 };
