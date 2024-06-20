@@ -26,7 +26,7 @@
     "page": "options.html",
     "open_in_tab": true
   },
-  "__firefox__applications": {
+  "__firefox__browser_specific_settings": {
     "gecko": {
       "id": "{4b376457-9460-4891-b28a-60499c2e3343}"
     }
