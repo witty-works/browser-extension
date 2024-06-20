@@ -63,6 +63,24 @@ jobs:
         run: |
           npm ci
 
+      - name: Build Prod Firefox artifacts
+        run: |
+          npm run build:firefox-with-sourcemaps
+
+      - name: Remove *.map files
+        run: rm -rf extension/firefox/js/*.map
+
+      - name: Store Firefox Prod artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox
+          path: |
+            extension/firefox
+
+      - name: Remove Firefox background worker hack
+        run: |
+          sed -i '/"scripts": \["js\/background.bundle\.js"\],/d' source/manifest.json
+
       - name: Build Prod Chrome artifacts
         run: |
           npm run build:chrome-with-sourcemaps
@@ -73,24 +91,10 @@ jobs:
       - name: Remove key in manifest
         run: |
           sed -i '/"key":/d' extension/chrome/manifest.json
-    
+
       - name: Store Chrome Prod artifacts
         uses: actions/upload-artifact@v4
         with:
           name: chrome
           path: |
             extension/chrome
-
-      - name: Build Prod Firefox artifacts
-        run: |
-          npm run build:firefox-with-sourcemaps
-
-      - name: Remove *.map files
-        run: rm -rf extension/firefox/js/*.map
-  
-      - name: Store Firefox Prod artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: firefox
-          path: |
-            extension/firefox
