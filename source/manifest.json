@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp5lsGLIkH3JH3BDdGLgTRIXvTkxd1m1vLhz1MzGH95+UywrpVbvcfro0JNWBwO581k3CvyVL9Pru1CSYMkHVVDPQ/OhSIh8qSULNF6013PnPz+xVk4HdV5zyjM0GxDAuvu6IBSte2n0e/O546C45wLp57zMy8i2auM+tuwExQPQ8IEy7EjOhL9cwO2nFrZsvii+9n+iyVT0hzpIavtekOgKeb4Ol7jH9/5ZhNHBv1//xaEx8onL7hJL4vbcHThLDFsegM/qq1EfoCMMhIEY0j3AT+Bop1RN3D7WrSHYbxIUbgCDUI5UZZlGN+2+dndvXaepRfFSZ0Kz6ofRP/Y47QQIDAQAB",
   "name": "__MSG_appName__",
-  "version": "1.32.2.1",
+  "version": "1.32.2.2",
   "default_locale": "en",
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -31,8 +31,8 @@
       "id": "{4b376457-9460-4891-b28a-60499c2e3343}"
     }
   },
-  "__chrome__minimum_chrome_version": "49",
-  "__opera__minimum_opera_version": "36",
+  "__chrome__minimum_chrome_version": "88",
+  "__opera__minimum_opera_version": "88",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

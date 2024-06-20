@@ -1505,7 +1505,7 @@ const Input: React.FC<{
           const script = ownerDocument.createElement('script');
           script.innerHTML = `(${replaceWithPaste})(${JSON.stringify(replacementText)})`;
           ownerDocument.head.appendChild(script);
-          script?.parentNode ? script.parentNode.removeChild(script) : script.remove();
+          script?.parentNode ? script.parentNode?.removeChild(script) : script.remove();
         } else {
           replaceWithPaste(replacementText);
         }
