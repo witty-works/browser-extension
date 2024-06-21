@@ -22,6 +22,10 @@ export const isGmail = (): boolean => {
   return window.location.hostname === 'mail.google.com';
 };
 
+export const isUnic = (): boolean => {
+  return window.location.hostname.includes('unic.com');
+}
+
 export const isGoogleSearch = (): boolean => {
   return window.location.hostname === 'www.google.com';
 }

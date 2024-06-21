@@ -29,12 +29,13 @@ import {
   isWittyEditor,
   isOffice,
   isGoogleSearch,
-  isMicrosoftOnlineExcel
+  isMicrosoftOnlineExcel,
+  isUnic
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import debounce from 'lodash.debounce';
+import throttle from 'lodash.throttle';
 import { getDomainWithoutSubdomain, storeInLocalStorage } from '../shared/utils';
 import Notification from '../Notifications/Notification';
 //Witty containers' styling
@@ -233,13 +234,16 @@ const ContentScriptApp: React.FC = () => {
       target = textFields[textFields.length - 1] as CustomInputElement;
     } else if (isNotion() && target.querySelector('main')) {
       target = target.querySelector('main') as CustomInputElement;
-    }
+    } else if (isUnic()) {
+      if(target.tagName === 'A') return;     
+    } 
 
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
       (isGoogleDocs() && target) ||
       (isChatGpt() && target) ||
-      isNotion()
+      isNotion() || 
+      isUnic()
     ) {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
@@ -442,14 +446,13 @@ const ContentScriptApp: React.FC = () => {
       mutations.forEach(function (mutation) {
         [].filter.call(mutation.addedNodes, function (node: HTMLElement) {
           if (node?.nodeName == 'IFRAME') {
-            debouncedHandleIframeAdded();
+            throttledHandleIframeAdded();
           }
         });
       });
     });
 
-    //debounced handle iframe added, use debounce form lodash
-    const debouncedHandleIframeAdded = debounce(() => {
+    const throttledHandleIframeAdded = throttle(() => {
       const iframes = document.querySelectorAll('iframe');
       iframes.forEach((iframe: HTMLIFrameElement) => {
         if (iframe.contentDocument?.body) {
@@ -478,7 +481,7 @@ const ContentScriptApp: React.FC = () => {
           }
         });
       };
-    }, 500);
+    }, 200);
 
     iframeAddedObserver.observe(document.body, {
       childList: true,
