@@ -30,7 +30,7 @@ import {
   isOffice,
   isGoogleSearch,
   isMicrosoftOnlineExcel,
-  isUnic
+  isAemRte
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -234,7 +234,7 @@ const ContentScriptApp: React.FC = () => {
       target = textFields[textFields.length - 1] as CustomInputElement;
     } else if (isNotion() && target.querySelector('main')) {
       target = target.querySelector('main') as CustomInputElement;
-    } else if (isUnic()) {
+    } else if (isAemRte(target)) {
       if(target.tagName === 'A') return;     
     } 
 
@@ -243,7 +243,7 @@ const ContentScriptApp: React.FC = () => {
       (isGoogleDocs() && target) ||
       (isChatGpt() && target) ||
       isNotion() || 
-      isUnic()
+      isAemRte(target)
     ) {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);

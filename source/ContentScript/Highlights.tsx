@@ -9,7 +9,7 @@ import {
   isGreenhouse,
   isHubspot,
   isTextArea,
-  isUnic,
+  isAemRte,
   nodeExistsInDOM,
 } from '../shared/DOMutils';
 import {
@@ -110,7 +110,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                     : rect.left,
                   top: isGoogleDocs()
                     ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
-                    : isUnic() 
+                    : isAemRte(element) 
                     ? rect.top + element.scrollTop
                     : rect.top +
                       doc.scrollTop -
