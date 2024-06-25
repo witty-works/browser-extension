@@ -22,6 +22,11 @@ export const isGmail = (): boolean => {
   return window.location.hostname === 'mail.google.com';
 };
 
+export const isAemRte = (element: Element): boolean => {
+  const CQrteElement = element.closest('#CQrte');
+  return !!CQrteElement;
+}
+
 export const isGoogleSearch = (): boolean => {
   return window.location.hostname === 'www.google.com';
 }

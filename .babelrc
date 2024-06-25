@@ -9,7 +9,7 @@
         "modules": false,
         "targets": {
           "chrome": "88",
-          "firefox": "52",
+          "firefox": "109",
           "opera": "88",
           "edge": "88"
         }
