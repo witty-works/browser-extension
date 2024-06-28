@@ -3,6 +3,8 @@ import { BaseUrls, wittyVersion } from '../constants';
 
 let BASE_URL_API: string = '';
 let BASE_URL_DASHBOARD: string = '';
+let BASE_URL_POSTHOG: string = '';
+let BASE_KEY_POSTHOG: string = '';
 let token: string = '';
 let configHash: string = '';
 let organizationConfigHash: string = '';
@@ -17,10 +19,17 @@ export const createUrl = (base: string, path: string): string =>
 export const setBaseUrls = (urlKey: string) => {
   BASE_URL_API = BaseUrls[urlKey].api;
   BASE_URL_DASHBOARD = BaseUrls[urlKey].dashboard;
+  BASE_URL_POSTHOG = BaseUrls[urlKey].posthog_url;
+  BASE_KEY_POSTHOG = BaseUrls[urlKey].posthog_key;
 };
 
 export const getBaseUrls = () => {
-  return { api: BASE_URL_API, dashboard: BASE_URL_DASHBOARD };
+  return {
+    api: BASE_URL_API,
+    dashboard: BASE_URL_DASHBOARD,
+    posthog_url: BASE_URL_POSTHOG,
+    posthog_key: BASE_KEY_POSTHOG
+  };
 };
 
 export const setRequestConfig = (reqConfig: RequestConfig) => {
