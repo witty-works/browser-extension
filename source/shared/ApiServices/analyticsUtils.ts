@@ -1,16 +1,18 @@
 import { IAlert } from '../types';
 import PostHog from 'posthog-js-lite'
-import { POSTHOG_API_URL, POSTHOG_API_KEY, StorageKeys, wittyVersion } from '../constants';
+import { StorageKeys, wittyVersion } from '../constants';
 import browser from 'webextension-polyfill';
 import { storeInLocalStorage } from '../utils';
 import defaultConfig from '../../witty.config.json';
 import { sendErrorToSentry } from '../errorUtils';
+import { getBaseUrls } from './requests';
 
 export const aliasId = async (userId: string, appId: string) => {
+    let urls = getBaseUrls()
     const request = {
-      api_key: POSTHOG_API_KEY,
+      api_key: urls.posthog_key,
       properties: {
-        distinct_id: appId,
+        distinct_id: appId ? appId : userId, ////make sure that this is equivalent to ph.session.distinctId
         alias: userId,
       },
       timestamp: new Date().toISOString(),
@@ -18,8 +20,8 @@ export const aliasId = async (userId: string, appId: string) => {
       type: 'alias',
       event: '$create_alias',
     };
-  
-    const response = await fetch(POSTHOG_API_URL + '/capture/', {
+
+    const response = await fetch(urls.posthog_url + '/capture/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -84,8 +86,9 @@ export const captureEvent = (eventName: string, eventData: object) => {
             aliasId(userId, appId);
           }
 
-      const ph = new PostHog(POSTHOG_API_KEY, {
-        host: POSTHOG_API_URL,
+      let urls = getBaseUrls()      
+      const ph = new PostHog(urls.posthog_key, {
+        host: urls.posthog_url,
         bootstrap : {
           distinctId: userId ? userId : appId, ////make sure that this is equivalent to ph.session.distinctId
         },
