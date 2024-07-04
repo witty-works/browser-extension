@@ -7,14 +7,6 @@ export const DEV_ENV = true;
 //Testing
 export const TESTING = false;
 
-export const POSTHOG_API_KEY = DEV_ENV
-  ? 'phc_QiISRw0yFAsndXqYD0HmfGvHaOBMxb57ZRIxlimvR64'
-  : 'phc_i1tlvuh1iecIOSEr0QmTEIklrsSJGhULpUwUlf8fkkl';
-
-export const POSTHOG_API_URL = DEV_ENV
-? 'https://app.posthog.com'
-: 'https://eu.posthog.com';
-
 //Storage
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
@@ -65,6 +57,8 @@ export enum StorageKeys {
 export type BaseUrl = {
   api: string;
   dashboard: string;
+  posthog_url: string;
+  posthog_key: string;
 };
 
 interface IBaseUrls {
@@ -75,14 +69,20 @@ export const BaseUrls: IBaseUrls = {
   Prod: {
     api: 'https://default.api.witty.works/',
     dashboard: 'https://dashboard.witty.works/',
+    posthog_url: 'https://eu.posthog.com',
+    posthog_key: 'phc_i1tlvuh1iecIOSEr0QmTEIklrsSJGhULpUwUlf8fkkl',
   },
   Dev: {
     api: 'https://dev-54ta5gq-jyeciedibdzvq.fr-4.platformsh.site/',
     dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
+    posthog_url: 'https://app.posthog.com',
+    posthog_key: 'phc_QiISRw0yFAsndXqYD0HmfGvHaOBMxb57ZRIxlimvR64',
   },
   Local: {
     api: 'http://127.0.0.1:8000/',
     dashboard: 'https://dashboard.lndo.site/',
+    posthog_url: 'https://app.posthog.com',
+    posthog_key: 'phc_QiISRw0yFAsndXqYD0HmfGvHaOBMxb57ZRIxlimvR64',
   },
 };
 
