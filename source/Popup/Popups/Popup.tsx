@@ -91,7 +91,6 @@ const Popup: React.FC<PopupProps> = ({
             ? result[StorageKeys.ACCESS_TOKEN]
             : ''
         );
-        console.log('iFrameDomains', result[StorageKeys.IFRAME_DOMAINS]);
 
         setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS]);
         setEnabled({
