@@ -215,6 +215,7 @@ export interface ICheckLogItems {
   response__results: ICheckResponseResult[];
   response__data__language: string;
   response__limit_reached: boolean;
+  request__hr__feature__disabled: boolean;
 }
 
 export interface ICheckResultLogItems {
@@ -239,6 +240,7 @@ export interface ICheckResultLogItems {
   response__data__gravity: number;
   response__data__language: string;
   response__limit_reached: boolean;
+  request__hr__feature__disabled: boolean;
 }
 
 export type DefaultConfigValue =
