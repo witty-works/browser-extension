@@ -147,15 +147,7 @@ const Popup: React.FC<PopupProps> = ({
       });
     
       setHasWittyTeams(authResponse.plan === 'witty_teams');
-      storeInLocalStorage(StorageKeys.PLAN, authResponse.plan);
       authResponse.organization_name && setTeamName(authResponse.organization_name);
-
-      if (authResponse?.organization_config?.categories) {
-        storeInLocalStorage(
-          StorageKeys.ORTHOGRAPHY,
-          authResponse.organization_config.categories.orthography
-        );
-      }
     }
   }, [authResponse]);
 
