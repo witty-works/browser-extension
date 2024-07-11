@@ -17,7 +17,7 @@ const renderPopup = async () => {
       if (!result[StorageKeys.ACCESS_TOKEN]) {
         renderUserNotLoggedIn();
         return;
-      } else if (!result[StorageKeys.PLAN]) {
+      } else if (result[StorageKeys.PLAN] === "none") {
         renderUpgradePopup();
         return;
       }
