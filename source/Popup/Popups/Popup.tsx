@@ -93,7 +93,7 @@ const Popup: React.FC<PopupProps> = ({
         );
         console.log('iFrameDomains', result[StorageKeys.IFRAME_DOMAINS]);
 
-        setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS]);
+        setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS] || []);
         setEnabled({
           enabled: 
             !defaultConfig.DISABLED_SITES.includes(domain) &&
@@ -108,7 +108,7 @@ const Popup: React.FC<PopupProps> = ({
           setNumberOfNotifications(result[StorageKeys.NUMBER_OF_NOTIFICATIONS]);
         }
 
-        setInitialDomainsDisabledLocally(result[StorageKeys.DOMAINS]);
+        setInitialDomainsDisabledLocally(result[StorageKeys.DOMAINS] || []);
         setTeamName(result[StorageKeys.TEAM_NAME]);
         setHrFeaturesDisabledDomains(result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS] || []);
         if (result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS]?.includes(domain)) {
