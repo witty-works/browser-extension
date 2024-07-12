@@ -22,7 +22,7 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
-import { storeInLocalStorage } from '../../shared/utils';
+import { getNewAccessToken, storeInLocalStorage } from '../../shared/utils';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
 import { updateConfig } from '../../ContentScript/utils';
 
@@ -46,6 +46,10 @@ const PopupUpgrade: React.FC = () => {
 
   useEffect(() => {
     DEV_ENV && console.log('authErrorResponse', authErrorResponse);
+    if (authErrorResponse?.status === 403) {
+      getNewAccessToken();
+      setConfig(false);
+    }
   }, [authErrorResponse]);
 
   useEffect(() => {
