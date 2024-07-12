@@ -19,7 +19,7 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import { storeInLocalStorage, logOut } from '../shared/utils';
+import { storeInLocalStorage, logOut, getDomainWithoutSubdomain } from '../shared/utils';
 import {
   isTextArea,
   isInputText,
@@ -125,6 +125,7 @@ const Input: React.FC<{
   const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
   const [, , popoverRootRef] = useStateRef<Root | null>(null);
   const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
+  const [hrFeatureDisabled, setHrFeatureDisabled] = useState<boolean>(false);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument?.activeElement;
@@ -193,6 +194,8 @@ const Input: React.FC<{
         (result[StorageKeys.PLAN] === 'witty_free' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
         setDebounceDelay(isWittyPremiumUserRef.current ? defaultConfig.API_DELAY : defaultConfig.API_DELAY_FREEMIUM);
         elementSpellcheckRef.current = result[StorageKeys.ORTHOGRAPHY]?.value;
+        const domain = getDomainWithoutSubdomain(window.location.hostname);
+        domain && result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS] && setHrFeatureDisabled(result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS].includes(domain));
         if (
           result[StorageKeys.PLAN] === 'witty_free' &&
           result[StorageKeys.IGNORED_CATEGORIES]
@@ -980,7 +983,8 @@ const Input: React.FC<{
       authResponse,
       clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
       'check',
-      checkLogEventIdRef.current
+      checkLogEventIdRef.current,
+      hrFeatureDisabled
     );
   
     log(
@@ -1248,6 +1252,7 @@ const Input: React.FC<{
         textContentLength,
         'check_highlights',
         checkLogEventIdRef.current,
+        hrFeatureDisabled
       );
     };
   };
