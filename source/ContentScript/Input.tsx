@@ -190,8 +190,8 @@ const Input: React.FC<{
       .get(null)
       .then((result) => {
         setUserIsSignedIn(!!result[StorageKeys.ACCESS_TOKEN]);
-        hasWittyLicense.current = !!result[StorageKeys.PLAN];
-        (result[StorageKeys.PLAN] === 'witty_free' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
+        hasWittyLicense.current = result[StorageKeys.PLAN] !== 'none';
+        (result[StorageKeys.PLAN] === 'witty_free' || result[StorageKeys.PLAN] === 'none' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
         setDebounceDelay(isWittyPremiumUserRef.current ? defaultConfig.API_DELAY : defaultConfig.API_DELAY_FREEMIUM);
         elementSpellcheckRef.current = result[StorageKeys.ORTHOGRAPHY]?.value;
         const domain = getDomainWithoutSubdomain(window.location.hostname);
