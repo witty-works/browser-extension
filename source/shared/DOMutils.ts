@@ -37,12 +37,7 @@ export const isHubspot = (): boolean => {
 
 //can be removed when powerpoint works
 export const isMicrosoftOnline = (windowUrl: string): boolean => {
-  if(isMicrosoftOnlineWord(windowUrl) || isOutlook() || isMicrosoftOnlineExcel(windowUrl)) {
-    return false;
-  } else {
-    const appTypes = ['chc-powerpoint', '.pptx'];
-    return appTypes.some(app => windowUrl.includes(app));
-  }
+  return (isMicrosoftOnlineWord(windowUrl) || isOutlook() || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl) || windowUrl.includes('sharepoint.com')) 
 }
 
 export const isMicrosoftOnlineExcel = (windowUrl: string): boolean => {

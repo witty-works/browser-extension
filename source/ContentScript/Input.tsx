@@ -190,7 +190,7 @@ const Input: React.FC<{
       .then((result) => {
         setUserIsSignedIn(!!result[StorageKeys.ACCESS_TOKEN]);
         hasWittyLicense.current = !!result[StorageKeys.PLAN];
-        (result[StorageKeys.PLAN] === 'witty_free' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
+        (result[StorageKeys.PLAN] === 'witty_free' || result[StorageKeys.PLAN] === 'none' || !result[StorageKeys.PLAN]) && (isWittyPremiumUserRef.current = false);
         setDebounceDelay(isWittyPremiumUserRef.current ? defaultConfig.API_DELAY : defaultConfig.API_DELAY_FREEMIUM);
         elementSpellcheckRef.current = result[StorageKeys.ORTHOGRAPHY]?.value;
         if (
