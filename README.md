@@ -119,6 +119,24 @@ You can watch the tests executing on http://localhost:6080/  (PW: vscode)
 
 test-results folder will be created with screenshots for manual debuging
 
+## Update Screenshots
+
+### Step 1: Download Test Results
+First, download the `test-results` folder, which is produced during runtime. You can find this under the **Artifacts** section in the **Summary** of the failing test.
+
+### Step 2: Compare Screenshots
+Next, compare the actual screenshot with the expected one to identify any discrepancies.
+
+### Step 3: Update Repository
+If the actual screenshot is now correct, follow these steps to update the repository:
+- Upload the correct screenshot to the `__tests__/highlightPlacement.spec.js-snapshots` directory in this repository.
+
+### Step 4: Manage Old Screenshots
+- Delete the original screenshots:
+  - `Highlights-witty-form-not-logged-in-1-linux.png`
+  - `Highlights-witty-form-1-linux.png`
+- Rename the new screenshots to match the names of the originals.
+
 ## Linting & TypeScript Config
 
 - Shared Eslint & Prettier Configuration - [`@abhijithvijayan/eslint-config`](https://www.npmjs.com/package/@abhijithvijayan/eslint-config)
@@ -127,3 +145,58 @@ test-results folder will be created with screenshots for manual debuging
 ## License
 
 This is a fork of [Web Extension Browser](https://github.com/abhijithvijayan/web-extension-starter/) by [Abhijith Vijayan](https://abhijithvijayan.in) under MIT license.
+
+## Testing Guidelines for Frequent Functionalities (Applicable to Textarea and Contenteditable)
+
+### Testing Highlight Functionality 
+
+After making changes to highlights:
+- Ensure highlights scroll correctly within the scrolling text area.
+- Verify highlights stay fixed when scrolling the surrounding window.
+- Check that highlights maintain their position.
+- Ensure highlights above text remain fixed while the highlights below are removed and then re-added in the correct position.
+- For long text, ensure only the first set number of characters are sent to the API. Users should be able to highlight additional text by clicking on a paragraph.
+- Note that much of the Google Docs compatibility code is separate and also needs updates.
+- Confirm that no highlights are displayed when the user is not logged in or if the trial has expired.
+- Verify that highlights adapt when resizing the input window as well as when resizing the entire window.
+
+### Testing Popover Functionality
+
+After making changes to popover:
+- Ensure the popover opens and closes correctly when clicking a word.
+- Verify the correct popover is displayed based on user status (not logged in, needs upgrade, logged in).
+- Check that the position of the popover is accurate relative to the selected word.
+- Confirm that learning bites are loaded correctly.
+- Verify that alternatives are inserted correctly, with specific attention to 'remove' alternatives.
+- Test the functionality of ignoring a word once and ignoring a word permanently through dashboards.
+
+### Testing Popup Functionality
+
+After making changes to popup:
+- Verify enabling and disabling the extension functions correctly:
+  - Ensure that when the extension is disabled, neither the 'witty active' nor 'witty passive' icons appear anywhere.
+  - Confirm no 'ww-container' elements are in the DOM.
+  - Pay extra attention to the behavior with iframes and when multiple input fields are on a page.
+- Ensure the correct popup is shown in appropriate situations (not logged in, domain disabled, no subscription, valid subscription).
+
+
+## Common Compatibility Issues and Resolutions
+
+### Highlight Visibility Issues
+
+- **Highlights Do Not Appear**: Check `getZIndex` in `Highlights.tsx` for issues related to z-index or stacking contexts.
+- **Witty Does Not Load**: Investigate the target element detected in `handleFocusinElement` in `ContentScriptApp.tsx`. The issue may involve incorrect targeting of parent, child, or unrelated elements.
+- **Highlights Displaced**: Commonly related to `canvasSize`, `correctedPosition`, or `rangeRects` positions in `Highlights.tsx`.
+- **Google Docs and Text Area Displaced Highlights**: Ensure correct styling is applied in `GoogleDocsClone.tsx` and `TextAreaClone.tsx`.
+
+### Scrolling and Insertion Issues
+
+- **Scrolling Displaces Highlights**: Typically involves issues with `correctedPosition.top` in the `canvasSize` or `elementScroll` in `Input.tsx`.
+- **Alternatives Cannot Be Inserted**: Explore different methods provided in `updateTextWithAlternative` in `Input.tsx`.
+
+### Functionality and Styling Issues
+
+- **Enabling/Disabling Witty Not Functioning**: Often a problem with how the domain is stored or accessed, especially within iframe domains.
+- **CSS Conflicts**: Ensure that CSS classes are properly namespaced to avoid conflicts.
+
+
