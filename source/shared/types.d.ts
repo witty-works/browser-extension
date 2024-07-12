@@ -71,6 +71,7 @@ export interface IAuthResponse {
   organization_name?: string;
   organization_domains: IDomains;
   organization_config_hash: string;
+  organization_trial_ends_at?: string;
 }
 
 export interface IDomains {

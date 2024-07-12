@@ -128,6 +128,12 @@ const Notification: React.FC<NotificationProps> = ({
       notificationButton = t('minVersionNotInstalledNotificationButton');
       notificationLink = 'https://www.witty.works/en/help/how-can-i-update-witty';
       break;
+    case 'trial_ended':
+      notificationHeadline = t('trialEndedNotificationHeadline');
+      notificationText = t('trialEndedNotificationText');
+      notificationButton = t('subscriptionButton');
+      notificationLink = getBaseUrls().dashboard + 'team/subscription';
+      break;
   }
 
   return (

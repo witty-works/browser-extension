@@ -119,6 +119,8 @@ export const de = {
     minVersionNotInstalledNotificationHeadline: 'Du must Witty aktualisieren',
     minVersionNotInstalledNotificationText: 'Um Witty weiterhin nutzen zu können, müsst Du Witty auf eine neuere Version aktualisieren.',
     minVersionNotInstalledNotificationButton: 'Aktualisieren',
+    trialEndedNotificationHeadline: 'Your Witty trial has ended',
+    trialEndedNotificationText: 'To continue using Witty, you need to upgrade to a paid plan.',
   },
 };
 
@@ -246,6 +248,8 @@ export const en = {
     minVersionNotInstalledNotificationHeadline: 'You need to update Witty',
     minVersionNotInstalledNotificationText: 'In order to continue using Witty, you need to update Witty to a newer version.',
     minVersionNotInstalledNotificationButton: 'How to update',
+    trialEndedNotificationHeadline: 'Your Witty trial has ended',
+    trialEndedNotificationText: 'To continue using Witty, you need to upgrade to a paid plan.',
   },
 
 };
@@ -367,5 +371,7 @@ export const fr = {
     minVersionNotInstalledNotificationHeadline: 'Vous devez mettre à jour Witty',
     minVersionNotInstalledNotificationText: 'Pour continuer à utiliser Witty, vous devez mettre à jour Witty vers une version plus récente.',
     minVersionNotInstalledNotificationButton: 'Comment mettre à jour',
+    trialEndedNotificationHeadline: 'Your Witty trial has ended',
+    trialEndedNotificationText: 'To continue using Witty, you need to upgrade to a paid plan.',
   },
 };
