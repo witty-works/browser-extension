@@ -368,7 +368,7 @@ const ContentScriptApp: React.FC = () => {
             inputsRef.current.length > 0 ? inputsRef.current : 'None'
           );
           inputsRef.current.forEach((input: CustomInputElement) => {
-            if (!input || !input.parentElement) return;
+            if (!input?.parentElement) return;
             const sibling = input.previousElementSibling as HTMLElement;
             if (sibling?.tagName === 'WW-CONTAINER') return;
             const highlightsContainer: HTMLElement =
