@@ -30,7 +30,8 @@ import {
   isOffice,
   isGoogleSearch,
   isMicrosoftOnlineExcel,
-  isAemRte
+  isAemRte,
+  isMicrosoftOnline
 } from '../shared/DOMutils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
@@ -84,6 +85,7 @@ const ContentScriptApp: React.FC = () => {
 
   useEffect(() => {
     if (isGoogleSearch()) return;
+    if (isMicrosoftOnline(window.location.href)) return; //needed in addition to the deny list because of iframes
 
     browser.storage.local
       .get(null)
@@ -368,7 +370,7 @@ const ContentScriptApp: React.FC = () => {
             inputsRef.current.length > 0 ? inputsRef.current : 'None'
           );
           inputsRef.current.forEach((input: CustomInputElement) => {
-            if (!input.parentElement) return;
+            if (!input?.parentElement) return;
             const sibling = input.previousElementSibling as HTMLElement;
             if (sibling?.tagName === 'WW-CONTAINER') return;
             const highlightsContainer: HTMLElement =

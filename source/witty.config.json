@@ -2,7 +2,9 @@
   "DISABLED_SITES": [
     "deepl.com",
     "productboard.com",
-    "openai.com"
+    "openai.com",
+    "sharepoint.com",
+    "chatgpt.com"
   ],
   "ACTIVE_SITES": [
     "notion.so",

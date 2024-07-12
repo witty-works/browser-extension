@@ -26,6 +26,7 @@ export const useAnalytics = () => {
       inputLength: number,
       requestType: string,
       checkLogEventId: string,
+      hrFeatureDisabled: boolean,
     ) {
       const checkResponseResultsWithoutContext = checkResponse.results.map(
         (result) => {
@@ -38,6 +39,7 @@ export const useAnalytics = () => {
         request__id: checkLogEventId,
         request__type: requestType,
         request__text__length: inputLength,
+        request__hr__feature__disabled: hrFeatureDisabled,
         ...getRequestData(),
         response__data__language: checkResponse.language,
         response__limit_reached: checkResponse.limit_reached,
@@ -57,11 +59,13 @@ export const useAnalytics = () => {
       inputLength: number,
       requestType: string,
       checkLogEventId: string,
+      hrFeatureDisabled: boolean,
     ) {
       const checkLogItems: ICheckResultLogItems = {
         request__id: checkLogEventId,
         request__type: requestType,
         request__text__length: inputLength,
+        request__hr__feature__disabled: hrFeatureDisabled,
         ...getRequestData(),
         response__limit_reached: checkResponse.limit_reached,
         response__organizationId: authResponse

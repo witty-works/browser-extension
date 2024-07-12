@@ -148,7 +148,7 @@ const Notification: React.FC<NotificationProps> = ({
       <div className="witty-works-ext-container-row">
         {notificationType === 'pin' && <WittyIcon className="witty-works-notification-icon" />}
         <div className="witty-works-notification-text">
-          <div dangerouslySetInnerHTML={{ __html: notificationText }}></div>
+          {notificationText} 
           {notificationButton && (
             <div className="witty-works-ext-left">
               <div
