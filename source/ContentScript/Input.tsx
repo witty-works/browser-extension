@@ -571,7 +571,7 @@ const Input: React.FC<{
       .sort((a, b) => a.index - b.index)
       .filter(
         (node, index, self) =>
-          index === self.findIndex((t) => t.index === node.index)
+          index === self?.findIndex((nodeToCompare) => nodeToCompare.index === node.index)
       );
 
     if (currentText && currentText.length > maxCharLength) {
