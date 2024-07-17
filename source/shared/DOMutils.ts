@@ -23,7 +23,7 @@ export const isGmail = (): boolean => {
 };
 
 export const isAemRte = (element: Element): boolean => {
-  const CQrteElement = element.closest('#CQrte');
+  const CQrteElement = element?.closest('#CQrte');
   return !!CQrteElement;
 }
 
@@ -88,12 +88,12 @@ export const isNotion = (): boolean => {
 };
 
 export const isCkEditor = (element: Element): boolean => {
-  const ckEditor = element.closest('.ck-content');
+  const ckEditor = element?.closest('.ck-content');
   return !!ckEditor;
 };
 
 export const isTinyMceEditor = (element: Element): boolean => {
-  const tinymceEditor = element.closest('#tinymce'); //might have to find a broader condition
+  const tinymceEditor = element?.closest('#tinymce'); //might have to find a broader condition
   return !!tinymceEditor;
 };
 
@@ -102,12 +102,12 @@ export const isBambooHr = (): boolean => {
 };
 
 export const isFroalaEditor = (element: Element): boolean => {
-  const foralaEditor = element.closest('.fr-element') || element.closest('.fr-view');
+  const foralaEditor = element?.closest('.fr-element') || element?.closest('.fr-view');
   return !!foralaEditor;
 };
 
 export const isRedactorEditor = (element: Element): boolean => {
-  const redactorEditor = element.closest('.redactor_html-editor');
+  const redactorEditor = element?.closest('.redactor_html-editor');
   return !!redactorEditor;
 };
 
