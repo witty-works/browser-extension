@@ -247,7 +247,7 @@ const Input: React.FC<{
     //This will allow us remove remaining highlights when text disappear
     const parentForm: HTMLFormElement | null = isTextArea(element)
       ? element.form
-      : element.closest('form');
+      : element?.closest('form');
 
     if (parentForm)
       parentForm.addEventListener('submit', handleSubmitFormEvent);

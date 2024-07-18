@@ -379,7 +379,7 @@ const ContentScriptApp: React.FC = () => {
 
             if (isGoogleSheets() && input.classList.contains('cell-input')) return;
               //get first ancestior that is a div
-              const ancestor = input.closest('div');
+              const ancestor = input?.closest('div');
 
               if (isNotion()) {
                 //Workaround as Notion blocks insertion of code on a deeper level
