@@ -87,7 +87,7 @@ const initialize = () => {
 
   const orphanMessageId = `${browser.runtime.id}orphanCheck`;
   window.dispatchEvent(new Event(orphanMessageId));
-  window.addEventListener(orphanMessageId, unregisterOrphan);
+  window?.addEventListener(orphanMessageId, unregisterOrphan);
 
   function unregisterOrphan() {
     if (!browser.runtime.id) {
