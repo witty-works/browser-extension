@@ -101,6 +101,10 @@ export const isBambooHr = (): boolean => {
   return window.location.hostname.includes('bamboohr');
 };
 
+export const isModX = (): boolean => {
+  return window.location.hostname.includes('modx');
+};
+
 export const isFroalaEditor = (element: Element): boolean => {
   const foralaEditor = element?.closest('.fr-element') || element?.closest('.fr-view');
   return !!foralaEditor;
@@ -142,7 +146,7 @@ export const isInputElement = (element: Element) =>
   isHTMLElementContentEditable(element);
 
 export const getZIndex = (element: Element) => {
-  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail()
+  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail() || isModX()
     ? 501 
     : isRedactorEditor(element) || isRecruitee()
     ? 9999998 //make sure highlights are the second largest (smaller than popover)
