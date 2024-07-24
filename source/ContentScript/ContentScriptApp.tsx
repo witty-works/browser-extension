@@ -135,11 +135,11 @@ const ContentScriptApp: React.FC = () => {
 
     isGoogleDocs() && handleFocusinElement();
     !isGoogleDocs() &&
-      document.addEventListener('focusin', handleFocusinElement, true);
+      document?.addEventListener('focusin', handleFocusinElement, true);
     !isGoogleDocs() &&
-      document.addEventListener('focusout', handleFocusoutElement, true);
-    document.addEventListener('mouseover', handleMouseOver, true);
-    document.addEventListener('mouseout', handleMouseOut, true);
+      document?.addEventListener('focusout', handleFocusoutElement, true);
+    document?.addEventListener('mouseover', handleMouseOver, true);
+    document?.addEventListener('mouseout', handleMouseOut, true);
 
     if (isWittyEditor()) {
       const focusedElement = getActiveDocument()?.activeElement as HTMLElement;
@@ -458,11 +458,11 @@ const ContentScriptApp: React.FC = () => {
       const iframes = document.querySelectorAll('iframe');
       iframes.forEach((iframe: HTMLIFrameElement) => {
         if (iframe.contentDocument?.body) {
-          iframe.contentDocument.body.addEventListener(
+          iframe.contentDocument.body?.addEventListener(
               'focusin',
               handleFocusinElement
           );
-          iframe.contentDocument.body.addEventListener(
+          iframe.contentDocument.body?.addEventListener(
               'focusout',
               handleFocusoutElement
           );

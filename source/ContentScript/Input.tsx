@@ -223,24 +223,24 @@ const Input: React.FC<{
       firstScrollableParentRef.current = newScrollableParent;
 
     if(!isGoogleDocs()) {
-      element.addEventListener('focusout', handleFocusoutEvent);
-      element.addEventListener('focusin', handleFocusinEvent);
+      element?.addEventListener('focusout', handleFocusoutEvent);
+      element?.addEventListener('focusin', handleFocusinEvent);
     }
-    element.addEventListener('mouseover', handleMouseoverEvent);
-    element.addEventListener('mouseout', handleMouseoutEvent);
-    newScrollableParent.addEventListener('scroll', handleElementScrollEvent);
+    element?.addEventListener('mouseover', handleMouseoverEvent);
+    element?.addEventListener('mouseout', handleMouseoutEvent);
+    newScrollableParent?.addEventListener('scroll', handleElementScrollEvent);
 
-    element.addEventListener('dblclick', handleElementClickEvent as any);
-    element.addEventListener('click', handleElementClickEvent as any);
+    element?.addEventListener('dblclick', handleElementClickEvent as any);
+    element?.addEventListener('click', handleElementClickEvent as any);
 
     if (isGoogleDocs()) {
-      googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
-      document.addEventListener(
+      googleDocsEventTarget?.addEventListener('focusout', handleFocusoutEvent);
+      document?.addEventListener(
         'click',
         handleDocumentClickEvent as EventListener
       );
-      document.addEventListener('scroll', handleElementScrollEvent);
-      window.addEventListener('resize', handleDocumentResizeEvent);
+      document?.addEventListener('scroll', handleElementScrollEvent);
+      window?.addEventListener('resize', handleDocumentResizeEvent);
     }
 
     //If a parent form exists, we will monitor the submision.
@@ -250,7 +250,7 @@ const Input: React.FC<{
       : element?.closest('form');
 
     if (parentForm)
-      parentForm.addEventListener('submit', handleSubmitFormEvent);
+      parentForm?.addEventListener('submit', handleSubmitFormEvent);
 
     return () => {
       //Don't forget to remove the listeners at the end
@@ -433,9 +433,9 @@ const Input: React.FC<{
         .querySelector('.notion-frame')
         ?.addEventListener('keyup', handleKeyupEvent as any)
     } else {
-      element.addEventListener('keyup', handleKeyupEvent as any);
+      element?.addEventListener('keyup', handleKeyupEvent as any);
     }
-    element.addEventListener('paste', handleKeyupEvent as any);
+    element?.addEventListener('paste', handleKeyupEvent as any);
 
 
     return () => {
