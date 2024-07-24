@@ -1669,6 +1669,7 @@ const renderPopover = () => {
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
             movePopoverNextOrPrev={movePopoverNextOrPrev}
+            showIgnorePermanently={currentTextToCheck.length <= 50}
           />
         </Sentry.ErrorBoundary>
       );
