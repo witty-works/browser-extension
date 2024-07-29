@@ -670,27 +670,29 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               {t('ignoreOnce')}
             </span>
           </button>
-          <button
-            onClick={handleIgnoreClick('ignore_permanently')}
-            className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top witty-works-button'
-          >
-            <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
-              <IgnoreIcon alt={t('ignore_once')} />
-            </span>
-            <span className='witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>
-              {t('ignorePermanently')}
-            </span>
-            {isLoading === 'ignore_permanently' && <LoadingIcon />}
-            {isSuccess === 'ignore_permanently' && <CheckIcon />}
-            {isFailure === 'ignore_permanently' && (
-              <>
-                <ErrorIcon />{' '}
-                <span className='witty-works-ext-margin-left'>
-                  {t('failedRequestText')}
-                </span>
-              </>
-            )}
-          </button>
+          {data?.alert?.data?.text.length <= 50 && (
+            <button
+              onClick={handleIgnoreClick('ignore_permanently')}
+              className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top witty-works-button'
+            >
+              <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
+                <IgnoreIcon alt={t('ignore_permanently')} />
+              </span>
+              <span className='witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>
+                {t('ignorePermanently')}
+              </span>
+              {isLoading === 'ignore_permanently' && <LoadingIcon />}
+              {isSuccess === 'ignore_permanently' && <CheckIcon />}
+              {isFailure === 'ignore_permanently' && (
+                <>
+                  <ErrorIcon />{' '}
+                  <span className='witty-works-ext-margin-left'>
+                    {t('failedRequestText')}
+                  </span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
     </div>
