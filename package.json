@@ -102,7 +102,7 @@
     "webextension-polyfill": "^0.11.0",
     "webpack": "^5.88.2",
     "webpack-cli": "^4.7.0",
-    "webpack-ext-reloader": "^1.1.10",
+    "webpack-ext-reloader": "^1.1.13",
     "wext-manifest-loader": "^2.3.0",
     "wext-manifest-webpack-plugin": "^1.2.1"
   },
