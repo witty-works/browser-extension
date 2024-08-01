@@ -1,5 +1,4 @@
 import chroma from 'chroma-js';
-import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 import { BaseUrls } from './constants';
 import { getDomainWithoutSubdomain } from './utils';
 
@@ -177,8 +176,8 @@ export const findElement = (node: Node, element: string): boolean => {
   return false;
 };
 
-export const nodeExistsInDOM = (node: Node): boolean =>
-  getActiveDocument().body?.contains(node);
+export const nodeExistsInDOM = (document: Document, node: Node): boolean =>
+  document?.body?.contains(node);
 
 export const elementIsVisible = (element: Element): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();

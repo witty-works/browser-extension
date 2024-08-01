@@ -1,10 +1,8 @@
 import browser from 'webextension-polyfill';
-import { useAnalytics } from './ApiServices/useAnalytics';
-import { DEV_ENV, StorageKeys, wittyVersion, WTags } from './constants';
+import { DEV_ENV, StorageKeys, wittyVersion } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import { isGoogleDocs, isMicrosoftOnline, isTextArea, requiresRectRecalculation } from './DOMutils';
-import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 import { getToken } from './ApiServices/requests';
 
 export const isObjectEmpty = (obj: object) =>
@@ -41,17 +39,6 @@ export const storeInLocalStorage = (key: string, value: any) => {
         );
     })
     .catch((error: unknown) => {
-      //this error means that the extension was deactivated or uninstalled, in this case we delete the container
-      if (error == 'Error: Extension context invalidated.') {
-        useAnalytics().extenstionStatusLog('deactivated');
-        const container = getActiveDocument().getElementsByTagName(
-          WTags.WW_CONTAINER
-        );
-        if (container.length > 0) {
-          container[0].remove();
-        }
-      }
-
       const componentName = 'Utils';
       const message = `onBrowserStorage Error: ${error}`;
 
