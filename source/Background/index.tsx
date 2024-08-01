@@ -254,10 +254,6 @@ const scanTabsToDetectStatus = () => {
         });
 
       updateLabelChrome(domain);
-    } else if (
-      defaultConfig.CHROME_AND_FIREFOX_SITES?.includes(window.location.protocol)
-    ) {
-      removeBadge();
     }
   });
 };
@@ -270,19 +266,6 @@ const storageChange = (changes: { [key: string]: any }) => {
       addBadge('Login');
     } else if (key === StorageKeys.PLAN && !changes[key].newValue) {
       addBadge('OFF');
-    } else if (key === StorageKeys.ORGANIZATION_DOMAINS) {
-      if (
-        (changes[key].newValue.type === 'deny' &&
-          changes[key].newValue.list?.includes(
-            getDomainWithoutSubdomain(window.location.hostname)
-          )) ||
-        (changes[key].newValue.type === 'allow' &&
-          !changes[key].newValue.list?.includes(
-            getDomainWithoutSubdomain(window.location.hostname)
-          ))
-      ) {
-        addBadge('OFF');
-      } 
     } else if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
       changes[key].newValue === 0
         ? removeBadge()
