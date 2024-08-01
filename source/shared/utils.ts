@@ -131,7 +131,7 @@ export const removeBadge = () => {
 export const getRandomToken = () => {
   const bytes = new Uint8Array(32); //256 bits token
 
-  window.crypto.getRandomValues(bytes);
+  crypto.getRandomValues(bytes);
 
   // convert byte array to hexademical representation
   const bytesHex = bytes.reduce(
