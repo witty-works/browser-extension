@@ -1412,16 +1412,16 @@ const Input: React.FC<{
         }
       });
     }
-    //remove the alert that is being replaced 
+    //remove the alert that is being replaced
     nodesWithAlertsRef.current = nodesWithAlertsRef.current.map((nodeWithAlerts) => {
       if (nodeWithAlerts.node === node) {
         return {
           ...nodeWithAlerts,
           alerts: nodeWithAlerts.alerts.filter((nodeAlert) => nodeAlert.id !== alert.id)
         }
+        }
+        return nodeWithAlerts;
       }
-      return nodeWithAlerts;
-    }
     );
 
     if (isTextArea(element) || isInputText(element)) {
@@ -1431,15 +1431,15 @@ const Input: React.FC<{
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-    
-      range.setStart(node,  alert.startOffset - (isRemoveAlternative ? 1 : 0));
+
+      range.setStart(node, alert.startOffset - (isRemoveAlternative ? 1 : 0));
       range.setEnd(node, alert.endOffset);
-    
+
       const sel = getActiveDocument().getSelection();
       if (!sel) return;
       sel.removeAllRanges();
       sel.addRange(range);
-      
+
       if (isCkEditor(element)) {
         const deleteSelectedText = new KeyboardEvent('keydown', {
           key: 'Delete',
@@ -1448,26 +1448,23 @@ const Input: React.FC<{
         });
         node.dispatchEvent(deleteSelectedText);
         //Need to slow down the process for changes to be applied
-        browser.alarms.create('firstAlarm', { delayInMinutes: 0.00333333 }); // 200 ms in minutes
-      
-        browser.alarms.onAlarm.addListener((alarm) => {
-          if (alarm.name === 'firstAlarm') {
-            const insertAlternative = new ClipboardEvent('paste', {
-              clipboardData: new DataTransfer(),
-              cancelable: true,
-              bubbles: true,
-            });
-            if (!insertAlternative.clipboardData) return;
-            insertAlternative.clipboardData.setData('text/plain', alternative);
-            node.dispatchEvent(insertAlternative);
-      
-            browser.alarms.create('secondAlarm', { delayInMinutes: 0.00333333 }); // 200 ms in minutes
-          } else if (alarm.name === 'secondAlarm') {
+        setTimeout(() => {
+          const insertAlternative = new ClipboardEvent('paste', {
+            clipboardData: new DataTransfer(),
+            cancelable: true,
+            bubbles: true,
+          });
+        
+          if (!insertAlternative.clipboardData) return;
+          insertAlternative.clipboardData.setData('text/plain', alternative);
+          node.dispatchEvent(insertAlternative);
+        
+          setTimeout(() => {
             setTextToCheck(getInputText(element));
             const event = new Event('keyup', { bubbles: true });
             element.dispatchEvent(event);
-          }
-        });
+          }, 200);
+        }, 200);
       } else if (isGoogleDocs()) {
         setActiveIcon('loading');
         setAlerts([]);
