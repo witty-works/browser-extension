@@ -23,7 +23,7 @@ export const isGmail = (): boolean => {
 };
 
 export const isAemRte = (element: Element): boolean => {
-  const CQrteElement = element.closest('#CQrte');
+  const CQrteElement = element?.closest('#CQrte');
   return !!CQrteElement;
 }
 
@@ -37,7 +37,7 @@ export const isHubspot = (): boolean => {
 
 //can be removed when powerpoint works
 export const isMicrosoftOnline = (windowUrl: string): boolean => {
-  return (isMicrosoftOnlineWord(windowUrl) || isOutlook() || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl) || windowUrl.includes('sharepoint.com')) 
+  return (isMicrosoftOnlineWord(windowUrl) || isOutlook() || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl)) 
 }
 
 export const isMicrosoftOnlineExcel = (windowUrl: string): boolean => {
@@ -88,12 +88,12 @@ export const isNotion = (): boolean => {
 };
 
 export const isCkEditor = (element: Element): boolean => {
-  const ckEditor = element.closest('.ck-content');
+  const ckEditor = element?.closest('.ck-content');
   return !!ckEditor;
 };
 
 export const isTinyMceEditor = (element: Element): boolean => {
-  const tinymceEditor = element.closest('#tinymce'); //might have to find a broader condition
+  const tinymceEditor = element?.closest('#tinymce'); //might have to find a broader condition
   return !!tinymceEditor;
 };
 
@@ -101,13 +101,17 @@ export const isBambooHr = (): boolean => {
   return window.location.hostname.includes('bamboohr');
 };
 
+export const isModX = (): boolean => {
+  return window.location.hostname.includes('modx');
+};
+
 export const isFroalaEditor = (element: Element): boolean => {
-  const foralaEditor = element.closest('.fr-element') || element.closest('.fr-view');
+  const foralaEditor = element?.closest('.fr-element') || element?.closest('.fr-view');
   return !!foralaEditor;
 };
 
 export const isRedactorEditor = (element: Element): boolean => {
-  const redactorEditor = element.closest('.redactor_html-editor');
+  const redactorEditor = element?.closest('.redactor_html-editor');
   return !!redactorEditor;
 };
 
@@ -142,7 +146,7 @@ export const isInputElement = (element: Element) =>
   isHTMLElementContentEditable(element);
 
 export const getZIndex = (element: Element) => {
-  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail()
+  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail() || isModX()
     ? 501 
     : isRedactorEditor(element) || isRecruitee()
     ? 9999998 //make sure highlights are the second largest (smaller than popover)

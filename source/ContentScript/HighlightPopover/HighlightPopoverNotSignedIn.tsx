@@ -139,10 +139,10 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   useEffect(() => reference(element), [reference]);
 
   useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('input', handleClickOutside as EventListener);
-    getActiveDocument().addEventListener('click', handleClickOutside);
-    getActiveDocument().addEventListener(
+    document?.addEventListener('click', handleClickOutside);
+    document?.addEventListener('input', handleClickOutside as EventListener);
+    getActiveDocument()?.addEventListener('click', handleClickOutside);
+    getActiveDocument()?.addEventListener(
       'input',
       handleClickOutside as EventListener
     );

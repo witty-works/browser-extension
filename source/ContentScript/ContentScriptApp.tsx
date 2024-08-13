@@ -135,11 +135,11 @@ const ContentScriptApp: React.FC = () => {
 
     isGoogleDocs() && handleFocusinElement();
     !isGoogleDocs() &&
-      document.addEventListener('focusin', handleFocusinElement, true);
+      document?.addEventListener('focusin', handleFocusinElement, true);
     !isGoogleDocs() &&
-      document.addEventListener('focusout', handleFocusoutElement, true);
-    document.addEventListener('mouseover', handleMouseOver, true);
-    document.addEventListener('mouseout', handleMouseOut, true);
+      document?.addEventListener('focusout', handleFocusoutElement, true);
+    document?.addEventListener('mouseover', handleMouseOver, true);
+    document?.addEventListener('mouseout', handleMouseOut, true);
 
     if (isWittyEditor()) {
       const focusedElement = getActiveDocument()?.activeElement as HTMLElement;
@@ -379,7 +379,7 @@ const ContentScriptApp: React.FC = () => {
 
             if (isGoogleSheets() && input.classList.contains('cell-input')) return;
               //get first ancestior that is a div
-              const ancestor = input.closest('div');
+              const ancestor = input?.closest('div');
 
               if (isNotion()) {
                 //Workaround as Notion blocks insertion of code on a deeper level
@@ -458,11 +458,11 @@ const ContentScriptApp: React.FC = () => {
       const iframes = document.querySelectorAll('iframe');
       iframes.forEach((iframe: HTMLIFrameElement) => {
         if (iframe.contentDocument?.body) {
-          iframe.contentDocument.body.addEventListener(
+          iframe.contentDocument.body?.addEventListener(
               'focusin',
               handleFocusinElement
           );
-          iframe.contentDocument.body.addEventListener(
+          iframe.contentDocument.body?.addEventListener(
               'focusout',
               handleFocusoutElement
           );

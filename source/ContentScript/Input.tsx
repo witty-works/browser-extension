@@ -223,34 +223,34 @@ const Input: React.FC<{
       firstScrollableParentRef.current = newScrollableParent;
 
     if(!isGoogleDocs()) {
-      element.addEventListener('focusout', handleFocusoutEvent);
-      element.addEventListener('focusin', handleFocusinEvent);
+      element?.addEventListener('focusout', handleFocusoutEvent);
+      element?.addEventListener('focusin', handleFocusinEvent);
     }
-    element.addEventListener('mouseover', handleMouseoverEvent);
-    element.addEventListener('mouseout', handleMouseoutEvent);
-    newScrollableParent.addEventListener('scroll', handleElementScrollEvent);
+    element?.addEventListener('mouseover', handleMouseoverEvent);
+    element?.addEventListener('mouseout', handleMouseoutEvent);
+    newScrollableParent?.addEventListener('scroll', handleElementScrollEvent);
 
-    element.addEventListener('dblclick', handleElementClickEvent as any);
-    element.addEventListener('click', handleElementClickEvent as any);
+    element?.addEventListener('dblclick', handleElementClickEvent as any);
+    element?.addEventListener('click', handleElementClickEvent as any);
 
     if (isGoogleDocs()) {
-      googleDocsEventTarget.addEventListener('focusout', handleFocusoutEvent);
-      document.addEventListener(
+      googleDocsEventTarget?.addEventListener('focusout', handleFocusoutEvent);
+      document?.addEventListener(
         'click',
         handleDocumentClickEvent as EventListener
       );
-      document.addEventListener('scroll', handleElementScrollEvent);
-      window.addEventListener('resize', handleDocumentResizeEvent);
+      document?.addEventListener('scroll', handleElementScrollEvent);
+      window?.addEventListener('resize', handleDocumentResizeEvent);
     }
 
     //If a parent form exists, we will monitor the submision.
     //This will allow us remove remaining highlights when text disappear
     const parentForm: HTMLFormElement | null = isTextArea(element)
       ? element.form
-      : element.closest('form');
+      : element?.closest('form');
 
     if (parentForm)
-      parentForm.addEventListener('submit', handleSubmitFormEvent);
+      parentForm?.addEventListener('submit', handleSubmitFormEvent);
 
     return () => {
       //Don't forget to remove the listeners at the end
@@ -433,9 +433,9 @@ const Input: React.FC<{
         .querySelector('.notion-frame')
         ?.addEventListener('keyup', handleKeyupEvent as any)
     } else {
-      element.addEventListener('keyup', handleKeyupEvent as any);
+      element?.addEventListener('keyup', handleKeyupEvent as any);
     }
-    element.addEventListener('paste', handleKeyupEvent as any);
+    element?.addEventListener('paste', handleKeyupEvent as any);
 
 
     return () => {
@@ -1412,16 +1412,16 @@ const Input: React.FC<{
         }
       });
     }
-    //remove the alert that is being replaced 
+    //remove the alert that is being replaced
     nodesWithAlertsRef.current = nodesWithAlertsRef.current.map((nodeWithAlerts) => {
       if (nodeWithAlerts.node === node) {
         return {
           ...nodeWithAlerts,
           alerts: nodeWithAlerts.alerts.filter((nodeAlert) => nodeAlert.id !== alert.id)
         }
+        }
+        return nodeWithAlerts;
       }
-      return nodeWithAlerts;
-    }
     );
 
     if (isTextArea(element) || isInputText(element)) {
@@ -1431,15 +1431,15 @@ const Input: React.FC<{
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
-    
-      range.setStart(node,  alert.startOffset - (isRemoveAlternative ? 1 : 0));
+
+      range.setStart(node, alert.startOffset - (isRemoveAlternative ? 1 : 0));
       range.setEnd(node, alert.endOffset);
-    
+
       const sel = getActiveDocument().getSelection();
       if (!sel) return;
       sel.removeAllRanges();
       sel.addRange(range);
-      
+
       if (isCkEditor(element)) {
         const deleteSelectedText = new KeyboardEvent('keydown', {
           key: 'Delete',
@@ -1448,26 +1448,23 @@ const Input: React.FC<{
         });
         node.dispatchEvent(deleteSelectedText);
         //Need to slow down the process for changes to be applied
-        browser.alarms.create('firstAlarm', { delayInMinutes: 0.00333333 }); // 200 ms in minutes
-      
-        browser.alarms.onAlarm.addListener((alarm) => {
-          if (alarm.name === 'firstAlarm') {
-            const insertAlternative = new ClipboardEvent('paste', {
-              clipboardData: new DataTransfer(),
-              cancelable: true,
-              bubbles: true,
-            });
-            if (!insertAlternative.clipboardData) return;
-            insertAlternative.clipboardData.setData('text/plain', alternative);
-            node.dispatchEvent(insertAlternative);
-      
-            browser.alarms.create('secondAlarm', { delayInMinutes: 0.00333333 }); // 200 ms in minutes
-          } else if (alarm.name === 'secondAlarm') {
+        setTimeout(() => {
+          const insertAlternative = new ClipboardEvent('paste', {
+            clipboardData: new DataTransfer(),
+            cancelable: true,
+            bubbles: true,
+          });
+        
+          if (!insertAlternative.clipboardData) return;
+          insertAlternative.clipboardData.setData('text/plain', alternative);
+          node.dispatchEvent(insertAlternative);
+        
+          setTimeout(() => {
             setTextToCheck(getInputText(element));
             const event = new Event('keyup', { bubbles: true });
             element.dispatchEvent(event);
-          }
-        });
+          }, 200);
+        }, 200);
       } else if (isGoogleDocs()) {
         setActiveIcon('loading');
         setAlerts([]);
