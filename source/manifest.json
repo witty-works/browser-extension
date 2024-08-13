@@ -13,7 +13,7 @@
   "description": "__MSG_appDesc__",
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
-  "permissions": ["storage"],
+  "permissions": ["storage", "scripting"],
   "host_permissions": ["http://*/*", "https://*/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
