@@ -164,9 +164,9 @@ export enum GermanGenderEndings {
 //Icons
 export const WittyIconActive = {
   path: {
-    '16': 'assets/icons/icon16.png',
-    '32': 'assets/icons/icon32.png',
-    '48': 'assets/icons/icon48.png',
+    '16': '/assets/icons/icon16.png',
+    '32': '/assets/icons/icon32.png',
+    '48': '/assets/icons/icon48.png',
   },
 };
 
