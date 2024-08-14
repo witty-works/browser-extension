@@ -61,6 +61,7 @@ const addEventListeners = () => {
   browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
   browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
   browser.storage.onChanged.addListener(storageChange);
+  browser.storage.onChanged.addListener(scanTabsToDetectStatus);
 
   browser.runtime.onUpdateAvailable.addListener(() => {
     browser.runtime.reload();
