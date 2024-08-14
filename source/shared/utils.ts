@@ -79,6 +79,14 @@ export const addNotificationBadge = (numberOfNotifications: number) => {
   browser.action?.setBadgeText({
     text: numberOfNotifications.toString(),
   });
+  // for firefox mv2
+  browser.browserAction?.setBadgeBackgroundColor({
+    color: '#E6635A',
+  });
+
+  browser.browserAction?.setBadgeText({
+    text: numberOfNotifications.toString(),
+  });
 };
 
 export const addBadge = (text: string) => {
@@ -86,6 +94,11 @@ export const addBadge = (text: string) => {
     color: [190, 190, 190, 230],
   });
   browser.action?.setBadgeText({ text: text });
+  // for firefox mv2
+  browser.browserAction?.setBadgeBackgroundColor({
+    color: [190, 190, 190, 230],
+  });
+  browser.browserAction?.setBadgeText({ text: text });
 }
 
 export const getNewAccessToken = async () => {
@@ -126,6 +139,8 @@ export const logOut = () => {
 
 export const removeBadge = () => {
   browser.action?.setBadgeText({ text: '' });
+  // for firefox mv2
+  browser.browserAction?.setBadgeText({ text: '' });
 };
 
 export const getRandomToken = () => {
