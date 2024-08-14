@@ -36,7 +36,7 @@ export const isHubspot = (): boolean => {
 
 //can be removed when powerpoint works
 export const isMicrosoftOnline = (windowUrl: string): boolean => {
-  return (isMicrosoftOnlineWord(windowUrl) || isOutlook() || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl)) 
+  return (isMicrosoftOnlineWord(windowUrl) || isOutlook(windowUrl) || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl))
 }
 
 export const isMicrosoftOnlineExcel = (windowUrl: string): boolean => {
@@ -58,8 +58,16 @@ export const isOffice = (): boolean => {
   return window.location.hostname.includes('office.com');
 }
 
-export const isOutlook = (): boolean => {
-  return window.location.hostname.includes('outlook.office365.com');
+export const isOutlook = (windowUrl?: string): boolean => {
+  if (windowUrl) {
+    return windowUrl.includes('outlook.office365.com');
+  }
+
+  if (window) {
+    return window.location.hostname.includes('outlook.office365.com');
+  }
+
+  return false;
 }
 
 export const isWittyEditor = (): boolean => {
