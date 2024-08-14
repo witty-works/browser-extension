@@ -254,6 +254,8 @@ const scanTabsToDetectStatus = () => {
         });
 
       updateLabelChrome(domain);
+    } else {
+      removeBadge();
     }
   });
 };
