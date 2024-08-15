@@ -58,9 +58,13 @@ if (sentryDSN) {
 
 const addEventListeners = () => {
   browser.tabs.onCreated.addListener(scanTabsToDetectStatus);
+  browser.tabs.onCreated.addListener(scanTabsToSetIframeDomains);
   browser.tabs.onUpdated.addListener(scanTabsToDetectStatus);
+  browser.tabs.onUpdated.addListener(scanTabsToSetIframeDomains);
   browser.tabs.onActivated.addListener(scanTabsToDetectStatus);
+  browser.tabs.onActivated.addListener(scanTabsToSetIframeDomains);
   browser.storage.onChanged.addListener(storageChange);
+  browser.storage.onChanged.addListener(scanTabsToDetectStatus);
 
   browser.runtime.onUpdateAvailable.addListener(() => {
     browser.runtime.reload();
@@ -221,11 +225,9 @@ const setSettings = () => {
   setInLocalStorage(StorageKeys.APP_ID, getRandomToken());
 };
 
-const scanTabsToDetectStatus = () => {
+const scanTabsToSetIframeDomains = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs.length != 0 && tabs[0].url) {
-      const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
-
       browser.scripting.executeScript({
         target: { tabId: tabs[0].id! },
         func: () => {
@@ -234,29 +236,34 @@ const scanTabsToDetectStatus = () => {
           );
         }
       }).then((result) => {
-          const iframes = result[0].result;
-          if (iframes) {
-            const iframeDomains = iframes.map((iframe: string) => {
-              try {
-                  const url = new URL(iframe);
-                  return getDomainWithoutSubdomain(url.hostname);
-              } catch (e) {
-                  console.error("Invalid URL provided:", iframe, e);
-                  return null;
-              }
+        const iframes = result[0].result;
+        if (iframes) {
+          const iframeDomains = iframes.map((iframe: string) => {
+            try {
+              const url = new URL(iframe);
+              return getDomainWithoutSubdomain(url.hostname);
+            } catch (e) {
+              console.error("Invalid URL provided:", iframe, e);
+              return null;
+            }
           });
           storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, iframeDomains);
         } else {
           storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, []);
         }
-        }).catch((error) => {
-          sendErrorToSentry(error);
-        });
+      }).catch((error) => {
+        sendErrorToSentry(error);
+      });
+    }
+  });
+}
 
+const scanTabsToDetectStatus = () => {
+  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+    if (tabs.length != 0 && tabs[0].url) {
+      const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
       updateLabelChrome(domain);
-    } else if (
-      defaultConfig.CHROME_AND_FIREFOX_SITES?.includes(window.location.protocol)
-    ) {
+    } else {
       removeBadge();
     }
   });
@@ -270,19 +277,6 @@ const storageChange = (changes: { [key: string]: any }) => {
       addBadge('Login');
     } else if (key === StorageKeys.PLAN && !changes[key].newValue) {
       addBadge('OFF');
-    } else if (key === StorageKeys.ORGANIZATION_DOMAINS) {
-      if (
-        (changes[key].newValue.type === 'deny' &&
-          changes[key].newValue.list?.includes(
-            getDomainWithoutSubdomain(window.location.hostname)
-          )) ||
-        (changes[key].newValue.type === 'allow' &&
-          !changes[key].newValue.list?.includes(
-            getDomainWithoutSubdomain(window.location.hostname)
-          ))
-      ) {
-        addBadge('OFF');
-      } 
     } else if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
       changes[key].newValue === 0
         ? removeBadge()

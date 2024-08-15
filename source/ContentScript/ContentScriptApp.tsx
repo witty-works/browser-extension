@@ -423,7 +423,7 @@ const ContentScriptApp: React.FC = () => {
     // If not, remove them from the list of inputs. This way the highlights are also removed
     const inputVisibilityObserver = new MutationObserver(() => {
       inputsRef.current.forEach((input: CustomInputElement) => {
-        if (!nodeExistsInDOM(input) || !elementIsVisible(input)) {
+        if (!nodeExistsInDOM(getActiveDocument(), input) || !elementIsVisible(input)) {
           removeOldInput(inputsMapRef.current.get(input));
 
           setInputs([

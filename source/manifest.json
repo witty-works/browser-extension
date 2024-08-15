@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
+  "__firefox__manifest_version": 2,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp5lsGLIkH3JH3BDdGLgTRIXvTkxd1m1vLhz1MzGH95+UywrpVbvcfro0JNWBwO581k3CvyVL9Pru1CSYMkHVVDPQ/OhSIh8qSULNF6013PnPz+xVk4HdV5zyjM0GxDAuvu6IBSte2n0e/O546C45wLp57zMy8i2auM+tuwExQPQ8IEy7EjOhL9cwO2nFrZsvii+9n+iyVT0hzpIavtekOgKeb4Ol7jH9/5ZhNHBv1//xaEx8onL7hJL4vbcHThLDFsegM/qq1EfoCMMhIEY0j3AT+Bop1RN3D7WrSHYbxIUbgCDUI5UZZlGN+2+dndvXaepRfFSZ0Kz6ofRP/Y47QQIDAQAB",
   "name": "__MSG_appName__",
-  "version": "1.33.1.1",
+  "version": "1.33.1.2",
   "default_locale": "en",
   "icons": {
     "16": "assets/icons/icon16.png",
@@ -13,11 +14,13 @@
   "description": "__MSG_appDesc__",
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
-  "permissions": ["storage"],
+  "permissions": ["storage", "scripting"],
+  "__firefox__permissions": ["storage", "scripting", "http://*/*", "https://*/*"],
   "host_permissions": ["http://*/*", "https://*/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
+  "__firefox__content_security_policy": "script-src 'self'; object-src 'self'",
   "__chrome|firefox__author": "Witty Works",
   "__opera__developer": {
     "name": "Witty Works"
@@ -26,7 +29,7 @@
     "page": "options.html",
     "open_in_tab": true
   },
-  "__firefox__browser_specific_settings": {
+  "__firefox__applications": {
     "gecko": {
       "id": "{4b376457-9460-4891-b28a-60499c2e3343}"
     }
@@ -41,8 +44,17 @@
       "48": "assets/icons/icon48.png"
     },
     "default_title": "Witty",
-    "__chrome|opera__chrome_style": false,
-    "__firefox__browser_style": false
+    "__chrome|opera__chrome_style": false
+  },
+  "__firefox__browser_action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png"
+    },
+    "default_title": "Witty",
+    "browser_style": false
   },
   "background": {
     "service_worker": "js/background.bundle.js",
@@ -81,5 +93,13 @@
         "<all_urls>"
       ]
     }
+  ],
+  "__firefox__web_accessible_resources": [
+    "options.html",
+    "assets/icons/w-logo-wire-color.svg",
+    "assets/icons/popover/ignore.svg",
+    "assets/icons/popover/arrow.svg",
+    "assets/icons/popover/settings.svg",
+    "assets/googleDocsSpellCheck.js"
   ]
 }

@@ -1,5 +1,4 @@
 import chroma from 'chroma-js';
-import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 import { BaseUrls } from './constants';
 import { getDomainWithoutSubdomain } from './utils';
 
@@ -37,7 +36,7 @@ export const isHubspot = (): boolean => {
 
 //can be removed when powerpoint works
 export const isMicrosoftOnline = (windowUrl: string): boolean => {
-  return (isMicrosoftOnlineWord(windowUrl) || isOutlook() || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl)) 
+  return (isMicrosoftOnlineWord(windowUrl) || isOutlook(windowUrl) || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl))
 }
 
 export const isMicrosoftOnlineExcel = (windowUrl: string): boolean => {
@@ -59,8 +58,16 @@ export const isOffice = (): boolean => {
   return window.location.hostname.includes('office.com');
 }
 
-export const isOutlook = (): boolean => {
-  return window.location.hostname.includes('outlook.office365.com');
+export const isOutlook = (windowUrl?: string): boolean => {
+  if (windowUrl) {
+    return windowUrl.includes('outlook.office365.com');
+  }
+
+  if (window) {
+    return window.location.hostname.includes('outlook.office365.com');
+  }
+
+  return false;
 }
 
 export const isWittyEditor = (): boolean => {
@@ -177,8 +184,8 @@ export const findElement = (node: Node, element: string): boolean => {
   return false;
 };
 
-export const nodeExistsInDOM = (node: Node): boolean =>
-  getActiveDocument().body?.contains(node);
+export const nodeExistsInDOM = (document: Document, node: Node): boolean =>
+  document?.body?.contains(node);
 
 export const elementIsVisible = (element: Element): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();
