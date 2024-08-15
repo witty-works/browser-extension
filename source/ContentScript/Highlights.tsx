@@ -82,7 +82,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         ?.getBoundingClientRect();
     }
     nodesWithAlerts.forEach(({ node, alerts }) => {
-      if (typeof node !== 'undefined' && nodeExistsInDOM(node)) {
+      if (typeof node !== 'undefined' && nodeExistsInDOM(getActiveDocument(), node)) {
         alerts.forEach((alert: IAlert) => {
           const range = getActiveDocument().createRange();
           try {

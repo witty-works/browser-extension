@@ -39,6 +39,7 @@
     "i18next-browser-languagedetector": "^6.1.2",
     "jsonschema": "^1.4.1",
     "lodash.debounce": "^4.0.8",
+    "lodash.throttle": "^4.1.1",
     "node-fetch": "^3.2.10",
     "posthog-js-lite": "^2.6.1",
     "react": "^18.2.0",
@@ -101,7 +102,7 @@
     "webextension-polyfill": "^0.11.0",
     "webpack": "^5.88.2",
     "webpack-cli": "^4.7.0",
-    "webpack-ext-reloader": "^1.1.10",
+    "webpack-ext-reloader": "^1.1.13",
     "wext-manifest-loader": "^2.3.0",
     "wext-manifest-webpack-plugin": "^1.2.1"
   },

@@ -1,10 +1,8 @@
 import browser from 'webextension-polyfill';
-import { useAnalytics } from './ApiServices/useAnalytics';
-import { DEV_ENV, StorageKeys, wittyVersion, WTags } from './constants';
+import { DEV_ENV, StorageKeys, wittyVersion } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import { isGoogleDocs, isMicrosoftOnline, isTextArea, requiresRectRecalculation } from './DOMutils';
-import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 import { getToken } from './ApiServices/requests';
 
 export const isObjectEmpty = (obj: object) =>
@@ -41,17 +39,6 @@ export const storeInLocalStorage = (key: string, value: any) => {
         );
     })
     .catch((error: unknown) => {
-      //this error means that the extension was deactivated or uninstalled, in this case we delete the container
-      if (error == 'Error: Extension context invalidated.') {
-        useAnalytics().extenstionStatusLog('deactivated');
-        const container = getActiveDocument().getElementsByTagName(
-          WTags.WW_CONTAINER
-        );
-        if (container.length > 0) {
-          container[0].remove();
-        }
-      }
-
       const componentName = 'Utils';
       const message = `onBrowserStorage Error: ${error}`;
 
@@ -92,6 +79,14 @@ export const addNotificationBadge = (numberOfNotifications: number) => {
   browser.action?.setBadgeText({
     text: numberOfNotifications.toString(),
   });
+  // for firefox mv2
+  browser.browserAction?.setBadgeBackgroundColor({
+    color: '#E6635A',
+  });
+
+  browser.browserAction?.setBadgeText({
+    text: numberOfNotifications.toString(),
+  });
 };
 
 export const addBadge = (text: string) => {
@@ -99,6 +94,11 @@ export const addBadge = (text: string) => {
     color: [190, 190, 190, 230],
   });
   browser.action?.setBadgeText({ text: text });
+  // for firefox mv2
+  browser.browserAction?.setBadgeBackgroundColor({
+    color: [190, 190, 190, 230],
+  });
+  browser.browserAction?.setBadgeText({ text: text });
 }
 
 export const getNewAccessToken = async () => {
@@ -139,12 +139,14 @@ export const logOut = () => {
 
 export const removeBadge = () => {
   browser.action?.setBadgeText({ text: '' });
+  // for firefox mv2
+  browser.browserAction?.setBadgeText({ text: '' });
 };
 
 export const getRandomToken = () => {
   const bytes = new Uint8Array(32); //256 bits token
 
-  window.crypto.getRandomValues(bytes);
+  crypto.getRandomValues(bytes);
 
   // convert byte array to hexademical representation
   const bytesHex = bytes.reduce(
