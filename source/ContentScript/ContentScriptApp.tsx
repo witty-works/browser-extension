@@ -27,7 +27,6 @@ import {
   isNotion,
   isGoogleSheets,
   isWittyEditor,
-  isOffice,
   isGoogleSearch,
   isMicrosoftOnlineExcel,
   isAemRte,
@@ -261,27 +260,9 @@ const ContentScriptApp: React.FC = () => {
     }
   }, []);
 
+  // @ts-ignore
   const handleFocusoutElement = useCallback((event?: Event) => {
-    if (
-      isGoogleDocs() ||
-      isOffice() ||
-      isWittyEditor()
-    ) {
-      return;
-    }
-
-    let target = event?.target as CustomInputElement;
-
-    if (!inputsRef.current.includes(target) || !inputsMapRef.current.has(target)) {
-      return;
-    }
-
-    removeOldInput(inputsMapRef.current.get(target));
-
-    setInputs(inputsRef.current.filter(input => input !== target));
-    const inputsMap = inputsMapRef.current;
-    inputsMap.delete(target);
-    setInputsMap(inputsMap);
+    return;
   }, []);
 
   const handleMouseOver = useCallback((event: MouseEvent) => {
