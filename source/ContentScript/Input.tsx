@@ -106,6 +106,7 @@ const Input: React.FC<{
   const [, , previousPopoverDataRef] = useStateRef<PopoverData | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState<boolean>(true);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
   const [elementXPathResult, setElementXPathResult] = useState<XPathResult>();
   const [debounceDelay, setDebounceDelay] = useState<number>(defaultConfig.API_DELAY);
@@ -469,9 +470,8 @@ const Input: React.FC<{
   };
 
   const handleFocusoutEvent = () => {
+    setIsFocused(false);
     setActiveIcon('passive');
-    setAlerts([]);
-    setTextToCheck('');
   };
 
   const handleFocusinEvent = () => {
@@ -479,6 +479,7 @@ const Input: React.FC<{
       const event = new KeyboardEvent('keyup');
       handleKeyupEvent(event);
     } 
+    setIsFocused(true);
     setActiveIcon('active');
   };
 
@@ -1687,39 +1688,43 @@ const renderPopover = () => {
 
   return (
     <>
-      {isTextArea(element) && (
-        <WTags.WW_CLONE>
-          <TextAreaClone
-            element={element}
-            elementRect={elementRect}
-            elementScroll={elementScroll}
-            updateClone={updateCloneData}
-          />
-        </WTags.WW_CLONE>
+      { isFocused && (
+        <>
+          {isTextArea(element) && (
+            <WTags.WW_CLONE>
+              <TextAreaClone
+                element={element}
+                elementRect={elementRect}
+                elementScroll={elementScroll}
+                updateClone={updateCloneData}
+              />
+            </WTags.WW_CLONE>
+          )}
+          {isInputText(element) && (
+            <WTags.WW_CLONE>
+              <InputTextClone
+                element={element}
+                elementRect={elementRect}
+                updateClone={updateCloneData}
+              />
+            </WTags.WW_CLONE>
+          )}
+          {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
+          <WTags.WW_HIGHLIGHTS>
+            <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+              <Highlights
+                elementScroll={elementScroll}
+                nodesWithAlerts={nodesWithAlertsRef.current}
+                element={element}
+                elementRect={elementRect}
+                selectedAlert={isTextArea(element)  ? selectedAlertRef.current : popoverDataRef.current && popoverDataRef.current?.alert}
+                removeHighlights={removeHighlights}
+                forceHighlightUpdate={forceHighlightUpdate}
+              />
+            </Sentry.ErrorBoundary>
+          </WTags.WW_HIGHLIGHTS>
+        </>
       )}
-      {isInputText(element) && (
-        <WTags.WW_CLONE>
-          <InputTextClone
-            element={element}
-            elementRect={elementRect}
-            updateClone={updateCloneData}
-          />
-        </WTags.WW_CLONE>
-      )}
-      {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
-      <WTags.WW_HIGHLIGHTS>
-        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
-          <Highlights
-            elementScroll={elementScroll}
-            nodesWithAlerts={nodesWithAlertsRef.current}
-            element={element}
-            elementRect={elementRect}
-            selectedAlert={isTextArea(element)  ? selectedAlertRef.current : popoverDataRef.current && popoverDataRef.current?.alert}
-            removeHighlights={removeHighlights}
-            forceHighlightUpdate={forceHighlightUpdate}
-          />
-        </Sentry.ErrorBoundary>
-      </WTags.WW_HIGHLIGHTS>
       {hasWittyLicense.current && <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
           element={element}
