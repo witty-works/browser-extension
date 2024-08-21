@@ -9,6 +9,7 @@ import {
   renderUpgradePopup,
   renderUserNotLoggedIn,
 } from './PopupUtils';
+import {makeAuthRequest} from "../ContentScript/utils";
 
 const renderPopup = async () => {
   browser.storage.local
@@ -76,3 +77,5 @@ const storageChange = (changes: any) => {
 renderPopup();
 browser.storage.onChanged.addListener(storageChange);
 //TODO call removeListener
+
+makeAuthRequest();

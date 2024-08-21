@@ -9,7 +9,7 @@ import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
 import { createUrl } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
 
-export const updateConfig = (response: IAuthResponse) => {
+export const updateConfig = (response: IAuthResponse, force: boolean = false) => {
   browser.storage.local
       .get(null)
       .then((result) => {
@@ -20,7 +20,10 @@ export const updateConfig = (response: IAuthResponse) => {
           response?.organization_config_hash ===
           result[StorageKeys.ORGANIZATION_CONFIG_HASH]
         ) {
-          return; //config did not change
+          if (!force) {
+            return; // config did not change
+          }
+          // config hash did not change, but we want to force update
         }
         storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response?.organization_id);
         storeInLocalStorage(StorageKeys.USER_ID, response?.id);
@@ -242,7 +245,7 @@ export const makeAuthRequest = () => {
         .then(async (response) => {
           if (response.ok) {
             const json = await response.json();
-            updateConfig(json);
+            updateConfig(json, true);
           }
         })
     }
