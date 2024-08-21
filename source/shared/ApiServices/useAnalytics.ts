@@ -81,6 +81,7 @@ export const useAnalytics = () => {
         response__data__label: checkResponse.label,
         response__data__explanation__text: checkResponse.explanation?.text,
         response__data__explanation__icon: checkResponse.explanation?.icon,
+        response__data__explanation__icon_image: checkResponse.explanation?.icon_image,
         response__data__explanation__url: checkResponse.explanation?.url,
         response__data__alternatives: checkResponse.alternatives,
         response__data__gravity: checkResponse.gravity,

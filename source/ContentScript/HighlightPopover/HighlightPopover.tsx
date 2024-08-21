@@ -483,9 +483,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               >
                 <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
                   <div style={{ fontSize: '2em', marginRight: '0.5em' }}>
-                    {data.alert.data?.explanation?.icon}
+                    {data.alert.data?.explanation?.icon_image
+                      ? <img src={data.alert.data?.explanation?.icon_image} alt="" style={{ width: '50px' }} />
+                      : <span>{data.alert.data?.explanation?.icon}</span>
+                    }
                   </div>
-                  <div>
+                  <div style={{ width: '252px' }}>
                     <b>{data.alert.data?.label.split(':').pop()}</b>
                     <br />
                     {data.alert.data?.explanation?.text}
