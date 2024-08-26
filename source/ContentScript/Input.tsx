@@ -512,7 +512,7 @@ const Input: React.FC<{
         unchangedAlerts.length > 0 && setAlerts(unchangedAlerts[0]); //is this needed?
         setUnchangedAlertsTextarea(unchangedAlerts[0]);
       }
-      handleTextAndIcon([nextText]);
+      handleTextAndIcon([{ node: nextText, index: 0, rawNode: element }]);
     } else {
       !isGoogleDocs() && setAlerts([]);
       if (!keepHighlights) {
@@ -594,7 +594,7 @@ const Input: React.FC<{
     }
   };
 
-  const handleTextAndIcon = (nodes: any) => {
+  const handleTextAndIcon = (nodes: INodes[]) => {
     const isTextAreaCheck = isTextArea(element);
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
     const allNodes = getTextDividedByNodes(element).map((node: any) => node.textContent);
@@ -604,30 +604,30 @@ const Input: React.FC<{
     // }
     let nodesToCheck = nodes; //not needed anymore as whatever is passed to handleTextAndIcon is already within max char length
     nodesStorageRef.current = nodesToCheck;
-    let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
+    let newTextToCheck = nodesToCheck.map((node: any) => node.node).join('\n');
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached'); //TEMP removed to save events
       if (nodes[0] && typeof nodes[0] === 'string') {
-        const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
-        newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
+        const lastSpaceIndex = nodes[0].node.lastIndexOf('', totalMaxCharLength);
+        newTextToCheck = nodes[0].node.slice(0, lastSpaceIndex);
       }
     } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');//TEMP removed to save events
     } else {
-      isTextAreaCheck && (newTextToCheck = nodes[0]); 
+      isTextAreaCheck && (newTextToCheck = nodes[0].node);
       totalMaxCharLengthReachedRef.current = false;
     }
     //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
     if (!isTextAreaCheck && newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
       nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
-      newTextToCheck = nodesToCheck.map((node: any) => node.node).join('\n');
+      newTextToCheck = nodesToCheck.map((node: INodes) => node.node).join('\n');
       nodesStorageRef.current = nodesToCheck;
     }
 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
-    if (typeof newTextToCheck !== 'string' || newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
+    if (newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
       setTextToCheck('');
