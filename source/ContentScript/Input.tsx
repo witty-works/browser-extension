@@ -883,10 +883,8 @@ const Input: React.FC<{
           nodesWithAlertsRef.current[selectedNodeWithAlertsIndex - 1].alerts
             .length - 1
         );
-        event?.stopPropagation();
       } else {
         setSelectedAlertIndex(selectedAlertIndex - 1);
-        event?.stopPropagation();
       }
     } else {
       if (
@@ -896,12 +894,11 @@ const Input: React.FC<{
       ) {
         setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex + 1);
         setSelectedAlertIndex(0);
-        event?.stopPropagation();
       } else {
         setSelectedAlertIndex(selectedAlertIndex + 1);
-        event?.stopPropagation();
       }
     }
+    event?.stopPropagation();
   };
 
   useEffect(() => {
@@ -950,7 +947,7 @@ const Input: React.FC<{
               ? acc + selectedAlertIndex + 1
               : acc + node.alerts.length,
           0
-        );
+      );
 
       popoverDataRef.current = ({
         index: currentAlertIndex,
@@ -1171,11 +1168,11 @@ const Input: React.FC<{
         ...nodesWithAlertsTempWithRect,
       ].sort((a: any, b: any) => a.nodeIndex - b.nodeIndex);      
 
-      const totalAlerts: number = mergedNodesWithAlerts.reduce(
+      const totalAlertsToSet: number = mergedNodesWithAlerts.reduce(
         (total, node) => total + node.alerts.length,
         0
       );
-      setTotalAlerts(totalAlerts);
+      setTotalAlerts(totalAlertsToSet);
       nodesWithAlertsRef.current = mergedNodesWithAlerts;
       isWittyPremiumUserRef.current && userIsSignedIn && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);
 
@@ -1296,33 +1293,37 @@ const Input: React.FC<{
 
       nodesForCalculation.forEach((node) => {
         let absolutePositionOfFirstCharOfNode = 0;
-        for (
-          let index = lowestIndex;
-          index < node.index;
-          index++
-        ) {
+        let absolutePositionOfLastCharOfNode = 0;
+
+        for (let index = lowestIndex; index <= node.index; index++) {
           const text = elementEvaluation.snapshotItem(index)?.textContent;
-          absolutePositionOfFirstCharOfNode += text ? text.length + 1 : 0;
+          const textLength = text ? text.length : 0;
+        
+          if (index < node.index) {
+            absolutePositionOfFirstCharOfNode += textLength + 1;
+          }
+        
+          absolutePositionOfLastCharOfNode += textLength;
         }
 
-        const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
-          elementEvaluation
+        const alertsRelevantToNode = alerts.filter((alert: IAlert) => {
+          return elementEvaluation
             .snapshotItem(node.index)
             ?.textContent?.includes(alert.data?.text)
-        );
+        });
 
-        updatedAlerts = alertsRelevantToNode.map((alert: IAlert) => {
-          return {
+        updatedAlerts = alertsRelevantToNode
+          .map((alert: IAlert) => ({
             ...alert,
             startOffset: alert.startOffset - absolutePositionOfFirstCharOfNode,
             endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode,
-          };
-        });
-
-        //remove updated alerts with negative startOffset
-        updatedAlerts = updatedAlerts.filter(
-          (alert) => alert.startOffset >= 0 && alert.endOffset >= 0
-        );
+          }))
+          .filter(
+            (alert) => alert.startOffset >= 0 &&
+              alert.endOffset >= 0 &&
+              alert.startOffset <= absolutePositionOfLastCharOfNode &&
+              alert.endOffset <= absolutePositionOfLastCharOfNode
+          );
 
         updatedAlerts.length > 0 &&
           nodesWithAlertsTemp.push({
@@ -1632,9 +1633,16 @@ const Input: React.FC<{
 
 const renderPopover = () => {
     if (!popoverRootRef.current) {
-      const popoverElement = document.createElement(WTags.WW_POPOVER);
-      document.body.appendChild(popoverElement);
-      popoverRootRef.current = createRoot(popoverElement);
+      const existingPopoverElement = document.querySelector(WTags.WW_POPOVER);
+  
+      // If an existing popover element is not found, create a new one
+      if (!existingPopoverElement) {
+        const popoverElement = document.createElement(WTags.WW_POPOVER);
+        document.body.appendChild(popoverElement);
+        popoverRootRef.current = createRoot(popoverElement);
+      } else {
+        popoverRootRef.current = createRoot(existingPopoverElement);
+      }
     }
     const container = document.querySelector(WTags.WW_POPOVER);
     if (!container) return;
