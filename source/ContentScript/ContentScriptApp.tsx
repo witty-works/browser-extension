@@ -135,8 +135,6 @@ const ContentScriptApp: React.FC = () => {
     isGoogleDocs() && handleFocusinElement();
     !isGoogleDocs() &&
       document?.addEventListener('focusin', handleFocusinElement, true);
-    !isGoogleDocs() &&
-      document?.addEventListener('focusout', handleFocusoutElement, true);
     document?.addEventListener('mouseover', handleMouseOver, true);
     document?.addEventListener('mouseout', handleMouseOut, true);
 
@@ -149,7 +147,6 @@ const ContentScriptApp: React.FC = () => {
     return () => {
       browser.storage.onChanged.removeListener(storageChange);
       document.removeEventListener('focusin', handleFocusinElement, true);
-      document.removeEventListener('focusout', handleFocusoutElement, true);
       document.removeEventListener('mouseover', handleMouseOver, true);
       document.removeEventListener('mouseout', handleMouseOut, true);
     };
@@ -258,11 +255,6 @@ const ContentScriptApp: React.FC = () => {
         sendErrorToSentry(error);
       });
     }
-  }, []);
-
-  // @ts-ignore
-  const handleFocusoutElement = useCallback((event?: Event) => {
-    return;
   }, []);
 
   const handleMouseOver = useCallback((event: MouseEvent) => {
@@ -443,10 +435,6 @@ const ContentScriptApp: React.FC = () => {
               'focusin',
               handleFocusinElement
           );
-          iframe.contentDocument.body?.addEventListener(
-              'focusout',
-              handleFocusoutElement
-          );
         }
       });
 
@@ -456,10 +444,6 @@ const ContentScriptApp: React.FC = () => {
             iframe.contentDocument.body.removeEventListener(
                 'focusin',
                 handleFocusinElement
-            );
-            iframe.contentDocument.body.removeEventListener(
-                'focusout',
-                handleFocusoutElement
             );
           }
         });
