@@ -107,6 +107,10 @@ export const checkResponseResultSchema: Schema = {
           description: 'the icon for the explanation',
           type: 'string',
         },
+        icon_image: {
+          description: 'the icon image for the explanation',
+          type: 'string',
+        },
         url: {
           description: 'the url to the explanation',
           type: 'string',

@@ -151,6 +151,7 @@ export interface IAlternatives {
 export interface IExplanation {
   text: string;
   icon: string;
+  icon_image: string;
   url: string;
   context: string;
   content: string;
@@ -176,6 +177,7 @@ export interface ILogItems {
   response__data__label: string;
   response__data__explanation__text: string;
   response__data__explanation__icon: string;
+  response__data__explanation__icon_image: string;
   response__data__explanation__url: string;
   response__data__alternatives: IAlternatives[];
   response__data__gravity: number;
@@ -236,6 +238,7 @@ export interface ICheckResultLogItems {
   response__data__label: string;
   response__data__explanation__text: string;
   response__data__explanation__icon: string;
+  response__data__explanation__icon_image: string;
   response__data__explanation__url: string;
   response__data__gravity: number;
   response__data__language: string;
