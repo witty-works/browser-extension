@@ -271,6 +271,10 @@ export const getScrollParent = (
 };
 
 const areNodesEqual = (node1: INodes, node2: Node): boolean => {
+  const isNodeTextArea = node2 instanceof HTMLElement && isTextArea(node2);
+  if (isNodeTextArea) {
+    return node1.node === (node2 as HTMLTextAreaElement).value;
+  }
   return node1.node === node2.textContent;
 }
 
