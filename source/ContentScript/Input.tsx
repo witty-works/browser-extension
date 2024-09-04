@@ -106,6 +106,7 @@ const Input: React.FC<{
   const [, , previousPopoverDataRef] = useStateRef<PopoverData | null>(null);
   const [activeIcon, setActiveIcon, activeIconRef] = useStateRef('active');
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState<boolean>(true);
   const [totalAlerts, setTotalAlerts] = useState<number>(0);
   const [elementXPathResult, setElementXPathResult] = useState<XPathResult>();
   const [debounceDelay, setDebounceDelay] = useState<number>(defaultConfig.API_DELAY);
@@ -469,9 +470,8 @@ const Input: React.FC<{
   };
 
   const handleFocusoutEvent = () => {
+    setIsFocused(false);
     setActiveIcon('passive');
-    setAlerts([]);
-    setTextToCheck('');
   };
 
   const handleFocusinEvent = () => {
@@ -479,6 +479,7 @@ const Input: React.FC<{
       const event = new KeyboardEvent('keyup');
       handleKeyupEvent(event);
     } 
+    setIsFocused(true);
     setActiveIcon('active');
   };
 
@@ -511,7 +512,7 @@ const Input: React.FC<{
         unchangedAlerts.length > 0 && setAlerts(unchangedAlerts[0]); //is this needed?
         setUnchangedAlertsTextarea(unchangedAlerts[0]);
       }
-      handleTextAndIcon([nextText]);
+      handleTextAndIcon([{ node: nextText, index: 0, rawNode: element }]);
     } else {
       !isGoogleDocs() && setAlerts([]);
       if (!keepHighlights) {
@@ -593,7 +594,7 @@ const Input: React.FC<{
     }
   };
 
-  const handleTextAndIcon = (nodes: any) => {
+  const handleTextAndIcon = (nodes: INodes[]) => {
     const isTextAreaCheck = isTextArea(element);
     const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
     const allNodes = getTextDividedByNodes(element).map((node: any) => node.textContent);
@@ -603,30 +604,30 @@ const Input: React.FC<{
     // }
     let nodesToCheck = nodes; //not needed anymore as whatever is passed to handleTextAndIcon is already within max char length
     nodesStorageRef.current = nodesToCheck;
-    let newTextToCheck = isTextAreaCheck ? nodes : nodesToCheck.map((node: any) => node.node).join('\n');
+    let newTextToCheck = nodesToCheck.map((node: any) => node.node).join('\n');
     if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached'); //TEMP removed to save events
       if (nodes[0] && typeof nodes[0] === 'string') {
-        const lastSpaceIndex = nodes[0].lastIndexOf('', totalMaxCharLength);
-        newTextToCheck = nodes[0].slice(0, lastSpaceIndex);
+        const lastSpaceIndex = nodes[0].node.lastIndexOf('', totalMaxCharLength);
+        newTextToCheck = nodes[0].node.slice(0, lastSpaceIndex);
       }
     } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
       totalMaxCharLengthReachedRef.current = true;
       // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');//TEMP removed to save events
     } else {
-      isTextAreaCheck && (newTextToCheck = nodes[0]); 
+      isTextAreaCheck && (newTextToCheck = nodes[0].node);
       totalMaxCharLengthReachedRef.current = false;
     }
     //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
     if (!isTextAreaCheck && newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
       nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
-      newTextToCheck = nodesToCheck.map((node: any) => node.node).join('\n');
+      newTextToCheck = nodesToCheck.map((node: INodes) => node.node).join('\n');
       nodesStorageRef.current = nodesToCheck;
     }
 
     setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
-    if (typeof newTextToCheck !== 'string' || newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
+    if (newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
       setTextToCheck('');
@@ -882,10 +883,8 @@ const Input: React.FC<{
           nodesWithAlertsRef.current[selectedNodeWithAlertsIndex - 1].alerts
             .length - 1
         );
-        event?.stopPropagation();
       } else {
         setSelectedAlertIndex(selectedAlertIndex - 1);
-        event?.stopPropagation();
       }
     } else {
       if (
@@ -895,12 +894,11 @@ const Input: React.FC<{
       ) {
         setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex + 1);
         setSelectedAlertIndex(0);
-        event?.stopPropagation();
       } else {
         setSelectedAlertIndex(selectedAlertIndex + 1);
-        event?.stopPropagation();
       }
     }
+    event?.stopPropagation();
   };
 
   useEffect(() => {
@@ -949,7 +947,7 @@ const Input: React.FC<{
               ? acc + selectedAlertIndex + 1
               : acc + node.alerts.length,
           0
-        );
+      );
 
       popoverDataRef.current = ({
         index: currentAlertIndex,
@@ -1170,11 +1168,11 @@ const Input: React.FC<{
         ...nodesWithAlertsTempWithRect,
       ].sort((a: any, b: any) => a.nodeIndex - b.nodeIndex);      
 
-      const totalAlerts: number = mergedNodesWithAlerts.reduce(
+      const totalAlertsToSet: number = mergedNodesWithAlerts.reduce(
         (total, node) => total + node.alerts.length,
         0
       );
-      setTotalAlerts(totalAlerts);
+      setTotalAlerts(totalAlertsToSet);
       nodesWithAlertsRef.current = mergedNodesWithAlerts;
       isWittyPremiumUserRef.current && userIsSignedIn && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);
 
@@ -1295,33 +1293,37 @@ const Input: React.FC<{
 
       nodesForCalculation.forEach((node) => {
         let absolutePositionOfFirstCharOfNode = 0;
-        for (
-          let index = lowestIndex;
-          index < node.index;
-          index++
-        ) {
+        let absolutePositionOfLastCharOfNode = 0;
+
+        for (let index = lowestIndex; index <= node.index; index++) {
           const text = elementEvaluation.snapshotItem(index)?.textContent;
-          absolutePositionOfFirstCharOfNode += text ? text.length + 1 : 0;
+          const textLength = text ? text.length : 0;
+        
+          if (index < node.index) {
+            absolutePositionOfFirstCharOfNode += textLength + 1;
+          }
+        
+          absolutePositionOfLastCharOfNode += textLength;
         }
 
-        const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
-          elementEvaluation
+        const alertsRelevantToNode = alerts.filter((alert: IAlert) => {
+          return elementEvaluation
             .snapshotItem(node.index)
             ?.textContent?.includes(alert.data?.text)
-        );
+        });
 
-        updatedAlerts = alertsRelevantToNode.map((alert: IAlert) => {
-          return {
+        updatedAlerts = alertsRelevantToNode
+          .map((alert: IAlert) => ({
             ...alert,
             startOffset: alert.startOffset - absolutePositionOfFirstCharOfNode,
             endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode,
-          };
-        });
-
-        //remove updated alerts with negative startOffset
-        updatedAlerts = updatedAlerts.filter(
-          (alert) => alert.startOffset >= 0 && alert.endOffset >= 0
-        );
+          }))
+          .filter(
+            (alert) => alert.startOffset >= 0 &&
+              alert.endOffset >= 0 &&
+              alert.startOffset <= absolutePositionOfLastCharOfNode &&
+              alert.endOffset <= absolutePositionOfLastCharOfNode
+          );
 
         updatedAlerts.length > 0 &&
           nodesWithAlertsTemp.push({
@@ -1631,9 +1633,16 @@ const Input: React.FC<{
 
 const renderPopover = () => {
     if (!popoverRootRef.current) {
-      const popoverElement = document.createElement(WTags.WW_POPOVER);
-      document.body.appendChild(popoverElement);
-      popoverRootRef.current = createRoot(popoverElement);
+      const existingPopoverElement = document.querySelector(WTags.WW_POPOVER);
+  
+      // If an existing popover element is not found, create a new one
+      if (!existingPopoverElement) {
+        const popoverElement = document.createElement(WTags.WW_POPOVER);
+        document.body.appendChild(popoverElement);
+        popoverRootRef.current = createRoot(popoverElement);
+      } else {
+        popoverRootRef.current = createRoot(existingPopoverElement);
+      }
     }
     const container = document.querySelector(WTags.WW_POPOVER);
     if (!container) return;
@@ -1687,39 +1696,43 @@ const renderPopover = () => {
 
   return (
     <>
-      {isTextArea(element) && (
-        <WTags.WW_CLONE>
-          <TextAreaClone
-            element={element}
-            elementRect={elementRect}
-            elementScroll={elementScroll}
-            updateClone={updateCloneData}
-          />
-        </WTags.WW_CLONE>
+      { isFocused && (
+        <>
+          {isTextArea(element) && (
+            <WTags.WW_CLONE>
+              <TextAreaClone
+                element={element}
+                elementRect={elementRect}
+                elementScroll={elementScroll}
+                updateClone={updateCloneData}
+              />
+            </WTags.WW_CLONE>
+          )}
+          {isInputText(element) && (
+            <WTags.WW_CLONE>
+              <InputTextClone
+                element={element}
+                elementRect={elementRect}
+                updateClone={updateCloneData}
+              />
+            </WTags.WW_CLONE>
+          )}
+          {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
+          <WTags.WW_HIGHLIGHTS>
+            <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
+              <Highlights
+                elementScroll={elementScroll}
+                nodesWithAlerts={nodesWithAlertsRef.current}
+                element={element}
+                elementRect={elementRect}
+                selectedAlert={isTextArea(element)  ? selectedAlertRef.current : popoverDataRef.current && popoverDataRef.current?.alert}
+                removeHighlights={removeHighlights}
+                forceHighlightUpdate={forceHighlightUpdate}
+              />
+            </Sentry.ErrorBoundary>
+          </WTags.WW_HIGHLIGHTS>
+        </>
       )}
-      {isInputText(element) && (
-        <WTags.WW_CLONE>
-          <InputTextClone
-            element={element}
-            elementRect={elementRect}
-            updateClone={updateCloneData}
-          />
-        </WTags.WW_CLONE>
-      )}
-      {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
-      <WTags.WW_HIGHLIGHTS>
-        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
-          <Highlights
-            elementScroll={elementScroll}
-            nodesWithAlerts={nodesWithAlertsRef.current}
-            element={element}
-            elementRect={elementRect}
-            selectedAlert={isTextArea(element)  ? selectedAlertRef.current : popoverDataRef.current && popoverDataRef.current?.alert}
-            removeHighlights={removeHighlights}
-            forceHighlightUpdate={forceHighlightUpdate}
-          />
-        </Sentry.ErrorBoundary>
-      </WTags.WW_HIGHLIGHTS>
       {hasWittyLicense.current && <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon
           element={element}
