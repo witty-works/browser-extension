@@ -16,10 +16,10 @@ jobs:
       SENTRY_VERSION_STRING: ${{github.ref_name}}-prod
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
           cache: 'npm'
 
       - name: Disable development mode, hide dev/local URLs, default to prod API
@@ -53,7 +53,7 @@ jobs:
           path: release.zip
 
       - id: cache-npm
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./node_modules
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}

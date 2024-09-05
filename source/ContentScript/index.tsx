@@ -60,7 +60,7 @@ const initialize = () => {
       setBaseUrls(apiEndpoint);
 
       if (!result[StorageKeys.ACCESS_TOKEN]) {
-        const optionsPageUrl = browser.extension.getURL('options.html');
+        const optionsPageUrl = browser.runtime.getURL('options.html');
         const loginUrl = `${BaseUrls[apiEndpoint].dashboard}browser-login?redirect_uri=${optionsPageUrl}`;
         wittyIsInstalledElement.setAttribute('login-url', loginUrl);
       }
