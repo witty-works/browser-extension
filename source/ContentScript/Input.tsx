@@ -152,7 +152,7 @@ const Input: React.FC<{
     if (!element.querySelector('g')) {
       setAlerts([]);
     }
-    setTextToCheck('');
+    checkText('');
 
     const container = document.querySelector(WTags.WW_CLONE);
     if (!container) return;
@@ -630,7 +630,7 @@ const Input: React.FC<{
     if (newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
-      setTextToCheck('');
+      checkText('');
     } else {
       debouncedSetTextToCheck(newTextToCheck);
       setActiveIcon('loading');
@@ -666,9 +666,19 @@ const Input: React.FC<{
     return newNodesToCheck;
   };
 
+  const checkText = (text: string) => {
+    browser.storage.local.get([StorageKeys.PLAN]).then((result) => {
+      const licenseAvailable = result[StorageKeys.PLAN] && result[StorageKeys.PLAN] !== 'none';
+      hasWittyLicense.current = licenseAvailable;
+      if (licenseAvailable) {
+        setTextToCheck(text);
+      }
+    });
+  };
+
   const debouncedSetTextToCheck = debounce((text: string) => {
     //In this case always create a new string to force change the state of setTextToCheck
-    setTextToCheck(text);
+    checkText(text);
   }, debounceDelay);
 
   const handleElementScrollEvent = () => {
@@ -847,7 +857,7 @@ const Input: React.FC<{
     element: Node | null;
   }): void => {
     setAlerts([]);
-    setTextToCheck('');
+    checkText('');
     if (isGoogleDocs() && caret.position) {      
       const nodeIsChecked = prevCheckedNodesRef.current.find((prevCheckedNode) =>
         prevCheckedNode.rawNode === cloneRef.current?.childNodes[caret.position as number]
@@ -1462,7 +1472,7 @@ const Input: React.FC<{
           node.dispatchEvent(insertAlternative);
         
           setTimeout(() => {
-            setTextToCheck(getInputText(element));
+            checkText(getInputText(element));
             const event = new Event('keyup', { bubbles: true });
             element.dispatchEvent(event);
           }, 200);
@@ -1606,8 +1616,8 @@ const Input: React.FC<{
       refreshTokenResponse.refresh_token
     );
 
-    setTextToCheck('');
-    setTextToCheck(currentTextToCheck);
+    checkText('');
+    checkText(currentTextToCheck);
   }, [refreshTokenError, refreshTokenResponse]);
 
   const ErrorBoundaryFallback = () => (
@@ -1621,8 +1631,8 @@ const Input: React.FC<{
         case StorageKeys.ACCESS_TOKEN:
           setUserIsSignedIn(changes[item].newValue);
           setConfigHasChanged(changes[item].newValue);
-          setTextToCheck('');
-          setTextToCheck(currentTextToCheck);
+          checkText('');
+          checkText(currentTextToCheck);
           break;
         case StorageKeys.PLAN:
           hasWittyLicense.current = !!changes[item].newValue;
