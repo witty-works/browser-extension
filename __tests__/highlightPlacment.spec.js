@@ -54,14 +54,10 @@ test.describe('Highlights', () => {
         // await utils.unlockAllToggles(page);
 
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
-        await page.waitForTimeout(apiWaitTime); 
-        await page.waitForSelector('#example-1');
-        await page.click('#example-1');
-        await page.click('.fr-element');
+        await page.waitForTimeout(apiWaitTime);
+        await page.waitForURL("https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/download");
 
-        await page.waitForTimeout(apiWaitTime); //wait for api to respond with highlights
-
-        await page.locator('.fr-element').screenshot().then(async (screenshot) => {
+        await page.locator('#already_installed').screenshot().then(async (screenshot) => {
             expect(screenshot).toMatchSnapshot({
                 maxDiffPixels: 300,
             },
@@ -79,7 +75,7 @@ test.describe('Highlights', () => {
         await utils.loginPopupPage(page, extensionId, context);
 
         await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
-        await page.waitForTimeout(apiWaitTime); 
+        await page.waitForTimeout(apiWaitTime);
         await page.waitForSelector('#example-1');
         await page.click('#example-1');
         await page.click('.fr-element');
@@ -113,7 +109,7 @@ test.describe('Highlights', () => {
     //         await page.click('#toggle-encloser-enable-witty');
     //         await page.waitForTimeout(apiWaitTime);
     //     }
-        
+
     //     await page.goto('https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/en/editor');
     //     await page.waitForTimeout(apiWaitTime); 
     //     await page.waitForSelector('#example-1');
@@ -134,7 +130,7 @@ test.describe('Highlights', () => {
     //             'no-highlights-after-disabling-witty.png')
     //     });
     // });
-    
+
     // //ASKING FOR reCAPTCHA
     // test('twitter writing post', async ({ page, context }) => {
     //     test.skip(process.env.CI, 'skip in pipeline');
