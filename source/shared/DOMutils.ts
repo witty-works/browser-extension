@@ -36,7 +36,7 @@ export const isHubspot = (): boolean => {
 
 //can be removed when powerpoint works
 export const isMicrosoftOnline = (windowUrl: string): boolean => {
-  return (isMicrosoftOnlineWord(windowUrl) || isOutlook(windowUrl) || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl))
+  return (windowUrl.includes('onedrive.live.com') || isMicrosoftOnlineWord(windowUrl) || isOutlook(windowUrl) || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl))
 }
 
 export const isMicrosoftOnlineExcel = (windowUrl: string): boolean => {
