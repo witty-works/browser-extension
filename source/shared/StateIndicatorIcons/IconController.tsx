@@ -16,7 +16,15 @@ import { getBaseUrls } from '../ApiServices/requests';
 import defaultConfig from '../../witty.config.json';
 import {getScrollableParentClosestToElement} from "../utils";
 import { getTextDividedByNodes } from '../../ContentScript/utils';
-import { isGoogleDocs, isHubspot, isMicrosoftOnlineExcel, isMicrosoftOnlineWord, isTrello, isWittyEditor } from '../DOMutils';
+import {
+  isGoogleDocs,
+  isHubspot,
+  isMicrosoftOnlineExcel,
+  isMicrosoftOnlineSharepoint,
+  isMicrosoftOnlineWord,
+  isTrello,
+  isWittyEditor
+} from '../DOMutils';
 
 interface IconControllerProps {
   element: CustomInputElement;
@@ -71,7 +79,7 @@ const IconController: React.FC<IconControllerProps> = ({
 
   // used to try to stay on top of a scrollable input like in linkedin, may not be desirable
   const scrollContainer = getScrollableParentClosestToElement(element);
-  const scrollContainerScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
+  const scrollContainerScrollTop = isMicrosoftOnlineSharepoint() ? 0 : (scrollContainer ? scrollContainer.scrollTop : 0);
   const parentWidth = element.parentElement?.getBoundingClientRect().width || 0;
   const elementWidth = isHubspot() ? parentWidth - 5 : elementRect.width;
   const positionLeft = isWittyEditor() ? -(elementRect.width * 0.05) : isTrello() ? 28 : 50; 

@@ -4,7 +4,7 @@
     "description": "The name of the extension, displayed in the web store."
   },
   "appDesc": {
-    "message": "Adopter l'écriture inclusive de manière homogène n'est pas simple. L'assistant de rédaction Witty vous facilite la tâche. Contribuez à un monde plus inclusif par vos mots.",
+    "message": "L’outil Witty, augmenté par l’IA, vous aide à implémenter le langage inclusif. Contribuez à un monde plus inclusif avec vos mots.",
     "description":"The description of the extension, displayed in the web store."
   }
 }

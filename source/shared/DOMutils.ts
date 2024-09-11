@@ -39,6 +39,10 @@ export const isMicrosoftOnline = (windowUrl: string): boolean => {
   return (windowUrl.includes('onedrive.live.com') || isMicrosoftOnlineWord(windowUrl) || isOutlook(windowUrl) || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl))
 }
 
+export const isMicrosoftOnlineSharepoint = (): boolean => {
+  return window.location.hostname.includes('sharepoint.com');
+}
+
 export const isMicrosoftOnlineExcel = (windowUrl: string): boolean => {
   const triggerWords = ['chc-excel', '.xlsx'];
   return triggerWords.some(word => windowUrl.includes(word));
