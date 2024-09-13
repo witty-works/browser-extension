@@ -112,7 +112,7 @@ const Highlights: React.FC<HighlightsProps> = ({
                     ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
                     : isAemRte(element)
                       ? rect.top + element.scrollTop
-                      : isTinyMceEditor(element) ? rect.top + doc.scrollTop * 2 :
+                      : isTinyMceEditor(element) ? rect.top + doc.scrollTop :
                         rect.top + doc.scrollTop - (isTextArea(element) ? elementScroll.top : 0),
                 };
               }
