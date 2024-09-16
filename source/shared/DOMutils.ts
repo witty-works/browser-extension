@@ -171,7 +171,7 @@ export const requiresRectRecalculation = (element: Element) => {
     isTextArea(element) ||
     domain === 'personio.de' ||
     isCkEditor(element) ||
-    isTinyMceEditor(element) ||
+    // isTinyMceEditor(element) ||
     isBambooHr()
   );
 };
