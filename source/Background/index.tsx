@@ -170,6 +170,8 @@ const reInjectContentScripts = () => {
         browser.scripting.executeScript({ //executeScript, but should be ob since browser.scripting?
           target: { tabId: tab.id! },
           files: [scriptToInject],
+        }).catch(() => {
+          // do nothing cause the tab does not exist anymore
         });
       });
   
@@ -178,6 +180,8 @@ const reInjectContentScripts = () => {
         browser.scripting.insertCSS({
           files: [cssToInject],
           target: { tabId: tab.id! },
+        }).catch(() => {
+          // do nothing cause the tab does not exist anymore
         });
       });
     });
