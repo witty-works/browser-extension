@@ -143,10 +143,18 @@ const reInjectContentScripts = () => {
     return false;
   }
 
-
-  const injectIntoTab = (tab: Tabs.Tab) => {
+  const injectIntoTab = async (tab: Tabs.Tab) => {
     if (!tab.url || tab.url.match(/(chrome):\/\//gi) || isChromeWebstore(tab.url)) {
       return;
+    }
+
+    if (browser.permissions) {
+      const hasPermission = await browser.permissions.contains({
+        origins: [new URL(tab.url).origin  + '/*']
+      });
+      if (!hasPermission) {
+        return;
+      }
     }
 
     scripts.forEach((script) => {
