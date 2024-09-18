@@ -457,10 +457,11 @@ const Input: React.FC<{
   useEffect(() => {
     if (!authResponse) return;
     updateConfig(authResponse);
-    const trialEnded =  authResponse.organization_trial_ends_at && new Date(authResponse.organization_trial_ends_at) >= new Date() 
-    const timeToShowNotification = trialEndedNotifactionShownDate && new Date(trialEndedNotifactionShownDate) < new Date(new Date().setMonth(new Date().getMonth() - 1))
+    const trialEnded =  authResponse.organization_trial_ends_at && !hasWittyLicense.current;
+    const timeToShowNotification = ! trialEndedNotifactionShownDate
+      || new Date(trialEndedNotifactionShownDate) < new Date(new Date().setMonth(new Date().getMonth() - 1))
 
-    if ((trialEnded && !trialEndedNotifactionShownDate) || (trialEnded && timeToShowNotification)) {
+    if (trialEnded && timeToShowNotification) {
       const notificationWrapper = document.createElement('div');
       notificationWrapper.id = 'ww-notification';
       storeInLocalStorage(StorageKeys.TRIAL_ENDED_NOTIFICATION_SHOWN_DATE, new Date().toString());
