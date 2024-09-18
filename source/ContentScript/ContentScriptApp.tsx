@@ -351,27 +351,27 @@ const ContentScriptApp: React.FC = () => {
             highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
             if (isGoogleSheets() && input.classList.contains('cell-input')) return;
-              //get first ancestior that is a div
-              const ancestor = input?.closest('div');
+            //get first ancestior that is a div
+            const ancestor = input?.closest('div');
 
-              if (isNotion()) {
-                //Workaround as Notion blocks insertion of code on a deeper level
-                const notionParentElement =
-                  document.querySelector('.notion-frame')?.firstChild;
-                notionParentElement?.insertBefore(
-                  highlightsContainer,
-                  notionParentElement.firstChild
-                );
-              } else {
-                const parentElement =
-                  input.tagName === 'rect' ? ancestor : input.parentElement;
-                  parentElement?.insertBefore(highlightsContainer, input);
-              }
-              elementRef.current = input;
-              const root = createRoot(highlightsContainer);
-              root.render(<Input element={input} />);
+            if (isNotion()) {
+              //Workaround as Notion blocks insertion of code on a deeper level
+              const notionParentElement =
+                document.querySelector('.notion-frame')?.firstChild;
+              notionParentElement?.insertBefore(
+                highlightsContainer,
+                notionParentElement.firstChild
+              );
+            } else {
+              const parentElement =
+                input.tagName === 'rect' ? ancestor : input.parentElement;
+                parentElement?.insertBefore(highlightsContainer, input);
+            }
+            elementRef.current = input;
+            const root = createRoot(highlightsContainer);
+            root.render(<Input element={input} />);
 
-              addedInputsMap.set(input, highlightsContainer);
+            addedInputsMap.set(input, highlightsContainer);
           });
         }
       }

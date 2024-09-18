@@ -39,6 +39,10 @@ export const isMicrosoftOnline = (windowUrl: string): boolean => {
   return (windowUrl.includes('onedrive.live.com') || isMicrosoftOnlineWord(windowUrl) || isOutlook(windowUrl) || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl))
 }
 
+export const isMicrosoftOnlineLoop = (): boolean => {
+  return window.location.hostname.includes('loop') && window.location.hostname.includes('microsoft');
+}
+
 export const isMicrosoftOnlineSharepoint = (): boolean => {
   return window.location.hostname.includes('sharepoint.com');
 }
@@ -159,7 +163,7 @@ export const isInputElement = (element: Element) =>
 export const getZIndex = (element: Element) => {
   return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail() || isModX()
     ? 501 
-    : isRedactorEditor(element) || isRecruitee()
+    : isRedactorEditor(element) || isRecruitee() || isMicrosoftOnlineLoop()
     ? 9999998 //make sure highlights are the second largest (smaller than popover)
     : 'auto';
 };

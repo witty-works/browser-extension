@@ -2,7 +2,13 @@ import browser from 'webextension-polyfill';
 import { DEV_ENV, StorageKeys, wittyVersion } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import { isGoogleDocs, isMicrosoftOnline, isTextArea, requiresRectRecalculation } from './DOMutils';
+import {
+  isGoogleDocs,
+  isMicrosoftOnline,
+  isMicrosoftOnlineLoop,
+  isTextArea,
+  requiresRectRecalculation
+} from './DOMutils';
 import { getToken } from './ApiServices/requests';
 
 export const isObjectEmpty = (obj: object) =>
@@ -196,6 +202,10 @@ export const updateLabelChrome = (domain: string) => {
 };
 
 export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLElement | null, element: HTMLElement) => {
+  if (isMicrosoftOnlineLoop()) {
+    return { top: 0, left: -elementRect.width };
+  }
+
   const parentRect = parentElement?.getBoundingClientRect();
   const isFirefox = navigator.userAgent.match(/firefox|fxios/i);
   const textArea = isTextArea(element);

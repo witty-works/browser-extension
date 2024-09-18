@@ -19,7 +19,7 @@ import { getTextDividedByNodes } from '../../ContentScript/utils';
 import {
   isGoogleDocs,
   isHubspot,
-  isMicrosoftOnlineExcel,
+  isMicrosoftOnlineExcel, isMicrosoftOnlineLoop,
   isMicrosoftOnlineSharepoint,
   isMicrosoftOnlineWord,
   isTrello,
@@ -40,11 +40,10 @@ const IconController: React.FC<IconControllerProps> = ({
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const fixedPositionIcon = isGoogleDocs();
-  let iconPositionGoogleDocs = { top: 0, left: 0 };
+  let iconPositionFixed: { top: number, left: number } | undefined = undefined;
   if (!elementRect) {
     elementRect = element.getBoundingClientRect();
-  } else if (fixedPositionIcon) {
+  } else if (isGoogleDocs()) {
     if (iconType == 'passive') iconType = 'active'; //passive does not make sense on google docs
     let gDocsPage = element.querySelectorAll('.kix-page-paginated');
     let widthAdjustment = + 20;
@@ -58,9 +57,14 @@ const IconController: React.FC<IconControllerProps> = ({
       elementRect = (gDocsPage[0]).getBoundingClientRect();
     }
 
-    iconPositionGoogleDocs = {
+    iconPositionFixed = {
       top: 250,
       left: elementRect.left + elementRect.width + widthAdjustment,
+    };
+  } else if (isMicrosoftOnlineLoop()) {
+    iconPositionFixed = {
+      top: elementRect.top,
+      left: elementRect.right - 50,
     };
   }
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
@@ -88,10 +92,10 @@ const IconController: React.FC<IconControllerProps> = ({
       ref={ref}
       style={{
         zIndex: 999999999,
-        position: fixedPositionIcon ? 'fixed' : 'absolute',
-        top: fixedPositionIcon ? iconPositionGoogleDocs.top : `${scrollContainerScrollTop + (isMicrosoftOnlineExcel(window.location.href) ? 0 : 8)}px`, //add padding like this to minimize clickable area
-        left: fixedPositionIcon ? iconPositionGoogleDocs.left : isMicrosoftOnlineWord(window.location.href) ? `${25}px` : `${0}px`,
-        marginLeft:  fixedPositionIcon ? '0px' : `${elementWidth - positionLeft + 20}px`, //add padding like this to minimize clickable area
+        position: iconPositionFixed ? 'fixed' : 'absolute',
+        top: iconPositionFixed ? iconPositionFixed.top : `${scrollContainerScrollTop + (isMicrosoftOnlineExcel(window.location.href) ? 0 : 8)}px`, //add padding like this to minimize clickable area
+        left: iconPositionFixed ? iconPositionFixed.left : isMicrosoftOnlineWord(window.location.href) ? `${25}px` : `${0}px`,
+        marginLeft: iconPositionFixed ? '0px' : `${elementWidth - positionLeft + 20}px`, //add padding like this to minimize clickable area
         pointerEvents: iconType !== 'warning' ? 'none' : 'auto',
         display: 'flex',
         boxSizing: 'border-box',
