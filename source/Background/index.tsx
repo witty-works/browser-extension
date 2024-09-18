@@ -25,7 +25,6 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { DefaultConfigValue } from '../shared/types';
 import { useLog } from '../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import {isChromeWebstore} from "../shared/DOMutils";
 
 const sentryDSN = defaultConfig.SENTRY_DSN;
 const sentrySampleRate = defaultConfig.SENTRY_SAMPLE_RATE;
@@ -145,7 +144,7 @@ const reInjectContentScripts = () => {
 
 
   const injectIntoTab = (tab: Tabs.Tab) => {
-    if (!tab.url || tab.url.match(/(chrome):\/\//gi) || isChromeWebstore(tab.url)) {
+    if (!tab.url || tab.url.match(/(chrome):\/\//gi)) {
       return;
     }
 

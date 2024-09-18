@@ -34,10 +34,6 @@ export const isHubspot = (): boolean => {
   return window.location.hostname.includes('hubspot');
 };
 
-export const isChromeWebstore = (url: string): boolean => {
-  return url.includes('google.com') && url.includes('webstore');
-};
-
 //can be removed when powerpoint works
 export const isMicrosoftOnline = (windowUrl: string): boolean => {
   return (windowUrl.includes('onedrive.live.com') || isMicrosoftOnlineWord(windowUrl) || isOutlook(windowUrl) || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl))
