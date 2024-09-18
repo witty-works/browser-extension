@@ -371,7 +371,7 @@ export const fr = {
     minVersionNotInstalledNotificationHeadline: 'Vous devez mettre à jour Witty',
     minVersionNotInstalledNotificationText: 'Pour continuer à utiliser Witty, vous devez mettre à jour Witty vers une version plus récente.',
     minVersionNotInstalledNotificationButton: 'Comment mettre à jour',
-    trialEndedNotificationHeadline: 'Your Witty trial has ended',
-    trialEndedNotificationText: 'To continue using Witty, you need to upgrade to a paid plan.',
+    trialEndedNotificationHeadline: 'Votre essai Witty est terminé',
+    trialEndedNotificationText: 'Pour continuer à utiliser Witty, vous devez passer à un plan payant.',
   },
 };
