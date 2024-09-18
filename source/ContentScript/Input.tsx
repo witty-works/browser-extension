@@ -28,7 +28,7 @@ import {
   isLinkedin,
   isNotion,
   isMicrosoftOnlineWord,
-  isOutlook,
+  isOutlook, isMicrosoftOnlineLoop,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -1452,7 +1452,7 @@ const Input: React.FC<{
       sel.removeAllRanges();
       sel.addRange(range);
 
-      if (isCkEditor(element)) {
+      if (isCkEditor(element) || isMicrosoftOnlineLoop()) {
         const deleteSelectedText = new KeyboardEvent('keydown', {
           key: 'Delete',
           bubbles: true,
@@ -1472,7 +1472,7 @@ const Input: React.FC<{
           node.dispatchEvent(insertAlternative);
         
           setTimeout(() => {
-            checkText(getInputText(element));
+            !isMicrosoftOnlineLoop() && checkText(getInputText(element)); // will be handled by keyup event anyway
             const event = new Event('keyup', { bubbles: true });
             element.dispatchEvent(event);
           }, 200);
