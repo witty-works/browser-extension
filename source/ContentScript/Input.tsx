@@ -127,6 +127,7 @@ const Input: React.FC<{
   const [, , popoverRootRef] = useStateRef<Root | null>(null);
   const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
   const [hrFeatureDisabled, setHrFeatureDisabled] = useState<boolean>(false);
+  const [trialEndedNotifactionShownDate, setTrialEndedNotifactionShownDate] = useState<Date | null>(null);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument?.activeElement;
@@ -197,6 +198,7 @@ const Input: React.FC<{
         elementSpellcheckRef.current = result[StorageKeys.ORTHOGRAPHY]?.value;
         const domain = getDomainWithoutSubdomain(window.location.hostname);
         domain && result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS] && setHrFeatureDisabled(result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS].includes(domain));
+        setTrialEndedNotifactionShownDate(result[StorageKeys.TRIAL_ENDED_NOTIFICATION_SHOWN_DATE]);
         if (
           result[StorageKeys.PLAN] === 'witty_free' &&
           result[StorageKeys.IGNORED_CATEGORIES]
@@ -455,6 +457,25 @@ const Input: React.FC<{
   useEffect(() => {
     if (!authResponse) return;
     updateConfig(authResponse);
+    const trialEnded =  authResponse.organization_trial_ends_at && !hasWittyLicense.current;
+    const timeToShowNotification = ! trialEndedNotifactionShownDate
+      || new Date(trialEndedNotifactionShownDate) < new Date(new Date().setMonth(new Date().getMonth() - 1))
+
+    if (trialEnded && timeToShowNotification) {
+      const notificationWrapper = document.createElement('div');
+      notificationWrapper.id = 'ww-notification';
+      storeInLocalStorage(StorageKeys.TRIAL_ENDED_NOTIFICATION_SHOWN_DATE, new Date().toString());
+      
+      window.top?.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild);
+      const root = createRoot(notificationWrapper);
+    
+      root.render(
+        <Notification
+          notificationType={'trial_ended'}
+          element={element}
+        />
+      );
+    } 
   }, [authResponse]);
 
   useEffect(() => {

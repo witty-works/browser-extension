@@ -10,7 +10,7 @@ import {
   isHubspot,
   isTextArea,
   isAemRte,
-  nodeExistsInDOM,
+  nodeExistsInDOM, isTinyMceEditor,
 } from '../shared/DOMutils';
 import {
   drawHighlight,
@@ -110,11 +110,10 @@ const Highlights: React.FC<HighlightsProps> = ({
                     : rect.left,
                   top: isGoogleDocs()
                     ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
-                    : isAemRte(element) 
-                    ? rect.top + element.scrollTop
-                    : rect.top +
-                      doc.scrollTop -
-                      (isTextArea(element) ? elementScroll.top : 0),
+                    : isAemRte(element)
+                      ? rect.top + element.scrollTop
+                      : isTinyMceEditor(element) ? rect.top + doc.scrollTop :
+                        rect.top + doc.scrollTop - (isTextArea(element) ? elementScroll.top : 0),
                 };
               }
             );

@@ -51,6 +51,7 @@ export enum StorageKeys {
   DAILY_POSTHOG_EVENTS_USED = 'dailyPosthogEventsUsed',
   LAST_CHECK_EVENT_TIME = 'lastCheckEventTime',
   HR_FEATURES_DISABLED_DOMAINS = 'hrFeaturesDisabledDomains',
+  TRIAL_ENDED_NOTIFICATION_SHOWN_DATE = 'trialEndedNotificationShownDate',
 }
 
 //nlp api, dashboard

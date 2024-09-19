@@ -25,6 +25,7 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { DefaultConfigValue } from '../shared/types';
 import { useLog } from '../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../shared/errorUtils';
+import {isChromeWebstore} from "../shared/DOMutils";
 
 const sentryDSN = defaultConfig.SENTRY_DSN;
 const sentrySampleRate = defaultConfig.SENTRY_SAMPLE_RATE;
@@ -142,10 +143,18 @@ const reInjectContentScripts = () => {
     return false;
   }
 
-
-  const injectIntoTab = (tab: Tabs.Tab) => {
-    if (!tab.url || tab.url.match(/(chrome):\/\//gi)) {
+  const injectIntoTab = async (tab: Tabs.Tab) => {
+    if (!tab.url || tab.url.match(/(chrome):\/\//gi) || isChromeWebstore(tab.url)) {
       return;
+    }
+
+    if (browser.permissions) {
+      const hasPermission = await browser.permissions.contains({
+        origins: [new URL(tab.url).origin  + '/*']
+      });
+      if (!hasPermission) {
+        return;
+      }
     }
 
     scripts.forEach((script) => {
@@ -161,6 +170,8 @@ const reInjectContentScripts = () => {
         browser.scripting.executeScript({ //executeScript, but should be ob since browser.scripting?
           target: { tabId: tab.id! },
           files: [scriptToInject],
+        }).catch(() => {
+          // do nothing cause the tab does not exist anymore
         });
       });
   
@@ -169,6 +180,8 @@ const reInjectContentScripts = () => {
         browser.scripting.insertCSS({
           files: [cssToInject],
           target: { tabId: tab.id! },
+        }).catch(() => {
+          // do nothing cause the tab does not exist anymore
         });
       });
     });
