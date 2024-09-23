@@ -56,6 +56,12 @@ const initialize = () => {
     wittyIsInstalledElement.setAttribute('extension-version', wittyVersion);
 
     browser.storage.local.get(null).then((result) => {
+      const wittyPlan = result[StorageKeys.PLAN];
+      wittyIsInstalledElement.setAttribute('extension-plan', wittyPlan);
+
+      const wittyTeam = result[StorageKeys.TEAM_NAME];
+      wittyIsInstalledElement.setAttribute('extension-team', wittyTeam);
+
       const apiEndpoint = result[StorageKeys.API_ENDPOINT_KEY] || DefaultBaseUrlKey;
       setBaseUrls(apiEndpoint);
 
