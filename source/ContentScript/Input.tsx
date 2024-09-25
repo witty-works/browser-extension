@@ -1044,6 +1044,8 @@ const Input: React.FC<{
           explanation: result.explanation,
           alternatives: result.alternatives,
           gravity: result.gravity,
+          limit_reached: result.limit_reached,
+          source: result.source,
         },
       }))
       .sort((firstAlert, secondAlert) => {
