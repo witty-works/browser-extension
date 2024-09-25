@@ -51,6 +51,7 @@ export interface ICheckResponseResult {
   gravity: number;
   language: string;
   limit_reached: boolean;
+  source: ISource;
 }
 
 //AUTH/REFRESHTOKEN ENDPOINT
@@ -138,6 +139,8 @@ export interface IAlertContentData {
   explanation: IExplanation;
   language: string;
   gravity: number;
+  limit_reached: boolean;
+  source: ISource;
 }
 
 //POPOVER
@@ -156,6 +159,11 @@ export interface IExplanation {
   url: string;
   context: string;
   content: string;
+}
+
+export interface ISource {
+  text: string;
+  url: string;
 }
 
 //ANALYTICS

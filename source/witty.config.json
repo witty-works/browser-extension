@@ -1,5 +1,6 @@
 {
   "DISABLED_SITES": [
+    "cloud.microsoft",
     "deepl.com",
     "productboard.com",
     "openai.com",

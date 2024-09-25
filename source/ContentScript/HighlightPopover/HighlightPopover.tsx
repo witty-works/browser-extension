@@ -17,6 +17,7 @@ import WittyLogo from '../../assets/icons/popover/logo.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
 import VideoIcon from '../../assets/icons/popover/video.svg';
+import ExternalLink from '../../assets/icons/popover/external-link.svg';
 import ArrowUpIcon from '../../assets/icons/popover/arrow-up.svg';
 import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
@@ -462,14 +463,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
             <div
               className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
-              onClick={() => {
-                analytics.popoverLogs(data.alert, 'learning_bites');
-                setShowLearningBite(!showLearningBite);
-              }}
               style={{
-                cursor: data.alert.data?.explanation?.url
-                  ? 'pointer'
-                  : 'default',
                 backgroundColor: getColor(data.alert.data?.gravity).default,
               }}
             >
@@ -501,7 +495,17 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
                     style={{ marginTop: showLearningBite ? '0em' : '1em' }}
                   >
-                    <div className='witty-works-ext-dropdown-select witty-works-ext-container-row'>
+                    <div className='witty-works-ext-dropdown-select witty-works-ext-container-row'
+                        onClick={() => {
+                          analytics.popoverLogs(data.alert, 'learning_bites');
+                          setShowLearningBite(!showLearningBite);
+                        }}
+                        style={{
+                          cursor: data.alert.data?.explanation?.url
+                            ? 'pointer'
+                            : 'default',
+                        }}
+                    >
                       {t('learnMore')}
                       {data.alert.data?.explanation?.content === 'video' && (
                         <VideoIcon
@@ -517,6 +521,16 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
                       </div>
                     </div>
+                    {data.alert.data?.source?.url && (
+                    <a className='witty-works-ext-dropdown-select witty-works-ext-container-row' href={data.alert.data.source.url} target='_new'>
+                      {t('visitSource')}
+
+                      <ExternalLink
+                          className='witty-works-ext-margin-left'
+                          alt={t('openNewWindow')}
+                        />
+                    </a>
+                    )}
                   </div>
                 )}
               </div>
