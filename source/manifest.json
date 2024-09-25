@@ -3,7 +3,7 @@
   "__firefox__manifest_version": 2,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp5lsGLIkH3JH3BDdGLgTRIXvTkxd1m1vLhz1MzGH95+UywrpVbvcfro0JNWBwO581k3CvyVL9Pru1CSYMkHVVDPQ/OhSIh8qSULNF6013PnPz+xVk4HdV5zyjM0GxDAuvu6IBSte2n0e/O546C45wLp57zMy8i2auM+tuwExQPQ8IEy7EjOhL9cwO2nFrZsvii+9n+iyVT0hzpIavtekOgKeb4Ol7jH9/5ZhNHBv1//xaEx8onL7hJL4vbcHThLDFsegM/qq1EfoCMMhIEY0j3AT+Bop1RN3D7WrSHYbxIUbgCDUI5UZZlGN+2+dndvXaepRfFSZ0Kz6ofRP/Y47QQIDAQAB",
   "name": "__MSG_appName__",
-  "version": "1.33.6",
+  "version": "1.33.7",
   "default_locale": "en",
   "icons": {
     "16": "assets/icons/icon16.png",
