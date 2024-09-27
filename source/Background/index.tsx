@@ -251,7 +251,9 @@ const scanTabsToSetIframeDomains = () => {
       }).then((result) => {
         const iframes = result[0].result;
         if (iframes) {
-          const iframeDomains = iframes.map((iframe: string) => {
+          const iframeDomains = iframes.filter((iframeSrc: string) => {
+            return iframeSrc && iframeSrc.startsWith('http');
+          }).map((iframe: string) => {
             try {
               const url = new URL(iframe);
               return getDomainWithoutSubdomain(url.hostname);
