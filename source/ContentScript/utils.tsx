@@ -182,44 +182,6 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   }
 };
 
-export const getNodesWithinMaxCharLength = (
-  direction: string,
-  textDividedByNodes: Node[],
-  currentNode: number,
-  charLengthLeft: number
-) => {
-  let totalChars = 0;
-  textDividedByNodes = textDividedByNodes.filter((node) => { //remove empty nodes
-    return node?.textContent && node.textContent.length > 0;
-  });
-  const slice =
-    direction == 'below'
-      ? textDividedByNodes.slice(currentNode + 1)
-      : textDividedByNodes.slice(0, currentNode).reverse();
-  const filterCondition =
-    direction == 'below'
-      ? currentNode == 0
-      : currentNode == textDividedByNodes.length - 1;
-  const nodesWhithinMaxCharLength = slice
-    .map((node) => {
-      const newNode = {
-        node: node.textContent as string,
-        index: textDividedByNodes.indexOf(node),
-        rawNode: node,
-      };
-      return newNode;
-    })
-    .filter((node) => {
-      totalChars += node.node.length;
-      return (
-        totalChars <= (filterCondition ? charLengthLeft : charLengthLeft / 2)
-      );
-    }).sort((a, b) => {
-      return direction == 'below' ? a.index - b.index : b.index - a.index;
-    });
-  return nodesWhithinMaxCharLength;
-};
-
 export const makeAuthRequest = () => {
   browser.storage.local.get(null).then((result) => {
     if (
