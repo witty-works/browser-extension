@@ -50,7 +50,6 @@ import GoogleDocsClone from './GoogleDocsClone';
 import {
   getFirstTextDiff,
   getInputText,
-  getNodesWithinMaxCharLength,
   getScrollParent,
   getTextDividedByNodes,
   shouldReturnEarly,
@@ -73,9 +72,6 @@ const Input: React.FC<{
     position: DOMRect;
   }>({ text: [], position: {} as DOMRect });
 
-  const [, , nodesWhithinMaxCharLengthRef] = useStateRef<
-    { node: string; index: number; rawNode: Node }[]
-  >([]);
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
@@ -551,69 +547,11 @@ const Input: React.FC<{
         });
       }
       const nodeAtFirstTextDiff = nextTextDividedByNodes[fistTextDiff.node];
-      const nodesWithinMaxCharLength = getTextWithinMaxCharLength(fistTextDiff.node, nodeAtFirstTextDiff);
-      nodesWithinMaxCharLength && handleTextAndIcon(nodesWithinMaxCharLength);
+      handleTextAndIcon(nextTextDividedByNodes.map((node, index) => ({ node: node.textContent as string, index, rawNode: element })));
     }
 
     previousElementStateRef.current = { text: textDividedByNodesTextContent, position: element.getBoundingClientRect() };
-  }, 200); //for getFirstTextDiff not to be overwhemled by too many calls. There is a seperate debounce for requests. 
-
-  const getTextWithinMaxCharLength = (
-    currentNode: number,
-    currentNodeRaw?: Node | null
-  ) => {
-    if (!currentNodeRaw) return;
-    const textDividedByNodes = getTextDividedByNodes(element);
-    const textDividedByNodesTextContent = textDividedByNodes.map(
-      (node) => node.textContent
-    );
-    const currentText = textDividedByNodesTextContent[currentNode];
-    const charLengthLeft = maxCharLength - (currentText?.length ? currentText.length : 0);
-    const nodesWhithinMaxCharLengthBelowNode = getNodesWithinMaxCharLength(
-      'below',
-      textDividedByNodes,
-      currentNode,
-      charLengthLeft
-    );
-    const nodesWhithinMaxCharLengthAboveNode = getNodesWithinMaxCharLength(
-      'above',
-      textDividedByNodes,
-      currentNode,
-      charLengthLeft
-    );
-
-    const currentNodeFormatted = [
-      {
-        node: currentNodeRaw.textContent as string,
-        index: currentNode,
-        rawNode: currentNodeRaw,
-      },
-    ];
-
-    const nodesWhithinMaxCharLength = nodesWhithinMaxCharLengthAboveNode
-      .concat(nodesWhithinMaxCharLengthBelowNode)
-      .concat(currentNodeFormatted)
-      .sort((a, b) => a.index - b.index)
-      .filter(
-        (node, index, self) =>
-          index === self?.findIndex((nodeToCompare) => nodeToCompare.index === node.index)
-      );
-
-    if (currentText && currentText.length > maxCharLength) {
-      const shortenedText = currentText.slice(0, maxCharLength);
-      nodesWhithinMaxCharLengthRef.current = [
-        {
-          node: shortenedText,
-          index: currentNode,
-          rawNode: currentNodeRaw,
-        },
-      ];
-      return nodesWhithinMaxCharLength;
-    } else {
-      nodesWhithinMaxCharLengthRef.current = nodesWhithinMaxCharLength;
-      return nodesWhithinMaxCharLength;
-    }
-  };
+  }, 200); //for getFirstTextDiff not to be overwhemled by too many calls. There is a seperate debounce for requests.
 
   const handleTextAndIcon = (nodes: INodes[]) => {
     const isTextAreaCheck = isTextArea(element);
@@ -873,37 +811,40 @@ const Input: React.FC<{
     }
   }, 200);
 
+  // @ts-ignore
   const handleElementClickLongText = (caret: {
     position: number | null;
     element: Node | null;
   }): void => {
     setAlerts([]);
     checkText('');
-    if (isGoogleDocs() && caret.position) {      
-      const nodeIsChecked = prevCheckedNodesRef.current.find((prevCheckedNode) =>
-        prevCheckedNode.rawNode === cloneRef.current?.childNodes[caret.position as number]
-      );
-      if (nodeIsChecked) return;
-      const textWithinMaxCharLength = getTextWithinMaxCharLength(
-        caret.position,
-        cloneRef.current?.childNodes[caret.position]
-      );
-      if (!textWithinMaxCharLength) return;
-      handleTextAndIcon(textWithinMaxCharLength)
-    } else if (!isGoogleDocs() && caret.element) {
-      const textDividedByNodes = getTextDividedByNodes(element);
-      const clickedNodeAlreadyChecked = prevCheckedNodesRef.current.find(
-        (prevCheckedNode) => prevCheckedNode.rawNode === caret.element
-      );
-      if (clickedNodeAlreadyChecked) return;
-
-      const textWithinMaxCharLength = getTextWithinMaxCharLength(
-        textDividedByNodes.indexOf(caret.element),
-          caret.element
-        );
-        if (!textWithinMaxCharLength) return;
-        handleTextAndIcon(textWithinMaxCharLength);
-    }
+    // if (isGoogleDocs() && caret.position) {
+    //   const nodeIsChecked = prevCheckedNodesRef.current.find((prevCheckedNode) =>
+    //     prevCheckedNode.rawNode === cloneRef.current?.childNodes[caret.position as number]
+    //   );
+    //   if (nodeIsChecked) return;
+    //   const textWithinMaxCharLength = getTextWithinMaxCharLength(
+    //     caret.position,
+    //     cloneRef.current?.childNodes[caret.position]
+    //   );
+    //   if (!textWithinMaxCharLength) return;
+    //   handleTextAndIcon(textWithinMaxCharLength)
+    // } else if (!isGoogleDocs() && caret.element) {
+    //   const textDividedByNodes = getTextDividedByNodes(element);
+    //   const clickedNodeAlreadyChecked = prevCheckedNodesRef.current.find(
+    //     (prevCheckedNode) => prevCheckedNode.rawNode === caret.element
+    //   );
+    //   if (clickedNodeAlreadyChecked) return;
+    //
+    //   const textWithinMaxCharLength = getTextWithinMaxCharLength(
+    //     textDividedByNodes.indexOf(caret.element),
+    //       caret.element
+    //     );
+    //     if (!textWithinMaxCharLength) return;
+    //     handleTextAndIcon(textWithinMaxCharLength);
+    // }
+    const textDividedByNodes = getTextDividedByNodes(element);
+    handleTextAndIcon(textDividedByNodes.map((node, index) => ({ node, index, rawNode: node })));
   };
 
   const movePopoverNextOrPrev = (direction: string): void => {
@@ -1312,23 +1253,20 @@ const Input: React.FC<{
     elementEvaluation: XPathResult
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
+    const nodesForCalculation = getTextDividedByNodes(element).map((node, index) => ({ node: node.textContent as string, index, rawNode: element })).filter((node: INodes) => {
+      return node.node.length > 0;
+    }).sort((a: INodes, b: INodes) => a.index - b.index);
+
     if (
       !isTextArea(element) 
     ) {
       let updatedAlerts: IAlert[] = [];
-      const nodesForCalculation = nodesWhithinMaxCharLengthRef.current.filter((node: INodes) => {
-        return node.node.length > 0;
-      }).sort((a: INodes, b: INodes) => a.index - b.index);
-      const lowestIndex = nodesForCalculation.reduce(
-        (min, node) => (node.index < min ? node.index : min),
-        Infinity
-      );
 
       nodesForCalculation.forEach((node) => {
         let absolutePositionOfFirstCharOfNode = 0;
         let absolutePositionOfLastCharOfNode = 0;
 
-        for (let index = lowestIndex; index <= node.index; index++) {
+        for (let index = 0; index <= node.index; index++) {
           const text = elementEvaluation.snapshotItem(index)?.textContent;
           const textLength = text ? text.length : 0;
         
@@ -1372,13 +1310,14 @@ const Input: React.FC<{
       let textStartingAbsPosition: number = 0;
       let textEndAbsPosition: number = -1;
 
+      const nodesForCalculation = getTextDividedByNodes(element).map((node, index) => ({ node: node.textContent as string, index, rawNode: element }));
       for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
         const node = elementEvaluation.snapshotItem(index) as Node;
         if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {
           if (
             //for handeling long text
-            nodesWhithinMaxCharLengthRef.current.length > 0 &&
-            !nodesWhithinMaxCharLengthRef.current.some(
+            nodesForCalculation.length > 0 &&
+            !nodesForCalculation.some(
               (nodeWithAlertsRef) => nodeWithAlertsRef.index === index
             )
           ) {
@@ -1387,11 +1326,11 @@ const Input: React.FC<{
 
           textStartingAbsPosition = textEndAbsPosition + 1;
           textEndAbsPosition =
-            nodesWhithinMaxCharLengthRef.current.length == 0
-              ? textStartingAbsPosition + node.nodeValue.length - 1 //needed to keep highlights in place
-              : textStartingAbsPosition + node.nodeValue.length;
+            nodesForCalculation.length == 0
+              ? textStartingAbsPosition + node.nodeValue.length - 1 : //needed to keep highlights in place
+              textStartingAbsPosition + node.nodeValue.length;
 
-          if (nodesWhithinMaxCharLengthRef.current.length == 0) {
+          if (nodesForCalculation.length == 0) {
             const nextText: string = isGoogleDocs()
               ? getInputText(cloneRef.current)
               : getInputText(element);
