@@ -114,7 +114,6 @@ const Input: React.FC<{
   const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
-  const [unchangedAlertsTextarea, setUnchangedAlertsTextarea] = useState<IAlert[]>([]);
   const [, , hasWittyLicense] = useStateRef<boolean>(true);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
   const [, , checkLogEventIdRef] = useStateRef<string>('');
@@ -505,9 +504,9 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent, gDocs?: boolean, keepHighlights?: boolean) => {
+  const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent) => {
     if (!hasWittyLicense.current) return; //dont do any checks for users without witty license
-    if (prevSelectedAlertIndex.current != -1 && !gDocs) resetPopover();
+    if (prevSelectedAlertIndex.current != -1 && !isGoogleDocs()) resetPopover();
     const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
     !isGoogleDocs() && (element.spellcheck = !elementSpellcheckRef.current)
 
@@ -518,35 +517,15 @@ const Input: React.FC<{
       ? nextText
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
 
-    const fistTextDiff = getFirstTextDiff(element, textDividedByNodesTextContent, previousElementStateRef.current?.text); 
+    const fistTextDiff = getFirstTextDiff(element, textDividedByNodesTextContent, previousElementStateRef.current?.text);
+    console.log('nexttext', nextText);
+    console.log('nexttextdivided', nextTextDividedByNodes);
+    console.log('textdivided', textDividedByNodesTextContent);
+    console.log('firsttextdiff', fistTextDiff);
     if (isTextArea(element)) {
-      if (!keepHighlights) {
-        const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
-          nodeWithAlerts.alerts.filter(
-            (alert) => alert.startOffset < fistTextDiff.position
-          )
-        );
-        unchangedAlerts.length > 0 && setAlerts(unchangedAlerts[0]); //is this needed?
-        setUnchangedAlertsTextarea(unchangedAlerts[0]);
-      }
       handleTextAndIcon([{ node: nextText, index: 0, rawNode: element }]);
     } else {
       !isGoogleDocs() && setAlerts([]);
-      if (!keepHighlights) {
-        nodesWithAlertsRef.current = nodesWithAlertsRef.current.filter(  //remove nodes after first diff from nodesWithAlertsRef.current to prevent highlight displacement
-          (nodeWithAlerts) => nodeWithAlerts.nodeIndex && nodeWithAlerts.nodeIndex <= fistTextDiff.node
-        );
-        //remove nodes within firstextdiff where position is after cursor
-        nodesWithAlertsRef.current = nodesWithAlertsRef.current.map((nodeWithAlerts) => {
-          if (nodeWithAlerts.nodeIndex === fistTextDiff.node) {
-            nodeWithAlerts.alerts = nodeWithAlerts.alerts.filter(
-              (alert) => alert.endOffset <= fistTextDiff.position
-            );
-          }
-          return nodeWithAlerts;
-        });
-      }
-      const nodeAtFirstTextDiff = nextTextDividedByNodes[fistTextDiff.node];
       handleTextAndIcon(nextTextDividedByNodes.map((node, index) => ({ node: node.textContent as string, index, rawNode: element })));
     }
 
@@ -1148,7 +1127,8 @@ const Input: React.FC<{
       );
       setTotalAlerts(totalAlertsToSet);
       nodesWithAlertsRef.current = mergedNodesWithAlerts;
-      isWittyPremiumUserRef.current && userIsSignedIn && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);
+      // TODO Restore logNewCheckResponses
+      // isWittyPremiumUserRef.current && userIsSignedIn && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);
 
       const nodeStorageRefWithAlerts = nodesStorageRef.current.map((node: INodes) => {
         const nodeWithAlerts = mergedNodesWithAlerts.find((nodeWithAlerts: INodeWithAlerts) => {
@@ -1174,60 +1154,56 @@ const Input: React.FC<{
     selectedAlertIndex,
   ]);
 
-  const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: any) => {
-    let newResults;
-    if (isTextArea(element) && checkEndpointResponse && unchangedAlertsTextarea) {
-      newResults = checkEndpointResponse.results.filter((alert) => {
-        return !unchangedAlertsTextarea.some((prevAlert) => prevAlert.startOffset === alert.start);
-      });
-    } else {
-      newResults = newNodesWithAlerts.reduce((acc: any, nodeWithAlerts: INodeWithAlerts) => {
-        let newAlerts = nodeWithAlerts.alerts.filter(() => {
-          const prevCheckedNode = previouslyCheckedNodesWithAlerts.find((prevCheckedNode: INodeWithAlerts) => {
-            return prevCheckedNode.node === nodeWithAlerts.node?.nodeValue;
-          });
-          return !prevCheckedNode || prevCheckedNode.index !== nodeWithAlerts.nodeIndex;
-        });
-        
-        // Filtering out alerts that were already checked
-        newAlerts = newAlerts.filter((alert) => {
-          return !previouslyCheckedNodesWithAlerts.some((prevCheckedNode: any) => {
-            return prevCheckedNode.alerts.some((prevAlert: any) => {
-              return prevAlert.startOffset === alert.startOffset && prevAlert.endOffset === alert.endOffset;
-            });
-          });
-        });    
-        return [...acc, ...newAlerts];
-      }, []);    
-    }
-
-    if (newResults.length === 0) return;
-
-    const mergedCheckEndpointResponse = {
-      ...checkEndpointResponse,
-      results: newResults,
-    };
-  
-    const mergedCheckEndpointResponseWithoutOrthography = {
-      ...mergedCheckEndpointResponse,
-      results: mergedCheckEndpointResponse.results.filter((result: any) => {
-        return result.data?.category !== 'orthography';
-      }),
-    };
-      
-    if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
-    const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-    for (const result of mergedCheckEndpointResponseWithoutOrthography.results) {
-      result.data && analytics.checkResultLog(
-        result.data,
-        authResponse,
-        textContentLength,
-        'check_highlights',
-        checkLogEventIdRef.current,
-        hrFeatureDisabled
-      );
-    };
-  };
+  // TODO Work in progress - does not work properly yet (for textareas or at all)
+  // const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: any) => {
+  //   const newResults = newNodesWithAlerts.reduce((acc: any, nodeWithAlerts: INodeWithAlerts) => {
+  //     let newAlerts = nodeWithAlerts.alerts.filter(() => {
+  //       const prevCheckedNode = previouslyCheckedNodesWithAlerts.find((prevCheckedNode: INodeWithAlerts) => {
+  //         return prevCheckedNode.node === nodeWithAlerts.node?.nodeValue;
+  //       });
+  //       return !prevCheckedNode || prevCheckedNode.index !== nodeWithAlerts.nodeIndex;
+  //     });
+  //
+  //     // Filtering out alerts that were already checked
+  //     newAlerts = newAlerts.filter((alert) => {
+  //       return !previouslyCheckedNodesWithAlerts.some((prevCheckedNode: any) => {
+  //         return prevCheckedNode.alerts.some((prevAlert: any) => {
+  //           return prevAlert.startOffset === alert.startOffset && prevAlert.endOffset === alert.endOffset;
+  //         });
+  //       });
+  //     });
+  //     return [...acc, ...newAlerts];
+  //   }, []);
+  //
+  //   //newResults = newNodesWithAlerts;
+  //   if (newResults.length === 0) return;
+  //
+  //   const mergedCheckEndpointResponse = {
+  //     ...checkEndpointResponse,
+  //     results: newResults,
+  //   };
+  //
+  //   const mergedCheckEndpointResponseWithoutOrthography = {
+  //     ...mergedCheckEndpointResponse,
+  //     results: mergedCheckEndpointResponse.results.filter((result: any) => {
+  //       return result.data?.category !== 'orthography';
+  //     }),
+  //   };
+  //
+  //   if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
+  //   const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
+  //   for (const result of mergedCheckEndpointResponseWithoutOrthography.results) {
+  //     console.log('analytics', result);
+  //     result.data && analytics.checkResultLog(
+  //       result.data,
+  //       authResponse,
+  //       textContentLength,
+  //       'check_highlights',
+  //       checkLogEventIdRef.current,
+  //       hrFeatureDisabled
+  //     );
+  //   };
+  // };
 
   // useEffect(() => {
   //   if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
@@ -1512,7 +1488,7 @@ const Input: React.FC<{
     if (!isCkEditor(element) && !isGoogleDocs()) {
       handleTextAndIcon([]); //ensures update 
       const event = new KeyboardEvent('keyup');
-      handleKeyupEvent(event, false, true);
+      handleKeyupEvent(event);
     }
   };
 
