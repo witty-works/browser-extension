@@ -109,8 +109,8 @@ const Input: React.FC<{
   const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
-  const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
-  const totalMaxCharLength = defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM;
+  // const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
+  // const totalMaxCharLength = defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM;
   const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
@@ -510,99 +510,35 @@ const Input: React.FC<{
     const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
     !isGoogleDocs() && (element.spellcheck = !elementSpellcheckRef.current)
 
-    const nextText: string = getInputText(isGoogleDocs() ? cloneRef.current : element);
     const nextTextDividedByNodes = getTextDividedByNodes(element);
     if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes)) return;
     const textDividedByNodesTextContent = isTextArea(element)
-      ? nextText
+      ? getInputText(element)
       : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
 
-    const fistTextDiff = getFirstTextDiff(element, textDividedByNodesTextContent, previousElementStateRef.current?.text);
-    console.log('nexttext', nextText);
-    console.log('nexttextdivided', nextTextDividedByNodes);
-    console.log('textdivided', textDividedByNodesTextContent);
-    console.log('firsttextdiff', fistTextDiff);
     if (isTextArea(element)) {
-      handleTextAndIcon([{ node: nextText, index: 0, rawNode: element }]);
+      handleTextAndIcon();
     } else {
       !isGoogleDocs() && setAlerts([]);
-      handleTextAndIcon(nextTextDividedByNodes.map((node, index) => ({ node: node.textContent as string, index, rawNode: element })));
+      handleTextAndIcon();
     }
 
     previousElementStateRef.current = { text: textDividedByNodesTextContent, position: element.getBoundingClientRect() };
   }, 200); //for getFirstTextDiff not to be overwhemled by too many calls. There is a seperate debounce for requests.
 
-  const handleTextAndIcon = (nodes: INodes[]) => {
-    const isTextAreaCheck = isTextArea(element);
-    const clonedElement = document.querySelector(WTags.WW_CLONE)?.textContent;
-    const allNodes = getTextDividedByNodes(element).map((node: any) => node.textContent);
-    const totalTextLength = isTextAreaCheck && clonedElement ? clonedElement?.length : allNodes.join('').length;
-    // if (totalTextLength < maxCharLength) {
-    //   // localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'false');
-    // }
-    let nodesToCheck = nodes; //not needed anymore as whatever is passed to handleTextAndIcon is already within max char length
-    nodesStorageRef.current = nodesToCheck;
-    let newTextToCheck = nodesToCheck.map((node: any) => node.node).join('\n');
-    if (isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
-      totalMaxCharLengthReachedRef.current = true;
-      // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached'); //TEMP removed to save events
-      if (nodes[0] && typeof nodes[0] === 'string') {
-        const lastSpaceIndex = nodes[0].node.lastIndexOf('', totalMaxCharLength);
-        newTextToCheck = nodes[0].node.slice(0, lastSpaceIndex);
-      }
-    } else if (!isTextAreaCheck && totalTextLength > totalMaxCharLength && !isWittyPremiumUserRef.current) {
-      totalMaxCharLengthReachedRef.current = true;
-      // userIsSignedIn && analytics.maxCharLengthReachedLog('max_char_length_reached');//TEMP removed to save events
-    } else {
-      isTextAreaCheck && (newTextToCheck = nodes[0].node);
-      totalMaxCharLengthReachedRef.current = false;
-    }
-    //if text length of node is smaller than MIN_CHAR_LENGTH length, add nodes until min char length is reached
-    if (!isTextAreaCheck && newTextToCheck.length < minCharLength && newTextToCheck.length !== 0) {
-      nodesToCheck = getNodesToFillMinCharLength(nodesToCheck, nodes);
-      newTextToCheck = nodesToCheck.map((node: INodes) => node.node).join('\n');
-      nodesStorageRef.current = nodesToCheck;
-    }
+  const handleTextAndIcon = () => {
+    const nextText: string = getInputText(isGoogleDocs() ? cloneRef.current : element);
 
-    setCurrentTextToCheck(newTextToCheck); //for check call after refresh token
-    if (newTextToCheck.length === 0 || !newTextToCheck.match(/[a-zA-Z0-9.:;,?!]/i)) {
+    setCurrentTextToCheck(nextText); //for check call after refresh token
+    if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
       checkText('');
     } else {
-      debouncedSetTextToCheck(newTextToCheck);
+      debouncedSetTextToCheck(nextText);
       setActiveIcon('loading');
     }
   }
-
-  const getNodesToFillMinCharLength = (nodesToCheck: any, nodes: any) => {
-    if (nodesToCheck.length === 0) return nodesToCheck;
-
-    const lowestNodeIndex = nodesToCheck.reduce(
-      (prev: { index: number }, current: { index: number }) =>
-        prev.index < current.index ? prev : current
-    ).index;
-
-    const nodesBeforeLowestNodeIndex = nodes
-      .filter((node: INodes) => node.index < lowestNodeIndex)
-      .sort((a: INodes, b: INodes) => b.index - a.index);
-
-    let newNodesToCheck = nodesToCheck;
-
-    let totalLength = nodesToCheck.reduce(
-      (prev: number, current: { node: string }) => prev + current.node?.length || 0,
-      0
-    );
-    while (totalLength < minCharLength) {
-      const nodeToAdd = nodesBeforeLowestNodeIndex.shift();
-      if (!nodeToAdd) break;
-      newNodesToCheck = [...newNodesToCheck, nodeToAdd];
-      totalLength += nodeToAdd.node.length;
-    }
-    newNodesToCheck.sort((a: INodes, b: INodes) => a.index - b.index);
-
-    return newNodesToCheck;
-  };
 
   const checkText = (text: string) => {
     browser.storage.local.get([StorageKeys.PLAN]).then((result) => {
@@ -822,8 +758,7 @@ const Input: React.FC<{
     //     if (!textWithinMaxCharLength) return;
     //     handleTextAndIcon(textWithinMaxCharLength);
     // }
-    const textDividedByNodes = getTextDividedByNodes(element);
-    handleTextAndIcon(textDividedByNodes.map((node, index) => ({ node, index, rawNode: node })));
+    handleTextAndIcon();
   };
 
   const movePopoverNextOrPrev = (direction: string): void => {
@@ -1486,7 +1421,7 @@ const Input: React.FC<{
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
     if (!isCkEditor(element) && !isGoogleDocs()) {
-      handleTextAndIcon([]); //ensures update 
+      handleTextAndIcon(); //ensures update
       const event = new KeyboardEvent('keyup');
       handleKeyupEvent(event);
     }
