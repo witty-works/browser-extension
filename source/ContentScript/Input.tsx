@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 // import Notification from '../Notifications/Notification'; //Temporarily removed until we have a better solution
 import TextAreaClone from './TextAreaClone';
-import { useCheckEndpoint } from '../shared/ApiServices/useEndpoint';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
@@ -48,7 +47,6 @@ import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import GoogleDocsClone from './GoogleDocsClone';
 import {
-  getFirstTextDiff,
   getInputText,
   getScrollParent,
   getTextDividedByNodes,
@@ -59,12 +57,14 @@ import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
 import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
 import Notification from '../Notifications/Notification';
+import {useCheckEndpointWithCache} from "../shared/ApiServices/useCheckEndpointWithCache";
 
 const Input: React.FC<{
   element: CustomInputElement;
 }> = ({ element }) => {
-  const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
-    useCheckEndpoint();
+  // const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
+  //   useCheckEndpoint();
+  const [checkResultAlerts, checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpointWithCache();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
   const [, , previousElementStateRef] = useStateRef<{
@@ -878,37 +878,12 @@ const Input: React.FC<{
         ? checkEndpointResponse.results
         : 'None'
     );
-
-    const alerts: IAlert[] = checkEndpointResponse.results
-      .map((result) => ({
-        id: `${result.text}-${result.category}-${result.start}${result.end}`,
-        startOffset: result.start,
-        endOffset: result.end,
-        popOverIsOpen: false,
-        organizationId: authResponse ? authResponse.organization_id : undefined,
-        userId: authResponse ? authResponse.id : undefined,
-        plan: authResponse ? authResponse.plan : undefined,
-        data: {
-          language: checkEndpointResponse.language,
-          category: result.category,
-          subcategory: result.subcategory,
-          context: result.context,
-          text: result.text,
-          text_id: result.text_id,
-          label: result.label,
-          explanation: result.explanation,
-          alternatives: result.alternatives,
-          gravity: result.gravity,
-          limit_reached: result.limit_reached,
-          source: result.source,
-        },
-      }))
-      .sort((firstAlert, secondAlert) => {
-        return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
-      });
-
-    setAlerts([...alerts]);
   }, [checkEndpointResponse]);
+
+  useEffect(() => {
+    console.log('NEWALERTS', checkResultAlerts);
+    setAlerts([...checkResultAlerts]);
+  }, [checkResultAlerts]);
 
   useEffect(() => {
     if (alerts.length === 0) {
