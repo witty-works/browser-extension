@@ -3,6 +3,7 @@ import {ICachedSentenceAlerts, useSentenceCache} from './useSentenceCache';
 import {IAlert, ICheckResponse} from "../types";
 import {useCheckEndpoint} from "./useEndpoint";
 import {SentenceSplitterSyntax, split} from "sentence-splitter";
+import {generateAlertId} from "../utils";
 
 interface CheckEndpointCachedResponse {
   alerts: IAlert[];
@@ -54,7 +55,7 @@ export const useCheckEndpointWithCache = () => {
           const adjustedEnd = result.end - sentence.range[0];
 
           alerts.push({
-            id: `${result.text}-${result.category}-${result.start}${result.end}`,
+            id: generateAlertId(result.text, result.category, result.start, result.end),
             startOffset: adjustedStart,
             endOffset: adjustedEnd,
             popOverIsOpen: false,

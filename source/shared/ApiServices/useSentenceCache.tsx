@@ -2,6 +2,7 @@ import {hashString} from "../../ContentScript/utils";
 import {IAlert} from "../types";
 import {SentenceSplitterSyntax, split} from "sentence-splitter";
 import { useRef } from "react";
+import {generateAlertId} from "../utils";
 
 interface ISentenceCache {
   [hash: string]: ICachedSentenceAlerts;
@@ -27,11 +28,16 @@ export const useSentenceCache = () => {
       const hash = hashString(sentence.raw);
       if (cacheRef.current[hash]) {
         // Adjust cached alert positions based on sentence's position in the new text
-        const adjustedAlerts = cacheRef.current[hash].alerts.map((alert) => ({
+        const adjustedAlerts = cacheRef.current[hash].alerts.map((alert) => {
+          const startOffset = alert.startOffset + sentence.range[0];
+          const endOffset = alert.endOffset + sentence.range[0];
+          return {
           ...alert,
-          startOffset: alert.startOffset + sentence.range[0],
-          endOffset: alert.endOffset + sentence.range[0],
-        }));
+            id: generateAlertId(alert.data.text, alert.data.category, startOffset, endOffset),
+            startOffset,
+            endOffset,
+          }
+        });
         cachedAlerts.push(...adjustedAlerts);
       } else {
         nonCachedSentences.push(sentence.raw);
