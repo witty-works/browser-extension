@@ -1,17 +1,22 @@
 import {useEffect, useRef, useState} from 'react';
 import {ICachedSentenceAlerts, useSentenceCache} from './useSentenceCache';
-import {IAlert} from "../types";
+import {IAlert, ICheckResponse} from "../types";
 import {useCheckEndpoint} from "./useEndpoint";
 import {SentenceSplitterSyntax, split} from "sentence-splitter";
 
+interface CheckEndpointCachedResponse {
+  alerts: IAlert[];
+  checkEndpointResponse: ICheckResponse | undefined;
+}
+
 export const useCheckEndpointWithCache = () => {
   const { checkCache, addToCache } = useSentenceCache();
-  const [alerts, setAlerts] = useState<IAlert[]>([]);  // Track alerts separately
-  const [checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpoint(); // The raw API response
+  const [cachedCheckEndpointResponse, setCachedCheckEndpointResponse] = useState<CheckEndpointCachedResponse | null>(null);
+  const [checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpoint();
   const lastCheckedTextRef = useRef<string | null>();
   const lastWholeTextRef = useRef<string | null>();
 
-  const checkTextWithCache = (updatedText: string) => {
+  const checkTextWithCache = (updatedText: string, checkEndpointResponse?: ICheckResponse) => {
     lastWholeTextRef.current = updatedText;
     const { cachedAlerts, nonCachedSentences: uncachedSentences } = checkCache(updatedText);
 
@@ -21,11 +26,12 @@ export const useCheckEndpointWithCache = () => {
       setTextToCheck(textToCheck);
     }
 
-    setAlerts(() => {
-      return [...cachedAlerts].sort((firstAlert, secondAlert) => {
+    setCachedCheckEndpointResponse({
+      alerts: [...cachedAlerts].sort((firstAlert, secondAlert) => {
         return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
-      });
-    });
+      }),
+      checkEndpointResponse,
+    })
   };
 
   useEffect(() => {
@@ -76,8 +82,8 @@ export const useCheckEndpointWithCache = () => {
       });
     });
     addToCache(sentencesAlerts);
-    lastWholeTextRef.current && checkTextWithCache(lastWholeTextRef.current);
+    lastWholeTextRef.current && checkTextWithCache(lastWholeTextRef.current, checkEndpointResponse);
   }, [checkEndpointResponse]);
 
-  return [alerts, checkEndpointResponse, checkEndpointError, checkTextWithCache] as const;
+  return [cachedCheckEndpointResponse, checkEndpointError, checkTextWithCache] as const;
 };
