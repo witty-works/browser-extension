@@ -64,7 +64,7 @@ const Input: React.FC<{
 }> = ({ element }) => {
   // const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
   //   useCheckEndpoint();
-  const [checkResultAlerts, checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpointWithCache();
+  const [checkEndpointCachedResponse, checkEndpointError, setTextToCheck] = useCheckEndpointWithCache();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
   const [, , previousElementStateRef] = useStateRef<{
@@ -848,42 +848,41 @@ const Input: React.FC<{
   }, [selectedNodeWithAlertsIndex, selectedAlertIndex]);
 
   useEffect(() => {
-    if (!checkEndpointResponse) return;
+    if (!checkEndpointCachedResponse) return;
     document.documentElement.setAttribute('witty-could-determine-lang', 'true');
     setRemoveHighlights(false);
-    setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
 
-    checkEndpointResponse.notifications
-      ? storeInLocalStorage(
+    if (checkEndpointCachedResponse.checkEndpointResponse) {
+      const checkEndpointResponse = checkEndpointCachedResponse.checkEndpointResponse;
+      setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
+      checkEndpointResponse.notifications
+        ? storeInLocalStorage(
           StorageKeys.NUMBER_OF_NOTIFICATIONS,
           checkEndpointResponse.notifications
         )
-      : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
+        : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
+      checkLogEventIdRef.current = Math.random().toString(36).substring(2, 15);
+      userIsSignedIn && analytics.checkLog(
+        checkEndpointResponse,
+        authResponse,
+        clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
+        'check',
+        checkLogEventIdRef.current,
+        hrFeatureDisabled
+      );
+      log(
+        `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
+        logTypes.INFO,
+        checkEndpointResponse.results.length > 0
+          ? checkEndpointResponse.results
+          : 'None'
+      );
+    }
 
     setActiveIcon('active');
-    checkLogEventIdRef.current = Math.random().toString(36).substring(2, 15);
-    userIsSignedIn && analytics.checkLog(
-      checkEndpointResponse,
-      authResponse,
-      clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
-      'check',
-      checkLogEventIdRef.current,
-      hrFeatureDisabled
-    );
-  
-    log(
-      `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
-      logTypes.INFO,
-      checkEndpointResponse.results.length > 0
-        ? checkEndpointResponse.results
-        : 'None'
-    );
-  }, [checkEndpointResponse]);
-
-  useEffect(() => {
-    console.log('NEWALERTS', checkResultAlerts);
-    setAlerts([...checkResultAlerts]);
-  }, [checkResultAlerts]);
+    setAlerts([...checkEndpointCachedResponse.alerts]);
+    console.log('NEWALERTS', checkEndpointCachedResponse.alerts);
+  }, [checkEndpointCachedResponse]);
 
   useEffect(() => {
     if (alerts.length === 0) {
