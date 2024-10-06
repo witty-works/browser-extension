@@ -1138,25 +1138,31 @@ const Input: React.FC<{
     elementEvaluation: XPathResult
   ): INodeWithAlerts[] => {
     const nodesWithAlertsTemp: INodeWithAlerts[] = [];
-    const nodesForCalculation = getTextDividedByNodes(element).map((node, index) => ({ node: node.textContent as string, index, rawNode: element })).filter((node: INodes) => {
-      return node.node.length > 0;
-    }).sort((a: INodes, b: INodes) => a.index - b.index);
 
     if (
       !isTextArea(element) 
     ) {
       let updatedAlerts: IAlert[] = [];
+      const nodesForCalculation = getTextDividedByNodes(element)
+        .map((node, index) => ({ node: node.textContent as string, index, rawNode: element }))
+        .filter((node: INodes) => {
+        return node.node.length > 0;
+      }).sort((a: INodes, b: INodes) => a.index - b.index);
+      const lowestIndex = nodesForCalculation.reduce(
+        (min, node) => (node.index < min ? node.index : min),
+        Infinity
+      );
 
       nodesForCalculation.forEach((node) => {
         let absolutePositionOfFirstCharOfNode = 0;
         let absolutePositionOfLastCharOfNode = 0;
 
-        for (let index = 0; index <= node.index; index++) {
+        for (let index = lowestIndex; index <= node.index; index++) {
           const text = elementEvaluation.snapshotItem(index)?.textContent;
           const textLength = text ? text.length : 0;
         
           if (index < node.index) {
-            absolutePositionOfFirstCharOfNode += textLength + 1;
+            absolutePositionOfFirstCharOfNode += textLength;
           }
         
           absolutePositionOfLastCharOfNode += textLength;

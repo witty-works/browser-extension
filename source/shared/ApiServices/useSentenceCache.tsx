@@ -17,7 +17,8 @@ export const useSentenceCache = () => {
   const cacheRef = useRef<ISentenceCache>({});
 
   const checkCache = (updatedText: string) => {
-    const sentences = split(updatedText).filter(s => s.type === SentenceSplitterSyntax.Sentence);
+    const textWithoutLineBreaks = updatedText.replace(/\n/g, '');
+    const sentences = split(textWithoutLineBreaks).filter(s => s.type === SentenceSplitterSyntax.Sentence);
     const cachedAlerts: IAlert[] = [];
     const nonCachedSentences: string[] = [];
 
