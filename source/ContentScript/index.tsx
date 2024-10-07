@@ -107,7 +107,7 @@ const initialize = () => {
     Sentry.init({
       dsn: sentryDSN,
       release: wittyVersion,
-      integrations: [new Sentry.BrowserTracing()],
+      integrations: [Sentry.browserTracingIntegration()],
       sampleRate: sentrySampleRate,
       tracesSampleRate: sentryTraceRate,
     });
