@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import browser from 'webextension-polyfill';
 import { Root, createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/react';
@@ -47,6 +47,7 @@ import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import GoogleDocsClone from './GoogleDocsClone';
 import {
+  getFirstTextDiff,
   getInputText,
   getScrollParent,
   getTextDividedByNodes,
@@ -64,7 +65,7 @@ const Input: React.FC<{
 }> = ({ element }) => {
   // const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
   //   useCheckEndpoint();
-  const [checkEndpointCachedResponse, checkEndpointError, setTextToCheck] = useCheckEndpointWithCache();
+  const [checkEndpointCachedResponse, checkEndpointError, setTextToCheck, adjustLocalAlertPositions] = useCheckEndpointWithCache();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
   const [, , previousElementStateRef] = useStateRef<{
@@ -75,6 +76,7 @@ const Input: React.FC<{
   const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
+  const prevTextRef = useRef(currentTextToCheck);
   const analytics = useAnalytics();
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLElement);
   const elementRect = useResizeObserver(element);
@@ -424,28 +426,47 @@ const Input: React.FC<{
 
   useEffect(() => {
     const event = new KeyboardEvent('keyup');
-    handleKeyupEvent(event);
+    handleKeyupEventDebounced(event);
+    handleTextChanged();
 
-   if (isNotion()) {
+    if (isNotion()) {
       document
         .querySelector('.notion-frame')
-        ?.addEventListener('keyup', handleKeyupEvent as any)
+        ?.addEventListener('keyup', handleKeyupEventDebounced as any)
     } else {
-      element?.addEventListener('keyup', handleKeyupEvent as any);
+      element?.addEventListener('keyup', handleKeyupEventDebounced as any);
     }
-    element?.addEventListener('paste', handleKeyupEvent as any);
+    element?.addEventListener('paste', handleKeyupEventDebounced as any);
 
+    // try to deduplicate in the future
+    if (isNotion()) {
+      document
+        .querySelector('.notion-frame')
+        ?.addEventListener('keyup', handleTextChanged as any)
+    } else {
+      element?.addEventListener('keyup', handleTextChanged as any);
+    }
+    element?.addEventListener('paste', handleTextChanged as any);
 
     return () => {
       //Don't forget to remove the listeners at the end
       if (isNotion()) {
         document
           .querySelector('.notion-frame')
-          ?.removeEventListener('keyup', handleKeyupEvent as any);
+          ?.removeEventListener('keyup', handleKeyupEventDebounced as any);
       } else {
-        element.removeEventListener('keyup', handleKeyupEvent as any);
+        element.removeEventListener('keyup', handleKeyupEventDebounced as any);
       }
-      element.removeEventListener('paste', handleKeyupEvent as any);
+      element.removeEventListener('paste', handleKeyupEventDebounced as any);
+
+      if (isNotion()) {
+        document
+          .querySelector('.notion-frame')
+          ?.removeEventListener('keyup', handleTextChanged as any);
+      } else {
+        element.removeEventListener('keyup', handleTextChanged as any);
+      }
+      element.removeEventListener('paste', handleTextChanged as any);
     };
   }, [debounceDelay]);
 
@@ -493,7 +514,8 @@ const Input: React.FC<{
   const handleFocusinEvent = () => {
     if (isMicrosoftOnlineWord(window.location.href)) {
       const event = new KeyboardEvent('keyup');
-      handleKeyupEvent(event);
+      handleKeyupEventDebounced(event);
+      handleTextChanged();
     } 
     setIsFocused(true);
     setActiveIcon('active');
@@ -504,7 +526,7 @@ const Input: React.FC<{
     debouncedMutation();
   };
 
-  const handleKeyupEvent = debounce((keyboardEvent: KeyboardEvent) => {
+  const handleKeyupEventDebounced = debounce((keyboardEvent: KeyboardEvent) => {
     if (!hasWittyLicense.current) return; //dont do any checks for users without witty license
     if (prevSelectedAlertIndex.current != -1 && !isGoogleDocs()) resetPopover();
     const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
@@ -526,9 +548,23 @@ const Input: React.FC<{
     previousElementStateRef.current = { text: textDividedByNodesTextContent, position: element.getBoundingClientRect() };
   }, 200); //for getFirstTextDiff not to be overwhemled by too many calls. There is a seperate debounce for requests.
 
+  const handleTextChanged = () => {
+    const nextText: string = getInputText(isGoogleDocs() ? cloneRef.current : element);
+    const previousText = prevTextRef.current;
+
+    const firstTextDiff = getFirstTextDiff(
+      previousText,
+      nextText
+    );
+    if (firstTextDiff) {
+      adjustLocalAlertPositions(firstTextDiff.changedOffset, firstTextDiff.originalLength, firstTextDiff.newLength);
+    }
+
+    prevTextRef.current = nextText;
+  }
+
   const handleTextAndIcon = () => {
     const nextText: string = getInputText(isGoogleDocs() ? cloneRef.current : element);
-
     setCurrentTextToCheck(nextText); //for check call after refresh token
     if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
@@ -594,7 +630,8 @@ const Input: React.FC<{
     setClone(newClone);
     if (isGoogleDocs()) {
       const event = new KeyboardEvent('keyup');
-      handleKeyupEvent(event);
+      handleKeyupEventDebounced(event);
+      handleTextChanged();
     }
   };
 
@@ -881,7 +918,7 @@ const Input: React.FC<{
 
     setActiveIcon('active');
     setAlerts([...checkEndpointCachedResponse.alerts]);
-    console.log('NEWALERTS', checkEndpointCachedResponse.alerts);
+    // console.log('NEWALERTS', checkEndpointCachedResponse.alerts);
   }, [checkEndpointCachedResponse]);
 
   useEffect(() => {
@@ -1403,7 +1440,8 @@ const Input: React.FC<{
     if (!isCkEditor(element) && !isGoogleDocs()) {
       handleTextAndIcon(); //ensures update
       const event = new KeyboardEvent('keyup');
-      handleKeyupEvent(event);
+      handleKeyupEventDebounced(event);
+      handleTextChanged();
     }
   };
 

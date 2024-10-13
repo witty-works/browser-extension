@@ -22,10 +22,10 @@ export const useSentenceCache = () => {
     const cachedAlerts: IAlert[] = [];
     const nonCachedSentences: string[] = [];
 
-    console.log("currentcache", cacheRef.current);
+    // console.log("currentcache", cacheRef.current);
 
     sentences.forEach((sentence) => {
-      console.log("sentence", sentence.raw, sentence.range[0]);
+      // console.log("sentence", sentence.raw, sentence.range[0]);
       const hash = hashString(sentence.raw);
       if (cacheRef.current[hash]) {
         // Adjust cached alert positions based on sentence's position in the new text
@@ -59,7 +59,7 @@ export const useSentenceCache = () => {
       updatedCache[hash] = sentenceAlerts;
     });
 
-    console.log('settingcache', updatedCache);
+    // console.log('settingcache', updatedCache);
     cacheRef.current = updatedCache;
     return updatedCache;
   };
