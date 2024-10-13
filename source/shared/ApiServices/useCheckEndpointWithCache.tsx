@@ -13,6 +13,7 @@ interface CheckEndpointCachedResponse {
 export const useCheckEndpointWithCache = () => {
   const { checkCache, addToCache } = useSentenceCache();
   const [cachedCheckEndpointResponse, setCachedCheckEndpointResponse] = useState<CheckEndpointCachedResponse | null>(null);
+  const cachedCheckEndpointResponseRef = useRef<CheckEndpointCachedResponse | null>(null);
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpoint();
   const lastCheckedTextRef = useRef<string | null>();
   const lastWholeTextRef = useRef<string | null>();
@@ -27,12 +28,43 @@ export const useCheckEndpointWithCache = () => {
       setTextToCheck(textToCheck);
     }
 
-    setCachedCheckEndpointResponse({
+    const response = {
       alerts: [...cachedAlerts].sort((firstAlert, secondAlert) => {
         return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
       }),
       checkEndpointResponse,
-    })
+    };
+    setCachedCheckEndpointResponse(response);
+    cachedCheckEndpointResponseRef.current = response;
+  };
+
+  const adjustLocalAlertPositions = (changedOffset: number, originalLength: number, newLength: number) => {
+    if (!cachedCheckEndpointResponseRef.current) {
+      return;
+    }
+
+    const {alerts} = cachedCheckEndpointResponseRef.current
+    const adjustedAlerts = alerts.map((alert) => {
+      if (alert.startOffset >= changedOffset) {
+        const newStartOffset = alert.startOffset + newLength - originalLength;
+        const newEndOffset = alert.endOffset + newLength - originalLength;
+        return {
+          ...alert,
+          id: generateAlertId(alert.data.text, alert.data.category, newStartOffset, newEndOffset),
+          startOffset: newStartOffset,
+          endOffset: newEndOffset,
+        };
+      }
+
+      return alert;
+    });
+
+    const response = {
+      alerts: adjustedAlerts,
+      checkEndpointResponse: cachedCheckEndpointResponseRef.current.checkEndpointResponse,
+    };
+    setCachedCheckEndpointResponse(response);
+    cachedCheckEndpointResponseRef.current = response;
   };
 
   useEffect(() => {
@@ -86,5 +118,5 @@ export const useCheckEndpointWithCache = () => {
     lastWholeTextRef.current && checkTextWithCache(lastWholeTextRef.current, checkEndpointResponse);
   }, [checkEndpointResponse]);
 
-  return [cachedCheckEndpointResponse, checkEndpointError, checkTextWithCache] as const;
+  return [cachedCheckEndpointResponse, checkEndpointError, checkTextWithCache, adjustLocalAlertPositions] as const;
 };

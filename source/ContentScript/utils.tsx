@@ -2,12 +2,13 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import browser from 'webextension-polyfill';
 import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
-import { isGoogleDocs, isInputText, isMicrosoftOnlineWord, isTextArea } from '../shared/DOMutils';
+import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, IAuthResponse, INodes } from '../shared/types';
 import { storeInLocalStorage } from '../shared/utils';
 import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
 import { createUrl } from '../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../shared/errorUtils';
+import { diffChars } from 'diff';
 
 export const updateConfig = (response: IAuthResponse, force: boolean = false) => {
   browser.storage.local
@@ -108,48 +109,40 @@ export const customRender = (enabled: boolean, scriptId: string) => {
   }
 };
 
-export const getFirstTextDiff = (
-  element: CustomInputElement,
-  previousTextArray: string[] | string,
-  newTextArray: string[] | string
-) => {
-  const defaultReturnValue = { node: 0, position: 0 };
-  if (!newTextArray) return defaultReturnValue;
+export const getFirstTextDiff = (oldText: string, newText: string): { changedOffset: number, originalLength: number, newLength: number } | null => {
+  const diff = diffChars(oldText, newText);
 
-  if (isTextArea(element) || isMicrosoftOnlineWord(window.location.href)) {
-    let i = 0;
-    if (!previousTextArray || !newTextArray) return defaultReturnValue;
-    while (
-      i < previousTextArray.length &&
-      i < newTextArray.length &&
-      previousTextArray[i] == newTextArray[i]
-    ) {
-      i++;
-    }
-    return { node: 0, position: i };
-  } else {
-    let node = -1;
-    for (let i = 0; i < previousTextArray.length; i++) {
-      if (previousTextArray[i] !== newTextArray[i]) {
-        node = i;
-        break;
+  let changedOffset = 0;
+  let originalLength = 0;
+  let newLength = 0;
+  let index = 0;
+  let foundDifference = false;
+
+  for (const part of diff) {
+    if (part.added || part.removed) {
+      if (!foundDifference) {
+        changedOffset = index;
+        foundDifference = true;
+      }
+
+      if (part.added) {
+        newLength += part.count || 0;
+      } else if (part.removed) {
+        originalLength += part.count || 0;
+      }
+    } else {
+      if (!foundDifference) {
+        index += part.count || 0;
       }
     }
-    let position = 0;
-    const previousText = previousTextArray[node];
-    const nextText = newTextArray[node];
-    if (!previousText || !nextText) return defaultReturnValue;
-    while (
-      position < previousText.length &&
-      position < nextText.length &&
-      previousText[position] == nextText[position]
-    ) {
-      position++;
-    }
-
-    return { node, position };
   }
-};
+
+  if (originalLength !== newLength) {
+    return { changedOffset, originalLength, newLength };
+  }
+
+  return null;
+}
 
 export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   if (isGoogleDocs()) {
