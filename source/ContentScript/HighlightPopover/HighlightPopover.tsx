@@ -427,10 +427,16 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             >
               <PreviousIcon alt={t('previous')} />
             </button>
-            <div className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>{`${
-              data.index
-            }
-                ${t('alertOftotal')} ${data.totalAlerts}`}</div>
+            <div
+              className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'
+              role='status'
+              aria-live='polite'
+              aria-label={`${data.index} ${t('alertOftotal')} ${
+                data.totalAlerts
+              }`}
+            >
+              {`${data.index} ${t('alertOftotal')} ${data.totalAlerts}`}
+            </div>
             <button
               className={
                 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto witty-works-button'
@@ -496,15 +502,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     style={{ marginTop: showLearningBite ? '0em' : '1em' }}
                   >
                     <div className='witty-works-ext-dropdown-select witty-works-ext-container-row'
-                        onClick={() => {
-                          analytics.popoverLogs(data.alert, 'learning_bites');
-                          setShowLearningBite(!showLearningBite);
-                        }}
-                        style={{
-                          cursor: data.alert.data?.explanation?.url
-                            ? 'pointer'
-                            : 'default',
-                        }}
+                      onClick={() => {
+                        analytics.popoverLogs(data.alert, 'learning_bites');
+                        setShowLearningBite(!showLearningBite);
+                      }}
+                      style={{
+                        cursor: data.alert.data?.explanation?.url
+                          ? 'pointer'
+                          : 'default',
+                      }}
                     >
                       {t('learnMore')}
                       {data.alert.data?.explanation?.content === 'video' && (
@@ -523,13 +529,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     </div>
                     {data.alert.data?.source?.url && (
                     <a className='witty-works-ext-dropdown-select witty-works-ext-container-row' href={data.alert.data.source.url} target='_new'>
-                      {t('visitSource')}
+                        {t('visitSource')}
 
-                      <ExternalLink
+                        <ExternalLink
                           className='witty-works-ext-margin-left'
                           alt={t('openNewWindow')}
                         />
-                    </a>
+                      </a>
                     )}
                   </div>
                 )}
