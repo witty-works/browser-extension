@@ -206,15 +206,17 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             href='https://www.witty.works/'
             target='_blank'
           >
-            <WittyLogo />
+            <WittyLogo alt={t('wittyLogo')} />
           </a>
           <div
             className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
             onClick={() => {
               hidePopover(true);
             }}
+            aria-label={t('close')}
+            title={t('close')}
           >
-            <CloseIcon />
+            <CloseIcon alt={t('close')} />
           </div>
         </div>
 
