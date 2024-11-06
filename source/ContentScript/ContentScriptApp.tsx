@@ -454,29 +454,6 @@ const ContentScriptApp: React.FC = () => {
       childList: true,
       subtree: true
     });
-
-    // let stop = false;
-    //
-    // setInterval(() => {
-    //   if (stop) return;
-    //   const cc = document.querySelector('cc-client');
-    //   console.log('==d', 'cc', cc);
-    //   if (cc && cc.shadowRoot) {
-    //     const sd = cc.shadowRoot.querySelector('cc-shadow-dom');
-    //     console.log('==d', 'sd', sd);
-    //     if (sd && sd.shadowRoot) {
-    //       const iframe = sd.shadowRoot.querySelectorAll('iframe');
-    //       console.log('==d', 'iframe', iframe);
-    //       iframe.forEach((iframe: HTMLIFrameElement) => {
-    //         stop = true;
-    //         iframe.contentDocument?.body?.addEventListener(
-    //             'focusin',
-    //             handleFocusinElement
-    //         );
-    //       });
-    //     }
-    //   }
-    // }, 1000);
   }
 
   useEffect(() => {
