@@ -454,7 +454,104 @@ const ContentScriptApp: React.FC = () => {
       childList: true,
       subtree: true
     });
+
+    // let stop = false;
+    //
+    // setInterval(() => {
+    //   if (stop) return;
+    //   const cc = document.querySelector('cc-client');
+    //   console.log('==d', 'cc', cc);
+    //   if (cc && cc.shadowRoot) {
+    //     const sd = cc.shadowRoot.querySelector('cc-shadow-dom');
+    //     console.log('==d', 'sd', sd);
+    //     if (sd && sd.shadowRoot) {
+    //       const iframe = sd.shadowRoot.querySelectorAll('iframe');
+    //       console.log('==d', 'iframe', iframe);
+    //       iframe.forEach((iframe: HTMLIFrameElement) => {
+    //         stop = true;
+    //         iframe.contentDocument?.body?.addEventListener(
+    //             'focusin',
+    //             handleFocusinElement
+    //         );
+    //       });
+    //     }
+    //   }
+    // }, 1000);
   }
+
+  useEffect(() => {
+    const shadowObservers = new Map<ShadowRoot, MutationObserver>();
+
+    const addIframeListenersInShadowRoot = (node: ShadowRoot) => {
+      const iframes = node.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        iframe.contentDocument?.body?.addEventListener('focusin', handleFocusinElement);
+      });
+    };
+
+    const observeShadowRoot = (shadowRoot: ShadowRoot) => {
+      if (shadowObservers.has(shadowRoot)) return;
+
+      const shadowObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node instanceof HTMLElement && node.shadowRoot) {
+              observeShadowDomRecursive(node);
+            }
+            if (node instanceof HTMLIFrameElement) {
+              setTimeout(() => {
+                node.contentDocument?.body?.addEventListener('focusin', handleFocusinElement);
+              }, 1000);
+            }
+          });
+        });
+      });
+
+      shadowObserver.observe(shadowRoot, { childList: true, subtree: true });
+      shadowObservers.set(shadowRoot, shadowObserver);
+
+      addIframeListenersInShadowRoot(shadowRoot);
+    };
+
+    const observeShadowDomRecursive = (node: Element) => {
+      if (node.shadowRoot) {
+        observeShadowRoot(node.shadowRoot);
+      }
+
+      node.querySelectorAll('*').forEach((child) => {
+        if (child.shadowRoot) {
+          observeShadowRoot(child.shadowRoot);
+        }
+      });
+    }
+
+    const mainObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) {
+            observeShadowDomRecursive(node);
+          }
+        });
+      });
+    });
+
+    setTimeout(() => {
+      mainObserver.observe(document.body, { childList: true, subtree: true });
+
+      document.querySelectorAll('*').forEach((element) => {
+        if (element.shadowRoot) {
+          observeShadowRoot(element.shadowRoot);
+        }
+      });
+    }, 3000);
+
+    return () => {
+      mainObserver.disconnect();
+      shadowObservers.forEach(observer => observer.disconnect());
+      shadowObservers.clear();
+      console.log('Shadow DOM observers disconnected');
+    };
+  }, []);
 
   return <></>;
 };
