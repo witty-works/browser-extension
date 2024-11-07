@@ -10,6 +10,10 @@ export const isTextArea = (
   );
 };
 
+export const isInShadowDOM = (element: Element) => {
+  return element.getRootNode() instanceof ShadowRoot;
+};
+
 export const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
 

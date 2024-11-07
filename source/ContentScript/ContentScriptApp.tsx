@@ -40,7 +40,7 @@ import { getDomainWithoutSubdomain, storeInLocalStorage } from '../shared/utils'
 import Notification from '../Notifications/Notification';
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
-  z-index: auto !important;
+  z-index: 2147483647 !important;
   float: left !important;
   display: inline !important;
   width: 0px !important;
@@ -468,6 +468,11 @@ const ContentScriptApp: React.FC = () => {
     const shadowObservers = new Map<ShadowRoot, MutationObserver>();
 
     const addIframeListenersInShadowRoot = (node: ShadowRoot) => {
+      node.addEventListener(
+        'focusin',
+        handleFocusinElement
+      );
+
       const iframes = node.querySelectorAll('iframe');
       iframes.forEach((iframe) => {
         iframe.contentDocument?.body?.addEventListener('focusin', handleFocusinElement);

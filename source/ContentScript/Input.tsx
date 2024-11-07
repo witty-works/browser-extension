@@ -28,7 +28,7 @@ import {
   isLinkedin,
   isNotion,
   isMicrosoftOnlineWord,
-  isOutlook,
+  isOutlook, isInShadowDOM,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -233,8 +233,8 @@ const Input: React.FC<{
     element?.addEventListener('mouseout', handleMouseoutEvent);
     newScrollableParent?.addEventListener('scroll', handleElementScrollEvent);
 
-    element?.addEventListener('dblclick', handleElementClickEvent as any);
-    element?.addEventListener('click', handleElementClickEvent as any);
+    element?.addEventListener('dblclick', handleElementClickEventWrapper as any);
+    element?.addEventListener('pointerdown', handleElementClickEventWrapper as any);
 
     if (isGoogleDocs()) {
       googleDocsEventTarget?.addEventListener('focusout', handleFocusoutEvent);
@@ -267,8 +267,8 @@ const Input: React.FC<{
         handleElementScrollEvent
       );
 
-      element.removeEventListener('dblclick', handleElementClickEvent as any);
-      element.removeEventListener('click', handleElementClickEvent as any);
+      element.removeEventListener('dblclick', handleElementClickEventWrapper as any);
+      element.removeEventListener('pointerdown', handleElementClickEventWrapper as any);
 
       if (isGoogleDocs()) {
         googleDocsEventTarget.removeEventListener(
