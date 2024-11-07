@@ -21,7 +21,7 @@ const useApiResult = <TResponse,>(
   const log = useLog('useApiResult');
 
   useEffect(() => {
-    const container = getActiveDocument().getElementsByTagName(WTags.WW_CONTAINER);
+    const container = getActiveDocument().getElementsByTagName(WTags.WW_SHADOW_ROOT_CONTAINER);
     // avoid endpoint call if no config or no container (aka plugin disabled)
     if (request.config && request.url) {
       if (

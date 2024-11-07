@@ -82,58 +82,59 @@ const Highlights: React.FC<HighlightsProps> = ({
         ?.getBoundingClientRect();
     }
     nodesWithAlerts.forEach(({ node, alerts }) => {
-      if (typeof node !== 'undefined' && nodeExistsInDOM(getActiveDocument(), node)) {
-        alerts.forEach((alert: IAlert) => {
-          const range = getActiveDocument().createRange();
-          try {
-            if (alert.endOffset <= node.textContent.length && alert.startOffset <= node.textContent.length) {
-              range.selectNode(node);
-              range.setStart(node, alert.startOffset);
-              range.setEnd(node, alert.endOffset);
-            }
-          } catch (error) {
-            sendErrorToSentry(error);
-          }
-          
-          const rangeRects = range.getClientRects();
-          for (let i = 0; i < rangeRects.length; i++) {
-            const rects: DOMRect[] = [rangeRects[i]].map(
-              (rect: DOMRect) => {
-                return {
-                  ...rect,
-                  width: rect.width,
-                  height: rect.height,
-                  left: isGoogleDocs()
-                    ? rect.left -
-                      googleDocsToolbarLeftRect?.width -
-                      googleDocsToolbarLeftRect?.left
-                    : rect.left,
-                  top: isGoogleDocs()
-                    ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
-                    : isAemRte(element)
-                      ? rect.top + element.scrollTop
-                      : isTinyMceEditor(element) ? rect.top + doc.scrollTop :
-                        rect.top + doc.scrollTop - (isTextArea(element) ? elementScroll.top : 0),
-                };
-              }
-            );
-            if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || (node.textContent && alert.data && !node.textContent.includes(alert.data.text)))) {
-              return;
-            } else {
-              const newHighlight: Highlight = {
-                rects,
-                id: alert.id,
-                plan: alert.plan,
-                data: alert.data,
-                startOffset: alert.startOffset,
-                endOffset: alert.endOffset,
-                node: node,
-              };
-              highlightsTemp.push(newHighlight);
-            }
-          }
-        });
+      if (!isTextArea(element) && !(typeof node !== 'undefined' && nodeExistsInDOM(getActiveDocument(), node))) {
+        return;
       }
+      alerts.forEach((alert: IAlert) => {
+        const range = getActiveDocument().createRange();
+        try {
+          if (alert.endOffset <= node.textContent.length && alert.startOffset <= node.textContent.length) {
+            range.selectNode(node);
+            range.setStart(node, alert.startOffset);
+            range.setEnd(node, alert.endOffset);
+          }
+        } catch (error) {
+          sendErrorToSentry(error);
+        }
+
+        const rangeRects = range.getClientRects();
+        for (let i = 0; i < rangeRects.length; i++) {
+          const rects: DOMRect[] = [rangeRects[i]].map(
+            (rect: DOMRect) => {
+              return {
+                ...rect,
+                width: rect.width,
+                height: rect.height,
+                left: isGoogleDocs()
+                  ? rect.left -
+                  googleDocsToolbarLeftRect?.width -
+                  googleDocsToolbarLeftRect?.left
+                  : rect.left,
+                top: isGoogleDocs()
+                  ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
+                  : isAemRte(element)
+                    ? rect.top + element.scrollTop
+                    : isTinyMceEditor(element) ? rect.top + doc.scrollTop :
+                      rect.top + doc.scrollTop - (isTextArea(element) ? elementScroll.top : 0),
+              };
+            }
+          );
+          if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || (node.textContent && alert.data && !node.textContent.includes(alert.data.text)))) {
+            return;
+          } else {
+            const newHighlight: Highlight = {
+              rects,
+              id: alert.id,
+              plan: alert.plan,
+              data: alert.data,
+              startOffset: alert.startOffset,
+              endOffset: alert.endOffset,
+              node: node,
+            };
+            highlightsTemp.push(newHighlight);
+          }
+        }
+      });
     });
 
     setHighlights(highlightsTemp);

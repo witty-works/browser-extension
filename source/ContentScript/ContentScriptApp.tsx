@@ -345,9 +345,17 @@ const ContentScriptApp: React.FC = () => {
           inputsRef.current.forEach((input: CustomInputElement) => {
             if (!input?.parentElement) return;
             const sibling = input.previousElementSibling as HTMLElement;
-            if (sibling?.tagName === 'WW-CONTAINER') return;
+            if (sibling?.tagName === WTags.WW_CONTAINER || sibling?.tagName === WTags.WW_SHADOW_ROOT_CONTAINER) return;
+
+
+            const shadowHost = getActiveDocument().createElement(WTags.WW_SHADOW_ROOT_CONTAINER);
+            getActiveDocument().body.appendChild(shadowHost);
+
+            const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
             const highlightsContainer: HTMLElement =
               getActiveDocument().createElement(WTags.WW_CONTAINER);
+            shadowRoot.appendChild(highlightsContainer);
+
             highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
             if (isGoogleSheets() && input.classList.contains('cell-input')) return;
@@ -359,13 +367,13 @@ const ContentScriptApp: React.FC = () => {
                 const notionParentElement =
                   document.querySelector('.notion-frame')?.firstChild;
                 notionParentElement?.insertBefore(
-                  highlightsContainer,
+                  shadowHost,
                   notionParentElement.firstChild
                 );
               } else {
                 const parentElement =
                   input.tagName === 'rect' ? ancestor : input.parentElement;
-                  parentElement?.insertBefore(highlightsContainer, input);
+                  parentElement?.insertBefore(shadowHost, input);
               }
               elementRef.current = input;
               const root = createRoot(highlightsContainer);
