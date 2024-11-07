@@ -379,7 +379,7 @@ const ContentScriptApp: React.FC = () => {
               const root = createRoot(highlightsContainer);
               root.render(<Input element={input} />);
 
-              addedInputsMap.set(input, highlightsContainer);
+              addedInputsMap.set(input, shadowHost);
           });
         }
       }
