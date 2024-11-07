@@ -192,8 +192,25 @@ export const findElement = (node: Node, element: string): boolean => {
   return false;
 };
 
-export const nodeExistsInDOM = (document: Document, node: Node): boolean =>
-  document?.body?.contains(node);
+export const nodeExistsInDOM = (document: Document, node: Node): boolean => {
+  if (document?.body?.contains(node)) {
+    return true;
+  }
+
+  let current = node.getRootNode();
+  while (current instanceof ShadowRoot) {
+    if (current.host) {
+      if (document.body.contains(current.host)) {
+        return true;
+      }
+      current = current.host.getRootNode();
+    } else {
+      break;
+    }
+  }
+
+  return false;
+}
 
 export const elementIsVisible = (element: Element): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();
