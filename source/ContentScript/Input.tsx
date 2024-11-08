@@ -11,7 +11,7 @@ import TextAreaClone from './TextAreaClone';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
-  IAlert,
+  IAlert, ICheckResponse,
   IExplanation,
   IgnoredCategory,
   INodes,
@@ -32,7 +32,6 @@ import {
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
 import { useStateRef } from '../shared/customHooks/useStateRef';
-import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { debounce } from 'lodash';
 import HighlightPopover, {
   PopoverData,
@@ -59,13 +58,13 @@ import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotS
 import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
 import Notification from '../Notifications/Notification';
 import {useCheckEndpointWithCache} from "../shared/ApiServices/useCheckEndpointWithCache";
+import {useCheckEventsLogger} from "../shared/ApiServices/useCheckEventsLogger";
 
 const Input: React.FC<{
   element: CustomInputElement;
 }> = ({ element }) => {
   // const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
   //   useCheckEndpoint();
-  const [checkEndpointCachedResponse, checkEndpointError, setTextToCheck, adjustLocalAlertPositions] = useCheckEndpointWithCache();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
   const [, , previousElementStateRef] = useStateRef<{
@@ -77,7 +76,6 @@ const Input: React.FC<{
     useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const prevTextRef = useRef(currentTextToCheck);
-  const analytics = useAnalytics();
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLElement);
   const elementRect = useResizeObserver(element);
 
@@ -118,16 +116,24 @@ const Input: React.FC<{
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
   const [, , hasWittyLicense] = useStateRef<boolean>(true);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
-  const [, , checkLogEventIdRef] = useStateRef<string>('');
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
   const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
   const [, , popoverRootRef] = useStateRef<Root | null>(null);
   const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
   const [hrFeatureDisabled, setHrFeatureDisabled] = useState<boolean>(false);
   const [trialEndedNotifactionShownDate, setTrialEndedNotifactionShownDate] = useState<Date | null>(null);
+  const checkEventsLogger = useCheckEventsLogger(authResponse, hrFeatureDisabled);
   const googleDocsEventTarget = (
     document.querySelector('.docs-texteventtarget-iframe') as any
   )?.contentDocument?.activeElement;
+
+  const onNewCheckResultsReceived = (checkEndpointResponse: ICheckResponse, checkedTextLength: number) => {
+    userIsSignedIn && checkEventsLogger.checkLog(checkEndpointResponse, checkedTextLength);
+    isWittyPremiumUserRef.current && userIsSignedIn && checkEventsLogger.logNewCheckResponses(checkEndpointResponse, checkedTextLength);
+  }
+
+  const [checkEndpointCachedResponse, checkEndpointError, setTextToCheck, adjustLocalAlertPositions] = useCheckEndpointWithCache(onNewCheckResultsReceived);
+
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
       if (isGoogleDocs()) {
@@ -891,29 +897,13 @@ const Input: React.FC<{
 
     if (checkEndpointCachedResponse.checkEndpointResponse) {
       const checkEndpointResponse = checkEndpointCachedResponse.checkEndpointResponse;
-      setConfigHasChanged(checkEndpointResponse.config_changed ? true : false);
+      setConfigHasChanged(checkEndpointResponse.config_changed);
       checkEndpointResponse.notifications
         ? storeInLocalStorage(
           StorageKeys.NUMBER_OF_NOTIFICATIONS,
           checkEndpointResponse.notifications
         )
         : storeInLocalStorage(StorageKeys.NUMBER_OF_NOTIFICATIONS, 0);
-      checkLogEventIdRef.current = Math.random().toString(36).substring(2, 15);
-      userIsSignedIn && analytics.checkLog(
-        checkEndpointResponse,
-        authResponse,
-        clone?.firstChild?.textContent ? clone?.firstChild.textContent.length : 0,
-        'check',
-        checkLogEventIdRef.current,
-        hrFeatureDisabled
-      );
-      log(
-        `Results: Language is ${checkEndpointResponse.language.toUpperCase()} and the relevant terms are: `,
-        logTypes.INFO,
-        checkEndpointResponse.results.length > 0
-          ? checkEndpointResponse.results
-          : 'None'
-      );
     }
 
     setActiveIcon('active');
@@ -1099,57 +1089,6 @@ const Input: React.FC<{
     ignoredCategoriesFromStorage,
     selectedAlertIndex,
   ]);
-
-  // TODO Work in progress - does not work properly yet (for textareas or at all)
-  // const logNewCheckResponses = (newNodesWithAlerts: INodeWithAlerts[], previouslyCheckedNodesWithAlerts: any) => {
-  //   const newResults = newNodesWithAlerts.reduce((acc: any, nodeWithAlerts: INodeWithAlerts) => {
-  //     let newAlerts = nodeWithAlerts.alerts.filter(() => {
-  //       const prevCheckedNode = previouslyCheckedNodesWithAlerts.find((prevCheckedNode: INodeWithAlerts) => {
-  //         return prevCheckedNode.node === nodeWithAlerts.node?.nodeValue;
-  //       });
-  //       return !prevCheckedNode || prevCheckedNode.index !== nodeWithAlerts.nodeIndex;
-  //     });
-  //
-  //     // Filtering out alerts that were already checked
-  //     newAlerts = newAlerts.filter((alert) => {
-  //       return !previouslyCheckedNodesWithAlerts.some((prevCheckedNode: any) => {
-  //         return prevCheckedNode.alerts.some((prevAlert: any) => {
-  //           return prevAlert.startOffset === alert.startOffset && prevAlert.endOffset === alert.endOffset;
-  //         });
-  //       });
-  //     });
-  //     return [...acc, ...newAlerts];
-  //   }, []);
-  //
-  //   //newResults = newNodesWithAlerts;
-  //   if (newResults.length === 0) return;
-  //
-  //   const mergedCheckEndpointResponse = {
-  //     ...checkEndpointResponse,
-  //     results: newResults,
-  //   };
-  //
-  //   const mergedCheckEndpointResponseWithoutOrthography = {
-  //     ...mergedCheckEndpointResponse,
-  //     results: mergedCheckEndpointResponse.results.filter((result: any) => {
-  //       return result.data?.category !== 'orthography';
-  //     }),
-  //   };
-  //
-  //   if (mergedCheckEndpointResponseWithoutOrthography.results.length === 0) return;
-  //   const textContentLength = clone?.firstChild?.textContent ? clone.firstChild.textContent.length : 0;
-  //   for (const result of mergedCheckEndpointResponseWithoutOrthography.results) {
-  //     console.log('analytics', result);
-  //     result.data && analytics.checkResultLog(
-  //       result.data,
-  //       authResponse,
-  //       textContentLength,
-  //       'check_highlights',
-  //       checkLogEventIdRef.current,
-  //       hrFeatureDisabled
-  //     );
-  //   };
-  // };
 
   // useEffect(() => {
   //   if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {

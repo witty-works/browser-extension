@@ -10,7 +10,8 @@ interface CheckEndpointCachedResponse {
   checkEndpointResponse: ICheckResponse | undefined;
 }
 
-export const useCheckEndpointWithCache = () => {
+export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: ICheckResponse, checkedTextLength: number) => void) => {
+
   const { checkCache, addToCache } = useSentenceCache();
   const [cachedCheckEndpointResponse, setCachedCheckEndpointResponse] = useState<CheckEndpointCachedResponse | null>(null);
   const cachedCheckEndpointResponseRef = useRef<CheckEndpointCachedResponse | null>(null);
@@ -80,6 +81,8 @@ export const useCheckEndpointWithCache = () => {
       const sentenceStartOffset = sentence.range[0];
       const sentenceEndOffset = sentence.range[1];
       const alerts: IAlert[] = [];
+
+      onCheckResultsReceived(checkEndpointResponse, (lastCheckedTextRef.current && lastCheckedTextRef.current.length) || 0);
 
       results.forEach((result) => {
         if (result.start >= sentenceStartOffset && result.end <= sentenceEndOffset) {
