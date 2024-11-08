@@ -14,8 +14,13 @@
   "description": "__MSG_appDesc__",
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
-  "permissions": ["storage", "scripting"],
-  "__firefox__permissions": ["storage", "scripting", "http://*/*", "https://*/*"],
+  "permissions": ["storage", "scripting", "activeTab"],
+  "__firefox__permissions": [
+    "storage",
+    "scripting",
+    "http://*/*",
+    "https://*/*"
+  ],
   "host_permissions": ["http://*/*", "https://*/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
@@ -59,7 +64,8 @@
   "background": {
     "service_worker": "js/background.bundle.js",
     "scripts": ["js/background.bundle.js"],
-    "type": "module"
+    "type": "module",
+    "persistent": false
   },
   "content_scripts": [
     {
@@ -101,5 +107,19 @@
     "assets/icons/popover/arrow.svg",
     "assets/icons/popover/settings.svg",
     "assets/googleDocsSpellCheck.js"
-  ]
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+F"
+      }
+    },
+    "duplicate-tab": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+2",
+        "mac": "Command+Shift+2"
+      },
+      "description": "Show highlight"
+    }
+  }
 }
