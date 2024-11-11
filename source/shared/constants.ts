@@ -96,6 +96,7 @@ export enum ConfigPropertyStatus {
 
 //HTML element's tags
 export enum WTags {
+  WW_SHADOW_ROOT_CONTAINER = 'ww-shadow-root-container',
   WW_CONTAINER = 'ww-container',
   WW_HIGHLIGHTS = 'ww-highlights',
   WW_MOUSEOVER_INDICATOR = 'ww-mo-indicator',

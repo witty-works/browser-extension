@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { IEndpointError, IRequest } from '../types';
 import { useLog, logTypes } from '../customHooks/useLog';
 import { Validator, ValidatorResult, Schema } from 'jsonschema';
-import { DEV_ENV, WTags } from '../constants';
-import { getActiveDocument } from '../../ContentScript/ContentScriptApp';
+import { DEV_ENV } from '../constants';
 
 const validator = new Validator();
 
@@ -21,12 +20,12 @@ const useApiResult = <TResponse,>(
   const log = useLog('useApiResult');
 
   useEffect(() => {
-    const container = getActiveDocument().getElementsByTagName(WTags.WW_CONTAINER);
+    // const container = getActiveDocument().getElementsByTagName(WTags.WW_SHADOW_ROOT_CONTAINER);
     // avoid endpoint call if no config or no container (aka plugin disabled)
     if (request.config && request.url) {
       if (
         (!request.config.body && request.url.includes('check')) ||
-        (request.url.includes('check') && container && container.length === 0) || // for auth call on options page
+        // (request.url.includes('check') && container && container.length === 0) || // for auth call on options page
         (request.url.includes('refresh-token') && !request.config.body)
       ) {
         return;
