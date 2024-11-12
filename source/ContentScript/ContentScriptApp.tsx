@@ -40,7 +40,7 @@ import { getDomainWithoutSubdomain, storeInLocalStorage } from '../shared/utils'
 import Notification from '../Notifications/Notification';
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
-  z-index: auto !important;
+  z-index: 2147483647 !important;
   float: left !important;
   display: inline !important;
   width: 0px !important;
@@ -345,9 +345,17 @@ const ContentScriptApp: React.FC = () => {
           inputsRef.current.forEach((input: CustomInputElement) => {
             if (!input?.parentElement) return;
             const sibling = input.previousElementSibling as HTMLElement;
-            if (sibling?.tagName === 'WW-CONTAINER') return;
+            if (sibling?.tagName === WTags.WW_CONTAINER || sibling?.tagName === WTags.WW_SHADOW_ROOT_CONTAINER) return;
+
+
+            const shadowHost = getActiveDocument().createElement(WTags.WW_SHADOW_ROOT_CONTAINER);
+            getActiveDocument().body.appendChild(shadowHost);
+
+            const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
             const highlightsContainer: HTMLElement =
               getActiveDocument().createElement(WTags.WW_CONTAINER);
+            shadowRoot.appendChild(highlightsContainer);
+
             highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
             if (isGoogleSheets() && input.classList.contains('cell-input')) return;
@@ -359,19 +367,19 @@ const ContentScriptApp: React.FC = () => {
                 const notionParentElement =
                   document.querySelector('.notion-frame')?.firstChild;
                 notionParentElement?.insertBefore(
-                  highlightsContainer,
+                  shadowHost,
                   notionParentElement.firstChild
                 );
               } else {
                 const parentElement =
                   input.tagName === 'rect' ? ancestor : input.parentElement;
-                  parentElement?.insertBefore(highlightsContainer, input);
+                  parentElement?.insertBefore(shadowHost, input);
               }
               elementRef.current = input;
               const root = createRoot(highlightsContainer);
               root.render(<Input element={input} />);
 
-              addedInputsMap.set(input, highlightsContainer);
+              addedInputsMap.set(input, shadowHost);
           });
         }
       }
@@ -455,6 +463,85 @@ const ContentScriptApp: React.FC = () => {
       subtree: true
     });
   }
+
+  useEffect(() => {
+    const shadowObservers = new Map<ShadowRoot, MutationObserver>();
+
+    const addIframeListenersInShadowRoot = (node: ShadowRoot) => {
+      node.addEventListener(
+        'focusin',
+        handleFocusinElement
+      );
+
+      const iframes = node.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        iframe.contentDocument?.body?.addEventListener('focusin', handleFocusinElement);
+      });
+    };
+
+    const observeShadowRoot = (shadowRoot: ShadowRoot) => {
+      if (shadowObservers.has(shadowRoot)) return;
+
+      const shadowObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node instanceof HTMLElement && node.shadowRoot) {
+              observeShadowDomRecursive(node);
+            }
+            if (node instanceof HTMLIFrameElement) {
+              setTimeout(() => {
+                node.contentDocument?.body?.addEventListener('focusin', handleFocusinElement);
+              }, 1000);
+            }
+          });
+        });
+      });
+
+      shadowObserver.observe(shadowRoot, { childList: true, subtree: true });
+      shadowObservers.set(shadowRoot, shadowObserver);
+
+      addIframeListenersInShadowRoot(shadowRoot);
+    };
+
+    const observeShadowDomRecursive = (node: Element) => {
+      if (node.shadowRoot) {
+        observeShadowRoot(node.shadowRoot);
+      }
+
+      node.querySelectorAll('*').forEach((child) => {
+        if (child.shadowRoot) {
+          observeShadowRoot(child.shadowRoot);
+        }
+      });
+    }
+
+    const mainObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) {
+            observeShadowDomRecursive(node);
+          }
+        });
+      });
+    });
+
+    setTimeout(() => {
+      mainObserver.observe(document.body, { childList: true, subtree: true });
+
+      document.querySelectorAll('*').forEach((element) => {
+        if (element.shadowRoot) {
+          observeShadowRoot(element.shadowRoot);
+        }
+      });
+    }, 3000);
+
+    return () => {
+      mainObserver.disconnect();
+      shadowObservers.forEach(observer => observer.disconnect());
+      shadowObservers.clear();
+      console.log('Shadow DOM observers disconnected');
+    };
+  }, []);
 
   return <></>;
 };

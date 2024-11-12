@@ -424,13 +424,21 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 setShowLearningBite(false);
                 setIframeLoaded(false);
               }}
+              aria-label={t('previous')}
+              title={t('previous')}
             >
               <PreviousIcon alt={t('previous')} />
             </button>
-            <div className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>{`${
-              data.index
-            }
-                ${t('alertOftotal')} ${data.totalAlerts}`}</div>
+            <div
+              className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'
+              role='status'
+              aria-live='polite'
+              aria-label={`${data.index} ${t('alertOftotal')} ${
+                data.totalAlerts
+              }`}
+            >
+              {`${data.index} ${t('alertOftotal')} ${data.totalAlerts}`}
+            </div>
             <button
               className={
                 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto witty-works-button'
@@ -441,6 +449,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 setShowLearningBite(false);
                 setIframeLoaded(false);
               }}
+              aria-label={t('next')}
+              title={t('next')}
             >
               <NextIcon alt={t('next')} />
             </button>
@@ -451,6 +461,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             onClick={() => {
               hidePopover(true);
             }}
+            aria-label={t('close')}
+            title={t('close')}
           >
             <CloseIcon alt={t('close')} />
           </button>
@@ -464,7 +476,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <div
               className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
               style={{
-                backgroundColor: getColor(data.alert.data?.gravity).default,
+                backgroundColor: getColor(data.alert.data?.gravity, data.alert.data?.subcategory).default,
               }}
             >
               <div
@@ -496,15 +508,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     style={{ marginTop: showLearningBite ? '0em' : '1em' }}
                   >
                     <div className='witty-works-ext-dropdown-select witty-works-ext-container-row'
-                        onClick={() => {
-                          analytics.popoverLogs(data.alert, 'learning_bites');
-                          setShowLearningBite(!showLearningBite);
-                        }}
-                        style={{
-                          cursor: data.alert.data?.explanation?.url
-                            ? 'pointer'
-                            : 'default',
-                        }}
+                      onClick={() => {
+                        analytics.popoverLogs(data.alert, 'learning_bites');
+                        setShowLearningBite(!showLearningBite);
+                      }}
+                      style={{
+                        cursor: data.alert.data?.explanation?.url
+                          ? 'pointer'
+                          : 'default',
+                      }}
+                      role='button'
+                      tabIndex={0}
+                      aria-label={t('leanrMoreExtendedText')}
+                      title={t('leanrMoreExtendedText')}
                     >
                       {t('learnMore')}
                       {data.alert.data?.explanation?.content === 'video' && (
@@ -522,14 +538,20 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       </div>
                     </div>
                     {data.alert.data?.source?.url && (
-                    <a className='witty-works-ext-dropdown-select witty-works-ext-container-row' href={data.alert.data.source.url} target='_new'>
-                      {t('visitSource')}
+                      <a
+                        className='witty-works-ext-dropdown-select witty-works-ext-container-row'
+                        href={data.alert.data.source.url}
+                        target='_new'
+                        aria-label={t('visitSource')}
+                        title={t('visitSource')}
+                      >
+                        {t('visitSource')}
 
-                      <ExternalLink
+                        <ExternalLink
                           className='witty-works-ext-margin-left'
                           alt={t('openNewWindow')}
                         />
-                    </a>
+                      </a>
                     )}
                   </div>
                 )}
@@ -614,6 +636,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           data.alert.data?.alternatives[index]?.text
                         )
                       }
+                      role='button'
+                      tabIndex={0}
+                      aria-label={data.alert.data?.alternatives[index]?.text}
+                      title={data.alert.data?.alternatives[index]?.text}
                     >
                       {renderAlternative(alternative, alternativeHovered)}
                     </div>
@@ -638,6 +664,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                                       color: 'black',
                                     }}
                                     rel='noopener noreferrer'
+                                    aria-label={alternative.context}
+                                    title={alternative.context}
                                   >
                                     {alternative.context.substring(3)}
                                   </a>
@@ -653,6 +681,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                                   whiteSpace: 'nowrap',
                                 }}
                                 rel='noopener noreferrer'
+                                aria-label={alternative.context}
+                                title={alternative.context}
                               >
                                 {alternative.context}
                               </a>
@@ -679,9 +709,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           <button
             onClick={handleIgnoreClick('ignore_once')}
             className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top witty-works-button'
+            aria-label={t('ignoreOnce')}
+            title={t('ignoreOnce')}
           >
             <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
-              <IgnoreIcon alt={t('ignore_once')} />
+              <IgnoreIcon alt={t('ignoreOnce')} />
             </span>
             <span className='witty-works-ext-lato-popover-text-gray'>
               {t('ignoreOnce')}
@@ -691,9 +723,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <button
               onClick={handleIgnoreClick('ignore_permanently')}
               className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top witty-works-button'
+              aria-label={t('ignorePermanently')}
+              title={t('ignorePermanently')}
             >
               <span className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'>
-                <IgnoreIcon alt={t('ignore_permanently')} />
+                <IgnoreIcon alt={t('ignorePermanently')} />
               </span>
               <span className='witty-works-ext-lato-popover-text-gray witty-works-ext-margin-right'>
                 {t('ignorePermanently')}
