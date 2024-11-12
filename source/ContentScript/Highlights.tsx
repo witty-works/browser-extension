@@ -163,7 +163,7 @@ const Highlights: React.FC<HighlightsProps> = ({
       if (highlight.rects && highlight.rects.length === 0) return;
 
       const [rect] = highlight.rects;
-      const colours = getColor(highlight.data.gravity);
+      const colours = getColor(highlight.data.gravity, highlight.data.subcategory);
       const hoverColor = colours.hover;
       const highlightColor = colours.highlight;
       const dashedLine = highlight.data?.category == 'orthography';
