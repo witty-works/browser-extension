@@ -67,6 +67,35 @@ const addEventListeners = () => {
   browser.storage.onChanged.addListener(storageChange);
   browser.storage.onChanged.addListener(scanTabsToDetectStatus);
 
+  function toggleDark() {
+    console.log('HELLODARK!');
+    if (!document.body.getAttribute('data-ext-dark')) {
+      document.body.setAttribute('data-ext-dark', 'false');
+      document.body.style.backgroundColor = '#000';
+      document.body.style.color = '#fff';
+    } else {
+      document.body.setAttribute('data-ext-dark', 'false');
+      document.body.style.backgroundColor = '#fff';
+      document.body.style.color = '#000';
+    }
+  }
+
+  browser.commands.onCommand.addListener((command, tab) => {
+    console.log(`Command: ${command}`);
+
+    if (!tab || !tab.id) {
+      return;
+    }
+
+    if (command === 'toggleDark') {
+      console.log('exec');
+      browser.scripting.executeScript({
+        target: {tabId: tab.id},
+        func: toggleDark
+      });
+    }
+  });
+
   browser.runtime.onUpdateAvailable.addListener(() => {
     browser.runtime.reload();
   });

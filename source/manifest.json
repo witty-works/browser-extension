@@ -114,12 +114,12 @@
         "default": "Ctrl+Shift+F"
       }
     },
-    "duplicate-tab": {
+    "toggleDark": {
       "suggested_key": {
         "default": "Ctrl+Shift+2",
         "mac": "Command+Shift+2"
       },
-      "description": "Show highlight"
+      "description": "Toggle dark"
     }
   }
 }
