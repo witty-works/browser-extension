@@ -27,7 +27,7 @@ import {
   isLinkedin,
   isNotion,
   isMicrosoftOnlineWord,
-  isOutlook,
+  isOutlook, isInShadowDOM,
 } from '../shared/DOMutils';
 import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
 import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
@@ -236,8 +236,8 @@ const Input: React.FC<{
     element?.addEventListener('mouseout', handleMouseoutEvent);
     newScrollableParent?.addEventListener('scroll', handleElementScrollEvent);
 
-    element?.addEventListener('dblclick', handleElementClickEvent as any);
-    element?.addEventListener('click', handleElementClickEvent as any);
+    element?.addEventListener('dblclick', handleElementClickEventWrapper as any);
+    element?.addEventListener('pointerdown', handleElementClickEventWrapper as any);
 
     if (isGoogleDocs()) {
       googleDocsEventTarget?.addEventListener('focusout', handleFocusoutEvent);
@@ -270,8 +270,8 @@ const Input: React.FC<{
         handleElementScrollEvent
       );
 
-      element.removeEventListener('dblclick', handleElementClickEvent as any);
-      element.removeEventListener('click', handleElementClickEvent as any);
+      element.removeEventListener('dblclick', handleElementClickEventWrapper as any);
+      element.removeEventListener('pointerdown', handleElementClickEventWrapper as any);
 
       if (isGoogleDocs()) {
         googleDocsEventTarget.removeEventListener(
@@ -640,75 +640,80 @@ const Input: React.FC<{
     setIgnoredCategoriesFromStorage(newIgnoredCategories);
   };
 
-  const handleElementClickEvent = debounce((event: MouseEvent) => {    
+  const handleElementClickEvent = (event: MouseEvent) => {
     const target = event.target as CustomInputElement;
-    // Get caret data
-    const caret: { position: number | null; element: Node | null } =
-      isTextArea(element) || isInputText(element)
-        ? {
+    setTimeout(() => {
+      // Get caret data
+      const caret: { position: number | null; element: Node | null } =
+        isTextArea(element) || isInputText(element)
+          ? {
             position: element.selectionStart,
             element: cloneRef.current,
           }
-        : {
+          : {
             position: (getActiveDocument().getSelection() as Selection)
               .anchorOffset,
             element: (getActiveDocument().getSelection() as Selection)
               .anchorNode,
           };
-    if (event.detail === 2 && caret.position) {
-      caret.position = caret.position + 1;
-    }
-    if (caret.element && caret.position !== null) {
-      // Find out if the clicked element has alerts
-      const selectedNodeWithAlertsIndex: number =
-      nodesWithAlertsRef.current.findIndex(
-        (nodeWithAlerts: INodeWithAlerts) =>
-          isTextArea(target) || isInputText(target)
-            ? nodeWithAlerts.node?.parentNode === caret.element
-            : nodeWithAlerts.node === caret.element
-      );
-      setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
+      if (event.detail === 2 && caret.position) {
+        caret.position = caret.position + 1;
+      }
+      if (caret.element && caret.position !== null) {
+        // Find out if the clicked element has alerts
+        const selectedNodeWithAlertsIndex: number =
+          nodesWithAlertsRef.current.findIndex(
+            (nodeWithAlerts: INodeWithAlerts) =>
+              isTextArea(target) || isInputText(target)
+                ? nodeWithAlerts.node?.parentNode === caret.element
+                : nodeWithAlerts.node === caret.element
+          );
+        setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex);
 
-      const oneNodeWithAlerts =
-        nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
-      if (oneNodeWithAlerts) {
-        const caretPos = caret.position;
+        const oneNodeWithAlerts =
+          nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
+        if (oneNodeWithAlerts) {
+          const caretPos = caret.position;
 
-        let selectedAlertIndex =
-          oneNodeWithAlerts?.alerts.findIndex((alert: IAlert) => {
-            if (!alert) {
-              return false;
-            }
+          let selectedAlertIndex =
+            oneNodeWithAlerts?.alerts.findIndex((alert: IAlert) => {
+              if (!alert) {
+                return false;
+              }
 
-            return alert.startOffset <= caretPos && alert.endOffset >= caretPos
-          });
+              return alert.startOffset <= caretPos && alert.endOffset >= caretPos
+            });
 
-        const selectedAlerts = oneNodeWithAlerts.alerts.filter(
-          (alert: IAlert) =>
-            alert.startOffset <= caretPos && alert.endOffset >= caretPos
-        );
-
-        if (selectedAlerts.length > 1) {
-          const alertWithLargestStartoffset = selectedAlerts.reduce(
-            (prev: IAlert, current: IAlert) => {
-              return prev.startOffset > current.startOffset ? prev : current;
-            }
+          const selectedAlerts = oneNodeWithAlerts.alerts.filter(
+            (alert: IAlert) =>
+              alert.startOffset <= caretPos && alert.endOffset >= caretPos
           );
 
-          selectedAlertIndex = oneNodeWithAlerts?.alerts.findIndex(
+          if (selectedAlerts.length > 1) {
+            const alertWithLargestStartoffset = selectedAlerts.reduce(
+              (prev: IAlert, current: IAlert) => {
+                return prev.startOffset > current.startOffset ? prev : current;
+              }
+            );
+
+            selectedAlertIndex = oneNodeWithAlerts?.alerts.findIndex(
               (alert: IAlert) =>
                 alert.startOffset === alertWithLargestStartoffset.startOffset
             );
-        }
-        if (prevSelectedAlertIndex.current === selectedAlertIndex) {
-          resetPopover();
-          return;
-        }
+          }
+          if (prevSelectedAlertIndex.current === selectedAlertIndex) {
+            resetPopover();
+            return;
+          }
 
-        setSelectedAlertIndex(selectedAlertIndex);
+          setSelectedAlertIndex(selectedAlertIndex);
+        }
       }
-    }
-  }, 200);
+    }, isInShadowDOM(element) ? 200 : 0);
+  };
+
+  const handleElementClickEventWrapper = isInShadowDOM(element) ?
+    handleElementClickEvent : debounce(handleElementClickEvent, 200);
 
   const movePopoverNextOrPrev = (direction: string): void => {
     if (direction === 'previous') {

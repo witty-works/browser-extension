@@ -476,7 +476,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <div
               className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
               style={{
-                backgroundColor: getColor(data.alert.data?.gravity).default,
+                backgroundColor: getColor(data.alert.data?.gravity, data.alert.data?.subcategory).default,
               }}
             >
               <div

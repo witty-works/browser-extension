@@ -96,6 +96,7 @@ export enum ConfigPropertyStatus {
 
 //HTML element's tags
 export enum WTags {
+  WW_SHADOW_ROOT_CONTAINER = 'ww-shadow-root-container',
   WW_CONTAINER = 'ww-container',
   WW_HIGHLIGHTS = 'ww-highlights',
   WW_MOUSEOVER_INDICATOR = 'ww-mo-indicator',
@@ -125,6 +126,12 @@ const inclusiveGreen: IHighlightColors = {
   highlight: '#BCD485',
 };
 
+const corporateBlue: IHighlightColors = {
+  hover: '#6f9FED',
+  default: '#A1BEED',
+  highlight: '#6f9FED',
+};
+
 const styleYellow: IHighlightColors = {
   hover: '#F6EC6B',
   default: '#FFFFD3',
@@ -145,7 +152,9 @@ const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
 
 export const getColor = (
   gravity: number,
+  subcategory: string,
 ): IHighlightColors => {
+  if (subcategory === 'corporate_rules') return corporateBlue;
   if (!gravity) return inclusiveGreen;
   else if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
   else if (gravity > 2.5) return styleYellow;
