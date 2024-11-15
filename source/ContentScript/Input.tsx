@@ -110,14 +110,14 @@ const Input: React.FC<{
     useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
   // const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
-  // const totalMaxCharLength = defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM;
+  const totalMaxCharLength = defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM;
   const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
   const [, , hasWittyLicense] = useStateRef<boolean>(true);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
   const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
-  const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
+  // const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
   const [, , popoverRootRef] = useStateRef<Root | null>(null);
   const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
   const [hrFeatureDisabled, setHrFeatureDisabled] = useState<boolean>(false);
@@ -380,51 +380,6 @@ const Input: React.FC<{
           (alert) => alert === selectedAlert
         );
 
-      //LONG TEXT CLICK
-      if (
-        getInputText(cloneRef.current).length > maxCharLength &&
-        (newSelectedAlertIndex < 0 || newSelectedAlertIndex === undefined) &&
-        !totalMaxCharLengthReachedRef.current
-      ) {
-        const clickedElement = [] as ChildNode[];
-        if (!cloneRef.current?.childNodes) {
-          return;
-        }
-
-        const sortedChildNodes = Array.from(cloneRef.current.childNodes).sort(
-          (a, b) => {
-            const aRect = (a as HTMLElement).getBoundingClientRect();
-            const bRect = (b as HTMLElement).getBoundingClientRect();
-            return aRect.top - bRect.top;
-          }
-        );
-        //get which cloneRef.current is under googleDocsElementCursorRect
-        sortedChildNodes.forEach((clone) => {
-          const htmlClone = clone as HTMLElement;
-          const cloneRect = htmlClone.getBoundingClientRect();
-          if (
-            googleDocsElementCursorRect &&
-            googleDocsElementCursorRect.top >= cloneRect.top &&
-            googleDocsElementCursorRect.left >= cloneRect.left
-          ) {
-            clickedElement.push(clone);
-          }
-        });
-
-        const clickedElementIndex = Array.from(
-          cloneRef.current.childNodes
-        ).findIndex(
-          (clone) => clone === clickedElement[clickedElement.length - 1]
-        );
-
-        if (clickedElementIndex < 0) return;
-        //long text and clicked node is outside of current nodes
-        const caret: { position: number; element: Node } = {
-          position: clickedElementIndex,
-          element: cloneRef.current,
-        };
-        handleElementClickLongText(caret);
-      }
       setSelectedNodeWithAlertsIndex(newSelectedNodeWithAlertsIndex);
       setSelectedAlertIndex(newSelectedAlertIndex);
     }
@@ -580,6 +535,9 @@ const Input: React.FC<{
       debouncedSetTextToCheck(nextText);
       setActiveIcon('loading');
     }
+
+    totalMaxCharLengthReachedRef.current =
+      nextText.length > totalMaxCharLength && !isWittyPremiumUserRef.current
   }
 
   const checkText = (text: string) => {
@@ -730,16 +688,6 @@ const Input: React.FC<{
             alert.startOffset <= caretPos && alert.endOffset >= caretPos
         );
 
-        if (
-          getInputText(element).length > maxCharLength &&
-          !isTextArea(element) &&
-          selectedAlerts.length == 0 &&
-          !isGoogleDocs() && 
-          !totalMaxCharLengthReachedRef.current
-        ) {
-          handleElementClickLongText(caret);
-        }
-
         if (selectedAlerts.length > 1) {
           const alertWithLargestStartoffset = selectedAlerts.reduce(
             (prev: IAlert, current: IAlert) => {
@@ -758,51 +706,9 @@ const Input: React.FC<{
         }
 
         setSelectedAlertIndex(selectedAlertIndex);
-      } else if (
-        getInputText(element).length > maxCharLength &&
-        !isTextArea(element) &&
-        !isGoogleDocs() &&
-        !totalMaxCharLengthReachedRef.current
-      ) {
-        handleElementClickLongText(caret);
       }
     }
   }, 200);
-
-  // @ts-ignore
-  const handleElementClickLongText = (caret: {
-    position: number | null;
-    element: Node | null;
-  }): void => {
-    setAlerts([]);
-    checkText('');
-    // if (isGoogleDocs() && caret.position) {
-    //   const nodeIsChecked = prevCheckedNodesRef.current.find((prevCheckedNode) =>
-    //     prevCheckedNode.rawNode === cloneRef.current?.childNodes[caret.position as number]
-    //   );
-    //   if (nodeIsChecked) return;
-    //   const textWithinMaxCharLength = getTextWithinMaxCharLength(
-    //     caret.position,
-    //     cloneRef.current?.childNodes[caret.position]
-    //   );
-    //   if (!textWithinMaxCharLength) return;
-    //   handleTextAndIcon(textWithinMaxCharLength)
-    // } else if (!isGoogleDocs() && caret.element) {
-    //   const textDividedByNodes = getTextDividedByNodes(element);
-    //   const clickedNodeAlreadyChecked = prevCheckedNodesRef.current.find(
-    //     (prevCheckedNode) => prevCheckedNode.rawNode === caret.element
-    //   );
-    //   if (clickedNodeAlreadyChecked) return;
-    //
-    //   const textWithinMaxCharLength = getTextWithinMaxCharLength(
-    //     textDividedByNodes.indexOf(caret.element),
-    //       caret.element
-    //     );
-    //     if (!textWithinMaxCharLength) return;
-    //     handleTextAndIcon(textWithinMaxCharLength);
-    // }
-    handleTextAndIcon();
-  };
 
   const movePopoverNextOrPrev = (direction: string): void => {
     if (direction === 'previous') {
