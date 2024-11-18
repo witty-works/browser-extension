@@ -260,3 +260,7 @@ export const shouldInjectIntoWindow = (windowToCheck: Window) => {
   const isVisible = windowToCheck.innerWidth >= 10 && windowToCheck.innerHeight >= 10;
   return frameDepth < 2 && isVisible;
 };
+
+export const generateAlertId = (text: string, category: string, startOffset: number, endOffset: number) => {
+  return `${text}-${category}-${startOffset}-${endOffset}`;
+};
