@@ -25,7 +25,7 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { DefaultConfigValue } from '../shared/types';
 import { useLog } from '../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import {isChromeWebstore} from "../shared/DOMutils";
+import { isChromeWebstore } from '../shared/DOMutils';
 
 const sentryDSN = defaultConfig.SENTRY_DSN;
 const sentrySampleRate = defaultConfig.SENTRY_SAMPLE_RATE;
@@ -54,7 +54,7 @@ if (sentryDSN) {
     integrations: [Sentry.browserTracingIntegration()],
     sampleRate: sentrySampleRate,
     tracesSampleRate: sentryTraceRate,
-  });  
+  });
 }
 
 const addEventListeners = () => {
@@ -67,38 +67,69 @@ const addEventListeners = () => {
   browser.storage.onChanged.addListener(storageChange);
   browser.storage.onChanged.addListener(scanTabsToDetectStatus);
 
+  function openPopup() {
+    console.log('Hello Popup!');
+    // TODO: Import renderPopover from Input.tsx
+  }
+
+  browser.commands.onCommand.addListener((command, tab) => {
+    console.log(`Command: ${command}`);
+
+    if (!tab || !tab.id) {
+      return;
+    }
+
+    if (command === 'openPopup') {
+      console.log('exec');
+      browser.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: openPopup,
+      });
+    }
+  });
+
   browser.runtime.onUpdateAvailable.addListener(() => {
     browser.runtime.reload();
   });
 
-  browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
+  browser.runtime.onInstalled.addListener(function (details: {
+    reason: string;
+  }) {
     analytics.extensionInstallationAndUpdateLog(details.reason);
     browser.action?.setIcon(WittyIconActive);
     if (!DEV_ENV)
-      browser.runtime.setUninstallURL(`https://www.witty.works/goodbye?witty_version=${wittyVersion}&witty_browser=${navigator.userAgent}`);
+      browser.runtime.setUninstallURL(
+        `https://www.witty.works/goodbye?witty_version=${wittyVersion}&witty_browser=${navigator.userAgent}`
+      );
     if (details.reason === 'install') {
       //Set default settings
       setSettings();
-      browser.storage.local.get(null).then((result) => {
-        const optionsPageUrl = browser.runtime.getURL('options.html');
-        const urls = result[StorageKeys.API_ENDPOINT_KEY]
-          ? result[StorageKeys.API_ENDPOINT_KEY]
-          : DefaultBaseUrlKey;
-  
-        !TESTING &&
-          browser.tabs.create({
-            url: `
+      browser.storage.local
+        .get(null)
+        .then((result) => {
+          const optionsPageUrl = browser.runtime.getURL('options.html');
+          const urls = result[StorageKeys.API_ENDPOINT_KEY]
+            ? result[StorageKeys.API_ENDPOINT_KEY]
+            : DefaultBaseUrlKey;
+
+          !TESTING &&
+            browser.tabs.create({
+              url: `
           ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,
-          });
-      }).catch((error) => {
-        sendErrorToSentry(error);
-      });
+            });
+        })
+        .catch((error) => {
+          sendErrorToSentry(error);
+        });
       reInjectContentScripts();
     }
     if (details.reason === 'update') {
       //Set icon according to the saved settings
       scanTabsToDetectStatus();
-      !DEV_ENV && browser.storage.local.set({ [StorageKeys.EXTENSION_WAS_UPDATED]: true });
+      !DEV_ENV &&
+        browser.storage.local.set({
+          [StorageKeys.EXTENSION_WAS_UPDATED]: true,
+        });
       reInjectContentScripts();
     }
   });
@@ -111,8 +142,8 @@ const reInjectContentScripts = () => {
 
   const matchPattern = (pattern: string, url: string): boolean => {
     // Parse pattern
-    let [patternScheme, patternHost] = pattern.split("://");
-    let [patternDomain, patternPath] = patternHost.split("/", 2);
+    let [patternScheme, patternHost] = pattern.split('://');
+    let [patternDomain, patternPath] = patternHost.split('/', 2);
 
     // Parse URL
     let urlObj = new URL(url);
@@ -120,18 +151,24 @@ const reInjectContentScripts = () => {
     let urlPath = urlObj.pathname;
 
     // Check scheme
-    if (patternScheme !== "*" && patternScheme !== urlObj.protocol.replace(":", "")) {
+    if (
+      patternScheme !== '*' &&
+      patternScheme !== urlObj.protocol.replace(':', '')
+    ) {
       return false;
     }
 
     // Check domain
-    if (patternDomain !== "*" && !urlDomain.endsWith(patternDomain.replace("*.", ""))) {
+    if (
+      patternDomain !== '*' &&
+      !urlDomain.endsWith(patternDomain.replace('*.', ''))
+    ) {
       return false;
     }
 
     // Check path
-    return !(patternPath !== "*" && !urlPath.startsWith("/" + patternPath));
-  }
+    return !(patternPath !== '*' && !urlPath.startsWith('/' + patternPath));
+  };
 
   const matchUrl = (url: string, patterns: string[]): boolean => {
     for (let pattern of patterns) {
@@ -141,16 +178,20 @@ const reInjectContentScripts = () => {
     }
 
     return false;
-  }
+  };
 
   const injectIntoTab = async (tab: Tabs.Tab) => {
-    if (!tab.url || tab.url.match(/(chrome):\/\//gi) || isChromeWebstore(tab.url)) {
+    if (
+      !tab.url ||
+      tab.url.match(/(chrome):\/\//gi) ||
+      isChromeWebstore(tab.url)
+    ) {
       return;
     }
 
     if (browser.permissions) {
       const hasPermission = await browser.permissions.contains({
-        origins: [new URL(tab.url).origin  + '/*']
+        origins: [new URL(tab.url).origin + '/*'],
       });
       if (!hasPermission) {
         return;
@@ -167,39 +208,47 @@ const reInjectContentScripts = () => {
       }
 
       jsFiles.forEach((scriptToInject: string) => {
-        browser.scripting.executeScript({ //executeScript, but should be ob since browser.scripting?
-          target: { tabId: tab.id! },
-          files: [scriptToInject],
-        }).catch(() => {
-          // do nothing cause the tab does not exist anymore
-        });
+        browser.scripting
+          .executeScript({
+            //executeScript, but should be ob since browser.scripting?
+            target: { tabId: tab.id! },
+            files: [scriptToInject],
+          })
+          .catch(() => {
+            // do nothing cause the tab does not exist anymore
+          });
       });
-  
+
       // Inject CSS files
       cssFiles.forEach((cssToInject: string) => {
-        browser.scripting.insertCSS({
-          files: [cssToInject],
-          target: { tabId: tab.id! },
-        }).catch(() => {
-          // do nothing cause the tab does not exist anymore
-        });
+        browser.scripting
+          .insertCSS({
+            files: [cssToInject],
+            target: { tabId: tab.id! },
+          })
+          .catch(() => {
+            // do nothing cause the tab does not exist anymore
+          });
       });
     });
   };
 
-  browser.windows.getAll({ populate: true }).then((windows) => {
-    windows.forEach((window) => {
-      if (!window || !window.tabs) {
-        return;
-      }
+  browser.windows
+    .getAll({ populate: true })
+    .then((windows) => {
+      windows.forEach((window) => {
+        if (!window || !window.tabs) {
+          return;
+        }
 
-      window.tabs.forEach(tab => {
-        injectIntoTab(tab);
+        window.tabs.forEach((tab) => {
+          injectIntoTab(tab);
+        });
       });
+    })
+    .catch((error) => {
+      sendErrorToSentry(error);
     });
-  }).catch((error) => {
-    sendErrorToSentry(error);
-  });
 };
 
 const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
@@ -241,35 +290,38 @@ const setSettings = () => {
 const scanTabsToSetIframeDomains = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     if (tabs.length != 0 && tabs[0].url) {
-      browser.scripting.executeScript({
-        target: { tabId: tabs[0].id! },
-        func: () => {
-          return Array.from(document.getElementsByTagName('iframe')).map(
-            (iframe) => iframe.src
-          );
-        }
-      }).then((result) => {
-        const iframes = result[0].result;
-        if (iframes) {
-          const iframeDomains = iframes.map((iframe: string) => {
-            try {
-              const url = new URL(iframe);
-              return getDomainWithoutSubdomain(url.hostname);
-            } catch (e) {
-              console.error("Invalid URL provided:", iframe, e);
-              return null;
-            }
-          });
-          storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, iframeDomains);
-        } else {
-          storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, []);
-        }
-      }).catch((error) => {
-        sendErrorToSentry(error);
-      });
+      browser.scripting
+        .executeScript({
+          target: { tabId: tabs[0].id! },
+          func: () => {
+            return Array.from(document.getElementsByTagName('iframe')).map(
+              (iframe) => iframe.src
+            );
+          },
+        })
+        .then((result) => {
+          const iframes = result[0].result;
+          if (iframes) {
+            const iframeDomains = iframes.map((iframe: string) => {
+              try {
+                const url = new URL(iframe);
+                return getDomainWithoutSubdomain(url.hostname);
+              } catch (e) {
+                console.error('Invalid URL provided:', iframe, e);
+                return null;
+              }
+            });
+            storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, iframeDomains);
+          } else {
+            storeInLocalStorage(StorageKeys.IFRAME_DOMAINS, []);
+          }
+        })
+        .catch((error) => {
+          sendErrorToSentry(error);
+        });
     }
   });
-}
+};
 
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
