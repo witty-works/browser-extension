@@ -152,11 +152,21 @@ export interface IAlternatives {
   url: string;
 }
 
+export interface IImage {
+  src: string;
+  width?: number;
+  height?: number;
+  alt?: string;
+}
+
 export interface IExplanation {
   text: string;
+  long_text?: string
   icon: string;
   icon_image: string;
   url: string;
+  video_url?: string;
+  image_url?: IImage;
   context: string;
   content: string;
 }
