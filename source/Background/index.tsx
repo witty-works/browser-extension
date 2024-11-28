@@ -68,8 +68,10 @@ const addEventListeners = () => {
   browser.storage.onChanged.addListener(scanTabsToDetectStatus);
 
   function openPopup() {
-    console.log('Hello Popup!');
+    console.log('Hello from Popup!');
     // TODO: Import renderPopover from Input.tsx
+    // Display the first popover
+    // Navigate from one popover to another
   }
 
   browser.commands.onCommand.addListener((command, tab) => {
@@ -84,6 +86,7 @@ const addEventListeners = () => {
       browser.scripting.executeScript({
         target: { tabId: tab.id },
         func: openPopup,
+        args: ['action'],
       });
     }
   });
