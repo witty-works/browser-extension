@@ -341,7 +341,7 @@
   margin-bottom: auto;
 }
 
-.witty-works-ext-learning-bite-iframe {
+.witty-works-ext-learning-bite-dig-deeper {
   border: none;
   margin: 1em 1em 0.4em 1em;
   background-color: $white;
@@ -349,7 +349,7 @@
   min-width: 800px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .witty-works-ext-dropdown-select {
@@ -366,4 +366,22 @@
   border: 1px solid $orange;
   border-radius: 8px;
   color: $orange;
+}
+
+.witty-works-dig-deeper {
+  display: flex;
+  padding: 10px 15px;
+  gap: 10px;
+  font-family: $lato;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 14px;
+  margin-right: 1em;
+  cursor: pointer;
+  max-width: fit-content;
+  margin-top: 20px;
+  border-radius: 8px;
+  background-color: $orange;
+  color: $white;
 }
