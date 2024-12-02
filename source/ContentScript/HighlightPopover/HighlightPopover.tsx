@@ -17,7 +17,8 @@ import WittyLogo from '../../assets/icons/popover/logo.svg';
 import NextIcon from '../../assets/icons/popover/next.svg';
 import PreviousIcon from '../../assets/icons/popover/previous.svg';
 import VideoIcon from '../../assets/icons/popover/video.svg';
-import ExternalLink from '../../assets/icons/popover/external-link.svg';
+import ExternalLinkWhite from '../../assets/icons/popover/external-link-white.svg';
+import ExternalLinkGrey from '../../assets/icons/popover/external-link-grey.svg';
 import ArrowUpIcon from '../../assets/icons/popover/arrow-up.svg';
 import ArrowDownIcon from '../../assets/icons/popover/arrow-down.svg';
 import LoadingIcon from '../../shared/StateIndicatorIcons/LoadingIcon';
@@ -39,6 +40,7 @@ import { createRoot } from 'react-dom/client';
 import Notification from '../../Notifications/Notification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { createUrl, getBaseUrls } from '../../shared/ApiServices/requests';
+import parse from 'html-react-parser';
 
 export interface PopoverData {
   index: number;
@@ -76,7 +78,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   );
   const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
     useStateRef<boolean>(false);
-  const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [accessToken, setAccessToken] = useState<string>('');
   const [isLoading, setIsLoading] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<string>('');
@@ -212,7 +213,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const hidePopover = (logClose: boolean = false) => {
     logClose && analytics.popoverLogs(data.alert, 'popover_close');
     setShowLearningBite(false);
-    setIframeLoaded(false);
 
     hide();
     //in case input is removed from the dom before popover is closed (clicking outside the element), also remove it here
@@ -422,7 +422,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               onClick={() => {
                 data.index !== 1 && updatePopover('previous');
                 setShowLearningBite(false);
-                setIframeLoaded(false);
               }}
               aria-label={t('previous')}
               title={t('previous')}
@@ -447,7 +446,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               onClick={() => {
                 data.index !== data.totalAlerts && updatePopover('next');
                 setShowLearningBite(false);
-                setIframeLoaded(false);
               }}
               aria-label={t('next')}
               title={t('next')}
@@ -547,7 +545,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       >
                         {t('visitSource')}
 
-                        <ExternalLink
+                        <ExternalLinkGrey
                           className='witty-works-ext-margin-left'
                           alt={t('openNewWindow')}
                         />
@@ -565,24 +563,36 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           }}
         >
           <div
-            className='witty-works-ext-learning-bite-iframe'
-            style={{
-              display: iframeLoaded ? 'none' : 'flex',
-            }}
+            className='witty-works-ext-learning-bite-dig-deeper'
           >
-            <LoadingIcon />
+            <div>
+            <div>{parse(data.alert.data?.explanation?.long_text ?? '')}</div>
+            <div>
+              {data.alert.data?.explanation?.url && (
+                <a
+                  className='witty-works-dig-deeper witty-works-ext-container-row'
+                  href={data.alert.data.explanation.url}
+                  target='_new'
+                  aria-label={t('leanrMoreExtendedText')}
+                  title={t('leanrMoreExtendedText')}
+                >
+                  {t('leanrMoreExtendedText')}
+
+                  <ExternalLinkWhite
+                    className='witty-works-ext-margin-left'
+                    alt={t('openNewWindow')}
+                  />
+                </a>
+              )}
+            </div>
+            </div>
+            {data.alert.data?.explanation?.video_url && (
+              <video width="500" controls><source src={data.alert.data?.explanation?.video_url} type="video/mp4" />Your browser does not support the video tag.</video>
+            )}
+            {!data.alert.data?.explanation?.video_url && data.alert.data?.explanation?.image_url && (
+              <img style={{ width: '500px' }} src={data.alert.data?.explanation?.image_url?.src} alt={data.alert.data?.explanation?.image_url?.alt} />
+            )}
           </div>
-          <iframe
-            src={data.alert.data?.explanation?.url}
-            style={{
-              display: iframeLoaded ? 'flex' : 'none',
-            }}
-            className='witty-works-ext-learning-bite-iframe'
-            title='learning bite'
-            onLoad={() => {
-              setIframeLoaded(true);
-            }}
-          ></iframe>
         </div>
         <div
           className='witty-works-ext-separator'

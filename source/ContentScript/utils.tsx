@@ -101,7 +101,7 @@ export const customRender = (enabled: boolean, scriptId: string) => {
   }
 
   // Remove all extra WW_CONTAINER elements if witty is disabled or more than one is found
-  const containers = getActiveDocument().querySelectorAll(WTags.WW_CONTAINER);
+  const containers = getActiveDocument().querySelectorAll(WTags.WW_SHADOW_ROOT_CONTAINER);
   if (containers) {
     for (let i = enabled ? 1 : 0; i < containers.length; i++) {
       containers[i].remove();
