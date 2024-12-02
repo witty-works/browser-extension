@@ -37,7 +37,7 @@ const extensionReloaderPlugin =
 const sentryWebpackPluginInstance =
   process.env.SENTRY_SOURCEMAPS && process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_VERSION_STRING
     ? sentryWebpackPlugin({
-      org: "witty-works",
+      org: "witty-works-ag",
       project: "browser-extension",
 
       // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
