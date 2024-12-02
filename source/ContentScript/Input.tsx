@@ -1039,11 +1039,6 @@ const Input: React.FC<{
         .filter((node: INodes) => {
         return node.node.length > 0;
       }).sort((a: INodes, b: INodes) => a.index - b.index);
-      const lowestIndex = nodesForCalculation.reduce(
-        (min, node) => (node.index < min ? node.index : min),
-        Infinity
-      );
-
 
       let currentPosition = 0; // Keeps track of the current position as we loop
 
