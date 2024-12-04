@@ -67,8 +67,6 @@ export const getInputText = (element: CustomInputElement | any) => {
     return element.value;
   } else {
     return element.innerText
-      .replaceAll(/^\n+/g, '')
-      .replaceAll(/\n{2,}/g, '\n')
       .replaceAll(/[\u00A0\uFEFF]/g, '');
   }
 };
@@ -184,6 +182,16 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
           }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
           const element = node as HTMLElement;
+
+          // Handle <br> elements explicitly
+          if (element.tagName === 'BR') {
+            nodesWithNewlines.push({
+              node: document.createTextNode('\n'),
+              text: '\n',
+            });
+            lastWasBlock = false;
+            return;
+          }
 
           // Before processing children, check if it's a block-level element
           const isBlockElement =
