@@ -3,7 +3,7 @@ import {ICachedSentenceAlerts, useSentenceCache} from './useSentenceCache';
 import {IAlert, ICheckResponse} from "../types";
 import {useCheckEndpoint} from "./useEndpoint";
 import {generateAlertId} from "../utils";
-import { split, Syntax } from '../../lib/sentence-splitter/sentence-splitter';
+import { SentenceSplitterSyntax, split } from 'sentence-splitter';
 
 interface CheckEndpointCachedResponse {
   alerts: IAlert[];
@@ -74,7 +74,7 @@ export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: IChec
     }
 
     const {results} = checkEndpointResponse;
-    const lastCheckedTextSentences = split(lastCheckedTextRef.current).filter(s => s.type === Syntax.Sentence);
+    const lastCheckedTextSentences = split(lastCheckedTextRef.current).filter(s => s.type === SentenceSplitterSyntax.Sentence);
     const sentencesAlerts: ICachedSentenceAlerts[] = [];
 
     lastCheckedTextSentences.forEach(sentence => {

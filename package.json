@@ -51,6 +51,7 @@
     "react-i18next": "^11.14.2",
     "react-select": "^5.2.1",
     "react-spring": "^9.4.3",
+    "sentence-splitter": "^5.0.0",
     "structured-source": "^3.0.2",
     "url": "^0.11.3",
     "uuid": "^9.0.0",
