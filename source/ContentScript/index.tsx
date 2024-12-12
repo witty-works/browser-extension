@@ -9,9 +9,9 @@ import {
   WTags,
 } from '../shared/constants';
 import defaultConfig from '../witty.config.json';
-import { getDomainWithoutSubdomain, shouldInjectIntoWindow } from '../shared/utils';
+import { getDomainWithoutSubdomain, makeAuthRequest, shouldInjectIntoWindow } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
-import { customRender, makeAuthRequest } from './utils';
+import { customRender } from './utils';
 import { setBaseUrls } from '../shared/ApiServices/requests';
 import { v4 as uuidv4 } from 'uuid';
 import { isMicrosoftOnline } from '../shared/DOMutils';
