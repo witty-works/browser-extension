@@ -16,7 +16,7 @@ import {
   addNotificationBadge,
   getNewAccessToken,
   removeBadge,
-  storeInLocalStorage,
+  storeInLocalStorage, updateConfig
 } from '../../shared/utils';
 import { namespaces } from '../../i18n/i18n.constants';
 import '../../i18n/i18n';
@@ -38,7 +38,6 @@ import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
-import { updateConfig } from '../../ContentScript/utils';
 
 interface PopupProps {
   appId: string;

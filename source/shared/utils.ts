@@ -1,9 +1,15 @@
 import browser from 'webextension-polyfill';
-import { DEV_ENV, StorageKeys, wittyVersion } from './constants';
+import { BaseUrls, DefaultBaseUrlKey, DEV_ENV, StorageKeys, wittyVersion } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
-import { isGoogleDocs, isMicrosoftOnline, isTextArea, requiresRectRecalculation } from './DOMutils';
-import { getToken } from './ApiServices/requests';
+import {
+  isGoogleDocs,
+  isMicrosoftOnline,
+  isTextArea,
+  requiresRectRecalculation,
+} from './DOMutils';
+import { createUrl, getToken } from './ApiServices/requests';
+import { IAuthResponse } from './types';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -263,4 +269,89 @@ export const shouldInjectIntoWindow = (windowToCheck: Window) => {
 
 export const generateAlertId = (text: string, category: string, startOffset: number, endOffset: number) => {
   return `${text}-${category}-${startOffset}-${endOffset}`;
+};
+
+export const updateConfig = (
+  response: IAuthResponse,
+  force: boolean = false
+) => {
+  browser.storage.local
+    .get(null)
+    .then((result) => {
+      if (
+        response?.config_hash === result[StorageKeys.CONFIG_HASH] &&
+        response?.organization_config_hash ===
+          result[StorageKeys.ORGANIZATION_CONFIG_HASH]
+      ) {
+        if (!force) {
+          return; // config did not change
+        }
+        // config hash did not change, but we want to force update
+      }
+      storeInLocalStorage(
+        StorageKeys.ORGANIZATION_ID,
+        response?.organization_id
+      );
+      storeInLocalStorage(StorageKeys.USER_ID, response?.id);
+      storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list); //type not relevant here -> always 'deny'
+      storeInLocalStorage(StorageKeys.PLAN, response?.plan);
+      storeInLocalStorage(
+        StorageKeys.ORGANIZATION_DOMAINS,
+        response?.organization_domains
+      );
+      storeInLocalStorage(StorageKeys.CONFIG_HASH, response?.config_hash);
+      storeInLocalStorage(
+        StorageKeys.ORGANIZATION_CONFIG_HASH,
+        response?.organization_config_hash
+      );
+      storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
+      if (response?.organization_config?.categories) {
+        storeInLocalStorage(
+          StorageKeys.ORTHOGRAPHY,
+          response.organization_config.categories.orthography
+        );
+      }
+    })
+    .catch((error) => {
+      sendErrorToSentry(error);
+    });
+};
+
+export const makeAuthRequest = () => {
+  browser.storage.local
+    .get(null)
+    .then((result) => {
+      const urls = result[StorageKeys.API_ENDPOINT_KEY]
+        ? result[StorageKeys.API_ENDPOINT_KEY]
+        : DefaultBaseUrlKey;
+
+      if (
+        result[StorageKeys.ACCESS_TOKEN]
+      ) {
+        const config = {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
+          },
+        };
+
+        fetch(
+          createUrl(
+            BaseUrls[urls].api,
+            'v2.0/auth'
+          ),
+          config
+        ).then(async (response) => {
+          if (response.ok) {
+            const json = await response.json();
+            updateConfig(json, true);
+          }
+        });
+      }
+    })
+    .catch((error) => {
+      sendErrorToSentry(error);
+    });
 };

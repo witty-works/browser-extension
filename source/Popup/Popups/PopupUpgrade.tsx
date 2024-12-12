@@ -22,9 +22,8 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
-import { getNewAccessToken, storeInLocalStorage } from '../../shared/utils';
+import { getNewAccessToken, storeInLocalStorage, updateConfig } from '../../shared/utils';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
-import { updateConfig } from '../../ContentScript/utils';
 
 const PopupUpgrade: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);

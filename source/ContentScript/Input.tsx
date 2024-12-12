@@ -18,7 +18,7 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import { storeInLocalStorage, logOut, getDomainWithoutSubdomain } from '../shared/utils';
+import { storeInLocalStorage, logOut, getDomainWithoutSubdomain, updateConfig } from '../shared/utils';
 import {
   isTextArea,
   isInputText,
@@ -51,7 +51,7 @@ import {
   getScrollParent,
   getTextDividedByNodes,
   shouldReturnEarly,
-  updateConfig,
+
 } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';

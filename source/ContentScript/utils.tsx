@@ -1,57 +1,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import browser from 'webextension-polyfill';
-import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
+import { WTags } from '../shared/constants';
 import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
-import { CustomInputElement, IAuthResponse, INodes } from '../shared/types';
-import { storeInLocalStorage } from '../shared/utils';
+import { CustomInputElement, INodes } from '../shared/types';
 import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
-import { createUrl } from '../shared/ApiServices/requests';
-import { sendErrorToSentry } from '../shared/errorUtils';
 import { diffChars } from 'diff';
-
-export const updateConfig = (response: IAuthResponse, force: boolean = false) => {
-  browser.storage.local
-      .get(null)
-      .then((result) => {
-
-        if (
-          response?.config_hash ===
-          result[StorageKeys.CONFIG_HASH] &&
-          response?.organization_config_hash ===
-          result[StorageKeys.ORGANIZATION_CONFIG_HASH]
-        ) {
-          if (!force) {
-            return; // config did not change
-          }
-          // config hash did not change, but we want to force update
-        }
-        storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response?.organization_id);
-        storeInLocalStorage(StorageKeys.USER_ID, response?.id);
-        storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list); //type not relevant here -> always 'deny'
-        storeInLocalStorage(StorageKeys.PLAN, response?.plan);
-        storeInLocalStorage(
-          StorageKeys.ORGANIZATION_DOMAINS,
-          response?.organization_domains
-        );
-        storeInLocalStorage(StorageKeys.CONFIG_HASH, response?.config_hash);
-        storeInLocalStorage(
-          StorageKeys.ORGANIZATION_CONFIG_HASH,
-          response?.organization_config_hash
-        );
-        storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
-        if (response?.organization_config?.categories) {
-          storeInLocalStorage(
-            StorageKeys.ORTHOGRAPHY,
-            response.organization_config.categories.orthography
-          );
-        }
-        }
-    ).catch((error) => {
-      sendErrorToSentry(error);
-    }
-  ); 
-};
 
 export const getInputText = (element: CustomInputElement | any) => {
   if (isGoogleDocs()) {
@@ -72,7 +25,6 @@ export const getInputText = (element: CustomInputElement | any) => {
       .replace(/[\u00A0\uFEFF]/g, '');
   }
 };
-
 
 export const customRender = (enabled: boolean, scriptId: string) => {  
   const doc = document.documentElement;
@@ -227,40 +179,6 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
     });
     return nodes;
   }
-};
-
-export const makeAuthRequest = () => {
-  browser.storage.local.get(null).then((result) => {
-    if (
-      result[StorageKeys.ACCESS_TOKEN] &&
-      result[StorageKeys.API_ENDPOINT_KEY]
-    ) {
-      const config = {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
-        },
-      };
-
-      fetch(
-        createUrl(
-          BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].api,
-          'v2.0/auth'
-        ),
-        config
-      )
-        .then(async (response) => {
-          if (response.ok) {
-            const json = await response.json();
-            updateConfig(json, true);
-          }
-        })
-    }
-  }).catch((error) => {
-    sendErrorToSentry(error);
-  });
 };
 
 export const getScrollParent = (
