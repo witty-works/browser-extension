@@ -158,7 +158,17 @@ const Popup: React.FC<PopupProps> = ({
   }, [authErrorResponse]);
 
   const setWittyIcon = (enabled: boolean) => {
-    enabled ? removeBadge() : addBadge('OFF');
+    // always check for current plan status so we would set badge to 'off' if it's lost
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        if (result[StorageKeys.PLAN] === 'none') {
+          addBadge('OFF');
+          return;
+        }
+
+        enabled ? removeBadge() : addBadge('OFF');
+      });
   };
   const handleEnable = () => {
     const isEnabled = !enabled.enabled;

@@ -288,7 +288,7 @@ const storageChange = (changes: { [key: string]: any }) => {
   changedItems.forEach((key) => {
     if (key === StorageKeys.ACCESS_TOKEN && !changes[key].newValue) {
       addBadge('Login');
-    } else if (key === StorageKeys.PLAN && !changes[key].newValue) {
+    } else if (key === StorageKeys.PLAN && (!changes[key].newValue || changes[key].newValue === 'none')) {
       addBadge('OFF');
     } else if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
       changes[key].newValue === 0
