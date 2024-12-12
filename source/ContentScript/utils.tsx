@@ -66,8 +66,10 @@ export const getInputText = (element: CustomInputElement | any) => {
   } else if (isTextArea(element) || isInputText(element)) {
     return element.value;
   } else {
-    return element.innerText
-      .replaceAll(/[\u00A0\uFEFF]/g, '');
+    return getNodesWithNewlines(element)
+      .map((node) => node.text)
+      .join('')
+      .replace(/[\u00A0\uFEFF]/g, '');
   }
 };
 
@@ -143,6 +145,69 @@ export const getFirstTextDiff = (oldText: string, newText: string): { changedOff
   return null;
 }
 
+export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: string }[] => {
+  const nodesWithNewlines: { node: Node; text: string }[] = [];
+  let lastWasBlock = false; // Tracks whether the last processed element was a block
+
+  function walk(node: Node, isRoot = false): void {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (node.textContent?.trim()) {
+        // Append newline if the last node was a block
+        if (lastWasBlock) {
+          const lastNode = nodesWithNewlines[nodesWithNewlines.length - 1];
+          if (lastNode) {
+            nodesWithNewlines.push({
+              node: document.createTextNode('\n'),
+              text: '\n',
+            });
+          }
+        }
+
+        // Add the current text node
+        nodesWithNewlines.push({ node, text: node.textContent });
+        lastWasBlock = false;
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+
+      // Handle <br> elements explicitly
+      if (element.tagName === 'BR') {
+        nodesWithNewlines.push({
+          node: document.createTextNode('\n'),
+          text: '\n',
+        });
+        lastWasBlock = false;
+        return;
+      }
+
+      // Before processing children, check if it's a block-level element
+      const isBlockElement =
+        window.getComputedStyle(element).display === 'block' || element.tagName === 'DIV';
+
+      // Add newline if transitioning to a block-level element
+      if (isBlockElement && !isRoot && !lastWasBlock) {
+        const lastNode = nodesWithNewlines[nodesWithNewlines.length - 1];
+        if (lastNode) {
+          nodesWithNewlines.push({
+            node: document.createTextNode('\n'),
+            text: '\n',
+          });
+        }
+      }
+
+      // Process child nodes recursively
+      element.childNodes.forEach(child => walk(child));
+
+      // Mark block-level elements
+      lastWasBlock = isBlockElement;
+    }
+  }
+
+  // Start recursion
+  walk(element, true);
+  return nodesWithNewlines;
+}
+
 export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   if (isGoogleDocs()) {
     const clone = document.querySelector('ww-clone');
@@ -157,69 +222,6 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   } else if (isTextArea(element) || isInputText(element)) {
     return [element];
   } else {
-
-    function getNodesWithNewlines(element: HTMLElement): { node: Node; text: string }[] {
-      const nodesWithNewlines: { node: Node; text: string }[] = [];
-      let lastWasBlock = false; // Tracks whether the last processed element was a block
-
-      function walk(node: Node, isRoot = false): void {
-        if (node.nodeType === Node.TEXT_NODE) {
-          if (node.textContent?.trim()) {
-            // Append newline if the last node was a block
-            if (lastWasBlock) {
-              const lastNode = nodesWithNewlines[nodesWithNewlines.length - 1];
-              if (lastNode) {
-                nodesWithNewlines.push({
-                  node: document.createTextNode('\n'),
-                  text: '\n',
-                });
-              }
-            }
-
-            // Add the current text node
-            nodesWithNewlines.push({ node, text: node.textContent });
-            lastWasBlock = false;
-          }
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-          const element = node as HTMLElement;
-
-          // Handle <br> elements explicitly
-          if (element.tagName === 'BR') {
-            nodesWithNewlines.push({
-              node: document.createTextNode('\n'),
-              text: '\n',
-            });
-            lastWasBlock = false;
-            return;
-          }
-
-          // Before processing children, check if it's a block-level element
-          const isBlockElement =
-            window.getComputedStyle(element).display === 'block' || element.tagName === 'DIV';
-
-          // Add newline if transitioning to a block-level element
-          if (isBlockElement && !isRoot && !lastWasBlock) {
-            const lastNode = nodesWithNewlines[nodesWithNewlines.length - 1];
-            if (lastNode) {
-              nodesWithNewlines.push({
-                node: document.createTextNode('\n'),
-                text: '\n',
-              });
-            }
-          }
-
-          // Process child nodes recursively
-          element.childNodes.forEach(child => walk(child));
-
-          // Mark block-level elements
-          lastWasBlock = isBlockElement;
-        }
-      }
-
-      // Start recursion
-      walk(element, true);
-      return nodesWithNewlines;
-    }
     const nodes = getNodesWithNewlines(element).map(node => {
       return node.node;
     });
