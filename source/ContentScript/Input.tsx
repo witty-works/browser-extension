@@ -1031,34 +1031,32 @@ const Input: React.FC<{
     ) {
       let updatedAlerts: IAlert[] = [];
       const nodesForCalculation = getTextDividedByNodes(element)
-        .map((node, index) => ({ node: node.textContent as string, index, rawNode: element }))
+        .map((node, index) => {
+          // remove non breaking white spaces and other non visible white spaces from node.textContent
+          const content = node.textContent?.replaceAll(/[\u00A0\uFEFF]/g, '');
+          return { node: content as string, index, rawNode: node };
+        })
         .filter((node: INodes) => {
         return node.node.length > 0;
       }).sort((a: INodes, b: INodes) => a.index - b.index);
-      const lowestIndex = nodesForCalculation.reduce(
-        (min, node) => (node.index < min ? node.index : min),
-        Infinity
-      );
 
-      nodesForCalculation.forEach((node) => {
-        let absolutePositionOfFirstCharOfNode = 0;
-        let absolutePositionOfLastCharOfNode = 0;
+      let currentPosition = 0; // Keeps track of the current position as we loop
 
-        for (let index = lowestIndex; index <= node.index; index++) {
-          const text = elementEvaluation.snapshotItem(index)?.textContent;
-          const textLength = text ? text.length : 0;
-        
-          if (index < node.index) {
-            absolutePositionOfFirstCharOfNode += textLength;
-          }
-        
-          absolutePositionOfLastCharOfNode += textLength;
-        }
+      nodesForCalculation.forEach(node => {
+        let absolutePositionOfFirstCharOfNode = currentPosition;
 
+        // Get the current node's text length
+        const text = node.node;
+        const textLength = text.length;
+
+        // Update the current position
+        currentPosition += textLength;
+
+        let absolutePositionOfLastCharOfNode = currentPosition;
+
+        // Filter relevant alerts
         const alertsRelevantToNode = alerts.filter((alert: IAlert) => {
-          return elementEvaluation
-            .snapshotItem(node.index)
-            ?.textContent?.includes(alert.data?.text)
+          return text.includes(alert.data?.text);
         });
 
         updatedAlerts = alertsRelevantToNode
@@ -1068,20 +1066,20 @@ const Input: React.FC<{
             endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode,
           }))
           .filter(
-            (alert) => alert.startOffset >= 0 &&
+            (alert) =>
+              alert.startOffset >= 0 &&
               alert.endOffset >= 0 &&
-              alert.startOffset <= absolutePositionOfLastCharOfNode &&
-              alert.endOffset <= absolutePositionOfLastCharOfNode
+              alert.startOffset <= absolutePositionOfLastCharOfNode - absolutePositionOfFirstCharOfNode &&
+              alert.endOffset <= absolutePositionOfLastCharOfNode - absolutePositionOfFirstCharOfNode
           );
 
-        updatedAlerts.length > 0 &&
+        if (updatedAlerts.length > 0) {
           nodesWithAlertsTemp.push({
-            node: elementEvaluation.snapshotItem(
-              node.index
-            ) as Node, //possibly null
+            node: node.rawNode, // Possibly null
             alerts: updatedAlerts,
             nodeIndex: node.index,
           });
+        }
       });
     } else {
       //EVENTUALLY REFACTOR TO ONLY USE ABOVE CONDITION

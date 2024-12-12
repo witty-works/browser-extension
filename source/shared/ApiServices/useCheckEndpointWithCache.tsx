@@ -2,8 +2,8 @@ import {useEffect, useRef, useState} from 'react';
 import {ICachedSentenceAlerts, useSentenceCache} from './useSentenceCache';
 import {IAlert, ICheckResponse} from "../types";
 import {useCheckEndpoint} from "./useEndpoint";
-import {SentenceSplitterSyntax, split} from "sentence-splitter";
 import {generateAlertId} from "../utils";
+import { SentenceSplitterSyntax, split } from 'sentence-splitter';
 
 interface CheckEndpointCachedResponse {
   alerts: IAlert[];

@@ -1,8 +1,8 @@
 import {hashString} from "../../ContentScript/utils";
 import {IAlert} from "../types";
-import {SentenceSplitterSyntax, split} from "sentence-splitter";
 import { useRef } from "react";
 import {generateAlertId} from "../utils";
+import { SentenceSplitterSyntax, split } from 'sentence-splitter';
 
 interface ISentenceCache {
   [hash: string]: ICachedSentenceAlerts;
@@ -17,8 +17,8 @@ export const useSentenceCache = () => {
   const cacheRef = useRef<ISentenceCache>({});
 
   const checkCache = (updatedText: string) => {
-    const textWithoutLineBreaks = updatedText.replace(/\n/g, '');
-    const sentences = split(textWithoutLineBreaks).filter(s => s.type === SentenceSplitterSyntax.Sentence);
+    // const textWithoutLineBreaks = updatedText.replace(/\n/g, '');
+    const sentences = split(updatedText).filter(s => s.type === SentenceSplitterSyntax.Sentence);
     const cachedAlerts: IAlert[] = [];
     const nonCachedSentences: string[] = [];
 
