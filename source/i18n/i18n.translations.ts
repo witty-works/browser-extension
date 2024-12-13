@@ -59,6 +59,7 @@ export const de = {
     upgradeHeadline: 'Hol dir ein Witty Abo',
     upgradeText: 'Du benötigst ein Witty Abo, damit Witty deine Texte analysiert',
     upgradeButton: 'Upgrade',
+    checkLicenseButton: 'Check License',
     beta: 'Beta',
   },
   [namespaces.popover]: {
@@ -185,6 +186,7 @@ export const en = {
     upgradeHeadline: 'Get a Witty subscription',
     upgradeText: 'You need a subscription to get Witty to analyze your text.',
     upgradeButton: 'Upgrade',
+    checkLicenseButton: 'Check License',
     beta: 'Beta',
   },
 
