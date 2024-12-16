@@ -1,6 +1,6 @@
 import defaultConfig from '../witty.config.json';
 import browser from 'webextension-polyfill';
-import {getDomainWithoutSubdomain } from '../shared/utils';
+import { getDomainWithoutSubdomain, makeAuthRequest } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import {
@@ -9,7 +9,6 @@ import {
   renderUpgradePopup,
   renderUserNotLoggedIn,
 } from './PopupUtils';
-import {makeAuthRequest} from "../ContentScript/utils";
 
 const renderPopup = async () => {
   browser.storage.local

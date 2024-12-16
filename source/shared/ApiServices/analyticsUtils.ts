@@ -82,11 +82,11 @@ export const captureEvent = (eventName: string, eventData: object) => {
         },
       ];
 
-          if (!idWasAliased && userId) {
-            aliasId(userId, appId);
-          }
+      if (!idWasAliased && userId) {
+        aliasId(userId, appId);
+      }
 
-      let urls = getBaseUrls()      
+      let urls = getBaseUrls()
       const ph = new PostHog(urls.posthog_key, {
         host: urls.posthog_url,
         bootstrap : {

@@ -16,7 +16,7 @@ import {
   addNotificationBadge,
   getNewAccessToken,
   removeBadge,
-  storeInLocalStorage,
+  storeInLocalStorage, updateConfig
 } from '../../shared/utils';
 import { namespaces } from '../../i18n/i18n.constants';
 import '../../i18n/i18n';
@@ -38,7 +38,6 @@ import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
-import { updateConfig } from '../../ContentScript/utils';
 
 interface PopupProps {
   appId: string;
@@ -159,7 +158,17 @@ const Popup: React.FC<PopupProps> = ({
   }, [authErrorResponse]);
 
   const setWittyIcon = (enabled: boolean) => {
-    enabled ? removeBadge() : addBadge('OFF');
+    // always check for current plan status so we would set badge to 'off' if it's lost
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        if (result[StorageKeys.PLAN] === 'none') {
+          addBadge('OFF');
+          return;
+        }
+
+        enabled ? removeBadge() : addBadge('OFF');
+      });
   };
   const handleEnable = () => {
     const isEnabled = !enabled.enabled;

@@ -21,7 +21,6 @@ import {
   updateLabelChrome,
 } from '../shared/utils';
 import defaultConfig from '../witty.config.json';
-import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 import { DefaultConfigValue } from '../shared/types';
 import { useLog } from '../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../shared/errorUtils';
@@ -30,7 +29,6 @@ import {isChromeWebstore} from "../shared/DOMutils";
 const sentryDSN = defaultConfig.SENTRY_DSN;
 const sentrySampleRate = defaultConfig.SENTRY_SAMPLE_RATE;
 const sentryTraceRate = defaultConfig.SENTRY_TRACE_RATE;
-const analytics = useAnalytics();
 const log = useLog('Background index');
 
 const onSave = (key: string, value: DefaultConfigValue) => {
@@ -72,10 +70,12 @@ const addEventListeners = () => {
   });
 
   browser.runtime.onInstalled.addListener(function (details: { reason: string }) {
-    analytics.extensionInstallationAndUpdateLog(details.reason);
     browser.action?.setIcon(WittyIconActive);
-    if (!DEV_ENV)
+
+    if (!DEV_ENV) {
       browser.runtime.setUninstallURL(`https://www.witty.works/goodbye?witty_version=${wittyVersion}&witty_browser=${navigator.userAgent}`);
+    }
+
     if (details.reason === 'install') {
       //Set default settings
       setSettings();
@@ -94,8 +94,7 @@ const addEventListeners = () => {
         sendErrorToSentry(error);
       });
       reInjectContentScripts();
-    }
-    if (details.reason === 'update') {
+    } else if (details.reason === 'update') {
       //Set icon according to the saved settings
       scanTabsToDetectStatus();
       !DEV_ENV && browser.storage.local.set({ [StorageKeys.EXTENSION_WAS_UPDATED]: true });
@@ -251,7 +250,9 @@ const scanTabsToSetIframeDomains = () => {
       }).then((result) => {
         const iframes = result[0].result;
         if (iframes) {
-          const iframeDomains = iframes.map((iframe: string) => {
+          const iframeDomains = iframes
+          .filter((iframe: string) => (iframe !== ""))
+          .map((iframe: string) => {
             try {
               const url = new URL(iframe);
               return getDomainWithoutSubdomain(url.hostname);
@@ -288,7 +289,7 @@ const storageChange = (changes: { [key: string]: any }) => {
   changedItems.forEach((key) => {
     if (key === StorageKeys.ACCESS_TOKEN && !changes[key].newValue) {
       addBadge('Login');
-    } else if (key === StorageKeys.PLAN && !changes[key].newValue) {
+    } else if (key === StorageKeys.PLAN && (!changes[key].newValue || changes[key].newValue === 'none')) {
       addBadge('OFF');
     } else if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
       changes[key].newValue === 0
