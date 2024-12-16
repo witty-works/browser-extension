@@ -1,57 +1,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import browser from 'webextension-polyfill';
-import { BaseUrls, StorageKeys, WTags } from '../shared/constants';
+import { WTags } from '../shared/constants';
 import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
-import { CustomInputElement, IAuthResponse, INodes } from '../shared/types';
-import { storeInLocalStorage } from '../shared/utils';
+import { CustomInputElement, INodes } from '../shared/types';
 import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
-import { createUrl } from '../shared/ApiServices/requests';
-import { sendErrorToSentry } from '../shared/errorUtils';
 import { diffChars } from 'diff';
-
-export const updateConfig = (response: IAuthResponse, force: boolean = false) => {
-  browser.storage.local
-      .get(null)
-      .then((result) => {
-
-        if (
-          response?.config_hash ===
-          result[StorageKeys.CONFIG_HASH] &&
-          response?.organization_config_hash ===
-          result[StorageKeys.ORGANIZATION_CONFIG_HASH]
-        ) {
-          if (!force) {
-            return; // config did not change
-          }
-          // config hash did not change, but we want to force update
-        }
-        storeInLocalStorage(StorageKeys.ORGANIZATION_ID, response?.organization_id);
-        storeInLocalStorage(StorageKeys.USER_ID, response?.id);
-        storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list); //type not relevant here -> always 'deny'
-        storeInLocalStorage(StorageKeys.PLAN, response?.plan);
-        storeInLocalStorage(
-          StorageKeys.ORGANIZATION_DOMAINS,
-          response?.organization_domains
-        );
-        storeInLocalStorage(StorageKeys.CONFIG_HASH, response?.config_hash);
-        storeInLocalStorage(
-          StorageKeys.ORGANIZATION_CONFIG_HASH,
-          response?.organization_config_hash
-        );
-        storeInLocalStorage(StorageKeys.TEAM_NAME, response?.organization_name);
-        if (response?.organization_config?.categories) {
-          storeInLocalStorage(
-            StorageKeys.ORTHOGRAPHY,
-            response.organization_config.categories.orthography
-          );
-        }
-        }
-    ).catch((error) => {
-      sendErrorToSentry(error);
-    }
-  ); 
-};
 
 export const getInputText = (element: CustomInputElement | any) => {
   if (isGoogleDocs()) {
@@ -66,12 +19,12 @@ export const getInputText = (element: CustomInputElement | any) => {
   } else if (isTextArea(element) || isInputText(element)) {
     return element.value;
   } else {
-    return element.innerText
-      .replaceAll(/^\n+/g, '')
-      .replaceAll(/\n{2,}/g, '\n');
+    return getNodesWithNewlines(element)
+      .map((node) => node.text)
+      .join('')
+      .replace(/[\u00A0\uFEFF]/g, '');
   }
 };
-
 
 export const customRender = (enabled: boolean, scriptId: string) => {  
   const doc = document.documentElement;
@@ -144,6 +97,69 @@ export const getFirstTextDiff = (oldText: string, newText: string): { changedOff
   return null;
 }
 
+export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: string }[] => {
+  const nodesWithNewlines: { node: Node; text: string }[] = [];
+  let lastWasBlock = false; // Tracks whether the last processed element was a block
+
+  function walk(node: Node, isRoot = false): void {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (node.textContent?.trim()) {
+        // Append newline if the last node was a block
+        if (lastWasBlock) {
+          const lastNode = nodesWithNewlines[nodesWithNewlines.length - 1];
+          if (lastNode) {
+            nodesWithNewlines.push({
+              node: document.createTextNode('\n'),
+              text: '\n',
+            });
+          }
+        }
+
+        // Add the current text node
+        nodesWithNewlines.push({ node, text: node.textContent });
+        lastWasBlock = false;
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+
+      // Handle <br> elements explicitly
+      if (element.tagName === 'BR') {
+        nodesWithNewlines.push({
+          node: document.createTextNode('\n'),
+          text: '\n',
+        });
+        lastWasBlock = false;
+        return;
+      }
+
+      // Before processing children, check if it's a block-level element
+      const isBlockElement =
+        window.getComputedStyle(element).display === 'block' || element.tagName === 'DIV';
+
+      // Add newline if transitioning to a block-level element
+      if (isBlockElement && !isRoot && !lastWasBlock) {
+        const lastNode = nodesWithNewlines[nodesWithNewlines.length - 1];
+        if (lastNode) {
+          nodesWithNewlines.push({
+            node: document.createTextNode('\n'),
+            text: '\n',
+          });
+        }
+      }
+
+      // Process child nodes recursively
+      element.childNodes.forEach(child => walk(child));
+
+      // Mark block-level elements
+      lastWasBlock = isBlockElement;
+    }
+  }
+
+  // Start recursion
+  walk(element, true);
+  return nodesWithNewlines;
+}
+
 export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   if (isGoogleDocs()) {
     const clone = document.querySelector('ww-clone');
@@ -158,55 +174,11 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   } else if (isTextArea(element) || isInputText(element)) {
     return [element];
   } else {
-    const elementEvaluation = getActiveDocument().evaluate(
-      './/text()',
-      element,
-      null,
-      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-      null
-    );
-
-    const nodes = [] as Node[];
-    for (let i = 0; i < elementEvaluation.snapshotLength; i++) {
-      const node = elementEvaluation.snapshotItem(i);
-      node && nodes.push(node);
-    }
+    const nodes = getNodesWithNewlines(element).map(node => {
+      return node.node;
+    });
     return nodes;
   }
-};
-
-export const makeAuthRequest = () => {
-  browser.storage.local.get(null).then((result) => {
-    if (
-      result[StorageKeys.ACCESS_TOKEN] &&
-      result[StorageKeys.API_ENDPOINT_KEY]
-    ) {
-      const config = {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
-        },
-      };
-
-      fetch(
-        createUrl(
-          BaseUrls[result[StorageKeys.API_ENDPOINT_KEY]].api,
-          'v2.0/auth'
-        ),
-        config
-      )
-        .then(async (response) => {
-          if (response.ok) {
-            const json = await response.json();
-            updateConfig(json, true);
-          }
-        })
-    }
-  }).catch((error) => {
-    sendErrorToSentry(error);
-  });
 };
 
 export const getScrollParent = (

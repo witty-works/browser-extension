@@ -12,5 +12,6 @@
     "useDefineForClassFields": true,
     "skipLibCheck": true
   },
-  "include": ["source", "webpack.config.js"]
+  "include": ["source", "webpack.config.js"],
+  "exclude": ["source/lib/sentence-splitter"]
 }

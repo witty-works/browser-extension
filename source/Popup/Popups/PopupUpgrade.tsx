@@ -22,9 +22,8 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
-import { getNewAccessToken, storeInLocalStorage } from '../../shared/utils';
+import { getNewAccessToken, storeInLocalStorage, updateConfig } from '../../shared/utils';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
-import { updateConfig } from '../../ContentScript/utils';
 
 const PopupUpgrade: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
@@ -79,10 +78,22 @@ const PopupUpgrade: React.FC = () => {
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
   }
 
+  const logIn = () => {
+    const optionsPageUrl = browser.runtime.getURL('options.html');
+    const url = `${getBaseUrls().dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${getBaseUrls().dashboard}editor?onboarding=true`;
+    window.open(url, '_blank');
+  }
+
+  const checkLicense = () => {
+    logOut();
+    logIn()
+  }
+
   return (
     <>
       <PopupHeader showSettings={false} appId={appID} />
-      <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-full-padding witty-works-ext-light-gray-background'>
+      <div
+        className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-full-padding witty-works-ext-light-gray-background'>
         <div className='witty-works-ext-margin-right'>
           <SadFace />
         </div>
@@ -103,7 +114,13 @@ const PopupUpgrade: React.FC = () => {
         <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={handleUpgradeClick}>
           {t('upgradeButton')}
         </button>
-      </div>     
+      </div>
+
+      <div className='witty-works-ext-left witty-works-ext-margin-top'>
+        <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={checkLicense}>
+          {t('checkLicenseButton')}
+        </button>
+      </div>
 
       {teamName && (
         <div className='witty-works-ext-section'>
