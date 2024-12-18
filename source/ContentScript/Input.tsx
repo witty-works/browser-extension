@@ -46,11 +46,12 @@ import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import GoogleDocsClone from './GoogleDocsClone';
 import {
+  findCloneContainer,
   getFirstTextDiff,
   getInputText,
   getScrollParent,
   getTextDividedByNodes,
-  shouldReturnEarly,
+  shouldReturnEarly
 
 } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
@@ -147,14 +148,6 @@ const Input: React.FC<{
     [element]
   );
   const debouncedMutation = debounce(() => {
-    const findCloneContainer = () => {
-      const shadowRootContainer = document.querySelector(WTags.WW_SHADOW_ROOT_CONTAINER);
-      if (!shadowRootContainer) {
-        return null;
-      }
-
-      return shadowRootContainer.shadowRoot?.querySelector(WTags.WW_CLONE);
-    }
 
     const cloneContainer = findCloneContainer();
     if (!cloneContainer) return;
@@ -315,16 +308,17 @@ const Input: React.FC<{
             ...nodeWithAlerts,
             alerts: nodeWithAlerts.alerts.map((alert) => {
               const range = activeDocument.createRange();
+              const nodeForRange = nodeWithAlerts.node.nodeType === Node.TEXT_NODE ? nodeWithAlerts.node : nodeWithAlerts.node.childNodes[0];
               if (
-                alert.startOffset > nodeWithAlerts.node.length ||
-                alert.endOffset > nodeWithAlerts.node.length ||
+                alert.startOffset > nodeForRange.length ||
+                alert.endOffset > nodeForRange.length ||
                 alert.startOffset < 0 ||
                 alert.endOffset < 0
               ) {
                 return alert;
               }
-              range.setStart(nodeWithAlerts.node, alert.startOffset);
-              range.setEnd(nodeWithAlerts.node, alert.endOffset);
+              range.setStart(nodeForRange, alert.startOffset);
+              range.setEnd(nodeForRange, alert.endOffset);
               const rect = range.getClientRects()[0];
               if (!rect) return alert;
               return {
@@ -759,7 +753,7 @@ const Input: React.FC<{
       selectedAlertRef.current = selectedAlert;
 
       const range = getActiveDocument().createRange();
-      const nodeText = oneNodeWithAlerts.node;
+      const nodeText = oneNodeWithAlerts.node.nodeType === Node.TEXT_NODE ? oneNodeWithAlerts.node : oneNodeWithAlerts.node.childNodes[0];
 
       if (
         nodeText.textContent &&
@@ -930,8 +924,13 @@ const Input: React.FC<{
               ) {
                 return alert;
               }
-              range.setStart(nodeWithAlerts.node, alert.startOffset);
-              range.setEnd(nodeWithAlerts.node, alert.endOffset);
+              if (nodeWithAlerts.node.nodeType === Node.TEXT_NODE) {
+                range.setStart(nodeWithAlerts.node, alert.startOffset);
+                range.setEnd(nodeWithAlerts.node, alert.endOffset);
+              } else {
+                range.setStart(nodeWithAlerts.node.childNodes[0], alert.startOffset);
+                range.setEnd(nodeWithAlerts.node.childNodes[0], alert.endOffset);
+              }
               const rect = range.getClientRects()[0];
               if (!rect) return alert;
               return {
