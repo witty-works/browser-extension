@@ -123,9 +123,6 @@ const Input: React.FC<{
   const [hrFeatureDisabled, setHrFeatureDisabled] = useState<boolean>(false);
   const [trialEndedNotifactionShownDate, setTrialEndedNotifactionShownDate] = useState<Date | null>(null);
   const checkEventsLogger = useCheckEventsLogger(authResponse, hrFeatureDisabled);
-  const googleDocsEventTarget = (
-    document.querySelector('.docs-texteventtarget-iframe') as any
-  )?.contentDocument?.activeElement;
 
   const onNewCheckResultsReceived = (checkEndpointResponse: ICheckResponse, checkedTextLength: number) => {
     userIsSignedIn && checkEventsLogger.checkLog(checkEndpointResponse, checkedTextLength);
@@ -150,7 +147,16 @@ const Input: React.FC<{
     [element]
   );
   const debouncedMutation = debounce(() => {
-    const cloneContainer = document.querySelector(WTags.WW_CLONE);
+    const findCloneContainer = () => {
+      const shadowRootContainer = document.querySelector(WTags.WW_SHADOW_ROOT_CONTAINER);
+      if (!shadowRootContainer) {
+        return null;
+      }
+
+      return shadowRootContainer.shadowRoot?.querySelector(WTags.WW_CLONE);
+    }
+
+    const cloneContainer = findCloneContainer();
     if (!cloneContainer) return;
     //if no text, remove highlights
     if (!element.querySelector('g')) {
@@ -158,7 +164,7 @@ const Input: React.FC<{
     }
     checkText('');
 
-    const container = document.querySelector(WTags.WW_CLONE);
+    const container = findCloneContainer();
     if (!container) return;
     const root = createRoot(container);
 
@@ -224,11 +230,14 @@ const Input: React.FC<{
 
     browser.storage.onChanged.addListener(storageChange);
     const scrollParent = getScrollParent(element);
-    const newScrollableParent = (!isTextArea(element) && scrollParent) ? scrollParent : element;
+    const newScrollableParent =
+      !isTextArea(element) && scrollParent ? scrollParent : element;
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
-    if(!isGoogleDocs()) {
+    if (isGoogleDocs()) {
+      setIsFocused(true);
+    } else {
       element?.addEventListener('focusout', handleFocusoutEvent);
       element?.addEventListener('focusin', handleFocusinEvent);
     }
@@ -240,7 +249,6 @@ const Input: React.FC<{
     element?.addEventListener('pointerdown', handleElementClickEventWrapper as any);
 
     if (isGoogleDocs()) {
-      googleDocsEventTarget?.addEventListener('focusout', handleFocusoutEvent);
       document?.addEventListener(
         'click',
         handleDocumentClickEvent as EventListener
@@ -274,10 +282,6 @@ const Input: React.FC<{
       element.removeEventListener('pointerdown', handleElementClickEventWrapper as any);
 
       if (isGoogleDocs()) {
-        googleDocsEventTarget.removeEventListener(
-          'focusout',
-          handleFocusoutEvent
-        );
         document.removeEventListener(
           'click',
           handleDocumentClickEvent as EventListener
