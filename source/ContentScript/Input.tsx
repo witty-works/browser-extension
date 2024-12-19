@@ -155,7 +155,6 @@ const Input: React.FC<{
     if (!element.querySelector('g')) {
       setAlerts([]);
     }
-    checkText('');
 
     const container = findCloneContainer();
     if (!container) return;
