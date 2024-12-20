@@ -21,5 +21,14 @@ CanvasRenderingContext2D.prototype.lineTo = function (t, s) {
 
 const fillRectPrototype = CanvasRenderingContext2D.prototype.fillRect;
 CanvasRenderingContext2D.prototype.fillRect = function (t, e, n, r) {
-    if (!this.fillStyle || wittyIsDisabled() || !langCouldBeDetermined() || !GDOCS_RECT_COLORS.includes(this.fillStyle.toLowerCase())) return fillRectPrototype.apply(this, arguments)
+    if (!this.fillStyle || wittyIsDisabled() || !langCouldBeDetermined() || !GDOCS_RECT_COLORS.includes(this.fillStyle.toLowerCase())) {
+        return fillRectPrototype.apply(this, arguments)
+    }
+};
+
+const strokePrototype = CanvasRenderingContext2D.prototype.stroke;
+CanvasRenderingContext2D.prototype.stroke = function () {
+    if (!this.strokeStyle || wittyIsDisabled() || !langCouldBeDetermined() || !GDOCS_LINE_COLORS.includes(this.strokeStyle.toLowerCase())) {
+        return strokePrototype.apply(this, arguments);
+    }
 };
