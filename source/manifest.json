@@ -72,7 +72,8 @@
       "matches": ["https://docs.google.com/document/*"],
       "js": ["assets/googleDocsSupport.js"],
       "all_frames": false,
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "world": "MAIN"
     },
     {
       "matches": ["https://docs.google.com/document/*", "https://mail.google.com/mail/*"],
