@@ -148,7 +148,10 @@ const Input: React.FC<{
     [element]
   );
   const debouncedMutation = debounce(() => {
+    googleDocsMutationHandler();
+  }, 500);
 
+  const googleDocsMutationHandler = () => {
     const cloneContainer = findCloneContainer();
     if (!cloneContainer) return;
     //if no text, remove highlights
@@ -182,7 +185,7 @@ const Input: React.FC<{
         ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
       ];
     }
-  }, 500);
+  };
 
   useMutationObserver(element, onElementMutation);
   const { t } = useTranslation([namespaces.errors]);
@@ -387,44 +390,26 @@ const Input: React.FC<{
     handleKeyupEventDebounced(event);
     handleTextChanged();
 
-    if (isNotion()) {
-      document
-        .querySelector('.notion-frame')
-        ?.addEventListener('keyup', handleKeyupEventDebounced as any)
-    } else {
-      element?.addEventListener('keyup', handleKeyupEventDebounced as any);
-    }
+    const targetElement = isNotion() ? document.querySelector('.notion-frame') :
+      (isGoogleDocs() ? (
+        document.querySelector('.docs-texteventtarget-iframe') as any)?.contentDocument?.activeElement : element);
+
+    targetElement?.addEventListener('keyup', handleKeyupEventDebounced as any);
     element?.addEventListener('paste', handleKeyupEventDebounced as any);
 
-    // try to deduplicate in the future
-    if (isNotion()) {
-      document
-        .querySelector('.notion-frame')
-        ?.addEventListener('keyup', handleTextChanged as any)
-    } else {
-      element?.addEventListener('keyup', handleTextChanged as any);
-    }
+    targetElement?.addEventListener('keyup', handleTextChanged as any);
     element?.addEventListener('paste', handleTextChanged as any);
 
     return () => {
-      //Don't forget to remove the listeners at the end
-      if (isNotion()) {
-        document
-          .querySelector('.notion-frame')
-          ?.removeEventListener('keyup', handleKeyupEventDebounced as any);
-      } else {
-        element.removeEventListener('keyup', handleKeyupEventDebounced as any);
-      }
-      element.removeEventListener('paste', handleKeyupEventDebounced as any);
+      const targetElement = isNotion() ? document.querySelector('.notion-frame') :
+        (isGoogleDocs() ? (
+          document.querySelector('.docs-texteventtarget-iframe') as any)?.contentDocument?.activeElement : element);
 
-      if (isNotion()) {
-        document
-          .querySelector('.notion-frame')
-          ?.removeEventListener('keyup', handleTextChanged as any);
-      } else {
-        element.removeEventListener('keyup', handleTextChanged as any);
-      }
-      element.removeEventListener('paste', handleTextChanged as any);
+      targetElement?.removeEventListener('keyup', handleKeyupEventDebounced as any);
+      element?.removeEventListener('paste', handleKeyupEventDebounced as any);
+
+      targetElement?.removeEventListener('keyup', handleTextChanged as any);
+      element?.removeEventListener('paste', handleTextChanged as any);
     };
   }, [debounceDelay]);
 
@@ -489,6 +474,10 @@ const Input: React.FC<{
     if (prevSelectedAlertIndex.current != -1 && !isGoogleDocs()) resetPopover();
     const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
     !isGoogleDocs() && (element.spellcheck = !elementSpellcheckRef.current)
+
+    if (isGoogleDocs()) {
+      googleDocsMutationHandler();
+    }
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
     if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes)) return;
