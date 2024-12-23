@@ -1034,8 +1034,7 @@ const Input: React.FC<{
       let updatedAlerts: IAlert[] = [];
       const nodesForCalculation = getTextDividedByNodes(element)
         .map((node, index) => {
-          // remove non breaking white spaces and other non visible white spaces from node.textContent
-          const content = node.textContent?.replaceAll(/[\u00A0\uFEFF]/g, '');
+          const content = node.textContent;
           return { node: content as string, index, rawNode: node };
         })
         .filter((node: INodes) => {

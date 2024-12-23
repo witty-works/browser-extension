@@ -22,7 +22,6 @@ export const getInputText = (element: CustomInputElement | any) => {
     return getNodesWithNewlines(element)
       .map((node) => node.text)
       .join('')
-      .replace(/[\u00A0\uFEFF]/g, '');
   }
 };
 
