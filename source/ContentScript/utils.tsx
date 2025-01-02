@@ -22,7 +22,6 @@ export const getInputText = (element: CustomInputElement | any) => {
     return getNodesWithNewlines(element)
       .map((node) => node.text)
       .join('')
-      .replace(/[\u00A0\uFEFF]/g, '');
   }
 };
 
@@ -162,7 +161,7 @@ export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: 
 
 export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
   if (isGoogleDocs()) {
-    const clone = document.querySelector('ww-clone');
+    const clone = findCloneContainer();
     let divs = [] as Node[];
     if (clone?.firstChild) {
       for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
@@ -179,6 +178,15 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
     });
     return nodes;
   }
+};
+
+export const findCloneContainer = (): Element | null => {
+  const shadowRootContainer = document.querySelector(WTags.WW_SHADOW_ROOT_CONTAINER);
+  if (!shadowRootContainer) {
+    return null;
+  }
+
+  return shadowRootContainer.shadowRoot ? shadowRootContainer.shadowRoot.querySelector(WTags.WW_CLONE) : null;
 };
 
 export const getScrollParent = (

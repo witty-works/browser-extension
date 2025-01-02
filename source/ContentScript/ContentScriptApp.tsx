@@ -345,8 +345,8 @@ const ContentScriptApp: React.FC = () => {
           inputsRef.current.forEach((input: CustomInputElement) => {
             if (!input?.parentElement) return;
             const sibling = input.previousElementSibling as HTMLElement;
-            if (sibling?.tagName === WTags.WW_CONTAINER || sibling?.tagName === WTags.WW_SHADOW_ROOT_CONTAINER) return;
 
+            if (sibling?.tagName?.toLowerCase() === WTags.WW_CONTAINER.toLowerCase() || sibling?.tagName?.toLowerCase() === WTags.WW_SHADOW_ROOT_CONTAINER.toLowerCase()) return;
 
             const shadowHost = getActiveDocument().createElement(WTags.WW_SHADOW_ROOT_CONTAINER);
             getActiveDocument().body.appendChild(shadowHost);

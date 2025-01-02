@@ -46,11 +46,12 @@ import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
 import { setToken } from '../shared/ApiServices/requests';
 import GoogleDocsClone from './GoogleDocsClone';
 import {
+  findCloneContainer,
   getFirstTextDiff,
   getInputText,
   getScrollParent,
   getTextDividedByNodes,
-  shouldReturnEarly,
+  shouldReturnEarly
 
 } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
@@ -123,9 +124,6 @@ const Input: React.FC<{
   const [hrFeatureDisabled, setHrFeatureDisabled] = useState<boolean>(false);
   const [trialEndedNotifactionShownDate, setTrialEndedNotifactionShownDate] = useState<Date | null>(null);
   const checkEventsLogger = useCheckEventsLogger(authResponse, hrFeatureDisabled);
-  const googleDocsEventTarget = (
-    document.querySelector('.docs-texteventtarget-iframe') as any
-  )?.contentDocument?.activeElement;
 
   const onNewCheckResultsReceived = (checkEndpointResponse: ICheckResponse, checkedTextLength: number) => {
     userIsSignedIn && checkEventsLogger.checkLog(checkEndpointResponse, checkedTextLength);
@@ -150,15 +148,18 @@ const Input: React.FC<{
     [element]
   );
   const debouncedMutation = debounce(() => {
-    const cloneContainer = document.querySelector(WTags.WW_CLONE);
+    googleDocsMutationHandler();
+  }, 500);
+
+  const googleDocsMutationHandler = () => {
+    const cloneContainer = findCloneContainer();
     if (!cloneContainer) return;
     //if no text, remove highlights
     if (!element.querySelector('g')) {
       setAlerts([]);
     }
-    checkText('');
 
-    const container = document.querySelector(WTags.WW_CLONE);
+    const container = findCloneContainer();
     if (!container) return;
     const root = createRoot(container);
 
@@ -184,7 +185,7 @@ const Input: React.FC<{
         ...new Set([...previouslyCheckedPagesGoogleDocs.current, ...pagesZIndex]),
       ];
     }
-  }, 500);
+  };
 
   useMutationObserver(element, onElementMutation);
   const { t } = useTranslation([namespaces.errors]);
@@ -224,11 +225,14 @@ const Input: React.FC<{
 
     browser.storage.onChanged.addListener(storageChange);
     const scrollParent = getScrollParent(element);
-    const newScrollableParent = (!isTextArea(element) && scrollParent) ? scrollParent : element;
+    const newScrollableParent =
+      !isTextArea(element) && scrollParent ? scrollParent : element;
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
-    if(!isGoogleDocs()) {
+    if (isGoogleDocs()) {
+      setIsFocused(true);
+    } else {
       element?.addEventListener('focusout', handleFocusoutEvent);
       element?.addEventListener('focusin', handleFocusinEvent);
     }
@@ -240,7 +244,6 @@ const Input: React.FC<{
     element?.addEventListener('pointerdown', handleElementClickEventWrapper as any);
 
     if (isGoogleDocs()) {
-      googleDocsEventTarget?.addEventListener('focusout', handleFocusoutEvent);
       document?.addEventListener(
         'click',
         handleDocumentClickEvent as EventListener
@@ -274,10 +277,6 @@ const Input: React.FC<{
       element.removeEventListener('pointerdown', handleElementClickEventWrapper as any);
 
       if (isGoogleDocs()) {
-        googleDocsEventTarget.removeEventListener(
-          'focusout',
-          handleFocusoutEvent
-        );
         document.removeEventListener(
           'click',
           handleDocumentClickEvent as EventListener
@@ -311,16 +310,17 @@ const Input: React.FC<{
             ...nodeWithAlerts,
             alerts: nodeWithAlerts.alerts.map((alert) => {
               const range = activeDocument.createRange();
+              const nodeForRange = nodeWithAlerts.node.nodeType === Node.TEXT_NODE ? nodeWithAlerts.node : nodeWithAlerts.node.childNodes[0];
               if (
-                alert.startOffset > nodeWithAlerts.node.length ||
-                alert.endOffset > nodeWithAlerts.node.length ||
+                alert.startOffset > nodeForRange.length ||
+                alert.endOffset > nodeForRange.length ||
                 alert.startOffset < 0 ||
                 alert.endOffset < 0
               ) {
                 return alert;
               }
-              range.setStart(nodeWithAlerts.node, alert.startOffset);
-              range.setEnd(nodeWithAlerts.node, alert.endOffset);
+              range.setStart(nodeForRange, alert.startOffset);
+              range.setEnd(nodeForRange, alert.endOffset);
               const rect = range.getClientRects()[0];
               if (!rect) return alert;
               return {
@@ -390,44 +390,26 @@ const Input: React.FC<{
     handleKeyupEventDebounced(event);
     handleTextChanged();
 
-    if (isNotion()) {
-      document
-        .querySelector('.notion-frame')
-        ?.addEventListener('keyup', handleKeyupEventDebounced as any)
-    } else {
-      element?.addEventListener('keyup', handleKeyupEventDebounced as any);
-    }
+    const targetElement = isNotion() ? document.querySelector('.notion-frame') :
+      (isGoogleDocs() ? (
+        document.querySelector('.docs-texteventtarget-iframe') as any)?.contentDocument?.activeElement : element);
+
+    targetElement?.addEventListener('keyup', handleKeyupEventDebounced as any);
     element?.addEventListener('paste', handleKeyupEventDebounced as any);
 
-    // try to deduplicate in the future
-    if (isNotion()) {
-      document
-        .querySelector('.notion-frame')
-        ?.addEventListener('keyup', handleTextChanged as any)
-    } else {
-      element?.addEventListener('keyup', handleTextChanged as any);
-    }
+    targetElement?.addEventListener('keyup', handleTextChanged as any);
     element?.addEventListener('paste', handleTextChanged as any);
 
     return () => {
-      //Don't forget to remove the listeners at the end
-      if (isNotion()) {
-        document
-          .querySelector('.notion-frame')
-          ?.removeEventListener('keyup', handleKeyupEventDebounced as any);
-      } else {
-        element.removeEventListener('keyup', handleKeyupEventDebounced as any);
-      }
-      element.removeEventListener('paste', handleKeyupEventDebounced as any);
+      const targetElement = isNotion() ? document.querySelector('.notion-frame') :
+        (isGoogleDocs() ? (
+          document.querySelector('.docs-texteventtarget-iframe') as any)?.contentDocument?.activeElement : element);
 
-      if (isNotion()) {
-        document
-          .querySelector('.notion-frame')
-          ?.removeEventListener('keyup', handleTextChanged as any);
-      } else {
-        element.removeEventListener('keyup', handleTextChanged as any);
-      }
-      element.removeEventListener('paste', handleTextChanged as any);
+      targetElement?.removeEventListener('keyup', handleKeyupEventDebounced as any);
+      element?.removeEventListener('paste', handleKeyupEventDebounced as any);
+
+      targetElement?.removeEventListener('keyup', handleTextChanged as any);
+      element?.removeEventListener('paste', handleTextChanged as any);
     };
   }, [debounceDelay]);
 
@@ -492,6 +474,10 @@ const Input: React.FC<{
     if (prevSelectedAlertIndex.current != -1 && !isGoogleDocs()) resetPopover();
     const isSpecialKey = !keyboardEvent?.key || keyboardEvent.key === 'z' || keyboardEvent.key === 'Meta';
     !isGoogleDocs() && (element.spellcheck = !elementSpellcheckRef.current)
+
+    if (isGoogleDocs()) {
+      googleDocsMutationHandler();
+    }
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
     if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes)) return;
@@ -755,7 +741,7 @@ const Input: React.FC<{
       selectedAlertRef.current = selectedAlert;
 
       const range = getActiveDocument().createRange();
-      const nodeText = oneNodeWithAlerts.node;
+      const nodeText = oneNodeWithAlerts.node.nodeType === Node.TEXT_NODE ? oneNodeWithAlerts.node : oneNodeWithAlerts.node.childNodes[0];
 
       if (
         nodeText.textContent &&
@@ -926,8 +912,13 @@ const Input: React.FC<{
               ) {
                 return alert;
               }
-              range.setStart(nodeWithAlerts.node, alert.startOffset);
-              range.setEnd(nodeWithAlerts.node, alert.endOffset);
+              if (nodeWithAlerts.node.nodeType === Node.TEXT_NODE) {
+                range.setStart(nodeWithAlerts.node, alert.startOffset);
+                range.setEnd(nodeWithAlerts.node, alert.endOffset);
+              } else {
+                range.setStart(nodeWithAlerts.node.childNodes[0], alert.startOffset);
+                range.setEnd(nodeWithAlerts.node.childNodes[0], alert.endOffset);
+              }
               const rect = range.getClientRects()[0];
               if (!rect) return alert;
               return {
@@ -1032,8 +1023,7 @@ const Input: React.FC<{
       let updatedAlerts: IAlert[] = [];
       const nodesForCalculation = getTextDividedByNodes(element)
         .map((node, index) => {
-          // remove non breaking white spaces and other non visible white spaces from node.textContent
-          const content = node.textContent?.replaceAll(/[\u00A0\uFEFF]/g, '');
+          const content = node.textContent;
           return { node: content as string, index, rawNode: node };
         })
         .filter((node: INodes) => {

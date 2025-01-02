@@ -10,6 +10,7 @@ import {
 } from './DOMutils';
 import { createUrl, getToken } from './ApiServices/requests';
 import { IAuthResponse } from './types';
+import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -228,9 +229,16 @@ export const getCorrectedPositionCanvas = (element: HTMLElement) => {
 
   const scrollLeft = element.parentElement?.parentElement?.scrollLeft;
   const scrollTop = element.parentElement?.parentElement?.scrollTop;
+
+  const isPageless = element.querySelectorAll('.kix-page-paginated').length === 0;
+  const googleDocsToolbarLeftRect = getActiveDocument()
+    .getElementsByClassName('left-sidebar-container-content')[0]
+    ?.getBoundingClientRect();
+
   return {
     top: scrollTop ? scrollTop : 0,
-    left: updatedElementRect.left + (scrollLeft ? scrollLeft : 0),
+    left: updatedElementRect.left + (scrollLeft ? scrollLeft : 0) +
+      (isPageless ? (googleDocsToolbarLeftRect?.width || 0) : 0),
   };
 };
 
