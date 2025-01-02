@@ -77,12 +77,12 @@ export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: IChec
     const lastCheckedTextSentences = split(lastCheckedTextRef.current).filter(s => s.type === SentenceSplitterSyntax.Sentence);
     const sentencesAlerts: ICachedSentenceAlerts[] = [];
 
+    onCheckResultsReceived(checkEndpointResponse, (lastCheckedTextRef.current && lastCheckedTextRef.current.length) || 0);
+
     lastCheckedTextSentences.forEach(sentence => {
       const sentenceStartOffset = sentence.range[0];
       const sentenceEndOffset = sentence.range[1];
       const alerts: IAlert[] = [];
-
-      onCheckResultsReceived(checkEndpointResponse, (lastCheckedTextRef.current && lastCheckedTextRef.current.length) || 0);
 
       results.forEach((result) => {
         if (result.start >= sentenceStartOffset && result.end <= sentenceEndOffset) {
