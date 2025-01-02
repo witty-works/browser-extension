@@ -66,7 +66,7 @@ const IconController: React.FC<IconControllerProps> = ({
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
   const { t } = useTranslation(namespaces.iconController);
   const analytics = useAnalytics();
-  const totalTextLength = getTextDividedByNodes(element).map((node: any) => node.textContent).join('')?.length || 0;
+  const totalTextLength = getTextDividedByNodes(element).map((node: any) => node.text).join('')?.length || 0;
 
   browser.storage.local
     .get(StorageKeys.ACCESS_TOKEN)
