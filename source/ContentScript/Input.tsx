@@ -480,10 +480,10 @@ const Input: React.FC<{
     }
 
     const nextTextDividedByNodes = getTextDividedByNodes(element);
-    if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes)) return;
+    if (!isSpecialKey && shouldReturnEarly(prevCheckedNodesRef.current, nextTextDividedByNodes.map(node => node.node))) return;
     const textDividedByNodesTextContent = isTextArea(element)
       ? getInputText(element)
-      : (nextTextDividedByNodes.map((node) => node.textContent) as string[]);
+      : (nextTextDividedByNodes.map((node) => node.text) as string[]);
 
     if (isTextArea(element)) {
       handleTextAndIcon();
@@ -1023,8 +1023,8 @@ const Input: React.FC<{
       let updatedAlerts: IAlert[] = [];
       const nodesForCalculation = getTextDividedByNodes(element)
         .map((node, index) => {
-          const content = node.textContent;
-          return { node: content as string, index, rawNode: node };
+          const content = node.text;
+          return { node: content as string, index, rawNode: node.node };
         })
         .filter((node: INodes) => {
         return node.node.length > 0;
@@ -1076,7 +1076,7 @@ const Input: React.FC<{
       let textStartingAbsPosition: number = 0;
       let textEndAbsPosition: number = -1;
 
-      const nodesForCalculation = getTextDividedByNodes(element).map((node, index) => ({ node: node.textContent as string, index, rawNode: element }));
+      const nodesForCalculation = getTextDividedByNodes(element).map((node, index) => ({ node: node.text, index, rawNode: element }));
       for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
         const node = elementEvaluation.snapshotItem(index) as Node;
         if (node.nodeValue && node.nodeValue.match(/(\u00A0)|\S/i)) {

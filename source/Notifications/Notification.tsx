@@ -24,7 +24,7 @@ const Notification: React.FC<NotificationProps> = ({
   const { t } = useTranslation(namespaces.notifications);
   const totalTextLength = element
     ? getTextDividedByNodes(element)
-        .map((node: any) => node.textContent)
+        .map((node: any) => node.text)
         .join('')?.length
     : 0;
   const english = window.navigator.language.includes('en');

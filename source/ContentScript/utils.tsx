@@ -115,7 +115,7 @@ export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: 
         }
 
         // Add the current text node
-        nodesWithNewlines.push({ node, text: node.textContent });
+        nodesWithNewlines.push({ node, text: node.textContent.replace(/\ufeff/g, '') });
         lastWasBlock = false;
       }
     } else if (node.nodeType === Node.ELEMENT_NODE) {
@@ -159,7 +159,7 @@ export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: 
   return nodesWithNewlines;
 }
 
-export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
+export const getTextDividedByNodes = (element: CustomInputElement): { node: Node; text: string }[] => {
   if (isGoogleDocs()) {
     const clone = findCloneContainer();
     let divs = [] as Node[];
@@ -169,14 +169,13 @@ export const getTextDividedByNodes = (element: CustomInputElement): Node[] => {
         divs.push(divElement);
       }
     }
-    return divs;
-  } else if (isTextArea(element) || isInputText(element)) {
-    return [element];
-  } else {
-    const nodes = getNodesWithNewlines(element).map(node => {
-      return node.node;
+    return divs.map((node) => {
+      return { node, text: node.textContent || '' };
     });
-    return nodes;
+  } else if (isTextArea(element) || isInputText(element)) {
+    return [{ node: element, text: element.value }];
+  } else {
+    return getNodesWithNewlines(element);
   }
 };
 
