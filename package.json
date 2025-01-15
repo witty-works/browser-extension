@@ -68,7 +68,7 @@
     "@babel/preset-env": "^7.23.2",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@playwright/test": "1.44.1",
+    "@playwright/test": "1.49.1",
     "@svgr/webpack": "^8.1.0",
     "@types/chroma-js": "^2.1.3",
     "@types/diff": "^5.2.3",
