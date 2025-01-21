@@ -26,6 +26,8 @@ export enum StorageKeys {
   CONFIG_HASH = 'configHash',
   ORGANIZATION_CONFIG_HASH = 'organizationConfigHash',
 
+  LLM_ALTERNATIVES = 'llmAlternatives',
+
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',

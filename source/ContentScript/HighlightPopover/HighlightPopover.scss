@@ -249,6 +249,16 @@
   align-items: center;
 }
 
+.witty-works-ext-rephrasing {
+  ins {
+    color: blue !important;
+  }
+
+  del {
+    color: red !important;
+  }
+}
+
 //Alignments
 .witty-works-ext-justify-start {
   justify-content: flex-start !important;

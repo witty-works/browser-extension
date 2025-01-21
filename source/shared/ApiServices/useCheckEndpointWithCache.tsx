@@ -4,6 +4,7 @@ import {IAlert, ICheckResponse} from "../types";
 import {useCheckEndpoint} from "./useEndpoint";
 import {generateAlertId} from "../utils";
 import { SentenceSplitterSyntax, split } from 'sentence-splitter';
+import { TxtNodeRange } from '@textlint/ast-node-types';
 
 interface CheckEndpointCachedResponse {
   alerts: IAlert[];
@@ -54,6 +55,13 @@ export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: IChec
           id: generateAlertId(alert.data.text, alert.data.category, newStartOffset, newEndOffset),
           startOffset: newStartOffset,
           endOffset: newEndOffset,
+          data: {
+            ...alert.data,
+            fullSentence: {
+              ...alert.data.fullSentence,
+              range: [alert.data.fullSentence.range[0], alert.data.fullSentence.range[1] + newLength - originalLength] as TxtNodeRange
+            }
+          }
         };
       }
 
@@ -96,9 +104,11 @@ export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: IChec
             popOverIsOpen: false,
             data: {
               language: checkEndpointResponse.language,
+              gender_separator: checkEndpointResponse.gender_separator,
               category: result.category,
               subcategory: result.subcategory,
               context: result.context,
+              fullSentence: sentence,
               text: result.text,
               text_id: result.text_id,
               label: result.label,

@@ -1,4 +1,6 @@
 //API REQUEST/RESPONSE
+import { TxtSentenceNode } from 'sentence-splitter';
+
 export interface IRequest {
   url: string;
   config: RequestInit | null;
@@ -7,6 +9,16 @@ export interface IRequest {
 export interface ICheckRequest {
   text: string;
   repeatedRequest: boolean;
+}
+
+export interface IGetLLMSuggestionsRequest {
+  alert: IAlert;
+}
+
+export interface DiffChange {
+  added: boolean,
+  removed: boolean,
+  value: string
 }
 
 export interface IEndpointError {
@@ -28,6 +40,11 @@ export interface ConfigProperty {
   status?: string;
 }
 
+export interface ILLMAlternativesResponse {
+  sentence: string;
+  results: Map<string, string>;
+}
+
 //CHECK ENDPOINT
 export interface ICheckResponse {
   results: ICheckResponseResult[];
@@ -35,6 +52,7 @@ export interface ICheckResponse {
   limit_reached: boolean;
   config_changed: boolean;
   notifications: number;
+  gender_separator: string;
 }
 
 export interface ICheckResponseResult {
@@ -132,12 +150,14 @@ export interface IAlertContentData {
   text: string;
   text_id: string;
   context: string;
+  fullSentence: TxtSentenceNode;
   category: string;
   subcategory: string;
   alternatives: IAlternatives[];
   label: string;
   explanation: IExplanation;
   language: string;
+  gender_separator: string;
   gravity: number;
   limit_reached: boolean;
   source: ISource;
@@ -149,6 +169,9 @@ export interface IAlternatives {
   remove: boolean;
   inspiration: boolean;
   context: string;
+  collective_noun?: ConstrainBooleanParameters;
+  male_form?: string;
+  female_form?: string;
   url: string;
 }
 

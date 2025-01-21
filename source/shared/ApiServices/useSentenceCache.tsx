@@ -37,6 +37,10 @@ export const useSentenceCache = () => {
             id: generateAlertId(alert.data.text, alert.data.category, startOffset, endOffset),
             startOffset,
             endOffset,
+            data: {
+              ...alert.data,
+              fullSentence: sentence
+            }
           }
         });
         cachedAlerts.push(...adjustedAlerts);

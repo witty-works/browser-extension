@@ -2,9 +2,9 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { WTags } from '../shared/constants';
 import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
-import { CustomInputElement, INodes } from '../shared/types';
+import { CustomInputElement, DiffChange, INodes } from '../shared/types';
 import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
-import { diffChars } from 'diff';
+import { diffChars, diffWords, WordsOptions } from 'diff';
 
 export const getInputText = (element: CustomInputElement | any) => {
   if (isGoogleDocs()) {
@@ -61,6 +61,13 @@ export const customRender = (enabled: boolean, scriptId: string) => {
   }
 };
 
+export const removeHTMLTags = (htmlString: string)=> {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlString, 'text/html');
+  const textContent = doc.body.textContent ?? '';
+  return textContent.trim();
+};
+
 export const getFirstTextDiff = (oldText: string, newText: string): { changedOffset: number, originalLength: number, newLength: number } | null => {
   const diff = diffChars(oldText, newText);
 
@@ -94,6 +101,78 @@ export const getFirstTextDiff = (oldText: string, newText: string): { changedOff
   }
 
   return null;
+}
+
+export const computeDiff = (language: string, originalSentence: string, newSentence: string) => {
+  let options: WordsOptions = {
+    intlSegmenter: new (Intl as any).Segmenter(language, { granularity: 'word' })
+  }
+
+  let diffElements: DiffChange[] = diffWords(
+    originalSentence,
+    newSentence,
+    options
+  );
+
+  const maxDiffLength = 120;
+  const minDiffLength = 50;
+
+  let diffElement: DiffChange;
+
+  let diff: string = '';
+  let tag: string = '';
+
+  let start: number = 0;
+  let end: number = diffElements.length - 1;
+
+  for (let i = 0; i < diffElements.length; i++) {
+    diffElement = diffElements[i]
+    if (diffElement.added || diffElement.removed) {
+      if (diff === '') {
+        start = i;
+      } else if (diff.endsWith('</ins>') || diff.endsWith('</del>')) {
+        diff += ' '
+      }
+      end = i;
+
+      tag = diffElement.added ? 'ins' : 'del';
+      diff += `<${tag}>${diffElement.value}</${tag}>`;
+    } else if (diff !== '' && i < diffElements.length - 1) {
+      diff += diffElement.value;
+    }
+  }
+
+  const strippedString = removeHTMLTags(diff);
+  let stringLengthDiff = maxDiffLength - strippedString.length
+  if (stringLengthDiff > 0) {
+    let value = '';
+    if (start > 0) {
+      value = diffElements[0].value.substring(
+        Math.max(0, diffElements[0].value.length - Math.min(minDiffLength, stringLengthDiff)),
+        diffElements[0].value.length
+      );
+
+      if (value != diffElements[0].value) {
+        value = value.slice(value.indexOf(' '));
+        value = '...' + value
+      }
+
+      diff = value + diff;
+    }
+
+    stringLengthDiff -= value.length
+    if (end < diffElements.length - 1 && stringLengthDiff) {
+      let value = diffElements[diffElements.length - 1].value.substring(0, Math.min(minDiffLength, stringLengthDiff));
+      if (value != diffElements[diffElements.length - 1].value) {
+        value = value.substring(0, value.lastIndexOf(' '));
+        value = value + '...'
+      }
+
+      diff = diff + value;
+    }
+  }
+
+  return diff
 }
 
 export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: string }[] => {

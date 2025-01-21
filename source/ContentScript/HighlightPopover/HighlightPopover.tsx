@@ -4,8 +4,8 @@ import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 import {
   CustomInputElement,
   IAlert,
-  IAlternatives,
-  ResponseConfig,
+  IAlternatives, IGetLLMSuggestionsRequest,
+  ResponseConfig
 } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
@@ -41,6 +41,8 @@ import Notification from '../../Notifications/Notification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { createUrl, getBaseUrls } from '../../shared/ApiServices/requests';
 import parse from 'html-react-parser';
+import { computeDiff } from '../utils';
+import { LLMAlternativesCacheValue } from '../../shared/ApiServices/useLLMAlternativesCache';
 
 export interface PopoverData {
   index: number;
@@ -59,6 +61,10 @@ interface PopoverProps {
   updateTextWithAlternative: (alternative: string) => void;
   addIgnoredTerm: (term: string) => void;
   movePopoverNextOrPrev: (direction: string) => void;
+  setLLMSuggestionsRequest: (req: IGetLLMSuggestionsRequest) => void;
+  getLLMSuggestions: (req: IGetLLMSuggestionsRequest) =>
+    | LLMAlternativesCacheValue
+    | undefined;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -69,26 +75,39 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   updateTextWithAlternative,
   addIgnoredTerm,
   movePopoverNextOrPrev: updatePopover,
+  setLLMSuggestionsRequest,
+  getLLMSuggestions
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
-  const [alternativeHovered, setAlternativeHovered] = useState<string | null>(
+  const [alternativeHovered, setAlternativeHovered] = useState<IAlternatives | null>(
     null
   );
   const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
     useStateRef<boolean>(false);
   const [accessToken, setAccessToken] = useState<string>('');
+  const [llmAlternatives, setLlmAlternatives] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<string>('');
   const [isFailure, setIsFailure] = useState<string>('');
+
+  const llmAlternativesResponse = getLLMSuggestions({
+    alert: data.alert,
+  });
 
   useEffect(() => {
     if (prevData && prevData.alert.id === data.alert.id) {
       return;
     }
     analytics.popoverLogs(data.alert, 'popover_open');
-  }, [data]);
+
+    if (llmAlternatives) {
+      setLLMSuggestionsRequest({
+        alert: data.alert
+      });
+    }
+  }, [data, llmAlternatives]);
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -147,6 +166,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     browser.storage.local.get(null).then((result) => {
       setAccessToken(
         result[StorageKeys.ACCESS_TOKEN] ? result[StorageKeys.ACCESS_TOKEN] : ''
+      );
+      setLlmAlternatives(
+        result[StorageKeys.LLM_ALTERNATIVES]
       );
     });
   }, []);
@@ -353,9 +375,42 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       });
   };
 
+  const renderExplanation = (
+    alternativeHovered: IAlternatives | null
+  )=> {
+    const defaultExplanation = () => {
+      return (
+        <>
+          {data.alert.data?.explanation?.text}
+          {data.alert.data?.explanation?.context &&
+            ' (' + data.alert.data?.explanation?.context + ')'}
+        </>
+      )
+    };
+
+    if (alternativeHovered) {
+      if (!llmAlternativesResponse || llmAlternativesResponse.loading) {
+        return <LoadingIcon />;
+      }
+
+      if (llmAlternativesResponse.data !== null) {
+        const rephrasing = llmAlternativesResponse.data.results.get(alternativeHovered.text);
+        if (!rephrasing) {
+          return defaultExplanation();
+        }
+
+        return (
+          <div dangerouslySetInnerHTML={{__html: computeDiff(data.alert.data.language, data.alert.data.fullSentence.raw, rephrasing)}}></div>
+        );
+      }
+    }
+
+    return defaultExplanation();
+  };
+
   const renderAlternative = (
     alternative: IAlternatives,
-    alternativeHovered: string | null
+    alternativeHovered: IAlternatives | null
   ) => {
     if (alternative && alternative.text === '') {
       return <i>{t('removeSpaces')}</i>;
@@ -376,12 +431,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       } else if (
         alternative.text.length > 25 &&
         alternative.context &&
-        alternativeHovered !== alternative.text
+        alternativeHovered?.text !== alternative.text
       ) {
         return alternative.text.substring(0, 25) + '...';
       } else if (
         alternative.text.length > 35 &&
-        alternativeHovered !== alternative.text
+        alternativeHovered?.text !== alternative.text
       ) {
         return alternative.text.substring(0, 35) + '...';
       } else {
@@ -474,7 +529,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             <div
               className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-container-column witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top'
               style={{
-                backgroundColor: getColor(data.alert.data?.gravity, data.alert.data?.subcategory).default,
+                backgroundColor: getColor(
+                  data.alert.data?.gravity,
+                  data.alert.data?.subcategory
+                ).default,
               }}
             >
               <div
@@ -483,21 +541,34 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   display: 'flex',
                   flexDirection: showLearningBite ? 'row' : 'column',
                   alignItems: showLearningBite ? 'center' : 'flex-start',
+                  height: '120px',
                 }}
               >
-                <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-                  <div style={{ fontSize: '2em', marginRight: '0.5em' }}>
-                    {data.alert.data?.explanation?.icon_image
-                      ? <img src={data.alert.data?.explanation?.icon_image} alt="" style={{ width: '50px' }} />
-                      : <span>{data.alert.data?.explanation?.icon}</span>
-                    }
+                <div className='witty-works-ext-container-row witty-works-ext-justify-start' style={{
+                  flex: 1,
+                }}>
+                  <div
+                    style={{
+                      fontSize: '2em',
+                      marginRight: '0.5em',
+                      flexShrink: 0,
+                      height: '100%',
+                    }}
+                  >
+                    {data.alert.data?.explanation?.icon_image ? (
+                      <img
+                        src={data.alert.data?.explanation?.icon_image}
+                        alt=''
+                        style={{ width: '50px' }}
+                      />
+                    ) : (
+                      <span>{data.alert.data?.explanation?.icon}</span>
+                    )}
                   </div>
-                  <div style={{ width: '252px' }}>
+                  <div className='witty-works-ext-rephrasing' style={{ width: '252px', height: '100%' }}>
                     <b>{data.alert.data?.label.split(':').pop()}</b>
                     <br />
-                    {data.alert.data?.explanation?.text}
-                    {data.alert.data?.explanation?.context &&
-                      ' (' + data.alert.data?.explanation?.context + ')'}
+                    {renderExplanation(alternativeHovered)}
                   </div>
                 </div>
                 {data.alert.data?.explanation?.url && (
@@ -505,7 +576,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
                     style={{ marginTop: showLearningBite ? '0em' : '1em' }}
                   >
-                    <div className='witty-works-ext-dropdown-select witty-works-ext-container-row'
+                    <div
+                      className='witty-works-ext-dropdown-select witty-works-ext-container-row'
                       onClick={() => {
                         analytics.popoverLogs(data.alert, 'learning_bites');
                         setShowLearningBite(!showLearningBite);
@@ -562,36 +634,45 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             display: showLearningBite ? 'flex' : 'none',
           }}
         >
-          <div
-            className='witty-works-ext-learning-bite-dig-deeper'
-          >
+          <div className='witty-works-ext-learning-bite-dig-deeper'>
             <div>
-            <div>{parse(data.alert.data?.explanation?.long_text ?? '')}</div>
-            <div>
-              {data.alert.data?.explanation?.url && (
-                <a
-                  className='witty-works-dig-deeper witty-works-ext-container-row'
-                  href={data.alert.data.explanation.url}
-                  target='_new'
-                  aria-label={t('leanrMoreExtendedText')}
-                  title={t('leanrMoreExtendedText')}
-                >
-                  {t('leanrMoreExtendedText')}
+              <div>{parse(data.alert.data?.explanation?.long_text ?? '')}</div>
+              <div>
+                {data.alert.data?.explanation?.url && (
+                  <a
+                    className='witty-works-dig-deeper witty-works-ext-container-row'
+                    href={data.alert.data.explanation.url}
+                    target='_new'
+                    aria-label={t('leanrMoreExtendedText')}
+                    title={t('leanrMoreExtendedText')}
+                  >
+                    {t('leanrMoreExtendedText')}
 
-                  <ExternalLinkWhite
-                    className='witty-works-ext-margin-left'
-                    alt={t('openNewWindow')}
-                  />
-                </a>
-              )}
-            </div>
+                    <ExternalLinkWhite
+                      className='witty-works-ext-margin-left'
+                      alt={t('openNewWindow')}
+                    />
+                  </a>
+                )}
+              </div>
             </div>
             {data.alert.data?.explanation?.video_url && (
-              <video width="500" controls><source src={data.alert.data?.explanation?.video_url} type="video/mp4" />Your browser does not support the video tag.</video>
+              <video width='500' controls>
+                <source
+                  src={data.alert.data?.explanation?.video_url}
+                  type='video/mp4'
+                />
+                Your browser does not support the video tag.
+              </video>
             )}
-            {!data.alert.data?.explanation?.video_url && data.alert.data?.explanation?.image_url && (
-              <img style={{ width: '500px' }} src={data.alert.data?.explanation?.image_url?.src} alt={data.alert.data?.explanation?.image_url?.alt} />
-            )}
+            {!data.alert.data?.explanation?.video_url &&
+              data.alert.data?.explanation?.image_url && (
+                <img
+                  style={{ width: '500px' }}
+                  src={data.alert.data?.explanation?.image_url?.src}
+                  alt={data.alert.data?.explanation?.image_url?.alt}
+                />
+              )}
           </div>
         </div>
         <div
@@ -632,7 +713,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     className='witty-works-ext-wittyworks-popover-alternative-btn-container'
                     key={`${index}-${alternative}-container`}
                     onMouseEnter={() => {
-                      setAlternativeHovered(alternative?.text);
+                      setAlternativeHovered(alternative);
                     }}
                     onMouseLeave={() => {
                       setAlternativeHovered(null);

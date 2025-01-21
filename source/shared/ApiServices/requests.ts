@@ -1,5 +1,6 @@
-import { IRequest, RequestConfig } from '../types';
+import { IAlert, IRequest, RequestConfig } from '../types';
 import { BaseUrls, wittyVersion } from '../constants';
+import { TxtSentenceNode } from 'sentence-splitter';
 
 let BASE_URL_API: string = '';
 let BASE_URL_DASHBOARD: string = '';
@@ -60,6 +61,30 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
             config_hash: configHash,
             organization_config_hash: organizationConfigHash,
           })
+        : null,
+    },
+  };
+};
+
+export const getLLMSuggestion = (sentence: TxtSentenceNode, alert: IAlert): IRequest => {
+  return {
+    url: createUrl(BASE_URL_API, 'v1.0/rephrase'),
+    config: {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+      body: sentence
+        ? JSON.stringify({
+          sentence: sentence.raw,
+          text: alert.data.text,
+          start: alert.startOffset - sentence.range[0],
+          gender_separator: alert.data.gender_separator,
+          alternatives: alert.data.alternatives.filter(alt => !alt.remove),
+          lang: alert.data.language || "en"
+        })
         : null,
     },
   };
