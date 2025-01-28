@@ -392,10 +392,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       return <LoadingIcon />;
     }
 
-    if (llmAlternativesResponse.data === null) {
-      return defaultExplanation();
-    }
-
     const allAlternatives = data.alert.data.alternatives.map((alternative) => {
       const explanation = renderExplanation(alternative);
       return <div style={{ position: 'relative', top: 0, gridArea: '1 / 1',
@@ -412,13 +408,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   const renderExplanation = (
     alternative: IAlternatives
   ) => {
-    if (!llmAlternativesResponse || !llmAlternativesResponse.data) {
-      return null;
-    }
+    let rephrasing = llmAlternativesResponse?.data?.results?.get(alternative.text);
 
-    let rephrasing = llmAlternativesResponse.data.results.get(alternative.text);
     if (!rephrasing) {
-      return null;
+      const offset = data.alert.startOffset - data.alert.data.fullSentence.range[0];
+      const endOffset = data.alert.endOffset - data.alert.data.fullSentence.range[0];
+      rephrasing = data.alert.data.fullSentence.raw.substring(0, offset) + alternative.text + data.alert.data.fullSentence.raw.substring(endOffset);
     }
 
     return (

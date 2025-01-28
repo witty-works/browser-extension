@@ -86,6 +86,7 @@ export const getLLMSuggestion = (sentence: TxtSentenceNode, alert: IAlert): IReq
           lang: alert.data.language || "en"
         })
         : null,
+      signal: AbortSignal.timeout(3000)
     },
   };
 };
