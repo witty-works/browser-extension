@@ -375,37 +375,55 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       });
   };
 
-  const renderExplanation = (
+  const renderExplanations = (
     alternativeHovered: IAlternatives | null
-  )=> {
-    const defaultExplanation = () => {
+  ) => {
+    const defaultExplanation = (visible: boolean = true) => {
       return (
-        <>
+        <div style={{ visibility: visible ? 'visible' : 'hidden', gridArea: '1 / 1'}}>
           {data.alert.data?.explanation?.text}
           {data.alert.data?.explanation?.context &&
             ' (' + data.alert.data?.explanation?.context + ')'}
-        </>
+        </div>
       )
     };
 
-    if (alternativeHovered) {
-      if (!llmAlternativesResponse || llmAlternativesResponse.loading) {
-        return <LoadingIcon />;
-      }
-
-      if (llmAlternativesResponse.data !== null) {
-        const rephrasing = llmAlternativesResponse.data.results.get(alternativeHovered.text);
-        if (!rephrasing) {
-          return defaultExplanation();
-        }
-
-        return (
-          <div dangerouslySetInnerHTML={{__html: computeDiff(data.alert.data.language, data.alert.data.fullSentence.raw, rephrasing)}}></div>
-        );
-      }
+    if (!llmAlternativesResponse || llmAlternativesResponse.loading) {
+      return <LoadingIcon />;
     }
 
-    return defaultExplanation();
+    if (llmAlternativesResponse.data === null) {
+      return defaultExplanation();
+    }
+
+    const allAlternatives = data.alert.data.alternatives.map((alternative) => {
+      const explanation = renderExplanation(alternative);
+      return <div style={{ position: 'relative', top: 0, gridArea: '1 / 1',
+        visibility: alternativeHovered?.text === alternative.text ? 'visible' : 'hidden'}}>
+        { explanation ? explanation : defaultExplanation() }
+      </div>;
+    });
+
+    allAlternatives.push(defaultExplanation(alternativeHovered === null));
+
+    return allAlternatives;
+  }
+
+  const renderExplanation = (
+    alternative: IAlternatives
+  ) => {
+    if (!llmAlternativesResponse || !llmAlternativesResponse.data) {
+      return null;
+    }
+
+    let rephrasing = llmAlternativesResponse.data.results.get(alternative.text);
+    if (!rephrasing) {
+      return null;
+    }
+
+    return (
+      <div dangerouslySetInnerHTML={{__html: computeDiff(data.alert.data.language, data.alert.data.fullSentence.raw, rephrasing)}}></div>
+    );
   };
 
   const renderAlternative = (
@@ -541,7 +559,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   display: 'flex',
                   flexDirection: showLearningBite ? 'row' : 'column',
                   alignItems: showLearningBite ? 'center' : 'flex-start',
-                  height: '120px',
                 }}
               >
                 <div className='witty-works-ext-container-row witty-works-ext-justify-start' style={{
@@ -568,7 +585,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   <div className='witty-works-ext-rephrasing' style={{ width: '252px', height: '100%' }}>
                     <b>{data.alert.data?.label.split(':').pop()}</b>
                     <br />
-                    {renderExplanation(alternativeHovered)}
+                    <div style={{ position: 'relative', display: 'grid' }}>
+                      {renderExplanations(alternativeHovered)}
+                    </div>
                   </div>
                 </div>
                 {data.alert.data?.explanation?.url && (
