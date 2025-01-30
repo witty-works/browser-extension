@@ -119,9 +119,12 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     if(!domain) return;
     if (enabled.updateDashboard) {
-      handleDomainToUpdate({
-        domain: domain,
-        enabled: enabled.enabled,
+      const domains = [domain, ...iFrameDomains].filter((item, index, array) => array.indexOf(item) === index);
+      domains.forEach((domain) => {
+        handleDomainToUpdate({
+          domain: domain,
+          enabled: enabled.enabled,
+        });
       });
     }
   }, [enabled]);
