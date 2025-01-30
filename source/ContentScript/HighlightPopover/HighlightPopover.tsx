@@ -395,7 +395,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     const allAlternatives = data.alert.data.alternatives.map((alternative) => {
       const explanation = renderExplanation(alternative);
       return <div style={{ position: 'relative', top: 0, gridArea: '1 / 1',
-        visibility: alternativeHovered?.text === alternative.text ? 'visible' : 'hidden'}}>
+        visibility: alternativeHovered && alternativeHovered.text === alternative.text ? 'visible' : 'hidden'}}>
         { explanation ? explanation : defaultExplanation() }
       </div>;
     });
@@ -705,6 +705,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 alternative.remove ? (
                   <div
                     className='witty-works-ext-wittyworks-popover-alternative-btn-container'
+                    onMouseEnter={() => {
+                      setAlternativeHovered(alternative);
+                    }}
+                    onMouseLeave={() => {
+                      setAlternativeHovered(null);
+                    }}
                     key={`${index}-${alternative}-container`}
                   >
                     <div

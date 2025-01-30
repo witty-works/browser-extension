@@ -136,7 +136,9 @@ export const computeDiff = (language: string, originalSentence: string, newSente
       end = i;
 
       tag = diffElement.added ? 'ins' : 'del';
-      diff += `<${tag}>${diffElement.value}</${tag}>`;
+      if (diffElement.value !== 'undefined') {
+        diff += `<${tag}>${diffElement.value}</${tag}>`;
+      }
     } else if (diff !== '' && i < diffElements.length - 1) {
       diff += diffElement.value;
     }
