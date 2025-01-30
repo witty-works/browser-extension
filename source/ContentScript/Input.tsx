@@ -60,6 +60,7 @@ import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade'
 import Notification from '../Notifications/Notification';
 import {useCheckEndpointWithCache} from "../shared/ApiServices/useCheckEndpointWithCache";
 import {useCheckEventsLogger} from "../shared/ApiServices/useCheckEventsLogger";
+import { useLLMAlternativesCache } from '../shared/ApiServices/useLLMAlternativesCache';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -131,6 +132,7 @@ const Input: React.FC<{
   }
 
   const [checkEndpointCachedResponse, checkEndpointError, setTextToCheck, adjustLocalAlertPositions] = useCheckEndpointWithCache(onNewCheckResultsReceived);
+  const [LLMSuggestionsCache, setLLMSuggestionsRequest, getLLMSuggestions] = useLLMAlternativesCache();
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
@@ -1140,13 +1142,28 @@ const Input: React.FC<{
     const isRemoveAlternative = alternative === ' ';
     isRemoveAlternative && (alternative = '');
     alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
-    const node = popoverDataRef.current?.node as Node;
     const alert = selectedAlertRef.current as IAlert;
-    const textLengthDifference = alternative.length - alert.endOffset + alert.startOffset;
+
+    let startOffset = alert.startOffset;
+    let endOffset = alert.endOffset;
+
+    if (!isRemoveAlternative) {
+      const llmAlternative = getLLMSuggestions({
+        alert
+      })?.data?.results?.get(alternative);
+      if (llmAlternative) {
+        alternative = llmAlternative;
+        startOffset = alert.data.fullSentence.range[0];
+        endOffset = alert.data.fullSentence.range[1];
+      }
+    }
+
+    const node = popoverDataRef.current?.node as Node;
+    const textLengthDifference = alternative.length - endOffset + startOffset;
     const alertsInParagraph = nodesWithAlertsRef.current.find((nodeWithAlerts) => nodeWithAlerts.node === node)?.alerts;
     if (alertsInParagraph) { //update the start and end offset of alters that are after the alert that is being replaced
       alertsInParagraph.forEach((compareAlert) => {
-        if (compareAlert.startOffset > alert.startOffset) {
+        if (compareAlert.startOffset > startOffset) {
           compareAlert.startOffset += textLengthDifference;
           compareAlert.endOffset += textLengthDifference;
         }
@@ -1165,15 +1182,15 @@ const Input: React.FC<{
     );
 
     if (isTextArea(element) || isInputText(element)) {
-      element.selectionStart = alert.startOffset - (isRemoveAlternative ? 1 : 0)
-      element.selectionEnd = alert.endOffset;
+      element.selectionStart = startOffset - (isRemoveAlternative ? 1 : 0)
+      element.selectionEnd = endOffset;
       //execCommand IS DEPRECATED, but its the only way to enable undo/redo for now
       getActiveDocument().execCommand('insertText', false, alternative);
     } else {
       const range = getActiveDocument().createRange();
 
-      range.setStart(node, alert.startOffset - (isRemoveAlternative ? 1 : 0));
-      range.setEnd(node, alert.endOffset);
+      range.setStart(node, startOffset - (isRemoveAlternative ? 1 : 0));
+      range.setEnd(node, endOffset);
 
       const sel = getActiveDocument().getSelection();
       if (!sel) return;
@@ -1270,7 +1287,7 @@ const Input: React.FC<{
     if (isTextArea(element)) {
       const unchangedAlerts = nodesWithAlertsRef.current.map((nodeWithAlerts) =>
         nodeWithAlerts.alerts.filter(
-          (nodeAlert) => nodeAlert.startOffset < alert.startOffset
+          (nodeAlert) => nodeAlert.startOffset < startOffset
         )
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
@@ -1370,7 +1387,11 @@ const Input: React.FC<{
     }
   };
 
-const renderPopover = () => {
+  useEffect(() => {
+    renderPopover();
+  }, [LLMSuggestionsCache]);
+
+  const renderPopover = () => {
     if (!popoverRootRef.current) {
       const existingPopoverElement = document.querySelector(WTags.WW_POPOVER);
   
@@ -1414,6 +1435,8 @@ const renderPopover = () => {
             updateTextWithAlternative={updateTextWithAlternative}
             addIgnoredTerm={addIgnoredTerm}
             movePopoverNextOrPrev={movePopoverNextOrPrev}
+            setLLMSuggestionsRequest={setLLMSuggestionsRequest}
+            getLLMSuggestions={getLLMSuggestions}
           />
         </Sentry.ErrorBoundary>
       );

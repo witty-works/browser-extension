@@ -171,3 +171,24 @@ export const checkResponseSchema: Schema = {
   },
   required: ['results', 'language'],
 };
+
+export const llmAlternativesResponseSchema: Schema = {
+  title: 'LLMAlternativesResponse',
+  description: 'Response from the LLM Alternatives/Suggestions endpoint',
+  type: 'object',
+  properties: {
+    sentence: {
+      description: 'The original user sentence',
+      type: 'string',
+    },
+    results: {
+      description: 'Mapping of alternative phrase -> full sentence with that phrase',
+      type: 'object',
+      patternProperties: {
+        '.*': { type: 'string' },
+      },
+      additionalProperties: false,
+    },
+  },
+  required: ['sentence', 'results'],
+};
