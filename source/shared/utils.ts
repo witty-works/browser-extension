@@ -303,6 +303,8 @@ export const updateConfig = (
       storeInLocalStorage(StorageKeys.USER_ID, response?.id);
       storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list); //type not relevant here -> always 'deny'
       storeInLocalStorage(StorageKeys.PLAN, response?.plan);
+      // @ts-ignore
+      storeInLocalStorage(StorageKeys.LLM_ALTERNATIVES, response?.organization_config?.llm_alternatives?.value)
       storeInLocalStorage(
         StorageKeys.ORGANIZATION_DOMAINS,
         response?.organization_domains

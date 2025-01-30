@@ -7,7 +7,7 @@ import { DEV_ENV } from '../constants';
 const validator = new Validator();
 
 const useApiResult = <TResponse,>(
-  request: IRequest,
+  request: IRequest | null,
   responseSchema: Schema | null,
 ): [TResponse | null, IEndpointError | null] => {
   const validateResponse = (response: any): ValidatorResult | null => {
@@ -22,6 +22,10 @@ const useApiResult = <TResponse,>(
   useEffect(() => {
     // const container = getActiveDocument().getElementsByTagName(WTags.WW_SHADOW_ROOT_CONTAINER);
     // avoid endpoint call if no config or no container (aka plugin disabled)
+    if (!request) {
+      return;
+    }
+
     if (request.config && request.url) {
       if (
         (!request.config.body && request.url.includes('check')) ||
