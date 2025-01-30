@@ -80,7 +80,7 @@ export const getLLMSuggestion = (sentence: TxtSentenceNode, alert: IAlert): IReq
         ? JSON.stringify({
           sentence: sentence.raw,
           text: alert.data.text,
-          start: alert.startOffset - sentence.range[0],
+          start: alert.absOffset - sentence.range[0],
           gender_separator: alert.data.gender_separator,
           alternatives: alert.data.alternatives.filter(alt => !alt.remove),
           lang: alert.data.language || "en"

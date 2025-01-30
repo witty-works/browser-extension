@@ -138,6 +138,7 @@ export interface INodes {
 export interface IAlert {
   id: string;
   startOffset: number;
+  absOffset: number;
   endOffset: number;
   popOverIsOpen: boolean;
   data: IAlertContentData;

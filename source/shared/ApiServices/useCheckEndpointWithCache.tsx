@@ -100,6 +100,7 @@ export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: IChec
           alerts.push({
             id: generateAlertId(result.text, result.category, result.start, result.end),
             startOffset: adjustedStart,
+            absOffset: result.start,
             endOffset: adjustedEnd,
             popOverIsOpen: false,
             data: {
