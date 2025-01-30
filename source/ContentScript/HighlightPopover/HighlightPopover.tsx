@@ -102,7 +102,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     }
     analytics.popoverLogs(data.alert, 'popover_open');
 
-    if (llmAlternatives) {
+    if (llmAlternatives && data.alert.data.alternatives.length > 0) {
       setLLMSuggestionsRequest({
         alert: data.alert
       });
