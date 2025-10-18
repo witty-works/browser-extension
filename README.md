@@ -1,5 +1,16 @@
 # Witty Browser Extension (formerly known as Inclusifier)
 
+This code is for now just released as is without a functional backend to make it work practically. 
+
+The main intention of releasing it in its current form is to allow developers who are looking to build similar browser extensions to look at how we dealt with the challenges of:
+* highlighting text within editable fields
+* allowing interaction with the highlights to receive context information
+* replacing content through proposed alternatives.
+
+Our ideal hope would be the creation of an open source package that will make this type of use case a "solved problem" across all browsers by pooling resources to maintain reliable algorithms for dealing with all websites out there, or at least a sizeable subset.
+
+We hope to in the near future also release other bits including the API backend and rule editor, user dashboard and MS Word add-in that was created at https://witty.works that formed our solution for "operationalizing" inclusive langiage and consistent language within organisations. Please contact lukas.smith@witty.works if you want to support these effort in anyway, including any offers for hosting.
+
 ## Requirements to start
 
 - [Node.js](https://nodejs.org) 18+
