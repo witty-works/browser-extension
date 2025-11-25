@@ -1,8 +1,9 @@
-import {useEffect, useRef, useState} from 'react';
-import {ICachedSentenceAlerts, useSentenceCache} from './useSentenceCache';
-import {IAlert, ICheckResponse} from "../types";
-import {useCheckEndpoint} from "./useEndpoint";
-import {generateAlertId} from "../utils";
+import { useEffect, useRef, useState } from 'react';
+import { ICachedSentenceAlerts, useSentenceCache } from './useSentenceCache';
+import { IAlert, ICheckResponse } from '../types';
+import { useCheckEndpoint } from './useEndpoint';
+import { generateAlertId } from '../utils';
+import { extractSentenceNode } from '../utils';
 import { SentenceSplitterSyntax, split } from 'sentence-splitter';
 import { TxtNodeRange } from '@textlint/ast-node-types';
 
@@ -11,18 +12,29 @@ interface CheckEndpointCachedResponse {
   checkEndpointResponse: ICheckResponse | undefined;
 }
 
-export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: ICheckResponse, checkedTextLength: number) => void) => {
-
+export const useCheckEndpointWithCache = (
+  onCheckResultsReceived: (
+    result: ICheckResponse,
+    checkedTextLength: number
+  ) => void
+) => {
   const { checkCache, addToCache } = useSentenceCache();
-  const [cachedCheckEndpointResponse, setCachedCheckEndpointResponse] = useState<CheckEndpointCachedResponse | null>(null);
-  const cachedCheckEndpointResponseRef = useRef<CheckEndpointCachedResponse | null>(null);
-  const [checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpoint();
+  const [cachedCheckEndpointResponse, setCachedCheckEndpointResponse] =
+    useState<CheckEndpointCachedResponse | null>(null);
+  const cachedCheckEndpointResponseRef =
+    useRef<CheckEndpointCachedResponse | null>(null);
+  const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
+    useCheckEndpoint();
   const lastCheckedTextRef = useRef<string | null>();
   const lastWholeTextRef = useRef<string | null>();
 
-  const checkTextWithCache = (updatedText: string, checkEndpointResponse?: ICheckResponse) => {
+  const checkTextWithCache = (
+    updatedText: string,
+    checkEndpointResponse?: ICheckResponse
+  ) => {
     lastWholeTextRef.current = updatedText;
-    const { cachedAlerts, nonCachedSentences: uncachedSentences } = checkCache(updatedText);
+    const { cachedAlerts, nonCachedSentences: uncachedSentences } =
+      checkCache(updatedText);
 
     if (uncachedSentences.length > 0) {
       const textToCheck = uncachedSentences.join(' ');
@@ -40,28 +52,40 @@ export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: IChec
     cachedCheckEndpointResponseRef.current = response;
   };
 
-  const adjustLocalAlertPositions = (changedOffset: number, originalLength: number, newLength: number) => {
+  const adjustLocalAlertPositions = (
+    changedOffset: number,
+    originalLength: number,
+    newLength: number
+  ) => {
     if (!cachedCheckEndpointResponseRef.current) {
       return;
     }
 
-    const {alerts} = cachedCheckEndpointResponseRef.current
+    const { alerts } = cachedCheckEndpointResponseRef.current;
     const adjustedAlerts = alerts.map((alert) => {
       if (alert.startOffset >= changedOffset) {
         const newStartOffset = alert.startOffset + newLength - originalLength;
         const newEndOffset = alert.endOffset + newLength - originalLength;
         return {
           ...alert,
-          id: generateAlertId(alert.data.text, alert.data.category, newStartOffset, newEndOffset),
+          id: generateAlertId(
+            alert.data.text,
+            alert.data.category,
+            newStartOffset,
+            newEndOffset
+          ),
           startOffset: newStartOffset,
           endOffset: newEndOffset,
           data: {
             ...alert.data,
             fullSentence: {
               ...alert.data.fullSentence,
-              range: [alert.data.fullSentence.range[0], alert.data.fullSentence.range[1] + newLength - originalLength] as TxtNodeRange
-            }
-          }
+              range: [
+                alert.data.fullSentence.range[0],
+                alert.data.fullSentence.range[1] + newLength - originalLength,
+              ] as TxtNodeRange,
+            },
+          },
         };
       }
 
@@ -70,7 +94,8 @@ export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: IChec
 
     const response = {
       alerts: adjustedAlerts,
-      checkEndpointResponse: cachedCheckEndpointResponseRef.current.checkEndpointResponse,
+      checkEndpointResponse:
+        cachedCheckEndpointResponseRef.current.checkEndpointResponse,
     };
     setCachedCheckEndpointResponse(response);
     cachedCheckEndpointResponseRef.current = response;
@@ -81,56 +106,79 @@ export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: IChec
       return;
     }
 
-    const {results} = checkEndpointResponse;
-    const lastCheckedTextSentences = split(lastCheckedTextRef.current).filter(s => s.type === SentenceSplitterSyntax.Sentence);
+    const { results } = checkEndpointResponse;
+    const lastCheckedTextSentences = split(lastCheckedTextRef.current).filter(
+      (s) => s.type === SentenceSplitterSyntax.Sentence
+    );
     const sentencesAlerts: ICachedSentenceAlerts[] = [];
 
-    onCheckResultsReceived(checkEndpointResponse, (lastCheckedTextRef.current && lastCheckedTextRef.current.length) || 0);
+    onCheckResultsReceived(
+      checkEndpointResponse,
+      (lastCheckedTextRef.current && lastCheckedTextRef.current.length) || 0
+    );
 
-    lastCheckedTextSentences.forEach(sentence => {
+    lastCheckedTextSentences.forEach((sentence) => {
       const sentenceStartOffset = sentence.range[0];
       const sentenceEndOffset = sentence.range[1];
       const alerts: IAlert[] = [];
 
       results.forEach((result) => {
-        if (result.start >= sentenceStartOffset && result.end <= sentenceEndOffset) {
+        if (
+          result.start >= sentenceStartOffset &&
+          result.end <= sentenceEndOffset
+        ) {
           const adjustedStart = result.start - sentence.range[0];
           const adjustedEnd = result.end - sentence.range[0];
 
-          alerts.push({
-            id: generateAlertId(result.text, result.category, result.start, result.end),
-            startOffset: adjustedStart,
-            absOffset: result.start,
-            endOffset: adjustedEnd,
-            popOverIsOpen: false,
-            data: {
-              language: checkEndpointResponse.language,
-              gender_separator: checkEndpointResponse.gender_separator,
-              category: result.category,
-              subcategory: result.subcategory,
-              context: result.context,
-              fullSentence: sentence,
-              text: result.text,
-              text_id: result.text_id,
-              label: result.label,
-              explanation: result.explanation,
-              alternatives: result.alternatives,
-              gravity: result.gravity,
-              limit_reached: result.limit_reached,
-              source: result.source,
-            },
-          });
+          // Use shared utility to extract TxtSentenceNode
+          const sentenceNode = extractSentenceNode(sentence);
+          if (sentenceNode) {
+            alerts.push({
+              id: generateAlertId(
+                result.text,
+                result.category,
+                result.start,
+                result.end
+              ),
+              startOffset: adjustedStart,
+              absOffset: result.start,
+              endOffset: adjustedEnd,
+              popOverIsOpen: false,
+              data: {
+                language: checkEndpointResponse.language,
+                gender_separator: checkEndpointResponse.gender_separator,
+                category: result.category,
+                subcategory: result.subcategory,
+                context: result.context,
+                fullSentence: sentenceNode,
+                text: result.text,
+                text_id: result.text_id,
+                label: result.label,
+                explanation: result.explanation,
+                alternatives: result.alternatives,
+                gravity: result.gravity,
+                limit_reached: result.limit_reached,
+                source: result.source,
+              },
+            });
+          }
         }
       });
 
       sentencesAlerts.push({
         sentence: sentence.raw,
-        alerts
+        alerts,
       });
     });
     addToCache(sentencesAlerts);
-    lastWholeTextRef.current && checkTextWithCache(lastWholeTextRef.current, checkEndpointResponse);
+    lastWholeTextRef.current &&
+      checkTextWithCache(lastWholeTextRef.current, checkEndpointResponse);
   }, [checkEndpointResponse]);
 
-  return [cachedCheckEndpointResponse, checkEndpointError, checkTextWithCache, adjustLocalAlertPositions] as const;
+  return [
+    cachedCheckEndpointResponse,
+    checkEndpointError,
+    checkTextWithCache,
+    adjustLocalAlertPositions,
+  ] as const;
 };

@@ -1,5 +1,5 @@
-@import '../../../styles/fonts';
-@import '../../../styles/variables';
+@use '../../../styles/fonts' as *;
+@use '../../../styles/variables' as *;
 
 .witty-works-ext-witty-toast {
   position: fixed;

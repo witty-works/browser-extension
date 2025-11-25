@@ -1,5 +1,11 @@
 import browser from 'webextension-polyfill';
-import { BaseUrls, DefaultBaseUrlKey, DEV_ENV, StorageKeys, wittyVersion } from './constants';
+import {
+  BaseUrls,
+  DefaultBaseUrlKey,
+  DEV_ENV,
+  StorageKeys,
+  wittyVersion,
+} from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import {
@@ -11,6 +17,16 @@ import {
 import { createUrl, getToken } from './ApiServices/requests';
 import { IAuthResponse } from './types';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
+// Extract TxtSentenceNode from a generic node
+export function extractSentenceNode(node: any): any {
+  if (node.type === 'Sentence') return node;
+  if ('children' in node && Array.isArray(node.children)) {
+    return node.children.find(
+      (child: { type?: string }) => child.type === 'Sentence'
+    );
+  }
+  return undefined;
+}
 
 export const isObjectEmpty = (obj: object) =>
   obj &&
@@ -49,12 +65,13 @@ export const storeInLocalStorage = (key: string, value: any) => {
       const componentName = 'Utils';
       const message = `onBrowserStorage Error: ${error}`;
 
-      DEV_ENV && console.log(
-        `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
-        `color: #55B8E9`,
-        `color: #5fca7d`,
-        `color: #f00`
-      );
+      DEV_ENV &&
+        console.log(
+          `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
+          `color: #55B8E9`,
+          `color: #5fca7d`,
+          `color: #f00`
+        );
 
       sendErrorToSentry(error);
     });
@@ -106,7 +123,7 @@ export const addBadge = (text: string) => {
     color: [190, 190, 190, 230],
   });
   browser.browserAction?.setBadgeText({ text: text });
-}
+};
 
 export const getNewAccessToken = async () => {
   browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
@@ -174,8 +191,8 @@ export const updateLabelChrome = (domain: string) => {
 
     const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
     const domainList = Array.isArray(orgDomains?.list) ? orgDomains.list : [];
-    const isLocked = orgDomains 
-      ? (orgDomains.type === 'deny' && domainList.includes(domain)) || 
+    const isLocked = orgDomains
+      ? (orgDomains.type === 'deny' && domainList.includes(domain)) ||
         (orgDomains.type === 'allow' && !domainList.includes(domain))
       : false;
 
@@ -183,26 +200,36 @@ export const updateLabelChrome = (domain: string) => {
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      if (!tabs[0]?.url) return;
-      
-      const domainOnDisabledSitesList = defaultConfig.DISABLED_SITES.includes(domain) || isMicrosoftOnline(new URL(tabs[0].url).href);
-      const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
-      
-      if (isLocked || isDisabled || domainOnDisabledSitesList) {
-        addBadge('OFF');
-      } else if (numberOfNotifications > 0) {
-        addNotificationBadge(numberOfNotifications);
-      } else {
-        removeBadge();
-      }
-    }).catch((error) => {
-      sendErrorToSentry(error);
-    });
+    browser.tabs
+      .query({ active: true, currentWindow: true })
+      .then((tabs) => {
+        if (!tabs[0]?.url) return;
+
+        const domainOnDisabledSitesList =
+          defaultConfig.DISABLED_SITES.includes(domain) ||
+          isMicrosoftOnline(new URL(tabs[0].url).href);
+        const numberOfNotifications =
+          result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
+
+        if (isLocked || isDisabled || domainOnDisabledSitesList) {
+          addBadge('OFF');
+        } else if (numberOfNotifications > 0) {
+          addNotificationBadge(numberOfNotifications);
+        } else {
+          removeBadge();
+        }
+      })
+      .catch((error) => {
+        sendErrorToSentry(error);
+      });
   });
 };
 
-export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLElement | null, element: HTMLElement) => {
+export const getCorrectedPosition = (
+  elementRect: DOMRect,
+  parentElement: HTMLElement | null,
+  element: HTMLElement
+) => {
   const parentRect = parentElement?.getBoundingClientRect();
   const isFirefox = navigator.userAgent.match(/firefox|fxios/i);
   const textArea = isTextArea(element);
@@ -210,12 +237,15 @@ export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLEl
   if (requiresRectRecalculation(element)) {
     elementRect = element.getBoundingClientRect();
   }
-const topLevelWindow = element.ownerDocument.defaultView;
+  const topLevelWindow = element.ownerDocument.defaultView;
   if (parentRect && !isObjectEmpty(parentRect) && topLevelWindow) {
     const scrollY = textArea ? 0 : topLevelWindow.scrollY;
     const scrollX = textArea ? 0 : topLevelWindow.scrollX;
 
-    const top = isFirefox && !isGoogleDocs() ? 0 : elementRect.top - parentRect.top - scrollY;
+    const top =
+      isFirefox && !isGoogleDocs()
+        ? 0
+        : elementRect.top - parentRect.top - scrollY;
     const left = elementRect.left - parentRect.left - scrollX;
 
     return { top, left };
@@ -230,15 +260,18 @@ export const getCorrectedPositionCanvas = (element: HTMLElement) => {
   const scrollLeft = element.parentElement?.parentElement?.scrollLeft;
   const scrollTop = element.parentElement?.parentElement?.scrollTop;
 
-  const isPageless = element.querySelectorAll('.kix-page-paginated').length === 0;
+  const isPageless =
+    element.querySelectorAll('.kix-page-paginated').length === 0;
   const googleDocsToolbarLeftRect = getActiveDocument()
     .getElementsByClassName('left-sidebar-container-content')[0]
     ?.getBoundingClientRect();
 
   return {
     top: scrollTop ? scrollTop : 0,
-    left: updatedElementRect.left + (scrollLeft ? scrollLeft : 0) +
-      (isPageless ? (googleDocsToolbarLeftRect?.width || 0) : 0),
+    left:
+      updatedElementRect.left +
+      (scrollLeft ? scrollLeft : 0) +
+      (isPageless ? googleDocsToolbarLeftRect?.width || 0 : 0),
   };
 };
 
@@ -261,21 +294,26 @@ export const getScrollableParentClosestToElement = (element: HTMLElement) => {
 export const getFrameDepth = (windowToIdentify: Window): number => {
   if (windowToIdentify === window.top) {
     return 0;
-  }
-  else if (windowToIdentify.parent === window.top) {
+  } else if (windowToIdentify.parent === window.top) {
     return 1;
   }
 
-  return 1 + getFrameDepth (windowToIdentify.parent);
+  return 1 + getFrameDepth(windowToIdentify.parent);
 };
 
 export const shouldInjectIntoWindow = (windowToCheck: Window) => {
   const frameDepth = getFrameDepth(windowToCheck);
-  const isVisible = windowToCheck.innerWidth >= 10 && windowToCheck.innerHeight >= 10;
+  const isVisible =
+    windowToCheck.innerWidth >= 10 && windowToCheck.innerHeight >= 10;
   return frameDepth < 2 && isVisible;
 };
 
-export const generateAlertId = (text: string, category: string, startOffset: number, endOffset: number) => {
+export const generateAlertId = (
+  text: string,
+  category: string,
+  startOffset: number,
+  endOffset: number
+) => {
   return `${text}-${category}-${startOffset}-${endOffset}`;
 };
 
@@ -304,7 +342,10 @@ export const updateConfig = (
       storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list); //type not relevant here -> always 'deny'
       storeInLocalStorage(StorageKeys.PLAN, response?.plan);
       // @ts-ignore
-      storeInLocalStorage(StorageKeys.LLM_ALTERNATIVES, response?.organization_config?.llm_alternatives?.value)
+      storeInLocalStorage(
+        StorageKeys.LLM_ALTERNATIVES,
+        response?.organization_config?.llm_alternatives?.value
+      );
       storeInLocalStorage(
         StorageKeys.ORGANIZATION_DOMAINS,
         response?.organization_domains
@@ -335,9 +376,7 @@ export const makeAuthRequest = () => {
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
 
-      if (
-        result[StorageKeys.ACCESS_TOKEN]
-      ) {
+      if (result[StorageKeys.ACCESS_TOKEN]) {
         const config = {
           method: 'POST',
           headers: {
@@ -347,18 +386,14 @@ export const makeAuthRequest = () => {
           },
         };
 
-        fetch(
-          createUrl(
-            BaseUrls[urls].api,
-            'v2.0/auth'
-          ),
-          config
-        ).then(async (response) => {
-          if (response.ok) {
-            const json = await response.json();
-            updateConfig(json, true);
+        fetch(createUrl(BaseUrls[urls].api, 'v2.0/auth'), config).then(
+          async (response) => {
+            if (response.ok) {
+              const json = await response.json();
+              updateConfig(json, true);
+            }
           }
-        });
+        );
       }
     })
     .catch((error) => {

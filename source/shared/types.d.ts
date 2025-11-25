@@ -16,9 +16,9 @@ export interface IGetLLMSuggestionsRequest {
 }
 
 export interface DiffChange {
-  added: boolean,
-  removed: boolean,
-  value: string
+  added: boolean;
+  removed: boolean;
+  value: string;
 }
 
 export interface IEndpointError {
@@ -31,6 +31,7 @@ export interface IEndpointError {
 export interface ResponseConfig {
   orthography: ConfigProperty;
   categories?: any;
+  llm_alternatives?: ConfigProperty;
 }
 export interface RequestConfig {
   addons: string[];
@@ -185,7 +186,7 @@ export interface IImage {
 
 export interface IExplanation {
   text: string;
-  long_text?: string
+  long_text?: string;
   icon: string;
   icon_image: string;
   url: string;

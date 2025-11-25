@@ -1,7 +1,8 @@
-@import '../../styles/variables';
-@import '../../styles/fonts';
+@use '../../styles/variables' as *;
+@use '../../styles/fonts' as *;
 
-.witty-works-button { //neutralizes default button styling
+.witty-works-button {
+  //neutralizes default button styling
   background-color: transparent !important;
   border: none !important;
   cursor: pointer !important;
@@ -200,7 +201,7 @@
     #9489db 71.64%,
     #37d1e5 101.91%,
     #5acfb9 131.52%
-  )
+  );
 }
 
 .witty-works-ext-light-gray-background {
