@@ -13,6 +13,7 @@ import {
   getDomainWithoutSubdomain,
   makeAuthRequest,
   shouldInjectIntoWindow,
+  isSignedInResult,
 } from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { customRender } from './utils';
@@ -82,7 +83,7 @@ const initialize = () => {
           result[StorageKeys.API_ENDPOINT_KEY] || DefaultBaseUrlKey;
         setBaseUrls(apiEndpoint);
 
-        if (!result[StorageKeys.ACCESS_TOKEN]) {
+        if (!isSignedInResult(result)) {
           const optionsPageUrl = browser.runtime.getURL('options.html');
           const loginUrl = `${BaseUrls[apiEndpoint].dashboard}browser-login?redirect_uri=${optionsPageUrl}`;
           wittyIsInstalledElement.setAttribute('login-url', loginUrl);

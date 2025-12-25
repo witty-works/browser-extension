@@ -8,6 +8,7 @@ import { sendErrorToSentry } from '../errorUtils';
 import { getBaseUrls } from './requests';
 
 export const aliasId = async (userId: string, appId: string) => {
+  if (!defaultConfig.POSTHOG_ENABLED) return;
   let urls = getBaseUrls();
   const request = {
     api_key: urls.posthog_key,
@@ -35,6 +36,8 @@ export const aliasId = async (userId: string, appId: string) => {
 };
 
 export const captureEvent = (eventName: string, eventData: object) => {
+  if (!defaultConfig.POSTHOG_ENABLED) return;
+
   browser.storage.local
     .get()
     .then((result) => {

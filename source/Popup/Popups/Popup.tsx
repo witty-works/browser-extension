@@ -24,12 +24,14 @@ import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 
 import defaultConfig from '../../witty.config.json';
+import { isSignedInResult } from '../../shared/utils';
 import '../styles.scss';
 import {
   createUrl,
   getBaseUrls,
   setBaseUrls,
   setToken,
+  buildRequestHeaders,
 } from '../../shared/ApiServices/requests';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import { sendErrorToSentry } from '../../shared/errorUtils';
@@ -99,7 +101,7 @@ const Popup: React.FC<PopupProps> = ({
         setEnabled({
           enabled:
             !defaultConfig.DISABLED_SITES.includes(domain) &&
-            result[StorageKeys.ACCESS_TOKEN] &&
+            isSignedInResult(result) &&
             !result[StorageKeys.DOMAINS].includes(domain) &&
             !isLocked,
           updateDashboard: false,
@@ -136,7 +138,8 @@ const Popup: React.FC<PopupProps> = ({
 
   useEffect(() => {
     setToken(accessToken);
-    setConfig(accessToken !== '');
+    // Ensure auth endpoint runs for X_KEY-based auth as well
+    setConfig(!!(accessToken || defaultConfig.X_KEY));
   }, [accessToken]);
 
   useEffect(() => {
@@ -229,6 +232,8 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   const handleDomainToUpdate = (domain: any) => {
+    const headers = buildRequestHeaders(accessToken);
+
     fetch(
       createUrl(
         getBaseUrls().dashboard,
@@ -237,9 +242,7 @@ const Popup: React.FC<PopupProps> = ({
       ),
       {
         method: domain.enabled ? 'DELETE' : 'PUT',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers,
       }
     ).then(async (response) => {
       if (response.status === 403) {

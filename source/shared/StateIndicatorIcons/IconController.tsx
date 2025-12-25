@@ -6,7 +6,6 @@ import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg'
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
 import WarningIcon from '../../assets/icons/wittyStateIndicator/witty-warning.svg';
 import { sendErrorToSentry } from '../errorUtils';
-import { StorageKeys } from '../constants';
 import browser from 'webextension-polyfill';
 import CloseIcon from '../../assets/icons/close-white.svg';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +13,10 @@ import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../ApiServices/useAnalytics';
 import { getBaseUrls } from '../ApiServices/requests';
 import defaultConfig from '../../witty.config.json';
-import { getScrollableParentClosestToElement } from '../utils';
+import {
+  getScrollableParentClosestToElement,
+  isSignedInResult,
+} from '../utils';
 import { getTextDividedByNodes } from '../../ContentScript/utils';
 import {
   isGoogleDocs,
@@ -73,9 +75,9 @@ const IconController: React.FC<IconControllerProps> = ({
       .join('')?.length || 0;
 
   browser.storage.local
-    .get(StorageKeys.ACCESS_TOKEN)
+    .get(null)
     .then((result) => {
-      setUserIsLoggedIn(!result[StorageKeys.ACCESS_TOKEN] ? false : true);
+      setUserIsLoggedIn(isSignedInResult(result));
     })
     .catch((error: unknown) => {
       sendErrorToSentry(error);

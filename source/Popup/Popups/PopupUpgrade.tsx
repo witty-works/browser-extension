@@ -26,6 +26,7 @@ import {
   getNewAccessToken,
   storeInLocalStorage,
   updateConfig,
+  isSignedInResult,
 } from '../../shared/utils';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
 
@@ -66,7 +67,7 @@ const PopupUpgrade: React.FC = () => {
         );
         setTeamName(result[StorageKeys.TEAM_NAME]);
         setToken(result[StorageKeys.ACCESS_TOKEN]);
-        result[StorageKeys.ACCESS_TOKEN] && setConfig(true);
+        setConfig(isSignedInResult(result));
       })
       .catch(onStorageError);
   }, []);

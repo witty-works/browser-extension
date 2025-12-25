@@ -40,7 +40,11 @@ import browser from 'webextension-polyfill';
 import { createRoot } from 'react-dom/client';
 import Notification from '../../Notifications/Notification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
-import { createUrl, getBaseUrls } from '../../shared/ApiServices/requests';
+import {
+  createUrl,
+  getBaseUrls,
+  buildRequestHeaders,
+} from '../../shared/ApiServices/requests';
 import parse from 'html-react-parser';
 import { computeDiff } from '../utils';
 import { LLMAlternativesCacheValue } from '../../shared/ApiServices/useLLMAlternativesCache';
@@ -344,11 +348,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     setIsLoading(ignoreType);
     setIsSuccess('');
     setIsFailure('');
+    const headers = buildRequestHeaders(accessToken);
+
     fetch(requestUrl, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers,
     })
       .then(async (response) => {
         setIsLoading('');
@@ -377,8 +381,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     const defaultExplanation = (visible: boolean = true) => {
       return (
         <div
+          key={`default-expl-${visible ? 'visible' : 'hidden'}`}
           style={{
-            visibility: visible ? 'visible' : 'hidden',
+            display: visible ? 'block' : 'none',
             gridArea: '1 / 1',
           }}
         >
@@ -390,27 +395,33 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     };
 
     if (!llmAlternativesResponse || llmAlternativesResponse.loading) {
-      return <LoadingIcon />;
+      // If LLM alternatives aren't available yet, show the default explanation
+      // so users still see the explanatory text when alternatives exist.
+      return defaultExplanation(alternativeHovered === null);
     }
 
-    const allAlternatives = data.alert.data.alternatives.map((alternative) => {
-      const explanation = renderExplanation(alternative);
-      return (
-        <div
-          style={{
-            position: 'relative',
-            top: 0,
-            gridArea: '1 / 1',
-            visibility:
-              alternativeHovered && alternativeHovered.text === alternative.text
-                ? 'visible'
-                : 'hidden',
-          }}
-        >
-          {explanation ? explanation : defaultExplanation()}
-        </div>
-      );
-    });
+    const allAlternatives = data.alert.data.alternatives.map(
+      (alternative, index) => {
+        const explanation = renderExplanation(alternative);
+        return (
+          <div
+            key={`explanation-${index}-${alternative.text || 'alt'}`}
+            style={{
+              position: 'relative',
+              top: 0,
+              gridArea: '1 / 1',
+              display:
+                alternativeHovered &&
+                alternativeHovered.text === alternative.text
+                  ? 'block'
+                  : 'none',
+            }}
+          >
+            {explanation ? explanation : defaultExplanation(false)}
+          </div>
+        );
+      }
+    );
 
     allAlternatives.push(defaultExplanation(alternativeHovered === null));
 
@@ -742,11 +753,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     onMouseLeave={() => {
                       setAlternativeHovered(null);
                     }}
-                    key={`${index}-${alternative}-container`}
+                    key={`${index}-${alternative.text || 'alt'}-container`}
                   >
                     <div
                       className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
-                      key={`${index}-remove-it`} //string can not be empty because of replacement issue on firefox
+                      key={`${index}-${alternative.text || 'alt'}-remove-it`} //string can not be empty because of replacement issue on firefox
                       onPointerDown={(e) =>
                         clickAlternative(e.nativeEvent, ' ')
                       }
@@ -762,7 +773,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 ) : (
                   <div
                     className='witty-works-ext-wittyworks-popover-alternative-btn-container'
-                    key={`${index}-${alternative}-container`}
+                    key={`${index}-${alternative.text || 'alt'}-container`}
                     onMouseEnter={() => {
                       setAlternativeHovered(alternative);
                     }}

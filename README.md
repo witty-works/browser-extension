@@ -1,11 +1,12 @@
 # Witty Browser Extension
 
-This code is for now just released as is without a functional backend to make it work practically. 
+This code is for now just released as is without a functional backend to make it work practically.
 
 The main intention of releasing it in its current form is to allow developers who are looking to build similar browser extensions to look at how we dealt with the challenges of:
-* highlighting text within editable fields
-* allowing interaction with the highlights to receive context information
-* replacing content through proposed alternatives.
+
+- highlighting text within editable fields
+- allowing interaction with the highlights to receive context information
+- replacing content through proposed alternatives.
 
 Our ideal hope would be the creation of an open source package that will make this type of use case a "solved problem" across all browsers by pooling resources to maintain reliable algorithms for dealing with all websites out there, or at least a sizeable subset.
 
@@ -50,6 +51,21 @@ You can several options:
 **Note:** By default the `manifest.json` is set with version `0.0.0`. The webpack loader will update the version in the build with that of the `package.json` version. In order to release a new version, update version in `package.json` and run script.
 
 If you don't want to use `package.json` version, you can disable the option [here](https://github.com/abhijithvijayan/web-extension-starter/blob/e10158c4a49948dea9fdca06592876d9ca04e028/webpack.config.js#L79).
+
+## X_KEY
+
+- **Purpose:** `X_KEY` is an optional static API key that the extension can send in the `x-key` HTTP header instead of using an OAuth-style `access_token`. This is useful for simple testing setups or deployments where a single static key is sufficient for authentication.
+- **Where to configure:** set the key in `source/witty.config.json` (the `X_KEY` field).
+- **Behavior:** when `X_KEY` is present the code will attach `x-key: <value>` to outbound API requests (see `source/shared/ApiServices/requests.ts`) and some token refresh logic will be skipped (see `source/shared/utils.ts`). The popup UI also treats `X_KEY` as a valid sign-in indicator.
+- **Security:** treat `X_KEY` like any secret — do not commit production keys to public repositories. Prefer environment-backed secrets or proper OAuth flows for production deployments.
+
+Example `source/witty.config.json` snippet:
+
+```json
+{
+  "X_KEY": "your-api-key-here"
+}
+```
 
 ## Load the extension in the browser
 
@@ -114,6 +130,7 @@ if the vendor is `chrome` or `opera`, this compiles to:
 See the original [README](https://github.com/abhijithvijayan/wext-manifest-loader) of `wext-manifest-loader` package for more details
 
 ## Unit Testing
+
 run `npx playwright install-deps`
 run `npx playwright install`
 Copy `.env.example` to `.env` and adjust the values accordingly.
@@ -126,23 +143,28 @@ HTACCESS_PASSWORD = '<can be found in 1Password>'
 ```
 
 To run locally: From inside the directory just run `npm run test` (runs in linux environment)
-You can watch the tests executing on http://localhost:6080/  (PW: vscode)
+You can watch the tests executing on http://localhost:6080/ (PW: vscode)
 
 test-results folder will be created with screenshots for manual debuging
 
 ## Update Screenshots
 
 ### Step 1: Download Test Results
+
 First, download the `test-results` folder, which is produced during runtime. You can find this under the **Artifacts** section in the **Summary** of the failing test.
 
 ### Step 2: Compare Screenshots
+
 Next, compare the actual screenshot with the expected one to identify any discrepancies.
 
 ### Step 3: Update Repository
+
 If the actual screenshot is now correct, follow these steps to update the repository:
+
 - Upload the correct screenshot to the `__tests__/highlightPlacement.spec.js-snapshots` directory in this repository.
 
 ### Step 4: Manage Old Screenshots
+
 - Delete the original screenshots:
   - `Highlights-witty-form-not-logged-in-1-linux.png`
   - `Highlights-witty-form-1-linux.png`
@@ -159,9 +181,10 @@ This is a fork of [Web Extension Browser](https://github.com/abhijithvijayan/web
 
 ## Testing Guidelines for Frequent Functionalities (Applicable to Textarea and Contenteditable)
 
-### Testing Highlight Functionality 
+### Testing Highlight Functionality
 
 After making changes to highlights:
+
 - Ensure highlights scroll correctly within the scrolling text area.
 - Verify highlights stay fixed when scrolling the surrounding window.
 - Check that highlights maintain their position.
@@ -174,6 +197,7 @@ After making changes to highlights:
 ### Testing Popover Functionality
 
 After making changes to popover:
+
 - Ensure the popover opens and closes correctly when clicking a word.
 - Verify the correct popover is displayed based on user status (not logged in, needs upgrade, logged in).
 - Check that the position of the popover is accurate relative to the selected word.
@@ -184,12 +208,12 @@ After making changes to popover:
 ### Testing Popup Functionality
 
 After making changes to popup:
+
 - Verify enabling and disabling the extension functions correctly:
   - Ensure that when the extension is disabled, neither the 'witty active' nor 'witty passive' icons appear anywhere.
   - Confirm no 'ww-container' elements are in the DOM.
   - Pay extra attention to the behavior with iframes and when multiple input fields are on a page.
 - Ensure the correct popup is shown in appropriate situations (not logged in, domain disabled, no subscription, valid subscription).
-
 
 ## Common Compatibility Issues and Resolutions
 
@@ -209,5 +233,3 @@ After making changes to popup:
 
 - **Enabling/Disabling Witty Not Functioning**: Often a problem with how the domain is stored or accessed, especially within iframe domains.
 - **CSS Conflicts**: Ensure that CSS classes are properly namespaced to avoid conflicts.
-
-

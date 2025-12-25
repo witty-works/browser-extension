@@ -1,6 +1,6 @@
 import defaultConfig from '../witty.config.json';
 import browser from 'webextension-polyfill';
-import { getDomainWithoutSubdomain, makeAuthRequest } from '../shared/utils';
+import { getDomainWithoutSubdomain, makeAuthRequest, isSignedInResult } from '../shared/utils';
 import { StorageKeys } from '../shared/constants';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import {
@@ -14,7 +14,7 @@ const renderPopup = async () => {
   browser.storage.local
     .get(null)
     .then((result) => {
-      if (!result[StorageKeys.ACCESS_TOKEN]) {
+      if (!isSignedInResult(result)) {
         renderUserNotLoggedIn();
         return;
       } else if (result[StorageKeys.PLAN] === 'none') {
@@ -73,10 +73,14 @@ const renderPopup = async () => {
 
 const storageChange = (changes: any) => {
   let changedItems = Object.keys(changes);
-  for (let item of changedItems) {
+      for (let item of changedItems) {
     switch (item) {
       case StorageKeys.ACCESS_TOKEN:
         !changes[item].newValue && renderUserNotLoggedIn();
+        break;
+      case StorageKeys.CHECK_ENDPOINT_SUCCESS:
+        // If check endpoint becomes false, show login. If it becomes true, re-render popup.
+        !changes[item].newValue ? renderUserNotLoggedIn() : renderPopup();
         break;
       case StorageKeys.ORGANIZATION_DOMAINS:
         renderPopup();

@@ -24,6 +24,7 @@ import {
   logOut,
   getDomainWithoutSubdomain,
   updateConfig,
+  isSignedInResult,
 } from '../shared/utils';
 import {
   isTextArea,
@@ -229,7 +230,7 @@ const Input: React.FC<{
     browser.storage.local
       .get(null)
       .then((result) => {
-        setUserIsSignedIn(!!result[StorageKeys.ACCESS_TOKEN]);
+        setUserIsSignedIn(isSignedInResult(result));
         hasWittyLicense.current = result[StorageKeys.PLAN] !== 'none';
         (result[StorageKeys.PLAN] === 'witty_free' ||
           result[StorageKeys.PLAN] === 'none' ||
@@ -1494,10 +1495,12 @@ const Input: React.FC<{
         DEV_ENV && console.error('Error in renderNotification:', error);
       }
     }
-    log(
-      `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
-      logTypes.ERROR
-    );
+    if (checkEndpointError || authErrorResponse) {
+      log(
+        `API Error Status Code ${checkEndpointError?.status}: ${checkEndpointError?.message}`,
+        logTypes.ERROR
+      );
+    }
   }, [checkEndpointError, authErrorResponse]);
 
   useEffect(() => {

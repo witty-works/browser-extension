@@ -1,5 +1,6 @@
 import { IAlert, IRequest, RequestConfig } from '../types';
 import { BaseUrls, wittyVersion } from '../constants';
+import defaultConfig from '../../witty.config.json';
 import { TxtSentenceNode } from 'sentence-splitter';
 
 let BASE_URL_API: string = '';
@@ -41,16 +42,32 @@ export const setAppID = (id: string) => (appID = id);
 
 export const setToken = (tok: string) => (token = tok);
 
+export const buildRequestHeaders = (
+  useToken?: string
+): { [key: string]: string } => {
+  const headers: { [key: string]: string } = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  };
+
+  if (defaultConfig && defaultConfig.X_KEY) {
+    headers['x-key'] = defaultConfig.X_KEY;
+    return headers;
+  }
+
+  if (useToken) {
+    headers['Authorization'] = `Bearer ${useToken}`;
+  }
+
+  return headers;
+};
+
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
     url: createUrl(BASE_URL_API, 'v2.4/check'),
     config: {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: token ? `Bearer ${token}` : '',
-      },
+      headers: buildRequestHeaders(token),
       body: text
         ? JSON.stringify({
             text: text,
@@ -74,11 +91,7 @@ export const getLLMSuggestion = (
     url: createUrl(BASE_URL_API, 'v1.0/rephrase'),
     config: {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: token ? `Bearer ${token}` : '',
-      },
+      headers: buildRequestHeaders(token),
       body: sentence
         ? JSON.stringify({
             sentence: sentence.raw,
@@ -99,11 +112,7 @@ export const getConfiguration = (): IRequest => {
     url: BASE_URL_API && createUrl(BASE_URL_API, 'v2.0/auth'),
     config: {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: buildRequestHeaders(token),
     },
   };
 };
