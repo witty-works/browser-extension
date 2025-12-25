@@ -89,7 +89,7 @@ export const BaseUrls: IBaseUrls = {
   },
 };
 
-export const DefaultBaseUrlKey = 'Dev';
+export const DefaultBaseUrlKey = 'Local';
 
 export enum ConfigPropertyStatus {
   FORCE = 'force',
