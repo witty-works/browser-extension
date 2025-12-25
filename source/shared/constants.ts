@@ -154,7 +154,7 @@ const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
 
 export const getColor = (
   gravity: number,
-  subcategory: string,
+  subcategory: string
 ): IHighlightColors => {
   if (subcategory === 'corporate_rules') return corporateBlue;
   if (!gravity) return inclusiveGreen;

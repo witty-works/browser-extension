@@ -1,8 +1,16 @@
 import { useMemo, useState } from 'react';
 import useApiResults from './useApiResults';
 import { getAnalyzedTextResults, getLLMSuggestion } from './requests';
-import { IRequest, ICheckResponse, IGetLLMSuggestionsRequest, ILLMAlternativesResponse } from '../types';
-import { checkResponseSchema, llmAlternativesResponseSchema } from './validationSchemas';
+import {
+  IRequest,
+  ICheckResponse,
+  IGetLLMSuggestionsRequest,
+  ILLMAlternativesResponse,
+} from '../types';
+import {
+  checkResponseSchema,
+  llmAlternativesResponseSchema,
+} from './validationSchemas';
 
 export const useCheckEndpoint = () => {
   const [textToAnalyze, setTextToAnalyse] = useState<string>('');
@@ -12,14 +20,15 @@ export const useCheckEndpoint = () => {
 
   const [checkResponse, errorResponse] = useApiResults<ICheckResponse>(
     request,
-    checkResponseSchema,
+    checkResponseSchema
   );
 
   return [checkResponse, errorResponse, setTextToAnalyse] as const;
 };
 
 export const useLLMSuggestionsEndpoint = () => {
-  const [LLMSuggestionsRequest, setLLMSuggestionsRequest] = useState<IGetLLMSuggestionsRequest | null>(null);
+  const [LLMSuggestionsRequest, setLLMSuggestionsRequest] =
+    useState<IGetLLMSuggestionsRequest | null>(null);
 
   const request: IRequest | null = useMemo(() => {
     if (!LLMSuggestionsRequest) {
@@ -32,10 +41,15 @@ export const useLLMSuggestionsEndpoint = () => {
     );
   }, [LLMSuggestionsRequest]);
 
-  let [llmAlternativesResponse, errorResponse] = useApiResults<ILLMAlternativesResponse>(
-    request,
-    llmAlternativesResponseSchema
-  );
+  let [llmAlternativesResponse, errorResponse] =
+    useApiResults<ILLMAlternativesResponse>(
+      request,
+      llmAlternativesResponseSchema
+    );
 
-  return [llmAlternativesResponse, errorResponse, setLLMSuggestionsRequest] as const;
+  return [
+    llmAlternativesResponse,
+    errorResponse,
+    setLLMSuggestionsRequest,
+  ] as const;
 };

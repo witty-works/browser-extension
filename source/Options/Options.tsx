@@ -11,9 +11,7 @@ const Options: React.FC = () => {
 
   useEffect(() => {
     try {
-      const searchParams = new URLSearchParams(
-        window.location.search
-      );
+      const searchParams = new URLSearchParams(window.location.search);
 
       if ([...searchParams].length > 0) {
         setAccessToken(searchParams.get('access_token') as string);
@@ -21,15 +19,18 @@ const Options: React.FC = () => {
         const target = searchParams.get('target')?.split('?')[0];
         storeInLocalStorage(StorageKeys.REDIRECT_URL_LOGIN, target);
         browser.storage.local.get(null).then((result) => {
-          const url = result[StorageKeys.API_ENDPOINT_KEY] ? result[StorageKeys.API_ENDPOINT_KEY] : DefaultBaseUrlKey
+          const url = result[StorageKeys.API_ENDPOINT_KEY]
+            ? result[StorageKeys.API_ENDPOINT_KEY]
+            : DefaultBaseUrlKey;
           window.open(
-            target ? target : `${BaseUrls[url].dashboard}editor?onboarding=true`,
+            target
+              ? target
+              : `${BaseUrls[url].dashboard}editor?onboarding=true`,
             '_self',
             'noopener'
           );
           removeBadge();
         });
-
       }
     } catch (error) {
       sendErrorToSentry(error);

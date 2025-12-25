@@ -10,10 +10,7 @@ import {
 import '../../i18n/i18n';
 import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
-import {
-  appID,
-  setBaseUrls,
-} from '../../shared/ApiServices/requests';
+import { appID, setBaseUrls } from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
@@ -37,7 +34,7 @@ const PopupLogin: React.FC = () => {
   };
 
   useEffect(() => {
-    addBadge('Login')
+    addBadge('Login');
     browser.storage.local
       .get(null)
       .then((result) => {
@@ -168,23 +165,25 @@ const PopupLogin: React.FC = () => {
             {t('popupsBlockedText')}
           </div>
           <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-          <div
-            className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
-            onClick={() => {
-              navigator.clipboard.writeText(loginUrl);
-              setDisplayCopiedMessage(true);
-              browser.alarms.create('hideCopiedMessageAlarm', { delayInMinutes: 1.5 / 60 }); // 1500 ms in minutes
+            <div
+              className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
+              onClick={() => {
+                navigator.clipboard.writeText(loginUrl);
+                setDisplayCopiedMessage(true);
+                browser.alarms.create('hideCopiedMessageAlarm', {
+                  delayInMinutes: 1.5 / 60,
+                }); // 1500 ms in minutes
 
-              const alarmListener = (alarm : any) => {
-                if (alarm.name === 'hideCopiedMessageAlarm') {
-                  setDisplayCopiedMessage(false);
-                  // Clean up the alarm listener after it triggers
-                  browser.alarms.onAlarm.removeListener(alarmListener);
-                }
-              };
-              browser.alarms.onAlarm.addListener(alarmListener);
-            }}
-          >
+                const alarmListener = (alarm: any) => {
+                  if (alarm.name === 'hideCopiedMessageAlarm') {
+                    setDisplayCopiedMessage(false);
+                    // Clean up the alarm listener after it triggers
+                    browser.alarms.onAlarm.removeListener(alarmListener);
+                  }
+                };
+                browser.alarms.onAlarm.addListener(alarmListener);
+              }}
+            >
               {t('copyLink')}
             </div>
             {displayCopiedMessage && (

@@ -57,7 +57,8 @@ export const de = {
     copiedConfirmation: 'URL Kopiert',
     hrFeatures: 'Job Ads Add-On',
     upgradeHeadline: 'Hol dir ein Witty Abo',
-    upgradeText: 'Du benötigst ein Witty Abo, damit Witty deine Texte analysiert',
+    upgradeText:
+      'Du benötigst ein Witty Abo, damit Witty deine Texte analysiert',
     upgradeButton: 'Upgrade',
     checkLicenseButton: 'Lizenz Überprüfen',
     beta: 'Beta',
@@ -95,7 +96,7 @@ export const de = {
     wittyLogo: 'Witty',
     new: 'neu',
     video: 'Ein Erklärungsvideo ist verfügbar',
-    openNewWindow: "Öffnet in einem neuen Fenster",
+    openNewWindow: 'Öffnet in einem neuen Fenster',
     next: 'Nächstes Ergebnis',
     previous: 'Vorheriges Ergebnis',
     close: 'Witty schliessen',
@@ -106,24 +107,27 @@ export const de = {
   },
   [namespaces.iconController]: {
     totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
-    totalMaxCharLengthReachedNotificationText: 'Witty Freemium prüft immer {{limit}} Zeichen. Für alle Texte, so oft du willst. Du liebst deine Texte grenzenlos? Hol dir alle Witty-Vorteile!',
+    totalMaxCharLengthReachedNotificationText:
+      'Witty Freemium prüft immer {{limit}} Zeichen. Für alle Texte, so oft du willst. Du liebst deine Texte grenzenlos? Hol dir alle Witty-Vorteile!',
     subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Bitte Witty an die Symbolleiste pinnen.',
     totalMaxCharLengthReachedNotificationHeadline: 'Hast du oft lange Texte?',
-    totalMaxCharLengthReachedNotificationText: 'Witty Freemium prüft immer {{limit}} Zeichen. Für alle Texte, so oft du willst. Du liebst deine Texte grenzenlos? Hol dir alle Witty-Vorteile!',
+    totalMaxCharLengthReachedNotificationText:
+      'Witty Freemium prüft immer {{limit}} Zeichen. Für alle Texte, so oft du willst. Du liebst deine Texte grenzenlos? Hol dir alle Witty-Vorteile!',
     subscriptionButton: 'Upgrade',
     updateNotificationHeadline: 'Witty wurde aktualisiert',
-    updateNotificationText:
-      'Witty wurde auf die neuste Version aktualisiert.',
+    updateNotificationText: 'Witty wurde auf die neuste Version aktualisiert.',
     updateNotificationButton: 'Änderungen',
     minVersionNotInstalledNotificationHeadline: 'Du must Witty aktualisieren',
-    minVersionNotInstalledNotificationText: 'Um Witty weiterhin nutzen zu können, müsst Du Witty auf eine neuere Version aktualisieren.',
+    minVersionNotInstalledNotificationText:
+      'Um Witty weiterhin nutzen zu können, müsst Du Witty auf eine neuere Version aktualisieren.',
     minVersionNotInstalledNotificationButton: 'Aktualisieren',
     trialEndedNotificationHeadline: 'Your Witty trial has ended',
-    trialEndedNotificationText: 'To continue using Witty, you need to upgrade to a paid plan.',
+    trialEndedNotificationText:
+      'To continue using Witty, you need to upgrade to a paid plan.',
   },
 };
 
@@ -140,7 +144,7 @@ export const en = {
       de_AT: 'German (🇦🇹 Austrian)',
       de_CH: 'German (🇨🇭 Switzerland)',
       fr_FR: 'French (🇫🇷 France)',
-      fr_CH: 'French (🇨🇭 Switzerland)'
+      fr_CH: 'French (🇨🇭 Switzerland)',
     },
   },
   [namespaces.pages.popup]: {
@@ -223,7 +227,7 @@ export const en = {
     wittyLogo: 'Witty',
     new: 'new',
     video: 'A video is available for more learning',
-    openNewWindow: "Opens in a new window",
+    openNewWindow: 'Opens in a new window',
     next: 'Next result',
     previous: 'Previous result',
     close: 'Close Witty',
@@ -238,26 +242,28 @@ export const en = {
   },
   [namespaces.iconController]: {
     totalMaxCharLengthReachedNotificationHeadline: 'Write long texts often?',
-    totalMaxCharLengthReachedNotificationText: 'Witty Freemium reviews {{limit}} characters of any text you write and as often as you like. Writing longer texts? Get all Witty benefits!',
+    totalMaxCharLengthReachedNotificationText:
+      'Witty Freemium reviews {{limit}} characters of any text you write and as often as you like. Writing longer texts? Get all Witty benefits!',
     subscriptionButton: 'Upgrade',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Pin Witty',
     pinNotificationText: 'Remember to pin Witty to your browser toolbar.',
     totalMaxCharLengthReachedNotificationHeadline: 'Write long texts often?',
-    totalMaxCharLengthReachedNotificationText: 'Witty Freemium reviews {{limit}} characters of any text you write and as often as you like. Writing longer texts? Get all Witty benefits!',
+    totalMaxCharLengthReachedNotificationText:
+      'Witty Freemium reviews {{limit}} characters of any text you write and as often as you like. Writing longer texts? Get all Witty benefits!',
     subscriptionButton: 'Upgrade',
     updateNotificationHeadline: 'Witty was updated',
-    updateNotificationText:
-      'Witty was updated to the latest version.',
+    updateNotificationText: 'Witty was updated to the latest version.',
     updateNotificationButton: 'View changes',
     minVersionNotInstalledNotificationHeadline: 'You need to update Witty',
-    minVersionNotInstalledNotificationText: 'In order to continue using Witty, you need to update Witty to a newer version.',
+    minVersionNotInstalledNotificationText:
+      'In order to continue using Witty, you need to update Witty to a newer version.',
     minVersionNotInstalledNotificationButton: 'How to update',
     trialEndedNotificationHeadline: 'Your Witty trial has ended',
-    trialEndedNotificationText: 'To continue using Witty, you need to upgrade to a paid plan.',
+    trialEndedNotificationText:
+      'To continue using Witty, you need to upgrade to a paid plan.',
   },
-
 };
 
 export const fr = {
@@ -273,47 +279,56 @@ export const fr = {
       de_AT: 'Allemand (🇦🇹 Autriche)',
       de_CH: 'Allemand (🇨🇭 Suisse)',
       fr_FR: 'Français (🇫🇷 France)',
-      fr_CH: 'Français (🇨🇭 Suisse)'
+      fr_CH: 'Français (🇨🇭 Suisse)',
     },
   },
   [namespaces.pages.popup]: {
     enableWitty: 'Activer Witty',
     websiteSettings: 'Paramètres pour {{domain}}',
     developmentSettings: 'Paramètres de développement',
-    spellChecking: 'Vérifier la grammaire et l\'orthographe',
+    spellChecking: "Vérifier la grammaire et l'orthographe",
     thanks: 'Merci pour votre retour !',
-    noSupport: 'Nous sommes désolés ! Witty ne prend pas encore officiellement en charge ce site web.',
+    noSupport:
+      'Nous sommes désolés ! Witty ne prend pas encore officiellement en charge ce site web.',
     vote: 'Votez pour ce site web',
-    editor: 'Utiliser l\'éditeur Witty à la place',
-    goToDashboard: 'Aller à l\'éditeur Witty',
+    editor: "Utiliser l'éditeur Witty à la place",
+    goToDashboard: "Aller à l'éditeur Witty",
     overrideRecomendedSites: 'Essayer Witty ici quand même',
-    backToRecomendedSites: 'Utiliser Witty uniquement sur les sites pris en charge',
+    backToRecomendedSites:
+      'Utiliser Witty uniquement sur les sites pris en charge',
     loginToUnlock: 'Connectez-vous maintenant !',
     signedOutText: 'Vous manquez quelque chose',
-    biasDetection: 'Détection des biais dans plus de 30 dimensions de diversité',
+    biasDetection:
+      'Détection des biais dans plus de 30 dimensions de diversité',
     inclusiveAlternatives: 'Alternatives pour une écriture inclusive',
-    teamFeatures: 'Fonctionnalités d\'équipe, y compris des dictionnaires partagés',
+    teamFeatures:
+      "Fonctionnalités d'équipe, y compris des dictionnaires partagés",
     signIn: 'Se connecter',
     signOut: 'Se déconnecter',
     haveAccount: 'Vous avez déjà un compte ?',
-    dontHaveAccount: 'Vous n\'avez pas de compte ?',
-    signUp: 'S\'inscrire',
+    dontHaveAccount: "Vous n'avez pas de compte ?",
+    signUp: "S'inscrire",
     doesWittyWork: 'Witty fonctionne-t-il ici ?',
-    doesWittyWorkExplanation: 'Aidez-nous à le découvrir, s\'il vous plaît.',
+    doesWittyWorkExplanation: "Aidez-nous à le découvrir, s'il vous plaît.",
     tryAgain: 'Réessayer',
     understood: 'Compris',
-    websiteSettingsDeactivated: 'Vous avez signalé que Witty ne fonctionne pas sur {{domain}}',
+    websiteSettingsDeactivated:
+      'Vous avez signalé que Witty ne fonctionne pas sur {{domain}}',
     tryAgainOnThisWebsite: 'Réessayez sur ce site web',
-    enableWittyFailed: 'La synchronisation avec le tableau de bord Witty est actuellement impossible, veuillez réessayer plus tard.',
-    lockedInfo: 'Cette fonctionnalité a été verrouillée par votre·e administrateur·trice d\'équipe.',
+    enableWittyFailed:
+      'La synchronisation avec le tableau de bord Witty est actuellement impossible, veuillez réessayer plus tard.',
+    lockedInfo:
+      "Cette fonctionnalité a été verrouillée par votre·e administrateur·trice d'équipe.",
     loggedInTo: 'Connecté·e à',
     popupsBlocked: 'Les pop-ups sont bloqués',
-    popupsBlockedText: 'Pour vous connecter, veuillez copier et coller le lien dans la barre d\'URL de votre navigateur.',
+    popupsBlockedText:
+      "Pour vous connecter, veuillez copier et coller le lien dans la barre d'URL de votre navigateur.",
     copyLink: 'Copier le lien',
     copiedConfirmation: 'Lien copié',
-    hrFeatures: 'Add-on pour les offres d\'emploi',
+    hrFeatures: "Add-on pour les offres d'emploi",
     upgradeHeadline: 'Obtenez un abonnement Witty',
-    upgradeText: 'Vous avez besoin d\'un abonnement pour que Witty analyse votre texte.',
+    upgradeText:
+      "Vous avez besoin d'un abonnement pour que Witty analyse votre texte.",
     upgradeButton: 'Mise à niveau',
     checkLicenseButton: 'Vérifier la licence',
     beta: 'Bêta',
@@ -328,15 +343,18 @@ export const fr = {
     removeSpaces: '(Retirer les espaces supplémentaires)',
     loginToUnlock: 'Connectez-vous maintenant !',
     signedOutText: 'Vous manquez quelque chose',
-    biasDetection: 'Détection des biais dans plus de 30 dimensions de diversité',
+    biasDetection:
+      'Détection des biais dans plus de 30 dimensions de diversité',
     inclusiveAlternatives: 'Alternatives pour une écriture inclusive',
-    teamFeatures: 'Fonctionnalités d\'équipe, y compris des dictionnaires partagés',
+    teamFeatures:
+      "Fonctionnalités d'équipe, y compris des dictionnaires partagés",
     signIn: 'Se connecter',
     haveAccount: 'Vous avez déjà un compte ?',
-    dontHaveAccount: 'Vous n\'avez pas de compte ?',
-    signUp: 'S\'inscrire',
+    dontHaveAccount: "Vous n'avez pas de compte ?",
+    signUp: "S'inscrire",
     popupsBlocked: 'Les pop-ups sont bloqués',
-    popupsBlockedText: 'Veuillez copier et coller le lien dans la barre d\'URL de votre navigateur.',
+    popupsBlockedText:
+      "Veuillez copier et coller le lien dans la barre d'URL de votre navigateur.",
     copyLink: 'Copier le lien',
     copiedConfirmation: 'Lien copié',
     upgradeToTeams: 'Passer à Witty Teams',
@@ -349,8 +367,8 @@ export const fr = {
     upgrade: 'Mise à niveau',
     wittyLogo: 'Witty',
     new: 'nouveau·elle',
-    video: 'Une vidéo d\'explication est disponible',
-    openNewWindow: "Ouverture dans une nouvelle fenêtre",
+    video: "Une vidéo d'explication est disponible",
+    openNewWindow: 'Ouverture dans une nouvelle fenêtre',
     next: 'Résultat suivant',
     previous: 'Résultat précédent',
     close: 'Fermer Witty',
@@ -364,23 +382,31 @@ export const fr = {
     reloadWebsite: 'Veuillez recharger le site web',
   },
   [namespaces.iconController]: {
-    totalMaxCharLengthReachedNotificationHeadline: 'Vous écrivez souvent de longs textes ?',
-    totalMaxCharLengthReachedNotificationText: 'Witty Freemium examine {{limit}} caractères de tout texte que vous écrivez, aussi souvent que vous le souhaitez. Écrire des textes plus longs ? Profitez de tous les avantages de Witty !',
+    totalMaxCharLengthReachedNotificationHeadline:
+      'Vous écrivez souvent de longs textes ?',
+    totalMaxCharLengthReachedNotificationText:
+      'Witty Freemium examine {{limit}} caractères de tout texte que vous écrivez, aussi souvent que vous le souhaitez. Écrire des textes plus longs ? Profitez de tous les avantages de Witty !',
     subscriptionButton: 'Mise à niveau',
   },
   [namespaces.notifications]: {
     pinNotificationHeadline: 'Épingler Witty',
-    pinNotificationText: 'N\'oubliez pas d\'épingler Witty dans la barre d\'outils de votre navigateur.',
-    totalMaxCharLengthReachedNotificationHeadline: 'Vous écrivez souvent de longs textes ?',
-    totalMaxCharLengthReachedNotificationText: 'Witty Freemium examine {{limit}} caractères de tout texte que vous écrivez, aussi souvent que vous le souhaitez. Écrire des textes plus longs ? Profitez de tous les avantages de Witty !',
+    pinNotificationText:
+      "N'oubliez pas d'épingler Witty dans la barre d'outils de votre navigateur.",
+    totalMaxCharLengthReachedNotificationHeadline:
+      'Vous écrivez souvent de longs textes ?',
+    totalMaxCharLengthReachedNotificationText:
+      'Witty Freemium examine {{limit}} caractères de tout texte que vous écrivez, aussi souvent que vous le souhaitez. Écrire des textes plus longs ? Profitez de tous les avantages de Witty !',
     subscriptionButton: 'Mise à niveau',
     updateNotificationHeadline: 'Witty a été mis à jour',
     updateNotificationText: 'Witty a été mis à jour vers la dernière version.',
     updateNotificationButton: 'Voir les changements',
-    minVersionNotInstalledNotificationHeadline: 'Vous devez mettre à jour Witty',
-    minVersionNotInstalledNotificationText: 'Pour continuer à utiliser Witty, vous devez mettre à jour Witty vers une version plus récente.',
+    minVersionNotInstalledNotificationHeadline:
+      'Vous devez mettre à jour Witty',
+    minVersionNotInstalledNotificationText:
+      'Pour continuer à utiliser Witty, vous devez mettre à jour Witty vers une version plus récente.',
     minVersionNotInstalledNotificationButton: 'Comment mettre à jour',
     trialEndedNotificationHeadline: 'Votre essai Witty est terminé',
-    trialEndedNotificationText: 'Pour continuer à utiliser Witty, vous devez passer à un plan payant.',
+    trialEndedNotificationText:
+      'Pour continuer à utiliser Witty, vous devez passer à un plan payant.',
   },
 };

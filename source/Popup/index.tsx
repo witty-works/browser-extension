@@ -17,21 +17,27 @@ const renderPopup = async () => {
       if (!result[StorageKeys.ACCESS_TOKEN]) {
         renderUserNotLoggedIn();
         return;
-      } else if (result[StorageKeys.PLAN] === "none") {
+      } else if (result[StorageKeys.PLAN] === 'none') {
         renderUpgradePopup();
         return;
       }
-      
+
       const appId = result[StorageKeys.APP_ID];
       let isLocked = false;
       let domain = getDomainWithoutSubdomain(window.location.hostname);
-      if ((!window.location.protocol.includes('http') && !window.location.protocol.includes('https')) || (!domain)) {
+      if (
+        (!window.location.protocol.includes('http') &&
+          !window.location.protocol.includes('https')) ||
+        !domain
+      ) {
         domain = '';
       }
 
       if (
-        (result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'deny' && result[StorageKeys.ORGANIZATION_DOMAINS]?.list?.includes(domain)) ||
-        (result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'allow' && !result[StorageKeys.ORGANIZATION_DOMAINS]?.list.includes(domain))
+        (result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'deny' &&
+          result[StorageKeys.ORGANIZATION_DOMAINS]?.list?.includes(domain)) ||
+        (result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'allow' &&
+          !result[StorageKeys.ORGANIZATION_DOMAINS]?.list.includes(domain))
       ) {
         isLocked = true;
       }
@@ -40,10 +46,19 @@ const renderPopup = async () => {
         .query({ active: true, currentWindow: true })
         .then((tabs) => {
           if (tabs.length != 0 && tabs[0].url) {
-            domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);  
+            domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
             if (!domain) return;
-            renderPopupChrome(appId, domain, new URL(tabs[0].url).href, isLocked);
-          } else if (defaultConfig.CHROME_AND_FIREFOX_SITES.includes(window.location.protocol)) {
+            renderPopupChrome(
+              appId,
+              domain,
+              new URL(tabs[0].url).href,
+              isLocked
+            );
+          } else if (
+            defaultConfig.CHROME_AND_FIREFOX_SITES.includes(
+              window.location.protocol
+            )
+          ) {
             renderMainPopup(appId, domain, isLocked);
           }
         })

@@ -22,7 +22,11 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
-import { getNewAccessToken, storeInLocalStorage, updateConfig } from '../../shared/utils';
+import {
+  getNewAccessToken,
+  storeInLocalStorage,
+  updateConfig,
+} from '../../shared/utils';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
 
 const PopupUpgrade: React.FC = () => {
@@ -70,30 +74,33 @@ const PopupUpgrade: React.FC = () => {
   const handleUpgradeClick = () => {
     analytics.dashboardLog('upgrade_popup');
     window.open(getBaseUrls().dashboard + 'team/subscription', '_blank');
-  }
+  };
 
   const logOut = () => {
     storeInLocalStorage(StorageKeys.PLAN, '');
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
-  }
+  };
 
   const logIn = () => {
     const optionsPageUrl = browser.runtime.getURL('options.html');
-    const url = `${getBaseUrls().dashboard}browser-login?redirect_uri=${optionsPageUrl}?target=${getBaseUrls().dashboard}editor?onboarding=true`;
+    const url = `${
+      getBaseUrls().dashboard
+    }browser-login?redirect_uri=${optionsPageUrl}?target=${
+      getBaseUrls().dashboard
+    }editor?onboarding=true`;
     window.open(url, '_blank');
-  }
+  };
 
   const checkLicense = () => {
     logOut();
-    logIn()
-  }
+    logIn();
+  };
 
   return (
     <>
       <PopupHeader showSettings={false} appId={appID} />
-      <div
-        className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-full-padding witty-works-ext-light-gray-background'>
+      <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-full-padding witty-works-ext-light-gray-background'>
         <div className='witty-works-ext-margin-right'>
           <SadFace />
         </div>
@@ -103,7 +110,7 @@ const PopupUpgrade: React.FC = () => {
             className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
             style={{ padding: 0 }}
           >
-           <div className='witty-works-ext-margin-right'>
+            <div className='witty-works-ext-margin-right'>
               {t('upgradeText')}
             </div>
           </div>
@@ -111,13 +118,19 @@ const PopupUpgrade: React.FC = () => {
       </div>
 
       <div className='witty-works-ext-left witty-works-ext-margin-top'>
-        <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={handleUpgradeClick}>
+        <button
+          className='witty-works-ext-button witty-works-ext-primary-button-red'
+          onClick={handleUpgradeClick}
+        >
           {t('upgradeButton')}
         </button>
       </div>
 
       <div className='witty-works-ext-left witty-works-ext-margin-top'>
-        <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={checkLicense}>
+        <button
+          className='witty-works-ext-button witty-works-ext-primary-button-red'
+          onClick={checkLicense}
+        >
           {t('checkLicenseButton')}
         </button>
       </div>
@@ -129,14 +142,17 @@ const PopupUpgrade: React.FC = () => {
           </div>
         </div>
       )}
-      
+
       {DEV_ENV && (
         <div className='witty-works-ext-section'>
           <h2>{t('developmentSettings')}</h2>
           <ApiSelector />
           <DelaySelector />
           <div className='witty-works-ext-left'>
-            <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={logOut}>
+            <button
+              className='witty-works-ext-button witty-works-ext-primary-button-red'
+              onClick={logOut}
+            >
               {t('signOut')}
             </button>
           </div>

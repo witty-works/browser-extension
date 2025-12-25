@@ -10,7 +10,12 @@
 }
 
 .witty-works-notification-headline-wrapper {
-  background: linear-gradient(114.59deg, #F06464 1.6%, #F277D0 32.79%, #9489DB 71.64%);
+  background: linear-gradient(
+    114.59deg,
+    #f06464 1.6%,
+    #f277d0 32.79%,
+    #9489db 71.64%
+  );
   height: 32px;
   display: flex;
   flex-direction: row;
@@ -82,7 +87,11 @@
   align-items: flex-start;
 }
 
-.witty-works-link, .witty-works-link:link, .witty-works-link:visited, .witty-works-link:hover, .witty-works-link:active {
+.witty-works-link,
+.witty-works-link:link,
+.witty-works-link:visited,
+.witty-works-link:hover,
+.witty-works-link:active {
   color: #9489db !important;
 }
 

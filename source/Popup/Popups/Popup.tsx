@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import browser from 'webextension-polyfill';
 import { useTranslation } from 'react-i18next';
 
-import {
-  EnableWittyToggle,
-} from '../../shared/types';
+import { EnableWittyToggle } from '../../shared/types';
 import {
   StorageKeys,
   DefaultBaseUrlKey,
@@ -16,7 +14,8 @@ import {
   addNotificationBadge,
   getNewAccessToken,
   removeBadge,
-  storeInLocalStorage, updateConfig
+  storeInLocalStorage,
+  updateConfig,
 } from '../../shared/utils';
 import { namespaces } from '../../i18n/i18n.constants';
 import '../../i18n/i18n';
@@ -65,16 +64,21 @@ const Popup: React.FC<PopupProps> = ({
     enabled: true,
     updateDashboard: false,
   } as EnableWittyToggle);
-  const [initialDomainsDisabledLocally, setInitialDomainsDisabledLocally] = useState<string[]>([]);
-  const [updatingDashboardFailed, setUpdatingDashboardFailed] = useState<boolean>(false);
-  const [numberOfNotifications, setNumberOfNotifications] = useState<number>(-1);
+  const [initialDomainsDisabledLocally, setInitialDomainsDisabledLocally] =
+    useState<string[]>([]);
+  const [updatingDashboardFailed, setUpdatingDashboardFailed] =
+    useState<boolean>(false);
+  const [numberOfNotifications, setNumberOfNotifications] =
+    useState<number>(-1);
   const [accessToken, setAccessToken] = useState<string>('');
   const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
   const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
   const [teamName, setTeamName] = useState<string>('');
   const [iFrameDomains, setIFrameDomains] = useState<string[]>([]);
   const [hrFeatures, setHrFeatures] = useState<boolean>(true);
-  const [hrFeaturesDisabledDomains, setHrFeaturesDisabledDomains] = useState<string[]>([]);
+  const [hrFeaturesDisabledDomains, setHrFeaturesDisabledDomains] = useState<
+    string[]
+  >([]);
 
   useEffect(() => {
     browser.storage.local
@@ -93,7 +97,7 @@ const Popup: React.FC<PopupProps> = ({
 
         setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS] || []);
         setEnabled({
-          enabled: 
+          enabled:
             !defaultConfig.DISABLED_SITES.includes(domain) &&
             result[StorageKeys.ACCESS_TOKEN] &&
             !result[StorageKeys.DOMAINS].includes(domain) &&
@@ -108,8 +112,12 @@ const Popup: React.FC<PopupProps> = ({
 
         setInitialDomainsDisabledLocally(result[StorageKeys.DOMAINS] || []);
         setTeamName(result[StorageKeys.TEAM_NAME]);
-        setHrFeaturesDisabledDomains(result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS] || []);
-        if (result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS]?.includes(domain)) {
+        setHrFeaturesDisabledDomains(
+          result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS] || []
+        );
+        if (
+          result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS]?.includes(domain)
+        ) {
           setHrFeatures(false);
         }
       })
@@ -117,7 +125,7 @@ const Popup: React.FC<PopupProps> = ({
   }, []);
 
   useEffect(() => {
-    if(!domain) return;
+    if (!domain) return;
     if (enabled.updateDashboard) {
       handleDomainToUpdate({
         domain: domain,
@@ -135,18 +143,23 @@ const Popup: React.FC<PopupProps> = ({
     if (authResponse) {
       updateConfig(authResponse);
       const domainAllowed =
-        (authResponse.domains?.type === 'deny' && authResponse.domains.list.includes(domain)) ||
-        (authResponse.domains?.type === 'allow' && !authResponse.domains.list.includes(domain)) ||
-        (authResponse.organization_domains?.type === 'deny' && authResponse.organization_domains.list.includes(domain)) ||
-        (authResponse.organization_domains?.type === 'allow' && !authResponse.organization_domains.list.includes(domain));
-  
+        (authResponse.domains?.type === 'deny' &&
+          authResponse.domains.list.includes(domain)) ||
+        (authResponse.domains?.type === 'allow' &&
+          !authResponse.domains.list.includes(domain)) ||
+        (authResponse.organization_domains?.type === 'deny' &&
+          authResponse.organization_domains.list.includes(domain)) ||
+        (authResponse.organization_domains?.type === 'allow' &&
+          !authResponse.organization_domains.list.includes(domain));
+
       setEnabled({
         enabled: !domainAllowed,
         updateDashboard: false,
       });
-    
+
       setHasWittyTeams(authResponse.plan === 'witty_teams');
-      authResponse.organization_name && setTeamName(authResponse.organization_name);
+      authResponse.organization_name &&
+        setTeamName(authResponse.organization_name);
     }
   }, [authResponse]);
 
@@ -159,28 +172,32 @@ const Popup: React.FC<PopupProps> = ({
 
   const setWittyIcon = (enabled: boolean) => {
     // always check for current plan status so we would set badge to 'off' if it's lost
-    browser.storage.local
-      .get(null)
-      .then((result) => {
-        if (result[StorageKeys.PLAN] === 'none') {
-          addBadge('OFF');
-          return;
-        }
+    browser.storage.local.get(null).then((result) => {
+      if (result[StorageKeys.PLAN] === 'none') {
+        addBadge('OFF');
+        return;
+      }
 
-        enabled ? removeBadge() : addBadge('OFF');
-      });
+      enabled ? removeBadge() : addBadge('OFF');
+    });
   };
   const handleEnable = () => {
     const isEnabled = !enabled.enabled;
     if (isLocked) return;
 
-    const domains = [domain, ...iFrameDomains].filter((item, index, array) => array.indexOf(item) === index);
+    const domains = [domain, ...iFrameDomains].filter(
+      (item, index, array) => array.indexOf(item) === index
+    );
 
     const newDomainsDisabledLocally = (
       isEnabled
-        ? initialDomainsDisabledLocally.filter((item) => !domains.includes(item)) //remove domain and iFrame domains
-        : [...initialDomainsDisabledLocally, ...domains].filter((item, index, array) => array.indexOf(item) === index) // Add domain and iFrame domains, make sure unique
-    ) as string[];
+        ? initialDomainsDisabledLocally.filter(
+            (item) => !domains.includes(item)
+          ) //remove domain and iFrame domains
+        : [...initialDomainsDisabledLocally, ...domains].filter(
+            (item, index, array) => array.indexOf(item) === index
+          )
+    ) as string[]; // Add domain and iFrame domains, make sure unique
 
     storeInLocalStorage(StorageKeys.DOMAINS, newDomainsDisabledLocally);
 
@@ -192,7 +209,10 @@ const Popup: React.FC<PopupProps> = ({
     const newHrFeaturesDisabledDomains = hrFeatures
       ? [...hrFeaturesDisabledDomains, domain]
       : hrFeaturesDisabledDomains.filter((item) => item !== domain);
-    storeInLocalStorage(StorageKeys.HR_FEATURES_DISABLED_DOMAINS, newHrFeaturesDisabledDomains);
+    storeInLocalStorage(
+      StorageKeys.HR_FEATURES_DISABLED_DOMAINS,
+      newHrFeaturesDisabledDomains
+    );
     setHrFeatures(!hrFeatures);
   };
 
@@ -201,19 +221,23 @@ const Popup: React.FC<PopupProps> = ({
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
     setToken('');
-  }
+  };
 
   const handleClickDashboard = () => {
     analytics.dashboardLog('button_popup');
     window.open(getBaseUrls().dashboard + 'editor', '_blank');
-  }
+  };
 
   const handleDomainToUpdate = (domain: any) => {
     fetch(
-      createUrl(getBaseUrls().dashboard, `api/user/language/domains?` + new URLSearchParams({ domain: domain.domain }) ),
+      createUrl(
+        getBaseUrls().dashboard,
+        `api/user/language/domains?` +
+          new URLSearchParams({ domain: domain.domain })
+      ),
       {
         method: domain.enabled ? 'DELETE' : 'PUT',
-         headers: {
+        headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       }
@@ -221,24 +245,29 @@ const Popup: React.FC<PopupProps> = ({
       if (response.status === 403) {
         setUpdatingDashboardFailed(true);
         setEnabled({ enabled: !enabled.enabled, updateDashboard: false });
-        browser.alarms.create('resetUpdatingDashboardFailedAlarm', { delayInMinutes: 3 / 60 }); // 3000 ms in minutes
+        browser.alarms.create('resetUpdatingDashboardFailedAlarm', {
+          delayInMinutes: 3 / 60,
+        }); // 3000 ms in minutes
         browser.alarms.onAlarm.addListener((alarm) => {
           if (alarm.name === 'resetUpdatingDashboardFailedAlarm') {
             setUpdatingDashboardFailed(false);
           }
         });
-      
+
         getNewAccessToken();
       }
-      
     });
   };
 
   return (
     <>
-      {numberOfNotifications > 0 ? <PopupHeaderNotification /> : <PopupHeader appId={appId} />}
+      {numberOfNotifications > 0 ? (
+        <PopupHeaderNotification />
+      ) : (
+        <PopupHeader appId={appId} />
+      )}
       <div className='witty-works-ext-section'>
-        {domainExists && ( 
+        {domainExists && (
           <>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
               <div className='witty-works-ext-lato-popup-title'>
@@ -255,13 +284,11 @@ const Popup: React.FC<PopupProps> = ({
               }
               locked={isLocked}
             />
-            
+
             <Toggle
               on={hrFeatures}
               handleToggle={handleHrFeatures}
-              label={
-                t('hrFeatures')
-              }
+              label={t('hrFeatures')}
               hrFeatureToggle={true}
             />
             <div className='witty-works-ext-separator' />
@@ -269,15 +296,21 @@ const Popup: React.FC<PopupProps> = ({
         )}
 
         <div className='witty-works-ext-left witty-works-ext-margin-top'>
-          <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={handleClickDashboard}>
+          <button
+            className='witty-works-ext-button witty-works-ext-primary-button-red'
+            onClick={handleClickDashboard}
+          >
             {t('goToDashboard')}
           </button>
-        </div>       
+        </div>
       </div>
 
       {teamName && (
         <div className='witty-works-ext-section'>
-          <div className='witty-works-ext-lato-popup-text' style={{ marginTop: hasWittyTeams ? '-0.5em' : 0 }}>
+          <div
+            className='witty-works-ext-lato-popup-text'
+            style={{ marginTop: hasWittyTeams ? '-0.5em' : 0 }}
+          >
             {t('loggedInTo') + ' "' + teamName + '"'}
           </div>
         </div>
@@ -289,7 +322,10 @@ const Popup: React.FC<PopupProps> = ({
           <ApiSelector />
           <DelaySelector />
           <div className='witty-works-ext-left'>
-            <button className='witty-works-ext-button witty-works-ext-primary-button-red' onClick={logOut}>
+            <button
+              className='witty-works-ext-button witty-works-ext-primary-button-red'
+              onClick={logOut}
+            >
               {t('signOut')}
             </button>
           </div>

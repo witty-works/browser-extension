@@ -319,7 +319,9 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
                 onClick={() => {
                   navigator.clipboard.writeText(loginUrl);
                   setDisplayCopiedMessage(true);
-                  browser.alarms.create('hideCopiedMessageAlarm', { delayInMinutes: 1.5 / 60 }); // 1500 ms in minutes
+                  browser.alarms.create('hideCopiedMessageAlarm', {
+                    delayInMinutes: 1.5 / 60,
+                  }); // 1500 ms in minutes
                   browser.alarms.onAlarm.addListener((alarm) => {
                     if (alarm.name === 'hideCopiedMessageAlarm') {
                       setDisplayCopiedMessage(false);

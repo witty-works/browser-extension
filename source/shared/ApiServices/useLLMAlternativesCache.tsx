@@ -13,7 +13,8 @@ export type LLMSuggestionsCacheMap = Record<string, LLMAlternativesCacheValue>;
 
 export const useLLMAlternativesCache = () => {
   const [cache, setCache] = useState<LLMSuggestionsCacheMap>({});
-  const [endpointData, endpointError, setEndpointRequest] = useLLMSuggestionsEndpoint();
+  const [endpointData, endpointError, setEndpointRequest] =
+    useLLMSuggestionsEndpoint();
 
   const getKey = useCallback((request: IGetLLMSuggestionsRequest): string => {
     const sentence = hashString(request.alert.data.fullSentence.raw);
@@ -46,20 +47,23 @@ export const useLLMAlternativesCache = () => {
     if (!endpointData && !endpointError) return;
 
     setCache((prevCache) => {
-      const activeKey = Object.keys(prevCache).find((key) => prevCache[key].loading);
+      const activeKey = Object.keys(prevCache).find(
+        (key) => prevCache[key].loading
+      );
       if (!activeKey) return prevCache;
       return {
         ...prevCache,
         [activeKey]: {
-          data: endpointData ? {
-            ...endpointData,
-            results: new Map(Object.entries(endpointData.results)),
-          } : null,
+          data: endpointData
+            ? {
+                ...endpointData,
+                results: new Map(Object.entries(endpointData.results)),
+              }
+            : null,
           error: endpointError || null,
           loading: false,
         },
       };
-
     });
   }, [endpointData, endpointError]);
 
@@ -71,9 +75,5 @@ export const useLLMAlternativesCache = () => {
     [cache, getKey]
   );
 
-  return [
-    cache,
-    fetchOrGetCached,
-    getCachedValue,
-  ] as const;
-}
+  return [cache, fetchOrGetCached, getCachedValue] as const;
+};

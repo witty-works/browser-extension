@@ -7,7 +7,6 @@ export const drawLine = (params: any, color: string, dashedLine: boolean) => {
   let x = rect.left - elementRect.left;
   let y = rect.top - elementRect.top;
 
-  
   if (isGoogleDocs()) {
     x = rect.left - (googleDocsRulerIsHidden ? 15 : 0);
   }
@@ -24,7 +23,13 @@ export const drawLine = (params: any, color: string, dashedLine: boolean) => {
 };
 
 export const drawHighlight = (params: any, color: string) => {
-  const { roundedHighlight, context, rect, elementRect, googleDocsRulerIsHidden } = params;
+  const {
+    roundedHighlight,
+    context,
+    rect,
+    elementRect,
+    googleDocsRulerIsHidden,
+  } = params;
   //the +/- is to add some padding to the highlight
   let x = rect.left - elementRect.left - 1.5;
   let y = rect.top - elementRect.top + 1;

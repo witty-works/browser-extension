@@ -29,7 +29,7 @@ export const getBaseUrls = () => {
     api: BASE_URL_API,
     dashboard: BASE_URL_DASHBOARD,
     posthog_url: BASE_URL_POSTHOG,
-    posthog_key: BASE_KEY_POSTHOG
+    posthog_key: BASE_KEY_POSTHOG,
   };
 };
 
@@ -66,7 +66,10 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
   };
 };
 
-export const getLLMSuggestion = (sentence: TxtSentenceNode, alert: IAlert): IRequest => {
+export const getLLMSuggestion = (
+  sentence: TxtSentenceNode,
+  alert: IAlert
+): IRequest => {
   return {
     url: createUrl(BASE_URL_API, 'v1.0/rephrase'),
     config: {
@@ -78,15 +81,15 @@ export const getLLMSuggestion = (sentence: TxtSentenceNode, alert: IAlert): IReq
       },
       body: sentence
         ? JSON.stringify({
-          sentence: sentence.raw,
-          text: alert.data.text,
-          start: alert.absOffset - sentence.range[0],
-          gender_separator: alert.data.gender_separator,
-          alternatives: alert.data.alternatives.filter(alt => !alt.remove),
-          lang: alert.data.language || "en"
-        })
+            sentence: sentence.raw,
+            text: alert.data.text,
+            start: alert.absOffset - sentence.range[0],
+            gender_separator: alert.data.gender_separator,
+            alternatives: alert.data.alternatives.filter((alt) => !alt.remove),
+            lang: alert.data.language || 'en',
+          })
         : null,
-      signal: AbortSignal.timeout(3000)
+      signal: AbortSignal.timeout(3000),
     },
   };
 };

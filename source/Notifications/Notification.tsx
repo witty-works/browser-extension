@@ -51,7 +51,8 @@ const Notification: React.FC<NotificationProps> = ({
       setFeatureFlags({
         salesDemoFlag: salesDemoFlag[StorageKeys.SALES_DEMO_FEATURE_FLAG],
         teamInviteFlag: teamInviteFlag[StorageKeys.INVITE_TEAM_FEATURE_FLAG],
-        friendInviteFlag: friendInviteFlag[StorageKeys.INVITE_FRIENDS_FEATURE_FLAG],
+        friendInviteFlag:
+          friendInviteFlag[StorageKeys.INVITE_FRIENDS_FEATURE_FLAG],
       });
     };
 
@@ -62,7 +63,10 @@ const Notification: React.FC<NotificationProps> = ({
   let notificationText = '';
   let notificationButton = '';
   let notificationLink = '';
-  const isFeatureFlagNotification = notificationType === 'salesDemo' || notificationType === 'inviteTeam' || notificationType === 'inviteFriends';
+  const isFeatureFlagNotification =
+    notificationType === 'salesDemo' ||
+    notificationType === 'inviteTeam' ||
+    notificationType === 'inviteFriends';
   const analytics = useAnalytics();
 
   switch (notificationType) {
@@ -126,7 +130,8 @@ const Notification: React.FC<NotificationProps> = ({
       notificationHeadline = t('minVersionNotInstalledNotificationHeadline');
       notificationText = t('minVersionNotInstalledNotificationText');
       notificationButton = t('minVersionNotInstalledNotificationButton');
-      notificationLink = 'https://www.witty.works/en/help/how-can-i-update-witty';
+      notificationLink =
+        'https://www.witty.works/en/help/how-can-i-update-witty';
       break;
     case 'trial_ended':
       notificationHeadline = t('trialEndedNotificationHeadline');
@@ -137,13 +142,18 @@ const Notification: React.FC<NotificationProps> = ({
   }
 
   return (
-    <div className="witty-works-notification-wrapper">
-      <div className="witty-works-ext-container-row witty-works-notification-headline-wrapper">
-        <div className="witty-works-notification-headline">{notificationHeadline}</div>
+    <div className='witty-works-notification-wrapper'>
+      <div className='witty-works-ext-container-row witty-works-notification-headline-wrapper'>
+        <div className='witty-works-notification-headline'>
+          {notificationHeadline}
+        </div>
         <CloseIcon
           onClick={() => {
-            const notificationWrapper = document.getElementsByClassName('witty-works-notification-wrapper')[0];
-            isFeatureFlagNotification && analytics.featureFlagLog(notificationType, false);
+            const notificationWrapper = document.getElementsByClassName(
+              'witty-works-notification-wrapper'
+            )[0];
+            isFeatureFlagNotification &&
+              analytics.featureFlagLog(notificationType, false);
             if (notificationWrapper) {
               notificationWrapper.remove();
             }
@@ -151,20 +161,25 @@ const Notification: React.FC<NotificationProps> = ({
           style={{ cursor: 'pointer', marginRight: '-1em' }}
         />
       </div>
-      <div className="witty-works-ext-container-row">
-        {notificationType === 'pin' && <WittyIcon className="witty-works-notification-icon" />}
-        <div className="witty-works-notification-text">
-          {notificationText} 
+      <div className='witty-works-ext-container-row'>
+        {notificationType === 'pin' && (
+          <WittyIcon className='witty-works-notification-icon' />
+        )}
+        <div className='witty-works-notification-text'>
+          {notificationText}
           {notificationButton && (
-            <div className="witty-works-ext-left">
+            <div className='witty-works-ext-left'>
               <div
-                className="witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top"
+                className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
                 onClick={() => {
                   window.open(notificationLink, '_blank');
-                  isFeatureFlagNotification && analytics.featureFlagLog(notificationType, true);
+                  isFeatureFlagNotification &&
+                    analytics.featureFlagLog(notificationType, true);
 
-                  //close notification once it has been clicked 
-                  const notificationWrapper = document.getElementsByClassName('witty-works-notification-wrapper')[0];
+                  //close notification once it has been clicked
+                  const notificationWrapper = document.getElementsByClassName(
+                    'witty-works-notification-wrapper'
+                  )[0];
                   if (notificationWrapper) {
                     notificationWrapper.remove();
                   }
@@ -178,9 +193,9 @@ const Notification: React.FC<NotificationProps> = ({
       </div>
       {notificationType === 'pin' && (
         <img
-          className="witty-works-pin-gif"
-          src="https://www.witty.works/hubfs/pin_witty-2.gif"
-          alt="pin-extension"
+          className='witty-works-pin-gif'
+          src='https://www.witty.works/hubfs/pin_witty-2.gif'
+          alt='pin-extension'
         />
       )}
     </div>

@@ -9,21 +9,30 @@ import {
   WTags,
 } from '../shared/constants';
 import defaultConfig from '../witty.config.json';
-import { getDomainWithoutSubdomain, makeAuthRequest, shouldInjectIntoWindow } from '../shared/utils';
+import {
+  getDomainWithoutSubdomain,
+  makeAuthRequest,
+  shouldInjectIntoWindow,
+} from '../shared/utils';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { customRender } from './utils';
 import { setBaseUrls } from '../shared/ApiServices/requests';
 import { v4 as uuidv4 } from 'uuid';
 import { isMicrosoftOnline } from '../shared/DOMutils';
 
-const handleDomainsFromDashboard = (newValue: string | string[], scriptId: string) => {
+const handleDomainsFromDashboard = (
+  newValue: string | string[],
+  scriptId: string
+) => {
   const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
-    const currentDomainOnList = newValue?.includes(currentDomain) 
-    customRender(!currentDomainOnList, scriptId);
-
+  const currentDomainOnList = newValue?.includes(currentDomain);
+  customRender(!currentDomainOnList, scriptId);
 };
 
-const storageChange = (changes: { [x: string]: Storage.StorageChange | { newValue: any; }; }, scriptId: string) => {
+const storageChange = (
+  changes: { [x: string]: Storage.StorageChange | { newValue: any } },
+  scriptId: string
+) => {
   const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
   const changedItems = Object.keys(changes);
 
@@ -35,8 +44,10 @@ const storageChange = (changes: { [x: string]: Storage.StorageChange | { newValu
     if (item === StorageKeys.ORGANIZATION_DOMAINS) {
       const orgDomains = changes[item].newValue;
       const isOnOrgDomainList =
-        (orgDomains?.type === 'deny' && orgDomains.list?.includes(currentDomain)) ||
-        (orgDomains?.type === 'allow' && !orgDomains.list?.includes(currentDomain));
+        (orgDomains?.type === 'deny' &&
+          orgDomains.list?.includes(currentDomain)) ||
+        (orgDomains?.type === 'allow' &&
+          !orgDomains.list?.includes(currentDomain));
       customRender(!isOnOrgDomainList, scriptId);
     }
   }
@@ -44,7 +55,10 @@ const storageChange = (changes: { [x: string]: Storage.StorageChange | { newValu
 
 const initialize = () => {
   const sentryDSN = defaultConfig.SENTRY_DSN;
-  const { SENTRY_SAMPLE_RATE: sentrySampleRate, SENTRY_TRACE_RATE: sentryTraceRate } = defaultConfig;
+  const {
+    SENTRY_SAMPLE_RATE: sentrySampleRate,
+    SENTRY_TRACE_RATE: sentryTraceRate,
+  } = defaultConfig;
   const domain = getDomainWithoutSubdomain(window.location.hostname);
   const scriptId = uuidv4();
 
@@ -55,40 +69,50 @@ const initialize = () => {
     wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
     wittyIsInstalledElement.setAttribute('extension-version', wittyVersion);
 
-    browser.storage.local.get(null).then((result) => {
-      const wittyPlan = result[StorageKeys.PLAN];
-      wittyIsInstalledElement.setAttribute('extension-plan', wittyPlan);
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        const wittyPlan = result[StorageKeys.PLAN];
+        wittyIsInstalledElement.setAttribute('extension-plan', wittyPlan);
 
-      const wittyTeam = result[StorageKeys.TEAM_NAME];
-      wittyIsInstalledElement.setAttribute('extension-team', wittyTeam);
+        const wittyTeam = result[StorageKeys.TEAM_NAME];
+        wittyIsInstalledElement.setAttribute('extension-team', wittyTeam);
 
-      const apiEndpoint = result[StorageKeys.API_ENDPOINT_KEY] || DefaultBaseUrlKey;
-      setBaseUrls(apiEndpoint);
+        const apiEndpoint =
+          result[StorageKeys.API_ENDPOINT_KEY] || DefaultBaseUrlKey;
+        setBaseUrls(apiEndpoint);
 
-      if (!result[StorageKeys.ACCESS_TOKEN]) {
-        const optionsPageUrl = browser.runtime.getURL('options.html');
-        const loginUrl = `${BaseUrls[apiEndpoint].dashboard}browser-login?redirect_uri=${optionsPageUrl}`;
-        wittyIsInstalledElement.setAttribute('login-url', loginUrl);
-      }
-    }).catch(sendErrorToSentry);
+        if (!result[StorageKeys.ACCESS_TOKEN]) {
+          const optionsPageUrl = browser.runtime.getURL('options.html');
+          const loginUrl = `${BaseUrls[apiEndpoint].dashboard}browser-login?redirect_uri=${optionsPageUrl}`;
+          wittyIsInstalledElement.setAttribute('login-url', loginUrl);
+        }
+      })
+      .catch(sendErrorToSentry);
   }
 
-  browser.storage.local.get(null).then((result) => {
-    const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
-    const isOnOrgDomainList =
-      (orgDomains?.type === 'deny' && orgDomains.list?.includes(domain)) ||
-      (orgDomains?.type === 'allow' && !orgDomains.list?.includes(domain));
+  browser.storage.local
+    .get(null)
+    .then((result) => {
+      const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
+      const isOnOrgDomainList =
+        (orgDomains?.type === 'deny' && orgDomains.list?.includes(domain)) ||
+        (orgDomains?.type === 'allow' && !orgDomains.list?.includes(domain));
 
-    const isOnPersonalDomainList = result[StorageKeys.DOMAINS]?.includes(domain);
-    const shouldDisable =
-      isOnOrgDomainList ||
-      isOnPersonalDomainList ||
-      defaultConfig.DISABLED_SITES.includes(domain) ||
-      isMicrosoftOnline(window.location.href);
-    customRender(!shouldDisable, scriptId);
-  }).catch(sendErrorToSentry);
+      const isOnPersonalDomainList =
+        result[StorageKeys.DOMAINS]?.includes(domain);
+      const shouldDisable =
+        isOnOrgDomainList ||
+        isOnPersonalDomainList ||
+        defaultConfig.DISABLED_SITES.includes(domain) ||
+        isMicrosoftOnline(window.location.href);
+      customRender(!shouldDisable, scriptId);
+    })
+    .catch(sendErrorToSentry);
 
-  browser.storage.onChanged.addListener((changes) => storageChange(changes, scriptId));
+  browser.storage.onChanged.addListener((changes) =>
+    storageChange(changes, scriptId)
+  );
   makeAuthRequest();
 
   const orphanMessageId = `${browser.runtime.id}orphanCheck`;
@@ -98,7 +122,9 @@ const initialize = () => {
   function unregisterOrphan() {
     if (!browser.runtime.id) {
       document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)?.remove();
-      browser.storage.onChanged.removeListener((changes) => storageChange(changes, scriptId));
+      browser.storage.onChanged.removeListener((changes) =>
+        storageChange(changes, scriptId)
+      );
       window.removeEventListener(orphanMessageId, unregisterOrphan);
     }
   }

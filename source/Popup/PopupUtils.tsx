@@ -7,25 +7,29 @@ import defaultConfig from '../witty.config.json';
 import { isMicrosoftOnline } from '../shared/DOMutils';
 import PopupUpgrade from './Popups/PopupUpgrade';
 
-  const container = document.getElementById('witty-works-ext-popup-root');
-  let root: null | Root = null;
-  if (container) {
-    root = createRoot(container);
-  }
+const container = document.getElementById('witty-works-ext-popup-root');
+let root: null | Root = null;
+if (container) {
+  root = createRoot(container);
+}
 
 export const renderUserNotLoggedIn = () => {
   root?.render(<PopupLogin />);
 };
 
 export const renderUpgradePopup = () => {
-  root?.render(<PopupUpgrade/>);
-}
+  root?.render(<PopupUpgrade />);
+};
 
 export const renderDomainDeactivated = (appId: string, domain: string) => {
   root?.render(<PopupDomainDeactivated appId={appId} domain={domain} />);
 };
 
-export const renderMainPopup = (appId: string, domain: string, isLocked: boolean) => {
+export const renderMainPopup = (
+  appId: string,
+  domain: string,
+  isLocked: boolean
+) => {
   root?.render(<Popup appId={appId} domain={domain} isLocked={isLocked} />);
 };
 
@@ -33,15 +37,14 @@ export const renderPopupChrome = (
   appId: string,
   domain: string,
   currentWindowUrl: string,
-  isLocked: boolean,
+  isLocked: boolean
 ) => {
-  if (defaultConfig.DISABLED_SITES.includes(domain) || isMicrosoftOnline(currentWindowUrl)) {
+  if (
+    defaultConfig.DISABLED_SITES.includes(domain) ||
+    isMicrosoftOnline(currentWindowUrl)
+  ) {
     renderDomainDeactivated(appId, domain);
   } else {
-    renderMainPopup(
-      appId,
-      domain,
-      isLocked
-    );
+    renderMainPopup(appId, domain, isLocked);
   }
 };

@@ -18,10 +18,7 @@ export const checkResponseOrgConfigPropertySchema: Schema = {
       ],
     },
     status: {
-      anyOf: [
-        { type: 'string' },
-        { type: 'null' },
-      ],
+      anyOf: [{ type: 'string' }, { type: 'null' }],
     },
   },
   required: ['value'],
@@ -61,7 +58,8 @@ export const checkResponseResultSchema: Schema = {
       type: 'integer',
     },
     alternatives: {
-      description: 'the list of alternative words to replace the problematic word',
+      description:
+        'the list of alternative words to replace the problematic word',
       type: 'array',
       items: {
         title: 'alternative',
@@ -182,7 +180,8 @@ export const llmAlternativesResponseSchema: Schema = {
       type: 'string',
     },
     results: {
-      description: 'Mapping of alternative phrase -> full sentence with that phrase',
+      description:
+        'Mapping of alternative phrase -> full sentence with that phrase',
       type: 'object',
       patternProperties: {
         '.*': { type: 'string' },
