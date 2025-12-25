@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { namespaces } from '../i18n/i18n.constants';
 // import Notification from '../Notifications/Notification'; //Temporarily removed until we have a better solution
 import TextAreaClone from './TextAreaClone';
+import renderNotificationToTop from '../Notifications/renderNotification';
 import { useLog, logTypes } from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
@@ -358,44 +359,63 @@ const Input: React.FC<{
       isGoogleDocs() &&
       !activeDocument.getElementById('witty-works-ext-popover')
     ) {
-      const alertsInRange = [] as IAlert[];
-      let selectedNode = {} as INodeWithAlerts;
-      const googleDocsElementCursorRect = activeDocument
-        .getElementById('kix-current-user-cursor-caret')
-        ?.getBoundingClientRect();
+      // Recalculate alert rects for Google Docs and pick alerts under the caret/click
+      const alertsInRange: IAlert[] = [];
+      let selectedNode: Node | null = null;
 
+      // Attempt to get a caret/selection rect for the current document
+      let googleDocsElementCursorRect: DOMRect | null = null;
+      try {
+        const sel = getActiveDocument().getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const selRange = sel.getRangeAt(0).cloneRange();
+          const selRects = selRange.getClientRects();
+          if (selRects && selRects.length > 0)
+            googleDocsElementCursorRect = selRects[0];
+        }
+      } catch (err) {
+        // ignore selection failures
+      }
+
+      // Recalculate rects for every alert where possible
       const updatedNodesWithAlerts = nodesWithAlertsRef.current.map(
         (nodeWithAlerts) => {
           const nodeWithAlertsRefWithUpdatedRects = {
             ...nodeWithAlerts,
             alerts: nodeWithAlerts.alerts.map((alert) => {
-              const range = activeDocument.createRange();
-              const nodeForRange =
-                nodeWithAlerts.node.nodeType === Node.TEXT_NODE
-                  ? nodeWithAlerts.node
-                  : nodeWithAlerts.node.childNodes[0];
-              if (
-                alert.startOffset > nodeForRange.length ||
-                alert.endOffset > nodeForRange.length ||
-                alert.startOffset < 0 ||
-                alert.endOffset < 0
-              ) {
+              try {
+                const range = getActiveDocument().createRange();
+                const nodeForRange =
+                  nodeWithAlerts.node &&
+                  nodeWithAlerts.node.nodeType === Node.TEXT_NODE
+                    ? nodeWithAlerts.node
+                    : nodeWithAlerts.node?.childNodes[0];
+                if (!nodeForRange) return alert;
+
+                if (
+                  alert.endOffset <= (nodeForRange.textContent || '').length &&
+                  alert.startOffset <= (nodeForRange.textContent || '').length
+                ) {
+                  range.selectNode(nodeForRange as Node);
+                  range.setStart(nodeForRange as Node, alert.startOffset);
+                  range.setEnd(nodeForRange as Node, alert.endOffset);
+                }
+                const rect = range.getClientRects()[0];
+                if (!rect) return alert;
+                return {
+                  ...alert,
+                  rect: {
+                    ...rect,
+                    width: rect.width,
+                    height: rect.height,
+                    left: rect.left,
+                    top: rect.top - elementScroll.top,
+                  },
+                };
+              } catch (error) {
+                sendErrorToSentry(error);
                 return alert;
               }
-              range.setStart(nodeForRange, alert.startOffset);
-              range.setEnd(nodeForRange, alert.endOffset);
-              const rect = range.getClientRects()[0];
-              if (!rect) return alert;
-              return {
-                ...alert,
-                rect: {
-                  ...rect,
-                  width: rect.width,
-                  height: rect.height,
-                  left: rect.left,
-                  top: rect.top - elementScroll.top,
-                },
-              };
             }),
           };
           return nodeWithAlertsRefWithUpdatedRects;
@@ -419,6 +439,7 @@ const Input: React.FC<{
             //get alert at alertRect
             const alert = node.alerts.find(
               (alert) =>
+                alert.rect &&
                 alert.rect.top === alertRect.top &&
                 alert.rect.left === alertRect.left
             );
@@ -443,7 +464,7 @@ const Input: React.FC<{
       ]?.alerts.findIndex((alert) => alert === selectedAlert);
 
       setSelectedNodeWithAlertsIndex(newSelectedNodeWithAlertsIndex);
-      setSelectedAlertIndex(newSelectedAlertIndex);
+      setSelectedAlertIndex(newSelectedAlertIndex ?? -1);
     }
   };
 
@@ -508,8 +529,25 @@ const Input: React.FC<{
       );
       const root = createRoot(notificationWrapper);
 
+      const close = () => {
+        try {
+          root.unmount();
+        } catch (err) {
+          // ignore
+        }
+        try {
+          notificationWrapper.remove();
+        } catch (err) {
+          // ignore
+        }
+      };
+
       root.render(
-        <Notification notificationType={'trial_ended'} element={element} />
+        <Notification
+          notificationType={'trial_ended'}
+          element={element}
+          onClose={close}
+        />
       );
     }
   }, [authResponse]);
@@ -689,18 +727,47 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
-    //make sure there is no popover lingering
-    const popoverContainers =
-      window.document.getElementsByTagName('ww-popover');
-    Array.from(popoverContainers).forEach((popoverContainer) => {
-      popoverContainer.remove();
-    });
-    event?.stopPropagation();
-    popoverDataRef.current !== null &&
-      (previousPopoverDataRef.current = popoverDataRef.current);
-    popoverDataRef.current = null;
-    popoverRootRef.current?.unmount();
+    // Unmount any React root and remove DOM on next tick to avoid
+    // 'synchronously unmount a root while React was already rendering' warnings.
+    const rootToUnmount = popoverRootRef.current;
     popoverRootRef.current = null;
+
+    // schedule unmount and DOM removal after current render completes
+    if (rootToUnmount) {
+      setTimeout(() => {
+        try {
+          rootToUnmount.unmount();
+        } catch (err) {
+          // ignore
+        }
+
+        try {
+          const popoverContainers =
+            window.document.getElementsByTagName('ww-popover');
+          Array.from(popoverContainers).forEach((popoverContainer) => {
+            popoverContainer.remove();
+          });
+        } catch (err) {
+          // ignore
+        }
+      }, 0);
+    } else {
+      // no root, still remove lingering containers synchronously
+      try {
+        const popoverContainers =
+          window.document.getElementsByTagName('ww-popover');
+        Array.from(popoverContainers).forEach((popoverContainer) => {
+          popoverContainer.remove();
+        });
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    event?.stopPropagation();
+    if (popoverDataRef.current !== null)
+      previousPopoverDataRef.current = popoverDataRef.current;
+    popoverDataRef.current = null;
     selectedAlertRef.current = null;
     setSelectedAlertIndex(-1);
   };
@@ -1476,21 +1543,7 @@ const Input: React.FC<{
     } else if (authErrorResponse?.status === 400 && window.top) {
       //400 means means min version not installed
       try {
-        const notificationWrapper = document.createElement('div');
-        notificationWrapper.id = 'ww-notification';
-
-        window.top.document.body.insertBefore(
-          notificationWrapper,
-          window.top.document.body.firstChild
-        );
-        const root = createRoot(notificationWrapper);
-
-        root.render(
-          <Notification
-            notificationType={'min_version_not_installed'}
-            element={element}
-          />
-        );
+        renderNotificationToTop('min_version_not_installed', element);
       } catch (error) {
         DEV_ENV && console.error('Error in renderNotification:', error);
       }

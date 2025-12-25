@@ -37,8 +37,7 @@ import {
   storeInLocalStorage,
 } from '../../shared/utils';
 import browser from 'webextension-polyfill';
-import { createRoot } from 'react-dom/client';
-import Notification from '../../Notifications/Notification';
+import { renderNotificationToTop } from '../../Notifications/renderNotification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import {
   createUrl,
@@ -259,18 +258,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     try {
       if (!window.top) return;
 
-      const notificationWrapper = document.createElement('div');
-      notificationWrapper.id = 'ww-notification';
-
-      window.top.document.body.insertBefore(
-        notificationWrapper,
-        window.top.document.body.firstChild
-      );
-      const root = createRoot(notificationWrapper);
-
-      root.render(
-        <Notification notificationType={notificationType} element={element} />
-      );
+      // centralized render helper
+      renderNotificationToTop(notificationType, element);
     } catch (error) {
       DEV_ENV && console.error('Error in renderNotification:', error);
     }

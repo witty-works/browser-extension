@@ -40,7 +40,7 @@ import {
   getDomainWithoutSubdomain,
   storeInLocalStorage,
 } from '../shared/utils';
-import Notification from '../Notifications/Notification';
+import renderNotificationToTop from '../Notifications/renderNotification';
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
   z-index: 2147483647 !important;
@@ -188,13 +188,7 @@ const ContentScriptApp: React.FC = () => {
         window.top.document.body.firstChild
       );
 
-      const root = createRoot(notificationWrapper);
-      root.render(
-        <Notification
-          notificationType={notificationType}
-          element={elementRef.current}
-        />
-      );
+      renderNotificationToTop(notificationType, elementRef.current);
     } catch (error) {
       DEV_ENV && console.error('Error in renderNotification:', error);
     }
@@ -324,6 +318,11 @@ const ContentScriptApp: React.FC = () => {
       );
 
       const root = createRoot(hoveredIndicatorContainer);
+      try {
+        (hoveredIndicatorContainer as any).__wittyRoot = root;
+      } catch (err) {
+        // ignore
+      }
       root.render(
         <StateIndicatorIcon
           element={
@@ -340,12 +339,21 @@ const ContentScriptApp: React.FC = () => {
     }
   }, [hoveredElementRef.current]);
 
-  const removeAllHoverIndicators = () => {
+  const removeAllHoverIndicators = async () => {
     const indicatorElements = getActiveDocument().querySelectorAll(
       WTags.WW_MOUSEOVER_INDICATOR
     );
     for (let element of indicatorElements) {
-      element.remove();
+      try {
+        const { safeUnmountAndRemove } = await import('./utils');
+        safeUnmountAndRemove(element as HTMLElement);
+      } catch (err) {
+        try {
+          element.remove();
+        } catch (err2) {
+          // ignore
+        }
+      }
     }
   };
   const handleNewInput = () => {
@@ -420,6 +428,11 @@ const ContentScriptApp: React.FC = () => {
               }
               elementRef.current = input;
               const root = createRoot(highlightsContainer);
+              try {
+                (shadowHost as any).__wittyRoot = root;
+              } catch (err) {
+                // ignore
+              }
               root.render(<Input element={input} />);
 
               addedInputsMap.set(input, shadowHost);
@@ -434,12 +447,21 @@ const ContentScriptApp: React.FC = () => {
       });
   };
 
-  const removeOldInput = (container: HTMLElement | undefined) => {
+  const removeOldInput = async (container: HTMLElement | undefined) => {
     if (!container) {
       return;
     }
     if (container.parentNode?.contains(container)) {
-      container.parentNode.removeChild(container);
+      try {
+        const { safeUnmountAndRemove } = await import('./utils');
+        safeUnmountAndRemove(container as HTMLElement);
+      } catch (err) {
+        try {
+          container.parentNode.removeChild(container);
+        } catch (err2) {
+          // ignore
+        }
+      }
     }
   };
 

@@ -15,11 +15,13 @@ import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 interface NotificationProps {
   notificationType: string;
   element: CustomInputElement | null;
+  onClose?: () => void;
 }
 
 const Notification: React.FC<NotificationProps> = ({
   notificationType,
   element,
+  onClose,
 }: NotificationProps) => {
   const { t } = useTranslation(namespaces.notifications);
   const totalTextLength = element
@@ -149,13 +151,17 @@ const Notification: React.FC<NotificationProps> = ({
         </div>
         <CloseIcon
           onClick={() => {
-            const notificationWrapper = document.getElementsByClassName(
-              'witty-works-notification-wrapper'
-            )[0];
             isFeatureFlagNotification &&
               analytics.featureFlagLog(notificationType, false);
-            if (notificationWrapper) {
-              notificationWrapper.remove();
+            if (typeof onClose === 'function') {
+              onClose();
+            } else {
+              const notificationWrapper = document.getElementsByClassName(
+                'witty-works-notification-wrapper'
+              )[0];
+              if (notificationWrapper) {
+                notificationWrapper.remove();
+              }
             }
           }}
           style={{ cursor: 'pointer', marginRight: '-1em' }}
@@ -177,11 +183,15 @@ const Notification: React.FC<NotificationProps> = ({
                     analytics.featureFlagLog(notificationType, true);
 
                   //close notification once it has been clicked
-                  const notificationWrapper = document.getElementsByClassName(
-                    'witty-works-notification-wrapper'
-                  )[0];
-                  if (notificationWrapper) {
-                    notificationWrapper.remove();
+                  if (typeof onClose === 'function') {
+                    onClose();
+                  } else {
+                    const notificationWrapper = document.getElementsByClassName(
+                      'witty-works-notification-wrapper'
+                    )[0];
+                    if (notificationWrapper) {
+                      notificationWrapper.remove();
+                    }
                   }
                 }}
               >

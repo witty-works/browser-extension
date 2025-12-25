@@ -120,9 +120,21 @@ const initialize = () => {
   window.dispatchEvent(new Event(orphanMessageId));
   window?.addEventListener(orphanMessageId, unregisterOrphan);
 
-  function unregisterOrphan() {
+  async function unregisterOrphan() {
     if (!browser.runtime.id) {
-      document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`)?.remove();
+      const el = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
+      if (el) {
+        try {
+          const { safeUnmountAndRemove } = await import('./utils');
+          safeUnmountAndRemove(el as HTMLElement);
+        } catch (err) {
+          try {
+            el.remove();
+          } catch (err2) {
+            // ignore
+          }
+        }
+      }
       browser.storage.onChanged.removeListener((changes) =>
         storageChange(changes, scriptId)
       );

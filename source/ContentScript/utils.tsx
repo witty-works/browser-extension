@@ -52,7 +52,27 @@ export const customRender = (enabled: boolean, scriptId: string) => {
   }
 
   if (scriptPopoverElement) {
+    // If we've previously created a root for this element, unmount it first
+    const existingRoot = (scriptPopoverElement as any).__wittyRoot;
+    if (existingRoot && typeof existingRoot.unmount === 'function') {
+      try {
+        existingRoot.unmount();
+      } catch (err) {
+        // ignore
+      }
+      try {
+        delete (scriptPopoverElement as any).__wittyRoot;
+      } catch (err) {
+        // ignore
+      }
+    }
+
     const root = createRoot(scriptPopoverElement);
+    try {
+      (scriptPopoverElement as any).__wittyRoot = root;
+    } catch (err) {
+      // ignore
+    }
     root.render(enabled ? <ContentScriptApp /> : <></>);
   }
 
@@ -62,7 +82,7 @@ export const customRender = (enabled: boolean, scriptId: string) => {
   );
   if (containers) {
     for (let i = enabled ? 1 : 0; i < containers.length; i++) {
-      containers[i].remove();
+      safeUnmountAndRemove(containers[i] as HTMLElement);
     }
   }
 };
@@ -72,6 +92,27 @@ export const removeHTMLTags = (htmlString: string) => {
   const doc = parser.parseFromString(htmlString, 'text/html');
   const textContent = doc.body.textContent ?? '';
   return textContent.trim();
+};
+
+export const safeUnmountAndRemove = (el: HTMLElement | null | undefined) => {
+  if (!el) return;
+  try {
+    const root = (el as any).__wittyRoot;
+    if (root && typeof root.unmount === 'function') {
+      try {
+        root.unmount();
+      } catch (err) {
+        // ignore
+      }
+    }
+  } catch (err) {
+    // ignore
+  }
+  try {
+    el.remove();
+  } catch (err) {
+    // ignore
+  }
 };
 
 export const getFirstTextDiff = (
