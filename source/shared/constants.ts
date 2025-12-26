@@ -14,7 +14,6 @@ export enum StorageKeys {
   APP_ID = 'id',
 
   ORTHOGRAPHY = 'spellChecking',
-  CASING_SITES = 'casingSites',
 
   ACCESS_TOKEN = 'accessToken',
   REFRESH_TOKEN = 'refreshToken',

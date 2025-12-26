@@ -242,7 +242,7 @@ const Input: React.FC<{
             ? defaultConfig.API_DELAY
             : defaultConfig.API_DELAY_FREEMIUM
         );
-        elementSpellcheckRef.current = result[StorageKeys.ORTHOGRAPHY]?.value;
+        elementSpellcheckRef.current = !!result[StorageKeys.ORTHOGRAPHY];
         const domain = getDomainWithoutSubdomain(window.location.hostname);
         domain &&
           result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS] &&
