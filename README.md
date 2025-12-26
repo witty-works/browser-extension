@@ -67,6 +67,35 @@ Example `source/witty.config.json` snippet:
 }
 ```
 
+## Configuration settings (`source/witty.config.json`)
+
+The extension reads runtime defaults from `source/witty.config.json`. Key settings you may want to tune during local development or testing:
+
+- **DISABLED_SITES**: array of domain substrings where Witty should not inject. Useful to disable on known incompatible sites.
+- **CHROME_AND_FIREFOX_SITES**: internal URL prefixes that should be ignored.
+- **ORTHOGRAPHY**: boolean — enable orthography checks (true/false).
+- **SENTRY_DSN** / **SENTRY_SAMPLE_RATE** / **SENTRY_TRACE_RATE**: Sentry configuration for error reporting and sampling.
+- **API_DELAY** / **API_DELAY_FREEMIUM**: milliseconds to delay calls to the NLP API (useful to throttle during typing).
+- **ACCESS_TOKEN**: optional static bearer token. If present it will be used where an OAuth token is expected (should be empty for API-key mode)
+- **REFRESH_TOKEN**: optional refresh token (should be empty for API-key mode).
+- **REPHRASE_ENABLED**: boolean — enable or disable the rephrase feature in the UI.
+- **X_KEY**: optional static API key. If present the extension will send `x-key: <value>` on API requests and will avoid refresh/token flows. Treat as a secret.
+- **MAX_CHAR_LENGTH_REQUEST_FREEMIUM** / **MAX_CHAR_LENGTH_TOTAL_FREEMIUM** / **MAX_CHAR_LENGTH_REQUEST_PREMIUM** / **MIN_CHAR_LENGTH**: character limits for requests and thresholds used to split or skip long texts.
+- **MAX_POSTHOG_LOG_EVENTS** / **POSTHOG_ENABLED**: analytics configuration for PostHog.
+
+- **Runtime-writable keys (notes)**:
+  - `ORTHOGRAPHY`: written when the app fetches organization config from the server — see [source/shared/utils.ts](source/shared/utils.ts#L360-L386).
+  - `API_DELAY`: user-changeable via the popup Delay selector (writes to storage). See [source/Popup/PopupComponents/DelaySelector.tsx](source/Popup/PopupComponents/DelaySelector.tsx#L26).
+  - `ACCESS_TOKEN` / `REFRESH_TOKEN`: written/cleared by auth flows and logout. See [source/shared/utils.ts](source/shared/utils.ts#L320-L340) and [source/Background/index.tsx](source/Background/index.tsx#L347-L348).
+  - Telemetry counters: `DAILY_POSTHOG_EVENTS_USED` and `LAST_CHECK_EVENT_TIME` are updated at runtime by analytics code. See [source/shared/ApiServices/analyticsUtils.ts](source/shared/ApiServices/analyticsUtils.ts#L31-L40).
+  - Other server-populated keys (written at runtime): `DOMAINS`, `ORGANIZATION_DOMAINS`, `PLAN`, `USER_ID`, `CONFIG_HASH`, `LLM_ALTERNATIVES`, etc. See [source/shared/utils.ts](source/shared/utils.ts#L360-L386).
+
+Notes:
+
+- Use `X_KEY` for simple test setups or CI where a single static key is acceptable; prefer running the local NLP API and selecting its endpoint via the Popup `ApiSelector` for iteration.
+- Never commit production `X_KEY`, `ACCESS_TOKEN`, or any secret to source control. Use environment-backed secrets or local `.env` files for CI/test fixtures.
+- To quickly toggle features like `REPHRASE_ENABLED`, edit `source/witty.config.json` and restart the dev build (`npm run dev:chrome` or rebuild).
+
 ## Load the extension in the browser
 
 Either you run the Development or Production scripts, it is build inside `extension/BROWSER` folder. Just follow the different instructions depending on the browser
@@ -77,6 +106,39 @@ Either you run the Development or Production scripts, it is build inside `extens
 - Check the `Developer Mode` button to enable it.
 - Click on the `Load Unpacked Extension…` button.
 - Select your extension’s extracted directory.
+
+## Local development — Chrome (quick guide)
+
+This section explains how to run the extension locally during development and connect it to a locally-running NLP API backend.
+
+- Prerequisites: Node.js 18+, npm, and a local copy of the NLP API (see below).
+- Install dependencies:
+
+```bash
+npm install
+```
+
+- Start the dev build for Chrome (webpack will watch and rebuild on changes):
+
+```bash
+npm run dev:chrome
+```
+
+- Open Chrome and go to `chrome://extensions` → enable `Developer mode` → `Load unpacked` and point to the build output directory. The development build is emitted into the extension folder for the chosen browser, e.g. `extension/chrome` (or `extension/BROWSER` if you use a different target).
+
+- Configure the NLP API backend:
+
+  - Option A (recommended for fast iteration): run the NLP API locally and select the `Local` API endpoint in the extension popup's Development Settings (`ApiSelector`). The extension stores your choice in browser local storage under the `apiEndpoint` key and will use the selected base URL for requests.
+  - Option B (static API key): if you prefer using a static API key, set `X_KEY` in `source/witty.config.json` and rebuild (`npm run build:chrome` or `npm run dev:chrome`). This will attach the `x-key: <value>` header to requests.
+
+- Running a local NLP API server: clone the NLP API repository referenced in this project (https://github.com/witty-works/nlp_api) and follow its README to start the server locally. Note the server base URL (for example `http://localhost:8000`) and select the matching API endpoint in the extension popup.
+
+- Useful tips:
+  - When using `npm run dev:chrome`, webpack writes updated bundles on each save; reload the extension in `chrome://extensions` (or enable extension auto-reload tooling) to pick up the latest build.
+  - To test API-key mode without rebuilding, you can temporarily update the `apiEndpoint` via the popup `ApiSelector` and use an endpoint that accepts a test key; however `X_KEY` in `witty.config.json` requires rebuilding to take effect.
+  - Check the browser console & background logs (via the extension's service worker or background page) for `/v2.0/auth` and `/v2.4/check` requests when troubleshooting connectivity.
+
+If you need a sample `X_KEY` for local testing, add it to `source/witty.config.json` as shown in the `X_KEY` section above — but never commit production keys to source control.
 
 ### Firefox
 
