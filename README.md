@@ -59,21 +59,6 @@ You can several options:
 
 If you don't want to use `package.json` version, you can disable the option [here](https://github.com/abhijithvijayan/web-extension-starter/blob/e10158c4a49948dea9fdca06592876d9ca04e028/webpack.config.js#L79).
 
-## X_KEY
-
-- **Purpose:** `X_KEY` is an optional static API key that the extension can send in the `x-key` HTTP header instead of using an OAuth-style `access_token`. This is useful for simple testing setups or deployments where a single static key is sufficient for authentication.
-- **Where to configure:** set the key in `source/witty.config.json` (the `X_KEY` field).
-- **Behavior:** when `X_KEY` is present the code will attach `x-key: <value>` to outbound API requests (see `source/shared/ApiServices/requests.ts`) and some token refresh logic will be skipped (see `source/shared/utils.ts`). The popup UI also treats `X_KEY` as a valid sign-in indicator.
-- **Security:** treat `X_KEY` like any secret — do not commit production keys to public repositories. Prefer environment-backed secrets or proper OAuth flows for production deployments.
-
-Example `source/witty.config.json` snippet:
-
-```json
-{
-  "X_KEY": "your-api-key-here"
-}
-```
-
 ## Configuration settings (`source/witty.config.json`)
 
 The extension reads runtime defaults from `source/witty.config.json`. Key settings you may want to tune during local development or testing:
@@ -84,8 +69,35 @@ The extension reads runtime defaults from `source/witty.config.json`. Key settin
 - Telemetry counters: `DAILY_POSTHOG_EVENTS_USED` and `LAST_CHECK_EVENT_TIME` are updated at runtime by analytics code. See [source/shared/ApiServices/analyticsUtils.ts](source/shared/ApiServices/analyticsUtils.ts#L31-L40).
 - Other server-populated keys (written at runtime): `DOMAINS`, `ORGANIZATION_DOMAINS`, `PLAN`, `USER_ID`, `CONFIG_HASH`, `LLM_ALTERNATIVES`, etc. See [source/shared/utils.ts](source/shared/utils.ts#L360-L386).
 
+- `X_KEY`: optional static API key — when set the extension will attach `x-key: <value>` to outbound API requests and skip token/refresh flows; see the `X_KEY` section below for example and security notes.
+
 - `BASE_URLS`: object — choose which set of API/dashboard/PostHog endpoints the extension uses (Prod/Dev/Local). See the "Base URLs configuration (BASE_URLS)" section below for structure and examples.
 - `EXPOSE_WITTY_ID_ALLOW_LIST`: object — domains where the extension exposes its `extension-team`/`extension-id` attributes for development. See the "Expose Witty ID allow list (EXPOSE_WITTY_ID_ALLOW_LIST)" section below for structure and examples.
+
+**Authentication**
+
+The extension supports two modes:
+
+- API key (`X_KEY`): add `X_KEY` to `source/witty.config.json` to send `x-key: <value>` on requests. This is convenient for simple tests or CI; it bypasses token refresh and may purge stored `ACCESS_TOKEN`/`REFRESH_TOKEN`.
+
+- OAuth tokens (`ACCESS_TOKEN` / `REFRESH_TOKEN`): normal sign-in obtains per-user bearer tokens. When present the extension sends `Authorization: Bearer <access_token>` and will attempt refresh using `REFRESH_TOKEN` if needed.
+
+Security note: never commit production `X_KEY`, `ACCESS_TOKEN`, or `REFRESH_TOKEN`; prefer environment-backed secrets.
+
+Example snippets (local testing only):
+
+```json
+{ "X_KEY": "your-api-key-here" }
+```
+
+or
+
+```json
+{
+  "ACCESS_TOKEN": "your-static-access-token",
+  "REFRESH_TOKEN": "your-static-refresh-token"
+}
+```
 
 **Base URLs configuration (`BASE_URLS`)**
 
