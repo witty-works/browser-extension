@@ -1,4 +1,6 @@
 import browser from 'webextension-polyfill';
+import defaultConfig from '../witty.config.json';
+
 export const wittyVersion = browser.runtime.getManifest().version;
 
 //Development
@@ -67,26 +69,8 @@ interface IBaseUrls {
   [key: string]: BaseUrl;
 }
 
-export const BaseUrls: IBaseUrls = {
-  Prod: {
-    api: 'https://default.api.witty.works/',
-    dashboard: 'https://dashboard.witty.works/',
-    posthog_url: 'https://eu.posthog.com',
-    posthog_key: 'phc_i1tlvuh1iecIOSEr0QmTEIklrsSJGhULpUwUlf8fkkl',
-  },
-  Dev: {
-    api: 'https://dev-54ta5gq-jyeciedibdzvq.fr-4.platformsh.site/',
-    dashboard: 'https://dev-54ta5gq-56xlfiudba6c2.fr-4.platformsh.site/',
-    posthog_url: 'https://app.posthog.com',
-    posthog_key: 'phc_QiISRw0yFAsndXqYD0HmfGvHaOBMxb57ZRIxlimvR64',
-  },
-  Local: {
-    api: 'http://127.0.0.1:8000/',
-    dashboard: 'https://dashboard.lndo.site/',
-    posthog_url: 'https://app.posthog.com',
-    posthog_key: 'phc_QiISRw0yFAsndXqYD0HmfGvHaOBMxb57ZRIxlimvR64',
-  },
-};
+export const BaseUrls: IBaseUrls =
+  defaultConfig.BASE_URLS as unknown as IBaseUrls;
 
 export const DefaultBaseUrlKey = 'Local';
 
@@ -213,5 +197,5 @@ export const dropdownOptions = [
 ];
 
 export const exposeWittyIdAllowList = DEV_ENV
-  ? ['lndo.site', 'platformsh.site', 'witty.works']
-  : ['witty.works'];
+  ? defaultConfig.EXPOSE_WITTY_ID_ALLOW_LIST?.dev
+  : defaultConfig.EXPOSE_WITTY_ID_ALLOW_LIST?.prod;

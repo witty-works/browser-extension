@@ -29,6 +29,13 @@ Ensure you are using node 18+
 
 Run `npm install` to install dependencies.
 
+Before running or building the extension, copy the example config and customize it for your environment:
+
+```bash
+cp source/witty.config.json.example source/witty.config.json
+# then edit source/witty.config.json to set `api.endpoint`, feature flags etc.
+```
+
 ## Development
 
 From inside the directory, start the development server depending on the browser you are using
@@ -71,24 +78,43 @@ Example `source/witty.config.json` snippet:
 
 The extension reads runtime defaults from `source/witty.config.json`. Key settings you may want to tune during local development or testing:
 
-- **DISABLED_SITES**: array of domain substrings where Witty should not inject. Useful to disable on known incompatible sites.
-- **CHROME_AND_FIREFOX_SITES**: internal URL prefixes that should be ignored.
-- **ORTHOGRAPHY**: boolean — enable orthography checks (true/false).
-- **SENTRY_DSN** / **SENTRY_SAMPLE_RATE** / **SENTRY_TRACE_RATE**: Sentry configuration for error reporting and sampling.
-- **API_DELAY** / **API_DELAY_FREEMIUM**: milliseconds to delay calls to the NLP API (useful to throttle during typing).
-- **ACCESS_TOKEN**: optional static bearer token. If present it will be used where an OAuth token is expected (should be empty for API-key mode)
-- **REFRESH_TOKEN**: optional refresh token (should be empty for API-key mode).
-- **REPHRASE_ENABLED**: boolean — enable or disable the rephrase feature in the UI.
-- **X_KEY**: optional static API key. If present the extension will send `x-key: <value>` on API requests and will avoid refresh/token flows. Treat as a secret.
-- **MAX_CHAR_LENGTH_REQUEST_FREEMIUM** / **MAX_CHAR_LENGTH_TOTAL_FREEMIUM** / **MAX_CHAR_LENGTH_REQUEST_PREMIUM** / **MIN_CHAR_LENGTH**: character limits for requests and thresholds used to split or skip long texts.
-- **MAX_POSTHOG_LOG_EVENTS** / **POSTHOG_ENABLED**: analytics configuration for PostHog.
+- `ORTHOGRAPHY`: written when the app fetches organization config from the server — see [source/shared/utils.ts](source/shared/utils.ts#L360-L386).
+- `API_DELAY`: user-changeable via the popup Delay selector (writes to storage). See [source/Popup/PopupComponents/DelaySelector.tsx](source/Popup/PopupComponents/DelaySelector.tsx#L26).
+- `ACCESS_TOKEN` / `REFRESH_TOKEN`: written/cleared by auth flows and logout. See [source/shared/utils.ts](source/shared/utils.ts#L320-L340) and [source/Background/index.tsx](source/Background/index.tsx#L347-L348).
+- Telemetry counters: `DAILY_POSTHOG_EVENTS_USED` and `LAST_CHECK_EVENT_TIME` are updated at runtime by analytics code. See [source/shared/ApiServices/analyticsUtils.ts](source/shared/ApiServices/analyticsUtils.ts#L31-L40).
+- Other server-populated keys (written at runtime): `DOMAINS`, `ORGANIZATION_DOMAINS`, `PLAN`, `USER_ID`, `CONFIG_HASH`, `LLM_ALTERNATIVES`, etc. See [source/shared/utils.ts](source/shared/utils.ts#L360-L386).
 
-- **Runtime-writable keys (notes)**:
-  - `ORTHOGRAPHY`: written when the app fetches organization config from the server — see [source/shared/utils.ts](source/shared/utils.ts#L360-L386).
-  - `API_DELAY`: user-changeable via the popup Delay selector (writes to storage). See [source/Popup/PopupComponents/DelaySelector.tsx](source/Popup/PopupComponents/DelaySelector.tsx#L26).
-  - `ACCESS_TOKEN` / `REFRESH_TOKEN`: written/cleared by auth flows and logout. See [source/shared/utils.ts](source/shared/utils.ts#L320-L340) and [source/Background/index.tsx](source/Background/index.tsx#L347-L348).
-  - Telemetry counters: `DAILY_POSTHOG_EVENTS_USED` and `LAST_CHECK_EVENT_TIME` are updated at runtime by analytics code. See [source/shared/ApiServices/analyticsUtils.ts](source/shared/ApiServices/analyticsUtils.ts#L31-L40).
-  - Other server-populated keys (written at runtime): `DOMAINS`, `ORGANIZATION_DOMAINS`, `PLAN`, `USER_ID`, `CONFIG_HASH`, `LLM_ALTERNATIVES`, etc. See [source/shared/utils.ts](source/shared/utils.ts#L360-L386).
+- `BASE_URLS`: object — choose which set of API/dashboard/PostHog endpoints the extension uses (Prod/Dev/Local). See the "Base URLs configuration (BASE_URLS)" section below for structure and examples.
+- `EXPOSE_WITTY_ID_ALLOW_LIST`: object — domains where the extension exposes its `extension-team`/`extension-id` attributes for development. See the "Expose Witty ID allow list (EXPOSE_WITTY_ID_ALLOW_LIST)" section below for structure and examples.
+
+**Base URLs configuration (`BASE_URLS`)**
+
+The extension looks up API and dashboard base URLs from the `BASE_URLS` config object when it boots. This allows switching the target API (Prod/Dev/Local) at build time without changing source code.
+
+Structure (in `source/witty.config.json`):
+
+```json
+"BASE_URLS": {
+  "Prod": { "api": "https://api.example.com/", "dashboard": "https://dashboard.example.com/", "posthog_url": "https://app.posthog.com", "posthog_key": "..." },
+  "Dev": { "api": "https://dev.api.example.com/", "dashboard": "https://dev.dashboard.example.com/", "posthog_url": "https://app.posthog.com", "posthog_key": "..." },
+  "Local": { "api": "http://127.0.0.1:8000/", "dashboard": "https://dashboard.lndo.site/", "posthog_url": "https://app.posthog.com", "posthog_key": "..." }
+}
+```
+
+`source/shared/constants.ts` reads `defaultConfig.BASE_URLS` (the uppercase `BASE_URLS` key) and falls back to compiled defaults if the key is missing. See [source/shared/constants.ts](source/shared/constants.ts) for implementation.
+
+**Expose Witty ID allow list (`EXPOSE_WITTY_ID_ALLOW_LIST`)**
+
+Use this config to control which domains the extension exposes its `extension-team`/`extension-id` attributes for development purposes. The key is expected to be present at build time (in `source/witty.config.json`) and is read by `source/shared/constants.ts`. If the key is missing, the code will not expose the attributes.
+
+Structure example:
+
+```json
+"EXPOSE_WITTY_ID_ALLOW_LIST": {
+  "dev": ["lndo.site", "platformsh.site", "witty.works"],
+  "prod": ["witty.works"]
+}
+```
 
 Notes:
 

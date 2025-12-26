@@ -63,6 +63,12 @@ jobs:
         run: |
           npm ci
 
+      - name: Copy example config if missing
+        run: |
+          if [ -f source/witty.config.json.example ] && [ ! -f source/witty.config.json ]; then
+            cp source/witty.config.json.example source/witty.config.json
+          fi
+
       - name: Build Prod Firefox artifacts
         run: |
           npm run build:firefox-with-sourcemaps

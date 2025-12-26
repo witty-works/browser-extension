@@ -22,6 +22,12 @@ jobs:
           sed 's/export const TESTING = false;/export const TESTING = true;/' source/shared/constants.ts > constants.ts
           mv constants.ts source/shared/constants.ts
 
+      - name: Copy example config if missing
+        run: |
+          if [ -f source/witty.config.json.example ] && [ ! -f source/witty.config.json ]; then
+            cp source/witty.config.json.example source/witty.config.json
+          fi
+
       - name: Build artifacts
         run: npm run build:chrome
 

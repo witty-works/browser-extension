@@ -66,7 +66,10 @@ const initialize = () => {
   const wittyIsInstalledElement = document.createElement('witty-is-installed');
   document.body.appendChild(wittyIsInstalledElement);
 
-  if (exposeWittyIdAllowList.includes(domain)) {
+  if (
+    Array.isArray(exposeWittyIdAllowList) &&
+    exposeWittyIdAllowList.includes(domain)
+  ) {
     wittyIsInstalledElement.setAttribute('extension-id', browser.runtime.id);
     wittyIsInstalledElement.setAttribute('extension-version', wittyVersion);
 
