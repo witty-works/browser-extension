@@ -255,6 +255,14 @@ const setSettings = () => {
   for (let [defaultConfigKey, defaultConfigValue] of Object.entries(
     defaultConfig
   )) {
+    // If an X_KEY is configured, do not persist OAuth tokens from the config
+    if (
+      defaultConfig.X_KEY &&
+      (defaultConfigKey === 'ACCESS_TOKEN' ||
+        defaultConfigKey === 'REFRESH_TOKEN')
+    ) {
+      continue;
+    }
     if (defaultConfigKey in StorageKeys) {
       const storageKey =
         StorageKeys[defaultConfigKey as keyof typeof StorageKeys];
@@ -332,6 +340,16 @@ const storageChange = (changes: { [key: string]: any }) => {
     }
   });
 };
+// If an X_KEY is configured, purge any stored OAuth tokens and ensure runtime
+// token state doesn't conflict with API-key mode.
+if (defaultConfig && defaultConfig.X_KEY) {
+  try {
+    storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
+    storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
+  } catch (e) {
+    sendErrorToSentry(e as Error);
+  }
+}
 
 addEventListeners();
 //TODO Remove Listeners

@@ -269,6 +269,19 @@ const Popup: React.FC<PopupProps> = ({
       ) : (
         <PopupHeader appId={appId} />
       )}
+      {defaultConfig && defaultConfig.X_KEY && authErrorResponse && (
+        <div className='witty-works-ext-section'>
+          <div
+            className='witty-works-ext-lato-popover-text'
+            style={{ color: '#E6635A' }}
+          >
+            {t('apiKeyAuthFailed', {
+              status: authErrorResponse.status,
+              message: authErrorResponse.message,
+            })}
+          </div>
+        </div>
+      )}
       <div className='witty-works-ext-section'>
         {domainExists && (
           <>

@@ -62,6 +62,10 @@ export const de = {
     upgradeButton: 'Upgrade',
     checkLicenseButton: 'Lizenz Überprüfen',
     beta: 'Beta',
+    apiKeyConfiguredNotice:
+      'API Key konfiguriert — keine Anmeldung erforderlich.',
+    apiKeyAuthFailed:
+      'API Key Authentifizierung fehlgeschlagen ({{status}}): {{message}} — überprüfe den API Key oder Endpunkt.',
   },
   [namespaces.popover]: {
     insteadTry: "Wie wär's mit ...",
@@ -103,6 +107,8 @@ export const de = {
     ignoreOnce: 'Einmal ignorieren',
     ignorePermanently: 'Für immer ignorieren',
     failedRequestText: 'Bitte erneut probieren',
+    apiKeyConfiguredNotice:
+      'API Key konfiguriert — keine Anmeldung erforderlich.',
     lockedByAdmin: '',
   },
   [namespaces.iconController]: {
@@ -192,6 +198,9 @@ export const en = {
     upgradeButton: 'Upgrade',
     checkLicenseButton: 'Check License',
     beta: 'Beta',
+    apiKeyConfiguredNotice: 'API key configured — no sign-in required.',
+    apiKeyAuthFailed:
+      'API key authentication failed ({{status}}): {{message}} — check your API key or endpoint.',
   },
 
   [namespaces.popover]: {
@@ -234,6 +243,7 @@ export const en = {
     ignoreOnce: 'Ignore once',
     ignorePermanently: 'Ignore permanently',
     failedRequestText: 'Failed, please try again',
+    apiKeyConfiguredNotice: 'API key configured — no sign-in required.',
     lockedByAdmin: '',
   },
   [namespaces.errors]: {
@@ -332,6 +342,9 @@ export const fr = {
     upgradeButton: 'Mise à niveau',
     checkLicenseButton: 'Vérifier la licence',
     beta: 'Bêta',
+    apiKeyConfiguredNotice: 'Clé API configurée — aucune connexion requise.',
+    apiKeyAuthFailed:
+      "Échec de l'authentification de la clé API ({{status}}) : {{message}} — vérifiez votre clé API ou le point de terminaison.",
   },
   [namespaces.popover]: {
     insteadTry: 'Essayez plutôt ...',
@@ -375,6 +388,7 @@ export const fr = {
     ignoreOnce: 'Ignorer une fois',
     ignorePermanently: 'Ignorer définitivement',
     failedRequestText: 'Échec, veuillez réessayer',
+    apiKeyConfiguredNotice: 'Clé API configurée — aucune connexion requise.',
     lockedByAdmin: '',
   },
   [namespaces.errors]: {

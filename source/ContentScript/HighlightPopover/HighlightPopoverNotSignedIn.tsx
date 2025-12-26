@@ -25,6 +25,7 @@ import { setBaseUrls } from '../../shared/ApiServices/requests';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import defaultConfig from '../../witty.config.json';
 
 export interface PopoverData {
   index: number;
@@ -101,6 +102,30 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   useEffect(() => {
     setBaseUrls(urls);
   }, [urls]);
+
+  // If X_KEY is configured, don't show sign-in flow in popovers
+  if (defaultConfig && defaultConfig.X_KEY) {
+    return (
+      <div id='witty-works-ext-popover'>
+        <div
+          id='witty-works-ext-popover-content'
+          className='witty-works-ext-lato-popover-text'
+        >
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-full-padding witty-works-ext-light-gray-background'>
+            <div className='witty-works-ext-margin-right'>
+              <SadFace />
+            </div>
+            <div
+              className='witty-works-ext-lato-popover-text witty-works-ext-margin-left'
+              style={{ color: '#E6635A' }}
+            >
+              {t('apiKeyConfiguredNotice')}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const storageChange = (changes: any) => {
     let changedItems = Object.keys(changes);

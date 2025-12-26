@@ -19,6 +19,7 @@ import Star from '../../assets/icons/popup/star.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { addBadge } from '../../shared/utils';
+import defaultConfig from '../../witty.config.json';
 
 const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
@@ -34,6 +35,10 @@ const PopupLogin: React.FC = () => {
   };
 
   useEffect(() => {
+    // If an X_KEY is configured, we don't need to show login flows
+    if (defaultConfig && defaultConfig.X_KEY) {
+      return;
+    }
     addBadge('Login');
     browser.storage.local
       .get(null)
@@ -74,6 +79,33 @@ const PopupLogin: React.FC = () => {
       setLoginUrl(url);
     }
   };
+
+  // If X_KEY is configured, show a simple notice instead of login flows
+  if (defaultConfig && defaultConfig.X_KEY) {
+    return (
+      <>
+        <PopupHeader showSettings={false} appId={appID} />
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-full-padding witty-works-ext-light-gray-background'>
+          <div className='witty-works-ext-margin-right'>
+            <SadFace />
+          </div>
+          <div
+            className='witty-works-ext-lato-popover-text witty-works-ext-margin-left'
+            style={{ color: '#E6635A' }}
+          >
+            {t('apiKeyConfiguredNotice')}
+          </div>
+        </div>
+        {DEV_ENV && (
+          <div className='witty-works-ext-section'>
+            <h2>{t('developmentSettings')}</h2>
+            <ApiSelector />
+            <DelaySelector />
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <>
