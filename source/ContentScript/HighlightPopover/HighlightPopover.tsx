@@ -4,8 +4,9 @@ import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
 import {
   CustomInputElement,
   IAlert,
-  IAlternatives, IGetLLMSuggestionsRequest,
-  ResponseConfig
+  IAlternatives,
+  IGetLLMSuggestionsRequest,
+  ResponseConfig,
 } from '../../shared/types';
 import { useTranslation } from 'react-i18next';
 import '../../i18n/i18n';
@@ -36,10 +37,13 @@ import {
   storeInLocalStorage,
 } from '../../shared/utils';
 import browser from 'webextension-polyfill';
-import { createRoot } from 'react-dom/client';
-import Notification from '../../Notifications/Notification';
+import { renderNotificationToTop } from '../../Notifications/renderNotification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
-import { createUrl, getBaseUrls } from '../../shared/ApiServices/requests';
+import {
+  createUrl,
+  getBaseUrls,
+  buildRequestHeaders,
+} from '../../shared/ApiServices/requests';
 import parse from 'html-react-parser';
 import { computeDiff } from '../utils';
 import { LLMAlternativesCacheValue } from '../../shared/ApiServices/useLLMAlternativesCache';
@@ -62,9 +66,9 @@ interface PopoverProps {
   addIgnoredTerm: (term: string) => void;
   movePopoverNextOrPrev: (direction: string) => void;
   setLLMSuggestionsRequest: (req: IGetLLMSuggestionsRequest) => void;
-  getLLMSuggestions: (req: IGetLLMSuggestionsRequest) =>
-    | LLMAlternativesCacheValue
-    | undefined;
+  getLLMSuggestions: (
+    req: IGetLLMSuggestionsRequest
+  ) => LLMAlternativesCacheValue | undefined;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -76,14 +80,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   addIgnoredTerm,
   movePopoverNextOrPrev: updatePopover,
   setLLMSuggestionsRequest,
-  getLLMSuggestions
+  getLLMSuggestions,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
   const { t, i18n } = useTranslation(namespaces.popover);
-  const [alternativeHovered, setAlternativeHovered] = useState<IAlternatives | null>(
-    null
-  );
+  const [alternativeHovered, setAlternativeHovered] =
+    useState<IAlternatives | null>(null);
   const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
     useStateRef<boolean>(false);
   const [accessToken, setAccessToken] = useState<string>('');
@@ -104,7 +107,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
     if (llmAlternatives && data.alert.data.alternatives.length > 0) {
       setLLMSuggestionsRequest({
-        alert: data.alert
+        alert: data.alert,
       });
     }
   }, [data, llmAlternatives]);
@@ -167,9 +170,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       setAccessToken(
         result[StorageKeys.ACCESS_TOKEN] ? result[StorageKeys.ACCESS_TOKEN] : ''
       );
-      setLlmAlternatives(
-        result[StorageKeys.LLM_ALTERNATIVES]
-      );
+      setLlmAlternatives(result[StorageKeys.LLM_ALTERNATIVES]);
     });
   }, []);
 
@@ -257,18 +258,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     try {
       if (!window.top) return;
 
-      const notificationWrapper = document.createElement('div');
-      notificationWrapper.id = 'ww-notification';
-
-      window.top.document.body.insertBefore(
-        notificationWrapper,
-        window.top.document.body.firstChild
-      );
-      const root = createRoot(notificationWrapper);
-
-      root.render(
-        <Notification notificationType={notificationType} element={element} />
-      );
+      // centralized render helper
+      renderNotificationToTop(notificationType, element);
     } catch (error) {
       DEV_ENV && console.error('Error in renderNotification:', error);
     }
@@ -346,11 +337,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     setIsLoading(ignoreType);
     setIsSuccess('');
     setIsFailure('');
+    const headers = buildRequestHeaders(accessToken);
+
     fetch(requestUrl, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers,
     })
       .then(async (response) => {
         setIsLoading('');
@@ -375,49 +366,83 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       });
   };
 
-  const renderExplanations = (
-    alternativeHovered: IAlternatives | null
-  ) => {
+  const renderExplanations = (alternativeHovered: IAlternatives | null) => {
     const defaultExplanation = (visible: boolean = true) => {
       return (
-        <div style={{ visibility: visible ? 'visible' : 'hidden', gridArea: '1 / 1'}}>
+        <div
+          key={`default-expl-${visible ? 'visible' : 'hidden'}`}
+          style={{
+            display: visible ? 'block' : 'none',
+            gridArea: '1 / 1',
+          }}
+        >
           {data.alert.data?.explanation?.text}
           {data.alert.data?.explanation?.context &&
             ' (' + data.alert.data?.explanation?.context + ')'}
         </div>
-      )
+      );
     };
 
     if (!llmAlternativesResponse || llmAlternativesResponse.loading) {
-      return <LoadingIcon />;
+      // If LLM alternatives aren't available yet, show the default explanation
+      // so users still see the explanatory text when alternatives exist.
+      return defaultExplanation(alternativeHovered === null);
     }
 
-    const allAlternatives = data.alert.data.alternatives.map((alternative) => {
-      const explanation = renderExplanation(alternative);
-      return <div style={{ position: 'relative', top: 0, gridArea: '1 / 1',
-        visibility: alternativeHovered && alternativeHovered.text === alternative.text ? 'visible' : 'hidden'}}>
-        { explanation ? explanation : defaultExplanation() }
-      </div>;
-    });
+    const allAlternatives = data.alert.data.alternatives.map(
+      (alternative, index) => {
+        const explanation = renderExplanation(alternative);
+        return (
+          <div
+            key={`explanation-${index}-${alternative.text || 'alt'}`}
+            style={{
+              position: 'relative',
+              top: 0,
+              gridArea: '1 / 1',
+              display:
+                alternativeHovered &&
+                alternativeHovered.text === alternative.text
+                  ? 'block'
+                  : 'none',
+            }}
+          >
+            {explanation ? explanation : defaultExplanation(false)}
+          </div>
+        );
+      }
+    );
 
     allAlternatives.push(defaultExplanation(alternativeHovered === null));
 
     return allAlternatives;
-  }
+  };
 
-  const renderExplanation = (
-    alternative: IAlternatives
-  ) => {
-    let rephrasing = llmAlternativesResponse?.data?.results?.get(alternative.text);
+  const renderExplanation = (alternative: IAlternatives) => {
+    let rephrasing = llmAlternativesResponse?.data?.results?.get(
+      alternative.text
+    );
 
     if (!rephrasing) {
-      const offset = data.alert.startOffset - data.alert.data.fullSentence.range[0];
-      const endOffset = data.alert.endOffset - data.alert.data.fullSentence.range[0];
-      rephrasing = data.alert.data.fullSentence.raw.substring(0, offset) + alternative.text + data.alert.data.fullSentence.raw.substring(endOffset);
+      const offset =
+        data.alert.startOffset - data.alert.data.fullSentence.range[0];
+      const endOffset =
+        data.alert.endOffset - data.alert.data.fullSentence.range[0];
+      rephrasing =
+        data.alert.data.fullSentence.raw.substring(0, offset) +
+        alternative.text +
+        data.alert.data.fullSentence.raw.substring(endOffset);
     }
 
     return (
-      <div dangerouslySetInnerHTML={{__html: computeDiff(data.alert.data.language, data.alert.data.fullSentence.raw, rephrasing)}}></div>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: computeDiff(
+            data.alert.data.language,
+            data.alert.data.fullSentence.raw,
+            rephrasing
+          ),
+        }}
+      ></div>
     );
   };
 
@@ -556,9 +581,12 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   alignItems: showLearningBite ? 'center' : 'flex-start',
                 }}
               >
-                <div className='witty-works-ext-container-row witty-works-ext-justify-start' style={{
-                  flex: 1,
-                }}>
+                <div
+                  className='witty-works-ext-container-row witty-works-ext-justify-start'
+                  style={{
+                    flex: 1,
+                  }}
+                >
                   <div
                     style={{
                       fontSize: '2em',
@@ -577,7 +605,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       <span>{data.alert.data?.explanation?.icon}</span>
                     )}
                   </div>
-                  <div className='witty-works-ext-rephrasing' style={{ width: '252px', height: '100%' }}>
+                  <div
+                    className='witty-works-ext-rephrasing'
+                    style={{ width: '252px', height: '100%' }}
+                  >
                     <b>{data.alert.data?.label.split(':').pop()}</b>
                     <br />
                     <div style={{ position: 'relative', display: 'grid' }}>
@@ -711,11 +742,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     onMouseLeave={() => {
                       setAlternativeHovered(null);
                     }}
-                    key={`${index}-${alternative}-container`}
+                    key={`${index}-${alternative.text || 'alt'}-container`}
                   >
                     <div
                       className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
-                      key={`${index}-remove-it`} //string can not be empty because of replacement issue on firefox
+                      key={`${index}-${alternative.text || 'alt'}-remove-it`} //string can not be empty because of replacement issue on firefox
                       onPointerDown={(e) =>
                         clickAlternative(e.nativeEvent, ' ')
                       }
@@ -731,7 +762,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 ) : (
                   <div
                     className='witty-works-ext-wittyworks-popover-alternative-btn-container'
-                    key={`${index}-${alternative}-container`}
+                    key={`${index}-${alternative.text || 'alt'}-container`}
                     onMouseEnter={() => {
                       setAlternativeHovered(alternative);
                     }}

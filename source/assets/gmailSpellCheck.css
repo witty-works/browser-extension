@@ -1,11 +1,11 @@
-[witty-is-enabled=true][witty-could-determine-lang=true] .ng.Lm {
-    background-image: none !important;
+[witty-is-enabled='true'][witty-could-determine-lang='true'] .ng.Lm {
+  background-image: none !important;
 }
 
-[witty-is-enabled=true][witty-could-determine-lang=true] .ng.LI {
-    background-image: none !important;
+[witty-is-enabled='true'][witty-could-determine-lang='true'] .ng.LI {
+  background-image: none !important;
 }
 
-[witty-is-enabled=true][witty-could-determine-lang=true] .pl {
+[witty-is-enabled='true'][witty-could-determine-lang='true'] .pl {
   display: none;
 }

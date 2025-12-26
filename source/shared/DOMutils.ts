@@ -28,11 +28,11 @@ export const isGmail = (): boolean => {
 export const isAemRte = (element: Element): boolean => {
   const CQrteElement = element?.closest('#CQrte');
   return !!CQrteElement;
-}
+};
 
 export const isGoogleSearch = (): boolean => {
   return window.location.hostname === 'www.google.com';
-}
+};
 
 export const isHubspot = (): boolean => {
   return window.location.hostname.includes('hubspot');
@@ -44,31 +44,37 @@ export const isChromeWebstore = (url: string): boolean => {
 
 //can be removed when powerpoint works
 export const isMicrosoftOnline = (windowUrl: string): boolean => {
-  return (windowUrl.includes('onedrive.live.com') || isMicrosoftOnlineWord(windowUrl) || isOutlook(windowUrl) || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl))
-}
+  return (
+    windowUrl.includes('onedrive.live.com') ||
+    isMicrosoftOnlineWord(windowUrl) ||
+    isOutlook(windowUrl) ||
+    isMicrosoftOnlineExcel(windowUrl) ||
+    isMicrosoftOnlinePowerPoint(windowUrl)
+  );
+};
 
 export const isMicrosoftOnlineSharepoint = (): boolean => {
   return window.location.hostname.includes('sharepoint.com');
-}
+};
 
 export const isMicrosoftOnlineExcel = (windowUrl: string): boolean => {
   const triggerWords = ['chc-excel', '.xlsx'];
-  return triggerWords.some(word => windowUrl.includes(word));
-}
+  return triggerWords.some((word) => windowUrl.includes(word));
+};
 
 export const isMicrosoftOnlinePowerPoint = (windowUrl: string): boolean => {
   const triggerWords = ['chc-powerpoint', '.pptx'];
-  return triggerWords.some(word => windowUrl.includes(word));
-}
+  return triggerWords.some((word) => windowUrl.includes(word));
+};
 
 export const isMicrosoftOnlineWord = (windowUrl: string): boolean => {
   const triggerWords = ['chc-word-edit', 'wordeditorframe', '.docx'];
-  return triggerWords.some(word => windowUrl.includes(word));
-}
+  return triggerWords.some((word) => windowUrl.includes(word));
+};
 
 export const isOffice = (): boolean => {
   return window.location.hostname.includes('office.com');
-}
+};
 
 export const isOutlook = (windowUrl?: string): boolean => {
   if (windowUrl) {
@@ -80,7 +86,7 @@ export const isOutlook = (windowUrl?: string): boolean => {
   }
 
   return false;
-}
+};
 
 export const isWittyEditor = (): boolean => {
   const dashboardBaseUrls = Object.values(BaseUrls).map(
@@ -96,7 +102,7 @@ export const isWittyEditor = (): boolean => {
 
 export const isTrello = (): boolean => {
   return window.location.hostname.includes('trello');
-}
+};
 
 export const isGoogleSheets = (): boolean => {
   return window.location.href.includes('docs.google.com/spreadsheets');
@@ -125,7 +131,8 @@ export const isModX = (): boolean => {
 };
 
 export const isFroalaEditor = (element: Element): boolean => {
-  const foralaEditor = element?.closest('.fr-element') || element?.closest('.fr-view');
+  const foralaEditor =
+    element?.closest('.fr-element') || element?.closest('.fr-view');
   return !!foralaEditor;
 };
 
@@ -136,7 +143,7 @@ export const isRedactorEditor = (element: Element): boolean => {
 
 export const isRecruitee = (): boolean => {
   return window.location.hostname.includes('recruitee.com');
-}
+};
 
 export const isGreenhouse = (): boolean => {
   return window.location.hostname.includes('greenhouse');
@@ -165,8 +172,12 @@ export const isInputElement = (element: Element) =>
   isHTMLElementContentEditable(element);
 
 export const getZIndex = (element: Element) => {
-  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail() || isModX()
-    ? 501 
+  return isGoogleDocs() ||
+    isBambooHr() ||
+    isFroalaEditor(element) ||
+    isGmail() ||
+    isModX()
+    ? 501
     : isRedactorEditor(element) || isRecruitee()
     ? 9999998 //make sure highlights are the second largest (smaller than popover)
     : 'auto';
@@ -214,7 +225,7 @@ export const nodeExistsInDOM = (document: Document, node: Node): boolean => {
   }
 
   return false;
-}
+};
 
 export const elementIsVisible = (element: Element): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();
@@ -222,7 +233,7 @@ export const elementIsVisible = (element: Element): boolean => {
 };
 
 export const elementWithinIframe = (element: Element): boolean => {
-    return !!element.ownerDocument.defaultView?.frameElement;
+  return !!element.ownerDocument.defaultView?.frameElement;
 };
 
 export const textIsLight = (color: any) => {

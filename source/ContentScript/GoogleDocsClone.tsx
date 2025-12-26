@@ -18,15 +18,14 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
 }: GoogleDocsCloneProps) => {
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
   const divs = [] as JSX.Element[];
-  let pages = element.querySelectorAll('.kix-page-paginated') 
-  if(pages.length === 0) {
+  let pages = element.querySelectorAll('.kix-page-paginated');
+  if (pages.length === 0) {
     pages = element?.childNodes[0]?.childNodes as NodeListOf<Element>; //for pageless format
   }
   //find index of child of pages that has a grandchild containing g
   const childNodeIndex = Array.from(pages).map((page) =>
     Array.from(page?.childNodes).findIndex(
-      (childNode) =>
-        childNode?.childNodes[0]?.childNodes[0]?.nodeName === 'g'
+      (childNode) => childNode?.childNodes[0]?.childNodes[0]?.nodeName === 'g'
     )
   );
 
@@ -36,7 +35,8 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   );
 
   for (const pageElementContainingSvg of pageElementsContainingSvg) {
-    const innerElement = pageElementContainingSvg?.childNodes[0] as CustomInputElement;
+    const innerElement = pageElementContainingSvg
+      ?.childNodes[0] as CustomInputElement;
     if (!innerElement?.childNodes) continue;
     for (const childNode of innerElement.childNodes) {
       const gElement = childNode as CustomInputElement;
@@ -48,7 +48,11 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         areaLabelSplit?.forEach((label, index) => {
           if (label === '') {
             areaLabelSplit[index] = '\xa0'; //multiple spaces in a row -> automatically truncated
-          } else if (areaLabelSplit[index].length == 1 && !areaLabelSplit[index].match(/[a-zA-Z]/)) { //not alfabetical character
+          } else if (
+            areaLabelSplit[index].length == 1 &&
+            !areaLabelSplit[index].match(/[a-zA-Z]/)
+          ) {
+            //not alfabetical character
             areaLabelSplit[index] = ' ' + label + ' '; //single character -> add space before and after
           } else if (
             (index !== 0 || //dont add space if last character is a special character or the first char of next word is a special character
@@ -77,10 +81,12 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
 
         let scaleX = 1;
         if (extractedTransform) {
-            const matrixMatch = extractedTransform.match(/matrix\(([^,]+),[^,]+,[^,]+,([^,]+),[^,]+,[^,]+\)/);
-            if (matrixMatch) {
-                scaleX = parseFloat(matrixMatch[1]);
-            }
+          const matrixMatch = extractedTransform.match(
+            /matrix\(([^,]+),[^,]+,[^,]+,([^,]+),[^,]+,[^,]+\)/
+          );
+          if (matrixMatch) {
+            scaleX = parseFloat(matrixMatch[1]);
+          }
         }
         const elementStyles = window.getComputedStyle(svgRectElement);
         const correctedPosition = getCorrectedPosition(
@@ -92,7 +98,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         elementRect &&
           elementStylesFont &&
           divs.push(
-            <div 
+            <div
               // key={`${areaLabel?.slice(0, 10)}-${elementRect.width}-${elementRect.top}`} //LEFT OUT ON PURPOSE TO AVOID RE-RENDERING
               style={
                 {
@@ -101,7 +107,11 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
                   height: elementRect.height,
                   fontWeight:
                     elementStylesFontArray[elementStylesFontArray.length - 3],
-                  fontSize: `${parseFloat(elementStylesFontArray[elementStylesFontArray.length - 2]) * scaleX}px`,
+                  fontSize: `${
+                    parseFloat(
+                      elementStylesFontArray[elementStylesFontArray.length - 2]
+                    ) * scaleX
+                  }px`,
                   fontFamily: extractedFont
                     ? extractedFont[1]
                     : elementStyles.fontFamily,

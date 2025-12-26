@@ -10,10 +10,7 @@ import {
 import '../../i18n/i18n';
 import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
-import {
-  appID,
-  setBaseUrls,
-} from '../../shared/ApiServices/requests';
+import { appID, setBaseUrls } from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
@@ -22,6 +19,7 @@ import Star from '../../assets/icons/popup/star.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { addBadge } from '../../shared/utils';
+import defaultConfig from '../../witty.config.json';
 
 const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
@@ -37,7 +35,11 @@ const PopupLogin: React.FC = () => {
   };
 
   useEffect(() => {
-    addBadge('Login')
+    // If an X_KEY is configured, we don't need to show login flows
+    if (defaultConfig && defaultConfig.X_KEY) {
+      return;
+    }
+    addBadge('Login');
     browser.storage.local
       .get(null)
       .then((result) => {
@@ -77,6 +79,33 @@ const PopupLogin: React.FC = () => {
       setLoginUrl(url);
     }
   };
+
+  // If X_KEY is configured, show a simple notice instead of login flows
+  if (defaultConfig && defaultConfig.X_KEY) {
+    return (
+      <>
+        <PopupHeader showSettings={false} appId={appID} />
+        <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-full-padding witty-works-ext-light-gray-background'>
+          <div className='witty-works-ext-margin-right'>
+            <SadFace />
+          </div>
+          <div
+            className='witty-works-ext-lato-popover-text witty-works-ext-margin-left'
+            style={{ color: '#E6635A' }}
+          >
+            {t('apiKeyConfiguredNotice')}
+          </div>
+        </div>
+        {DEV_ENV && (
+          <div className='witty-works-ext-section'>
+            <h2>{t('developmentSettings')}</h2>
+            <ApiSelector />
+            <DelaySelector />
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <>
@@ -168,23 +197,25 @@ const PopupLogin: React.FC = () => {
             {t('popupsBlockedText')}
           </div>
           <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-          <div
-            className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
-            onClick={() => {
-              navigator.clipboard.writeText(loginUrl);
-              setDisplayCopiedMessage(true);
-              browser.alarms.create('hideCopiedMessageAlarm', { delayInMinutes: 1.5 / 60 }); // 1500 ms in minutes
+            <div
+              className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
+              onClick={() => {
+                navigator.clipboard.writeText(loginUrl);
+                setDisplayCopiedMessage(true);
+                browser.alarms.create('hideCopiedMessageAlarm', {
+                  delayInMinutes: 1.5 / 60,
+                }); // 1500 ms in minutes
 
-              const alarmListener = (alarm : any) => {
-                if (alarm.name === 'hideCopiedMessageAlarm') {
-                  setDisplayCopiedMessage(false);
-                  // Clean up the alarm listener after it triggers
-                  browser.alarms.onAlarm.removeListener(alarmListener);
-                }
-              };
-              browser.alarms.onAlarm.addListener(alarmListener);
-            }}
-          >
+                const alarmListener = (alarm: any) => {
+                  if (alarm.name === 'hideCopiedMessageAlarm') {
+                    setDisplayCopiedMessage(false);
+                    // Clean up the alarm listener after it triggers
+                    browser.alarms.onAlarm.removeListener(alarmListener);
+                  }
+                };
+                browser.alarms.onAlarm.addListener(alarmListener);
+              }}
+            >
               {t('copyLink')}
             </div>
             {displayCopiedMessage && (

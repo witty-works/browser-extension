@@ -4,7 +4,7 @@ on:
   push:
   schedule:
     # every 4 hours
-    - cron: '0 */4 * * *'
+    - cron: "0 */4 * * *"
 
 jobs:
   build:
@@ -14,7 +14,7 @@ jobs:
       - name: Install dependencies
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
       - run: npm ci
 
       - name: Enable testing mode

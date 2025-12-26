@@ -31,58 +31,57 @@ const Toggle: React.FC<ToggleProps> = ({
   return (
     <div
       className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'
-      style={{height: '35px' }}
+      style={{ height: '35px' }}
     >
-        
-    <label className='witty-works-ext-lato-popup-text'>{label}</label>
+      <label className='witty-works-ext-lato-popup-text'>{label}</label>
 
-    {!hasWittyTeams && (
-      <div className='witty-works-ext-toggle-premium-only'>
-        <a
-          className='witty-works-ext-witty-teams-only-link'
-          href='https://www.witty.works/witty-for-teams'
-          target='_blank'
-        >
-          {t('wittyTeamsOnly')}
-        </a>
-      </div>
-    )}
-    {userIsLoggedIn && locked && hasWittyTeams && (
-      <div className='witty-works-ext-toggle-lock'>
-        <Lock />
-        <div className='witty-works-ext-toggle-lock-info'>
-          {t('lockedInfo')}
+      {!hasWittyTeams && (
+        <div className='witty-works-ext-toggle-premium-only'>
+          <a
+            className='witty-works-ext-witty-teams-only-link'
+            href='https://www.witty.works/witty-for-teams'
+            target='_blank'
+          >
+            {t('wittyTeamsOnly')}
+          </a>
         </div>
-      </div>
-    )}
-    {hrFeatureToggle && (
-      <div className='witty-works-beta-label witty-works-ext-strong-gradient-background'>
-        {t('beta')}
-      </div>
-    )}
+      )}
+      {userIsLoggedIn && locked && hasWittyTeams && (
+        <div className='witty-works-ext-toggle-lock'>
+          <Lock />
+          <div className='witty-works-ext-toggle-lock-info'>
+            {t('lockedInfo')}
+          </div>
+        </div>
+      )}
+      {hrFeatureToggle && (
+        <div className='witty-works-beta-label witty-works-ext-strong-gradient-background'>
+          {t('beta')}
+        </div>
+      )}
 
-    <input
-      className='witty-works-ext-toggle-checkbox'
-      checked={on}
-      onChange={handleToggle}
-      id={`toggle-${label}`}
-      type='checkbox'
-    />
-  
-    <label
-      style={{
-        background: (hasWittyTeams && on && Colors.green) as string,
-        transform: `translateX(${scale * 100}%) scale(${scale}, ${scale})`,
-      }}
-      id={`toggle-encloser-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
-      className='witty-works-ext-toggle-encloser'
-      htmlFor={`toggle-${label}`}
-    >
-      <span
-        id={`toggle-button-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
-        className={`witty-works-ext-toggle-button`}
-        style={{ marginLeft: on && locked && userIsLoggedIn ? '3.5em' : '0' }} //TEMP: fix for weird toggle behavior when locked
+      <input
+        className='witty-works-ext-toggle-checkbox'
+        checked={on}
+        onChange={handleToggle}
+        id={`toggle-${label}`}
+        type='checkbox'
       />
+
+      <label
+        style={{
+          background: (hasWittyTeams && on && Colors.green) as string,
+          transform: `translateX(${scale * 100}%) scale(${scale}, ${scale})`,
+        }}
+        id={`toggle-encloser-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
+        className='witty-works-ext-toggle-encloser'
+        htmlFor={`toggle-${label}`}
+      >
+        <span
+          id={`toggle-button-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
+          className={`witty-works-ext-toggle-button`}
+          style={{ marginLeft: on && locked && userIsLoggedIn ? '3.5em' : '0' }} //TEMP: fix for weird toggle behavior when locked
+        />
       </label>
     </div>
   );

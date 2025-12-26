@@ -8,15 +8,19 @@ const validator = new Validator();
 
 const useApiResult = <TResponse,>(
   request: IRequest | null,
-  responseSchema: Schema | null,
+  responseSchema: Schema | null
 ): [TResponse | null, IEndpointError | null] => {
   const validateResponse = (response: any): ValidatorResult | null => {
     if (responseSchema === null) return null;
     return validator.validate(response, responseSchema);
   };
 
-  const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(null);
-  const [endpointError, setEndpointError] = useState<IEndpointError | null>(null);
+  const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
+    null
+  );
+  const [endpointError, setEndpointError] = useState<IEndpointError | null>(
+    null
+  );
   const log = useLog('useApiResult');
 
   useEffect(() => {
@@ -53,8 +57,12 @@ const useApiResult = <TResponse,>(
           const validationResult = validateResponse(responseResults);
 
           if (validationResult && !validationResult.valid) {
-            DEV_ENV && console.log('validateResponse.errors', validationResult.errors);
-            log(`JSON Schema Error: ${validationResult.errors.join(', ')}`, logTypes.ERROR);
+            DEV_ENV &&
+              console.log('validateResponse.errors', validationResult.errors);
+            log(
+              `JSON Schema Error: ${validationResult.errors.join(', ')}`,
+              logTypes.ERROR
+            );
             return;
           }
 

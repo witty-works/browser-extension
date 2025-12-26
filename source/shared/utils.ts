@@ -14,7 +14,12 @@ import {
   isTextArea,
   requiresRectRecalculation,
 } from './DOMutils';
-import { createUrl, getToken } from './ApiServices/requests';
+import {
+  createUrl,
+  getToken,
+  setToken,
+  buildRequestHeaders,
+} from './ApiServices/requests';
 import { IAuthResponse } from './types';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 // Extract TxtSentenceNode from a generic node
@@ -126,29 +131,43 @@ export const addBadge = (text: string) => {
 };
 
 export const getNewAccessToken = async () => {
-  browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
-    if (!result[StorageKeys.REFRESH_TOKEN]) {
-      logOut();
-      return;
-    }
-    const request = getToken(result[StorageKeys.REFRESH_TOKEN]);
-    if (!request.config) {
-      logOut();
-      return;
-    }
-    fetch(request.url, request.config).then(async (response) => {
-      if (!response || !response.ok) {
+  // If X_KEY is configured, do not attempt to refresh tokens
+  if (defaultConfig && defaultConfig.X_KEY) return;
+
+  browser.storage.local
+    .get([StorageKeys.REFRESH_TOKEN, StorageKeys.ACCESS_TOKEN])
+    .then((result) => {
+      // If the access token matches the hardcoded default one, never refresh it
+      if (result[StorageKeys.ACCESS_TOKEN] === defaultConfig.ACCESS_TOKEN) {
+        return;
+      }
+
+      if (!result[StorageKeys.REFRESH_TOKEN]) {
         logOut();
         return;
       }
-      const responseJson = await response.json();
-      storeInLocalStorage(
-        StorageKeys.REFRESH_TOKEN,
-        responseJson.refresh_token
-      );
-      storeInLocalStorage(StorageKeys.ACCESS_TOKEN, responseJson.access_token);
-    });
-  });
+      const request = getToken(result[StorageKeys.REFRESH_TOKEN]);
+      if (!request.config) {
+        logOut();
+        return;
+      }
+      fetch(request.url, request.config).then(async (response) => {
+        if (!response || !response.ok) {
+          logOut();
+          return;
+        }
+        const responseJson = await response.json();
+        storeInLocalStorage(
+          StorageKeys.REFRESH_TOKEN,
+          responseJson.refresh_token
+        );
+        storeInLocalStorage(
+          StorageKeys.ACCESS_TOKEN,
+          responseJson.access_token
+        );
+      });
+    })
+    .catch((e) => sendErrorToSentry(e));
 };
 
 export const logOut = () => {
@@ -158,6 +177,7 @@ export const logOut = () => {
   storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
   storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
   storeInLocalStorage(StorageKeys.PLAN, '');
+  storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
   addBadge('Login');
 };
 
@@ -375,15 +395,12 @@ export const makeAuthRequest = () => {
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
-
       if (result[StorageKeys.ACCESS_TOKEN]) {
+        const headers = buildRequestHeaders(result[StorageKeys.ACCESS_TOKEN]);
+
         const config = {
           method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
-          },
+          headers,
         };
 
         fetch(createUrl(BaseUrls[urls].api, 'v2.0/auth'), config).then(
@@ -391,12 +408,58 @@ export const makeAuthRequest = () => {
             if (response.ok) {
               const json = await response.json();
               updateConfig(json, true);
+              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+            } else {
+              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
             }
           }
         );
+      } else if (defaultConfig && defaultConfig.X_KEY) {
+        // No token in storage but an X_KEY is configured in the extension config.
+        // Try the auth endpoint using the configured X-KEY header. Do NOT store the raw key.
+        const headers = buildRequestHeaders();
+        const config = {
+          method: 'POST',
+          headers,
+        };
+
+        fetch(createUrl(BaseUrls[urls].api, 'v2.0/auth'), config)
+          .then(async (response) => {
+            if (response.ok) {
+              const json = await response.json();
+              updateConfig(json, true);
+              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+            } else {
+              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+            }
+          })
+          .catch((e) => {
+            storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+            sendErrorToSentry(e);
+          });
+      } else if (defaultConfig.ACCESS_TOKEN) {
+        // No token in storage but a default token is available in config — store and use it.
+        storeInLocalStorage(
+          StorageKeys.ACCESS_TOKEN,
+          defaultConfig.ACCESS_TOKEN
+        );
+        try {
+          setToken(defaultConfig.ACCESS_TOKEN);
+        } catch (e) {
+          // swallow any errors setting token — best effort fallback
+          sendErrorToSentry(e);
+        }
       }
     })
     .catch((error) => {
       sendErrorToSentry(error);
     });
+};
+
+export const isSignedInResult = (result: any): boolean => {
+  return !!(
+    result[StorageKeys.ACCESS_TOKEN] ||
+    result[StorageKeys.CHECK_ENDPOINT_SUCCESS] ||
+    (defaultConfig && defaultConfig.X_KEY)
+  );
 };

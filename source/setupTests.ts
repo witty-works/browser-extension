@@ -1,1 +1,1 @@
-import "mockzilla-webextension";
+import 'mockzilla-webextension';

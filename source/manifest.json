@@ -15,7 +15,12 @@
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
   "permissions": ["storage", "scripting"],
-  "__firefox__permissions": ["storage", "scripting", "http://*/*", "https://*/*"],
+  "__firefox__permissions": [
+    "storage",
+    "scripting",
+    "http://*/*",
+    "https://*/*"
+  ],
   "host_permissions": ["http://*/*", "https://*/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
@@ -76,7 +81,10 @@
       "world": "MAIN"
     },
     {
-      "matches": ["https://docs.google.com/document/*", "https://mail.google.com/mail/*"],
+      "matches": [
+        "https://docs.google.com/document/*",
+        "https://mail.google.com/mail/*"
+      ],
       "css": ["assets/gmailSpellCheck.css"]
     }
   ],
@@ -90,9 +98,7 @@
         "assets/icons/popover/settings.svg",
         "assets/googleDocsSpellCheck.js"
       ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "matches": ["<all_urls>"]
     }
   ],
   "__firefox__web_accessible_resources": [
