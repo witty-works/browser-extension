@@ -27,7 +27,7 @@
     "@babel/runtime": "^7.28.4",
     "@floating-ui/react-dom": "^0.4.3",
     "@sentry/react": "^8.55.0",
-    "@sentry/webpack-plugin": "^2.23.1",
+    "@sentry/webpack-plugin": "^5.2.0",
     "@textlint/ast-node-types": "^14.8.4",
     "@types/lodash.debounce": "^4.0.9",
     "@types/resize-observer-browser": "^0.1.11",
@@ -54,7 +54,7 @@
     "sentence-splitter": "^5.0.0",
     "structured-source": "^3.0.2",
     "url": "^0.11.4",
-    "uuid": "^9.0.1",
+    "uuid": "^14.0.0",
     "webextension-polyfill-ts": "^0.25.0"
   },
   "devDependencies": {
