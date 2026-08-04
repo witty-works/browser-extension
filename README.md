@@ -67,7 +67,7 @@ The extension reads runtime defaults from `source/witty.config.json`. Key settin
 - `API_DELAY`: user-changeable via the popup Delay selector (writes to storage). See [source/Popup/PopupComponents/DelaySelector.tsx](source/Popup/PopupComponents/DelaySelector.tsx#L26).
 - `ACCESS_TOKEN` / `REFRESH_TOKEN`: written/cleared by auth flows and logout. See [source/shared/utils.ts](source/shared/utils.ts#L320-L340) and [source/Background/index.tsx](source/Background/index.tsx#L347-L348).
 - Telemetry counters: `DAILY_POSTHOG_EVENTS_USED` and `LAST_CHECK_EVENT_TIME` are updated at runtime by analytics code. See [source/shared/ApiServices/analyticsUtils.ts](source/shared/ApiServices/analyticsUtils.ts#L31-L40).
-- Other server-populated keys (written at runtime): `DOMAINS`, `ORGANIZATION_DOMAINS`, `PLAN`, `USER_ID`, `CONFIG_HASH`, `LLM_ALTERNATIVES`, etc. See [source/shared/utils.ts](source/shared/utils.ts#L360-L386).
+- Other server-populated keys (written at runtime): `DOMAINS`, `ORGANIZATION_DOMAINS`, `USER_ID`, `CONFIG_HASH`, `LLM_ALTERNATIVES`, etc. See [source/shared/utils.ts](source/shared/utils.ts#L360-L386).
 
 - `X_KEY`: optional static API key — when set the extension will attach `x-key: <value>` to outbound API requests and skip token/refresh flows; see the `X_KEY` section below for example and security notes.
 
@@ -80,7 +80,7 @@ The extension supports two modes:
 
 - API key (`X_KEY`): add `X_KEY` to `source/witty.config.json` to send `x-key: <value>` on requests. This is convenient for simple tests or CI; it bypasses token refresh and may purge stored `ACCESS_TOKEN`/`REFRESH_TOKEN`.
 
-- OAuth tokens (`ACCESS_TOKEN` / `REFRESH_TOKEN`): normal sign-in obtains per-user bearer tokens. When present the extension sends `Authorization: Bearer <access_token>` and will attempt refresh using `REFRESH_TOKEN` if needed.
+- OAuth tokens (`ACCESS_TOKEN` / `REFRESH_TOKEN`): normal sign-in runs OAuth 2.0 Authorization Code + PKCE from the background service worker via `identity.launchWebAuthFlow`, against the dashboard's `/oauth/authorize` and `/oauth/token`. When present the extension sends `Authorization: Bearer <access_token>` and refreshes via the `refresh_token` grant. See AUTH_SECURITY_PLAN.md for the full contract, including the redirect URI to register on the OAuth client.
 
 Security note: never commit production `X_KEY`, `ACCESS_TOKEN`, or `REFRESH_TOKEN`; prefer environment-backed secrets.
 
@@ -133,6 +133,87 @@ Notes:
 - Use `X_KEY` for simple test setups or CI where a single static key is acceptable; prefer running the local NLP API and selecting its endpoint via the Popup `ApiSelector` for iteration.
 - Never commit production `X_KEY`, `ACCESS_TOKEN`, or any secret to source control. Use environment-backed secrets or local `.env` files for CI/test fixtures.
 - To quickly toggle features like `REPHRASE_ENABLED`, edit `source/witty.config.json` and restart the dev build (`npm run dev:chrome` or rebuild).
+
+## Self-hosting
+
+You can point Witty at your own dashboard and NLP API. Two routes — runtime, or
+baked in at build time.
+
+### Route 1: configure at runtime (no rebuild)
+
+Open the extension's options page (`chrome://extensions` → Witty → *Extension
+options*) and fill in the **Custom server** form: dashboard URL, NLP API URL and
+OAuth client ID.
+
+On your dashboard, register the extension's redirect URI on a **public
+(PKCE) OAuth client** — no client secret, because an extension bundle cannot
+keep one. The options page prints the exact URI to register; it is derived from
+the extension ID and is stable:
+
+| Browser | Redirect URI |
+| --- | --- |
+| Chrome / Edge / Opera | `https://<extension-id>.chromiumapp.org/` |
+| Firefox | `https://<uuid>.extensions.allizom.org/` |
+
+Matching is byte-for-byte, so a trailing-slash mismatch will fail the flow.
+
+### Route 1b: API key — run without a dashboard
+
+If you only need text checking, you can run the NLP API alone and skip the
+dashboard entirely. On the options page choose **API key** mode and supply the
+NLP API URL plus your key; it is sent as `x-key`.
+
+This is not the same thing as the build-time `X_KEY` in `witty.config.json`.
+That one is a *shared* secret compiled into a bundle everyone installs and can
+unpack, which is why release builds refuse it. The key entered here is your own,
+stored in your own browser profile.
+
+What you give up without a dashboard — these features are hidden rather than
+left to fail:
+
+- domain enable/disable no longer syncs (it stays local to the browser)
+- "ignore permanently" (ignore-once still works)
+- the dashboard links in the popup header and body
+
+Category and customisation toggles live on the options page instead. The
+category list is whatever the API reports; the section is hidden if it reports
+none. See `NLP_API_TASKS.md` for the API-side work this mode still needs.
+
+### Route 2: bake your own defaults in (rebuild)
+
+Edit `BASE_URLS` in `source/witty.config.json` and rebuild. Each entry needs
+`api`, `dashboard` and `oauth_client_id`. This is the right route if you are
+distributing the extension to your own users, since they then get your
+deployment as the default rather than having to configure anything.
+
+If you distribute your own build, also replace the `key` in
+`source/manifest.json` — it pins the extension ID, and therefore the redirect
+URI you must register.
+
+### Rules the extension enforces
+
+These are deliberate and worth knowing before you file a bug:
+
+- **The endpoint can only be changed from the extension's own options page.**
+  Never from a URL parameter, a web page, a content script or a message. An
+  earlier version accepted credentials from `options.html`'s query string while
+  that page was web-accessible, which let *any* website silently repoint the
+  extension. That is the vulnerability this rule exists to prevent.
+- **Changing the endpoint signs you out.** Tokens are issued by one dashboard
+  and must never be presented to another.
+- **`https` is required**, except for `localhost` / `127.0.0.1` so you can
+  develop against a local dashboard.
+- **A custom endpoint never becomes the default.** The shipped default always
+  comes from the compiled `BASE_URLS`.
+- **An API key is stored together with the endpoint it was entered for**, and is
+  only ever sent to that endpoint. Pointing the extension elsewhere cannot carry
+  the key across — the binding makes it structurally impossible rather than
+  relying on a cleanup step.
+
+Your dashboard must expose OAuth2 authorization-code + PKCE at
+`/oauth/authorize` and `/oauth/token`, and should publish
+`/.well-known/jwks.json` so the NLP API can verify access tokens locally. See
+`AUTH_SECURITY_PLAN.md` for the full contract.
 
 ## Load the extension in the browser
 
@@ -229,46 +310,86 @@ if the vendor is `chrome` or `opera`, this compiles to:
 
 See the original [README](https://github.com/abhijithvijayan/wext-manifest-loader) of `wext-manifest-loader` package for more details
 
-## Unit Testing
+## Testing
 
-run `npx playwright install-deps`
-run `npx playwright install`
-Copy `.env.example` to `.env` and adjust the values accordingly.
+The Playwright suite is **self-contained**: it serves its own fixture pages and
+mocks every NLP API call, so it needs no deployed dashboard, no running NLP API,
+and no test account. It runs offline.
 
-```
-PREMIUM_TEST_USER_EMAIL = 'witty.works.premium.user@gmail.com'
-PREMIUM_TEST_USER_PASSWORD = '<can be found in 1Password>'
-HTACCESS_USERNAME = 'witty'
-HTACCESS_PASSWORD = '<can be found in 1Password>'
+```bash
+npx playwright install chromium   # once
+npm run test
 ```
 
-To run locally: From inside the directory just run `npm run test` (runs in linux environment)
-You can watch the tests executing on http://localhost:6080/ (PW: vscode)
+`npm run test` builds the extension with `TESTING=true` first, then runs
+Playwright. Other entry points:
 
-test-results folder will be created with screenshots for manual debuging
+- `npm run test:ui` — Playwright's interactive UI mode
+- `npm run test:update-snapshots` — re-record the screenshot baselines
 
-## Update Screenshots
+### How it stays standalone
 
-### Step 1: Download Test Results
+- **Fixture pages** (`__tests__/fixtures/`) are plain HTML with a textarea or a
+  contenteditable, served by a dependency-free static server that Playwright
+  starts and stops. They must be served over `http://` rather than opened as
+  `file://`, because the content scripts only match `http://*` and `https://*`.
+- **The NLP API is mocked** (`__tests__/helpers/mockApi.js`). `/v2.0/auth`,
+  `/v2.4/check` and `/v1.0/rephrase` are answered from canned fixtures matched on
+  pathname, so the mocks keep working whichever `BASE_URLS` entry the build
+  points at. Any request that escapes the mocks is aborted and logged — reaching
+  the internet is treated as a harness bug.
+- **Sign-in is seeded, not performed.** Helpers write a fixture token straight
+  into `chrome.storage.local`. Driving a real OAuth flow would reintroduce the
+  dependency on a live dashboard and a shared account.
+- **The extension ID** comes from the background service worker's URL, not from
+  loading `witty.works` and reading an injected attribute.
 
-First, download the `test-results` folder, which is produced during runtime. You can find this under the **Artifacts** section in the **Summary** of the failing test.
+### Notes
 
-### Step 2: Compare Screenshots
+- `TESTING=true` suppresses the on-install OAuth flow. Without it,
+  `launchWebAuthFlow` opens an auth window that never resolves and sits in front
+  of every screenshot.
+- Test builds use `NODE_ENV=production`, so the build refuses to run while
+  `X_KEY`, `ACCESS_TOKEN` or `REFRESH_TOKEN` are set in `witty.config.json`.
+  Clear them to run the suite — an API key would bypass the sign-in states the
+  tests assert on.
+- Extensions require a headed browser and a persistent context, so the suite
+  runs headed with a single worker.
 
-Next, compare the actual screenshot with the expected one to identify any discrepancies.
+### Live OAuth test (opt-in)
 
-### Step 3: Update Repository
+`__tests__/auth.e2e.spec.js` drives a real sign-in against a running dashboard.
+It is **not** standalone and is skipped unless credentials are supplied, so the
+default suite stays offline:
 
-If the actual screenshot is now correct, follow these steps to update the repository:
+```bash
+E2E_DASHBOARD=https://dashboard.lndo.site/ \
+E2E_EMAIL=someone@example.com \
+E2E_PASSWORD=secret \
+npx playwright test __tests__/auth.e2e.spec.js
+```
 
-- Upload the correct screenshot to the `__tests__/highlightPlacement.spec.js-snapshots` directory in this repository.
+It requires a dashboard with the extension's PKCE client provisioned, the
+redirect URI registered byte-for-byte
+(`https://<extension-id>.chromiumapp.org/`), and `oauth_client_id` set on the
+matching `BASE_URLS` entry in `witty.config.json`.
 
-### Step 4: Manage Old Screenshots
+Besides completing the flow, it asserts the storage split: the access token must
+be absent from `storage.local` and present in `storage.session`, while the
+refresh token persists on disk.
 
-- Delete the original screenshots:
-  - `Highlights-witty-form-not-logged-in-1-linux.png`
-  - `Highlights-witty-form-1-linux.png`
-- Rename the new screenshots to match the names of the originals.
+### Updating screenshots
+
+Highlight placement is asserted with screenshot snapshots in
+`__tests__/highlights.spec.js-snapshots/`. They are platform-suffixed
+(`-darwin`, `-linux`), so regenerate them on the platform CI uses:
+
+```bash
+npm run test:update-snapshots
+```
+
+Review the diff before committing — a changed snapshot is either a fix or a
+regression, and the file alone does not say which.
 
 ## Linting & TypeScript Config
 
@@ -291,7 +412,7 @@ After making changes to highlights:
 - Ensure highlights above text remain fixed while the highlights below are removed and then re-added in the correct position.
 - For long text, ensure only the first set number of characters are sent to the API. Users should be able to highlight additional text by clicking on a paragraph.
 - Note that much of the Google Docs compatibility code is separate and also needs updates.
-- Confirm that no highlights are displayed when the user is not logged in or if the trial has expired.
+- Confirm that no highlights are displayed — and no text is sent to the API — when the user is not logged in.
 - Verify that highlights adapt when resizing the input window as well as when resizing the entire window.
 
 ### Testing Popover Functionality
@@ -299,7 +420,7 @@ After making changes to highlights:
 After making changes to popover:
 
 - Ensure the popover opens and closes correctly when clicking a word.
-- Verify the correct popover is displayed based on user status (not logged in, needs upgrade, logged in).
+- Verify the correct popover is displayed based on user status (not logged in, logged in).
 - Check that the position of the popover is accurate relative to the selected word.
 - Confirm that learning bites are loaded correctly.
 - Verify that alternatives are inserted correctly, with specific attention to 'remove' alternatives.
@@ -313,7 +434,7 @@ After making changes to popup:
   - Ensure that when the extension is disabled, neither the 'witty active' nor 'witty passive' icons appear anywhere.
   - Confirm no 'ww-container' elements are in the DOM.
   - Pay extra attention to the behavior with iframes and when multiple input fields are on a page.
-- Ensure the correct popup is shown in appropriate situations (not logged in, domain disabled, no subscription, valid subscription).
+- Ensure the correct popup is shown in appropriate situations (not logged in, domain disabled, logged in).
 
 ## Common Compatibility Issues and Resolutions
 
