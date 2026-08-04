@@ -152,7 +152,6 @@ const Highlights: React.FC<HighlightsProps> = ({
             const newHighlight: Highlight = {
               rects,
               id: alert.id,
-              plan: alert.plan,
               data: alert.data,
               startOffset: alert.startOffset,
               endOffset: alert.endOffset,

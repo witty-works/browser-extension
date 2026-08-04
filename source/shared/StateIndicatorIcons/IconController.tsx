@@ -11,7 +11,6 @@ import CloseIcon from '../../assets/icons/close-white.svg';
 import { useTranslation } from 'react-i18next';
 import { namespaces } from '../../i18n/i18n.constants';
 import { useAnalytics } from '../ApiServices/useAnalytics';
-import { getBaseUrls } from '../ApiServices/requests';
 import defaultConfig from '../../witty.config.json';
 import {
   getScrollableParentClosestToElement,
@@ -217,45 +216,9 @@ const IconController: React.FC<IconControllerProps> = ({
           }}
         >
           {t('totalMaxCharLengthReachedNotificationText', {
-            limit: defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM,
+            limit: defaultConfig.MAX_CHAR_LENGTH_TOTAL,
             total: totalTextLength,
           })}
-          <div
-            className='witty-works-ext-left  witty-works-ext-margin-top'
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'flex-start',
-              marginTop: '1em',
-            }}
-          >
-            <div
-              className='witty-works-ext-button witty-works-ext-primary-button-red'
-              style={{
-                padding: '10px 15px',
-                gap: '10px',
-                fontFamily: 'Lato, Arial, Helvetica, sans-serif',
-                fontStyle: 'normal',
-                fontWeight: 400,
-                fontSize: '16px',
-                lineHeight: '14px',
-                marginRight: '1em',
-                cursor: 'pointer',
-                background: '#f06464',
-                borderRadius: '8px',
-                color: '#ffffff',
-              }}
-              onClick={() => {
-                window.open(
-                  getBaseUrls().dashboard + 'team/subscription',
-                  '_blank'
-                );
-              }}
-            >
-              {t('subscriptionButton')}
-            </div>
-          </div>
         </div>
       </div>
     </div>
