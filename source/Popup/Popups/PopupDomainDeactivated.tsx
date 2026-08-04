@@ -10,8 +10,12 @@ import SadFace from '../../assets/icons/popup/sad-face.svg';
 import UpvoteButton from '../../assets/icons/popup/upvote-button.svg';
 import EditorButton from '../../assets/icons/popup/editor-button.svg';
 import { sendErrorToSentry } from '../../shared/errorUtils';
-import { setBaseUrls } from '../../shared/ApiServices/requests';
-import { DefaultBaseUrlKey, StorageKeys } from '../../shared/constants';
+import { getBaseUrls, setBaseUrls } from '../../shared/ApiServices/requests';
+import {
+  DefaultBaseUrlKey,
+  registerCustomEndpointFromStorage,
+  StorageKeys,
+} from '../../shared/constants';
 
 interface domainDeactivatedProps {
   appId: string;
@@ -29,6 +33,7 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
     browser.storage.local
       .get(null)
       .then((result) => {
+        registerCustomEndpointFromStorage(result);
         setBaseUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
@@ -67,7 +72,7 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
         <div
           className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'
           onClick={() =>
-            browser.tabs.create({ url: 'https://www.witty.works/editor' })
+            browser.tabs.create({ url: getBaseUrls().dashboard + 'editor' })
           }
         >
           <EditorButton />

@@ -9,7 +9,7 @@ import defaultConfig from '../witty.config.json';
 import { getTextDividedByNodes } from '../ContentScript/utils';
 import { CustomInputElement, FeatureFlags } from '../shared/types';
 import browser from 'webextension-polyfill';
-import { StorageKeys } from '../shared/constants';
+import { HelpLinks, StorageKeys } from '../shared/constants';
 import { useAnalytics } from '../shared/ApiServices/useAnalytics';
 
 interface NotificationProps {
@@ -32,7 +32,6 @@ const Notification: React.FC<NotificationProps> = ({
   const english = window.navigator.language.includes('en');
 
   const [featureFlags, setFeatureFlags] = useState<FeatureFlags>({
-    salesDemoFlag: null,
     teamInviteFlag: null,
     friendInviteFlag: null,
   });
@@ -40,9 +39,6 @@ const Notification: React.FC<NotificationProps> = ({
   useEffect(() => {
     // Load feature flags when the component mounts
     const fetchData = async () => {
-      const salesDemoFlag = await browser.storage.local.get(
-        StorageKeys.SALES_DEMO_FEATURE_FLAG
-      );
       const teamInviteFlag = await browser.storage.local.get(
         StorageKeys.INVITE_TEAM_FEATURE_FLAG
       );
@@ -51,7 +47,6 @@ const Notification: React.FC<NotificationProps> = ({
       );
 
       setFeatureFlags({
-        salesDemoFlag: salesDemoFlag[StorageKeys.SALES_DEMO_FEATURE_FLAG],
         teamInviteFlag: teamInviteFlag[StorageKeys.INVITE_TEAM_FEATURE_FLAG],
         friendInviteFlag:
           friendInviteFlag[StorageKeys.INVITE_FRIENDS_FEATURE_FLAG],
@@ -66,7 +61,6 @@ const Notification: React.FC<NotificationProps> = ({
   let notificationButton = '';
   let notificationLink = '';
   const isFeatureFlagNotification =
-    notificationType === 'salesDemo' ||
     notificationType === 'inviteTeam' ||
     notificationType === 'inviteFriends';
   const analytics = useAnalytics();
@@ -79,23 +73,9 @@ const Notification: React.FC<NotificationProps> = ({
     case 'totalMaxCharLengthReached':
       notificationHeadline = t('totalMaxCharLengthReachedNotificationHeadline');
       notificationText = t('totalMaxCharLengthReachedNotificationText', {
-        limit: defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM,
+        limit: defaultConfig.MAX_CHAR_LENGTH_TOTAL,
         total: totalTextLength,
       });
-      notificationButton = t('subscriptionButton');
-      notificationLink = getBaseUrls().dashboard + 'team/subscription';
-      break;
-    case 'salesDemo':
-      notificationHeadline = english
-        ? featureFlags.salesDemoFlag?.notificationHeadline_en || ''
-        : featureFlags.salesDemoFlag?.notificationHeadline_de || '';
-      notificationText = english
-        ? featureFlags.salesDemoFlag?.notificationText_en || ''
-        : featureFlags.salesDemoFlag?.notificationText_de || '';
-      notificationButton = english
-        ? featureFlags.salesDemoFlag?.notificationButton_en || ''
-        : featureFlags.salesDemoFlag?.notificationButton_de || '';
-      notificationLink = 'https://www.witty.works/demo';
       break;
     case 'inviteTeam':
       notificationHeadline = english
@@ -107,7 +87,11 @@ const Notification: React.FC<NotificationProps> = ({
       notificationButton = english
         ? featureFlags.teamInviteFlag?.notificationButton_en || ''
         : featureFlags.teamInviteFlag?.notificationButton_de || '';
-      notificationLink = getBaseUrls().dashboard + 'team/show';
+      // Empty in API-key mode; renderNotification skips a button without a link
+      // rather than producing 'undefinedteam/show'.
+      notificationLink = getBaseUrls().dashboard
+        ? getBaseUrls().dashboard + 'team/show'
+        : '';
       break;
     case 'inviteFriends':
       notificationHeadline = english
@@ -132,14 +116,7 @@ const Notification: React.FC<NotificationProps> = ({
       notificationHeadline = t('minVersionNotInstalledNotificationHeadline');
       notificationText = t('minVersionNotInstalledNotificationText');
       notificationButton = t('minVersionNotInstalledNotificationButton');
-      notificationLink =
-        'https://www.witty.works/en/help/how-can-i-update-witty';
-      break;
-    case 'trial_ended':
-      notificationHeadline = t('trialEndedNotificationHeadline');
-      notificationText = t('trialEndedNotificationText');
-      notificationButton = t('subscriptionButton');
-      notificationLink = getBaseUrls().dashboard + 'team/subscription';
+      notificationLink = HelpLinks.updateWitty;
       break;
   }
 
@@ -204,7 +181,7 @@ const Notification: React.FC<NotificationProps> = ({
       {notificationType === 'pin' && (
         <img
           className='witty-works-pin-gif'
-          src='https://www.witty.works/hubfs/pin_witty-2.gif'
+          src='https://www.witty.works/assets/media/pin_witty-2.gif'
           alt='pin-extension'
         />
       )}
