@@ -6,7 +6,9 @@ import {
   wittyVersion,
   exposeWittyIdAllowList,
   DefaultBaseUrlKey,
+  isDashboardAvailable,
   WTags,
+  registerCustomEndpointFromStorage,
 } from '../shared/constants';
 import defaultConfig from '../witty.config.json';
 import {
@@ -76,19 +78,21 @@ const initialize = () => {
     browser.storage.local
       .get(null)
       .then((result) => {
-        const wittyPlan = result[StorageKeys.PLAN];
-        wittyIsInstalledElement.setAttribute('extension-plan', wittyPlan);
-
         const wittyTeam = result[StorageKeys.TEAM_NAME];
         wittyIsInstalledElement.setAttribute('extension-team', wittyTeam);
 
         const apiEndpoint =
           result[StorageKeys.API_ENDPOINT_KEY] || DefaultBaseUrlKey;
+        registerCustomEndpointFromStorage(result);
         setBaseUrls(apiEndpoint);
 
-        if (!isSignedInResult(result)) {
-          const optionsPageUrl = browser.runtime.getURL('options.html');
-          const loginUrl = `${BaseUrls[apiEndpoint].dashboard}browser-login?redirect_uri=${optionsPageUrl}`;
+        if (!isSignedInResult(result) && isDashboardAvailable(result)) {
+          // Points at the dashboard's own login page. It deliberately no longer
+          // carries a `redirect_uri` back into the extension: the extension can
+          // only be signed in from its own UI now, via the OAuth flow the
+          // background worker runs. A page-supplied URL that hands credentials
+          // to the extension is exactly the pattern that was removed.
+          const loginUrl = `${BaseUrls[apiEndpoint].dashboard}login`;
           wittyIsInstalledElement.setAttribute('login-url', loginUrl);
         }
       })

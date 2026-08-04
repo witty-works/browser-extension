@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const FilemanagerPlugin = require('filemanager-webpack-plugin');
@@ -51,6 +52,41 @@ const sentryWebpackPluginInstance =
       this.apply = () => { };
     };
 
+
+/**
+ * Static credentials in `source/witty.config.json` are a local-development and
+ * CI convenience. `X_KEY` in particular is a *shared* API key, so anything it is
+ * compiled into can be unpacked by whoever installs it. `source/shared/constants.ts`
+ * already forces all three to empty in release builds, but silently neutering a
+ * key someone believed was active is its own failure mode — fail loudly instead,
+ * before anything is shipped.
+ */
+const assertNoBakedInCredentials = () => {
+  if (nodeEnv !== 'production') {
+    return;
+  }
+
+  const configPath = path.join(sourcePath, 'witty.config.json');
+  if (!fs.existsSync(configPath)) {
+    return;
+  }
+
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const offenders = ['X_KEY', 'ACCESS_TOKEN', 'REFRESH_TOKEN'].filter(
+    (key) => typeof config[key] === 'string' && config[key].trim() !== ''
+  );
+
+  if (offenders.length > 0) {
+    throw new Error(
+      `Refusing to make a production build: ${offenders.join(', ')} ` +
+      `${offenders.length === 1 ? 'is' : 'are'} set in source/witty.config.json. ` +
+      `These are test/CI-only credentials and must never be compiled into a ` +
+      `build that real users install. Clear them, or build with NODE_ENV=development.`
+    );
+  }
+};
+
+assertNoBakedInCredentials();
 
 const getExtensionFileType = (browser) => {
   if (browser === 'opera') {
@@ -173,6 +209,8 @@ module.exports = {
     new ForkTsCheckerWebpackPlugin(),
     // environmental variables
     new webpack.EnvironmentPlugin(['NODE_ENV', 'TARGET_BROWSER']),
+    // TESTING is optional, so it gets a default rather than being required
+    new webpack.EnvironmentPlugin({ TESTING: 'false' }),
     // delete previous build files
     new CleanWebpackPlugin({
       cleanOnceBeforeBuildPatterns: [

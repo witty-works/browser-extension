@@ -14,15 +14,13 @@ import {
   CustomInputElement,
   IAlert,
   ICheckResponse,
-  IExplanation,
-  IgnoredCategory,
   INodes,
   INodeWithAlerts,
   Position,
 } from '../shared/types';
 import {
   storeInLocalStorage,
-  logOut,
+  getNewAccessToken,
   getDomainWithoutSubdomain,
   updateConfig,
   isSignedInResult,
@@ -48,11 +46,9 @@ import HighlightPopover, {
 import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
-import { useRefreshTokenEndpoint } from '../shared/ApiServices/useRefreshTokenEndpoint';
 import Toast from '../shared/components/Toast/Toast';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
-import { setToken } from '../shared/ApiServices/requests';
 import GoogleDocsClone from './GoogleDocsClone';
 import {
   findCloneContainer,
@@ -64,8 +60,6 @@ import {
 } from './utils';
 import { getActiveDocument } from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
-import HighlightPopoverUpgrade from './HighlightPopover/HighlightPopoverUpgrade';
-import Notification from '../Notifications/Notification';
 import { useCheckEndpointWithCache } from '../shared/ApiServices/useCheckEndpointWithCache';
 import { useCheckEventsLogger } from '../shared/ApiServices/useCheckEventsLogger';
 import { useLLMAlternativesCache } from '../shared/ApiServices/useLLMAlternativesCache';
@@ -82,8 +76,6 @@ const Input: React.FC<{
     position: DOMRect;
   }>({ text: [], position: {} as DOMRect });
 
-  const [refreshTokenResponse, refreshTokenError, setRefreshToken] =
-    useRefreshTokenEndpoint();
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const prevTextRef = useRef(currentTextToCheck);
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLElement);
@@ -116,23 +108,16 @@ const Input: React.FC<{
   const [debounceDelay, setDebounceDelay] = useState<number>(
     defaultConfig.API_DELAY
   );
-  const [ignoredCategoriesFromStorage, setIgnoredCategoriesFromStorage] =
-    useState<IgnoredCategory[]>([]);
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
   // const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
-  const totalMaxCharLength = defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM;
+  const totalMaxCharLength = defaultConfig.MAX_CHAR_LENGTH_TOTAL;
   const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
-  const [, , hasWittyLicense] = useStateRef<boolean>(true);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
-  const [, , isWittyPremiumUserRef] = useStateRef<boolean>(true); //Toggle to easily test char limit logic (should be true in prod)
-  // const maxCharLength = isWittyPremiumUserRef.current ? defaultConfig.MAX_CHAR_LENGTH_REQUEST_PREMIUM : defaultConfig.MAX_CHAR_LENGTH_REQUEST_FREEMIUM;
   const [, , popoverRootRef] = useStateRef<Root | null>(null);
   const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
   const [hrFeatureDisabled, setHrFeatureDisabled] = useState<boolean>(false);
-  const [trialEndedNotifactionShownDate, setTrialEndedNotifactionShownDate] =
-    useState<Date | null>(null);
   const checkEventsLogger = useCheckEventsLogger(
     authResponse,
     hrFeatureDisabled
@@ -144,8 +129,7 @@ const Input: React.FC<{
   ) => {
     userIsSignedIn &&
       checkEventsLogger.checkLog(checkEndpointResponse, checkedTextLength);
-    isWittyPremiumUserRef.current &&
-      userIsSignedIn &&
+    userIsSignedIn &&
       checkEventsLogger.logNewCheckResponses(
         checkEndpointResponse,
         checkedTextLength
@@ -232,16 +216,7 @@ const Input: React.FC<{
       .get(null)
       .then((result) => {
         setUserIsSignedIn(isSignedInResult(result));
-        hasWittyLicense.current = result[StorageKeys.PLAN] !== 'none';
-        (result[StorageKeys.PLAN] === 'witty_free' ||
-          result[StorageKeys.PLAN] === 'none' ||
-          !result[StorageKeys.PLAN]) &&
-          (isWittyPremiumUserRef.current = false);
-        setDebounceDelay(
-          isWittyPremiumUserRef.current
-            ? defaultConfig.API_DELAY
-            : defaultConfig.API_DELAY_FREEMIUM
-        );
+        setDebounceDelay(defaultConfig.API_DELAY);
         elementSpellcheckRef.current = !!result[StorageKeys.ORTHOGRAPHY];
         const domain = getDomainWithoutSubdomain(window.location.hostname);
         domain &&
@@ -249,24 +224,6 @@ const Input: React.FC<{
           setHrFeatureDisabled(
             result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS].includes(domain)
           );
-        setTrialEndedNotifactionShownDate(
-          result[StorageKeys.TRIAL_ENDED_NOTIFICATION_SHOWN_DATE]
-        );
-        if (
-          result[StorageKeys.PLAN] === 'witty_free' &&
-          result[StorageKeys.IGNORED_CATEGORIES]
-        ) {
-          const filteredIgnoredCategories = (
-            result[StorageKeys.IGNORED_CATEGORIES] as IgnoredCategory[]
-          ).filter((term) => {
-            const now = new Date();
-            const termDate = new Date(term.timestamp);
-            const diffTime = Math.abs(now.getTime() - termDate.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays < 7;
-          });
-          setIgnoredCategoriesFromStorage(filteredIgnoredCategories);
-        }
       })
       .catch((error: unknown) => {
         sendErrorToSentry(error);
@@ -508,48 +465,6 @@ const Input: React.FC<{
   useEffect(() => {
     if (!authResponse) return;
     updateConfig(authResponse);
-    const trialEnded =
-      authResponse.organization_trial_ends_at && !hasWittyLicense.current;
-    const timeToShowNotification =
-      !trialEndedNotifactionShownDate ||
-      new Date(trialEndedNotifactionShownDate) <
-        new Date(new Date().setMonth(new Date().getMonth() - 1));
-
-    if (trialEnded && timeToShowNotification) {
-      const notificationWrapper = document.createElement('div');
-      notificationWrapper.id = 'ww-notification';
-      storeInLocalStorage(
-        StorageKeys.TRIAL_ENDED_NOTIFICATION_SHOWN_DATE,
-        new Date().toString()
-      );
-
-      window.top?.document.body.insertBefore(
-        notificationWrapper,
-        window.top.document.body.firstChild
-      );
-      const root = createRoot(notificationWrapper);
-
-      const close = () => {
-        try {
-          root.unmount();
-        } catch (err) {
-          // ignore
-        }
-        try {
-          notificationWrapper.remove();
-        } catch (err) {
-          // ignore
-        }
-      };
-
-      root.render(
-        <Notification
-          notificationType={'trial_ended'}
-          element={element}
-          onClose={close}
-        />
-      );
-    }
   }, [authResponse]);
 
   useEffect(() => {
@@ -585,7 +500,6 @@ const Input: React.FC<{
   };
 
   const handleKeyupEventDebounced = debounce((keyboardEvent: KeyboardEvent) => {
-    if (!hasWittyLicense.current) return; //dont do any checks for users without witty license
     if (prevSelectedAlertIndex.current != -1 && !isGoogleDocs()) resetPopover();
     const isSpecialKey =
       !keyboardEvent?.key ||
@@ -655,19 +569,31 @@ const Input: React.FC<{
       setActiveIcon('loading');
     }
 
-    totalMaxCharLengthReachedRef.current =
-      nextText.length > totalMaxCharLength && !isWittyPremiumUserRef.current;
+    totalMaxCharLengthReachedRef.current = nextText.length > totalMaxCharLength;
   };
 
+  /**
+   * Single egress point for the user's text. Nothing is sent to the API unless
+   * the extension is actually signed in.
+   *
+   * This guard previously keyed off the plan (`PLAN !== 'none'`), so removing
+   * the commercial gating removed it by accident — which meant a signed-out
+   * user's keystrokes were POSTed to /v2.4/check and merely rejected at the far
+   * end. Storage is re-read on each call rather than closing over
+   * `userIsSignedIn`, because this runs from a debounced callback where React
+   * state would be stale.
+   */
   const checkText = (text: string) => {
-    browser.storage.local.get([StorageKeys.PLAN]).then((result) => {
-      const licenseAvailable =
-        result[StorageKeys.PLAN] && result[StorageKeys.PLAN] !== 'none';
-      hasWittyLicense.current = licenseAvailable;
-      if (licenseAvailable) {
-        setTextToCheck(text);
-      }
-    });
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        if (isSignedInResult(result)) {
+          setTextToCheck(text);
+        }
+      })
+      .catch((error: unknown) => {
+        sendErrorToSentry(error);
+      });
   };
 
   const debouncedSetTextToCheck = debounce((text: string) => {
@@ -774,28 +700,6 @@ const Input: React.FC<{
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
-  };
-
-  const addIgnoredCategory = (
-    gravity: number,
-    explanation: IExplanation
-  ): void => {
-    let category = 'inclusive';
-    if (gravity && !explanation) {
-      category = 'premiumFeature';
-    }
-    const currentTime = new Date().getTime();
-    const newIgnoredCategory: IgnoredCategory = {
-      category: category,
-      timestamp: currentTime,
-    };
-
-    const newIgnoredCategories: IgnoredCategory[] = [
-      ...ignoredCategoriesFromStorage,
-      newIgnoredCategory,
-    ];
-    storeInLocalStorage(StorageKeys.IGNORED_CATEGORIES, newIgnoredCategories);
-    setIgnoredCategoriesFromStorage(newIgnoredCategories);
   };
 
   const handleElementClickEvent = (event: MouseEvent) => {
@@ -999,28 +903,10 @@ const Input: React.FC<{
       setForceHighlightUpdate(!forceHighlightUpdate);
       return;
     }
+    // The "ignored categories" mechanism is gone along with the upgrade prompt:
+    // it existed so that dismissing the upsell nag suppressed that category for
+    // a week. Nothing populated it other than that prompt.
     let alertsWithoutIgnoredCategories = alerts;
-
-    //if any item in ignoredCategoriesFromStorage has the category 'inclusive', remove checkEndpointResponse.results that have the category 'inclusive'
-    if (
-      ignoredCategoriesFromStorage
-        .map((item) => item.category)
-        .includes('inclusive')
-    ) {
-      alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
-        (alert) => alert.data.gravity !== undefined
-      );
-    }
-
-    if (
-      ignoredCategoriesFromStorage
-        .map((item) => item.category)
-        .includes('premiumFeature')
-    ) {
-      alertsWithoutIgnoredCategories = alertsWithoutIgnoredCategories.filter(
-        (alert) => alert.data.explanation !== undefined
-      );
-    }
 
     const alertsWithoutIgnoredTerms: IAlert[] =
       alertsWithoutIgnoredCategories.filter(
@@ -1158,7 +1044,6 @@ const Input: React.FC<{
     setTotalAlerts(totalAlertsToSet);
     nodesWithAlertsRef.current = mergedNodesWithAlerts;
     // TODO Restore logNewCheckResponses
-    // isWittyPremiumUserRef.current && userIsSignedIn && logNewCheckResponses(mergedNodesWithAlerts,  prevCheckedNodesRef.current);
 
     const nodeStorageRefWithAlerts = nodesStorageRef.current.map(
       (node: INodes) => {
@@ -1189,28 +1074,9 @@ const Input: React.FC<{
     alerts,
     ignoredTerms,
     elementXPathResult,
-    ignoredCategoriesFromStorage,
     selectedAlertIndex,
   ]);
 
-  // useEffect(() => {
-  //   if(totalMaxCharLengthReachedRef.current && !isWittyPremiumUserRef.current) {
-  //     const totalMaxCharLengthReachedNotificationWrapper = document.createElement('div');
-  //     totalMaxCharLengthReachedNotificationWrapper.id = 'ww-notification';
-  //     if (localStorage.getItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED) === 'true') return;
-  //     ReactDOM.render(
-  //         <Notification
-  //           notificationType={'totalMaxCharLengthReached'}
-  //           element={element}
-  //         />,
-  //       document.body.insertBefore(
-  //         totalMaxCharLengthReachedNotificationWrapper,
-  //         document.body.firstChild
-  //       )
-  //     );
-  //     localStorage.setItem(StorageKeys.TOTAL_MAX_CHAR_LENGTH_NOTIFICATION_SHOWED, 'true');
-  //   }
-  // }, [totalMaxCharLengthReachedRef.current]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
@@ -1527,15 +1393,15 @@ const Input: React.FC<{
       checkEndpointError?.status == 403 ||
       (authErrorResponse?.status === 403 && userIsSignedIn)
     ) {
-      browser.storage.local
-        .get(StorageKeys.REFRESH_TOKEN)
-        .then((result) => {
-          if (!result[StorageKeys.REFRESH_TOKEN]) {
-            logOut();
-            return;
-          }
-          //gets new token using the refresh token
-          setRefreshToken(result[StorageKeys.REFRESH_TOKEN]);
+      // Refresh via the OAuth2 refresh_token grant. This used to drive
+      // useRefreshTokenEndpoint, which POSTed to the dashboard's
+      // /api/refresh-token — a route deleted with Azure AD B2C, so the whole
+      // path was dead. getNewAccessToken handles rotation and falls back to
+      // logOut() when the refresh token is spent.
+      getNewAccessToken()
+        .then(() => {
+          checkText('');
+          checkText(currentTextToCheck);
         })
         .catch((error: unknown) => {
           sendErrorToSentry(error);
@@ -1556,27 +1422,6 @@ const Input: React.FC<{
     }
   }, [checkEndpointError, authErrorResponse]);
 
-  useEffect(() => {
-    if (refreshTokenError) {
-      logOut();
-      return;
-    }
-    if (!refreshTokenResponse) return;
-
-    storeInLocalStorage(
-      StorageKeys.ACCESS_TOKEN,
-      refreshTokenResponse.access_token
-    );
-    setToken(refreshTokenResponse.access_token);
-    storeInLocalStorage(
-      StorageKeys.REFRESH_TOKEN,
-      refreshTokenResponse.refresh_token
-    );
-
-    checkText('');
-    checkText(currentTextToCheck);
-  }, [refreshTokenError, refreshTokenResponse]);
-
   const ErrorBoundaryFallback = () => (
     <Toast message={t('reloadWebsite')} type='error' />
   );
@@ -1585,14 +1430,11 @@ const Input: React.FC<{
     let changedItems = Object.keys(changes);
     for (let item of changedItems) {
       switch (item) {
-        case StorageKeys.ACCESS_TOKEN:
+        case StorageKeys.SIGNED_IN:
           setUserIsSignedIn(changes[item].newValue);
           setConfigHasChanged(changes[item].newValue);
           checkText('');
           checkText(currentTextToCheck);
-          break;
-        case StorageKeys.PLAN:
-          hasWittyLicense.current = !!changes[item].newValue;
           break;
       }
     }
@@ -1618,24 +1460,7 @@ const Input: React.FC<{
     const container = document.querySelector(WTags.WW_POPOVER);
     if (!container) return;
     //Show/Hide the popover
-    if (
-      previousPopoverDataRef.current &&
-      userIsSignedIn &&
-      popoverDataRef.current?.alert.plan === 'witty_free' &&
-      !popoverDataRef.current?.alert.data.explanation // if no explanation returned, it's a premium feature
-    ) {
-      popoverRootRef.current?.render(
-        <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
-          <HighlightPopoverUpgrade
-            element={element}
-            data={popoverDataRef.current}
-            prevData={previousPopoverDataRef.current}
-            hide={resetPopover}
-            addIgnoredCategory={addIgnoredCategory}
-          />
-        </Sentry.ErrorBoundary>
-      );
-    } else if (popoverDataRef.current && userIsSignedIn) {
+    if (popoverDataRef.current && userIsSignedIn) {
       popoverRootRef.current?.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
@@ -1710,18 +1535,16 @@ const Input: React.FC<{
           </WTags.WW_HIGHLIGHTS>
         </>
       )}
-      {hasWittyLicense.current && (
-        <WTags.WW_ACTIVITY_INDICATOR>
-          <StateIndicatorIcon
-            element={element}
-            elementRect={elementRect}
-            iconType={
-              totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon
-            }
-            isHovered={isHovered}
-          />
-        </WTags.WW_ACTIVITY_INDICATOR>
-      )}
+      <WTags.WW_ACTIVITY_INDICATOR>
+        <StateIndicatorIcon
+          element={element}
+          elementRect={elementRect}
+          iconType={
+            totalMaxCharLengthReachedRef.current ? 'warning' : activeIcon
+          }
+          isHovered={isHovered}
+        />
+      </WTags.WW_ACTIVITY_INDICATOR>
     </>
   );
 };

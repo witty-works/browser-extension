@@ -1,10 +1,15 @@
 import browser from 'webextension-polyfill';
 import {
+  apiKeyFromStorage,
   BaseUrls,
   DefaultBaseUrlKey,
   DEV_ENV,
+  getAuthMode,
+  registerCustomEndpointFromStorage,
+  STATIC_ACCESS_TOKEN,
   StorageKeys,
   wittyVersion,
+  X_KEY,
 } from './constants';
 import { sendErrorToSentry } from './errorUtils';
 import defaultConfig from '../witty.config.json';
@@ -16,10 +21,12 @@ import {
 } from './DOMutils';
 import {
   createUrl,
-  getToken,
+  setApiKey,
   setToken,
   buildRequestHeaders,
 } from './ApiServices/requests';
+import { refresh } from './ApiServices/oauth';
+import { clearTokens, persistTokens, readTokens } from './tokenStore';
 import { IAuthResponse } from './types';
 import { getActiveDocument } from '../ContentScript/ContentScriptApp';
 // Extract TxtSentenceNode from a generic node
@@ -130,54 +137,66 @@ export const addBadge = (text: string) => {
   browser.browserAction?.setBadgeText({ text: text });
 };
 
+/**
+ * Obtain a fresh access token using the stored refresh token.
+ *
+ * Replaces the old POST to the dashboard's `/api/refresh-token`, which routed to
+ * a controller method deleted along with Azure AD B2C. This now uses the
+ * standard OAuth2 `refresh_token` grant against `/oauth/token`.
+ */
 export const getNewAccessToken = async () => {
   // If X_KEY is configured, do not attempt to refresh tokens
-  if (defaultConfig && defaultConfig.X_KEY) return;
+  if (X_KEY) return;
 
-  browser.storage.local
-    .get([StorageKeys.REFRESH_TOKEN, StorageKeys.ACCESS_TOKEN])
-    .then((result) => {
-      // If the access token matches the hardcoded default one, never refresh it
-      if (result[StorageKeys.ACCESS_TOKEN] === defaultConfig.ACCESS_TOKEN) {
-        return;
-      }
+  try {
+    const stored = await readTokens();
 
-      if (!result[StorageKeys.REFRESH_TOKEN]) {
-        logOut();
-        return;
-      }
-      const request = getToken(result[StorageKeys.REFRESH_TOKEN]);
-      if (!request.config) {
-        logOut();
-        return;
-      }
-      fetch(request.url, request.config).then(async (response) => {
-        if (!response || !response.ok) {
-          logOut();
-          return;
-        }
-        const responseJson = await response.json();
-        storeInLocalStorage(
-          StorageKeys.REFRESH_TOKEN,
-          responseJson.refresh_token
-        );
-        storeInLocalStorage(
-          StorageKeys.ACCESS_TOKEN,
-          responseJson.access_token
-        );
-      });
-    })
-    .catch((e) => sendErrorToSentry(e));
+    // If the access token matches a statically configured one, never refresh
+    // it. Guarded on a non-empty value: in release builds STATIC_ACCESS_TOKEN
+    // is '', and an unauthenticated install also has '' in storage, so an
+    // unguarded comparison would match and skip the refresh entirely.
+    if (STATIC_ACCESS_TOKEN && stored.accessToken === STATIC_ACCESS_TOKEN) {
+      return;
+    }
+
+    if (!stored.refreshToken) {
+      logOut();
+      return;
+    }
+
+    const result = await browser.storage.local.get([
+      StorageKeys.API_ENDPOINT_KEY,
+      StorageKeys.CUSTOM_ENDPOINT,
+    ]);
+    registerCustomEndpointFromStorage(result);
+    const urlKey =
+      (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey;
+
+    // Passport rotates refresh tokens, so both values must be written back —
+    // continuing to present the previous refresh token after a successful
+    // rotation is rejected.
+    const tokens = await refresh(urlKey, stored.refreshToken);
+    await persistTokens(tokens);
+    setToken(tokens.accessToken);
+  } catch (error) {
+    // A refresh failure means the refresh token is expired, revoked, or was
+    // issued by a different deployment. None of those are recoverable without
+    // the user signing in again, so fail closed rather than leaving stale
+    // credentials that will keep 401-ing.
+    sendErrorToSentry(error);
+    logOut();
+  }
 };
 
 export const logOut = () => {
   storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
   storeInLocalStorage(StorageKeys.USER_ID, '');
   storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
-  storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
-  storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
-  storeInLocalStorage(StorageKeys.PLAN, '');
   storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+  // Goes through the store so the session-held access token is cleared too,
+  // not just the on-disk refresh token.
+  clearTokens().catch((error) => sendErrorToSentry(error));
+  setToken('');
   addBadge('Login');
 };
 
@@ -204,7 +223,7 @@ export const getRandomToken = () => {
 
 export const updateLabelChrome = (domain: string) => {
   browser.storage.local.get(null).then((result) => {
-    if (!result[StorageKeys.ACCESS_TOKEN]) {
+    if (!isSignedInResult(result)) {
       addBadge('Login');
       return;
     }
@@ -360,7 +379,6 @@ export const updateConfig = (
       );
       storeInLocalStorage(StorageKeys.USER_ID, response?.id);
       storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list); //type not relevant here -> always 'deny'
-      storeInLocalStorage(StorageKeys.PLAN, response?.plan);
       // @ts-ignore
       storeInLocalStorage(
         StorageKeys.LLM_ALTERNATIVES,
@@ -381,6 +399,13 @@ export const updateConfig = (
           StorageKeys.ORTHOGRAPHY,
           response.organization_config.categories.orthography
         );
+        // Keep the reported category keys so the options page can offer
+        // per-category toggles. Deployments that report none simply do not get
+        // the section.
+        storeInLocalStorage(
+          StorageKeys.CATEGORIES,
+          Object.keys(response.organization_config.categories)
+        );
       }
     })
     .catch((error) => {
@@ -391,12 +416,16 @@ export const updateConfig = (
 export const makeAuthRequest = () => {
   browser.storage.local
     .get(null)
-    .then((result) => {
+    .then(async (result) => {
+      registerCustomEndpointFromStorage(result);
+      setApiKey(apiKeyFromStorage(result));
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
-      if (result[StorageKeys.ACCESS_TOKEN]) {
-        const headers = buildRequestHeaders(result[StorageKeys.ACCESS_TOKEN]);
+      const { accessToken } = await readTokens();
+
+      if (accessToken) {
+        const headers = buildRequestHeaders(accessToken);
 
         const config = {
           method: 'POST',
@@ -414,7 +443,7 @@ export const makeAuthRequest = () => {
             }
           }
         );
-      } else if (defaultConfig && defaultConfig.X_KEY) {
+      } else if (X_KEY || apiKeyFromStorage(result)) {
         // No token in storage but an X_KEY is configured in the extension config.
         // Try the auth endpoint using the configured X-KEY header. Do NOT store the raw key.
         const headers = buildRequestHeaders();
@@ -437,14 +466,12 @@ export const makeAuthRequest = () => {
             storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
             sendErrorToSentry(e);
           });
-      } else if (defaultConfig.ACCESS_TOKEN) {
+      } else if (STATIC_ACCESS_TOKEN) {
         // No token in storage but a default token is available in config — store and use it.
-        storeInLocalStorage(
-          StorageKeys.ACCESS_TOKEN,
-          defaultConfig.ACCESS_TOKEN
-        );
+        storeInLocalStorage(StorageKeys.ACCESS_TOKEN, STATIC_ACCESS_TOKEN);
+        storeInLocalStorage(StorageKeys.SIGNED_IN, true);
         try {
-          setToken(defaultConfig.ACCESS_TOKEN);
+          setToken(STATIC_ACCESS_TOKEN);
         } catch (e) {
           // swallow any errors setting token — best effort fallback
           sendErrorToSentry(e);
@@ -456,10 +483,30 @@ export const makeAuthRequest = () => {
     });
 };
 
+/**
+ * Decide sign-in state from a `storage.local.get(null)` snapshot.
+ *
+ * Reads the `signedIn` marker rather than the access token: the token now lives
+ * in `storage.session` and is absent from this snapshot. `ACCESS_TOKEN` is still
+ * consulted so installs that have not yet run the migration — or browsers
+ * without session storage — keep working.
+ */
 export const isSignedInResult = (result: any): boolean => {
+  if (X_KEY) {
+    return true;
+  }
+
+  // In API-key mode the key *is* the credential — there is no account and no
+  // token. Returning false here would make the extension consider itself signed
+  // out and refuse to send any text, which is the correct behaviour for a
+  // missing key and wrong for a present one.
+  if (getAuthMode(result) === 'apiKey') {
+    return !!apiKeyFromStorage(result);
+  }
+
   return !!(
+    result[StorageKeys.SIGNED_IN] ||
     result[StorageKeys.ACCESS_TOKEN] ||
-    result[StorageKeys.CHECK_ENDPOINT_SUCCESS] ||
-    (defaultConfig && defaultConfig.X_KEY)
+    result[StorageKeys.CHECK_ENDPOINT_SUCCESS]
   );
 };

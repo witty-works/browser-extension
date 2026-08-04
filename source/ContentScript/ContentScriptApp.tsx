@@ -6,18 +6,22 @@ import { CustomInputElement, RequestConfig } from '../shared/types';
 import { useStateRef } from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
+  apiKeyFromStorage,
   WTags,
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
+  registerCustomEndpointFromStorage,
 } from '../shared/constants';
 import {
   getBaseUrls,
   setAppID,
   setBaseUrls,
+  setApiKey,
   setRequestConfig,
   setToken,
 } from '../shared/ApiServices/requests';
+import { readAccessToken } from '../shared/tokenStore';
 import {
   isInputElement,
   nodeExistsInDOM,
@@ -95,12 +99,14 @@ const ContentScriptApp: React.FC = () => {
       .get(null)
       .then((result) => {
         setAppID(result[StorageKeys.APP_ID]);
+        registerCustomEndpointFromStorage(result);
         setBaseUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-        setToken(result[StorageKeys.ACCESS_TOKEN]);
+        setApiKey(apiKeyFromStorage(result));
+        readAccessToken().then(setToken).catch(() => setToken(''));
         storeInLocalStorage(
           StorageKeys.CONFIG_HASH,
           result[StorageKeys.CONFIG_HASH]
@@ -123,6 +129,8 @@ const ContentScriptApp: React.FC = () => {
           result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS]?.includes(domain);
         const requestConfig: RequestConfig = {
           addons: isHrFeatureDisabled ? [] : ['hr'],
+          disabled_categories:
+            (result[StorageKeys.DISABLED_CATEGORIES] as string[]) || [],
         };
         setReqConfig(requestConfig);
 
@@ -205,8 +213,14 @@ const ContentScriptApp: React.FC = () => {
         case StorageKeys.API_ENDPOINT_KEY:
           setBaseUrls(changes[item].newValue);
           break;
-        case StorageKeys.ACCESS_TOKEN:
-          setToken(changes[item].newValue);
+        case StorageKeys.SIGNED_IN:
+          // The marker is a boolean; the token itself lives in storage.session,
+          // so re-read it rather than assigning the marker.
+          changes[item].newValue
+            ? readAccessToken()
+                .then(setToken)
+                .catch(() => setToken(''))
+            : setToken('');
           break;
         case StorageKeys.HR_FEATURES_DISABLED_DOMAINS:
           setReqConfig({
