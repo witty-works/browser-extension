@@ -1,6 +1,6 @@
 # Authentication hardening plan
 
-Status: **in progress** — started 2026-08-04
+Status: extension and dashboard complete; NLP API in progress — 2026-08-04
 
 Spans three repositories:
 
@@ -244,39 +244,20 @@ Takes login from "broken" to "broken but not exploitable".
       the deleted `accessTokenFromRefreshToken` and so was a public endpoint that
       500s. The extension now gets an honest 404 until Phase 1.
 
-### Phase 1 — Dashboard: a real OAuth2 authorization server
+### Phase 1 — Dashboard OAuth2 server — **DONE** (verified live 2026-08-04)
 
-- [ ] Install and configure Laravel Passport.
-- [ ] Register the extension as a **public client with PKCE**; redirect URI
-      `https://<extension-id>.chromiumapp.org/` plus the Firefox
-      `.extensions.allizom.org` equivalent. **Exact-match** on redirect URI — the
-      old `checkAllowedRedirectUri` used `strpos(…) === 0`; do not repeat that.
-- [ ] Put `email` into the access-token claims, or expose `/api/userinfo`.
-- [ ] Add `/.well-known/jwks.json` so the NLP API fetches keys the same way it
-      already does for B2C — self-hosters then copy zero key material around.
-- [ ] Keep `browser-login` as a thin route that redirects unauthenticated users
-      to the Fortify login page and back into `/oauth/authorize`, so the
-      extension's "Sign in" / "Sign up" buttons still work (`register=true` →
-      registration page).
-- [ ] Wire logout to Passport token revocation.
+Laravel Passport, with the extension registered as a **public PKCE client**
+(client id `1`, not revoked) and both redirect URIs registered:
+`https://<extension-id>.chromiumapp.org/` and the Firefox
+`.extensions.allizom.org` equivalent. Matching is exact — a forged
+`redirect_uri` returns 401, and a valid unauthenticated request 302s to
+`/login`.
 
-### Phase 2 — Extension: `launchWebAuthFlow` + PKCE
-
-- [ ] Add `"identity"` to `permissions` in `source/manifest.json`.
-- [ ] In the **background service worker** (not the popup, not a content script):
-      generate `code_verifier` with `crypto.getRandomValues`, derive the S256
-      `code_challenge`, generate `state`, call
-      `browser.identity.launchWebAuthFlow({url, interactive: true})`.
-- [ ] On return: verify `state`, exchange `code` + `code_verifier` at
-      `/oauth/token`, store tokens.
-- [ ] Access token → `browser.storage.session` (MV3, in-memory, never written to
-      disk). Refresh token → `browser.storage.local`.
-- [ ] Rewrite `getNewAccessToken` (`source/shared/utils.ts:133-171`) as a
-      refresh-token grant against `/oauth/token`, checking `exp` proactively
-      rather than only reacting to a 401. Handle rotation.
-- [ ] Verify Firefox parity — `browser.identity.launchWebAuthFlow` is supported
-      there with an `https://<uuid>.extensions.allizom.org/` redirect URL, but
-      confirm against the MV2 Firefox build before committing.
+Access tokens carry a `kid` header and both `email` and `preferred_username`
+claims; `/.well-known/jwks.json` serves the matching key. Verified end to end:
+fetching that JWKS and checking the RS256 signature succeeds. `/oauth/token`
+carries a 10/min per-IP throttle, and the dead `/api/refresh-token` route is
+gone.
 
 #### Contract the extension expects from the dashboard
 
@@ -396,14 +377,18 @@ copied public key.
 > The `aud`-based dispatch the NLP API already does works unchanged: configure
 > its `client_id` as `"1"` and the existing loop matches.
 
-### Phase 3 — NLP API: validate dashboard-issued tokens
+### Phase 3 — NLP API: validate dashboard-issued tokens — *in progress (NLP side)*
 
-- [ ] In `fetch_user` (`app/auth_service.py:298`), add a branch alongside the B2C
-      path: an SSO config entry carrying `issuer` + `jwks_uri` + `audience`,
-      validating RS256 with `iss` / `aud` / `exp` checks and pulling email from
-      the claim. Reuse the existing JWKS caching.
-- [ ] Keep the `aud`-based dispatch so multiple issuers coexist during rollout,
-      but drop the implicit requirement of a `tid` / `domain`.
+Being done separately in the `nlp_api` repo; the task list moved there with it.
+
+The blocker recorded earlier — that the token carried no email claim — is
+**resolved**: the dashboard now emits both `email` and `preferred_username`, and
+`fetch_email_from_claims` already reads the latter for the Office SSO path, so
+extraction needs no change. `aud` is `"1"`, so the existing `aud`-based dispatch
+matches once configured.
+
+Nothing in the extension is waiting on this except the category toggles, which
+hide themselves until the API reports a list.
 
 ### Phase 4 — Hardening and documentation — **DONE** (2026-08-04)
 
@@ -441,6 +426,32 @@ copied public key.
 
 ---
 
+### Phase 5 — API-key mode (no dashboard) — **DONE** (2026-08-04)
+
+Lets a deployment run the NLP API alone and skip the dashboard entirely.
+
+- Explicit **Account / API key** toggle on the options page. The two are
+  **mutually exclusive**, enforced in `apiKeyFromStorage`: a key is only returned
+  in API-key mode. Without that check a leftover key would silently outrank an
+  account token, because `buildRequestHeaders` short-circuits on `x-key`.
+- The key is stored as `{endpoint, value}` and only resolves while the two agree,
+  so repointing the extension cannot carry a key to another deployment. That is
+  structural rather than a cleanup step that has to fire.
+- Distinct from the build-time `X_KEY`: that is a *shared* secret compiled into a
+  distributable bundle (release builds refuse it); this is the user's own
+  credential in their own profile.
+- Dashboard-backed features are hidden rather than left to fail in key mode:
+  domain sync (stays local), ignore-permanently, and the dashboard links. Domain
+  sync mattered — it called `buildRequestHeaders`, so it would have POSTed the
+  API key to a host that does not exist.
+- Spell checking, AI suggestions and per-category toggles move to the options
+  page. The category list renders from whatever the server reports and the
+  section stays hidden while empty, so it lights up when the NLP API exposes one.
+- The options page is reachable from the popup **including when signed out** —
+  you need it before you can sign in to a self-hosted server.
+
+Covered by `__tests__/options.spec.js`.
+
 ## 6b. Release order — website before extension — **CLEARED** (2026-08-04)
 
 The extension links into the help centre, so the website had to deploy first.
@@ -466,7 +477,19 @@ previously shipped five links to pages that no longer existed (`/demo`,
 
 ## 7. Open questions
 
-- Passport vs. hand-rolled PKCE endpoints on the Laravel side. Recommendation:
-  Passport.
-- Whether to keep `X_KEY` at all, or replace CI usage with a dedicated test
-  client credential.
+Both original questions are settled: Passport was chosen and is live, and `X_KEY`
+stays for CI only — the user-entered API key supersedes it for real use, and
+release builds refuse a baked-in one.
+
+Still open:
+
+- **Customisation toggles are overwritten in account mode.** `updateConfig`
+  rewrites spell-checking and AI-suggestions from the server whenever the config
+  hash changes. Correct as organisation-policy-wins, but it means those toggles
+  are only durable in API-key mode.
+- **Help article placement.** The two self-hosting articles are operator-facing
+  in an otherwise end-user help centre. They are registry entries, so moving them
+  to repo docs is cheap.
+- **Lint is broken** (pre-existing, fails on `dev` too):
+  `@abhijithvijayan/eslint-config` is not installed, so `npm run lint` cannot
+  resolve its config. Everything is typechecked with `tsc` instead.

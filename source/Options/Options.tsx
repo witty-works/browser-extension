@@ -346,8 +346,8 @@ const Options: React.FC = () => {
 
       {/*
         Rendered from whatever category list the server reported. A deployment
-        that reports none simply does not offer the section — see Task 3 in
-        NLP_API_TASKS.md.
+        that reports none simply does not offer the section; the NLP API has to
+        expose the list before this appears.
       */}
       {categories.length > 0 && (
         <section id='categories-section'>

@@ -141,9 +141,13 @@ baked in at build time.
 
 ### Route 1: configure at runtime (no rebuild)
 
-Open the extension's options page (`chrome://extensions` → Witty → *Extension
-options*) and fill in the **Custom server** form: dashboard URL, NLP API URL and
-OAuth client ID.
+Open the extension's options page — click **Extension settings** in the popup
+(shown whether or not you are signed in, since you need it *before* you can sign
+in to a self-hosted server). It is also reachable via `chrome://extensions` →
+Witty → *Extension options*.
+
+Choose **Account** mode and fill in the dashboard URL, NLP API URL and OAuth
+client ID.
 
 On your dashboard, register the extension's redirect URI on a **public
 (PKCE) OAuth client** — no client secret, because an extension bundle cannot
@@ -163,6 +167,10 @@ If you only need text checking, you can run the NLP API alone and skip the
 dashboard entirely. On the options page choose **API key** mode and supply the
 NLP API URL plus your key; it is sent as `x-key`.
 
+The two modes are mutually exclusive: in API-key mode no bearer token is ever
+sent, and in account mode no `x-key` is. The extension never presents both,
+which would ask the API to resolve two identities from one request.
+
 This is not the same thing as the build-time `X_KEY` in `witty.config.json`.
 That one is a *shared* secret compiled into a bundle everyone installs and can
 unpack, which is why release builds refuse it. The key entered here is your own,
@@ -177,7 +185,7 @@ left to fail:
 
 Category and customisation toggles live on the options page instead. The
 category list is whatever the API reports; the section is hidden if it reports
-none. See `NLP_API_TASKS.md` for the API-side work this mode still needs.
+none.
 
 ### Route 2: bake your own defaults in (rebuild)
 
