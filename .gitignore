@@ -60,3 +60,4 @@ dist/
 #test results
 test-results/
 source/witty.config.json
+playwright-report/
