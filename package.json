@@ -21,7 +21,10 @@
     "build": "npm run build:firefox && npm run build:chrome",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "test": "npx playwright test"
+    "build:test": "cross-env NODE_ENV=production cross-env TESTING=true cross-env TARGET_BROWSER=chrome webpack",
+    "test": "npm run build:test && npx playwright test",
+    "test:ui": "npm run build:test && npx playwright test --ui",
+    "test:update-snapshots": "npm run build:test && npx playwright test --update-snapshots"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.4",

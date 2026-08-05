@@ -28,7 +28,12 @@ import ErrorIcon from '../../assets/icons/popover/failure.svg';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 
 import './HighlightPopover.scss';
-import { DEV_ENV, StorageKeys, getColor } from '../../shared/constants';
+import {
+  DEV_ENV,
+  getColor,
+  isDashboardAvailable,
+  StorageKeys,
+} from '../../shared/constants';
 import { getActiveDocument } from '../ContentScriptApp';
 import { iframePositionRecquired } from '../../shared/DOMutils';
 import { useStateRef } from '../../shared/customHooks/useStateRef';
@@ -37,6 +42,7 @@ import {
   storeInLocalStorage,
 } from '../../shared/utils';
 import browser from 'webextension-polyfill';
+import { readAccessToken } from '../../shared/tokenStore';
 import { renderNotificationToTop } from '../../Notifications/renderNotification';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import {
@@ -91,6 +97,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     useStateRef<boolean>(false);
   const [accessToken, setAccessToken] = useState<string>('');
   const [llmAlternatives, setLlmAlternatives] = useState<boolean>(false);
+  // 'Ignore permanently' writes to the dashboard; in API-key mode there is none,
+  // so the control is hidden rather than left to fail. 'Ignore once' is local
+  // and stays available.
+  const [dashboardAvailable, setDashboardAvailable] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<string>('');
   const [isFailure, setIsFailure] = useState<string>('');
@@ -167,10 +177,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
-      setAccessToken(
-        result[StorageKeys.ACCESS_TOKEN] ? result[StorageKeys.ACCESS_TOKEN] : ''
-      );
+      readAccessToken().then(setAccessToken).catch(() => setAccessToken(''));
       setLlmAlternatives(result[StorageKeys.LLM_ALTERNATIVES]);
+      setDashboardAvailable(isDashboardAvailable(result));
     });
   }, []);
 
@@ -276,23 +285,18 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       .then((result) => {
         const {
           [StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]: alternativesAccepted,
-          [StorageKeys.SALES_DEMO_FEATURE_FLAG]: salesDemoFlag,
           [StorageKeys.INVITE_TEAM_FEATURE_FLAG]: teamInviteFlag,
           [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
         } = result;
 
-        if (
-          !salesDemoFlag?.active ||
-          !teamInviteFlag?.active ||
-          !friendInviteFlag?.active
-        ) {
+        // The 'salesDemo' prompt ("book a demo") went with the rest of the
+        // upselling, and the /demo page it linked to no longer exists.
+        if (!teamInviteFlag?.active || !friendInviteFlag?.active) {
           //reset counter if a feature flag is diabled, maybe need to rethink this?
           storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0);
         } else {
           const incrementedAlternativesAccepted = alternativesAccepted + 1;
           if (
-            (incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber &&
-              salesDemoFlag?.active) ||
             (incrementedAlternativesAccepted ===
               teamInviteFlag?.triggerNumber &&
               teamInviteFlag?.active) ||
@@ -301,10 +305,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               friendInviteFlag?.active)
           ) {
             const notificationType =
-              incrementedAlternativesAccepted === salesDemoFlag?.triggerNumber
-                ? 'salesDemo'
-                : incrementedAlternativesAccepted ===
-                  teamInviteFlag?.triggerNumber
+              incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber
                 ? 'inviteTeam'
                 : 'inviteFriends';
 
@@ -366,13 +367,27 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       });
   };
 
+  /**
+   * All explanation variants are stacked in the same grid cell and toggled with
+   * `visibility`, never `display`.
+   *
+   * `display: none` removes the hidden variants from layout, so the grid row
+   * collapsed to whichever variant happened to be showing. Because this block
+   * sits *above* the alternatives list, every hover resized it and shoved the
+   * alternatives up or down — out from under the pointer, which fired
+   * mouseleave, which restored the old height, which moved them back. The
+   * result was an oscillation that made the alternatives impossible to click.
+   *
+   * With `visibility` the hidden variants still occupy the cell, so the row is
+   * always as tall as the tallest variant and the geometry never changes.
+   */
   const renderExplanations = (alternativeHovered: IAlternatives | null) => {
     const defaultExplanation = (visible: boolean = true) => {
       return (
         <div
           key={`default-expl-${visible ? 'visible' : 'hidden'}`}
           style={{
-            display: visible ? 'block' : 'none',
+            visibility: visible ? 'visible' : 'hidden',
             gridArea: '1 / 1',
           }}
         >
@@ -384,9 +399,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     };
 
     if (!llmAlternativesResponse || llmAlternativesResponse.loading) {
-      // If LLM alternatives aren't available yet, show the default explanation
-      // so users still see the explanatory text when alternatives exist.
-      return defaultExplanation(alternativeHovered === null);
+      // If LLM alternatives aren't available yet, always show the default explanation
+      // even when hovering an alternative, so the text isn't hidden.
+      return defaultExplanation(true);
     }
 
     const allAlternatives = data.alert.data.alternatives.map(
@@ -399,14 +414,15 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               position: 'relative',
               top: 0,
               gridArea: '1 / 1',
-              display:
+              visibility:
                 alternativeHovered &&
                 alternativeHovered.text === alternative.text
-                  ? 'block'
-                  : 'none',
+                  ? 'visible'
+                  : 'hidden',
             }}
           >
-            {explanation ? explanation : defaultExplanation(false)}
+            {/* Visible when its wrapper is: the wrapper owns the toggling. */}
+            {explanation ? explanation : defaultExplanation(true)}
           </div>
         );
       }
@@ -446,10 +462,17 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     );
   };
 
-  const renderAlternative = (
-    alternative: IAlternatives,
-    alternativeHovered: IAlternatives | null
-  ) => {
+  /**
+   * Truncation is deliberately hover-invariant.
+   *
+   * This used to expand to the full text while hovered, which grew the button
+   * and could rewrap its flex row — moving the button out from under the
+   * pointer and making it impossible to click. The full text remains available
+   * without any layout change: the button carries it as a `title`, and the
+   * explanation panel above shows the whole sentence with the alternative
+   * applied.
+   */
+  const renderAlternative = (alternative: IAlternatives) => {
     if (alternative && alternative.text === '') {
       return <i>{t('removeSpaces')}</i>;
     } else {
@@ -466,16 +489,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             {splitText[2]}
           </span>
         );
-      } else if (
-        alternative.text.length > 25 &&
-        alternative.context &&
-        alternativeHovered?.text !== alternative.text
-      ) {
+      } else if (alternative.text.length > 25 && alternative.context) {
         return alternative.text.substring(0, 25) + '...';
-      } else if (
-        alternative.text.length > 35 &&
-        alternativeHovered?.text !== alternative.text
-      ) {
+      } else if (alternative.text.length > 35) {
         return alternative.text.substring(0, 35) + '...';
       } else {
         return alternative.text;
@@ -783,7 +799,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       aria-label={data.alert.data?.alternatives[index]?.text}
                       title={data.alert.data?.alternatives[index]?.text}
                     >
-                      {renderAlternative(alternative, alternativeHovered)}
+                      {renderAlternative(alternative)}
                     </div>
                     {alternative && alternative.context && (
                       <div
@@ -861,7 +877,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               {t('ignoreOnce')}
             </span>
           </button>
-          {data?.alert?.data?.text.length <= 50 && (
+          {dashboardAvailable && data?.alert?.data?.text.length <= 50 && (
             <button
               onClick={handleIgnoreClick('ignore_permanently')}
               className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top witty-works-button'

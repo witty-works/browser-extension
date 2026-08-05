@@ -14,14 +14,20 @@
   "description": "__MSG_appDesc__",
   "homepage_url": "https://witty.works",
   "short_name": "Witty",
-  "permissions": ["storage", "scripting"],
+  "permissions": ["storage", "scripting", "identity"],
   "__firefox__permissions": [
     "storage",
     "scripting",
-    "http://*/*",
-    "https://*/*"
+    "identity",
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
   ],
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "host_permissions": [
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
@@ -68,7 +74,11 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": [
+        "https://*/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
       "js": ["js/contentScript.bundle.js"],
       "css": ["css/contentScript.css"],
       "all_frames": true
@@ -87,26 +97,5 @@
       ],
       "css": ["assets/gmailSpellCheck.css"]
     }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "options.html",
-        "assets/icons/w-logo-wire-color.svg",
-        "assets/icons/popover/ignore.svg",
-        "assets/icons/popover/arrow.svg",
-        "assets/icons/popover/settings.svg",
-        "assets/googleDocsSpellCheck.js"
-      ],
-      "matches": ["<all_urls>"]
-    }
-  ],
-  "__firefox__web_accessible_resources": [
-    "options.html",
-    "assets/icons/w-logo-wire-color.svg",
-    "assets/icons/popover/ignore.svg",
-    "assets/icons/popover/arrow.svg",
-    "assets/icons/popover/settings.svg",
-    "assets/googleDocsSpellCheck.js"
   ]
 }

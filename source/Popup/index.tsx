@@ -6,7 +6,6 @@ import { sendErrorToSentry } from '../shared/errorUtils';
 import {
   renderMainPopup,
   renderPopupChrome,
-  renderUpgradePopup,
   renderUserNotLoggedIn,
 } from './PopupUtils';
 
@@ -16,9 +15,6 @@ const renderPopup = async () => {
     .then((result) => {
       if (!isSignedInResult(result)) {
         renderUserNotLoggedIn();
-        return;
-      } else if (result[StorageKeys.PLAN] === 'none') {
-        renderUpgradePopup();
         return;
       }
 
@@ -75,7 +71,7 @@ const storageChange = (changes: any) => {
   let changedItems = Object.keys(changes);
       for (let item of changedItems) {
     switch (item) {
-      case StorageKeys.ACCESS_TOKEN:
+      case StorageKeys.SIGNED_IN:
         !changes[item].newValue && renderUserNotLoggedIn();
         break;
       case StorageKeys.CHECK_ENDPOINT_SUCCESS:
@@ -83,9 +79,6 @@ const storageChange = (changes: any) => {
         !changes[item].newValue ? renderUserNotLoggedIn() : renderPopup();
         break;
       case StorageKeys.ORGANIZATION_DOMAINS:
-        renderPopup();
-        break;
-      case StorageKeys.PLAN:
         renderPopup();
         break;
     }

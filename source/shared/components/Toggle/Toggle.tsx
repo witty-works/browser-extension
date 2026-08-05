@@ -12,7 +12,6 @@ interface ToggleProps {
   handleToggle: () => void;
   label: string;
   locked?: boolean;
-  hasWittyTeams?: boolean;
   userIsLoggedIn?: boolean;
   hrFeatureToggle?: boolean;
 }
@@ -22,7 +21,6 @@ const Toggle: React.FC<ToggleProps> = ({
   handleToggle,
   label,
   locked,
-  hasWittyTeams = true,
   userIsLoggedIn = true,
   hrFeatureToggle = false,
 }: ToggleProps) => {
@@ -35,18 +33,7 @@ const Toggle: React.FC<ToggleProps> = ({
     >
       <label className='witty-works-ext-lato-popup-text'>{label}</label>
 
-      {!hasWittyTeams && (
-        <div className='witty-works-ext-toggle-premium-only'>
-          <a
-            className='witty-works-ext-witty-teams-only-link'
-            href='https://www.witty.works/witty-for-teams'
-            target='_blank'
-          >
-            {t('wittyTeamsOnly')}
-          </a>
-        </div>
-      )}
-      {userIsLoggedIn && locked && hasWittyTeams && (
+      {userIsLoggedIn && locked && (
         <div className='witty-works-ext-toggle-lock'>
           <Lock />
           <div className='witty-works-ext-toggle-lock-info'>
@@ -70,7 +57,7 @@ const Toggle: React.FC<ToggleProps> = ({
 
       <label
         style={{
-          background: (hasWittyTeams && on && Colors.green) as string,
+          background: (on && Colors.green) as string,
           transform: `translateX(${scale * 100}%) scale(${scale}, ${scale})`,
         }}
         id={`toggle-encloser-${label.replace(/\s+|&/g, '-').toLowerCase()}`}

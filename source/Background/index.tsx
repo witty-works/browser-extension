@@ -8,21 +8,36 @@ import {
   WittyIconActive,
   wittyVersion,
   DefaultBaseUrlKey,
-  BaseUrls,
+  registerCustomEndpointFromStorage,
+  X_KEY,
 } from '../shared/constants';
 import {
   addBadge,
   addNotificationBadge,
   getDomainWithoutSubdomain,
   getRandomToken,
+  getNewAccessToken,
   isFunction,
+  logOut,
   removeBadge,
   storeInLocalStorage,
   updateLabelChrome,
 } from '../shared/utils';
+import { authorize } from '../shared/ApiServices/oauth';
+import { setToken } from '../shared/ApiServices/requests';
+import {
+  allowSessionStorageInContentScripts,
+  migrateAccessTokenOffDisk,
+  persistTokens,
+} from '../shared/tokenStore';
+import {
+  isWittyMessage,
+  MessageTypes,
+  SignInResult,
+} from '../shared/messages';
 import defaultConfig from '../witty.config.json';
 import { DefaultConfigValue } from '../shared/types';
-import { useLog } from '../shared/customHooks/useLog';
+import { logTypes, useLog } from '../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import { isChromeWebstore } from '../shared/DOMutils';
 
@@ -55,6 +70,77 @@ if (sentryDSN) {
   });
 }
 
+/**
+ * Resolve which deployment to authenticate against. Read at flow time rather
+ * than cached, so a user who switches endpoints in the ApiSelector and then
+ * signs in reaches the dashboard they just selected.
+ */
+const currentUrlKey = async (): Promise<string> => {
+  const stored = await browser.storage.local.get([
+    StorageKeys.API_ENDPOINT_KEY,
+    StorageKeys.CUSTOM_ENDPOINT,
+  ]);
+
+  // Register before resolving the key, or a stored 'Custom' would not yet name
+  // anything and would silently fall back to the build default.
+  registerCustomEndpointFromStorage(stored);
+
+  const key = stored[StorageKeys.API_ENDPOINT_KEY] as string | undefined;
+
+  return key || DefaultBaseUrlKey;
+};
+
+const handleSignIn = async (register: boolean): Promise<SignInResult> => {
+  try {
+    const tokens = await authorize(await currentUrlKey(), register);
+
+    // A null result means the user dismissed the auth window. Leave existing
+    // credentials (if any) untouched — a cancelled sign-in must not log anyone
+    // out of a session they already had.
+    if (!tokens) {
+      return { status: 'cancelled' };
+    }
+
+    await persistTokens(tokens);
+    setToken(tokens.accessToken);
+    removeBadge();
+
+    return { status: 'success' };
+  } catch (error) {
+    log(`Sign-in failed: ${error}`, logTypes.ERROR);
+    sendErrorToSentry(error);
+
+    return {
+      status: 'error',
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
+};
+
+const addMessageListener = () => {
+  browser.runtime.onMessage.addListener((message: unknown, sender) => {
+    // `onMessage` is also reachable from other extensions. Only act on messages
+    // originating from our own pages and content scripts.
+    if (sender.id !== browser.runtime.id || !isWittyMessage(message)) {
+      return undefined;
+    }
+
+    if (message.type === MessageTypes.SIGN_IN) {
+      // Returning the promise keeps the message channel open until the flow
+      // settles, which can be minutes if the user takes their time logging in.
+      return handleSignIn(message.register);
+    }
+
+    if (message.type === MessageTypes.SIGN_OUT) {
+      logOut();
+
+      return Promise.resolve({ status: 'success' } as SignInResult);
+    }
+
+    return undefined;
+  });
+};
+
 const addEventListeners = () => {
   browser.tabs.onCreated.addListener(scanTabsToDetectStatus);
   browser.tabs.onCreated.addListener(scanTabsToSetIframeDomains);
@@ -76,30 +162,24 @@ const addEventListeners = () => {
 
     if (!DEV_ENV) {
       browser.runtime.setUninstallURL(
-        `https://www.witty.works/goodbye?witty_version=${wittyVersion}&witty_browser=${navigator.userAgent}`
+        `https://www.witty.works/help?witty_version=${wittyVersion}&witty_browser=${navigator.userAgent}`
       );
     }
 
     if (details.reason === 'install') {
       //Set default settings
       setSettings();
-      browser.storage.local
-        .get(null)
-        .then((result) => {
-          const optionsPageUrl = browser.runtime.getURL('options.html');
-          const urls = result[StorageKeys.API_ENDPOINT_KEY]
-            ? result[StorageKeys.API_ENDPOINT_KEY]
-            : DefaultBaseUrlKey;
 
-          !TESTING &&
-            browser.tabs.create({
-              url: `
-          ${BaseUrls[urls].dashboard}browser-login?redirect_uri=${optionsPageUrl}`,
-            });
-        })
-        .catch((error) => {
+      // Start the OAuth flow directly rather than opening a tab at the old
+      // `browser-login?redirect_uri=…` URL, which no longer exists. A cancelled
+      // or failed sign-in here is not worth surfacing: the user has just
+      // installed the extension and can sign in from the popup whenever they
+      // want, so failures are logged and otherwise ignored.
+      !TESTING &&
+        handleSignIn(false).catch((error) => {
           sendErrorToSentry(error);
         });
+
       reInjectContentScripts();
     } else if (details.reason === 'update') {
       //Set icon according to the saved settings
@@ -257,7 +337,7 @@ const setSettings = () => {
   )) {
     // If an X_KEY is configured, do not persist OAuth tokens from the config
     if (
-      defaultConfig.X_KEY &&
+      X_KEY &&
       (defaultConfigKey === 'ACCESS_TOKEN' ||
         defaultConfigKey === 'REFRESH_TOKEN')
     ) {
@@ -326,13 +406,8 @@ const storageChange = (changes: { [key: string]: any }) => {
   const changedItems = Object.keys(changes);
 
   changedItems.forEach((key) => {
-    if (key === StorageKeys.ACCESS_TOKEN && !changes[key].newValue) {
+    if (key === StorageKeys.SIGNED_IN && !changes[key].newValue) {
       addBadge('Login');
-    } else if (
-      key === StorageKeys.PLAN &&
-      (!changes[key].newValue || changes[key].newValue === 'none')
-    ) {
-      addBadge('OFF');
     } else if (key === StorageKeys.NUMBER_OF_NOTIFICATIONS) {
       changes[key].newValue === 0
         ? removeBadge()
@@ -342,7 +417,7 @@ const storageChange = (changes: { [key: string]: any }) => {
 };
 // If an X_KEY is configured, purge any stored OAuth tokens and ensure runtime
 // token state doesn't conflict with API-key mode.
-if (defaultConfig && defaultConfig.X_KEY) {
+if (X_KEY) {
   try {
     storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
     storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
@@ -352,4 +427,24 @@ if (defaultConfig && defaultConfig.X_KEY) {
 }
 
 addEventListeners();
+addMessageListener();
+
+// Test-only seam. Lets the live OAuth e2e spec drive a refresh without adding a
+// production message type for it.
+//
+// The guard survives minification as `TESTING && (self.__wittyTestRefresh =
+// ...)` rather than being eliminated — webpack does not fold this cross-module
+// constant. TESTING is compiled to `false` in release builds, so the assignment
+// never runs and nothing is exposed; only the dead branch remains in the bundle.
+if (TESTING) {
+  (self as unknown as { __wittyTestRefresh?: () => Promise<void> })
+    .__wittyTestRefresh = getNewAccessToken;
+}
+
+// The access token lives in storage.session, which Chrome hides from content
+// scripts by default — the popover and content script both need it to call the
+// API. Then move any token left on disk by a previous version into session.
+allowSessionStorageInContentScripts()
+  .then(migrateAccessTokenOffDisk)
+  .catch((error) => sendErrorToSentry(error));
 //TODO Remove Listeners

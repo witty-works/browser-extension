@@ -49,9 +49,15 @@ const ApiSelector: React.FC = () => {
         [StorageKeys.API_ENDPOINT_KEY]: value,
       })
       .then(() => {
-        if (value == 'Prod' || selectedOption == ' Prod') {
+        // Always drop credentials when the endpoint changes. Tokens are issued
+        // by one dashboard and are meaningless — and must not be presented — to
+        // another. The previous check only logged out for 'Prod' (and compared
+        // against a typo'd ' Prod'), so switching between any other pair of
+        // endpoints carried the old tokens across.
+        if (value !== selectedOption) {
           logOut();
         }
+        setSelectedOption(value);
         log(`New api endpoint ${value} saved`);
       })
       .catch(onError);

@@ -5,8 +5,15 @@ import {
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
-  BaseUrls,
+  HelpLinks,
+  X_KEY,
+  registerCustomEndpointFromStorage,
 } from '../../shared/constants';
+import {
+  MessageTypes,
+  SignInMessage,
+  SignInResult,
+} from '../../shared/messages';
 import '../../i18n/i18n';
 import '../styles.scss';
 import { namespaces } from '../../i18n/i18n.constants';
@@ -14,19 +21,17 @@ import { appID, setBaseUrls } from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
+import OptionsLink from '../PopupComponents/OptionsLink';
 import SadFace from '../../assets/icons/popup/sadFace.svg';
 import Star from '../../assets/icons/popup/star.svg';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { addBadge } from '../../shared/utils';
-import defaultConfig from '../../witty.config.json';
 
 const PopupLogin: React.FC = () => {
   const { t } = useTranslation([namespaces.pages.popup]);
-  const [popupsBlocked, setPopupsBlocked] = useState(false);
-  const [loginUrl, setLoginUrl] = useState('');
-  const [displayCopiedMessage, setDisplayCopiedMessage] = useState(false);
-  const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
+  const [signInError, setSignInError] = useState(false);
+  const [urls, setUrls] = useState<string>(DefaultBaseUrlKey);
   const log = useLog('PopupLogin');
 
   const onStorageError = (error: unknown) => {
@@ -36,13 +41,14 @@ const PopupLogin: React.FC = () => {
 
   useEffect(() => {
     // If an X_KEY is configured, we don't need to show login flows
-    if (defaultConfig && defaultConfig.X_KEY) {
+    if (X_KEY) {
       return;
     }
     addBadge('Login');
     browser.storage.local
       .get(null)
       .then((result) => {
+        registerCustomEndpointFromStorage(result);
         setUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
@@ -70,18 +76,23 @@ const PopupLogin: React.FC = () => {
     }
   };
 
-  const logIn = async (urls: string, register = false) => {
-    const optionsPageUrl = browser.runtime.getURL('options.html');
-    const registerString = register ? 'register=true&' : '';
-    const url = `${BaseUrls[urls].dashboard}browser-login?${registerString}redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
-    if (!window.open(url, '_blank')) {
-      setPopupsBlocked(true);
-      setLoginUrl(url);
+  // The background worker owns the OAuth flow: `browser.identity` is
+  // unavailable here in a way that survives, because the auth window takes
+  // focus and closes this popup mid-flight.
+  const logIn = async (register = false) => {
+    const result = (await browser.runtime.sendMessage({
+      type: MessageTypes.SIGN_IN,
+      register,
+    } as SignInMessage)) as SignInResult | undefined;
+
+    if (result?.status === 'error') {
+      log(`Sign-in failed: ${result.message}`, logTypes.ERROR);
+      setSignInError(true);
     }
   };
 
   // If X_KEY is configured, show a simple notice instead of login flows
-  if (defaultConfig && defaultConfig.X_KEY) {
+  if (X_KEY) {
     return (
       <>
         <PopupHeader showSettings={false} appId={appID} />
@@ -156,79 +167,65 @@ const PopupLogin: React.FC = () => {
           </div>
         </div>
       </div>
-      {!popupsBlocked && (
-        <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
-          <div
-            className='witty-works-ext-button witty-works-ext-primary-button-red'
+      <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
+        <div
+          className='witty-works-ext-button witty-works-ext-primary-button-red'
+          onClick={() => {
+            setSignInError(false);
+            logIn().catch((error) => {
+              log(`logIn Error: ${error}`, logTypes.ERROR);
+              sendErrorToSentry(error);
+              setSignInError(true);
+            });
+          }}
+        >
+          {t('signIn')}
+        </div>
+        <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
+          {t('dontHaveAccount')}
+          &nbsp;
+          <span
+            id='witty-sign-up'
+            className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
             onClick={() => {
-              logIn(urls).catch((error) => {
+              setSignInError(false);
+              logIn(true).catch((error) => {
                 log(`logIn Error: ${error}`, logTypes.ERROR);
                 sendErrorToSentry(error);
-                setPopupsBlocked(true);
+                setSignInError(true);
               });
             }}
           >
-            {t('signIn')}
-          </div>
-          <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
-            {t('dontHaveAccount')}
-            &nbsp;
-            <span
-              className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
-              onClick={() => {
-                logIn(urls, true).catch((error) => {
-                  log(`logIn Error: ${error}`, logTypes.ERROR);
-                  sendErrorToSentry(error);
-                  setPopupsBlocked(true);
-                });
-              }}
-            >
-              {t('signUp')}
-            </span>
-          </div>
+            {t('signUp')}
+          </span>
         </div>
-      )}
-      {popupsBlocked && (
+      </div>
+      {/*
+        The old "popups blocked" branch is gone: sign-in no longer goes through
+        `window.open`, so there is no popup for the browser to block. What can
+        still fail is the OAuth flow itself (misconfigured client, dashboard
+        unreachable), which is what this reports.
+      */}
+      {signInError && (
         <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left witty-works-ext-margin-top'>
           <div className='witty-works-ext-lato-small-paragraph-title-h4'>
-            {t('popupsBlocked')}
+            {t('signInFailed')}
           </div>
           <div className='witty-works-ext-lato-popup-text'>
-            {t('popupsBlockedText')}
+            {t('signInFailedText')}
           </div>
-          <div className='witty-works-ext-container-row witty-works-ext-justify-start'>
-            <div
-              className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
-              onClick={() => {
-                navigator.clipboard.writeText(loginUrl);
-                setDisplayCopiedMessage(true);
-                browser.alarms.create('hideCopiedMessageAlarm', {
-                  delayInMinutes: 1.5 / 60,
-                }); // 1500 ms in minutes
-
-                const alarmListener = (alarm: any) => {
-                  if (alarm.name === 'hideCopiedMessageAlarm') {
-                    setDisplayCopiedMessage(false);
-                    // Clean up the alarm listener after it triggers
-                    browser.alarms.onAlarm.removeListener(alarmListener);
-                  }
-                };
-                browser.alarms.onAlarm.addListener(alarmListener);
-              }}
-            >
-              {t('copyLink')}
-            </div>
-            {displayCopiedMessage && (
-              <div
-                className='witty-works-ext-lato-popup-text'
-                style={{ marginTop: '1.5em' }}
-              >
-                {t('copiedConfirmation')}
-              </div>
-            )}
-          </div>
+          <a
+            id='witty-help-troubleshooting'
+            className='witty-works-ext-lato-popup-text-purple'
+            href={HelpLinks.notWorking}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            {t('helpSignInFailed')}
+          </a>
         </div>
       )}
+      <OptionsLink />
       {DEV_ENV && (
         <div className='witty-works-ext-section'>
           <h2>{t('developmentSettings')}</h2>

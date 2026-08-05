@@ -11,16 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # SonarCloud attributes issues to authors and works out what is new on
+          # a branch from the history, so a shallow clone degrades its analysis.
+          fetch-depth: 0
+
       - name: Install dependencies
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
       - run: npm ci
-
-      - name: Enable testing mode
-        run: |
-          sed 's/export const TESTING = false;/export const TESTING = true;/' source/shared/constants.ts > constants.ts
-          mv constants.ts source/shared/constants.ts
 
       - name: Copy example config if missing
         run: |
@@ -28,18 +28,14 @@ jobs:
             cp source/witty.config.json.example source/witty.config.json
           fi
 
-      - name: Build artifacts
-        run: npm run build:chrome
-
       - name: Install Playwright
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
+      # `npm test` builds the extension with TESTING=true itself, so there is no
+      # separate build step and nothing to patch into the source first. The
+      # suite is self-contained — it serves its own fixture pages and mocks the
+      # NLP API — so it needs no dashboard, no NLP API and no credentials.
       - name: Run tests
-        env:
-          PREMIUM_TEST_USER_EMAIL: ${{ secrets.PREMIUM_TEST_USER_EMAIL }}
-          PREMIUM_TEST_USER_PASSWORD: ${{ secrets.PREMIUM_TEST_USER_PASSWORD }}
-          HTACCESS_USERNAME: ${{ secrets.HTACCESS_USERNAME }}
-          HTACCESS_PASSWORD: ${{ secrets.HTACCESS_PASSWORD }}
         run: xvfb-run npm test
 
       - name: Upload test results
@@ -47,10 +43,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test-results
+          path: |
+            test-results
+            playwright-report
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

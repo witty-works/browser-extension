@@ -1,0 +1,217 @@
+.witty-options {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2em 1.5em 3em;
+  font-family: Lato, Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #1a1a1a;
+
+  h1 {
+    font-size: 22px;
+    margin: 0 0 0.5em;
+  }
+
+  label {
+    display: block;
+    margin-top: 1.2em;
+    margin-bottom: 0.3em;
+    font-weight: 600;
+  }
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font: inherit;
+  }
+
+  code {
+    background: #f2f2f2;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    word-break: break-all;
+  }
+
+  section {
+    margin-top: 2.4em;
+    padding-top: 1.4em;
+    border-top: 1px solid #e6e6e6;
+
+    &:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+  }
+
+  h2 {
+    font-size: 17px;
+    margin: 0 0 0.6em;
+  }
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: auto;
+    margin: 0;
+  }
+
+  label:has(input[type='checkbox']),
+  label:has(input[type='radio']) {
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    margin-top: 0.5em;
+  }
+}
+
+.witty-options-warning {
+  border-left: 4px solid #e6635a;
+  background: #fdf2f1;
+  padding: 0.8em 1em;
+  margin: 1.2em 0;
+}
+
+.witty-options-muted {
+  color: #666666;
+  font-size: 0.92em;
+}
+
+.witty-options-error {
+  color: #e6635a;
+  font-weight: 600;
+}
+
+.witty-options-notice {
+  color: #3d8b52;
+  font-weight: 600;
+}
+
+.witty-options-actions {
+  display: flex;
+  gap: 0.75em;
+  margin-top: 1.8em;
+
+  button {
+    padding: 9px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #f06464;
+    color: #ffffff;
+    font: inherit;
+    cursor: pointer;
+
+    &.secondary {
+      background: #eeeeee;
+      color: #1a1a1a;
+    }
+  }
+}
+
+/* Category tri-state toggle — off / basic / advanced, mirroring the dashboard. */
+.witty-category-group {
+  margin-top: 1.4em;
+
+  h3 {
+    font-size: 14px;
+    margin: 0 0 0.4em;
+    color: #4a4a4a;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+.witty-category {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.32em 0;
+}
+
+.witty-category-label {
+  flex: 1;
+}
+
+.witty-category-level {
+  color: #666666;
+  font-size: 0.88em;
+  min-width: 5.5em;
+  text-align: right;
+}
+
+.witty-category-toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: #cccccc;
+  cursor: pointer;
+  transition: background 0.12s ease-in-out;
+
+  /* Off → knob left, basic → centre, advanced → right. */
+  .witty-category-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    transition: left 0.12s ease-in-out;
+  }
+
+  &.is-on {
+    background: #5fca7d;
+
+    .witty-category-knob {
+      left: 27px;
+    }
+  }
+
+  /* Basic sits between the two, which is what distinguishes it from advanced. */
+  &.is-middle {
+    background: #a8dfb8;
+
+    .witty-category-knob {
+      left: 15px;
+    }
+  }
+
+  &.is-locked {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #55b8e9;
+    outline-offset: 2px;
+  }
+}
+
+/* Gender ending / role format selects. */
+.witty-format-field {
+  margin-top: 1.2em;
+
+  label {
+    margin-top: 0;
+  }
+
+  p {
+    margin: 0.2em 0 0.5em;
+  }
+
+  select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font: inherit;
+    background: #ffffff;
+  }
+}

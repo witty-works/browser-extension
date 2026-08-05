@@ -46,7 +46,6 @@ export const useAnalytics = () => {
         response__organizationId: authResponse
           ? authResponse.organization_id
           : undefined,
-        response__plan: authResponse ? authResponse.plan : undefined,
         response__results: checkResponseResultsWithoutContext,
       };
 
@@ -71,7 +70,6 @@ export const useAnalytics = () => {
         response__organizationId: authResponse
           ? authResponse.organization_id
           : undefined,
-        response__plan: authResponse ? authResponse.plan : undefined,
         response__data__text: checkResponse.text_id,
         response__data__text__matched: checkResponse.text,
         response__data__category: checkResponse.category,

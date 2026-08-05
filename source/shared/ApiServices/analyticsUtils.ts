@@ -87,10 +87,6 @@ export const captureEvent = (eventName: string, eventData: object) => {
         const appId = result[StorageKeys.APP_ID];
         const featureFlags = [
           {
-            flag: 'sales-demo-feature-flag',
-            storageKey: StorageKeys.SALES_DEMO_FEATURE_FLAG,
-          },
-          {
             flag: 'invite-team-feature-flag',
             storageKey: StorageKeys.INVITE_TEAM_FEATURE_FLAG,
           },
@@ -151,7 +147,6 @@ export const getResponseData = (logResponse: IAlert) => {
     response__id: logResponse.id,
     response__organizationId: logResponse.organizationId,
     response__popOverIsOpen: logResponse.popOverIsOpen,
-    response__plan: logResponse.plan,
     response__data__language: logResponse.data.language,
     response__data__context: logResponse.data.context,
     response__data__text: logResponse.data.text_id,

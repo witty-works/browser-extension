@@ -4,10 +4,14 @@ import { useTranslation } from 'react-i18next';
 
 import { EnableWittyToggle } from '../../shared/types';
 import {
+  apiKeyFromStorage,
+  isDashboardAvailable,
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
   TESTING,
+  X_KEY,
+  registerCustomEndpointFromStorage,
 } from '../../shared/constants';
 import {
   addBadge,
@@ -29,16 +33,19 @@ import '../styles.scss';
 import {
   createUrl,
   getBaseUrls,
+  setApiKey,
   setBaseUrls,
   setToken,
   buildRequestHeaders,
 } from '../../shared/ApiServices/requests';
 import PopupHeader from '../PopupComponents/PopupHeader';
+import OptionsLink from '../PopupComponents/OptionsLink';
 import { sendErrorToSentry } from '../../shared/errorUtils';
 import { logTypes, useLog } from '../../shared/customHooks/useLog';
 import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
 import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
+import { clearTokens, readAccessToken } from '../../shared/tokenStore';
 
 interface PopupProps {
   appId: string;
@@ -74,10 +81,11 @@ const Popup: React.FC<PopupProps> = ({
     useState<number>(-1);
   const [accessToken, setAccessToken] = useState<string>('');
   const [authResponse, authErrorResponse, setConfig] = useAuthEndpoint();
-  const [hasWittyTeams, setHasWittyTeams] = useState<boolean>(true);
   const [teamName, setTeamName] = useState<string>('');
   const [iFrameDomains, setIFrameDomains] = useState<string[]>([]);
   const [hrFeatures, setHrFeatures] = useState<boolean>(true);
+  // False in API-key mode: there is no dashboard to link to or sync with.
+  const [dashboardAvailable, setDashboardAvailable] = useState<boolean>(true);
   const [hrFeaturesDisabledDomains, setHrFeaturesDisabledDomains] = useState<
     string[]
   >([]);
@@ -86,16 +94,17 @@ const Popup: React.FC<PopupProps> = ({
     browser.storage.local
       .get(null)
       .then((result) => {
+        registerCustomEndpointFromStorage(result);
+        setApiKey(apiKeyFromStorage(result));
+        setDashboardAvailable(isDashboardAvailable(result));
         setBaseUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-        setAccessToken(
-          result[StorageKeys.ACCESS_TOKEN]
-            ? result[StorageKeys.ACCESS_TOKEN]
-            : ''
-        );
+        // The access token lives in storage.session now, so it is not part of
+        // this storage.local snapshot.
+        readAccessToken().then(setAccessToken).catch(onStorageError);
 
         setIFrameDomains(result[StorageKeys.IFRAME_DOMAINS] || []);
         setEnabled({
@@ -139,7 +148,7 @@ const Popup: React.FC<PopupProps> = ({
   useEffect(() => {
     setToken(accessToken);
     // Ensure auth endpoint runs for X_KEY-based auth as well
-    setConfig(!!(accessToken || defaultConfig.X_KEY));
+    setConfig(!!(accessToken || X_KEY));
   }, [accessToken]);
 
   useEffect(() => {
@@ -159,8 +168,6 @@ const Popup: React.FC<PopupProps> = ({
         enabled: !domainAllowed,
         updateDashboard: false,
       });
-
-      setHasWittyTeams(authResponse.plan === 'witty_teams');
       authResponse.organization_name &&
         setTeamName(authResponse.organization_name);
     }
@@ -174,15 +181,7 @@ const Popup: React.FC<PopupProps> = ({
   }, [authErrorResponse]);
 
   const setWittyIcon = (enabled: boolean) => {
-    // always check for current plan status so we would set badge to 'off' if it's lost
-    browser.storage.local.get(null).then((result) => {
-      if (result[StorageKeys.PLAN] === 'none') {
-        addBadge('OFF');
-        return;
-      }
-
-      enabled ? removeBadge() : addBadge('OFF');
-    });
+    enabled ? removeBadge() : addBadge('OFF');
   };
   const handleEnable = () => {
     const isEnabled = !enabled.enabled;
@@ -220,9 +219,7 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   const logOut = () => {
-    storeInLocalStorage(StorageKeys.PLAN, '');
-    storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
-    storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
+    clearTokens().catch(onStorageError);
     setToken('');
   };
 
@@ -232,6 +229,13 @@ const Popup: React.FC<PopupProps> = ({
   };
 
   const handleDomainToUpdate = (domain: any) => {
+    // Without a dashboard the domain list stays local — StorageKeys.DOMAINS is
+    // already written by handleEnable. Returning early also stops the API key
+    // being sent to a host that does not exist.
+    if (!dashboardAvailable) {
+      return;
+    }
+
     const headers = buildRequestHeaders(accessToken);
 
     fetch(
@@ -267,9 +271,9 @@ const Popup: React.FC<PopupProps> = ({
       {numberOfNotifications > 0 ? (
         <PopupHeaderNotification />
       ) : (
-        <PopupHeader appId={appId} />
+        <PopupHeader appId={appId} showSettings={dashboardAvailable} />
       )}
-      {defaultConfig && defaultConfig.X_KEY && authErrorResponse && (
+      {X_KEY && authErrorResponse && (
         <div className='witty-works-ext-section'>
           <div
             className='witty-works-ext-lato-popover-text'
@@ -311,27 +315,30 @@ const Popup: React.FC<PopupProps> = ({
           </>
         )}
 
-        <div className='witty-works-ext-left witty-works-ext-margin-top'>
-          <button
-            className='witty-works-ext-button witty-works-ext-primary-button-red'
-            onClick={handleClickDashboard}
-          >
-            {t('goToDashboard')}
-          </button>
-        </div>
+        {dashboardAvailable && (
+          <div className='witty-works-ext-left witty-works-ext-margin-top'>
+            <button
+              className='witty-works-ext-button witty-works-ext-primary-button-red'
+              onClick={handleClickDashboard}
+            >
+              {t('goToDashboard')}
+            </button>
+          </div>
+        )}
       </div>
 
       {teamName && (
         <div className='witty-works-ext-section'>
           <div
             className='witty-works-ext-lato-popup-text'
-            style={{ marginTop: hasWittyTeams ? '-0.5em' : 0 }}
+            style={{ marginTop: '-0.5em' }}
           >
             {t('loggedInTo') + ' "' + teamName + '"'}
           </div>
         </div>
       )}
 
+      <OptionsLink />
       {DEV_ENV && (
         <div className='witty-works-ext-section'>
           <h2>{t('developmentSettings')}</h2>

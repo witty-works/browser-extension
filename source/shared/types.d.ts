@@ -33,8 +33,68 @@ export interface ResponseConfig {
   categories?: any;
   llm_alternatives?: ConfigProperty;
 }
+/** One togglable category from `GET /v2.0/categories`. */
+export interface ICategory {
+  key: string;
+  label?: string | null;
+  /** Diversity dimension this driver belongs to; matches ICategoryGroup.key. */
+  parent: string;
+  /**
+   * The key that disables only the advanced rules, or null when the category
+   * has no advanced tier. Supplied by the API rather than derived, so the
+   * suffix convention stays server-side.
+   */
+  advanced_key?: string | null;
+  proficiency_level?: string | null;
+}
+
+export interface ICategoryGroup {
+  key: string;
+  label?: string | null;
+}
+
+export interface ICategoriesResponse {
+  categories: ICategory[];
+  groups: ICategoryGroup[];
+}
+
+/** One enum-typed config field from `GET /v2.0/config-options`. */
+export interface IConfigOption {
+  values: string[];
+  default?: string | null;
+  /**
+   * Optional value → display label map.
+   *
+   * The category endpoint already carries labels sourced from the dashboard's
+   * JSON. When the same is done for these fields the extension picks them up
+   * automatically; until then it falls back to its own strings, which are a
+   * copy of the dashboard's wording and will drift.
+   */
+  labels?: Record<string, string>;
+}
+
+export interface IConfigOptionsResponse {
+  options: Record<string, IConfigOption>;
+}
+
 export interface RequestConfig {
   addons: string[];
+  /**
+   * Categories the user switched off locally.
+   *
+   * The API seeds its own `disabled_categories` from this and then layers
+   * organisation force-rules on top, so a client choice is honoured unless the
+   * deployment explicitly overrides it. See `apply_configs` in the NLP API.
+   */
+  disabled_categories?: string[];
+  /**
+   * Gender ending and role-format preferences, as offered by
+   * `GET /v2.0/config-options`. Sent only when the user has chosen one, so the
+   * API's own default applies otherwise.
+   */
+  german_gender_ending?: string;
+  french_gender_separator?: string;
+  gendered_roles_format?: string;
 }
 export interface ConfigProperty {
   value: string | string[] | boolean | number;
@@ -77,7 +137,6 @@ export interface ICheckResponseResult {
 export interface IAuthResponse {
   config: ResponseConfig;
   organization_config: ResponseConfig;
-  plan: string;
   min_version: string;
 
   //private account
@@ -91,7 +150,6 @@ export interface IAuthResponse {
   organization_name?: string;
   organization_domains: IDomains;
   organization_config_hash: string;
-  organization_trial_ends_at?: string;
 }
 
 export interface IDomains {
@@ -116,7 +174,6 @@ export interface Highlight {
   startOffset: number;
   endOffset: number;
   node: Node;
-  plan?: string;
 }
 
 export type CustomInputElement =
@@ -145,7 +202,6 @@ export interface IAlert {
   data: IAlertContentData;
   organizationId?: string;
   userId?: string;
-  plan?: string;
   rect?: any;
 }
 export interface IAlertContentData {
@@ -210,7 +266,6 @@ export interface ILogItems {
   response__startOffset: number;
   response__endOffset: number;
   response__popOverIsOpen: boolean;
-  response__plan?: string;
   response__data__language: string;
   response__data__category: string;
   response__data__subcategory: string;
@@ -257,7 +312,6 @@ export interface ICheckLogItems {
   request__client: string;
   request__text__length: number;
   response__organizationId?: string;
-  response__plan?: string;
   response__results: ICheckResponseResult[];
   response__data__language: string;
   response__limit_reached: boolean;
@@ -271,7 +325,6 @@ export interface ICheckResultLogItems {
   request__client: string;
   request__text__length: number;
   response__organizationId?: string;
-  response__plan?: string;
   response__data__text: string;
   response__data__text__matched: string;
   response__data__category: string;
@@ -308,11 +361,6 @@ export interface EnableWittyToggle {
   updateDashboard: boolean;
 }
 
-export interface IgnoredCategory {
-  category: string;
-  timestamp: number;
-}
-
 export interface FeatureFlag {
   notificationHeadline_en: string;
   notificationHeadline_de: string;
@@ -323,7 +371,6 @@ export interface FeatureFlag {
 }
 
 export interface FeatureFlags {
-  salesDemoFlag: FeatureFlag | null;
   teamInviteFlag: FeatureFlag | null;
   friendInviteFlag: FeatureFlag | null;
 }
