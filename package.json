@@ -115,5 +115,8 @@
     "wext-manifest-loader": "^3.0.2",
     "wext-manifest-webpack-plugin": "^1.4.1"
   },
-  "main": "index.js"
+  "main": "index.js",
+  "overrides": {
+    "tmp": "^0.2.7"
+  }
 }
