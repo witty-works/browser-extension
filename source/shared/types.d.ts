@@ -39,7 +39,12 @@ export interface ICategory {
   label?: string | null;
   /** Diversity dimension this driver belongs to; matches ICategoryGroup.key. */
   parent: string;
-  has_advanced: boolean;
+  /**
+   * The key that disables only the advanced rules, or null when the category
+   * has no advanced tier. Supplied by the API rather than derived, so the
+   * suffix convention stays server-side.
+   */
+  advanced_key?: string | null;
   proficiency_level?: string | null;
 }
 

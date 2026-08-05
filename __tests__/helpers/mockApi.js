@@ -142,9 +142,10 @@ const CATEGORIES = {
     { key: 'clarity', label: 'Clarity' },
   ],
   categories: [
-    { key: 'gendered_nouns', label: 'Gendered nouns', parent: 'gender', has_advanced: true, proficiency_level: 'basic' },
-    { key: 'slurs', label: 'Slurs', parent: 'gender', has_advanced: false, proficiency_level: 'openly_discriminating' },
-    { key: 'plain_language', label: 'Plain language', parent: 'clarity', has_advanced: false, proficiency_level: 'basic' },
+    { key: 'gendered_nouns', label: 'Gendered nouns', parent: 'gender', advanced_key: 'gendered_nouns_advanced', proficiency_level: 'unconscious_bias' },
+    { key: 'slurs', label: 'Slurs', parent: 'gender', advanced_key: null, proficiency_level: 'openly_discriminating' },
+    // Mirrors the real response, where 12 of 68 categories come back unlabelled.
+    { key: 'plain_language', label: '', parent: 'clarity', advanced_key: null, proficiency_level: 'orthography' },
   ],
 };
 

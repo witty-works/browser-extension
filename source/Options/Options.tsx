@@ -295,7 +295,7 @@ const Options: React.FC = () => {
   const setCategoryLevel = (category: ICategory, level: ProficiencyLevel) => {
     const next = applyLevelToDisabled(
       category.key,
-      category.has_advanced,
+      category.advanced_key,
       level,
       disabledCategories
     );
@@ -527,11 +527,11 @@ const Options: React.FC = () => {
                     key={category.key}
                     categoryKey={category.key}
                     label={category.label || category.key}
-                    hasAdvanced={category.has_advanced}
+                    hasAdvanced={!!category.advanced_key}
                     locked={category.proficiency_level === LOCKED_PROFICIENCY}
                     value={levelFromDisabled(
                       category.key,
-                      category.has_advanced,
+                      category.advanced_key,
                       disabledCategories
                     )}
                     onChange={(level) => setCategoryLevel(category, level)}

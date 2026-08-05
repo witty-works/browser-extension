@@ -298,49 +298,50 @@ export enum ProficiencyLevel {
   Advanced = 2,
 }
 
-/** The API's advanced variant of a category key (`make_category_advanced`). */
-export const advancedCategoryKey = (key: string): string => `${key}_advanced`;
-
 /**
  * Slurs and hate speech. Locked on in the dashboard, so locked here too — the
  * API also refuses to disable them.
  */
 export const LOCKED_PROFICIENCY = 'openly_discriminating';
 
-/** Read a category's level out of a `disabled_categories` list. */
+/**
+ * Read a category's level out of a `disabled_categories` list.
+ *
+ * `advancedKey` comes from the API; a category without one has no advanced tier
+ * and so reads as Basic when enabled, rather than claiming a level the API does
+ * not model.
+ */
 export const levelFromDisabled = (
   key: string,
-  hasAdvanced: boolean,
+  advancedKey: string | null | undefined,
   disabled: string[]
 ): ProficiencyLevel => {
   if (disabled.includes(key)) {
     return ProficiencyLevel.Off;
   }
 
-  if (hasAdvanced && disabled.includes(advancedCategoryKey(key))) {
+  if (advancedKey && disabled.includes(advancedKey)) {
     return ProficiencyLevel.Basic;
   }
 
-  // Without an advanced variant there is nothing beyond basic to enable, so an
-  // enabled category reads as Basic rather than claiming a level the API does
-  // not model.
-  return hasAdvanced ? ProficiencyLevel.Advanced : ProficiencyLevel.Basic;
+  return advancedKey ? ProficiencyLevel.Advanced : ProficiencyLevel.Basic;
 };
 
 /** Apply a level to a `disabled_categories` list, returning the new list. */
 export const applyLevelToDisabled = (
   key: string,
-  hasAdvanced: boolean,
+  advancedKey: string | null | undefined,
   level: ProficiencyLevel,
   disabled: string[]
 ): string[] => {
-  const advanced = advancedCategoryKey(key);
-  const next = disabled.filter((item) => item !== key && item !== advanced);
+  const next = disabled.filter(
+    (item) => item !== key && item !== advancedKey
+  );
 
   if (level === ProficiencyLevel.Off) {
     next.push(key);
-  } else if (level === ProficiencyLevel.Basic && hasAdvanced) {
-    next.push(advanced);
+  } else if (level === ProficiencyLevel.Basic && advancedKey) {
+    next.push(advancedKey);
   }
 
   return next;

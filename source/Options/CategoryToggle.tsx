@@ -8,7 +8,7 @@ interface CategoryToggleProps {
   categoryKey: string;
   label: string;
   value: ProficiencyLevel;
-  /** Categories with no advanced variant cycle off ↔ basic only. */
+  /** Categories with no advanced tier cycle off ↔ basic only. */
   hasAdvanced: boolean;
   /** Locked categories render at their level and cannot be changed. */
   locked?: boolean;
