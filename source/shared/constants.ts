@@ -48,6 +48,11 @@ export enum StorageKeys {
   /** Category keys the user switched off; sent as `config.disabled_categories`. */
   DISABLED_CATEGORIES = 'disabledCategories',
   /**
+   * Chosen gender ending / role format, keyed by config field name. Only fields
+   * the user actually picked are stored, so the API default applies otherwise.
+   */
+  LANGUAGE_FORMAT = 'languageFormat',
+  /**
    * Non-secret marker in `storage.local` mirroring whether an access token
    * exists. The token itself lives in `storage.session` — see tokenStore.ts.
    */
@@ -270,6 +275,75 @@ export const HelpLinks = {
   notWorking: `${HELP_BASE}witty-doesnt-work`,
   updateWitty: `${HELP_BASE}how-can-i-update-witty`,
   customise: `${HELP_BASE}how-do-i-customize-witty`,
+};
+
+/**
+ * Category proficiency, matching the dashboard's triple toggle.
+ *
+ * The API has no notion of a level — it only accepts
+ * `config.disabled_categories`. These helpers translate between the two.
+ */
+/** Config fields offered by `GET /v2.0/config-options`. */
+export const CONFIG_OPTION_FIELDS = [
+  'gendered_roles_format',
+  'german_gender_ending',
+  'french_gender_separator',
+] as const;
+
+export type ConfigOptionField = (typeof CONFIG_OPTION_FIELDS)[number];
+
+export enum ProficiencyLevel {
+  Off = 0,
+  Basic = 1,
+  Advanced = 2,
+}
+
+/** The API's advanced variant of a category key (`make_category_advanced`). */
+export const advancedCategoryKey = (key: string): string => `${key}_advanced`;
+
+/**
+ * Slurs and hate speech. Locked on in the dashboard, so locked here too — the
+ * API also refuses to disable them.
+ */
+export const LOCKED_PROFICIENCY = 'openly_discriminating';
+
+/** Read a category's level out of a `disabled_categories` list. */
+export const levelFromDisabled = (
+  key: string,
+  hasAdvanced: boolean,
+  disabled: string[]
+): ProficiencyLevel => {
+  if (disabled.includes(key)) {
+    return ProficiencyLevel.Off;
+  }
+
+  if (hasAdvanced && disabled.includes(advancedCategoryKey(key))) {
+    return ProficiencyLevel.Basic;
+  }
+
+  // Without an advanced variant there is nothing beyond basic to enable, so an
+  // enabled category reads as Basic rather than claiming a level the API does
+  // not model.
+  return hasAdvanced ? ProficiencyLevel.Advanced : ProficiencyLevel.Basic;
+};
+
+/** Apply a level to a `disabled_categories` list, returning the new list. */
+export const applyLevelToDisabled = (
+  key: string,
+  hasAdvanced: boolean,
+  level: ProficiencyLevel,
+  disabled: string[]
+): string[] => {
+  const advanced = advancedCategoryKey(key);
+  const next = disabled.filter((item) => item !== key && item !== advanced);
+
+  if (level === ProficiencyLevel.Off) {
+    next.push(key);
+  } else if (level === ProficiencyLevel.Basic && hasAdvanced) {
+    next.push(advanced);
+  }
+
+  return next;
 };
 
 export enum ConfigPropertyStatus {

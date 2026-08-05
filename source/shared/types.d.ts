@@ -33,6 +33,45 @@ export interface ResponseConfig {
   categories?: any;
   llm_alternatives?: ConfigProperty;
 }
+/** One togglable category from `GET /v2.0/categories`. */
+export interface ICategory {
+  key: string;
+  label?: string | null;
+  /** Diversity dimension this driver belongs to; matches ICategoryGroup.key. */
+  parent: string;
+  has_advanced: boolean;
+  proficiency_level?: string | null;
+}
+
+export interface ICategoryGroup {
+  key: string;
+  label?: string | null;
+}
+
+export interface ICategoriesResponse {
+  categories: ICategory[];
+  groups: ICategoryGroup[];
+}
+
+/** One enum-typed config field from `GET /v2.0/config-options`. */
+export interface IConfigOption {
+  values: string[];
+  default?: string | null;
+  /**
+   * Optional value → display label map.
+   *
+   * The category endpoint already carries labels sourced from the dashboard's
+   * JSON. When the same is done for these fields the extension picks them up
+   * automatically; until then it falls back to its own strings, which are a
+   * copy of the dashboard's wording and will drift.
+   */
+  labels?: Record<string, string>;
+}
+
+export interface IConfigOptionsResponse {
+  options: Record<string, IConfigOption>;
+}
+
 export interface RequestConfig {
   addons: string[];
   /**
@@ -43,6 +82,14 @@ export interface RequestConfig {
    * deployment explicitly overrides it. See `apply_configs` in the NLP API.
    */
   disabled_categories?: string[];
+  /**
+   * Gender ending and role-format preferences, as offered by
+   * `GET /v2.0/config-options`. Sent only when the user has chosen one, so the
+   * API's own default applies otherwise.
+   */
+  german_gender_ending?: string;
+  french_gender_separator?: string;
+  gendered_roles_format?: string;
 }
 export interface ConfigProperty {
   value: string | string[] | boolean | number;

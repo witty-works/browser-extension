@@ -109,3 +109,109 @@
     }
   }
 }
+
+/* Category tri-state toggle — off / basic / advanced, mirroring the dashboard. */
+.witty-category-group {
+  margin-top: 1.4em;
+
+  h3 {
+    font-size: 14px;
+    margin: 0 0 0.4em;
+    color: #4a4a4a;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+.witty-category {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.32em 0;
+}
+
+.witty-category-label {
+  flex: 1;
+}
+
+.witty-category-level {
+  color: #666666;
+  font-size: 0.88em;
+  min-width: 5.5em;
+  text-align: right;
+}
+
+.witty-category-toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: #cccccc;
+  cursor: pointer;
+  transition: background 0.12s ease-in-out;
+
+  /* Off → knob left, basic → centre, advanced → right. */
+  .witty-category-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    transition: left 0.12s ease-in-out;
+  }
+
+  &.is-on {
+    background: #5fca7d;
+
+    .witty-category-knob {
+      left: 27px;
+    }
+  }
+
+  /* Basic sits between the two, which is what distinguishes it from advanced. */
+  &.is-middle {
+    background: #a8dfb8;
+
+    .witty-category-knob {
+      left: 15px;
+    }
+  }
+
+  &.is-locked {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #55b8e9;
+    outline-offset: 2px;
+  }
+}
+
+/* Gender ending / role format selects. */
+.witty-format-field {
+  margin-top: 1.2em;
+
+  label {
+    margin-top: 0;
+  }
+
+  p {
+    margin: 0.2em 0 0.5em;
+  }
+
+  select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font: inherit;
+    background: #ffffff;
+  }
+}

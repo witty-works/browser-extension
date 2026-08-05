@@ -131,6 +131,47 @@ const checkResponse = (text) => ({
 });
 
 /**
+ * `GET /v2.0/categories` — the list the options page renders toggles from.
+ *
+ * `slurs` is `openly_discriminating`, which the UI must lock on; `plain_language`
+ * has no advanced variant, so its toggle only cycles off ↔ basic.
+ */
+const CATEGORIES = {
+  groups: [
+    { key: 'gender', label: 'Gender' },
+    { key: 'clarity', label: 'Clarity' },
+  ],
+  categories: [
+    { key: 'gendered_nouns', label: 'Gendered nouns', parent: 'gender', has_advanced: true, proficiency_level: 'basic' },
+    { key: 'slurs', label: 'Slurs', parent: 'gender', has_advanced: false, proficiency_level: 'openly_discriminating' },
+    { key: 'plain_language', label: 'Plain language', parent: 'clarity', has_advanced: false, proficiency_level: 'basic' },
+  ],
+};
+
+/**
+ * `GET /v2.0/config-options` — the values the gender fields accept.
+ *
+ * `inclusive_gender` is the Inklusivum; the options page has to offer it by
+ * name rather than as a raw enum value.
+ */
+const CONFIG_OPTIONS = {
+  options: {
+    gendered_roles_format: {
+      values: ['none', 'both', 'inclusive_gender', 'binary_gender'],
+      default: 'inclusive_gender',
+    },
+    german_gender_ending: {
+      values: ['/in', '/-in', '_in', '*in', ':in', '(-)', '()', 'In'],
+      default: '*in',
+    },
+    french_gender_separator: {
+      values: ['·', '·s', '.', '.s', '/', '/s'],
+      default: '·',
+    },
+  },
+};
+
+/**
  * Intercept every NLP API call the extension makes, regardless of which
  * BASE_URLS entry the build points at — matching on pathname rather than host
  * keeps the mock working when the configured endpoint changes.
@@ -162,6 +203,26 @@ const mockNlpApi = async (context) => {
         body: JSON.stringify(checkResponse(text)),
       });
     }
+  );
+
+  await context.route(
+    (url) => url.pathname.endsWith('/v2.0/categories'),
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(CATEGORIES),
+      })
+  );
+
+  await context.route(
+    (url) => url.pathname.endsWith('/v2.0/config-options'),
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(CONFIG_OPTIONS),
+      })
   );
 
   // The rephrase endpoint is behind a feature flag and unused by these tests,
@@ -196,6 +257,8 @@ const blockExternalRequests = async (context, allowedHosts = ['localhost', '127.
 };
 
 module.exports = {
+  CATEGORIES,
+  CONFIG_OPTIONS,
   SAMPLE_TEXT,
   ALERTS,
   authResponse,

@@ -138,6 +138,42 @@ export const getLLMSuggestion = (
   };
 };
 
+/**
+ * The category list a client may put in `config.disabled_categories`.
+ *
+ * Unauthenticated and cacheable by design: the answer is identical for every
+ * user. `/v2.0/auth` only reports categories the dashboard synced into an
+ * organisation config, so this is the only source for a deployment running on
+ * API keys alone.
+ */
+export const getCategories = (locale: string): IRequest => {
+  return {
+    url:
+      BASE_URL_API &&
+      createUrl(BASE_URL_API, `v2.0/categories?locale=${encodeURIComponent(locale)}`),
+    config: {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    },
+  };
+};
+
+/**
+ * The values `config.german_gender_ending` and its siblings accept.
+ *
+ * Like the category list, unauthenticated and cacheable — and the only way a
+ * deployment without a dashboard can learn what this API version understands.
+ */
+export const getConfigOptions = (): IRequest => {
+  return {
+    url: BASE_URL_API && createUrl(BASE_URL_API, 'v2.0/config-options'),
+    config: {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    },
+  };
+};
+
 export const getConfiguration = (): IRequest => {
   return {
     url: BASE_URL_API && createUrl(BASE_URL_API, 'v2.0/auth'),

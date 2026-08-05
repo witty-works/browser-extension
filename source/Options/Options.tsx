@@ -4,19 +4,38 @@ import { useTranslation } from 'react-i18next';
 
 import '../i18n/i18n';
 import { namespaces } from '../i18n/i18n.constants';
+import CategoryToggle from './CategoryToggle';
 import {
+  applyLevelToDisabled,
   AuthMode,
+  CONFIG_OPTION_FIELDS,
   BaseUrl,
   BaseUrls,
   CUSTOM_BASE_URL_KEY,
   DefaultBaseUrlKey,
   HelpLinks,
   isAcceptableEndpointUrl,
+  levelFromDisabled,
+  LOCKED_PROFICIENCY,
+  ProficiencyLevel,
   registerCustomEndpoint,
+  registerCustomEndpointFromStorage,
   StorageKeys,
 } from '../shared/constants';
 import { logOut, storeInLocalStorage } from '../shared/utils';
-import { setApiKey } from '../shared/ApiServices/requests';
+import {
+  getCategories,
+  getConfigOptions,
+  setApiKey,
+  setBaseUrls,
+} from '../shared/ApiServices/requests';
+import {
+  ICategoriesResponse,
+  ICategory,
+  ICategoryGroup,
+  IConfigOption,
+  IConfigOptionsResponse,
+} from '../shared/types';
 import { sendErrorToSentry } from '../shared/errorUtils';
 import './Options.scss';
 
@@ -51,7 +70,20 @@ const Options: React.FC = () => {
 
   const [orthography, setOrthography] = useState(true);
   const [llmAlternatives, setLlmAlternatives] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [categoryGroups, setCategoryGroups] = useState<ICategoryGroup[]>([]);
+  const [categoriesError, setCategoriesError] = useState(false);
+  // The endpoint is resolved from storage asynchronously. Without this flag the
+  // category fetch runs on mount while BASE_URL_API is still empty, bails out,
+  // and never retries — `current` keeps its initial value, so nothing re-triggers
+  // the effect.
+  const [endpointReady, setEndpointReady] = useState(false);
+  const [configOptions, setConfigOptions] = useState<
+    Record<string, IConfigOption>
+  >({});
+  const [languageFormat, setLanguageFormat] = useState<Record<string, string>>(
+    {}
+  );
   const [disabledCategories, setDisabledCategories] = useState<string[]>([]);
 
   const [error, setError] = useState('');
@@ -65,6 +97,14 @@ const Options: React.FC = () => {
     browser.storage.local
       .get(null)
       .then((result) => {
+        // The options page makes its own API call (the category list), so it has
+        // to resolve the endpoint like every other context does — otherwise
+        // BASE_URL_API is empty and the request is silently skipped.
+        registerCustomEndpointFromStorage(result);
+        setBaseUrls(
+          (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey
+        );
+
         const stored = result[StorageKeys.CUSTOM_ENDPOINT] as
           | BaseUrl
           | undefined;
@@ -80,15 +120,98 @@ const Options: React.FC = () => {
         setCurrent(
           (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey
         );
+        setEndpointReady(true);
         setOrthography(result[StorageKeys.ORTHOGRAPHY] !== false);
         setLlmAlternatives(!!result[StorageKeys.LLM_ALTERNATIVES]);
-        setCategories((result[StorageKeys.CATEGORIES] as string[]) || []);
         setDisabledCategories(
           (result[StorageKeys.DISABLED_CATEGORIES] as string[]) || []
+        );
+        setLanguageFormat(
+          (result[StorageKeys.LANGUAGE_FORMAT] as Record<string, string>) || {}
         );
       })
       .catch(sendErrorToSentry);
   }, []);
+
+  // Fetched rather than read from storage: /v2.0/categories is unauthenticated
+  // and cacheable, and unlike /v2.0/auth it answers the same for a deployment
+  // running on API keys alone.
+  useEffect(() => {
+    if (!endpointReady) {
+      return;
+    }
+
+    const request = getCategories(browser.i18n?.getUILanguage?.() || 'en-US');
+    if (!request.url || !request.config) {
+      return;
+    }
+
+    fetch(request.url, request.config)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(String(response.status));
+        }
+        const body: ICategoriesResponse = await response.json();
+        setCategories(body.categories || []);
+        setCategoryGroups(body.groups || []);
+        setCategoriesError(false);
+      })
+      .catch(() => {
+        // A deployment that does not serve the endpoint simply gets no section.
+        setCategoriesError(true);
+        setCategories([]);
+      });
+
+    const optionsRequest = getConfigOptions();
+    if (optionsRequest.url && optionsRequest.config) {
+      fetch(optionsRequest.url, optionsRequest.config)
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error(String(response.status));
+          }
+          const body: IConfigOptionsResponse = await response.json();
+          setConfigOptions(body.options || {});
+        })
+        .catch(() => setConfigOptions({}));
+    }
+  }, [endpointReady, current]);
+
+  const setFormatField = (field: string, value: string) => {
+    // An empty choice removes the field entirely rather than storing a blank,
+    // so the API falls back to its own default instead of being sent ''.
+    const next = { ...languageFormat };
+    if (value) {
+      next[field] = value;
+    } else {
+      delete next[field];
+    }
+
+    setLanguageFormat(next);
+    storeInLocalStorage(StorageKeys.LANGUAGE_FORMAT, next);
+  };
+
+  /**
+   * Human label for a value.
+   *
+   * Prefers a label from the API, so the dashboard's wording can reach the
+   * extension through the same pipeline as the category labels. Falls back to
+   * the local copy of that wording, then to the raw value — punctuation like
+   * `*in` needs no translating anyway.
+   */
+  const formatValueLabel = (field: string, value: string) => {
+    const fromApi = configOptions[field]?.labels?.[value];
+    if (fromApi) {
+      return fromApi;
+    }
+
+    if (field === 'gendered_roles_format') {
+      const key = `roles_${value}`;
+      const label = t(key);
+      return label === key ? value : label;
+    }
+
+    return value;
+  };
 
   const withTrailingSlash = (value: string) =>
     value.endsWith('/') ? value : `${value}/`;
@@ -181,10 +304,13 @@ const Options: React.FC = () => {
     }
   };
 
-  const toggleCategory = (category: string) => {
-    const next = disabledCategories.includes(category)
-      ? disabledCategories.filter((item) => item !== category)
-      : [...disabledCategories, category];
+  const setCategoryLevel = (category: ICategory, level: ProficiencyLevel) => {
+    const next = applyLevelToDisabled(
+      category.key,
+      category.has_advanced,
+      level,
+      disabledCategories
+    );
 
     setDisabledCategories(next);
     storeInLocalStorage(StorageKeys.DISABLED_CATEGORIES, next);
@@ -349,23 +475,88 @@ const Options: React.FC = () => {
         that reports none simply does not offer the section; the NLP API has to
         expose the list before this appears.
       */}
+      {Object.keys(configOptions).length > 0 && (
+        <section id='language-format-section'>
+          <h2>{t('languageHeadline')}</h2>
+          <p className='witty-options-muted'>{t('orgOverrideNote')}</p>
+
+          {CONFIG_OPTION_FIELDS.filter((field) => configOptions[field]).map(
+            (field) => {
+              const option = configOptions[field];
+              const labelKey = {
+                gendered_roles_format: 'genderedRolesFormat',
+                german_gender_ending: 'germanGenderEnding',
+                french_gender_separator: 'frenchGenderSeparator',
+              }[field];
+
+              return (
+                <div className='witty-format-field' key={field}>
+                  <label htmlFor={`opt-${field}`}>{t(labelKey)}</label>
+                  <p className='witty-options-muted'>{t(`${labelKey}Hint`)}</p>
+                  <select
+                    id={`opt-${field}`}
+                    data-field={field}
+                    value={languageFormat[field] || ''}
+                    onChange={(event) =>
+                      setFormatField(field, event.target.value)
+                    }
+                  >
+                    <option value=''>
+                      {t('useApiDefault')}
+                      {option.default ? ` (${option.default})` : ''}
+                    </option>
+                    {option.values.map((value) => (
+                      <option value={value} key={value}>
+                        {formatValueLabel(field, value)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            }
+          )}
+        </section>
+      )}
+
       {categories.length > 0 && (
         <section id='categories-section'>
           <h2>{t('categoriesHeadline')}</h2>
           <p className='witty-options-muted'>{t('categoriesIntro')}</p>
 
-          {categories.map((category) => (
-            <label key={category}>
-              <input
-                type='checkbox'
-                data-category={category}
-                checked={!disabledCategories.includes(category)}
-                onChange={() => toggleCategory(category)}
-              />
-              &nbsp;{category}
-            </label>
-          ))}
+          {categoryGroups.map((group) => {
+            const inGroup = categories.filter(
+              (category) => category.parent === group.key
+            );
+            if (!inGroup.length) {
+              return null;
+            }
+
+            return (
+              <div className='witty-category-group' key={group.key}>
+                <h3>{group.label || group.key}</h3>
+                {inGroup.map((category) => (
+                  <CategoryToggle
+                    key={category.key}
+                    categoryKey={category.key}
+                    label={category.label || category.key}
+                    hasAdvanced={category.has_advanced}
+                    locked={category.proficiency_level === LOCKED_PROFICIENCY}
+                    value={levelFromDisabled(
+                      category.key,
+                      category.has_advanced,
+                      disabledCategories
+                    )}
+                    onChange={(level) => setCategoryLevel(category, level)}
+                  />
+                ))}
+              </div>
+            );
+          })}
         </section>
+      )}
+
+      {categoriesError && (
+        <p className='witty-options-muted'>{t('categoriesFailed')}</p>
       )}
     </div>
   );

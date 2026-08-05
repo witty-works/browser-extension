@@ -195,3 +195,174 @@ test.describe('Options — API key mode', () => {
     expect(leaks).toBe('');
   });
 });
+
+const { CATEGORIES } = require('./helpers/mockApi');
+
+test.describe('Options — category levels', () => {
+  const level = (page, key) =>
+    page.locator(`[data-category="${key}"]`).getAttribute('data-level');
+
+  const disabled = (page) =>
+    page.evaluate(async () =>
+      (await chrome.storage.local.get('disabledCategories')).disabledCategories || []
+    );
+
+  test('renders categories grouped, from the API', async ({
+    context,
+    extensionId,
+  }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#categories-section');
+
+    for (const group of CATEGORIES.groups) {
+      await expect(
+        options.locator('#categories-section h3', { hasText: group.label })
+      ).toBeVisible();
+    }
+    for (const c of CATEGORIES.categories) {
+      await expect(options.locator(`[data-category="${c.key}"]`)).toBeVisible();
+    }
+  });
+
+  test('cycles off, basic and advanced and maps them to disabled_categories', async ({
+    context,
+    extensionId,
+  }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#categories-section');
+
+    const toggle = options.locator('[data-category="gendered_nouns"]');
+
+    // Starts fully enabled: nothing about it is in the disabled list.
+    expect(await level(options, 'gendered_nouns')).toBe('2');
+
+    // advanced -> off
+    await toggle.click();
+    expect(await level(options, 'gendered_nouns')).toBe('0');
+    expect(await disabled(options)).toContain('gendered_nouns');
+
+    // off -> basic: the base key is enabled again, only the advanced variant off
+    await toggle.click();
+    expect(await level(options, 'gendered_nouns')).toBe('1');
+    let list = await disabled(options);
+    expect(list).toContain('gendered_nouns_advanced');
+    expect(list).not.toContain('gendered_nouns');
+
+    // basic -> advanced: neither key disabled
+    await toggle.click();
+    expect(await level(options, 'gendered_nouns')).toBe('2');
+    list = await disabled(options);
+    expect(list).not.toContain('gendered_nouns');
+    expect(list).not.toContain('gendered_nouns_advanced');
+  });
+
+  test('a category without an advanced variant skips that level', async ({
+    context,
+    extensionId,
+  }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#categories-section');
+
+    const toggle = options.locator('[data-category="plain_language"]');
+    expect(await level(options, 'plain_language')).toBe('1');
+
+    await toggle.click();
+    expect(await level(options, 'plain_language')).toBe('0');
+
+    // Back to basic, never to advanced — the API would ignore that level.
+    await toggle.click();
+    expect(await level(options, 'plain_language')).toBe('1');
+    expect(await disabled(options)).not.toContain('plain_language_advanced');
+  });
+
+  test('slurs and hate speech cannot be switched off', async ({
+    context,
+    extensionId,
+  }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#categories-section');
+
+    const toggle = options.locator('[data-category="slurs"]');
+    const before = await level(options, 'slurs');
+
+    // Marked aria-disabled, which Playwright honours by refusing a normal click.
+    await expect(toggle).toHaveAttribute('aria-disabled', 'true');
+
+    // Force past that to prove the handler itself refuses too, rather than the
+    // control merely looking unclickable.
+    await toggle.click({ force: true });
+    await options.waitForTimeout(200);
+
+    expect(await level(options, 'slurs')).toBe(before);
+    expect(await disabled(options)).not.toContain('slurs');
+  });
+});
+
+const { CONFIG_OPTIONS } = require('./helpers/mockApi');
+
+test.describe('Options — gender forms', () => {
+  const stored = (page) =>
+    page.evaluate(async () =>
+      (await chrome.storage.local.get('languageFormat')).languageFormat || {}
+    );
+
+  test('offers every value the API reports, defaulting to the server', async ({
+    context,
+    extensionId,
+  }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#language-format-section');
+
+    for (const [field, option] of Object.entries(CONFIG_OPTIONS.options)) {
+      const select = options.locator(`[data-field="${field}"]`);
+      await expect(select).toBeVisible();
+      // Every API value, plus the leading "server default" entry.
+      await expect(select.locator('option')).toHaveCount(
+        option.values.length + 1
+      );
+      // Nothing chosen yet, so the API default applies.
+      await expect(select).toHaveValue('');
+    }
+
+    expect(await stored(options)).toEqual({});
+  });
+
+  test('labels the Inklusivum rather than showing the raw enum value', async ({
+    context,
+    extensionId,
+  }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#language-format-section');
+
+    const label = await options
+      .locator('[data-field="gendered_roles_format"] option[value="inclusive_gender"]')
+      .textContent();
+
+    expect(label.trim()).toBe('Suggest the chosen gender separator');
+  });
+
+  test('stores a choice and clears it again', async ({
+    context,
+    extensionId,
+  }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#language-format-section');
+
+    await options.selectOption('[data-field="german_gender_ending"]', ':in');
+    await options.selectOption(
+      '[data-field="gendered_roles_format"]',
+      'inclusive_gender'
+    );
+    expect(await stored(options)).toEqual({
+      german_gender_ending: ':in',
+      gendered_roles_format: 'inclusive_gender',
+    });
+
+    // Back to the server default: the field is removed, not stored blank, so
+    // the API applies its own default rather than receiving ''.
+    await options.selectOption('[data-field="german_gender_ending"]', '');
+    expect(await stored(options)).toEqual({
+      gendered_roles_format: 'inclusive_gender',
+    });
+  });
+});

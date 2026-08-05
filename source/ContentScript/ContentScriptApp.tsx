@@ -131,6 +131,10 @@ const ContentScriptApp: React.FC = () => {
           addons: isHrFeatureDisabled ? [] : ['hr'],
           disabled_categories:
             (result[StorageKeys.DISABLED_CATEGORIES] as string[]) || [],
+          // Spread rather than set individually: only fields the user actually
+          // chose are stored, so the API's own default stands for the rest.
+          ...((result[StorageKeys.LANGUAGE_FORMAT] as Record<string, string>) ||
+            {}),
         };
         setReqConfig(requestConfig);
 
