@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {animated, useTransition} from 'react-spring';
+import {animated, useTransition} from '@react-spring/web';
 
 import LoadingIconFrameOne from '../../assets/icons/wittyStateIndicator/loadingFrames/frame_1.svg';
 import LoadingIconFrameTwo from '../../assets/icons/wittyStateIndicator/loadingFrames/frame_2.svg';

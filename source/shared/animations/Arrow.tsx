@@ -1,5 +1,5 @@
 import React from 'react';
-import {animated, useSpring} from 'react-spring';
+import {animated, useSpring} from '@react-spring/web';
 
 import ArrowIcon from '../../assets/icons/popover/arrow.svg';
 
