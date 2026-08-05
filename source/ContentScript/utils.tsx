@@ -4,7 +4,7 @@ import { WTags } from '../shared/constants';
 import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
 import { CustomInputElement, DiffChange, INodes } from '../shared/types';
 import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
-import { diffChars, diffWords, WordsOptions } from 'diff';
+import { diffChars, diffWords, DiffWordsOptionsNonabortable } from 'diff';
 
 export const getInputText = (element: CustomInputElement | any) => {
   if (isGoogleDocs()) {
@@ -162,7 +162,9 @@ export const computeDiff = (
   originalSentence: string,
   newSentence: string
 ) => {
-  let options: WordsOptions = {
+  // diff v9 renamed WordsOptions and split the overloads: the non-abortable
+  // one is what returns a definite array rather than `… | undefined`.
+  let options: DiffWordsOptionsNonabortable = {
     intlSegmenter: new (Intl as any).Segmenter(language, {
       granularity: 'word',
     }),
