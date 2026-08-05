@@ -57,13 +57,28 @@ const sentryWebpackPluginInstance =
 /**
  * Static credentials in `source/witty.config.json` are a local-development and
  * CI convenience. `X_KEY` in particular is a *shared* API key, so anything it is
- * compiled into can be unpacked by whoever installs it. `source/shared/constants.ts`
- * already forces all three to empty in release builds, but silently neutering a
- * key someone believed was active is its own failure mode — fail loudly instead,
- * before anything is shipped.
+ * compiled into can be unpacked by whoever installs it.
+ *
+ * `source/shared/constants.ts` forces all three to empty in release builds, but
+ * that only empties the exported constants — witty.config.json is imported as a
+ * module, so webpack inlines the entire object and the literal values still sit
+ * in the bundle for anyone to read. This check, not that gating, is what keeps
+ * credentials out of a shipped build.
  */
 const assertNoBakedInCredentials = () => {
   if (nodeEnv !== 'production') {
+    return;
+  }
+
+  // `build:test` is a production build too, but it is loaded unpacked by
+  // Playwright and never published, so it is exempt. Blocking it would mean a
+  // developer who keeps X_KEY set for local work cannot run the suite at all.
+  //
+  // Note this build really does contain the key: witty.config.json is
+  // imported as a module, so webpack inlines the whole object and every field
+  // survives verbatim, whatever constants.ts does with it afterwards. Do not
+  // publish or upload a TESTING build.
+  if (process.env.TESTING === 'true') {
     return;
   }
 
