@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { sendErrorToSentry } from '../shared/errorUtils';
+import React, {useEffect, useRef} from 'react';
+import {sendErrorToSentry} from '../shared/errorUtils';
 import {
   CustomInputElement,
   Highlight,
@@ -7,7 +7,7 @@ import {
   INodeWithAlerts,
   Position,
 } from '../shared/types';
-import { getColor } from '../shared/constants';
+import {getColor} from '../shared/constants';
 import {
   getZIndex,
   isGmail,
@@ -19,17 +19,13 @@ import {
   nodeExistsInDOM,
   isTinyMceEditor,
 } from '../shared/DOMutils';
-import {
-  drawHighlight,
-  drawLine,
-  getGreenhouseHeight,
-} from './highlightsUtils';
+import {drawHighlight, drawLine, getGreenhouseHeight} from './highlightsUtils';
 import {
   getCorrectedPosition,
   getCorrectedPositionCanvas,
 } from '../shared/utils';
-import { getActiveDocument } from './ContentScriptApp';
-import { useStateRef } from '../shared/customHooks/useStateRef';
+import {getActiveDocument} from './ContentScriptApp';
+import {useStateRef} from '../shared/customHooks/useStateRef';
 
 interface HighlightsProps {
   elementScroll: Position;
@@ -67,10 +63,10 @@ const Highlights: React.FC<HighlightsProps> = ({
     height: isGoogleDocs() //2000 is about the height of two pages in google docs
       ? 2000
       : isGreenhouse()
-      ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
-      : isGmail() || isHubspot()
-      ? elementRect.height - correctedPosition.top //prevents expanding canvas when scrolling
-      : elementRect.height,
+        ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
+        : isGmail() || isHubspot()
+          ? elementRect.height - correctedPosition.top //prevents expanding canvas when scrolling
+          : elementRect.height,
   };
 
   useEffect(() => {
@@ -88,7 +84,7 @@ const Highlights: React.FC<HighlightsProps> = ({
         .getElementsByClassName('left-sidebar-container-content')[0]
         ?.getBoundingClientRect();
     }
-    nodesWithAlerts.forEach(({ node, alerts }) => {
+    nodesWithAlerts.forEach(({node, alerts}) => {
       if (
         !isTextArea(element) &&
         !(
@@ -131,12 +127,12 @@ const Highlights: React.FC<HighlightsProps> = ({
               top: isGoogleDocs()
                 ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
                 : isAemRte(element)
-                ? rect.top + element.scrollTop
-                : isTinyMceEditor(element)
-                ? rect.top + doc.scrollTop
-                : rect.top +
-                  doc.scrollTop -
-                  (isTextArea(element) ? elementScroll.top : 0),
+                  ? rect.top + element.scrollTop
+                  : isTinyMceEditor(element)
+                    ? rect.top + doc.scrollTop
+                    : rect.top +
+                      doc.scrollTop -
+                      (isTextArea(element) ? elementScroll.top : 0),
             };
           });
           if (
@@ -237,7 +233,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           zIndex: getZIndex(element),
         } as React.CSSProperties
       }
-    ></canvas>
+    />
   );
 };
 

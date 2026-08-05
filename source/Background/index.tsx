@@ -1,4 +1,4 @@
-import browser, { Tabs } from 'webextension-polyfill';
+import browser, {Tabs} from 'webextension-polyfill';
 import * as Sentry from '@sentry/react';
 
 import {
@@ -23,23 +23,19 @@ import {
   storeInLocalStorage,
   updateLabelChrome,
 } from '../shared/utils';
-import { authorize } from '../shared/ApiServices/oauth';
-import { setToken } from '../shared/ApiServices/requests';
+import {authorize} from '../shared/ApiServices/oauth';
+import {setToken} from '../shared/ApiServices/requests';
 import {
   allowSessionStorageInContentScripts,
   migrateAccessTokenOffDisk,
   persistTokens,
 } from '../shared/tokenStore';
-import {
-  isWittyMessage,
-  MessageTypes,
-  SignInResult,
-} from '../shared/messages';
+import {isWittyMessage, MessageTypes, SignInResult} from '../shared/messages';
 import defaultConfig from '../witty.config.json';
-import { DefaultConfigValue } from '../shared/types';
-import { logTypes, useLog } from '../shared/customHooks/useLog';
-import { sendErrorToSentry } from '../shared/errorUtils';
-import { isChromeWebstore } from '../shared/DOMutils';
+import {DefaultConfigValue} from '../shared/types';
+import {logTypes, useLog} from '../shared/customHooks/useLog';
+import {sendErrorToSentry} from '../shared/errorUtils';
+import {isChromeWebstore} from '../shared/DOMutils';
 
 const sentryDSN = defaultConfig.SENTRY_DSN;
 const sentrySampleRate = defaultConfig.SENTRY_SAMPLE_RATE;
@@ -98,14 +94,14 @@ const handleSignIn = async (register: boolean): Promise<SignInResult> => {
     // credentials (if any) untouched — a cancelled sign-in must not log anyone
     // out of a session they already had.
     if (!tokens) {
-      return { status: 'cancelled' };
+      return {status: 'cancelled'};
     }
 
     await persistTokens(tokens);
     setToken(tokens.accessToken);
     removeBadge();
 
-    return { status: 'success' };
+    return {status: 'success'};
   } catch (error) {
     log(`Sign-in failed: ${error}`, logTypes.ERROR);
     sendErrorToSentry(error);
@@ -134,7 +130,7 @@ const addMessageListener = () => {
     if (message.type === MessageTypes.SIGN_OUT) {
       logOut();
 
-      return Promise.resolve({ status: 'success' } as SignInResult);
+      return Promise.resolve({status: 'success'} as SignInResult);
     }
 
     return undefined;
@@ -155,9 +151,7 @@ const addEventListeners = () => {
     browser.runtime.reload();
   });
 
-  browser.runtime.onInstalled.addListener(function (details: {
-    reason: string;
-  }) {
+  browser.runtime.onInstalled.addListener(function (details: {reason: string}) {
     browser.action?.setIcon(WittyIconActive);
 
     if (!DEV_ENV) {
@@ -200,13 +194,13 @@ const reInjectContentScripts = () => {
 
   const matchPattern = (pattern: string, url: string): boolean => {
     // Parse pattern
-    let [patternScheme, patternHost] = pattern.split('://');
-    let [patternDomain, patternPath] = patternHost.split('/', 2);
+    const [patternScheme, patternHost] = pattern.split('://');
+    const [patternDomain, patternPath] = patternHost.split('/', 2);
 
     // Parse URL
-    let urlObj = new URL(url);
-    let urlDomain = urlObj.hostname;
-    let urlPath = urlObj.pathname;
+    const urlObj = new URL(url);
+    const urlDomain = urlObj.hostname;
+    const urlPath = urlObj.pathname;
 
     // Check scheme
     if (
@@ -229,7 +223,7 @@ const reInjectContentScripts = () => {
   };
 
   const matchUrl = (url: string, patterns: string[]): boolean => {
-    for (let pattern of patterns) {
+    for (const pattern of patterns) {
       if (matchPattern(pattern, url)) {
         return true;
       }
@@ -269,7 +263,7 @@ const reInjectContentScripts = () => {
         browser.scripting
           .executeScript({
             //executeScript, but should be ob since browser.scripting?
-            target: { tabId: tab.id! },
+            target: {tabId: tab.id!},
             files: [scriptToInject],
           })
           .catch(() => {
@@ -282,7 +276,7 @@ const reInjectContentScripts = () => {
         browser.scripting
           .insertCSS({
             files: [cssToInject],
-            target: { tabId: tab.id! },
+            target: {tabId: tab.id!},
           })
           .catch(() => {
             // do nothing cause the tab does not exist anymore
@@ -292,7 +286,7 @@ const reInjectContentScripts = () => {
   };
 
   browser.windows
-    .getAll({ populate: true })
+    .getAll({populate: true})
     .then((windows) => {
       windows.forEach((window) => {
         if (!window || !window.tabs) {
@@ -315,14 +309,14 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
   browser.storage.local
     .get()
     .then((result) => {
-      let savedValue: DefaultConfigValue = result[key];
+      const savedValue: DefaultConfigValue = result[key];
       const appId = result[StorageKeys.APP_ID];
       if (!savedValue || savedValue == appId || DEV_ENV) {
-        let valueToSave = isFunction(value as Function)
+        const valueToSave = isFunction(value as Function)
           ? (value as Function)()
           : value;
         browser.storage.local
-          .set({ [key]: valueToSave })
+          .set({[key]: valueToSave})
           .then(() => onSave(key, valueToSave))
           .catch(onError);
       }
@@ -332,7 +326,7 @@ const setInLocalStorage = (key: string, value: DefaultConfigValue): void => {
 
 const setSettings = () => {
   //Set default settings
-  for (let [defaultConfigKey, defaultConfigValue] of Object.entries(
+  for (const [defaultConfigKey, defaultConfigValue] of Object.entries(
     defaultConfig
   )) {
     // If an X_KEY is configured, do not persist OAuth tokens from the config
@@ -354,16 +348,15 @@ const setSettings = () => {
 };
 
 const scanTabsToSetIframeDomains = () => {
-  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+  browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
     if (tabs.length != 0 && tabs[0].url) {
       browser.scripting
         .executeScript({
-          target: { tabId: tabs[0].id! },
-          func: () => {
-            return Array.from(document.getElementsByTagName('iframe')).map(
+          target: {tabId: tabs[0].id!},
+          func: () =>
+            Array.from(document.getElementsByTagName('iframe')).map(
               (iframe) => iframe.src
-            );
-          },
+            ),
         })
         .then((result) => {
           const iframes = result[0].result;
@@ -392,7 +385,7 @@ const scanTabsToSetIframeDomains = () => {
 };
 
 const scanTabsToDetectStatus = () => {
-  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+  browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
     if (tabs.length != 0 && tabs[0].url) {
       const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
       updateLabelChrome(domain);
@@ -402,7 +395,7 @@ const scanTabsToDetectStatus = () => {
   });
 };
 
-const storageChange = (changes: { [key: string]: any }) => {
+const storageChange = (changes: {[key: string]: any}) => {
   const changedItems = Object.keys(changes);
 
   changedItems.forEach((key) => {
@@ -437,8 +430,9 @@ addMessageListener();
 // constant. TESTING is compiled to `false` in release builds, so the assignment
 // never runs and nothing is exposed; only the dead branch remains in the bundle.
 if (TESTING) {
-  (self as unknown as { __wittyTestRefresh?: () => Promise<void> })
-    .__wittyTestRefresh = getNewAccessToken;
+  (
+    self as unknown as {__wittyTestRefresh?: () => Promise<void>}
+  ).__wittyTestRefresh = getNewAccessToken;
 }
 
 // The access token lives in storage.session, which Chrome hides from content

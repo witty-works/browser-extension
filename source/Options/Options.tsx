@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import browser from 'webextension-polyfill';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
 import '../i18n/i18n';
-import { namespaces } from '../i18n/i18n.constants';
+import {namespaces} from '../i18n/i18n.constants';
 import CategoryToggle from './CategoryToggle';
 import {
   applyLevelToDisabled,
@@ -22,7 +22,7 @@ import {
   registerCustomEndpointFromStorage,
   StorageKeys,
 } from '../shared/constants';
-import { logOut, storeInLocalStorage } from '../shared/utils';
+import {logOut, storeInLocalStorage} from '../shared/utils';
 import {
   getCategories,
   getConfigOptions,
@@ -36,7 +36,7 @@ import {
   IConfigOption,
   IConfigOptionsResponse,
 } from '../shared/types';
-import { sendErrorToSentry } from '../shared/errorUtils';
+import {sendErrorToSentry} from '../shared/errorUtils';
 import './Options.scss';
 
 /**
@@ -59,7 +59,7 @@ import './Options.scss';
  *  4. A custom endpoint never becomes the build default.
  */
 const Options: React.FC = () => {
-  const { t } = useTranslation(namespaces.options);
+  const {t} = useTranslation(namespaces.options);
 
   const [mode, setMode] = useState<AuthMode>('account');
   const [dashboard, setDashboard] = useState('');
@@ -106,8 +106,7 @@ const Options: React.FC = () => {
         );
 
         const stored = result[StorageKeys.CUSTOM_ENDPOINT] as
-          | BaseUrl
-          | undefined;
+          BaseUrl | undefined;
         if (stored) {
           setDashboard(stored.dashboard || '');
           setApi(stored.api || '');
@@ -179,7 +178,7 @@ const Options: React.FC = () => {
   const setFormatField = (field: string, value: string) => {
     // An empty choice removes the field entirely rather than storing a blank,
     // so the API falls back to its own default instead of being sent ''.
-    const next = { ...languageFormat };
+    const next = {...languageFormat};
     if (value) {
       next[field] = value;
     } else {
@@ -250,8 +249,8 @@ const Options: React.FC = () => {
         // presented to a different deployment.
         [StorageKeys.API_KEY]:
           mode === 'apiKey'
-            ? { endpoint: CUSTOM_BASE_URL_KEY, value: apiKeyValue.trim() }
-            : { endpoint: '', value: '' },
+            ? {endpoint: CUSTOM_BASE_URL_KEY, value: apiKeyValue.trim()}
+            : {endpoint: '', value: ''},
       });
 
       // Invariant 2: credentials never survive a connection change.
@@ -314,7 +313,11 @@ const Options: React.FC = () => {
         <p className='witty-options-warning'>{t('endpointWarning')}</p>
         <p className='witty-options-muted'>{t('signOutNotice')}</p>
         <p className='witty-options-muted'>
-          <a href={HelpLinks.ownServer} target='_blank' rel='noopener noreferrer'>
+          <a
+            href={HelpLinks.ownServer}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
             {t('helpOwnServer')}
           </a>
           {' · '}

@@ -1,7 +1,7 @@
 import React from 'react';
-import { createRoot, Root } from 'react-dom/client';
+import {createRoot, Root} from 'react-dom/client';
 import Notification from './Notification';
-import { CustomInputElement } from '../shared/types';
+import {CustomInputElement} from '../shared/types';
 
 export const renderNotificationToTop = (
   notificationType: string,

@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
-import { IGetLLMSuggestionsRequest, ILLMAlternativesResponse } from '../types';
-import { useLLMSuggestionsEndpoint } from './useEndpoint';
-import { hashString } from '../../ContentScript/utils';
+import {useCallback, useEffect, useState} from 'react';
+import {IGetLLMSuggestionsRequest, ILLMAlternativesResponse} from '../types';
+import {useLLMSuggestionsEndpoint} from './useEndpoint';
+import {hashString} from '../../ContentScript/utils';
 
 export interface LLMAlternativesCacheValue {
   data: ILLMAlternativesResponse | null;
@@ -31,14 +31,16 @@ export const useLLMAlternativesCache = () => {
       }
 
       if (!cache[key]?.loading) {
-        setCache((prevCache) => ({
-          ...prevCache,
-          [key]: { data: null, error: null, loading: true },
-        }));
+        setCache((prevCache) => {
+          return {
+            ...prevCache,
+            [key]: {data: null, error: null, loading: true},
+          };
+        });
         setEndpointRequest(request);
       }
 
-      return cache[key] || { data: null, error: null, loading: true };
+      return cache[key] || {data: null, error: null, loading: true};
     },
     [cache, getKey, setEndpointRequest]
   );
@@ -70,7 +72,7 @@ export const useLLMAlternativesCache = () => {
   const getCachedValue = useCallback(
     (request: IGetLLMSuggestionsRequest) => {
       const key = getKey(request);
-      return cache[key] || { data: null, error: null, loading: false };
+      return cache[key] || {data: null, error: null, loading: false};
     },
     [cache, getKey]
   );

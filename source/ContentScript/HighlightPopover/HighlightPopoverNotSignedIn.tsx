@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import CSS from 'csstype';
-import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
+import {useFloating, flip, offset, shift} from '@floating-ui/react-dom';
 
-import { CustomInputElement, IAlert } from '../../shared/types';
-import { useTranslation } from 'react-i18next';
+import {CustomInputElement, IAlert} from '../../shared/types';
+import {useTranslation} from 'react-i18next';
 import '../../i18n/i18n';
-import { namespaces } from '../../i18n/i18n.constants';
+import {namespaces} from '../../i18n/i18n.constants';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
@@ -13,7 +13,7 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import Star from '../../assets/icons/popup/star.svg';
 
 import './HighlightPopover.scss';
-import { getActiveDocument } from '../ContentScriptApp';
+import {getActiveDocument} from '../ContentScriptApp';
 import {
   DefaultBaseUrlKey,
   DEV_ENV,
@@ -21,16 +21,12 @@ import {
   X_KEY,
   registerCustomEndpointFromStorage,
 } from '../../shared/constants';
-import {
-  MessageTypes,
-  SignInMessage,
-  SignInResult,
-} from '../../shared/messages';
+import {MessageTypes, SignInMessage, SignInResult} from '../../shared/messages';
 import browser from 'webextension-polyfill';
-import { setBaseUrls } from '../../shared/ApiServices/requests';
-import { sendErrorToSentry } from '../../shared/errorUtils';
-import { logTypes, useLog } from '../../shared/customHooks/useLog';
-import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import {setBaseUrls} from '../../shared/ApiServices/requests';
+import {sendErrorToSentry} from '../../shared/errorUtils';
+import {logTypes, useLog} from '../../shared/customHooks/useLog';
+import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
 
 export interface PopoverData {
   index: number;
@@ -56,7 +52,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
 
-  const { t, i18n } = useTranslation(namespaces.popover);
+  const {t, i18n} = useTranslation(namespaces.popover);
   const [urls, setUrls] = useState<string>(DefaultBaseUrlKey);
   const [signInError, setSignInError] = useState(false);
   const log = useLog('PopupLogin');
@@ -125,7 +121,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             </div>
             <div
               className='witty-works-ext-lato-popover-text witty-works-ext-margin-left'
-              style={{ color: '#E6635A' }}
+              style={{color: '#E6635A'}}
             >
               {t('apiKeyConfiguredNotice')}
             </div>
@@ -136,8 +132,8 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   }
 
   const storageChange = (changes: any) => {
-    let changedItems = Object.keys(changes);
-    for (let item of changedItems) {
+    const changedItems = Object.keys(changes);
+    for (const item of changedItems) {
       if (item === StorageKeys.API_ENDPOINT_KEY) {
         setUrls(changes[item].newValue);
       }
@@ -148,23 +144,25 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     i18n.changeLanguage(data.alert.data.language);
   }, [data.alert.data.language]);
 
-  const elementCords = (dat: PopoverData) => ({
-    name: 'elementCords',
-    options: dat,
-    fn: ({ placement, rects }: any) => {
-      const calcNewX: number = dat.position.x;
-      const calcNewY: number = placement.includes('bottom')
-        ? dat.position.y + dat.position.height + doc.scrollTop
-        : dat.position.y - rects.floating.height + doc.scrollTop;
+  const elementCords = (dat: PopoverData) => {
+    return {
+      name: 'elementCords',
+      options: dat,
+      fn: ({placement, rects}: any) => {
+        const calcNewX: number = dat.position.x;
+        const calcNewY: number = placement.includes('bottom')
+          ? dat.position.y + dat.position.height + doc.scrollTop
+          : dat.position.y - rects.floating.height + doc.scrollTop;
 
-      return {
-        x: calcNewX,
-        y: calcNewY,
-      };
-    },
-  });
+        return {
+          x: calcNewX,
+          y: calcNewY,
+        };
+      },
+    };
+  };
 
-  const { x, y, reference, floating, strategy, refs } = useFloating({
+  const {x, y, reference, floating, strategy, refs} = useFloating({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
@@ -211,7 +209,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     if (hasClickedOutsidePopOver && !hasClickedThisHighlight) hidePopover();
   };
 
-  const hidePopover = (logClose: boolean = false) => {
+  const hidePopover = (logClose = false) => {
     logClose && analytics.popoverLogs(data.alert, 'popover_close');
     hide();
   };
@@ -238,6 +236,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'
             href='https://www.witty.works/'
             target='_blank'
+            rel='noreferrer'
           >
             <WittyLogo alt={t('wittyLogo')} />
           </a>
@@ -264,7 +263,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 
             <div
               className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
-              style={{ padding: 0 }}
+              style={{padding: 0}}
             >
               <div className='witty-works-ext-margin-right'>
                 {t('signedOutText')}
@@ -340,7 +339,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
           <div className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-full-padding witty-works-ext-margin-bottom witty-works-ext-light-gray-background'>
             <div
               className='witty-works-ext-lato-small-paragraph-title-h4'
-              style={{ marginRight: 'auto' }}
+              style={{marginRight: 'auto'}}
             >
               {t('signInFailed')}
             </div>

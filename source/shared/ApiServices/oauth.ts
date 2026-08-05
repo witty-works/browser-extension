@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 
-import { BaseUrls, DefaultBaseUrlKey, isAllowedBaseUrlKey } from '../constants';
+import {BaseUrls, DefaultBaseUrlKey, isAllowedBaseUrlKey} from '../constants';
 
 /**
  * OAuth 2.0 Authorization Code + PKCE against the Laravel dashboard.
@@ -103,7 +103,7 @@ const resolveDeployment = (urlKey: string) => {
     );
   }
 
-  return { key, deployment };
+  return {key, deployment};
 };
 
 const tokensFromResponse = (payload: {
@@ -118,10 +118,7 @@ const tokensFromResponse = (payload: {
   // Treat a missing expires_in as "already stale" rather than "never expires":
   // a token we wrongly believe is fresh fails closed on the next API call,
   // whereas one we wrongly believe is eternal would never be refreshed.
-  const lifetime = Math.max(
-    0,
-    (payload.expires_in ?? 0) - EXPIRY_SKEW_SECONDS
-  );
+  const lifetime = Math.max(0, (payload.expires_in ?? 0) - EXPIRY_SKEW_SECONDS);
 
   return {
     accessToken: payload.access_token,
@@ -161,7 +158,7 @@ export const authorize = async (
   urlKey: string,
   register = false
 ): Promise<OAuthTokens | null> => {
-  const { deployment } = resolveDeployment(urlKey);
+  const {deployment} = resolveDeployment(urlKey);
   const redirectUri = browser.identity.getRedirectURL();
 
   // Both stay in this closure for the lifetime of the flow. Keeping them out of
@@ -197,7 +194,9 @@ export const authorize = async (
     // window is dismissed. That is a cancellation, not a failure worth
     // reporting to the user as an error.
     const message = error instanceof Error ? error.message : String(error);
-    if (/did not approve|canceled|cancelled|closed by the user/i.test(message)) {
+    if (
+      /did not approve|canceled|cancelled|closed by the user/i.test(message)
+    ) {
       return null;
     }
     throw error;
@@ -252,7 +251,7 @@ export const refresh = async (
   urlKey: string,
   refreshToken: string
 ): Promise<OAuthTokens> => {
-  const { deployment } = resolveDeployment(urlKey);
+  const {deployment} = resolveDeployment(urlKey);
 
   if (!refreshToken) {
     throw new Error('No refresh token available');

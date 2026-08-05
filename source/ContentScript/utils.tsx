@@ -1,10 +1,10 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { WTags } from '../shared/constants';
-import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
-import { CustomInputElement, DiffChange, INodes } from '../shared/types';
-import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
-import { diffChars, diffWords, DiffWordsOptionsNonabortable } from 'diff';
+import {createRoot} from 'react-dom/client';
+import {WTags} from '../shared/constants';
+import {isGoogleDocs, isInputText, isTextArea} from '../shared/DOMutils';
+import {CustomInputElement, DiffChange, INodes} from '../shared/types';
+import ContentScriptApp, {getActiveDocument} from './ContentScriptApp';
+import {diffChars, diffWords, DiffWordsOptionsNonabortable} from 'diff';
 
 export const getInputText = (element: CustomInputElement | any) => {
   if (isGoogleDocs()) {
@@ -151,7 +151,7 @@ export const getFirstTextDiff = (
   }
 
   if (originalLength !== newLength) {
-    return { changedOffset, originalLength, newLength };
+    return {changedOffset, originalLength, newLength};
   }
 
   return null;
@@ -164,13 +164,13 @@ export const computeDiff = (
 ) => {
   // diff v9 renamed WordsOptions and split the overloads: the non-abortable
   // one is what returns a definite array rather than `… | undefined`.
-  let options: DiffWordsOptionsNonabortable = {
+  const options: DiffWordsOptionsNonabortable = {
     intlSegmenter: new (Intl as any).Segmenter(language, {
       granularity: 'word',
     }),
   };
 
-  let diffElements: DiffChange[] = diffWords(
+  const diffElements: DiffChange[] = diffWords(
     originalSentence,
     newSentence,
     options
@@ -181,10 +181,10 @@ export const computeDiff = (
 
   let diffElement: DiffChange;
 
-  let diff: string = '';
-  let tag: string = '';
+  let diff = '';
+  let tag = '';
 
-  let start: number = 0;
+  let start = 0;
   let end: number = diffElements.length - 1;
 
   for (let i = 0; i < diffElements.length; i++) {
@@ -248,8 +248,8 @@ export const computeDiff = (
 
 export const getNodesWithNewlines = (
   element: HTMLElement
-): { node: Node; text: string }[] => {
-  const nodesWithNewlines: { node: Node; text: string }[] = [];
+): {node: Node; text: string}[] => {
+  const nodesWithNewlines: {node: Node; text: string}[] = [];
   let lastWasBlock = false; // Tracks whether the last processed element was a block
 
   function walk(node: Node, isRoot = false): void {
@@ -317,10 +317,10 @@ export const getNodesWithNewlines = (
 
 export const getTextDividedByNodes = (
   element: CustomInputElement
-): { node: Node; text: string }[] => {
+): {node: Node; text: string}[] => {
   if (isGoogleDocs()) {
     const clone = findCloneContainer();
-    let divs = [] as Node[];
+    const divs = [] as Node[];
     if (clone?.firstChild) {
       for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
         const divElement = clone.firstChild.childNodes[i];
@@ -328,10 +328,10 @@ export const getTextDividedByNodes = (
       }
     }
     return divs.map((node) => {
-      return { node, text: node.textContent || '' };
+      return {node, text: node.textContent || ''};
     });
   } else if (isTextArea(element) || isInputText(element)) {
-    return [{ node: element, text: element.value }];
+    return [{node: element, text: element.value}];
   } else {
     return getNodesWithNewlines(element);
   }

@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react';
-import { browser, Storage } from 'webextension-polyfill-ts';
+import {browser, Storage} from 'webextension-polyfill-ts';
 import {
   BaseUrls,
   StorageKeys,
@@ -17,11 +17,11 @@ import {
   shouldInjectIntoWindow,
   isSignedInResult,
 } from '../shared/utils';
-import { sendErrorToSentry } from '../shared/errorUtils';
-import { customRender } from './utils';
-import { setBaseUrls } from '../shared/ApiServices/requests';
-import { v4 as uuidv4 } from 'uuid';
-import { isMicrosoftOnline } from '../shared/DOMutils';
+import {sendErrorToSentry} from '../shared/errorUtils';
+import {customRender} from './utils';
+import {setBaseUrls} from '../shared/ApiServices/requests';
+import {v4 as uuidv4} from 'uuid';
+import {isMicrosoftOnline} from '../shared/DOMutils';
 
 const handleDomainsFromDashboard = (
   newValue: string | string[],
@@ -33,13 +33,13 @@ const handleDomainsFromDashboard = (
 };
 
 const storageChange = (
-  changes: { [x: string]: Storage.StorageChange | { newValue: any } },
+  changes: {[x: string]: Storage.StorageChange | {newValue: any}},
   scriptId: string
 ) => {
   const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
   const changedItems = Object.keys(changes);
 
-  for (let item of changedItems) {
+  for (const item of changedItems) {
     if (item === StorageKeys.DOMAINS) {
       handleDomainsFromDashboard(changes[item].newValue, scriptId);
     }
@@ -132,7 +132,7 @@ const initialize = () => {
       const el = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
       if (el) {
         try {
-          const { safeUnmountAndRemove } = await import('./utils');
+          const {safeUnmountAndRemove} = await import('./utils');
           safeUnmountAndRemove(el as HTMLElement);
         } catch (err) {
           try {

@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
-import { CustomInputElement } from '../shared/types';
-import { getCorrectedPosition } from '../shared/utils';
+import React, {useRef} from 'react';
+import {CustomInputElement} from '../shared/types';
+import {getCorrectedPosition} from '../shared/utils';
 
 interface GoogleDocsCloneProps {
   element: CustomInputElement;

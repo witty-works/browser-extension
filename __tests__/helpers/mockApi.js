@@ -29,8 +29,20 @@ const ALERTS = [
     gravity: 2,
     label: 'Gendered language',
     alternatives: [
-      { text: 'everyone', remove: false, inspiration: false, context: '', url: '' },
-      { text: 'folks', remove: false, inspiration: false, context: '', url: '' },
+      {
+        text: 'everyone',
+        remove: false,
+        inspiration: false,
+        context: '',
+        url: '',
+      },
+      {
+        text: 'folks',
+        remove: false,
+        inspiration: false,
+        context: '',
+        url: '',
+      },
     ],
   },
   {
@@ -42,8 +54,20 @@ const ALERTS = [
     gravity: 2,
     label: 'Gendered language',
     alternatives: [
-      { text: 'chairperson', remove: false, inspiration: false, context: '', url: '' },
-      { text: 'chair', remove: false, inspiration: false, context: '', url: '' },
+      {
+        text: 'chairperson',
+        remove: false,
+        inspiration: false,
+        context: '',
+        url: '',
+      },
+      {
+        text: 'chair',
+        remove: false,
+        inspiration: false,
+        context: '',
+        url: '',
+      },
       // Deliberately past both truncation thresholds (25 chars with a context,
       // 35 without) so the hover-stability test exercises the path that used to
       // expand the button on hover and move it out from under the pointer.
@@ -65,7 +89,13 @@ const ALERTS = [
     gravity: 1,
     label: 'Spelling',
     alternatives: [
-      { text: 'mistake', remove: false, inspiration: false, context: '', url: '' },
+      {
+        text: 'mistake',
+        remove: false,
+        inspiration: false,
+        context: '',
+        url: '',
+      },
     ],
   },
 ];
@@ -121,7 +151,9 @@ const authResponse = () => ({
  */
 const checkResponse = (text) => ({
   results: ALERTS.filter(
-    (alert) => alert.end <= text.length && text.slice(alert.start, alert.end) === alert.text
+    (alert) =>
+      alert.end <= text.length &&
+      text.slice(alert.start, alert.end) === alert.text
   ).map(buildCheckResult),
   language: 'en',
   limit_reached: false,
@@ -142,10 +174,28 @@ const CATEGORIES = {
     { key: 'clarity', label: 'Clarity' },
   ],
   categories: [
-    { key: 'gendered_nouns', label: 'Gendered nouns', parent: 'gender', advanced_key: 'gendered_nouns_advanced', proficiency_level: 'unconscious_bias' },
-    { key: 'slurs', label: 'Slurs', parent: 'gender', advanced_key: null, proficiency_level: 'openly_discriminating' },
+    {
+      key: 'gendered_nouns',
+      label: 'Gendered nouns',
+      parent: 'gender',
+      advanced_key: 'gendered_nouns_advanced',
+      proficiency_level: 'unconscious_bias',
+    },
+    {
+      key: 'slurs',
+      label: 'Slurs',
+      parent: 'gender',
+      advanced_key: null,
+      proficiency_level: 'openly_discriminating',
+    },
     // Mirrors the real response, where 12 of 68 categories come back unlabelled.
-    { key: 'plain_language', label: '', parent: 'clarity', advanced_key: null, proficiency_level: 'orthography' },
+    {
+      key: 'plain_language',
+      label: '',
+      parent: 'clarity',
+      advanced_key: null,
+      proficiency_level: 'orthography',
+    },
   ],
 };
 
@@ -175,7 +225,7 @@ const CONFIG_OPTIONS = {
       labels: {
         '*in': 'Genderstar, f.e Expert*in',
         ':in': 'Colon, f.e Expert:in',
-        '_in': 'Gendergap, f.e Expert_in',
+        _in: 'Gendergap, f.e Expert_in',
         '/in': 'Slash, f.e Expert/in',
         '/-in': 'Slash dash, f.e Expert/-in',
         In: 'Binnen-I, f.e ExpertIn',
@@ -261,11 +311,17 @@ const mockNlpApi = async (context) => {
  * escapes the mocks above is a bug in the harness — the whole point is that the
  * suite runs with no deployed dashboard and no NLP API.
  */
-const blockExternalRequests = async (context, allowedHosts = ['localhost', '127.0.0.1']) => {
+const blockExternalRequests = async (
+  context,
+  allowedHosts = ['localhost', '127.0.0.1']
+) => {
   await context.route('**/*', (route) => {
     const url = new URL(route.request().url());
 
-    if (url.protocol === 'chrome-extension:' || allowedHosts.includes(url.hostname)) {
+    if (
+      url.protocol === 'chrome-extension:' ||
+      allowedHosts.includes(url.hostname)
+    ) {
       return route.continue();
     }
 

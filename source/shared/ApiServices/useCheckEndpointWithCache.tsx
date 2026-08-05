@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { ICachedSentenceAlerts, useSentenceCache } from './useSentenceCache';
-import { IAlert, ICheckResponse } from '../types';
-import { useCheckEndpoint } from './useEndpoint';
-import { generateAlertId } from '../utils';
-import { extractSentenceNode } from '../utils';
-import { SentenceSplitterSyntax, split } from 'sentence-splitter';
-import { TxtNodeRange } from '@textlint/ast-node-types';
+import {useEffect, useRef, useState} from 'react';
+import {ICachedSentenceAlerts, useSentenceCache} from './useSentenceCache';
+import {IAlert, ICheckResponse} from '../types';
+import {useCheckEndpoint} from './useEndpoint';
+import {generateAlertId, extractSentenceNode} from '../utils';
+import {SentenceSplitterSyntax, split} from 'sentence-splitter';
+import {TxtNodeRange} from '@textlint/ast-node-types';
 
 interface CheckEndpointCachedResponse {
   alerts: IAlert[];
@@ -18,7 +17,7 @@ export const useCheckEndpointWithCache = (
     checkedTextLength: number
   ) => void
 ) => {
-  const { checkCache, addToCache } = useSentenceCache();
+  const {checkCache, addToCache} = useSentenceCache();
   const [cachedCheckEndpointResponse, setCachedCheckEndpointResponse] =
     useState<CheckEndpointCachedResponse | null>(null);
   const cachedCheckEndpointResponseRef =
@@ -33,7 +32,7 @@ export const useCheckEndpointWithCache = (
     checkEndpointResponse?: ICheckResponse
   ) => {
     lastWholeTextRef.current = updatedText;
-    const { cachedAlerts, nonCachedSentences: uncachedSentences } =
+    const {cachedAlerts, nonCachedSentences: uncachedSentences} =
       checkCache(updatedText);
 
     if (uncachedSentences.length > 0) {
@@ -43,9 +42,9 @@ export const useCheckEndpointWithCache = (
     }
 
     const response = {
-      alerts: [...cachedAlerts].sort((firstAlert, secondAlert) => {
-        return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
-      }),
+      alerts: [...cachedAlerts].sort((firstAlert, secondAlert) =>
+        firstAlert.startOffset < secondAlert.startOffset ? -1 : 1
+      ),
       checkEndpointResponse,
     };
     setCachedCheckEndpointResponse(response);
@@ -61,7 +60,7 @@ export const useCheckEndpointWithCache = (
       return;
     }
 
-    const { alerts } = cachedCheckEndpointResponseRef.current;
+    const {alerts} = cachedCheckEndpointResponseRef.current;
     const adjustedAlerts = alerts.map((alert) => {
       if (alert.startOffset >= changedOffset) {
         const newStartOffset = alert.startOffset + newLength - originalLength;
@@ -106,7 +105,7 @@ export const useCheckEndpointWithCache = (
       return;
     }
 
-    const { results } = checkEndpointResponse;
+    const {results} = checkEndpointResponse;
     const lastCheckedTextSentences = split(lastCheckedTextRef.current).filter(
       (s) => s.type === SentenceSplitterSyntax.Sentence
     );

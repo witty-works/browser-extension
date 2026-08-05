@@ -18,7 +18,9 @@ test.describe('Popup', () => {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
     // The sign-in button is the popup's primary action when unauthenticated.
-    await expect(page.locator('.witty-works-ext-primary-button-red')).toBeVisible();
+    await expect(
+      page.locator('.witty-works-ext-primary-button-red')
+    ).toBeVisible();
   });
 
   test('shows the main popup when signed in', async ({
@@ -30,7 +32,9 @@ test.describe('Popup', () => {
 
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    await expect(page.locator('.witty-works-ext-toggle-encloser').first()).toBeVisible();
+    await expect(
+      page.locator('.witty-works-ext-toggle-encloser').first()
+    ).toBeVisible();
   });
 
   test('sign-in button asks the background worker to run the OAuth flow', async ({

@@ -3,7 +3,13 @@ const { test: base, chromium, expect } = require('@playwright/test');
 
 const { mockNlpApi, blockExternalRequests, SAMPLE_TEXT } = require('./mockApi');
 
-const PATH_TO_EXTENSION = path.resolve(__dirname, '..', '..', 'extension', 'chrome');
+const PATH_TO_EXTENSION = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  'extension',
+  'chrome'
+);
 const FIXTURE_ORIGIN = `http://localhost:${process.env.FIXTURE_PORT || 5174}`;
 
 /**

@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import browser from 'webextension-polyfill';
-import { Root, createRoot } from 'react-dom/client';
+import {Root, createRoot} from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import defaultConfig from '../witty.config.json';
-import { WTags, StorageKeys, DEV_ENV } from '../shared/constants';
-import { useTranslation } from 'react-i18next';
-import { namespaces } from '../i18n/i18n.constants';
+import {WTags, StorageKeys, DEV_ENV} from '../shared/constants';
+import {useTranslation} from 'react-i18next';
+import {namespaces} from '../i18n/i18n.constants';
 // import Notification from '../Notifications/Notification'; //Temporarily removed until we have a better solution
 import TextAreaClone from './TextAreaClone';
 import renderNotificationToTop from '../Notifications/renderNotification';
-import { useLog, logTypes } from '../shared/customHooks/useLog';
+import {useLog, logTypes} from '../shared/customHooks/useLog';
 import {
   CustomInputElement,
   IAlert,
@@ -36,10 +36,10 @@ import {
   isOutlook,
   isInShadowDOM,
 } from '../shared/DOMutils';
-import { useResizeObserver } from '../shared/customHooks/useResizeObserver';
-import { useMutationObserver } from '../shared/customHooks/useMutationObserver';
-import { useStateRef } from '../shared/customHooks/useStateRef';
-import { debounce } from 'lodash';
+import {useResizeObserver} from '../shared/customHooks/useResizeObserver';
+import {useMutationObserver} from '../shared/customHooks/useMutationObserver';
+import {useStateRef} from '../shared/customHooks/useStateRef';
+import {debounce} from 'lodash';
 import HighlightPopover, {
   PopoverData,
 } from './HighlightPopover/HighlightPopover';
@@ -47,8 +47,8 @@ import InputTextClone from './InputTextClone';
 import Highlights from './Highlights';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import Toast from '../shared/components/Toast/Toast';
-import { sendErrorToSentry } from '../shared/errorUtils';
-import { useAuthEndpoint } from '../shared/ApiServices/useAuthEndpoint';
+import {sendErrorToSentry} from '../shared/errorUtils';
+import {useAuthEndpoint} from '../shared/ApiServices/useAuthEndpoint';
 import GoogleDocsClone from './GoogleDocsClone';
 import {
   findCloneContainer,
@@ -58,15 +58,15 @@ import {
   getTextDividedByNodes,
   shouldReturnEarly,
 } from './utils';
-import { getActiveDocument } from './ContentScriptApp';
+import {getActiveDocument} from './ContentScriptApp';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
-import { useCheckEndpointWithCache } from '../shared/ApiServices/useCheckEndpointWithCache';
-import { useCheckEventsLogger } from '../shared/ApiServices/useCheckEventsLogger';
-import { useLLMAlternativesCache } from '../shared/ApiServices/useLLMAlternativesCache';
+import {useCheckEndpointWithCache} from '../shared/ApiServices/useCheckEndpointWithCache';
+import {useCheckEventsLogger} from '../shared/ApiServices/useCheckEventsLogger';
+import {useLLMAlternativesCache} from '../shared/ApiServices/useLLMAlternativesCache';
 
 const Input: React.FC<{
   element: CustomInputElement;
-}> = ({ element }) => {
+}> = ({element}) => {
   // const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
   //   useCheckEndpoint();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
@@ -74,7 +74,7 @@ const Input: React.FC<{
   const [, , previousElementStateRef] = useStateRef<{
     text: string[] | string;
     position: DOMRect;
-  }>({ text: [], position: {} as DOMRect });
+  }>({text: [], position: {} as DOMRect});
 
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
   const prevTextRef = useRef(currentTextToCheck);
@@ -208,7 +208,7 @@ const Input: React.FC<{
   };
 
   useMutationObserver(element, onElementMutation);
-  const { t } = useTranslation([namespaces.errors]);
+  const {t} = useTranslation([namespaces.errors]);
   const log = useLog('Input');
 
   useEffect(() => {
@@ -433,9 +433,9 @@ const Input: React.FC<{
     const targetElement = isNotion()
       ? document.querySelector('.notion-frame')
       : isGoogleDocs()
-      ? (document.querySelector('.docs-texteventtarget-iframe') as any)
-          ?.contentDocument?.activeElement
-      : element;
+        ? (document.querySelector('.docs-texteventtarget-iframe') as any)
+            ?.contentDocument?.activeElement
+        : element;
 
     targetElement?.addEventListener('keyup', handleKeyupEventDebounced as any);
     element?.addEventListener('paste', handleKeyupEventDebounced as any);
@@ -447,9 +447,9 @@ const Input: React.FC<{
       const targetElement = isNotion()
         ? document.querySelector('.notion-frame')
         : isGoogleDocs()
-        ? (document.querySelector('.docs-texteventtarget-iframe') as any)
-            ?.contentDocument?.activeElement
-        : element;
+          ? (document.querySelector('.docs-texteventtarget-iframe') as any)
+              ?.contentDocument?.activeElement
+          : element;
 
       targetElement?.removeEventListener(
         'keyup',
@@ -707,7 +707,7 @@ const Input: React.FC<{
     setTimeout(
       () => {
         // Get caret data
-        const caret: { position: number | null; element: Node | null } =
+        const caret: {position: number | null; element: Node | null} =
           isTextArea(element) || isInputText(element)
             ? {
                 position: element.selectionStart,
@@ -757,11 +757,8 @@ const Input: React.FC<{
 
             if (selectedAlerts.length > 1) {
               const alertWithLargestStartoffset = selectedAlerts.reduce(
-                (prev: IAlert, current: IAlert) => {
-                  return prev.startOffset > current.startOffset
-                    ? prev
-                    : current;
-                }
+                (prev: IAlert, current: IAlert) =>
+                  prev.startOffset > current.startOffset ? prev : current
               );
 
               selectedAlertIndex = oneNodeWithAlerts?.alerts.findIndex(
@@ -906,7 +903,7 @@ const Input: React.FC<{
     // The "ignored categories" mechanism is gone along with the upgrade prompt:
     // it existed so that dismissing the upsell nag suppressed that category for
     // a week. Nothing populated it other than that prompt.
-    let alertsWithoutIgnoredCategories = alerts;
+    const alertsWithoutIgnoredCategories = alerts;
 
     const alertsWithoutIgnoredTerms: IAlert[] =
       alertsWithoutIgnoredCategories.filter(
@@ -914,34 +911,35 @@ const Input: React.FC<{
       );
 
     //handle case where a word has multiple alerts of different gravity
-    const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert => {
-      return [alert0, ...alerts]
+    const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert =>
+      [alert0, ...alerts]
         .filter(Boolean)
         .reduce((minAlert, currentAlert) =>
           minAlert.data?.category === 'orthography' &&
           currentAlert.data?.category !== 'orthography'
             ? currentAlert
             : minAlert.data?.category !== 'orthography' &&
-              currentAlert.data?.category === 'orthography'
-            ? minAlert
-            : minAlert.data.gravity === currentAlert.data.gravity
-            ? minAlert
-            : (minAlert.data.gravity || Infinity) <
-              (currentAlert.data.gravity || Infinity)
-            ? minAlert
-            : currentAlert
+                currentAlert.data?.category === 'orthography'
+              ? minAlert
+              : minAlert.data.gravity === currentAlert.data.gravity
+                ? minAlert
+                : (minAlert.data.gravity || Infinity) <
+                    (currentAlert.data.gravity || Infinity)
+                  ? minAlert
+                  : currentAlert
         );
-    };
     //Reduces the array to show only the alerts with a lower gravity (lower gravity === worst)
     const alertsWithoutIgnoredTermsGravityReduced = Object.values(
       alertsWithoutIgnoredTerms.reduce(
-        (groups, alert) => ({
-          ...groups,
-          [alert.startOffset]: whereMinGravity(
-            alert,
-            groups[alert.startOffset]
-          ),
-        }),
+        (groups, alert) => {
+          return {
+            ...groups,
+            [alert.startOffset]: whereMinGravity(
+              alert,
+              groups[alert.startOffset]
+            ),
+          };
+        },
         {} as Record<number, IAlert>
       )
     ).sort((a, b) => a.startOffset - b.startOffset);
@@ -1014,18 +1012,14 @@ const Input: React.FC<{
     const nodesWithAlertWithoutIgnoredTerm = nodesWithAlertsRef.current
       .map((nodeWithAlerts) => {
         const alertsWithoutIgnoredTerms = nodeWithAlerts.alerts.filter(
-          (alert: IAlert) => {
-            return !ignoredTerms.includes(alert.data?.text);
-          }
+          (alert: IAlert) => !ignoredTerms.includes(alert.data?.text)
         );
         return {
           ...nodeWithAlerts,
           alerts: alertsWithoutIgnoredTerms,
         };
       })
-      .filter((nodeWithAlerts) => {
-        return nodeWithAlerts.alerts.length > 0;
-      });
+      .filter((nodeWithAlerts) => nodeWithAlerts.alerts.length > 0);
 
     const mergedNodesWithAlerts = [
       ...nodesWithAlertWithoutIgnoredTerm.filter(
@@ -1048,9 +1042,8 @@ const Input: React.FC<{
     const nodeStorageRefWithAlerts = nodesStorageRef.current.map(
       (node: INodes) => {
         const nodeWithAlerts = mergedNodesWithAlerts.find(
-          (nodeWithAlerts: INodeWithAlerts) => {
-            return nodeWithAlerts.nodeIndex === node.index;
-          }
+          (nodeWithAlerts: INodeWithAlerts) =>
+            nodeWithAlerts.nodeIndex === node.index
         );
         return {
           ...node,
@@ -1070,13 +1063,7 @@ const Input: React.FC<{
     ].sort((a: INodes, b: INodes) => a.index - b.index);
     nodesStorageRef.current = [];
     setForceHighlightUpdate(!forceHighlightUpdate);
-  }, [
-    alerts,
-    ignoredTerms,
-    elementXPathResult,
-    selectedAlertIndex,
-  ]);
-
+  }, [alerts, ignoredTerms, elementXPathResult, selectedAlertIndex]);
 
   const getNodesWithRecalculatedPositionAlerts = (
     alerts: IAlert[],
@@ -1089,17 +1076,15 @@ const Input: React.FC<{
       const nodesForCalculation = getTextDividedByNodes(element)
         .map((node, index) => {
           const content = node.text;
-          return { node: content as string, index, rawNode: node.node };
+          return {node: content as string, index, rawNode: node.node};
         })
-        .filter((node: INodes) => {
-          return node.node.length > 0;
-        })
+        .filter((node: INodes) => node.node.length > 0)
         .sort((a: INodes, b: INodes) => a.index - b.index);
 
       let currentPosition = 0; // Keeps track of the current position as we loop
 
       nodesForCalculation.forEach((node) => {
-        let absolutePositionOfFirstCharOfNode = currentPosition;
+        const absolutePositionOfFirstCharOfNode = currentPosition;
 
         // Get the current node's text length
         const text = node.node;
@@ -1108,19 +1093,22 @@ const Input: React.FC<{
         // Update the current position
         currentPosition += textLength;
 
-        let absolutePositionOfLastCharOfNode = currentPosition;
+        const absolutePositionOfLastCharOfNode = currentPosition;
 
         // Filter relevant alerts
-        const alertsRelevantToNode = alerts.filter((alert: IAlert) => {
-          return text.includes(alert.data?.text);
-        });
+        const alertsRelevantToNode = alerts.filter((alert: IAlert) =>
+          text.includes(alert.data?.text)
+        );
 
         updatedAlerts = alertsRelevantToNode
-          .map((alert: IAlert) => ({
-            ...alert,
-            startOffset: alert.startOffset - absolutePositionOfFirstCharOfNode,
-            endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode,
-          }))
+          .map((alert: IAlert) => {
+            return {
+              ...alert,
+              startOffset:
+                alert.startOffset - absolutePositionOfFirstCharOfNode,
+              endOffset: alert.endOffset - absolutePositionOfFirstCharOfNode,
+            };
+          })
           .filter(
             (alert) =>
               alert.startOffset >= 0 &&
@@ -1143,11 +1131,13 @@ const Input: React.FC<{
       });
     } else {
       //EVENTUALLY REFACTOR TO ONLY USE ABOVE CONDITION
-      let textStartingAbsPosition: number = 0;
-      let textEndAbsPosition: number = -1;
+      let textStartingAbsPosition = 0;
+      let textEndAbsPosition = -1;
 
       const nodesForCalculation = getTextDividedByNodes(element).map(
-        (node, index) => ({ node: node.text, index, rawNode: element })
+        (node, index) => {
+          return {node: node.text, index, rawNode: element};
+        }
       );
       for (let index = 0; index < elementEvaluation.snapshotLength; index++) {
         const node = elementEvaluation.snapshotItem(index) as Node;
@@ -1294,7 +1284,7 @@ const Input: React.FC<{
 
           setTimeout(() => {
             checkText(getInputText(element));
-            const event = new Event('keyup', { bubbles: true });
+            const event = new Event('keyup', {bubbles: true});
             element.dispatchEvent(event);
           }, 200);
         }, 200);
@@ -1309,8 +1299,8 @@ const Input: React.FC<{
           bubbles: !0,
           shiftKey: !1,
         };
-        element.dispatchEvent(new MouseEvent('mousedown', selectedTextStart)),
-          element.dispatchEvent(new MouseEvent('mouseup', selectedTextStart));
+        (element.dispatchEvent(new MouseEvent('mousedown', selectedTextStart)),
+          element.dispatchEvent(new MouseEvent('mouseup', selectedTextStart)));
 
         const selectedTextEnd = {
           clientX: rects.x + rects.width,
@@ -1318,8 +1308,8 @@ const Input: React.FC<{
           bubbles: !0,
           shiftKey: !0,
         };
-        element.dispatchEvent(new MouseEvent('mousedown', selectedTextEnd)),
-          element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd));
+        (element.dispatchEvent(new MouseEvent('mousedown', selectedTextEnd)),
+          element.dispatchEvent(new MouseEvent('mouseup', selectedTextEnd)));
 
         //if empty insert space
         const replacementText = isRemoveAlternative ? '   ' : alternative;
@@ -1427,8 +1417,8 @@ const Input: React.FC<{
   );
 
   const storageChange = (changes: any) => {
-    let changedItems = Object.keys(changes);
-    for (let item of changedItems) {
+    const changedItems = Object.keys(changes);
+    for (const item of changedItems) {
       switch (item) {
         case StorageKeys.SIGNED_IN:
           setUserIsSignedIn(changes[item].newValue);
@@ -1515,7 +1505,7 @@ const Input: React.FC<{
               />
             </WTags.WW_CLONE>
           )}
-          {isGoogleDocs() && <WTags.WW_CLONE></WTags.WW_CLONE>}
+          {isGoogleDocs() && <WTags.WW_CLONE />}
           <WTags.WW_HIGHLIGHTS>
             <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
               <Highlights

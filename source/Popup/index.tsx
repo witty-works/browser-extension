@@ -1,8 +1,12 @@
 import defaultConfig from '../witty.config.json';
 import browser from 'webextension-polyfill';
-import { getDomainWithoutSubdomain, makeAuthRequest, isSignedInResult } from '../shared/utils';
-import { StorageKeys } from '../shared/constants';
-import { sendErrorToSentry } from '../shared/errorUtils';
+import {
+  getDomainWithoutSubdomain,
+  makeAuthRequest,
+  isSignedInResult,
+} from '../shared/utils';
+import {StorageKeys} from '../shared/constants';
+import {sendErrorToSentry} from '../shared/errorUtils';
 import {
   renderMainPopup,
   renderPopupChrome,
@@ -39,7 +43,7 @@ const renderPopup = async () => {
       }
 
       browser.tabs
-        .query({ active: true, currentWindow: true })
+        .query({active: true, currentWindow: true})
         .then((tabs) => {
           if (tabs.length != 0 && tabs[0].url) {
             domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
@@ -68,8 +72,8 @@ const renderPopup = async () => {
 };
 
 const storageChange = (changes: any) => {
-  let changedItems = Object.keys(changes);
-      for (let item of changedItems) {
+  const changedItems = Object.keys(changes);
+  for (const item of changedItems) {
     switch (item) {
       case StorageKeys.SIGNED_IN:
         !changes[item].newValue && renderUserNotLoggedIn();

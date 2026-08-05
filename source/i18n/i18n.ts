@@ -1,11 +1,11 @@
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import {initReactI18next} from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import { languages } from './i18n.constants';
-import { de, en, fr } from './i18n.translations';
-import { DEV_ENV } from '../shared/constants';
+import {languages} from './i18n.constants';
+import {de, en, fr} from './i18n.translations';
+import {DEV_ENV} from '../shared/constants';
 
-let resources = {
+const resources = {
   [languages.en]: en,
   [languages.de]: de,
   [languages.fr]: fr,

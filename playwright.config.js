@@ -27,7 +27,10 @@ module.exports = defineConfig({
     },
   },
   // The HTML report must live outside outputDir, or Playwright refuses to start.
-  reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
+  reporter: [
+    ['list'],
+    ['html', { open: 'never', outputFolder: 'playwright-report' }],
+  ],
   outputDir: 'test-results',
   use: {
     baseURL: `http://localhost:${FIXTURE_PORT}`,

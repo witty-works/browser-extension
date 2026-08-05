@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { animated, useTransition } from 'react-spring';
+import React, {useEffect, useState} from 'react';
+import {animated, useTransition} from 'react-spring';
 
 import LoadingIconFrameOne from '../../assets/icons/wittyStateIndicator/loadingFrames/frame_1.svg';
 import LoadingIconFrameTwo from '../../assets/icons/wittyStateIndicator/loadingFrames/frame_2.svg';
@@ -25,16 +25,17 @@ const LoadingIcon: React.FC = () => {
   const [loop, setLoop] = useState(true);
   const [mounted, setMounted] = useState(true);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       setMounted(false);
-    };
-  }, []);
+    },
+    []
+  );
 
   const transition = useTransition(framesCollection, {
     loop: loop,
-    from: { opacity: 0 },
-    enter: { opacity: 1 },
+    from: {opacity: 0},
+    enter: {opacity: 1},
     trail: 100,
     config: {
       duration: 1500,
@@ -43,15 +44,13 @@ const LoadingIcon: React.FC = () => {
   });
 
   const fragment = transition((style, frame) => (
-    <animated.div style={{ ...style, gridRowStart: 1, gridColumnStart: 1 }}>
+    <animated.div style={{...style, gridRowStart: 1, gridColumnStart: 1}}>
       {frame}
     </animated.div>
   ));
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr' }}>
-      {fragment}
-    </div>
+    <div style={{display: 'grid', gridTemplateColumns: '1fr'}}>{fragment}</div>
   );
 };
 

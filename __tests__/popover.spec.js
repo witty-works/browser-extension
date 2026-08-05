@@ -33,7 +33,9 @@ const alternativeBoxes = (page) =>
     const walk = (root) => {
       for (const el of root.querySelectorAll('*')) {
         if (
-          el.classList.contains('witty-works-ext-wittyworks-popover-alternative-btn')
+          el.classList.contains(
+            'witty-works-ext-wittyworks-popover-alternative-btn'
+          )
         ) {
           const r = el.getBoundingClientRect();
           found.push({

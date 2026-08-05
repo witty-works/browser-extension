@@ -1,22 +1,19 @@
-import React, { useRef } from 'react';
+import React, {useRef} from 'react';
 import './styles.scss';
-import { CustomInputElement } from '../types';
+import {CustomInputElement} from '../types';
 import LoadingIcon from './LoadingIcon';
 import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg';
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
 import WarningIcon from '../../assets/icons/wittyStateIndicator/witty-warning.svg';
-import { sendErrorToSentry } from '../errorUtils';
+import {sendErrorToSentry} from '../errorUtils';
 import browser from 'webextension-polyfill';
 import CloseIcon from '../../assets/icons/close-white.svg';
-import { useTranslation } from 'react-i18next';
-import { namespaces } from '../../i18n/i18n.constants';
-import { useAnalytics } from '../ApiServices/useAnalytics';
+import {useTranslation} from 'react-i18next';
+import {namespaces} from '../../i18n/i18n.constants';
+import {useAnalytics} from '../ApiServices/useAnalytics';
 import defaultConfig from '../../witty.config.json';
-import {
-  getScrollableParentClosestToElement,
-  isSignedInResult,
-} from '../utils';
-import { getTextDividedByNodes } from '../../ContentScript/utils';
+import {getScrollableParentClosestToElement, isSignedInResult} from '../utils';
+import {getTextDividedByNodes} from '../../ContentScript/utils';
 import {
   isGoogleDocs,
   isHubspot,
@@ -42,7 +39,7 @@ const IconController: React.FC<IconControllerProps> = ({
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
   const fixedPositionIcon = isGoogleDocs();
-  let iconPositionGoogleDocs = { top: 0, left: 0 };
+  let iconPositionGoogleDocs = {top: 0, left: 0};
   if (!elementRect) {
     elementRect = element.getBoundingClientRect();
   } else if (fixedPositionIcon) {
@@ -66,7 +63,7 @@ const IconController: React.FC<IconControllerProps> = ({
     };
   }
   const [userIsLoggedIn, setUserIsLoggedIn] = React.useState(true);
-  const { t } = useTranslation(namespaces.iconController);
+  const {t} = useTranslation(namespaces.iconController);
   const analytics = useAnalytics();
   const totalTextLength =
     getTextDividedByNodes(element)
@@ -87,15 +84,15 @@ const IconController: React.FC<IconControllerProps> = ({
   const scrollContainerScrollTop = isMicrosoftOnlineSharepoint()
     ? 0
     : scrollContainer
-    ? scrollContainer.scrollTop
-    : 0;
+      ? scrollContainer.scrollTop
+      : 0;
   const parentWidth = element.parentElement?.getBoundingClientRect().width || 0;
   const elementWidth = isHubspot() ? parentWidth - 5 : elementRect.width;
   const positionLeft = isWittyEditor()
     ? -(elementRect.width * 0.05)
     : isTrello()
-    ? 28
-    : 50;
+      ? 28
+      : 50;
   return (
     <div
       ref={ref}
@@ -111,8 +108,8 @@ const IconController: React.FC<IconControllerProps> = ({
         left: fixedPositionIcon
           ? iconPositionGoogleDocs.left
           : isMicrosoftOnlineWord(window.location.href)
-          ? `${25}px`
-          : `${0}px`,
+            ? `${25}px`
+            : `${0}px`,
         marginLeft: fixedPositionIcon
           ? '0px'
           : `${elementWidth - positionLeft + 20}px`, //add padding like this to minimize clickable area
@@ -132,7 +129,7 @@ const IconController: React.FC<IconControllerProps> = ({
       {userIsLoggedIn && iconType == 'passive' && isHovered && <PassiveIcon />}
       {userIsLoggedIn && iconType == 'warning' && (
         <WarningIcon
-          style={{ cursor: 'pointer' }}
+          style={{cursor: 'pointer'}}
           onClick={() => {
             const maxLengthWarning =
               element.ownerDocument.getElementById('maxLengthWarning');
@@ -189,7 +186,7 @@ const IconController: React.FC<IconControllerProps> = ({
             {t('totalMaxCharLengthReachedNotificationHeadline')}
           </div>
           <CloseIcon
-            style={{ cursor: 'pointer', marginRight: '-1em' }}
+            style={{cursor: 'pointer', marginRight: '-1em'}}
             onClick={() => {
               const maxLengthWarning =
                 element.ownerDocument.getElementById('maxLengthWarning');

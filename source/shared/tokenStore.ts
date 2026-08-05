@@ -1,7 +1,7 @@
 import browser from 'webextension-polyfill';
 
-import { StorageKeys } from './constants';
-import { OAuthTokens } from './ApiServices/oauth';
+import {StorageKeys} from './constants';
+import {OAuthTokens} from './ApiServices/oauth';
 
 /**
  * Single place where OAuth tokens are persisted and read back.
@@ -107,7 +107,7 @@ export const readAccessToken = async (): Promise<string> =>
   (await readTokens()).accessToken;
 
 export const clearTokens = async (): Promise<void> => {
-  await sessionArea().set({ [StorageKeys.ACCESS_TOKEN]: '' });
+  await sessionArea().set({[StorageKeys.ACCESS_TOKEN]: ''});
 
   await browser.storage.local.set({
     [StorageKeys.ACCESS_TOKEN]: '',
@@ -137,7 +137,7 @@ export const migrateAccessTokenOffDisk = async (): Promise<void> => {
     return;
   }
 
-  await sessionArea().set({ [StorageKeys.ACCESS_TOKEN]: onDisk });
+  await sessionArea().set({[StorageKeys.ACCESS_TOKEN]: onDisk});
   await browser.storage.local.set({
     [StorageKeys.ACCESS_TOKEN]: '',
     [StorageKeys.SIGNED_IN]: true,

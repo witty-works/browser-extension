@@ -70,7 +70,6 @@ export enum StorageKeys {
 
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
 
-
   USER_ID = 'userId',
   ORGANIZATION_ID = 'organizationId',
 
@@ -186,7 +185,9 @@ export const registerCustomEndpoint = (endpoint: BaseUrl | null): void => {
 export const registerCustomEndpointFromStorage = (
   result: Record<string, any>
 ): void => {
-  registerCustomEndpoint((result?.[StorageKeys.CUSTOM_ENDPOINT] as BaseUrl) ?? null);
+  registerCustomEndpoint(
+    (result?.[StorageKeys.CUSTOM_ENDPOINT] as BaseUrl) ?? null
+  );
 };
 
 /**
@@ -334,9 +335,7 @@ export const applyLevelToDisabled = (
   level: ProficiencyLevel,
   disabled: string[]
 ): string[] => {
-  const next = disabled.filter(
-    (item) => item !== key && item !== advancedKey
-  );
+  const next = disabled.filter((item) => item !== key && item !== advancedKey);
 
   if (level === ProficiencyLevel.Off) {
     next.push(key);

@@ -10,8 +10,8 @@ const ExtReloader = require('webpack-ext-reloader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WextManifestWebpackPlugin = require('wext-manifest-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
-const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const { sentryWebpackPlugin } = require('@sentry/webpack-plugin');
 
 const viewsPath = path.join(__dirname, 'views');
 const sourcePath = path.join(__dirname, 'source');
@@ -22,36 +22,37 @@ const targetBrowser = process.env.TARGET_BROWSER;
 const extensionReloaderPlugin =
   nodeEnv === 'development'
     ? new ExtReloader({
-      port: 9090,
-      reloadPage: true,
-      entries: {
-        // TODO: reload manifest on update
-        contentScript: 'contentScript',
-        background: 'background',
-        extensionPage: ['popup', 'options'],
-      },
-    })
+        port: 9090,
+        reloadPage: true,
+        entries: {
+          // TODO: reload manifest on update
+          contentScript: 'contentScript',
+          background: 'background',
+          extensionPage: ['popup', 'options'],
+        },
+      })
     : () => {
-      this.apply = () => { };
-    };
+        this.apply = () => {};
+      };
 
 const sentryWebpackPluginInstance =
-  process.env.SENTRY_SOURCEMAPS && process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_VERSION_STRING
+  process.env.SENTRY_SOURCEMAPS &&
+  process.env.SENTRY_AUTH_TOKEN &&
+  process.env.SENTRY_VERSION_STRING
     ? sentryWebpackPlugin({
-      org: "witty-works-ag",
-      project: "browser-extension",
+        org: 'witty-works-ag',
+        project: 'browser-extension',
 
-      // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
-      // and need `project:releases` and `org:read` scopes
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      release: {
-        name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`
-      },
-    })
+        // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
+        // and need `project:releases` and `org:read` scopes
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        release: {
+          name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`,
+        },
+      })
     : () => {
-      this.apply = () => { };
-    };
-
+        this.apply = () => {};
+      };
 
 /**
  * Static credentials in `source/witty.config.json` are a local-development and
@@ -79,9 +80,9 @@ const assertNoBakedInCredentials = () => {
   if (offenders.length > 0) {
     throw new Error(
       `Refusing to make a production build: ${offenders.join(', ')} ` +
-      `${offenders.length === 1 ? 'is' : 'are'} set in source/witty.config.json. ` +
-      `These are test/CI-only credentials and must never be compiled into a ` +
-      `build that real users install. Clear them, or build with NODE_ENV=development.`
+        `${offenders.length === 1 ? 'is' : 'are'} set in source/witty.config.json. ` +
+        `These are test/CI-only credentials and must never be compiled into a ` +
+        `build that real users install. Clear them, or build with NODE_ENV=development.`
     );
   }
 };
@@ -127,7 +128,7 @@ module.exports = {
 
   resolve: {
     fallback: {
-      "url": require.resolve("url/")
+      url: require.resolve('url/'),
     },
     extensions: ['.ts', '.tsx', '.js', '.json'],
     alias: {
@@ -154,13 +155,13 @@ module.exports = {
         test: /\.svg$/,
         use: [
           {
-            loader: "babel-loader"
+            loader: 'babel-loader',
           },
           {
             loader: '@svgr/webpack',
             options: { babel: false },
-          }
-        ]
+          },
+        ],
       },
       {
         test: /\.(js|ts)x?$/,

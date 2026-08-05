@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { IEndpointError, IRequest } from '../types';
-import { useLog, logTypes } from '../customHooks/useLog';
-import { Validator, ValidatorResult, Schema } from 'jsonschema';
-import { DEV_ENV } from '../constants';
+import {useState, useEffect} from 'react';
+import {IEndpointError, IRequest} from '../types';
+import {useLog, logTypes} from '../customHooks/useLog';
+import {Validator, ValidatorResult, Schema} from 'jsonschema';
+import {DEV_ENV} from '../constants';
 
 const validator = new Validator();
 
@@ -38,7 +38,7 @@ const useApiResult = <TResponse,>(
       ) {
         return;
       }
-      request.config = { ...request.config };
+      request.config = {...request.config};
       log('Request:', logTypes.INFO, request);
 
       fetch(request.url, request.config)

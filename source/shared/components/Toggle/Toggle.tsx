@@ -3,9 +3,9 @@ import React from 'react';
 import './Toggle.scss';
 import '../../../Popup/styles.scss';
 import Lock from '../../../assets/icons/popup/lock.svg';
-import { useTranslation } from 'react-i18next';
-import { namespaces } from '../../../i18n/i18n.constants';
-import { Colors } from '../../constants';
+import {useTranslation} from 'react-i18next';
+import {namespaces} from '../../../i18n/i18n.constants';
+import {Colors} from '../../constants';
 
 interface ToggleProps {
   on: boolean | undefined;
@@ -24,12 +24,12 @@ const Toggle: React.FC<ToggleProps> = ({
   userIsLoggedIn = true,
   hrFeatureToggle = false,
 }: ToggleProps) => {
-  const { t } = useTranslation([namespaces.pages.popup]);
+  const {t} = useTranslation([namespaces.pages.popup]);
   const scale = 0.35;
   return (
     <div
       className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'
-      style={{ height: '35px' }}
+      style={{height: '35px'}}
     >
       <label className='witty-works-ext-lato-popup-text'>{label}</label>
 
@@ -67,7 +67,7 @@ const Toggle: React.FC<ToggleProps> = ({
         <span
           id={`toggle-button-${label.replace(/\s+|&/g, '-').toLowerCase()}`}
           className={`witty-works-ext-toggle-button`}
-          style={{ marginLeft: on && locked && userIsLoggedIn ? '3.5em' : '0' }} //TEMP: fix for weird toggle behavior when locked
+          style={{marginLeft: on && locked && userIsLoggedIn ? '3.5em' : '0'}} //TEMP: fix for weird toggle behavior when locked
         />
       </label>
     </div>

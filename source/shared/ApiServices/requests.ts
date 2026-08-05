@@ -1,4 +1,4 @@
-import { IAlert, IRequest, RequestConfig } from '../types';
+import {IAlert, IRequest, RequestConfig} from '../types';
 import {
   BaseUrls,
   DefaultBaseUrlKey,
@@ -6,18 +6,18 @@ import {
   wittyVersion,
   X_KEY,
 } from '../constants';
-import { TxtSentenceNode } from 'sentence-splitter';
+import {TxtSentenceNode} from 'sentence-splitter';
 
-let BASE_URL_API: string = '';
-let BASE_URL_DASHBOARD: string = '';
-let BASE_URL_POSTHOG: string = '';
-let BASE_KEY_POSTHOG: string = '';
-let token: string = '';
-let apiKey: string = '';
-let configHash: string = '';
-let organizationConfigHash: string = '';
+let BASE_URL_API = '';
+let BASE_URL_DASHBOARD = '';
+let BASE_URL_POSTHOG = '';
+let BASE_KEY_POSTHOG = '';
+let token = '';
+let apiKey = '';
+const configHash = '';
+const organizationConfigHash = '';
 
-export let appID: string = ''; // TODO context hook
+export let appID = ''; // TODO context hook
 
 export let requestConfig: RequestConfig = {} as RequestConfig;
 
@@ -67,8 +67,8 @@ export const setApiKey = (key: string) => (apiKey = key);
 
 export const buildRequestHeaders = (
   useToken?: string
-): { [key: string]: string } => {
-  const headers: { [key: string]: string } = {
+): {[key: string]: string} => {
+  const headers: {[key: string]: string} = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
   };
@@ -150,10 +150,13 @@ export const getCategories = (locale: string): IRequest => {
   return {
     url:
       BASE_URL_API &&
-      createUrl(BASE_URL_API, `v2.0/categories?locale=${encodeURIComponent(locale)}`),
+      createUrl(
+        BASE_URL_API,
+        `v2.0/categories?locale=${encodeURIComponent(locale)}`
+      ),
     config: {
       method: 'GET',
-      headers: { Accept: 'application/json' },
+      headers: {Accept: 'application/json'},
     },
   };
 };
@@ -169,7 +172,7 @@ export const getConfigOptions = (): IRequest => {
     url: BASE_URL_API && createUrl(BASE_URL_API, 'v2.0/config-options'),
     config: {
       method: 'GET',
-      headers: { Accept: 'application/json' },
+      headers: {Accept: 'application/json'},
     },
   };
 };
