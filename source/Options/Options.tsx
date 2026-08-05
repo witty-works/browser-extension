@@ -193,25 +193,13 @@ const Options: React.FC = () => {
   /**
    * Human label for a value.
    *
-   * Prefers a label from the API, so the dashboard's wording can reach the
-   * extension through the same pipeline as the category labels. Falls back to
-   * the local copy of that wording, then to the raw value — punctuation like
-   * `*in` needs no translating anyway.
+   * Comes from the API, which serves the dashboard's own wording via the same
+   * data files that carry the category labels — so the two surfaces cannot
+   * drift. Values the dashboard has no wording for (punctuation such as `(-)`)
+   * fall back to the value itself, which reads fine untranslated.
    */
-  const formatValueLabel = (field: string, value: string) => {
-    const fromApi = configOptions[field]?.labels?.[value];
-    if (fromApi) {
-      return fromApi;
-    }
-
-    if (field === 'gendered_roles_format') {
-      const key = `roles_${value}`;
-      const label = t(key);
-      return label === key ? value : label;
-    }
-
-    return value;
-  };
+  const formatValueLabel = (field: string, value: string) =>
+    configOptions[field]?.labels?.[value] || value;
 
   const withTrailingSlash = (value: string) =>
     value.endsWith('/') ? value : `${value}/`;

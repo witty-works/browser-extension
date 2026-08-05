@@ -366,3 +366,31 @@ test.describe('Options — gender forms', () => {
     });
   });
 });
+
+test.describe('Options — gender form labels', () => {
+  test('uses the labels the API supplies', async ({ context, extensionId }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#language-format-section');
+
+    const label = await options
+      .locator('[data-field="german_gender_ending"] option[value="*in"]')
+      .textContent();
+
+    expect(label.trim()).toBe(CONFIG_OPTIONS.options.german_gender_ending.labels['*in']);
+  });
+
+  test('falls back to the raw value where the API has no label', async ({
+    context,
+    extensionId,
+  }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#language-format-section');
+
+    // `(-)` has no dashboard wording, so the value itself is shown.
+    const label = await options
+      .locator('[data-field="german_gender_ending"] option[value="(-)"]')
+      .textContent();
+
+    expect(label.trim()).toBe('(-)');
+  });
+});

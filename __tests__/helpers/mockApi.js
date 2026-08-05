@@ -159,14 +159,31 @@ const CONFIG_OPTIONS = {
     gendered_roles_format: {
       values: ['none', 'both', 'inclusive_gender', 'binary_gender'],
       default: 'inclusive_gender',
+      labels: {
+        none: 'Suggest only gender-neutral alternatives',
+        both: 'Suggest both the chosen gender separator and the female and male form',
+        inclusive_gender: 'Suggest the chosen gender separator',
+        binary_gender: 'Suggest the female and male form',
+      },
     },
     german_gender_ending: {
       values: ['/in', '/-in', '_in', '*in', ':in', '(-)', '()', 'In'],
       default: '*in',
+      // `(-)` and `()` are deliberately unlabelled: the dashboard has no wording
+      // for them, so the options page must fall back to the raw value.
+      labels: {
+        '*in': 'Genderstar, f.e Expert*in',
+        ':in': 'Colon, f.e Expert:in',
+        '_in': 'Gendergap, f.e Expert_in',
+        '/in': 'Slash, f.e Expert/in',
+        '/-in': 'Slash dash, f.e Expert/-in',
+        In: 'Binnen-I, f.e ExpertIn',
+      },
     },
     french_gender_separator: {
       values: ['·', '·s', '.', '.s', '/', '/s'],
       default: '·',
+      labels: { '·': 'Point médian, f.e. expert·es' },
     },
   },
 };
