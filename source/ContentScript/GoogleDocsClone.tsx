@@ -17,7 +17,7 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   updateClone,
 }: GoogleDocsCloneProps) => {
   const cloneRef = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const divs = [] as JSX.Element[];
+  const divs = [] as React.JSX.Element[];
   let pages = element.querySelectorAll('.kix-page-paginated');
   if (pages.length === 0) {
     pages = element?.childNodes[0]?.childNodes as NodeListOf<Element>; //for pageless format

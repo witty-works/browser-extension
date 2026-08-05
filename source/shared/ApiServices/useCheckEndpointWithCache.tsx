@@ -24,8 +24,8 @@ export const useCheckEndpointWithCache = (
     useRef<CheckEndpointCachedResponse | null>(null);
   const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
     useCheckEndpoint();
-  const lastCheckedTextRef = useRef<string | null>();
-  const lastWholeTextRef = useRef<string | null>();
+  const lastCheckedTextRef = useRef<string | null>(null);
+  const lastWholeTextRef = useRef<string | null>(null);
 
   const checkTextWithCache = (
     updatedText: string,
