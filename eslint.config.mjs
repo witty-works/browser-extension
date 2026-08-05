@@ -44,12 +44,12 @@ export default [
   },
 
   // Type-aware linting for the extension source.
-  ...typescript({files: TS, tsconfigPath: './tsconfig.json'}),
-  ...react({files: ['**/*.tsx']}),
+  ...typescript({ files: TS, tsconfigPath: './tsconfig.json' }),
+  ...react({ files: ['**/*.tsx'] }),
 
   // Build scripts, the Playwright suite and its fixture server are plain CJS
   // running under Node, not part of the TypeScript program.
-  ...node({files: JS}),
+  ...node({ files: JS }),
 
   {
     files: [...TS, ...JS],
@@ -84,7 +84,13 @@ export default [
       // typescript-eslint v8 changed no-unused-vars to report unused `catch`
       // bindings. This codebase names them consistently (`catch (err)`) and
       // often does not need the value; that is a house style, not a defect.
-      '@typescript-eslint/no-unused-vars': ['error', {caughtErrors: 'none'}],
+      // ignoreRestSiblings allows the standard "omit a property" idiom,
+      // `const {context, ...rest} = result`, where the named binding exists
+      // precisely so it is left out of the rest object.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { caughtErrors: 'none', ignoreRestSiblings: true },
+      ],
 
       // Everything below is demoted to a warning rather than switched off:
       // lint was broken for a long time (the shared config was missing from
@@ -131,21 +137,38 @@ export default [
     // The `n` plugin is only meaningful for the Node-side files, and flat
     // config requires a rule to be configured where its plugin is in scope.
     files: JS,
-    plugins: {n: nPlugin},
+    plugins: { n: nPlugin },
     languageOptions: {
-      globals: {...globals.node},
+      globals: { ...globals.node },
     },
     settings: {
       // Append ts/tsx so the resolver follows them too.
-      n: {tryExtensions: ['.js', '.json', '.node', '.ts', '.tsx']},
+      n: { tryExtensions: ['.js', '.json', '.node', '.ts', '.tsx'] },
     },
     rules: {
       // The bundler resolves imports, not Node, so Node's own resolution and
       // published-files checks report on things that are not problems here.
       'n/no-missing-import': 'off',
       'n/no-unpublished-import': 'off',
-      'n/no-unsupported-features/es-syntax': ['error', {ignores: ['modules']}],
+      'n/no-unsupported-features/es-syntax': [
+        'error',
+        { ignores: ['modules'] },
+      ],
       'n/prefer-promises/fs': 'warn',
+    },
+  },
+
+  {
+    // This file monkey-patches CanvasRenderingContext2D methods and forwards
+    // via `arguments`, so the declared parameters exist only to keep each
+    // replacement's `length` equal to the method it stands in for. They are
+    // unused by design and must not be removed.
+    files: ['source/assets/googleDocsSupport.js'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true },
+      ],
     },
   },
 ];
