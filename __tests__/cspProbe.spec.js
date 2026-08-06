@@ -159,3 +159,82 @@ test('which image sources survive a strict host-page CSP', async ({
 
   expect(results.length).toBe(10);
 });
+
+/**
+ * The result above that the media architecture rests on is that
+ * extension-origin images and frames load despite the host policy. But 'self'
+ * never covered chrome-extension: to begin with, so passing under it only
+ * suggests the exemption is scheme-based rather than proving it.
+ *
+ * 'none' is the real test, and it is what the strictest sites actually ship.
+ * If the exemption held only against 'self', anything built on it would fail
+ * exactly where it is needed most.
+ */
+test('extension-origin resources survive img-src/frame-src none', async ({
+  page,
+  extensionId,
+}) => {
+  await page.goto('/csp-none.html');
+
+  const results = await page.evaluate(
+    async ({ id }) => {
+      const tryImage = (label, src) =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ label, loaded: true });
+          img.onerror = () => resolve({ label, loaded: false });
+          img.src = src;
+          setTimeout(() => resolve({ label, loaded: false }), 4000);
+        });
+
+      const tryFrame = (label, src) =>
+        new Promise((resolve) => {
+          const f = document.createElement('iframe');
+          f.style.display = 'none';
+          f.onload = () => resolve({ label, loaded: true });
+          f.onerror = () => resolve({ label, loaded: false });
+          f.src = src;
+          document.body.appendChild(f);
+          setTimeout(() => resolve({ label, loaded: false }), 4000);
+        });
+
+      return Promise.all([
+        tryImage(
+          'img: extension',
+          `chrome-extension://${id}/assets/media/pin-witty.gif`
+        ),
+        tryFrame('frame: extension', `chrome-extension://${id}/options.html`),
+        // Control: if these somehow loaded, the fixture policy is not applying
+        // and the two results above would mean nothing.
+        tryImage(
+          'img: remote (control)',
+          'https://www.witty.works/assets/media/pin_witty-2.gif'
+        ),
+      ]);
+    },
+    { id: extensionId }
+  );
+
+  for (const r of results) {
+    console.log(
+      `  [csp none] ${r.label.padEnd(22)} ${r.loaded ? 'LOADS' : 'blocked'}`
+    );
+  }
+
+  const byLabel = Object.fromEntries(results.map((r) => [r.label, r.loaded]));
+
+  // The control must fail, or the rest of this test proves nothing.
+  expect(
+    byLabel['img: remote (control)'],
+    'the fixture CSP is not being applied'
+  ).toBe(false);
+
+  expect(
+    byLabel['img: extension'],
+    'extension-origin images no longer bypass the host CSP'
+  ).toBe(true);
+  expect(
+    byLabel['frame: extension'],
+    'extension-origin frames no longer bypass the host CSP'
+  ).toBe(true);
+});
