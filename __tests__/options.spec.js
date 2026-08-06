@@ -29,7 +29,6 @@ const fillForm = async (page, { dashboard, api, clientId }) => {
 
 test.describe('Options — custom endpoint', () => {
   test('saving a custom endpoint switches to it and signs the user out', async ({
-    page,
     context,
     extensionId,
   }) => {
@@ -59,7 +58,6 @@ test.describe('Options — custom endpoint', () => {
   });
 
   test('rejects a plaintext http endpoint but allows localhost', async ({
-    page,
     context,
     extensionId,
   }) => {
@@ -84,7 +82,7 @@ test.describe('Options — custom endpoint', () => {
     expect((await readStorage(options)).local.apiEndpoint).toBe('Custom');
   });
 
-  test('requires an OAuth client id', async ({ page, context, extensionId }) => {
+  test('requires an OAuth client id', async ({ context, extensionId }) => {
     const options = await openOptions(context, extensionId);
 
     await fillForm(options, {
@@ -98,7 +96,6 @@ test.describe('Options — custom endpoint', () => {
   });
 
   test('reset restores the compiled default and signs out', async ({
-    page,
     context,
     extensionId,
   }) => {
@@ -203,8 +200,10 @@ test.describe('Options — category levels', () => {
     page.locator(`[data-category="${key}"]`).getAttribute('data-level');
 
   const disabled = (page) =>
-    page.evaluate(async () =>
-      (await chrome.storage.local.get('disabledCategories')).disabledCategories || []
+    page.evaluate(
+      async () =>
+        (await chrome.storage.local.get('disabledCategories'))
+          .disabledCategories || []
     );
 
   test('renders categories grouped, from the API', async ({
@@ -302,8 +301,9 @@ const { CONFIG_OPTIONS } = require('./helpers/mockApi');
 
 test.describe('Options — gender forms', () => {
   const stored = (page) =>
-    page.evaluate(async () =>
-      (await chrome.storage.local.get('languageFormat')).languageFormat || {}
+    page.evaluate(
+      async () =>
+        (await chrome.storage.local.get('languageFormat')).languageFormat || {}
     );
 
   test('offers every value the API reports, defaulting to the server', async ({
@@ -335,7 +335,9 @@ test.describe('Options — gender forms', () => {
     await options.waitForSelector('#language-format-section');
 
     const label = await options
-      .locator('[data-field="gendered_roles_format"] option[value="inclusive_gender"]')
+      .locator(
+        '[data-field="gendered_roles_format"] option[value="inclusive_gender"]'
+      )
       .textContent();
 
     expect(label.trim()).toBe('Suggest the chosen gender separator');
@@ -376,7 +378,9 @@ test.describe('Options — gender form labels', () => {
       .locator('[data-field="german_gender_ending"] option[value="*in"]')
       .textContent();
 
-    expect(label.trim()).toBe(CONFIG_OPTIONS.options.german_gender_ending.labels['*in']);
+    expect(label.trim()).toBe(
+      CONFIG_OPTIONS.options.german_gender_ending.labels['*in']
+    );
   });
 
   test('falls back to the raw value where the API has no label', async ({

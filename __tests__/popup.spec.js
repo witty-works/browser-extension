@@ -18,7 +18,9 @@ test.describe('Popup', () => {
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
     // The sign-in button is the popup's primary action when unauthenticated.
-    await expect(page.locator('.witty-works-ext-primary-button-red')).toBeVisible();
+    await expect(
+      page.locator('.witty-works-ext-primary-button-red')
+    ).toBeVisible();
   });
 
   test('shows the main popup when signed in', async ({
@@ -30,7 +32,9 @@ test.describe('Popup', () => {
 
     await page.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    await expect(page.locator('.witty-works-ext-toggle-encloser').first()).toBeVisible();
+    await expect(
+      page.locator('.witty-works-ext-toggle-encloser').first()
+    ).toBeVisible();
   });
 
   test('sign-in button asks the background worker to run the OAuth flow', async ({
@@ -101,4 +105,46 @@ test.describe('Popup — options link', () => {
       await expect(page.locator('#witty-options-link')).toBeVisible();
     });
   }
+});
+
+test.describe('Popup — translations', () => {
+  /**
+   * Every other assertion here selects by class or id, so i18next could fail
+   * to resolve anything and the popup would still "render" — just with raw
+   * keys in place of copy. That is the failure mode an i18next major upgrade
+   * introduces, and nothing else in this suite would notice it.
+   *
+   * Chromium runs as en-US, and the detector is configured to read the
+   * navigator language, so English is the expected resolution.
+   */
+  test('renders translated copy, not raw keys or placeholders', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    await signIn(context, extensionId);
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+
+    await expect(page.locator('#witty-options-link')).toHaveText(
+      'Extension settings'
+    );
+
+    const text = await page.locator('body').innerText();
+
+    // A missed lookup renders the key itself...
+    for (const key of [
+      'extensionSettings',
+      'enableWitty',
+      'helpCentre',
+      'websiteSettings',
+      'spellChecking',
+    ]) {
+      expect(text, `popup shows the raw key "${key}"`).not.toContain(key);
+    }
+
+    // ...and a failed interpolation leaves the placeholder behind.
+    expect(text, 'popup shows an uninterpolated placeholder').not.toContain(
+      '{{'
+    );
+  });
 });

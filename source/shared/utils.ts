@@ -11,7 +11,7 @@ import {
   wittyVersion,
   X_KEY,
 } from './constants';
-import { sendErrorToSentry } from './errorUtils';
+import {sendErrorToSentry} from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import {
   isGoogleDocs,
@@ -25,16 +25,16 @@ import {
   setToken,
   buildRequestHeaders,
 } from './ApiServices/requests';
-import { refresh } from './ApiServices/oauth';
-import { clearTokens, persistTokens, readTokens } from './tokenStore';
-import { IAuthResponse } from './types';
-import { getActiveDocument } from '../ContentScript/ContentScriptApp';
+import {refresh} from './ApiServices/oauth';
+import {clearTokens, persistTokens, readTokens} from './tokenStore';
+import {IAuthResponse} from './types';
+import {getActiveDocument} from '../ContentScript/ContentScriptApp';
 // Extract TxtSentenceNode from a generic node
 export function extractSentenceNode(node: any): any {
   if (node.type === 'Sentence') return node;
   if ('children' in node && Array.isArray(node.children)) {
     return node.children.find(
-      (child: { type?: string }) => child.type === 'Sentence'
+      (child: {type?: string}) => child.type === 'Sentence'
     );
   }
   return undefined;
@@ -53,7 +53,7 @@ export const storeInLocalStorage = (key: string, value: any) => {
     return;
   }
   browser.storage.local
-    .set({ [key]: value })
+    .set({[key]: value})
     .then(() => {
       //TODO bug, some values are not pronted correctly (for example arrays)
       const componentName = 'Utils';
@@ -129,12 +129,12 @@ export const addBadge = (text: string) => {
   browser.action?.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
-  browser.action?.setBadgeText({ text: text });
+  browser.action?.setBadgeText({text: text});
   // for firefox mv2
   browser.browserAction?.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
-  browser.browserAction?.setBadgeText({ text: text });
+  browser.browserAction?.setBadgeText({text: text});
 };
 
 /**
@@ -201,9 +201,9 @@ export const logOut = () => {
 };
 
 export const removeBadge = () => {
-  browser.action?.setBadgeText({ text: '' });
+  browser.action?.setBadgeText({text: ''});
   // for firefox mv2
-  browser.browserAction?.setBadgeText({ text: '' });
+  browser.browserAction?.setBadgeText({text: ''});
 };
 
 export const getRandomToken = () => {
@@ -240,7 +240,7 @@ export const updateLabelChrome = (domain: string) => {
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
     browser.tabs
-      .query({ active: true, currentWindow: true })
+      .query({active: true, currentWindow: true})
       .then((tabs) => {
         if (!tabs[0]?.url) return;
 
@@ -287,10 +287,10 @@ export const getCorrectedPosition = (
         : elementRect.top - parentRect.top - scrollY;
     const left = elementRect.left - parentRect.left - scrollX;
 
-    return { top, left };
+    return {top, left};
   }
 
-  return { top: elementRect.top, left: elementRect.left };
+  return {top: elementRect.top, left: elementRect.left};
 };
 
 export const getCorrectedPositionCanvas = (element: HTMLElement) => {
@@ -319,7 +319,7 @@ export const getScrollableParentClosestToElement = (element: HTMLElement) => {
   const excludeStaticParent = style.position === 'absolute';
   const overflowRegex = /(auto|scroll)/;
   if (style.position === 'fixed') return document.body;
-  for (let parent = element; (parent = parent.parentElement as HTMLElement); ) {
+  for (let parent = element; (parent = parent.parentElement as HTMLElement);) {
     style = getComputedStyle(parent);
     if (excludeStaticParent && style.position === 'static') {
       continue;
@@ -352,14 +352,9 @@ export const generateAlertId = (
   category: string,
   startOffset: number,
   endOffset: number
-) => {
-  return `${text}-${category}-${startOffset}-${endOffset}`;
-};
+) => `${text}-${category}-${startOffset}-${endOffset}`;
 
-export const updateConfig = (
-  response: IAuthResponse,
-  force: boolean = false
-) => {
+export const updateConfig = (response: IAuthResponse, force = false) => {
   browser.storage.local
     .get(null)
     .then((result) => {
@@ -422,7 +417,7 @@ export const makeAuthRequest = () => {
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
-      const { accessToken } = await readTokens();
+      const {accessToken} = await readTokens();
 
       if (accessToken) {
         const headers = buildRequestHeaders(accessToken);

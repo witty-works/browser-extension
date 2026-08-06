@@ -9,4 +9,4 @@ const sendErrorToSentry = (error: unknown) => {
   // );
 };
 
-export { sendErrorToSentry };
+export {sendErrorToSentry};

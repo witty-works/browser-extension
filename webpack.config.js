@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const FilemanagerPlugin = require('filemanager-webpack-plugin');
@@ -10,8 +9,9 @@ const ExtReloader = require('webpack-ext-reloader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WextManifestWebpackPlugin = require('wext-manifest-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
-const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const { sentryWebpackPlugin } = require('@sentry/webpack-plugin');
+const { assertNoBakedInCredentials } = require('./build/credentialGuard');
 
 const viewsPath = path.join(__dirname, 'views');
 const sourcePath = path.join(__dirname, 'source');
@@ -22,71 +22,44 @@ const targetBrowser = process.env.TARGET_BROWSER;
 const extensionReloaderPlugin =
   nodeEnv === 'development'
     ? new ExtReloader({
-      port: 9090,
-      reloadPage: true,
-      entries: {
-        // TODO: reload manifest on update
-        contentScript: 'contentScript',
-        background: 'background',
-        extensionPage: ['popup', 'options'],
-      },
-    })
+        port: 9090,
+        reloadPage: true,
+        entries: {
+          // TODO: reload manifest on update
+          contentScript: 'contentScript',
+          background: 'background',
+          extensionPage: ['popup', 'options'],
+        },
+      })
     : () => {
-      this.apply = () => { };
-    };
+        this.apply = () => {};
+      };
 
 const sentryWebpackPluginInstance =
-  process.env.SENTRY_SOURCEMAPS && process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_VERSION_STRING
+  process.env.SENTRY_SOURCEMAPS &&
+  process.env.SENTRY_AUTH_TOKEN &&
+  process.env.SENTRY_VERSION_STRING
     ? sentryWebpackPlugin({
-      org: "witty-works-ag",
-      project: "browser-extension",
+        org: 'witty-works-ag',
+        project: 'browser-extension',
 
-      // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
-      // and need `project:releases` and `org:read` scopes
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      release: {
-        name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`
-      },
-    })
+        // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
+        // and need `project:releases` and `org:read` scopes
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        release: {
+          name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`,
+        },
+      })
     : () => {
-      this.apply = () => { };
-    };
+        this.apply = () => {};
+      };
 
-
-/**
- * Static credentials in `source/witty.config.json` are a local-development and
- * CI convenience. `X_KEY` in particular is a *shared* API key, so anything it is
- * compiled into can be unpacked by whoever installs it. `source/shared/constants.ts`
- * already forces all three to empty in release builds, but silently neutering a
- * key someone believed was active is its own failure mode — fail loudly instead,
- * before anything is shipped.
- */
-const assertNoBakedInCredentials = () => {
-  if (nodeEnv !== 'production') {
-    return;
-  }
-
-  const configPath = path.join(sourcePath, 'witty.config.json');
-  if (!fs.existsSync(configPath)) {
-    return;
-  }
-
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const offenders = ['X_KEY', 'ACCESS_TOKEN', 'REFRESH_TOKEN'].filter(
-    (key) => typeof config[key] === 'string' && config[key].trim() !== ''
-  );
-
-  if (offenders.length > 0) {
-    throw new Error(
-      `Refusing to make a production build: ${offenders.join(', ')} ` +
-      `${offenders.length === 1 ? 'is' : 'are'} set in source/witty.config.json. ` +
-      `These are test/CI-only credentials and must never be compiled into a ` +
-      `build that real users install. Clear them, or build with NODE_ENV=development.`
-    );
-  }
-};
-
-assertNoBakedInCredentials();
+// Refuses to compile credentials into a shippable build. See build/credentialGuard.js.
+assertNoBakedInCredentials({
+  nodeEnv,
+  testing: process.env.TESTING === 'true',
+  configPath: path.join(sourcePath, 'witty.config.json'),
+});
 
 const getExtensionFileType = (browser) => {
   if (browser === 'opera') {
@@ -127,7 +100,7 @@ module.exports = {
 
   resolve: {
     fallback: {
-      "url": require.resolve("url/")
+      url: require.resolve('url/'),
     },
     extensions: ['.ts', '.tsx', '.js', '.json'],
     alias: {
@@ -154,13 +127,13 @@ module.exports = {
         test: /\.svg$/,
         use: [
           {
-            loader: "babel-loader"
+            loader: 'babel-loader',
           },
           {
             loader: '@svgr/webpack',
             options: { babel: false },
-          }
-        ]
+          },
+        ],
       },
       {
         test: /\.(js|ts)x?$/,

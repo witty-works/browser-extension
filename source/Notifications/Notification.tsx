@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import './styles.scss';
 import WittyIcon from '../assets/icons/witty-icon.svg';
 import CloseIcon from '../assets/icons/close-white.svg';
-import { useTranslation } from 'react-i18next';
-import { namespaces } from '../i18n/i18n.constants';
-import { getBaseUrls } from '../shared/ApiServices/requests';
+import {useTranslation} from 'react-i18next';
+import {namespaces} from '../i18n/i18n.constants';
+import {getBaseUrls} from '../shared/ApiServices/requests';
 import defaultConfig from '../witty.config.json';
-import { getTextDividedByNodes } from '../ContentScript/utils';
-import { CustomInputElement, FeatureFlags } from '../shared/types';
+import {getTextDividedByNodes} from '../ContentScript/utils';
+import {CustomInputElement, FeatureFlags} from '../shared/types';
 import browser from 'webextension-polyfill';
-import { HelpLinks, StorageKeys } from '../shared/constants';
-import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+import {HelpLinks, StorageKeys} from '../shared/constants';
+import {useAnalytics} from '../shared/ApiServices/useAnalytics';
 
 interface NotificationProps {
   notificationType: string;
@@ -23,7 +23,7 @@ const Notification: React.FC<NotificationProps> = ({
   element,
   onClose,
 }: NotificationProps) => {
-  const { t } = useTranslation(namespaces.notifications);
+  const {t} = useTranslation(namespaces.notifications);
   const totalTextLength = element
     ? getTextDividedByNodes(element)
         .map((node: any) => node.text)
@@ -61,8 +61,7 @@ const Notification: React.FC<NotificationProps> = ({
   let notificationButton = '';
   let notificationLink = '';
   const isFeatureFlagNotification =
-    notificationType === 'inviteTeam' ||
-    notificationType === 'inviteFriends';
+    notificationType === 'inviteTeam' || notificationType === 'inviteFriends';
   const analytics = useAnalytics();
 
   switch (notificationType) {
@@ -141,7 +140,7 @@ const Notification: React.FC<NotificationProps> = ({
               }
             }
           }}
-          style={{ cursor: 'pointer', marginRight: '-1em' }}
+          style={{cursor: 'pointer', marginRight: '-1em'}}
         />
       </div>
       <div className='witty-works-ext-container-row'>

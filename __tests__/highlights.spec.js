@@ -48,7 +48,9 @@ test.describe('Highlights', () => {
     await page.waitForTimeout(5000);
 
     expect(checkRequests).toEqual([]);
-    await expect(page.locator('#editor')).toHaveScreenshot('textarea-signed-out.png');
+    await expect(page.locator('#editor')).toHaveScreenshot(
+      'textarea-signed-out.png'
+    );
   });
 
   test('sends text to the API when signed in', async ({
@@ -73,7 +75,11 @@ test.describe('Highlights', () => {
     expect(checkRequests).toContain(SAMPLE_TEXT);
   });
 
-  test('renders highlights in a textarea', async ({ page, context, extensionId }) => {
+  test('renders highlights in a textarea', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
     await signIn(context, extensionId);
 
     await page.goto('/textarea.html');
@@ -81,7 +87,9 @@ test.describe('Highlights', () => {
 
     // The mock returns three alerts for SAMPLE_TEXT: guys, chairman, mistacke.
     expect(await hasHighlightCanvas(page)).toBe(true);
-    await expect(page.locator('#editor')).toHaveScreenshot('textarea-highlights.png');
+    await expect(page.locator('#editor')).toHaveScreenshot(
+      'textarea-highlights.png'
+    );
   });
 
   test('renders highlights in a contenteditable', async ({

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { getActiveDocument } from '../../ContentScript/ContentScriptApp';
-import { isGoogleDocs } from '../DOMutils';
-import { getScrollableParentClosestToElement } from '../utils';
+import {useState, useEffect} from 'react';
+import {getActiveDocument} from '../../ContentScript/ContentScriptApp';
+import {isGoogleDocs} from '../DOMutils';
+import {getScrollableParentClosestToElement} from '../utils';
 
 export const useResizeObserver = (element: HTMLElement): DOMRect => {
   const [rect, setRect] = useState<DOMRect>(new DOMRect());
@@ -9,7 +9,7 @@ export const useResizeObserver = (element: HTMLElement): DOMRect => {
   const scrollContainer = getScrollableParentClosestToElement(element);
 
   const updateRect = () => {
-    const { width, height, top, left } = element.getBoundingClientRect();
+    const {width, height, top, left} = element.getBoundingClientRect();
 
     const scrollTop = isGoogleDocs()
       ? getScrollableParentClosestToElement(element).scrollTop

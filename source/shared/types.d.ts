@@ -1,5 +1,5 @@
 //API REQUEST/RESPONSE
-import { TxtSentenceNode } from 'sentence-splitter';
+import {TxtSentenceNode} from 'sentence-splitter';
 
 export interface IRequest {
   url: string;
@@ -177,9 +177,7 @@ export interface Highlight {
 }
 
 export type CustomInputElement =
-  | HTMLTextAreaElement
-  | HTMLInputElement
-  | HTMLDivElement;
+  HTMLTextAreaElement | HTMLInputElement | HTMLDivElement;
 
 //ALERTS
 export interface INodeWithAlerts {
@@ -344,12 +342,7 @@ export interface ICheckResultLogItems {
 }
 
 export type DefaultConfigValue =
-  | string
-  | boolean
-  | number
-  | string[]
-  | object
-  | (() => string);
+  string | boolean | number | string[] | object | (() => string);
 
 export interface IDomainRequest {
   domain: string;

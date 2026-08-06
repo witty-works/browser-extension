@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import browser from 'webextension-polyfill';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 import {
   StorageKeys,
   DefaultBaseUrlKey,
@@ -9,27 +9,23 @@ import {
   X_KEY,
   registerCustomEndpointFromStorage,
 } from '../../shared/constants';
-import {
-  MessageTypes,
-  SignInMessage,
-  SignInResult,
-} from '../../shared/messages';
+import {MessageTypes, SignInMessage, SignInResult} from '../../shared/messages';
 import '../../i18n/i18n';
 import '../styles.scss';
-import { namespaces } from '../../i18n/i18n.constants';
-import { appID, setBaseUrls } from '../../shared/ApiServices/requests';
+import {namespaces} from '../../i18n/i18n.constants';
+import {appID, setBaseUrls} from '../../shared/ApiServices/requests';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import OptionsLink from '../PopupComponents/OptionsLink';
 import SadFace from '../../assets/icons/popup/sadFace.svg';
 import Star from '../../assets/icons/popup/star.svg';
-import { logTypes, useLog } from '../../shared/customHooks/useLog';
-import { sendErrorToSentry } from '../../shared/errorUtils';
-import { addBadge } from '../../shared/utils';
+import {logTypes, useLog} from '../../shared/customHooks/useLog';
+import {sendErrorToSentry} from '../../shared/errorUtils';
+import {addBadge} from '../../shared/utils';
 
 const PopupLogin: React.FC = () => {
-  const { t } = useTranslation([namespaces.pages.popup]);
+  const {t} = useTranslation([namespaces.pages.popup]);
   const [signInError, setSignInError] = useState(false);
   const [urls, setUrls] = useState<string>(DefaultBaseUrlKey);
   const log = useLog('PopupLogin');
@@ -68,8 +64,8 @@ const PopupLogin: React.FC = () => {
   }, [urls]);
 
   const storageChange = (changes: any) => {
-    let changedItems = Object.keys(changes);
-    for (let item of changedItems) {
+    const changedItems = Object.keys(changes);
+    for (const item of changedItems) {
       if (item === StorageKeys.API_ENDPOINT_KEY) {
         setUrls(changes[item].newValue);
       }
@@ -102,7 +98,7 @@ const PopupLogin: React.FC = () => {
           </div>
           <div
             className='witty-works-ext-lato-popover-text witty-works-ext-margin-left'
-            style={{ color: '#E6635A' }}
+            style={{color: '#E6635A'}}
           >
             {t('apiKeyConfiguredNotice')}
           </div>
@@ -131,7 +127,7 @@ const PopupLogin: React.FC = () => {
 
             <div
               className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
-              style={{ padding: 0 }}
+              style={{padding: 0}}
             >
               <div className='witty-works-ext-margin-right'>
                 {t('signedOutText')}

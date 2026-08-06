@@ -1,10 +1,10 @@
 import React from 'react';
-import { Root, createRoot } from 'react-dom/client';
+import {Root, createRoot} from 'react-dom/client';
 import Popup from './Popups/Popup';
 import PopupDomainDeactivated from './Popups/PopupDomainDeactivated';
 import PopupLogin from './Popups/PopupLogin';
 import defaultConfig from '../witty.config.json';
-import { isMicrosoftOnline } from '../shared/DOMutils';
+import {isMicrosoftOnline} from '../shared/DOMutils';
 
 const container = document.getElementById('witty-works-ext-popup-root');
 let root: null | Root = null;

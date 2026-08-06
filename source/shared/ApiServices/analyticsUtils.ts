@@ -1,15 +1,15 @@
-import { IAlert } from '../types';
+import {IAlert} from '../types';
 import PostHog from 'posthog-js-lite';
-import { StorageKeys, wittyVersion } from '../constants';
+import {StorageKeys, wittyVersion} from '../constants';
 import browser from 'webextension-polyfill';
-import { storeInLocalStorage } from '../utils';
+import {storeInLocalStorage} from '../utils';
 import defaultConfig from '../../witty.config.json';
-import { sendErrorToSentry } from '../errorUtils';
-import { getBaseUrls } from './requests';
+import {sendErrorToSentry} from '../errorUtils';
+import {getBaseUrls} from './requests';
 
 export const aliasId = async (userId: string, appId: string) => {
   if (!defaultConfig.POSTHOG_ENABLED) return;
-  let urls = getBaseUrls();
+  const urls = getBaseUrls();
   const request = {
     api_key: urls.posthog_key,
     properties: {
@@ -48,10 +48,10 @@ export const captureEvent = (eventName: string, eventData: object) => {
 
         let dailyPosthogEventsUsed =
           result[StorageKeys.DAILY_POSTHOG_EVENTS_USED];
-        let lastCheckEventTime = result[StorageKeys.LAST_CHECK_EVENT_TIME];
+        const lastCheckEventTime = result[StorageKeys.LAST_CHECK_EVENT_TIME];
 
         if (!dailyPosthogEventsUsed || dailyPosthogEventsUsed.date !== today) {
-          dailyPosthogEventsUsed = { date: today, count: 0 };
+          dailyPosthogEventsUsed = {date: today, count: 0};
         }
 
         if (eventName === 'check') {
@@ -100,7 +100,7 @@ export const captureEvent = (eventName: string, eventData: object) => {
           aliasId(userId, appId);
         }
 
-        let urls = getBaseUrls();
+        const urls = getBaseUrls();
         const ph = new PostHog(urls.posthog_key, {
           host: urls.posthog_url,
           bootstrap: {

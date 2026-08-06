@@ -1,8 +1,8 @@
 import React from 'react';
 import browser from 'webextension-polyfill';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { namespaces } from '../../i18n/i18n.constants';
+import {namespaces} from '../../i18n/i18n.constants';
 import '../../i18n/i18n';
 
 /**
@@ -15,7 +15,7 @@ import '../../i18n/i18n';
  * feature effectively undiscoverable.
  */
 const OptionsLink: React.FC = () => {
-  const { t } = useTranslation([namespaces.pages.popup]);
+  const {t} = useTranslation([namespaces.pages.popup]);
 
   return (
     <div className='witty-works-ext-section witty-works-ext-left'>

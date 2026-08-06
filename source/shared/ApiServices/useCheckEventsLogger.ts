@@ -1,7 +1,7 @@
-import { logTypes, useLog } from '../customHooks/useLog';
-import { useAnalytics } from './useAnalytics';
-import { IAuthResponse, ICheckResponse } from '../types';
-import { useStateRef } from '../customHooks/useStateRef';
+import {logTypes, useLog} from '../customHooks/useLog';
+import {useAnalytics} from './useAnalytics';
+import {IAuthResponse, ICheckResponse} from '../types';
+import {useStateRef} from '../customHooks/useStateRef';
 
 export const useCheckEventsLogger = (
   authResponse: IAuthResponse | null,
@@ -38,9 +38,9 @@ export const useCheckEventsLogger = (
     ) {
       const checkEndpointResponseWithoutOrthography = {
         ...checkEndpointResponse,
-        results: checkEndpointResponse.results.filter((result: any) => {
-          return result.data?.category !== 'orthography';
-        }),
+        results: checkEndpointResponse.results.filter(
+          (result: any) => result.data?.category !== 'orthography'
+        ),
       };
 
       if (checkEndpointResponseWithoutOrthography.results.length === 0) return;

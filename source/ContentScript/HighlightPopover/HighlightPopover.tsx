@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
+import React, {useEffect, useState} from 'react';
+import {useFloating, flip, offset, shift} from '@floating-ui/react-dom';
 
 import {
   CustomInputElement,
@@ -8,10 +8,10 @@ import {
   IGetLLMSuggestionsRequest,
   ResponseConfig,
 } from '../../shared/types';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 import '../../i18n/i18n';
-import { namespaces } from '../../i18n/i18n.constants';
-import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import {namespaces} from '../../i18n/i18n.constants';
+import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
@@ -34,25 +34,25 @@ import {
   isDashboardAvailable,
   StorageKeys,
 } from '../../shared/constants';
-import { getActiveDocument } from '../ContentScriptApp';
-import { iframePositionRecquired } from '../../shared/DOMutils';
-import { useStateRef } from '../../shared/customHooks/useStateRef';
+import {getActiveDocument} from '../ContentScriptApp';
+import {iframePositionRecquired} from '../../shared/DOMutils';
+import {useStateRef} from '../../shared/customHooks/useStateRef';
 import {
   getScrollableParentClosestToElement,
   storeInLocalStorage,
 } from '../../shared/utils';
 import browser from 'webextension-polyfill';
-import { readAccessToken } from '../../shared/tokenStore';
-import { renderNotificationToTop } from '../../Notifications/renderNotification';
-import { sendErrorToSentry } from '../../shared/errorUtils';
+import {readAccessToken} from '../../shared/tokenStore';
+import {renderNotificationToTop} from '../../Notifications/renderNotification';
+import {sendErrorToSentry} from '../../shared/errorUtils';
 import {
   createUrl,
   getBaseUrls,
   buildRequestHeaders,
 } from '../../shared/ApiServices/requests';
 import parse from 'html-react-parser';
-import { computeDiff } from '../utils';
-import { LLMAlternativesCacheValue } from '../../shared/ApiServices/useLLMAlternativesCache';
+import {computeDiff} from '../utils';
+import {LLMAlternativesCacheValue} from '../../shared/ApiServices/useLLMAlternativesCache';
 
 export interface PopoverData {
   index: number;
@@ -90,7 +90,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
-  const { t, i18n } = useTranslation(namespaces.popover);
+  const {t, i18n} = useTranslation(namespaces.popover);
   const [alternativeHovered, setAlternativeHovered] =
     useState<IAlternatives | null>(null);
   const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
@@ -127,66 +127,75 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     i18n.changeLanguage(data.alert.data?.language);
   }, [data.alert.data?.language]);
 
-  const elementCords = (dat: PopoverData) => ({
-    name: 'elementCords',
-    options: dat,
-    fn: ({ placement, rects }: any) => {
-      let iframeRects = { top: 0, left: 0, bottom: 0, right: 0 };
-      if (iframePositionRecquired(element)) {
-        const iframes = document.getElementsByTagName('iframe');
-        const iframe = Array.from(iframes).find((iframe) => {
+  const elementCords = (dat: PopoverData) => {
+    return {
+      name: 'elementCords',
+      options: dat,
+      fn: ({placement, rects}: any) => {
+        let iframeRects = {top: 0, left: 0, bottom: 0, right: 0};
+        if (iframePositionRecquired(element)) {
+          const iframes = document.getElementsByTagName('iframe');
+          const iframe = Array.from(iframes).find((iframe) => {
+            try {
+              const iframeDoc =
+                iframe.contentDocument || iframe.contentWindow?.document;
+              return iframeDoc?.contains(dat.node);
+            } catch (error) {
+              console.error('Failed to access iframe content: ', error);
+              return false;
+            }
+          });
           try {
-            const iframeDoc =
-              iframe.contentDocument || iframe.contentWindow?.document;
-            return iframeDoc?.contains(dat.node);
+            if (iframe?.getBoundingClientRect()) {
+              iframeRects = iframe?.getBoundingClientRect();
+            }
           } catch (error) {
-            console.error('Failed to access iframe content: ', error);
-            return false;
+            console.error('Failed to get iframe bounding rect: ', error);
           }
-        });
-        try {
-          if (iframe?.getBoundingClientRect()) {
-            iframeRects = iframe?.getBoundingClientRect();
-          }
-        } catch (error) {
-          console.error('Failed to get iframe bounding rect: ', error);
         }
-      }
 
-      const calcNewX: number =
-        dat.position.x + iframeRects.left + doc.scrollLeft;
-      const calcNewY: number = placement.includes('bottom')
-        ? dat.position.y + dat.position.height + iframeRects.top + doc.scrollTop
-        : //scrollTop
-          dat.position.y -
-          rects.floating.height +
-          iframeRects.top +
-          doc.scrollTop;
-      //scrollTop;
-      return {
-        x: showLearningBiteRef.current ? calcNewX / 2 : calcNewX,
-        y: calcNewY,
-      };
-    },
-  });
+        const calcNewX: number =
+          dat.position.x + iframeRects.left + doc.scrollLeft;
+        const calcNewY: number = placement.includes('bottom')
+          ? dat.position.y +
+            dat.position.height +
+            iframeRects.top +
+            doc.scrollTop
+          : //scrollTop
+            dat.position.y -
+            rects.floating.height +
+            iframeRects.top +
+            doc.scrollTop;
+        //scrollTop;
+        return {
+          x: showLearningBiteRef.current ? calcNewX / 2 : calcNewX,
+          y: calcNewY,
+        };
+      },
+    };
+  };
 
-  const { x, y, reference, floating, strategy, refs } = useFloating({
+  // floating-ui v1 replaced the `reference`/`floating` callback refs with
+  // refs.setReference/refs.setFloating; refs.floating still holds the element.
+  const {x, y, strategy, refs} = useFloating({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
 
   useEffect(() => {
     browser.storage.local.get(null).then((result) => {
-      readAccessToken().then(setAccessToken).catch(() => setAccessToken(''));
+      readAccessToken()
+        .then(setAccessToken)
+        .catch(() => setAccessToken(''));
       setLlmAlternatives(result[StorageKeys.LLM_ALTERNATIVES]);
       setDashboardAvailable(isDashboardAvailable(result));
     });
   }, []);
 
   useEffect(() => {
-    reference(element);
+    refs.setReference(element);
     showLearningBiteRef.current = showLearningBite;
-  }, [reference, showLearningBite]);
+  }, [refs.setReference, showLearningBite]);
 
   useEffect(() => {
     getScrollableParentClosestToElement(element)?.addEventListener(
@@ -242,7 +251,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     if (hasClickedOutsidePopOver && !hasClickedThisHighlight) hidePopover();
   };
 
-  const hidePopover = (logClose: boolean = false) => {
+  const hidePopover = (logClose = false) => {
     logClose && analytics.popoverLogs(data.alert, 'popover_close');
     setShowLearningBite(false);
 
@@ -350,7 +359,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           addIgnoredTerm(data.alert.data?.text);
           setIsSuccess(ignoreType);
 
-          browser.alarms.create('hidePopoverAlarm', { delayInMinutes: 1 / 60 }); // 1000 ms in minutes
+          browser.alarms.create('hidePopoverAlarm', {delayInMinutes: 1 / 60}); // 1000 ms in minutes
 
           browser.alarms.onAlarm.addListener((alarm) => {
             if (alarm.name === 'hidePopoverAlarm') {
@@ -382,21 +391,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
    * always as tall as the tallest variant and the geometry never changes.
    */
   const renderExplanations = (alternativeHovered: IAlternatives | null) => {
-    const defaultExplanation = (visible: boolean = true) => {
-      return (
-        <div
-          key={`default-expl-${visible ? 'visible' : 'hidden'}`}
-          style={{
-            visibility: visible ? 'visible' : 'hidden',
-            gridArea: '1 / 1',
-          }}
-        >
-          {data.alert.data?.explanation?.text}
-          {data.alert.data?.explanation?.context &&
-            ' (' + data.alert.data?.explanation?.context + ')'}
-        </div>
-      );
-    };
+    const defaultExplanation = (visible = true) => (
+      <div
+        key={`default-expl-${visible ? 'visible' : 'hidden'}`}
+        style={{
+          visibility: visible ? 'visible' : 'hidden',
+          gridArea: '1 / 1',
+        }}
+      >
+        {data.alert.data?.explanation?.text}
+        {data.alert.data?.explanation?.context &&
+          ' (' + data.alert.data?.explanation?.context + ')'}
+      </div>
+    );
 
     if (!llmAlternativesResponse || llmAlternativesResponse.loading) {
       // If LLM alternatives aren't available yet, always show the default explanation
@@ -458,7 +465,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             rephrasing
           ),
         }}
-      ></div>
+      />
     );
   };
 
@@ -502,7 +509,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   return (
     <div
       id='witty-works-ext-popover'
-      ref={floating}
+      ref={refs.setFloating}
       style={{
         position: strategy,
         top: `${y}px`,
@@ -521,13 +528,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'
             href='https://www.witty.works/'
             target='_blank'
+            rel='noreferrer'
           >
             <WittyLogo alt={t('wittyLogo')} />
           </a>
           <div className='witty-works-ext-container-row'>
             <button
               className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto witty-works-button'
-              style={data.index === 1 ? { display: 'none' } : {}}
+              style={data.index === 1 ? {display: 'none'} : {}}
               onClick={() => {
                 data.index !== 1 && updatePopover('previous');
                 setShowLearningBite(false);
@@ -551,7 +559,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               className={
                 'witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto witty-works-button'
               }
-              style={data.index === data.totalAlerts ? { display: 'none' } : {}}
+              style={data.index === data.totalAlerts ? {display: 'none'} : {}}
               onClick={() => {
                 data.index !== data.totalAlerts && updatePopover('next');
                 setShowLearningBite(false);
@@ -615,7 +623,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       <img
                         src={data.alert.data?.explanation?.icon_image}
                         alt=''
-                        style={{ width: '50px' }}
+                        style={{width: '50px'}}
                       />
                     ) : (
                       <span>{data.alert.data?.explanation?.icon}</span>
@@ -623,11 +631,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   </div>
                   <div
                     className='witty-works-ext-rephrasing'
-                    style={{ width: '252px', height: '100%' }}
+                    style={{width: '252px', height: '100%'}}
                   >
                     <b>{data.alert.data?.label.split(':').pop()}</b>
                     <br />
-                    <div style={{ position: 'relative', display: 'grid' }}>
+                    <div style={{position: 'relative', display: 'grid'}}>
                       {renderExplanations(alternativeHovered)}
                     </div>
                   </div>
@@ -635,7 +643,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                 {data.alert.data?.explanation?.url && (
                   <div
                     className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
-                    style={{ marginTop: showLearningBite ? '0em' : '1em' }}
+                    style={{marginTop: showLearningBite ? '0em' : '1em'}}
                   >
                     <div
                       className='witty-works-ext-dropdown-select witty-works-ext-container-row'
@@ -657,13 +665,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       {data.alert.data?.explanation?.content === 'video' && (
                         <VideoIcon
                           className='witty-works-ext-margin-left'
-                          style={{ marginTop: '0.2em' }}
+                          style={{marginTop: '0.2em'}}
                           alt={t('video')}
                         />
                       )}
                       <div
                         className='witty-works-ext-margin-left'
-                        style={{ pointerEvents: 'none' }}
+                        style={{pointerEvents: 'none'}}
                       >
                         {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
                       </div>
@@ -729,7 +737,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             {!data.alert.data?.explanation?.video_url &&
               data.alert.data?.explanation?.image_url && (
                 <img
-                  style={{ width: '500px' }}
+                  style={{width: '500px'}}
                   src={data.alert.data?.explanation?.image_url?.src}
                   alt={data.alert.data?.explanation?.image_url?.alt}
                 />
@@ -738,7 +746,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         </div>
         <div
           className='witty-works-ext-separator'
-          style={{ marginBottom: '1em', marginTop: '1em' }}
+          style={{marginBottom: '1em', marginTop: '1em'}}
         />
 
         {/* TRY INSTEAD */}
@@ -804,13 +812,13 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     {alternative && alternative.context && (
                       <div
                         className='witty-works-ext-wittyworks-popover-alternative-context'
-                        style={{ color: 'black' }}
+                        style={{color: 'black'}}
                       >
                         {alternative.url ? (
                           <>
                             {alternative.context.startsWith('💡') ? (
                               <>
-                                <span style={{ whiteSpace: 'nowrap' }}>
+                                <span style={{whiteSpace: 'nowrap'}}>
                                   <span>
                                     {alternative.context.substring(0, 3)}
                                   </span>
@@ -847,9 +855,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                             )}
                           </>
                         ) : (
-                          <span
-                            style={{ color: 'black', whiteSpace: 'nowrap' }}
-                          >
+                          <span style={{color: 'black', whiteSpace: 'nowrap'}}>
                             {alternative.context}
                           </span>
                         )}

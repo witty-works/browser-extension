@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { createRoot } from 'react-dom/client';
+import React, {useCallback, useEffect, useState} from 'react';
+import {createRoot} from 'react-dom/client';
 import browser from 'webextension-polyfill';
 
-import { CustomInputElement, RequestConfig } from '../shared/types';
-import { useStateRef } from '../shared/customHooks/useStateRef';
+import {CustomInputElement, RequestConfig} from '../shared/types';
+import {useStateRef} from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
   apiKeyFromStorage,
@@ -21,7 +21,7 @@ import {
   setRequestConfig,
   setToken,
 } from '../shared/ApiServices/requests';
-import { readAccessToken } from '../shared/tokenStore';
+import {readAccessToken} from '../shared/tokenStore';
 import {
   isInputElement,
   nodeExistsInDOM,
@@ -36,14 +36,11 @@ import {
   isAemRte,
   isMicrosoftOnline,
 } from '../shared/DOMutils';
-import { sendErrorToSentry } from '../shared/errorUtils';
-import { useLog, logTypes } from '../shared/customHooks/useLog';
+import {sendErrorToSentry} from '../shared/errorUtils';
+import {useLog, logTypes} from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import throttle from 'lodash.throttle';
-import {
-  getDomainWithoutSubdomain,
-  storeInLocalStorage,
-} from '../shared/utils';
+import {getDomainWithoutSubdomain, storeInLocalStorage} from '../shared/utils';
 import renderNotificationToTop from '../Notifications/renderNotification';
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
@@ -72,9 +69,7 @@ export const setActiveDocument = (document: Document) => {
   }
 };
 
-export const getActiveDocument = () => {
-  return activeDocument;
-};
+export const getActiveDocument = () => activeDocument;
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
@@ -106,7 +101,9 @@ const ContentScriptApp: React.FC = () => {
             : DefaultBaseUrlKey
         );
         setApiKey(apiKeyFromStorage(result));
-        readAccessToken().then(setToken).catch(() => setToken(''));
+        readAccessToken()
+          .then(setToken)
+          .catch(() => setToken(''));
         storeInLocalStorage(
           StorageKeys.CONFIG_HASH,
           result[StorageKeys.CONFIG_HASH]
@@ -210,9 +207,9 @@ const ContentScriptApp: React.FC = () => {
   //TODO review all cases
   const storageChange = useCallback((changes: any) => {
     // TODO fix this changes: any ^
-    let changedItems = Object.keys(changes);
+    const changedItems = Object.keys(changes);
 
-    for (let item of changedItems) {
+    for (const item of changedItems) {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
           setBaseUrls(changes[item].newValue);
@@ -361,9 +358,9 @@ const ContentScriptApp: React.FC = () => {
     const indicatorElements = getActiveDocument().querySelectorAll(
       WTags.WW_MOUSEOVER_INDICATOR
     );
-    for (let element of indicatorElements) {
+    for (const element of indicatorElements) {
       try {
-        const { safeUnmountAndRemove } = await import('./utils');
+        const {safeUnmountAndRemove} = await import('./utils');
         safeUnmountAndRemove(element as HTMLElement);
       } catch (err) {
         try {
@@ -374,8 +371,8 @@ const ContentScriptApp: React.FC = () => {
       }
     }
   };
-  const handleNewInput = () => {
-    return browser.storage.local
+  const handleNewInput = () =>
+    browser.storage.local
       .get()
       .then((result) => {
         const addedInputsMap = new Map();
@@ -419,7 +416,7 @@ const ContentScriptApp: React.FC = () => {
               );
               getActiveDocument().body.appendChild(shadowHost);
 
-              const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
+              const shadowRoot = shadowHost.attachShadow({mode: 'open'});
               const highlightsContainer: HTMLElement =
                 getActiveDocument().createElement(WTags.WW_CONTAINER);
               shadowRoot.appendChild(highlightsContainer);
@@ -463,7 +460,6 @@ const ContentScriptApp: React.FC = () => {
       .catch((error) => {
         sendErrorToSentry(error);
       });
-  };
 
   const removeOldInput = async (container: HTMLElement | undefined) => {
     if (!container) {
@@ -471,7 +467,7 @@ const ContentScriptApp: React.FC = () => {
     }
     if (container.parentNode?.contains(container)) {
       try {
-        const { safeUnmountAndRemove } = await import('./utils');
+        const {safeUnmountAndRemove} = await import('./utils');
         safeUnmountAndRemove(container as HTMLElement);
       } catch (err) {
         try {
@@ -587,7 +583,7 @@ const ContentScriptApp: React.FC = () => {
         });
       });
 
-      shadowObserver.observe(shadowRoot, { childList: true, subtree: true });
+      shadowObserver.observe(shadowRoot, {childList: true, subtree: true});
       shadowObservers.set(shadowRoot, shadowObserver);
 
       addIframeListenersInShadowRoot(shadowRoot);
@@ -616,7 +612,7 @@ const ContentScriptApp: React.FC = () => {
     });
 
     setTimeout(() => {
-      mainObserver.observe(document.body, { childList: true, subtree: true });
+      mainObserver.observe(document.body, {childList: true, subtree: true});
 
       document.querySelectorAll('*').forEach((element) => {
         if (element.shadowRoot) {

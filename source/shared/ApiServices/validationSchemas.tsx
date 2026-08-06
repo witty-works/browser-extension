@@ -1,11 +1,11 @@
-import { Schema } from 'jsonschema';
+import {Schema} from 'jsonschema';
 
 export const checkResponseOrgConfigPropertySchema: Schema = {
   type: 'object',
   properties: {
     value: {
       anyOf: [
-        { type: 'string' },
+        {type: 'string'},
         {
           type: 'array',
           items: {
@@ -13,12 +13,12 @@ export const checkResponseOrgConfigPropertySchema: Schema = {
             title: 'config type string[]',
           },
         },
-        { type: 'boolean' },
-        { type: 'number' },
+        {type: 'boolean'},
+        {type: 'number'},
       ],
     },
     status: {
-      anyOf: [{ type: 'string' }, { type: 'null' }],
+      anyOf: [{type: 'string'}, {type: 'null'}],
     },
   },
   required: ['value'],
@@ -184,7 +184,7 @@ export const llmAlternativesResponseSchema: Schema = {
         'Mapping of alternative phrase -> full sentence with that phrase',
       type: 'object',
       patternProperties: {
-        '.*': { type: 'string' },
+        '.*': {type: 'string'},
       },
       additionalProperties: false,
     },

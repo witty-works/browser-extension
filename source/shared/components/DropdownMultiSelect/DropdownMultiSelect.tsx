@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 
-import Select, { components } from 'react-select';
+import Select, {components} from 'react-select';
 
 export interface DropdownMultiSelectProps {
   onDropdownChange: (option: OptionProp[]) => void;
@@ -14,20 +14,14 @@ export interface OptionProp {
   label: string;
 }
 
-const Option = (props: any) => {
-  return (
-    <div>
-      <components.Option {...props}>
-        <input
-          type='checkbox'
-          checked={props.isSelected}
-          onChange={() => null}
-        />{' '}
-        <label>{props.label}</label>
-      </components.Option>
-    </div>
-  );
-};
+const Option = (props: any) => (
+  <div>
+    <components.Option {...props}>
+      <input type='checkbox' checked={props.isSelected} onChange={() => null} />{' '}
+      <label>{props.label}</label>
+    </components.Option>
+  </div>
+);
 
 const DropdownMultiSelect: React.FC<DropdownMultiSelectProps> = ({
   onDropdownChange,
@@ -46,7 +40,7 @@ const DropdownMultiSelect: React.FC<DropdownMultiSelectProps> = ({
   }, [selectedOptions]);
 
   return (
-    <div style={{ marginTop: '0.5em' }}>
+    <div style={{marginTop: '0.5em'}}>
       <Select
         isMulti
         closeMenuOnSelect={false}

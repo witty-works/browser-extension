@@ -1,17 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import browser from 'webextension-polyfill';
 
-import Dropdown, {
-  OptionProp,
-} from '../../shared/components/Dropdown/Dropdown';
-import {
-  BaseUrls,
-  DefaultBaseUrlKey,
-  StorageKeys,
-} from '../../shared/constants';
-import { logTypes, useLog } from '../../shared/customHooks/useLog';
-import { sendErrorToSentry } from '../../shared/errorUtils';
-import { logOut } from '../../shared/utils';
+import Dropdown, {OptionProp} from '../../shared/components/Dropdown/Dropdown';
+import {BaseUrls, DefaultBaseUrlKey, StorageKeys} from '../../shared/constants';
+import {logTypes, useLog} from '../../shared/customHooks/useLog';
+import {sendErrorToSentry} from '../../shared/errorUtils';
+import {logOut} from '../../shared/utils';
 
 const ApiSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
@@ -25,10 +19,12 @@ const ApiSelector: React.FC = () => {
 
   useEffect(() => {
     const dropdownOptionsTemp: OptionProp[] = Object.keys(BaseUrls).map(
-      (key: string) => ({
-        key,
-        value: key,
-      })
+      (key: string) => {
+        return {
+          key,
+          value: key,
+        };
+      }
     );
 
     setDropdownOptions(dropdownOptionsTemp);

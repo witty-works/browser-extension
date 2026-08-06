@@ -3,6 +3,9 @@ const {
   expect,
   signIn,
   typeAndWaitForHighlights,
+  alternativeBoxes,
+  openPopoverForWord,
+  popoverBox,
 } = require('./helpers/extension');
 
 /**
@@ -25,94 +28,6 @@ const {
  * The assertion is geometric rather than visual: hovering must not move the
  * thing being hovered, nor any of its siblings.
  */
-
-/** Bounding boxes of every alternative button, shadow-DOM aware. */
-const alternativeBoxes = (page) =>
-  page.evaluate(() => {
-    const found = [];
-    const walk = (root) => {
-      for (const el of root.querySelectorAll('*')) {
-        if (
-          el.classList.contains('witty-works-ext-wittyworks-popover-alternative-btn')
-        ) {
-          const r = el.getBoundingClientRect();
-          found.push({
-            text: el.textContent,
-            x: Math.round(r.x),
-            y: Math.round(r.y),
-            width: Math.round(r.width),
-            height: Math.round(r.height),
-          });
-        }
-        if (el.shadowRoot) walk(el.shadowRoot);
-      }
-    };
-    walk(document);
-    return found;
-  });
-
-/**
- * Click the highlighted `word` to open its popover.
- *
- * The coordinate is measured rather than guessed: the fixture font is
- * proportional, so the x offset of a word is the rendered width of the text
- * before it. Guessing put the click on the wrong alert, which silently opened a
- * popover whose alternatives were all short — and therefore never exercised the
- * truncation path this test exists to cover.
- */
-const openPopoverForWord = async (page, word) => {
-  const target = await page.evaluate((needle) => {
-    const el = document.querySelector('#editor');
-    const text = el instanceof HTMLTextAreaElement ? el.value : el.textContent;
-    const index = text.indexOf(needle);
-    if (index === -1) throw new Error(`fixture text has no "${needle}"`);
-
-    const style = getComputedStyle(el);
-    const ctx = document.createElement('canvas').getContext('2d');
-    ctx.font = style.font || `${style.fontSize} ${style.fontFamily}`;
-
-    const before = ctx.measureText(text.slice(0, index)).width;
-    const half = ctx.measureText(needle).width / 2;
-    const r = el.getBoundingClientRect();
-
-    return {
-      x:
-        r.x +
-        parseFloat(style.paddingLeft) +
-        parseFloat(style.borderLeftWidth) +
-        before +
-        half,
-      // Vertical middle of the first line.
-      y:
-        r.y +
-        parseFloat(style.paddingTop) +
-        parseFloat(style.borderTopWidth) +
-        parseFloat(style.lineHeight) / 2,
-    };
-  }, word);
-
-  await page.mouse.click(target.x, target.y);
-  await page.waitForFunction(
-    () => {
-      const walk = (root) => {
-        for (const el of root.querySelectorAll('*')) {
-          if (
-            el.classList.contains(
-              'witty-works-ext-wittyworks-popover-alternative-btn'
-            )
-          ) {
-            return true;
-          }
-          if (el.shadowRoot && walk(el.shadowRoot)) return true;
-        }
-        return false;
-      };
-      return walk(document);
-    },
-    null,
-    { timeout: 15000 }
-  );
-};
 
 test.describe('Popover alternatives', () => {
   test('hovering an alternative does not move any alternative', async ({
@@ -192,5 +107,88 @@ test.describe('Popover alternatives', () => {
     );
 
     expect(stillOnButton).toBe(true);
+  });
+
+  test('anchors the popover to the word that opened it', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    /**
+     * Positioning is floating-ui's whole job, and the custom elementCords
+     * middleware that computes the coordinates is typed `any`, so nothing
+     * type-checks it. The other tests here only compare the popover against
+     * itself — they would pass just as happily with it stranded at 0,0 or
+     * pushed off-screen.
+     *
+     * The tolerance is deliberately loose. This is a smoke test for "attached
+     * to the right place", not a pixel assertion that would break whenever the
+     * popover's padding changes.
+     */
+    await signIn(context, extensionId);
+    await page.goto('/textarea.html');
+    await typeAndWaitForHighlights(page);
+    const clicked = await openPopoverForWord(page, 'chairman');
+
+    const box = await popoverBox(page);
+    expect(box, 'popover element was not found').not.toBeNull();
+
+    // On screen and actually laid out.
+    expect(box.width).toBeGreaterThan(50);
+    expect(box.height).toBeGreaterThan(20);
+
+    const viewport = page.viewportSize();
+    expect(box.x).toBeGreaterThan(-box.width);
+    expect(box.y).toBeGreaterThan(-box.height);
+    expect(box.x).toBeLessThan(viewport.width);
+    expect(box.y).toBeLessThan(viewport.height);
+
+    // And anchored near the word rather than parked in a corner.
+    expect(
+      Math.abs(box.x - clicked.x),
+      `popover x ${box.x} is not near the clicked word at ${Math.round(clicked.x)}`
+    ).toBeLessThan(400);
+    expect(
+      Math.abs(box.y - clicked.y),
+      `popover y ${box.y} is not near the clicked word at ${Math.round(clicked.y)}`
+    ).toBeLessThan(400);
+  });
+
+  test('renders the explanation markup as elements, not escaped text', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // The popover feeds the API's long_text through html-react-parser. If that
+    // ever returns a string instead of nodes, the explanation still "renders" —
+    // it just shows the raw tags — which no geometry or screenshot assertion
+    // here would notice.
+    await signIn(context, extensionId);
+    await page.goto('/textarea.html');
+    await typeAndWaitForHighlights(page);
+    await openPopoverForWord(page, 'chairman');
+
+    const parsed = await page.evaluate(() => {
+      const walk = (root) => {
+        for (const el of root.querySelectorAll('*')) {
+          if (el.classList.contains('fixture-emphasis')) {
+            return { tag: el.tagName, text: el.textContent };
+          }
+          if (el.shadowRoot) {
+            const hit = walk(el.shadowRoot);
+            if (hit) return hit;
+          }
+        }
+        return null;
+      };
+      return walk(document);
+    });
+
+    expect(
+      parsed,
+      'explanation markup was not parsed into DOM nodes'
+    ).not.toBeNull();
+    expect(parsed.tag).toBe('STRONG');
+    expect(parsed.text).toBe('explanation');
   });
 });

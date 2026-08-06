@@ -39,7 +39,7 @@ export const isWittyMessage = (value: unknown): value is WittyMessage => {
     return false;
   }
 
-  const type = (value as { type?: unknown }).type;
+  const type = (value as {type?: unknown}).type;
 
   return type === MessageTypes.SIGN_IN || type === MessageTypes.SIGN_OUT;
 };

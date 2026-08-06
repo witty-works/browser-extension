@@ -15,29 +15,30 @@
         }
       }
     ],
-    "@babel/typescript",
+    [
+      "@babel/typescript",
+      {
+        // Babel 8 defaults onlyRemoveTypeImports to true, which keeps
+        // `import {IAlert} from '../types'` in the output. shared/types.d.ts
+        // is declarations only, so webpack then fails to resolve a module
+        // that has no runtime counterpart. Babel cannot tell a type import
+        // from a value one when it compiles file by file, so opt back into
+        // eliding unused imports rather than rewriting every such import to
+        // `import type` and hoping none is missed.
+        "onlyRemoveTypeImports": false
+      }
+    ],
     "@babel/react"
   ],
   "plugins": [
-    ["@babel/plugin-proposal-class-properties"],
+    // Babel 8 removed the plugin-proposal-class-properties and
+    // plugin-proposal-object-rest-spread entries that used to sit here. Both
+    // features are standard ECMAScript now and natively supported by every
+    // target above, so preset-env leaves them alone and nothing is lost.
     [
       "@babel/plugin-transform-destructuring",
       {
         "useBuiltIns": true
-      }
-    ],
-    [
-      "@babel/plugin-proposal-object-rest-spread",
-      {
-        "useBuiltIns": true
-      }
-    ],
-    [
-      // Polyfills the runtime needed for async/await and generators
-      "@babel/plugin-transform-runtime",
-      {
-        "helpers": false,
-        "regenerator": true
       }
     ]
   ]

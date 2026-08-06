@@ -1,9 +1,8 @@
-import { hashString } from '../../ContentScript/utils';
-import { IAlert } from '../types';
-import { useRef } from 'react';
-import { generateAlertId } from '../utils';
-import { extractSentenceNode } from '../utils';
-import { SentenceSplitterSyntax, split } from 'sentence-splitter';
+import {hashString} from '../../ContentScript/utils';
+import {IAlert} from '../types';
+import {useRef} from 'react';
+import {generateAlertId, extractSentenceNode} from '../utils';
+import {SentenceSplitterSyntax, split} from 'sentence-splitter';
 
 interface ISentenceCache {
   [hash: string]: ICachedSentenceAlerts;
@@ -73,7 +72,7 @@ export const useSentenceCache = () => {
   const addToCache = (
     sentencesAlerts: ICachedSentenceAlerts[]
   ): ISentenceCache => {
-    const updatedCache = { ...cacheRef.current };
+    const updatedCache = {...cacheRef.current};
 
     sentencesAlerts.forEach((sentenceAlerts) => {
       const hash = hashString(sentenceAlerts.sentence);
@@ -85,5 +84,5 @@ export const useSentenceCache = () => {
     return updatedCache;
   };
 
-  return { checkCache, addToCache };
+  return {checkCache, addToCache};
 };

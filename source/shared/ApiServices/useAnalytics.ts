@@ -12,11 +12,7 @@ import {
   ICheckResponseResult,
   IFeatureFlagItems,
 } from '../types';
-import {
-  captureEvent,
-  getRequestData,
-  getResponseData,
-} from './analyticsUtils';
+import {captureEvent, getRequestData, getResponseData} from './analyticsUtils';
 
 export const useAnalytics = () => {
   return {
@@ -30,7 +26,7 @@ export const useAnalytics = () => {
     ) {
       const checkResponseResultsWithoutContext = checkResponse.results.map(
         (result) => {
-          const { context, ...resultWithoutContext } = result;
+          const {context, ...resultWithoutContext} = result;
           return resultWithoutContext;
         }
       ) as ICheckResponseResult[];

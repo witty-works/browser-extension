@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import browser from 'webextension-polyfill';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { EnableWittyToggle } from '../../shared/types';
+import {EnableWittyToggle} from '../../shared/types';
 import {
   apiKeyFromStorage,
   isDashboardAvailable,
@@ -20,15 +20,15 @@ import {
   removeBadge,
   storeInLocalStorage,
   updateConfig,
+  isSignedInResult,
 } from '../../shared/utils';
-import { namespaces } from '../../i18n/i18n.constants';
+import {namespaces} from '../../i18n/i18n.constants';
 import '../../i18n/i18n';
 import Toggle from '../../shared/components/Toggle/Toggle';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';
 
 import defaultConfig from '../../witty.config.json';
-import { isSignedInResult } from '../../shared/utils';
 import '../styles.scss';
 import {
   createUrl,
@@ -40,12 +40,12 @@ import {
 } from '../../shared/ApiServices/requests';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import OptionsLink from '../PopupComponents/OptionsLink';
-import { sendErrorToSentry } from '../../shared/errorUtils';
-import { logTypes, useLog } from '../../shared/customHooks/useLog';
-import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import {sendErrorToSentry} from '../../shared/errorUtils';
+import {logTypes, useLog} from '../../shared/customHooks/useLog';
+import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
-import { useAuthEndpoint } from '../../shared/ApiServices/useAuthEndpoint';
-import { clearTokens, readAccessToken } from '../../shared/tokenStore';
+import {useAuthEndpoint} from '../../shared/ApiServices/useAuthEndpoint';
+import {clearTokens, readAccessToken} from '../../shared/tokenStore';
 
 interface PopupProps {
   appId: string;
@@ -53,13 +53,9 @@ interface PopupProps {
   isLocked: boolean;
 }
 
-const Popup: React.FC<PopupProps> = ({
-  appId,
-  domain,
-  isLocked,
-}: PopupProps) => {
+const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
   if (TESTING) domain = 'platformsh.site';
-  const { t } = useTranslation([namespaces.pages.popup]);
+  const {t} = useTranslation([namespaces.pages.popup]);
   const analytics = useAnalytics();
   const domainExists = domain && domain.length > 0;
 
@@ -204,7 +200,7 @@ const Popup: React.FC<PopupProps> = ({
     storeInLocalStorage(StorageKeys.DOMAINS, newDomainsDisabledLocally);
 
     setWittyIcon(isEnabled);
-    setEnabled({ enabled: isEnabled, updateDashboard: true });
+    setEnabled({enabled: isEnabled, updateDashboard: true});
   };
 
   const handleHrFeatures = () => {
@@ -242,7 +238,7 @@ const Popup: React.FC<PopupProps> = ({
       createUrl(
         getBaseUrls().dashboard,
         `api/user/language/domains?` +
-          new URLSearchParams({ domain: domain.domain })
+          new URLSearchParams({domain: domain.domain})
       ),
       {
         method: domain.enabled ? 'DELETE' : 'PUT',
@@ -251,7 +247,7 @@ const Popup: React.FC<PopupProps> = ({
     ).then(async (response) => {
       if (response.status === 403) {
         setUpdatingDashboardFailed(true);
-        setEnabled({ enabled: !enabled.enabled, updateDashboard: false });
+        setEnabled({enabled: !enabled.enabled, updateDashboard: false});
         browser.alarms.create('resetUpdatingDashboardFailedAlarm', {
           delayInMinutes: 3 / 60,
         }); // 3000 ms in minutes
@@ -277,7 +273,7 @@ const Popup: React.FC<PopupProps> = ({
         <div className='witty-works-ext-section'>
           <div
             className='witty-works-ext-lato-popover-text'
-            style={{ color: '#E6635A' }}
+            style={{color: '#E6635A'}}
           >
             {t('apiKeyAuthFailed', {
               status: authErrorResponse.status,
@@ -291,7 +287,7 @@ const Popup: React.FC<PopupProps> = ({
           <>
             <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-space-between'>
               <div className='witty-works-ext-lato-popup-title'>
-                {t('websiteSettings', { domain: domain })}
+                {t('websiteSettings', {domain: domain})}
               </div>
             </div>
             <Toggle
@@ -331,7 +327,7 @@ const Popup: React.FC<PopupProps> = ({
         <div className='witty-works-ext-section'>
           <div
             className='witty-works-ext-lato-popup-text'
-            style={{ marginTop: '-0.5em' }}
+            style={{marginTop: '-0.5em'}}
           >
             {t('loggedInTo') + ' "' + teamName + '"'}
           </div>

@@ -18,6 +18,17 @@ export const DEV_ENV = process.env.NODE_ENV !== 'production';
 // stray window in front of every screenshot.
 export const TESTING = process.env.TESTING === 'true';
 
+/**
+ * Sentinel `status` for an IEndpointError raised because a response did not
+ * match its schema rather than because the request failed.
+ *
+ * Zero cannot collide with a real HTTP status, which matters: the content
+ * script branches on 422, 403 and 400 to clear alerts, refresh the access
+ * token and prompt for an update respectively, and a schema failure must
+ * trigger none of those.
+ */
+export const SCHEMA_VALIDATION_FAILED = 0;
+
 //Storage
 export enum StorageKeys {
   API_ENDPOINT_KEY = 'apiEndpoint',
@@ -69,7 +80,6 @@ export enum StorageKeys {
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',
-
 
   USER_ID = 'userId',
   ORGANIZATION_ID = 'organizationId',
@@ -186,7 +196,9 @@ export const registerCustomEndpoint = (endpoint: BaseUrl | null): void => {
 export const registerCustomEndpointFromStorage = (
   result: Record<string, any>
 ): void => {
-  registerCustomEndpoint((result?.[StorageKeys.CUSTOM_ENDPOINT] as BaseUrl) ?? null);
+  registerCustomEndpoint(
+    (result?.[StorageKeys.CUSTOM_ENDPOINT] as BaseUrl) ?? null
+  );
 };
 
 /**
@@ -334,9 +346,7 @@ export const applyLevelToDisabled = (
   level: ProficiencyLevel,
   disabled: string[]
 ): string[] => {
-  const next = disabled.filter(
-    (item) => item !== key && item !== advancedKey
-  );
+  const next = disabled.filter((item) => item !== key && item !== advancedKey);
 
   if (level === ProficiencyLevel.Off) {
     next.push(key);

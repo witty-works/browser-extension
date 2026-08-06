@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { IEndpointError, IRequest } from '../types';
-import { useLog, logTypes } from '../customHooks/useLog';
-import { Validator, ValidatorResult, Schema } from 'jsonschema';
-import { DEV_ENV } from '../constants';
+import {useState, useEffect} from 'react';
+import {IEndpointError, IRequest} from '../types';
+import {useLog, logTypes} from '../customHooks/useLog';
+import {Validator, ValidatorResult, Schema} from 'jsonschema';
+import {DEV_ENV, SCHEMA_VALIDATION_FAILED} from '../constants';
+import {sendErrorToSentry} from '../errorUtils';
 
 const validator = new Validator();
 
@@ -38,7 +39,7 @@ const useApiResult = <TResponse,>(
       ) {
         return;
       }
-      request.config = { ...request.config };
+      request.config = {...request.config};
       log('Request:', logTypes.INFO, request);
 
       fetch(request.url, request.config)
@@ -57,12 +58,33 @@ const useApiResult = <TResponse,>(
           const validationResult = validateResponse(responseResults);
 
           if (validationResult && !validationResult.valid) {
+            const detail = validationResult.errors
+              .map((schemaError) => schemaError.stack)
+              .join('; ');
+
             DEV_ENV &&
               console.log('validateResponse.errors', validationResult.errors);
-            log(
-              `JSON Schema Error: ${validationResult.errors.join(', ')}`,
-              logTypes.ERROR
+            log(`JSON Schema Error: ${detail}`, logTypes.ERROR);
+
+            // Returning here without reporting anything used to drop the whole
+            // response on the floor: no highlights appeared, no error was
+            // raised, and the result was indistinguishable from the API saying
+            // the text was fine. It also left useLLMAlternativesCache waiting
+            // on a request that would never resolve, so the popover span
+            // whatever it had been given forever.
+            //
+            // A schema mismatch means the API contract moved under us, which is
+            // worth a Sentry event rather than a log line nobody reads.
+            sendErrorToSentry(
+              new Error(`Response failed schema validation: ${detail}`)
             );
+            setEndpointResponse(null);
+            setEndpointError({
+              status: SCHEMA_VALIDATION_FAILED,
+              message: detail,
+              request,
+              responseSchema,
+            });
             return;
           }
 

@@ -1,8 +1,8 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { namespaces } from '../i18n/i18n.constants';
-import { ProficiencyLevel } from '../shared/constants';
+import {namespaces} from '../i18n/i18n.constants';
+import {ProficiencyLevel} from '../shared/constants';
 
 interface CategoryToggleProps {
   categoryKey: string;
@@ -39,7 +39,7 @@ const CategoryToggle: React.FC<CategoryToggleProps> = ({
   locked = false,
   onChange,
 }: CategoryToggleProps) => {
-  const { t } = useTranslation(namespaces.options);
+  const {t} = useTranslation(namespaces.options);
 
   const levelName = [t('levelOff'), t('levelBasic'), t('levelAdvanced')][value];
 
@@ -52,7 +52,9 @@ const CategoryToggle: React.FC<CategoryToggleProps> = ({
       ? ProficiencyLevel.Advanced
       : ProficiencyLevel.Basic;
 
-    onChange(value >= top ? ProficiencyLevel.Off : ((value + 1) as ProficiencyLevel));
+    onChange(
+      value >= top ? ProficiencyLevel.Off : ((value + 1) as ProficiencyLevel)
+    );
   };
 
   return (

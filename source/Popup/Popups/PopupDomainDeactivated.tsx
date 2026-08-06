@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import browser from 'webextension-polyfill';
 import '../../i18n/i18n';
 import '../styles.scss';
-import { useTranslation } from 'react-i18next';
-import { namespaces } from '../../i18n/i18n.constants';
-import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import {useTranslation} from 'react-i18next';
+import {namespaces} from '../../i18n/i18n.constants';
+import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import SadFace from '../../assets/icons/popup/sad-face.svg';
 import UpvoteButton from '../../assets/icons/popup/upvote-button.svg';
 import EditorButton from '../../assets/icons/popup/editor-button.svg';
-import { sendErrorToSentry } from '../../shared/errorUtils';
-import { getBaseUrls, setBaseUrls } from '../../shared/ApiServices/requests';
+import {sendErrorToSentry} from '../../shared/errorUtils';
+import {getBaseUrls, setBaseUrls} from '../../shared/ApiServices/requests';
 import {
   DefaultBaseUrlKey,
   registerCustomEndpointFromStorage,
@@ -25,7 +25,7 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
   appId,
   domain,
 }) => {
-  const { t } = useTranslation(namespaces.pages.popup);
+  const {t} = useTranslation(namespaces.pages.popup);
   const [hasVoted, setHasVoted] = useState<boolean>(false);
   const analytics = useAnalytics();
 
@@ -72,7 +72,7 @@ const PopupDomainDeactivated: React.FC<domainDeactivatedProps> = ({
         <div
           className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-justify-start'
           onClick={() =>
-            browser.tabs.create({ url: getBaseUrls().dashboard + 'editor' })
+            browser.tabs.create({url: getBaseUrls().dashboard + 'editor'})
           }
         >
           <EditorButton />

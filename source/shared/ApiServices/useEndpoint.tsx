@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import {useMemo, useState} from 'react';
 import useApiResults from './useApiResults';
-import { getAnalyzedTextResults, getLLMSuggestion } from './requests';
+import {getAnalyzedTextResults, getLLMSuggestion} from './requests';
 import defaultConfig from '../../witty.config.json';
 import {
   IRequest,
@@ -15,9 +15,10 @@ import {
 
 export const useCheckEndpoint = () => {
   const [textToAnalyze, setTextToAnalyse] = useState<string>('');
-  const request: IRequest = useMemo(() => {
-    return getAnalyzedTextResults(textToAnalyze);
-  }, [textToAnalyze]);
+  const request: IRequest = useMemo(
+    () => getAnalyzedTextResults(textToAnalyze),
+    [textToAnalyze]
+  );
 
   const [checkResponse, errorResponse] = useApiResults<ICheckResponse>(
     request,
@@ -52,7 +53,7 @@ export const useLLMSuggestionsEndpoint = () => {
     );
   }, [LLMSuggestionsRequest]);
 
-  let [llmAlternativesResponse, errorResponse] =
+  const [llmAlternativesResponse, errorResponse] =
     useApiResults<ILLMAlternativesResponse>(
       request,
       llmAlternativesResponseSchema
