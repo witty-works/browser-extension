@@ -5,6 +5,7 @@ const {
   typeAndWaitForHighlights,
   alternativeBoxes,
   openPopoverForWord,
+  popoverBox,
 } = require('./helpers/extension');
 
 /**
@@ -106,6 +107,51 @@ test.describe('Popover alternatives', () => {
     );
 
     expect(stillOnButton).toBe(true);
+  });
+
+  test('anchors the popover to the word that opened it', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    /**
+     * Positioning is floating-ui's whole job, and the custom elementCords
+     * middleware that computes the coordinates is typed `any`, so nothing
+     * type-checks it. The other tests here only compare the popover against
+     * itself — they would pass just as happily with it stranded at 0,0 or
+     * pushed off-screen.
+     *
+     * The tolerance is deliberately loose. This is a smoke test for "attached
+     * to the right place", not a pixel assertion that would break whenever the
+     * popover's padding changes.
+     */
+    await signIn(context, extensionId);
+    await page.goto('/textarea.html');
+    await typeAndWaitForHighlights(page);
+    const clicked = await openPopoverForWord(page, 'chairman');
+
+    const box = await popoverBox(page);
+    expect(box, 'popover element was not found').not.toBeNull();
+
+    // On screen and actually laid out.
+    expect(box.width).toBeGreaterThan(50);
+    expect(box.height).toBeGreaterThan(20);
+
+    const viewport = page.viewportSize();
+    expect(box.x).toBeGreaterThan(-box.width);
+    expect(box.y).toBeGreaterThan(-box.height);
+    expect(box.x).toBeLessThan(viewport.width);
+    expect(box.y).toBeLessThan(viewport.height);
+
+    // And anchored near the word rather than parked in a corner.
+    expect(
+      Math.abs(box.x - clicked.x),
+      `popover x ${box.x} is not near the clicked word at ${Math.round(clicked.x)}`
+    ).toBeLessThan(400);
+    expect(
+      Math.abs(box.y - clicked.y),
+      `popover y ${box.y} is not near the clicked word at ${Math.round(clicked.y)}`
+    ).toBeLessThan(400);
   });
 
   test('renders the explanation markup as elements, not escaped text', async ({

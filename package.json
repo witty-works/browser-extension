@@ -27,7 +27,7 @@
     "test:update-snapshots": "npm run build:test && npx playwright test --update-snapshots"
   },
   "dependencies": {
-    "@floating-ui/react-dom": "^0.4.3",
+    "@floating-ui/react-dom": "^2.1.9",
     "@react-spring/web": "^10.1.2",
     "@sentry/react": "^10.69.0",
     "@sentry/webpack-plugin": "^5.4.0",

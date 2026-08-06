@@ -277,7 +277,35 @@ const openPopoverForWord = async (page, word) => {
     ALTERNATIVE_BTN,
     { timeout: 15000 }
   );
+
+  // Returned so callers can assert the popover is anchored to the word that
+  // opened it, not merely that it exists somewhere on the page.
+  return target;
 };
+
+/** Bounding box of the popover container, shadow-DOM aware. */
+const popoverBox = (page) =>
+  page.evaluate(() => {
+    const walk = (root) => {
+      for (const el of root.querySelectorAll('*')) {
+        if (el.id === 'witty-works-ext-popover') {
+          const r = el.getBoundingClientRect();
+          return {
+            x: Math.round(r.x),
+            y: Math.round(r.y),
+            width: Math.round(r.width),
+            height: Math.round(r.height),
+          };
+        }
+        if (el.shadowRoot) {
+          const hit = walk(el.shadowRoot);
+          if (hit) return hit;
+        }
+      }
+      return null;
+    };
+    return walk(document);
+  });
 
 /**
  * Playwright fixture that launches Chromium with the built extension.
@@ -323,6 +351,7 @@ module.exports = {
   typeAndWaitForHighlights,
   alternativeBoxes,
   openPopoverForWord,
+  popoverBox,
   ALTERNATIVE_BTN,
   FIXTURE_ORIGIN,
   PATH_TO_EXTENSION,

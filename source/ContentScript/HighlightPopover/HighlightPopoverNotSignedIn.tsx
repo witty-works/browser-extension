@@ -162,12 +162,14 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     };
   };
 
-  const {x, y, reference, floating, strategy, refs} = useFloating({
+  // floating-ui v1 replaced the `reference`/`floating` callback refs with
+  // refs.setReference/refs.setFloating; refs.floating still holds the element.
+  const {x, y, strategy, refs} = useFloating({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
 
-  useEffect(() => reference(element), [reference]);
+  useEffect(() => refs.setReference(element), [refs.setReference]);
 
   useEffect(() => {
     document?.addEventListener('click', handleClickOutside);
@@ -223,7 +225,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   return (
     <div
       id='witty-works-ext-popover'
-      ref={floating}
+      ref={refs.setFloating}
       style={PopoverStyling}
       onMouseDown={(e) => e.preventDefault()}
     >

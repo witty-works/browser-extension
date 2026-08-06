@@ -175,7 +175,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     };
   };
 
-  const {x, y, reference, floating, strategy, refs} = useFloating({
+  // floating-ui v1 replaced the `reference`/`floating` callback refs with
+  // refs.setReference/refs.setFloating; refs.floating still holds the element.
+  const {x, y, strategy, refs} = useFloating({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
@@ -191,9 +193,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   }, []);
 
   useEffect(() => {
-    reference(element);
+    refs.setReference(element);
     showLearningBiteRef.current = showLearningBite;
-  }, [reference, showLearningBite]);
+  }, [refs.setReference, showLearningBite]);
 
   useEffect(() => {
     getScrollableParentClosestToElement(element)?.addEventListener(
@@ -507,7 +509,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   return (
     <div
       id='witty-works-ext-popover'
-      ref={floating}
+      ref={refs.setFloating}
       style={{
         position: strategy,
         top: `${y}px`,
