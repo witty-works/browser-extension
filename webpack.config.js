@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const FilemanagerPlugin = require('filemanager-webpack-plugin');
@@ -12,6 +11,7 @@ const WextManifestWebpackPlugin = require('wext-manifest-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const { sentryWebpackPlugin } = require('@sentry/webpack-plugin');
+const { assertNoBakedInCredentials } = require('./build/credentialGuard');
 
 const viewsPath = path.join(__dirname, 'views');
 const sourcePath = path.join(__dirname, 'source');
@@ -54,55 +54,12 @@ const sentryWebpackPluginInstance =
         this.apply = () => {};
       };
 
-/**
- * Static credentials in `source/witty.config.json` are a local-development and
- * CI convenience. `X_KEY` in particular is a *shared* API key, so anything it is
- * compiled into can be unpacked by whoever installs it.
- *
- * `source/shared/constants.ts` forces all three to empty in release builds, but
- * that only empties the exported constants — witty.config.json is imported as a
- * module, so webpack inlines the entire object and the literal values still sit
- * in the bundle for anyone to read. This check, not that gating, is what keeps
- * credentials out of a shipped build.
- */
-const assertNoBakedInCredentials = () => {
-  if (nodeEnv !== 'production') {
-    return;
-  }
-
-  // `build:test` is a production build too, but it is loaded unpacked by
-  // Playwright and never published, so it is exempt. Blocking it would mean a
-  // developer who keeps X_KEY set for local work cannot run the suite at all.
-  //
-  // Note this build really does contain the key: witty.config.json is
-  // imported as a module, so webpack inlines the whole object and every field
-  // survives verbatim, whatever constants.ts does with it afterwards. Do not
-  // publish or upload a TESTING build.
-  if (process.env.TESTING === 'true') {
-    return;
-  }
-
-  const configPath = path.join(sourcePath, 'witty.config.json');
-  if (!fs.existsSync(configPath)) {
-    return;
-  }
-
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const offenders = ['X_KEY', 'ACCESS_TOKEN', 'REFRESH_TOKEN'].filter(
-    (key) => typeof config[key] === 'string' && config[key].trim() !== ''
-  );
-
-  if (offenders.length > 0) {
-    throw new Error(
-      `Refusing to make a production build: ${offenders.join(', ')} ` +
-        `${offenders.length === 1 ? 'is' : 'are'} set in source/witty.config.json. ` +
-        `These are test/CI-only credentials and must never be compiled into a ` +
-        `build that real users install. Clear them, or build with NODE_ENV=development.`
-    );
-  }
-};
-
-assertNoBakedInCredentials();
+// Refuses to compile credentials into a shippable build. See build/credentialGuard.js.
+assertNoBakedInCredentials({
+  nodeEnv,
+  testing: process.env.TESTING === 'true',
+  configPath: path.join(sourcePath, 'witty.config.json'),
+});
 
 const getExtensionFileType = (browser) => {
   if (browser === 'opera') {

@@ -197,6 +197,88 @@ const typeAndWaitForHighlights = async (page, text = SAMPLE_TEXT) => {
   await waitForHighlights(page);
 };
 
+const ALTERNATIVE_BTN = 'witty-works-ext-wittyworks-popover-alternative-btn';
+
+/** Bounding boxes of every alternative button, shadow-DOM aware. */
+const alternativeBoxes = (page) =>
+  page.evaluate((cls) => {
+    const found = [];
+    const walk = (root) => {
+      for (const el of root.querySelectorAll('*')) {
+        if (el.classList.contains(cls)) {
+          const r = el.getBoundingClientRect();
+          found.push({
+            text: el.textContent,
+            x: Math.round(r.x),
+            y: Math.round(r.y),
+            width: Math.round(r.width),
+            height: Math.round(r.height),
+          });
+        }
+        if (el.shadowRoot) walk(el.shadowRoot);
+      }
+    };
+    walk(document);
+    return found;
+  }, ALTERNATIVE_BTN);
+
+/**
+ * Click the highlighted `word` to open its popover.
+ *
+ * The coordinate is measured rather than guessed: the fixture font is
+ * proportional, so the x offset of a word is the rendered width of the text
+ * before it. Guessing put the click on the wrong alert, which silently opened a
+ * popover whose alternatives were all short — and therefore never exercised the
+ * truncation path the popover tests exist to cover.
+ */
+const openPopoverForWord = async (page, word) => {
+  const target = await page.evaluate((needle) => {
+    const el = document.querySelector('#editor');
+    const text = el instanceof HTMLTextAreaElement ? el.value : el.textContent;
+    const index = text.indexOf(needle);
+    if (index === -1) throw new Error(`fixture text has no "${needle}"`);
+
+    const style = getComputedStyle(el);
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.font = style.font || `${style.fontSize} ${style.fontFamily}`;
+
+    const before = ctx.measureText(text.slice(0, index)).width;
+    const half = ctx.measureText(needle).width / 2;
+    const r = el.getBoundingClientRect();
+
+    return {
+      x:
+        r.x +
+        parseFloat(style.paddingLeft) +
+        parseFloat(style.borderLeftWidth) +
+        before +
+        half,
+      // Vertical middle of the first line.
+      y:
+        r.y +
+        parseFloat(style.paddingTop) +
+        parseFloat(style.borderTopWidth) +
+        parseFloat(style.lineHeight) / 2,
+    };
+  }, word);
+
+  await page.mouse.click(target.x, target.y);
+  await page.waitForFunction(
+    (cls) => {
+      const walk = (root) => {
+        for (const el of root.querySelectorAll('*')) {
+          if (el.classList.contains(cls)) return true;
+          if (el.shadowRoot && walk(el.shadowRoot)) return true;
+        }
+        return false;
+      };
+      return walk(document);
+    },
+    ALTERNATIVE_BTN,
+    { timeout: 15000 }
+  );
+};
+
 /**
  * Playwright fixture that launches Chromium with the built extension.
  *
@@ -239,6 +321,9 @@ module.exports = {
   waitForHighlights,
   hasHighlightCanvas,
   typeAndWaitForHighlights,
+  alternativeBoxes,
+  openPopoverForWord,
+  ALTERNATIVE_BTN,
   FIXTURE_ORIGIN,
   PATH_TO_EXTENSION,
 };
