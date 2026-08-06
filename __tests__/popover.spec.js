@@ -107,4 +107,42 @@ test.describe('Popover alternatives', () => {
 
     expect(stillOnButton).toBe(true);
   });
+
+  test('renders the explanation markup as elements, not escaped text', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // The popover feeds the API's long_text through html-react-parser. If that
+    // ever returns a string instead of nodes, the explanation still "renders" —
+    // it just shows the raw tags — which no geometry or screenshot assertion
+    // here would notice.
+    await signIn(context, extensionId);
+    await page.goto('/textarea.html');
+    await typeAndWaitForHighlights(page);
+    await openPopoverForWord(page, 'chairman');
+
+    const parsed = await page.evaluate(() => {
+      const walk = (root) => {
+        for (const el of root.querySelectorAll('*')) {
+          if (el.classList.contains('fixture-emphasis')) {
+            return { tag: el.tagName, text: el.textContent };
+          }
+          if (el.shadowRoot) {
+            const hit = walk(el.shadowRoot);
+            if (hit) return hit;
+          }
+        }
+        return null;
+      };
+      return walk(document);
+    });
+
+    expect(
+      parsed,
+      'explanation markup was not parsed into DOM nodes'
+    ).not.toBeNull();
+    expect(parsed.tag).toBe('STRONG');
+    expect(parsed.text).toBe('explanation');
+  });
 });

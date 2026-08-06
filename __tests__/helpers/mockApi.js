@@ -111,7 +111,10 @@ const buildCheckResult = (alert, index) => ({
   alternatives: alert.alternatives,
   explanation: {
     text: `${alert.label} — fixture explanation`,
-    long_text: `${alert.label} — fixture explanation (long)`,
+    // Real explanations carry markup, and the popover feeds long_text through
+    // html-react-parser. Keeping a tag here is what makes that parsing an
+    // actual code path rather than a string passthrough.
+    long_text: `${alert.label} — fixture <strong class="fixture-emphasis">explanation</strong> (long)`,
     icon: '',
     icon_image: '',
     url: '',
