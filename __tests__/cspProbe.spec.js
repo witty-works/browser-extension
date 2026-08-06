@@ -44,6 +44,35 @@ test('which image sources survive a strict host-page CSP', async ({
           });
         });
 
+      /**
+       * A raster logo wrapped in inline SVG via <image href="data:...">.
+       *
+       * The tempting shortcut when a partner supplies a PNG rather than a
+       * vector: if inline SVG markup escapes img-src, does a bitmap smuggled
+       * inside one escape it too? <image> is a subresource load, so it should
+       * not — but the whole point of this file is not to guess.
+       */
+      const trySvgWrappedRaster = (label) =>
+        new Promise((resolve) => {
+          const host = document.createElement('div');
+          host.innerHTML =
+            '<svg width="40" height="40"><image width="40" height="40" ' +
+            'href="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">' +
+            '</image></svg>';
+          document.body.appendChild(host);
+          const image = host.querySelector('image');
+          image.addEventListener('load', () =>
+            resolve({ label, loaded: true })
+          );
+          image.addEventListener('error', () =>
+            resolve({ label, loaded: false })
+          );
+          document.addEventListener('securitypolicyviolation', (e) => {
+            if (e.blockedURI === 'data') resolve({ label, loaded: false });
+          });
+          setTimeout(() => resolve({ label, loaded: false }), 4000);
+        });
+
       // iframes and <video> are governed by frame-src and media-src, which are
       // separate directives from img-src — an extension-origin exemption for
       // one does not imply it for the others.
@@ -75,6 +104,7 @@ test('which image sources survive a strict host-page CSP', async ({
 
       return Promise.all([
         tryInlineSvg('inline svg markup'),
+        trySvgWrappedRaster('raster inside svg'),
         tryFrame('frame: extension', `chrome-extension://${id}/options.html`),
         tryFrame('frame: remote', 'https://www.youtube.com/embed/dQw4w9WgXcQ'),
         // No extension-origin counterpart: the extension ships no video, and
@@ -127,5 +157,5 @@ test('which image sources survive a strict host-page CSP', async ({
     );
   }
 
-  expect(results.length).toBe(9);
+  expect(results.length).toBe(10);
 });
