@@ -23,6 +23,27 @@ test('which image sources survive a strict host-page CSP', async ({
           setTimeout(() => done(false), 4000);
         });
 
+      /**
+       * Inline SVG markup, as opposed to an <img> pointing at an SVG file.
+       * This is the interesting case for server-supplied logos: markup is DOM,
+       * not a fetched subresource, so img-src should not apply to it at all.
+       * Verified by painted geometry rather than by an onload event, which
+       * inline markup does not fire.
+       */
+      const tryInlineSvg = (label) =>
+        new Promise((resolve) => {
+          const host = document.createElement('div');
+          host.innerHTML =
+            '<svg width="40" height="40" viewBox="0 0 40 40">' +
+            '<rect width="40" height="40" fill="#f06464"></rect></svg>';
+          document.body.appendChild(host);
+          requestAnimationFrame(() => {
+            const svg = host.querySelector('svg');
+            const box = svg && svg.getBoundingClientRect();
+            resolve({ label, loaded: Boolean(box && box.width >= 40) });
+          });
+        });
+
       // iframes and <video> are governed by frame-src and media-src, which are
       // separate directives from img-src — an extension-origin exemption for
       // one does not imply it for the others.
@@ -53,6 +74,7 @@ test('which image sources survive a strict host-page CSP', async ({
         });
 
       return Promise.all([
+        tryInlineSvg('inline svg markup'),
         tryFrame('frame: extension', `chrome-extension://${id}/options.html`),
         tryFrame('frame: remote', 'https://www.youtube.com/embed/dQw4w9WgXcQ'),
         // No extension-origin counterpart: the extension ships no video, and
@@ -105,5 +127,5 @@ test('which image sources survive a strict host-page CSP', async ({
     );
   }
 
-  expect(results.length).toBe(8);
+  expect(results.length).toBe(9);
 });
