@@ -46,6 +46,12 @@
 
 .witty-works-notification-icon {
   margin-left: 0.5em;
+  // The icon is a flex item next to the notification text. Without this it
+  // shrinks horizontally to make room for a long message while keeping its
+  // height, so the logo ends up squashed and clipped on the right.
+  flex-shrink: 0;
+  width: 21px;
+  height: 21px;
 }
 
 .witty-works-ext-container-row {
