@@ -18,7 +18,10 @@
       unsafe-eval — the suite would then fail on the harness rather than on the
       behaviour under test.
     -->
-    <meta http-equiv="Content-Security-Policy" content="img-src 'self'" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="img-src 'self'; frame-src 'self'; media-src 'self'"
+    />
     <link rel="stylesheet" href="/fixture.css" />
   </head>
   <body>

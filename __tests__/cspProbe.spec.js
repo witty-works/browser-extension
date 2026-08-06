@@ -23,7 +23,45 @@ test('which image sources survive a strict host-page CSP', async ({
           setTimeout(() => done(false), 4000);
         });
 
+      // iframes and <video> are governed by frame-src and media-src, which are
+      // separate directives from img-src — an extension-origin exemption for
+      // one does not imply it for the others.
+      const tryFrame = (label, src) =>
+        new Promise((resolve) => {
+          const f = document.createElement('iframe');
+          f.style.display = 'none';
+          f.onload = () => resolve({ label, loaded: true });
+          f.onerror = () => resolve({ label, loaded: false });
+          document.addEventListener('securitypolicyviolation', (e) => {
+            if (e.blockedURI && src.startsWith(e.blockedURI.slice(0, 20))) {
+              resolve({ label, loaded: false });
+            }
+          });
+          f.src = src;
+          document.body.appendChild(f);
+          setTimeout(() => resolve({ label, loaded: false }), 4000);
+        });
+
+      const tryMedia = (label, src) =>
+        new Promise((resolve) => {
+          const v = document.createElement('video');
+          v.muted = true;
+          v.onloadedmetadata = () => resolve({ label, loaded: true });
+          v.onerror = () => resolve({ label, loaded: false });
+          v.src = src;
+          setTimeout(() => resolve({ label, loaded: false }), 4000);
+        });
+
       return Promise.all([
+        tryFrame('frame: extension', `chrome-extension://${id}/options.html`),
+        tryFrame('frame: remote', 'https://www.youtube.com/embed/dQw4w9WgXcQ'),
+        // No extension-origin counterpart: the extension ships no video, and
+        // pointing <video> at the gif would report "blocked" for the wrong
+        // reason — a decode failure, not the policy.
+        tryMedia(
+          'video: remote',
+          'https://www.witty.works/assets/media/Agentic%20Language.mp4'
+        ),
         tryLoad('same-origin', '/dot.gif'),
         tryLoad(
           'remote https',
@@ -67,5 +105,5 @@ test('which image sources survive a strict host-page CSP', async ({
     );
   }
 
-  expect(results.length).toBe(5);
+  expect(results.length).toBe(8);
 });
