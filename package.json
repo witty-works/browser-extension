@@ -48,7 +48,7 @@
     "lodash.throttle": "^4.1.1",
     "node-fetch": "^3.3.2",
     "object_values": "^0.1.2",
-    "posthog-js-lite": "^2.6.2",
+    "posthog-js-lite": "^4.10.3",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-i18next": "^11.18.6",
