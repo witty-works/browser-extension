@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>strict CSP fixture</title>
+    <!--
+      Stands in for the many sites people actually write on — GitHub, Google,
+      corporate intranets — that ship a restrictive img-src. The extension
+      injects its notification and popover into the host document, so this
+      policy, not the extension's own, decides whether their images load.
+
+      'self' here means localhost:5174, so anything the extension renders from
+      witty.works or from its own chrome-extension:// origin is subject to it.
+    -->
+    <!--
+      img-src only. Constraining default-src as well would be more realistic,
+      but it also blocks Playwright's own waitForFunction, which needs
+      unsafe-eval — the suite would then fail on the harness rather than on the
+      behaviour under test.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="img-src 'self'" />
+    <link rel="stylesheet" href="/fixture.css" />
+  </head>
+  <body>
+    <textarea id="editor" class="editor" spellcheck="false"></textarea>
+  </body>
+</html>

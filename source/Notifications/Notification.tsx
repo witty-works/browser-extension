@@ -180,7 +180,12 @@ const Notification: React.FC<NotificationProps> = ({
       {notificationType === 'pin' && (
         <img
           className='witty-works-pin-gif'
-          src='https://www.witty.works/assets/media/pin_witty-2.gif'
+          // Served from the extension rather than from witty.works. This
+          // notification is injected into the host page, so the host page's
+          // img-src decides whether the image loads — and a strict policy
+          // blocks a remote URL outright. Only the extension's own origin
+          // (via web_accessible_resources) survives; data: and blob: do not.
+          src={browser.runtime.getURL('assets/media/pin-witty.gif')}
           alt='pin-extension'
         />
       )}
