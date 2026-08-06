@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>maximally strict CSP fixture</title>
+    <!--
+      Harsher than csp.html: 'none' rather than 'self'. csp.html shows that
+      extension-origin images and frames survive a policy that allows the page
+      its own origin — but 'self' never covered chrome-extension: anyway, so
+      that result only hints the exemption is scheme-based. This fixture is
+      what settles it, and it is the policy the strictest real sites ship.
+
+      script-src is left alone so Playwright can still evaluate in the page.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="img-src 'none'; frame-src 'none'; media-src 'none'"
+    />
+    <link rel="stylesheet" href="/fixture.css" />
+  </head>
+  <body>
+    <textarea id="editor" class="editor" spellcheck="false"></textarea>
+  </body>
+</html>

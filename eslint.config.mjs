@@ -159,6 +159,17 @@ export default [
   },
 
   {
+    // Specs are Node on the outside, but the bodies of page.evaluate and
+    // waitForFunction are serialised and run in the browser, where browser
+    // APIs are exactly what is wanted. The Node-support rules cannot tell the
+    // two apart and flag the browser halves as unsupported builtins.
+    files: ['__tests__/**/*.js'],
+    rules: {
+      'n/no-unsupported-features/node-builtins': 'off',
+    },
+  },
+
+  {
     // This file monkey-patches CanvasRenderingContext2D methods and forwards
     // via `arguments`, so the declared parameters exist only to keep each
     // replacement's `length` equal to the method it stands in for. They are
