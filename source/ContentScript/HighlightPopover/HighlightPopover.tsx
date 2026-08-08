@@ -75,6 +75,12 @@ interface PopoverProps {
   getLLMSuggestions: (
     req: IGetLLMSuggestionsRequest
   ) => LLMAlternativesCacheValue | undefined;
+  /**
+   * True when the popover was opened via the keyboard shortcut: the popover
+   * then takes focus so it can be operated without a mouse. Mouse-opened
+   * popovers must never steal focus from the input the user is typing in.
+   */
+  focusOnOpen: boolean;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -87,6 +93,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   movePopoverNextOrPrev: updatePopover,
   setLLMSuggestionsRequest,
   getLLMSuggestions,
+  focusOnOpen,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
@@ -229,6 +236,46 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     };
   }, [refs.floating.current]);
 
+  // Keyboard-opened popovers take focus so their controls are reachable with
+  // Tab; re-focus on every alert change so shortcut navigation keeps working.
+  useEffect(() => {
+    if (!focusOnOpen) {
+      return;
+    }
+    refs.floating.current?.focus();
+  }, [data.alert.id, focusOnOpen, refs.floating.current]);
+
+  useEffect(() => {
+    const activeDoc = getActiveDocument();
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      const focusWasInside = refs.floating.current?.contains(
+        document.activeElement
+      );
+      hidePopover(true);
+      // Only pull focus back to the input when the popover held it; otherwise
+      // the user is somewhere else (e.g. still typing) and focus must stay.
+      if (focusWasInside) {
+        (element as HTMLElement).focus?.();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeydown, true);
+    if (activeDoc !== document) {
+      activeDoc?.addEventListener('keydown', handleKeydown, true);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeydown, true);
+      if (activeDoc !== document) {
+        activeDoc?.removeEventListener('keydown', handleKeydown, true);
+      }
+    };
+  }, [refs.floating.current]);
+
   const handleElementScroll = () => {
     hidePopover();
   };
@@ -283,7 +330,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     }
   };
 
-  const clickAlternative = (e: MouseEvent, alternative: string) => {
+  const clickAlternative = (
+    e: MouseEvent | KeyboardEvent,
+    alternative: string
+  ) => {
     //Log the clicked alternative
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -328,6 +378,20 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       });
     updateTextWithAlternative(alternative);
   };
+
+  /**
+   * Keyboard counterpart of the pointer handlers on the alternative buttons.
+   * Applying an alternative targets the focused element (`execCommand` and the
+   * selection APIs), so focus is returned to the input before replacing.
+   */
+  const alternativeKeyDown =
+    (alternative: string) => (e: React.KeyboardEvent) => {
+      if (e.key !== 'Enter' && e.key !== ' ') {
+        return;
+      }
+      (element as HTMLElement).focus?.();
+      clickAlternative(e.nativeEvent, alternative);
+    };
 
   const handleIgnoreClick = (ignoreType: string) => () => {
     analytics.ignoreLog(data.alert);
@@ -510,6 +574,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     <div
       id='witty-works-ext-popover'
       ref={refs.setFloating}
+      role='dialog'
+      aria-label={t('suggestionsDialog')}
+      tabIndex={-1}
       style={{
         position: strategy,
         top: `${y}px`,
@@ -645,7 +712,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     className='witty-works-ext-container-row witty-works-ext-justify-end witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
                     style={{marginTop: showLearningBite ? '0em' : '1em'}}
                   >
-                    <div
+                    <button
+                      type='button'
                       className='witty-works-ext-dropdown-select witty-works-ext-container-row'
                       onClick={() => {
                         analytics.popoverLogs(data.alert, 'learning_bites');
@@ -656,8 +724,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           ? 'pointer'
                           : 'default',
                       }}
-                      role='button'
-                      tabIndex={0}
+                      aria-expanded={showLearningBite}
                       aria-label={t('leanrMoreExtendedText')}
                       title={t('leanrMoreExtendedText')}
                     >
@@ -675,7 +742,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       >
                         {showLearningBite ? <ArrowUpIcon /> : <ArrowDownIcon />}
                       </div>
-                    </div>
+                    </button>
                     {data.alert.data?.source?.url && (
                       <a
                         className='witty-works-ext-dropdown-select witty-works-ext-container-row'
@@ -768,15 +835,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     }}
                     key={`${index}-${alternative.text || 'alt'}-container`}
                   >
-                    <div
+                    <button
+                      type='button'
                       className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-remove-text witty-works-ext-margin-right'
                       key={`${index}-${alternative.text || 'alt'}-remove-it`} //string can not be empty because of replacement issue on firefox
                       onPointerDown={(e) =>
                         clickAlternative(e.nativeEvent, ' ')
                       }
+                      onKeyDown={alternativeKeyDown(' ')}
+                      aria-label={`${t('removeText')} ${data.alert.data?.text}`}
+                      title={t('removeText')}
                     >
                       {data.alert.data?.text}
-                    </div>
+                    </button>
                     {alternative.context && (
                       <div className='witty-works-ext-wittyworks-popover-alternative-context'>
                         {alternative.context}
@@ -794,7 +865,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       setAlternativeHovered(null);
                     }}
                   >
-                    <div
+                    <button
+                      type='button'
                       className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
                       onPointerDown={(e) =>
                         clickAlternative(
@@ -802,13 +874,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                           data.alert.data?.alternatives[index]?.text
                         )
                       }
-                      role='button'
-                      tabIndex={0}
+                      onKeyDown={alternativeKeyDown(
+                        data.alert.data?.alternatives[index]?.text
+                      )}
                       aria-label={data.alert.data?.alternatives[index]?.text}
                       title={data.alert.data?.alternatives[index]?.text}
                     >
                       {renderAlternative(alternative)}
-                    </div>
+                    </button>
                     {alternative && alternative.context && (
                       <div
                         className='witty-works-ext-wittyworks-popover-alternative-context'

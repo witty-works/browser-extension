@@ -41,6 +41,8 @@ interface PopoverProps {
   data: PopoverData;
   prevData: PopoverData | null;
   hide: () => void;
+  /** See HighlightPopover: take focus when opened via the keyboard shortcut. */
+  focusOnOpen: boolean;
 }
 
 const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
@@ -48,6 +50,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   data,
   prevData,
   hide,
+  focusOnOpen,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
@@ -193,6 +196,42 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     };
   }, [refs.floating.current]);
 
+  useEffect(() => {
+    if (!focusOnOpen) {
+      return;
+    }
+    refs.floating.current?.focus();
+  }, [data.alert.id, focusOnOpen, refs.floating.current]);
+
+  useEffect(() => {
+    const activeDoc = getActiveDocument();
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      const focusWasInside = refs.floating.current?.contains(
+        document.activeElement
+      );
+      hidePopover(true);
+      if (focusWasInside) {
+        (element as HTMLElement).focus?.();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeydown, true);
+    if (activeDoc !== document) {
+      activeDoc?.addEventListener('keydown', handleKeydown, true);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeydown, true);
+      if (activeDoc !== document) {
+        activeDoc?.removeEventListener('keydown', handleKeydown, true);
+      }
+    };
+  }, [refs.floating.current]);
+
   const handleClickOutside = (event: MouseEvent) => {
     const hasClickedOutsidePopOver: boolean | null =
       refs.floating.current &&
@@ -226,6 +265,9 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     <div
       id='witty-works-ext-popover'
       ref={refs.setFloating}
+      role='dialog'
+      aria-label={t('suggestionsDialog')}
+      tabIndex={-1}
       style={PopoverStyling}
       onMouseDown={(e) => e.preventDefault()}
     >
@@ -242,8 +284,9 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
           >
             <WittyLogo alt={t('wittyLogo')} />
           </a>
-          <div
-            className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+          <button
+            type='button'
+            className='witty-works-button witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
             onClick={() => {
               hidePopover(true);
             }}
@@ -251,7 +294,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             title={t('close')}
           >
             <CloseIcon alt={t('close')} />
-          </div>
+          </button>
         </div>
 
         <div className='witty-works-ext-separator' />
@@ -302,7 +345,8 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
         </div>
 
         <div className='witty-works-ext-left witty-works-ext-margin-bottom'>
-          <div
+          <button
+            type='button'
             className='witty-works-ext-button witty-works-ext-primary-button-red'
             onClick={() => {
               setSignInError(false);
@@ -314,12 +358,13 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             }}
           >
             {t('signIn')}
-          </div>
+          </button>
           <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
             {t('dontHaveAccount')}
             &nbsp;
-            <span
-              className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
+            <button
+              type='button'
+              className='witty-works-button witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
               onClick={() => {
                 setSignInError(false);
                 logIn(true).catch((error) => {
@@ -330,7 +375,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
               }}
             >
               {t('signUp')}
-            </span>
+            </button>
           </div>
         </div>
         {/*
