@@ -17,7 +17,6 @@ import {
 } from '../shared/ApiServices/requests';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../i18n/i18n.constants';
-// import Notification from '../Notifications/Notification'; //Temporarily removed until we have a better solution
 import TextAreaClone from './TextAreaClone';
 import renderNotificationToTop from '../Notifications/renderNotification';
 import {useLog, logTypes} from '../shared/customHooks/useLog';
@@ -79,8 +78,6 @@ import {MessageTypes} from '../shared/messages';
 const Input: React.FC<{
   element: CustomInputElement;
 }> = ({element}) => {
-  // const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
-  //   useCheckEndpoint();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
   const [, , previousElementStateRef] = useStateRef<{
@@ -121,7 +118,6 @@ const Input: React.FC<{
     defaultConfig.API_DELAY
   );
   const [userIsSignedIn, setUserIsSignedIn] = useState<boolean>(false);
-  // const minCharLength = defaultConfig.MIN_CHAR_LENGTH;
   const totalMaxCharLength = defaultConfig.MAX_CHAR_LENGTH_TOTAL;
   const [, , totalMaxCharLengthReachedRef] = useStateRef<boolean>(false);
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
@@ -720,7 +716,6 @@ const Input: React.FC<{
       }
     }
 
-    event?.stopPropagation();
     if (popoverDataRef.current !== null)
       previousPopoverDataRef.current = popoverDataRef.current;
     popoverDataRef.current = null;
@@ -924,7 +919,6 @@ const Input: React.FC<{
         setSelectedAlertIndex(selectedAlertIndex + 1);
       }
     }
-    event?.stopPropagation();
   };
 
   const openFirstAlertPopover = (): void => {
@@ -1084,7 +1078,6 @@ const Input: React.FC<{
 
     setActiveIcon('active');
     setAlerts([...checkEndpointCachedResponse.alerts]);
-    // console.log('NEWALERTS', checkEndpointCachedResponse.alerts);
   }, [checkEndpointCachedResponse]);
 
   useEffect(() => {

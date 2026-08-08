@@ -79,7 +79,12 @@ const ContentScriptApp: React.FC = () => {
 
   useEffect(() => {
     if (isGoogleSearch()) return;
-    if (isMicrosoftOnline(window.location.href)) return; //needed in addition to the deny list because of iframes
+    // Disables the extension on all Microsoft Online surfaces (Word, Excel,
+    // PowerPoint, Outlook 365, Sharepoint) — needed in addition to the deny
+    // list because of iframes. Every Microsoft-specific branch further down
+    // (Word focus handling, the Excel formula-bar case) is unreachable until
+    // this early return is lifted; they are kept for that eventuality.
+    if (isMicrosoftOnline(window.location.href)) return;
 
     browser.storage.local
       .get(null)
