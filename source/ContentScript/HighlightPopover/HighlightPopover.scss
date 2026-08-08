@@ -54,9 +54,32 @@
   padding: 3px 8px;
   border-radius: 4px;
   cursor: pointer;
+  // The alternatives are real <button>s (keyboard operable); undo the UA
+  // button chrome without the blanket .witty-works-button !important reset,
+  // which would also kill this class's background and padding.
+  border: none;
+  font: inherit;
+  text-align: left;
 
   &.witty-works-ext-remove-text {
     text-decoration: line-through !important;
+  }
+}
+
+// The "learn more" toggle is a <button> sharing the dropdown-select look with
+// the neighboring <a>; strip only the UA button background.
+button.witty-works-ext-dropdown-select {
+  background: none;
+}
+
+// Keyboard focus must stay visible inside the popover: this outranks the
+// `outline: none !important` in the .witty-works-button reset (higher
+// specificity, later in the cascade).
+#witty-works-ext-popover {
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid $wittyPurple !important;
+    outline-offset: 1px;
   }
 }
 
