@@ -11,7 +11,7 @@ export const useResizeObserver = (element: HTMLElement): DOMRect => {
   const updateRect = () => {
     const {width, height, top, left} = element.getBoundingClientRect();
 
-    const scrollTop = isGoogleDocs()
+    const scrollTop = isGoogleDocs(element)
       ? getScrollableParentClosestToElement(element).scrollTop
       : doc.scrollTop;
 

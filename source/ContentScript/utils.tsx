@@ -7,7 +7,7 @@ import ContentScriptApp, {getActiveDocument} from './ContentScriptApp';
 import {diffChars, diffWords, DiffWordsOptionsNonabortable} from 'diff';
 
 export const getInputText = (element: CustomInputElement | any) => {
-  if (isGoogleDocs()) {
+  if (isGoogleDocs(element)) {
     let text = '';
     if (element.childNodes) {
       for (let i = 0; i < element.childNodes.length; i++) {
@@ -318,7 +318,7 @@ export const getNodesWithNewlines = (
 export const getTextDividedByNodes = (
   element: CustomInputElement
 ): {node: Node; text: string}[] => {
-  if (isGoogleDocs()) {
+  if (isGoogleDocs(element)) {
     const clone = findCloneContainer();
     const divs = [] as Node[];
     if (clone?.firstChild) {

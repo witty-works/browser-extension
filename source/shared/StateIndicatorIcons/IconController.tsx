@@ -38,7 +38,7 @@ const IconController: React.FC<IconControllerProps> = ({
   isHovered,
 }: IconControllerProps) => {
   const ref = useRef<HTMLDivElement>({} as HTMLDivElement);
-  const fixedPositionIcon = isGoogleDocs();
+  const fixedPositionIcon = isGoogleDocs(element);
   let iconPositionGoogleDocs = {top: 0, left: 0};
   if (!elementRect) {
     elementRect = element.getBoundingClientRect();

@@ -11,8 +11,20 @@ export const isInShadowDOM = (element: Element) =>
 export const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
 
-export const isGoogleDocs = (): boolean =>
-  window.location.href.includes('docs.google.com/document');
+/**
+ * Whether the kix-canvas handling applies. Location alone is not enough: a
+ * Google Docs page also contains ordinary contenteditables — the comment and
+ * reply boxes — which must be treated like any other contenteditable input
+ * (#1078). Pass the element whenever one is in scope; the bare form remains
+ * for page-level decisions (script wiring, observers).
+ */
+export const isGoogleDocs = (element?: Element | null): boolean => {
+  if (!window.location.href.includes('docs.google.com/document')) {
+    return false;
+  }
+
+  return !(element && isHTMLElementContentEditable(element));
+};
 
 export const isGmail = (): boolean =>
   window.location.hostname === 'mail.google.com';

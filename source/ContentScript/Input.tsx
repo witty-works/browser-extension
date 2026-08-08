@@ -147,7 +147,7 @@ const Input: React.FC<{
 
   const onElementMutation = useCallback(
     (mutationsList: MutationRecord[]) => {
-      if (isGoogleDocs()) {
+      if (isGoogleDocs(element)) {
         setActiveIcon('loading');
         debouncedMutation();
       } else {
@@ -196,7 +196,7 @@ const Input: React.FC<{
       !pagesZIndex.every((page) =>
         previouslyCheckedPagesGoogleDocs.current.includes(page)
       ) &&
-      isGoogleDocs()
+      isGoogleDocs(element)
     ) {
       previouslyCheckedPagesGoogleDocs.current = [
         ...new Set([
@@ -236,7 +236,7 @@ const Input: React.FC<{
     if (newScrollableParent)
       firstScrollableParentRef.current = newScrollableParent;
 
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       setIsFocused(true);
     } else {
       element?.addEventListener('focusout', handleFocusoutEvent);
@@ -255,7 +255,7 @@ const Input: React.FC<{
       handleElementClickEventWrapper as any
     );
 
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       document?.addEventListener(
         'click',
         handleDocumentClickEvent as EventListener
@@ -275,7 +275,7 @@ const Input: React.FC<{
 
     return () => {
       //Don't forget to remove the listeners at the end
-      if (!isGoogleDocs()) {
+      if (!isGoogleDocs(element)) {
         element.removeEventListener('focusout', handleFocusoutEvent);
         element.removeEventListener('focusin', handleFocusinEvent);
       }
@@ -294,7 +294,7 @@ const Input: React.FC<{
         handleElementClickEventWrapper as any
       );
 
-      if (isGoogleDocs()) {
+      if (isGoogleDocs(element)) {
         document.removeEventListener(
           'click',
           handleDocumentClickEvent as EventListener
@@ -313,7 +313,7 @@ const Input: React.FC<{
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
     const activeDocument = getActiveDocument();
     if (
-      isGoogleDocs() &&
+      isGoogleDocs(element) &&
       !activeDocument.getElementById('witty-works-ext-popover')
     ) {
       // Recalculate alert rects for Google Docs and pick alerts under the caret/click
@@ -432,7 +432,7 @@ const Input: React.FC<{
 
     const targetElement = isNotion()
       ? document.querySelector('.notion-frame')
-      : isGoogleDocs()
+      : isGoogleDocs(element)
         ? (document.querySelector('.docs-texteventtarget-iframe') as any)
             ?.contentDocument?.activeElement
         : element;
@@ -446,7 +446,7 @@ const Input: React.FC<{
     return () => {
       const targetElement = isNotion()
         ? document.querySelector('.notion-frame')
-        : isGoogleDocs()
+        : isGoogleDocs(element)
           ? (document.querySelector('.docs-texteventtarget-iframe') as any)
               ?.contentDocument?.activeElement
           : element;
@@ -500,14 +500,16 @@ const Input: React.FC<{
   };
 
   const handleKeyupEventDebounced = debounce((keyboardEvent: KeyboardEvent) => {
-    if (prevSelectedAlertIndex.current != -1 && !isGoogleDocs()) resetPopover();
+    if (prevSelectedAlertIndex.current != -1 && !isGoogleDocs(element))
+      resetPopover();
     const isSpecialKey =
       !keyboardEvent?.key ||
       keyboardEvent.key === 'z' ||
       keyboardEvent.key === 'Meta';
-    !isGoogleDocs() && (element.spellcheck = !elementSpellcheckRef.current);
+    !isGoogleDocs(element) &&
+      (element.spellcheck = !elementSpellcheckRef.current);
 
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       googleDocsMutationHandler();
     }
 
@@ -527,7 +529,7 @@ const Input: React.FC<{
     if (isTextArea(element)) {
       handleTextAndIcon();
     } else {
-      !isGoogleDocs() && setAlerts([]);
+      !isGoogleDocs(element) && setAlerts([]);
       handleTextAndIcon();
     }
 
@@ -539,7 +541,7 @@ const Input: React.FC<{
 
   const handleTextChanged = () => {
     const nextText: string = getInputText(
-      isGoogleDocs() ? cloneRef.current : element
+      isGoogleDocs(element) ? cloneRef.current : element
     );
     const previousText = prevTextRef.current;
 
@@ -557,7 +559,7 @@ const Input: React.FC<{
 
   const handleTextAndIcon = () => {
     const nextText: string = getInputText(
-      isGoogleDocs() ? cloneRef.current : element
+      isGoogleDocs(element) ? cloneRef.current : element
     );
     setCurrentTextToCheck(nextText); //for check call after refresh token
     if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
@@ -612,7 +614,7 @@ const Input: React.FC<{
       debouncedScroll();
     }
 
-    !isGoogleDocs() &&
+    !isGoogleDocs(element) &&
       setElementScroll({
         top: isTextArea(element) ? element.scrollTop : 0,
         left: isTextArea(element)
@@ -634,7 +636,7 @@ const Input: React.FC<{
   const docTextEvaluation = (element: HTMLElement, clone: HTMLElement) => {
     const elementEvaluation: XPathResult = getActiveDocument().evaluate(
       './/text()',
-      isGoogleDocs() && clone.nodeType == 1 ? clone : element,
+      isGoogleDocs(element) && clone.nodeType == 1 ? clone : element,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
@@ -645,7 +647,7 @@ const Input: React.FC<{
 
   const updateCloneData = (newClone: HTMLDivElement) => {
     setClone(newClone);
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       const event = new KeyboardEvent('keyup');
       handleKeyupEventDebounced(event);
       handleTextChanged();
@@ -954,7 +956,7 @@ const Input: React.FC<{
           ]
         : getNodesWithRecalculatedPositionAlerts(
             alertsWithoutIgnoredTermsGravityReduced,
-            isGoogleDocs()
+            isGoogleDocs(element)
               ? getActiveDocument().evaluate(
                   './/text()',
                   clone,
@@ -1159,7 +1161,7 @@ const Input: React.FC<{
               : textStartingAbsPosition + node.nodeValue.length;
 
           if (nodesForCalculation.length == 0) {
-            const nextText: string = isGoogleDocs()
+            const nextText: string = isGoogleDocs(element)
               ? getInputText(cloneRef.current)
               : getInputText(element);
             if (nextText.charAt(textEndAbsPosition + 1).match(/\n/gi)) {
@@ -1288,7 +1290,7 @@ const Input: React.FC<{
             element.dispatchEvent(event);
           }, 200);
         }, 200);
-      } else if (isGoogleDocs()) {
+      } else if (isGoogleDocs(element)) {
         setActiveIcon('loading');
         setAlerts([]);
 
@@ -1364,7 +1366,7 @@ const Input: React.FC<{
       );
       if (unchangedAlerts[0]) setAlerts(unchangedAlerts[0]);
     }
-    if (!isCkEditor(element) && !isGoogleDocs()) {
+    if (!isCkEditor(element) && !isGoogleDocs(element)) {
       handleTextAndIcon(); //ensures update
       const event = new KeyboardEvent('keyup');
       handleKeyupEventDebounced(event);
@@ -1505,7 +1507,7 @@ const Input: React.FC<{
               />
             </WTags.WW_CLONE>
           )}
-          {isGoogleDocs() && <WTags.WW_CLONE />}
+          {isGoogleDocs(element) && <WTags.WW_CLONE />}
           <WTags.WW_HIGHLIGHTS>
             <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
               <Highlights
