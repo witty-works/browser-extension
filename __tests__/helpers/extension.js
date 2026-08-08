@@ -283,6 +283,30 @@ const openPopoverForWord = async (page, word) => {
   return target;
 };
 
+/**
+ * Simulate the "open-highlight-popover" keyboard shortcut.
+ *
+ * Playwright cannot press extension command shortcuts — they are handled by
+ * the browser UI layer, never delivered to the page — so this enters the same
+ * path one step further in: the background worker forwarding the command to
+ * the active tab (see Background/index.tsx). The manifest registration itself
+ * is covered separately via chrome.commands.getAll().
+ */
+const pressOpenPopoverShortcut = async (context) => {
+  let [worker] = context.serviceWorkers();
+  if (!worker) {
+    worker = await context.waitForEvent('serviceworker');
+  }
+
+  await worker.evaluate(async () => {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    await chrome.tabs.sendMessage(tab.id, { type: 'witty:open-popover' });
+  });
+};
+
 /** Bounding box of the popover container, shadow-DOM aware. */
 const popoverBox = (page) =>
   page.evaluate(() => {
@@ -352,6 +376,7 @@ module.exports = {
   alternativeBoxes,
   openPopoverForWord,
   popoverBox,
+  pressOpenPopoverShortcut,
   ALTERNATIVE_BTN,
   FIXTURE_ORIGIN,
   PATH_TO_EXTENSION,
