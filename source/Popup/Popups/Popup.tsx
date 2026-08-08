@@ -134,9 +134,24 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
   useEffect(() => {
     if (!domain) return;
     if (enabled.updateDashboard) {
-      handleDomainToUpdate({
-        domain: domain,
-        enabled: enabled.enabled,
+      // Sync the dashboard for the top-level domain *and* every iframe
+      // domain Witty was toggled for locally. Sites like Hubspot render
+      // their editor inside an iframe served from a different domain than
+      // the tab itself, so the top-level domain alone is not what the
+      // editor is checked against. Skipping the iframe domains here left
+      // the dashboard's disabled-domains list out of sync with what
+      // handleEnable had just written to local storage, so Witty's
+      // highlights kept reappearing in the iframe after a reload even
+      // though the toggle showed "disabled" (#1388).
+      const domainsToUpdate = [domain, ...iFrameDomains].filter(
+        (item, index, array) => !!item && array.indexOf(item) === index
+      );
+
+      domainsToUpdate.forEach((domainToUpdate) => {
+        handleDomainToUpdate({
+          domain: domainToUpdate,
+          enabled: enabled.enabled,
+        });
       });
     }
   }, [enabled]);
