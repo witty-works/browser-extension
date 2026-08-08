@@ -222,26 +222,17 @@ test.describe('Popover ignore flows', () => {
     expect(ignoreRequests[0].url).toContain('false_positive=guys');
 
     /**
-     * `handleIgnoreClick`'s success branch calls `addIgnoredTerm` before
-     * scheduling `browser.alarms.create('hidePopoverAlarm', ...)` to close the
-     * popover ~1s later. That schedule never fires here: `manifest.json` does
-     * not request the "alarms" permission, and `browser.alarms` is not among
-     * the extension APIs Chrome exposes to content scripts at all, permission
-     * or not — so the popover stays open. Pinned explicitly so a refactor that
-     * changes this (e.g. by actually closing the popover, or by requesting the
-     * permission) does so knowingly rather than by accident.
+     * On success the popover shows the check mark briefly and then closes
+     * itself (~1s). Historically this never worked: the delayed close used
+     * `browser.alarms`, an API content scripts cannot access at all, and the
+     * throw was silently swallowed — so the popover stayed open forever. The
+     * de-browserification of the popover (EDITOR_COMPONENT_PLAN.md Phase 1
+     * item 4) replaced it with a plain timeout, restoring the intended
+     * behavior, which is what is pinned here.
      */
-    await page.waitForTimeout(1500);
-    expect(
-      await popoverIsOpen(page),
-      'ignore permanently is not expected to auto-close the popover (browser.alarms is unavailable here)'
-    ).toBe(true);
-
-    // The ignore itself did take effect despite the popover staying open:
-    // closing it manually and reopening elsewhere shows "guys" gone.
-    await clickByAriaLabel(page, 'Close Witty');
     await waitForPopoverClosed(page);
 
+    // And the ignore took effect: reopening elsewhere shows "guys" gone.
     await openPopoverForWord(page, 'chairman');
     expect(await counterText(page)).toBe('1 of 2');
   });

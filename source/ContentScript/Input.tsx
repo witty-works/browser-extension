@@ -3,7 +3,18 @@ import browser, {Runtime} from 'webextension-polyfill';
 import {Root, createRoot} from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import defaultConfig from '../witty.config.json';
-import {WTags, StorageKeys, DEV_ENV} from '../shared/constants';
+import {
+  WTags,
+  StorageKeys,
+  DEV_ENV,
+  isDashboardAvailable,
+} from '../shared/constants';
+import {readAccessToken} from '../shared/tokenStore';
+import {
+  createUrl,
+  getBaseUrls,
+  buildRequestHeaders,
+} from '../shared/ApiServices/requests';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../i18n/i18n.constants';
 // import Notification from '../Notifications/Notification'; //Temporarily removed until we have a better solution
@@ -720,6 +731,92 @@ const Input: React.FC<{
 
   const addIgnoredTerm = (term: string): void => {
     setIgnoredTerms([...ignoredTerms, term]);
+  };
+
+  // Popover configuration and services. The popover itself is being weaned
+  // off extension APIs (EDITOR_COMPONENT_PLAN.md, Phase 1 item 4): it renders
+  // outcomes, while storage reads, dashboard requests, and notification
+  // bookkeeping stay with the host.
+  const [llmAlternativesEnabled, setLlmAlternativesEnabled] =
+    useState<boolean>(false);
+  const [dashboardAvailable, setDashboardAvailable] = useState<boolean>(true);
+
+  useEffect(() => {
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        setLlmAlternativesEnabled(!!result[StorageKeys.LLM_ALTERNATIVES]);
+        setDashboardAvailable(isDashboardAvailable(result));
+      })
+      .catch((error) => sendErrorToSentry(error));
+  }, []);
+
+  const ignoreTermPermanently = async (term: string): Promise<void> => {
+    const accessToken = await readAccessToken().catch(() => '');
+    const requestUrl = createUrl(
+      getBaseUrls().dashboard,
+      `api/user/language/ignore-words?false_positive=${term}`
+    );
+
+    let response: Response;
+    try {
+      response = await fetch(requestUrl, {
+        method: 'PUT',
+        headers: buildRequestHeaders(accessToken),
+      });
+    } catch (error) {
+      // Network failures are reported; a non-204 below is a user-visible
+      // failure state but not an error condition worth a Sentry event.
+      sendErrorToSentry(error);
+      throw error;
+    }
+
+    if (response.status !== 204) {
+      throw new Error(`ignore-words returned ${response.status}`);
+    }
+  };
+
+  const onAlternativeAccepted = (): void => {
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        const {
+          [StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]: alternativesAccepted,
+          [StorageKeys.INVITE_TEAM_FEATURE_FLAG]: teamInviteFlag,
+          [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
+        } = result;
+
+        // The 'salesDemo' prompt ("book a demo") went with the rest of the
+        // upselling, and the /demo page it linked to no longer exists.
+        if (!teamInviteFlag?.active || !friendInviteFlag?.active) {
+          //reset counter if a feature flag is diabled, maybe need to rethink this?
+          storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0);
+        } else {
+          const incrementedAlternativesAccepted = alternativesAccepted + 1;
+          if (
+            incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber ||
+            incrementedAlternativesAccepted === friendInviteFlag?.triggerNumber
+          ) {
+            const notificationType =
+              incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber
+                ? 'inviteTeam'
+                : 'inviteFriends';
+
+            try {
+              window.top && renderNotificationToTop(notificationType, element);
+            } catch (error) {
+              DEV_ENV && console.error('Error in renderNotification:', error);
+            }
+          }
+        }
+        storeInLocalStorage(
+          StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED,
+          alternativesAccepted ? alternativesAccepted + 1 : 1
+        );
+      })
+      .catch((error) => {
+        sendErrorToSentry(error);
+      });
   };
 
   const handleElementClickEvent = (event: MouseEvent) => {
@@ -1560,6 +1657,10 @@ const Input: React.FC<{
             setLLMSuggestionsRequest={setLLMSuggestionsRequest}
             getLLMSuggestions={getLLMSuggestions}
             focusOnOpen={openedViaKeyboardRef.current}
+            llmAlternativesEnabled={llmAlternativesEnabled}
+            dashboardAvailable={dashboardAvailable}
+            ignoreTermPermanently={ignoreTermPermanently}
+            onAlternativeAccepted={onAlternativeAccepted}
           />
         </Sentry.ErrorBoundary>
       );
