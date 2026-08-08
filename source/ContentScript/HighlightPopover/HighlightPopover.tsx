@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect} from 'react';
 import {useFloating, flip, offset, shift} from '@floating-ui/react-dom';
 
 import {
@@ -10,7 +10,7 @@ import {
 } from '../../shared/types';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../../i18n/i18n.constants';
-import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
+import {usePopoverViewModel} from './popoverViewModel';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
@@ -30,7 +30,6 @@ import './HighlightPopover.scss';
 import {getColor} from '../../shared/constants';
 import {getActiveDocument} from '../../shared/activeDocument';
 import {iframePositionRecquired} from '../../shared/DOMutils';
-import {useStateRef} from '../../shared/customHooks/useStateRef';
 import {getScrollableParentClosestToElement} from '../../shared/utils';
 import parse from 'html-react-parser';
 import {computeDiff} from '../utils';
@@ -96,43 +95,37 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   onAlternativeAccepted,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
-  const analytics = useAnalytics();
   const {t, i18n} = useTranslation(namespaces.popover);
-  const [alternativeHovered, setAlternativeHovered] =
-    useState<IAlternatives | null>(null);
-  const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
-    useStateRef<boolean>(false);
-  const [isLoading, setIsLoading] = useState<string>('');
-  const [isSuccess, setIsSuccess] = useState<string>('');
-  const [isFailure, setIsFailure] = useState<string>('');
-  // Delayed auto-close after a successful permanent ignore.
-  const hideTimeoutRef = useRef<number | null>(null);
-
-  useEffect(
-    () => () => {
-      if (hideTimeoutRef.current !== null) {
-        clearTimeout(hideTimeoutRef.current);
-      }
-    },
-    []
-  );
-
-  const llmAlternativesResponse = getLLMSuggestions({
-    alert: data.alert,
+  const {
+    analytics,
+    alternativeHovered,
+    setAlternativeHovered,
+    showLearningBite,
+    setShowLearningBite,
+    showLearningBiteRef,
+    isLoading,
+    isSuccess,
+    isFailure,
+    llmAlternativesResponse,
+    hidePopover,
+    clickAlternative,
+    alternativeKeyDown,
+    handleIgnoreClick,
+    goToAdjacentAlert,
+  } = usePopoverViewModel({
+    element,
+    data,
+    prevData,
+    hide,
+    updateTextWithAlternative,
+    addIgnoredTerm,
+    movePopoverNextOrPrev: updatePopover,
+    setLLMSuggestionsRequest,
+    getLLMSuggestions,
+    llmAlternativesEnabled,
+    ignoreTermPermanently,
+    onAlternativeAccepted,
   });
-
-  useEffect(() => {
-    if (prevData && prevData.alert.id === data.alert.id) {
-      return;
-    }
-    analytics.popoverLogs(data.alert, 'popover_open');
-
-    if (llmAlternativesEnabled && data.alert.data.alternatives.length > 0) {
-      setLLMSuggestionsRequest({
-        alert: data.alert,
-      });
-    }
-  }, [data, llmAlternativesEnabled]);
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -291,77 +284,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       posY <= data.position.y + data.position.height;
 
     if (hasClickedOutsidePopOver && !hasClickedThisHighlight) hidePopover();
-  };
-
-  const hidePopover = (logClose = false) => {
-    logClose && analytics.popoverLogs(data.alert, 'popover_close');
-    setShowLearningBite(false);
-
-    hide();
-    //in case input is removed from the dom before popover is closed (clicking outside the element), also remove it here
-    const popoverContainers =
-      window.document.getElementsByTagName('ww-popover');
-    Array.from(popoverContainers).forEach((popoverContainer) => {
-      popoverContainer.remove();
-    });
-  };
-
-  const clickAlternative = (
-    e: MouseEvent | KeyboardEvent,
-    alternative: string
-  ) => {
-    //Log the clicked alternative
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    analytics.alternativeLog(data.alert, alternative);
-    // Accept counters and invite nags are host concerns, not popover UI.
-    onAlternativeAccepted();
-    updateTextWithAlternative(alternative);
-  };
-
-  /**
-   * Keyboard counterpart of the pointer handlers on the alternative buttons.
-   * Applying an alternative targets the focused element (`execCommand` and the
-   * selection APIs), so focus is returned to the input before replacing.
-   */
-  const alternativeKeyDown =
-    (alternative: string) => (e: React.KeyboardEvent) => {
-      if (e.key !== 'Enter' && e.key !== ' ') {
-        return;
-      }
-      (element as HTMLElement).focus?.();
-      clickAlternative(e.nativeEvent, alternative);
-    };
-
-  const handleIgnoreClick = (ignoreType: string) => () => {
-    analytics.ignoreLog(data.alert);
-    if (ignoreType === 'ignore_once') {
-      addIgnoredTerm(data.alert.data?.text);
-      hidePopover();
-    } else if (ignoreType === 'ignore_permanently') {
-      setIsLoading(ignoreType);
-      setIsSuccess('');
-      setIsFailure('');
-
-      ignoreTermPermanently(data.alert.data?.text)
-        .then(() => {
-          setIsLoading('');
-          addIgnoredTerm(data.alert.data?.text);
-          setIsSuccess(ignoreType);
-
-          // Show the success check briefly, then close. This was previously a
-          // browser.alarms call — an API that content scripts cannot use at
-          // all, so the popover never auto-closed and the throw vanished into
-          // the error reporter. A timeout is what was always meant.
-          hideTimeoutRef.current = window.setTimeout(() => {
-            hidePopover();
-          }, 1000);
-        })
-        .catch(() => {
-          setIsLoading('');
-          setIsFailure(ignoreType);
-        });
-    }
   };
 
   /**
@@ -528,8 +450,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto witty-works-button'
               style={data.index === 1 ? {display: 'none'} : {}}
               onClick={() => {
-                data.index !== 1 && updatePopover('previous');
-                setShowLearningBite(false);
+                data.index !== 1 && goToAdjacentAlert('previous');
               }}
               aria-label={t('previous')}
               title={t('previous')}
@@ -552,8 +473,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               }
               style={data.index === data.totalAlerts ? {display: 'none'} : {}}
               onClick={() => {
-                data.index !== data.totalAlerts && updatePopover('next');
-                setShowLearningBite(false);
+                data.index !== data.totalAlerts && goToAdjacentAlert('next');
               }}
               aria-label={t('next')}
               title={t('next')}
