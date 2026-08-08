@@ -3,6 +3,7 @@
   "version": "1.x",
   "description": "Witty - inclusive writing assistant",
   "private": true,
+  "workspaces": ["packages/*"],
   "author": "Solveig Helland <solveig.helland@witty.works>",
   "license": "proprietary",
   "engines": {
