@@ -90,6 +90,10 @@ const extensionHighlightPixels = (page) =>
   });
 
 test.describe('Google Docs (live, local-only)', () => {
+  // A live external dependency is inherently flaky (load latency, consent
+  // interstitials, shared doc state) — retry before calling it a failure.
+  test.describe.configure({ retries: 2 });
+
   test.skip(
     !docUrl,
     'no __tests__/local.config.json with googleDocsUrl — see local.config.json.example'
