@@ -234,7 +234,27 @@ const alternativeBoxes = (page) =>
 const openPopoverForWord = async (page, word) => {
   const target = await page.evaluate((needle) => {
     const el = document.querySelector('#editor');
-    const text = el instanceof HTMLTextAreaElement ? el.value : el.textContent;
+
+    // For contenteditable editors the word's position can be measured
+    // exactly from its text node — editor chrome (toolbars, own paddings,
+    // paragraph margins) makes the font-metric arithmetic below unreliable.
+    // A textarea has no text nodes, hence the measured-width fallback.
+    if (!(el instanceof HTMLTextAreaElement)) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        const index = node.textContent.indexOf(needle);
+        if (index === -1) continue;
+        const range = document.createRange();
+        range.setStart(node, index);
+        range.setEnd(node, index + needle.length);
+        const r = range.getBoundingClientRect();
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      }
+      throw new Error(`fixture text has no "${needle}"`);
+    }
+
+    const text = el.value;
     const index = text.indexOf(needle);
     if (index === -1) throw new Error(`fixture text has no "${needle}"`);
 

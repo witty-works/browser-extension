@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quill fixture</title>
+    <link rel="stylesheet" href="/fixture.css" />
+    <link rel="stylesheet" href="/vendor/quill/dist/quill.snow.css" />
+    <script src="/vendor/quill/dist/quill.js"></script>
+    <style>
+      /* Pin the editable's geometry so the word-coordinate math in the test
+         helpers (padding + measured text width) holds. */
+      .ql-editor {
+        width: 800px;
+        min-height: 300px;
+        padding: 12px;
+        font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
+        font-size: 16px;
+        line-height: 24px;
+      }
+      .ql-editor p {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Quill has no dedicated detection in the extension; its .ql-editor div is
+      handled as a plain contenteditable. It represents the mutation-observer
+      class of editors that reconcile DOM changes back into their own model.
+    -->
+    <div id="editor-host"></div>
+    <script>
+      const quill = new Quill('#editor-host', {theme: 'snow'});
+      // The suite's helpers address the editable area as #editor.
+      quill.root.id = 'editor';
+      quill.root.spellcheck = false;
+      window.__editorReady = true;
+    </script>
+  </body>
+</html>

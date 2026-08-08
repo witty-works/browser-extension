@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TinyMCE fixture</title>
+    <link rel="stylesheet" href="/fixture.css" />
+    <script src="/vendor/tinymce/tinymce.min.js"></script>
+    <style>
+      /* Pin the editable's geometry so the word-coordinate math in the test
+         helpers (padding + measured text width) holds. */
+      #editor {
+        width: 800px;
+        min-height: 300px;
+        padding: 12px;
+        border: 1px solid #cccccc;
+        font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
+        font-size: 16px;
+        line-height: 24px;
+      }
+      #editor p {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Inline mode is used deliberately: TinyMCE's classic mode edits inside an
+      about:blank iframe, which the manifest's content scripts never inject
+      into (no match_about_blank), so the extension cannot see it. Inline mode
+      edits the div directly in the page — the mode the extension can support.
+    -->
+    <div id="editor" spellcheck="false"><p>&nbsp;</p></div>
+    <script>
+      tinymce.init({
+        selector: '#editor',
+        inline: true,
+        license_key: 'gpl',
+        menubar: false,
+        toolbar: false,
+      }).then(() => {
+        window.__editorReady = true;
+      });
+    </script>
+  </body>
+</html>
