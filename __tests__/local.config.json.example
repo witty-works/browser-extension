@@ -1,0 +1,4 @@
+{
+  "//": "Copy to local.config.json (gitignored). Tests that need these targets skip themselves when the file is missing.",
+  "googleDocsUrl": "https://docs.google.com/document/d/<a world-editable scratch doc>/edit"
+}

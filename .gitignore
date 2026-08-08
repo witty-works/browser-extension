@@ -61,3 +61,7 @@ dist/
 test-results/
 source/witty.config.json
 playwright-report/
+
+# local-only test targets (e.g. a shared Google Doc URL that must not be
+# published); tests depending on it skip themselves when the file is absent
+__tests__/local.config.json
