@@ -40,6 +40,7 @@ import defaultConfig from '../witty.config.json';
 import {DefaultConfigValue} from '../shared/types';
 import {logTypes, useLog} from '../shared/customHooks/useLog';
 import {sendErrorToSentry} from '../shared/errorUtils';
+import {registerErrorReporter} from '../shared/errorReporting';
 import {isChromeWebstore} from '../shared/DOMutils';
 
 const sentryDSN = defaultConfig.SENTRY_DSN;
@@ -69,6 +70,7 @@ if (sentryDSN) {
     sampleRate: sentrySampleRate,
     tracesSampleRate: sentryTraceRate,
   });
+  registerErrorReporter((error) => Sentry.captureException(error));
 }
 
 /**

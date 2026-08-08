@@ -18,6 +18,7 @@ import {
   isSignedInResult,
 } from '../shared/utils';
 import {sendErrorToSentry} from '../shared/errorUtils';
+import {registerErrorReporter} from '../shared/errorReporting';
 import {customRender} from './utils';
 import {initI18n} from '../i18n/i18n';
 import {setBaseUrls} from '../shared/ApiServices/requests';
@@ -160,6 +161,7 @@ const initialize = () => {
       sampleRate: sentrySampleRate,
       tracesSampleRate: sentryTraceRate,
     });
+    registerErrorReporter((error) => Sentry.captureException(error));
   }
 };
 

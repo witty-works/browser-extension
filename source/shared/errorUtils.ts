@@ -1,12 +1,12 @@
-import * as Sentry from '@sentry/react';
+import {reportError} from './errorReporting';
 
-const sendErrorToSentry = (error: unknown) => {
-  Sentry.captureException(error);
-  //It's possible to capture a message with Sentry.captureMessage
-  //but then you don't receive all the data send with Sentry.captureException
-  // Sentry.captureMessage(
-  //   '[Highlights] Something went wrong setting the range'
-  // );
+/**
+ * Thin delegate to `reportError` (EDITOR_COMPONENT_PLAN.md, Phase 1 item 3).
+ * Kept under its original name so the ~40 existing call sites do not need to
+ * churn; new code should call `reportError` directly.
+ */
+const sendErrorToSentry = (error: unknown): void => {
+  reportError(error);
 };
 
 export {sendErrorToSentry};
