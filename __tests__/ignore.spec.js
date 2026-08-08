@@ -4,6 +4,7 @@ const {
   signIn,
   typeAndWaitForHighlights,
   openPopoverForWord,
+  pressOpenPopoverShortcut,
 } = require('./helpers/extension');
 
 /**
@@ -235,6 +236,50 @@ test.describe('Popover ignore flows', () => {
     // And the ignore took effect: reopening elsewhere shows "guys" gone.
     await openPopoverForWord(page, 'chairman');
     expect(await counterText(page)).toBe('1 of 2');
+  });
+
+  test('keyboard-activated ignore permanently returns focus to the input after the auto-close', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    await context.route(
+      (url) => url.pathname.includes(IGNORE_WORDS_PATH),
+      (route) => route.fulfill({ status: 204, body: '' })
+    );
+
+    await signIn(context, extensionId);
+    await page.goto('/textarea.html');
+    await typeAndWaitForHighlights(page);
+
+    // Open via the keyboard shortcut: focus moves into the popover dialog.
+    await pressOpenPopoverShortcut(page.context());
+    await page.waitForFunction(() =>
+      document
+        .getElementById('witty-works-ext-popover')
+        ?.contains(document.activeElement)
+    );
+
+    // Tab to the "Ignore permanently" button and activate it.
+    let onIgnore = false;
+    for (let i = 0; i < 20 && !onIgnore; i += 1) {
+      await page.keyboard.press('Tab');
+      onIgnore = await page.evaluate(
+        () =>
+          document.activeElement?.getAttribute('aria-label') ===
+          'Ignore permanently'
+      );
+    }
+    expect(onIgnore, 'Tab never reached "Ignore permanently"').toBe(true);
+    await page.keyboard.press('Enter');
+
+    await waitForPopoverClosed(page);
+
+    // The auto-close removed the focused button; focus must return to the
+    // input (matching the Escape path), not fall back to <body>.
+    expect(await page.evaluate(() => document.activeElement?.id || null)).toBe(
+      'editor'
+    );
   });
 
   test('ignore permanently shows a failure state and keeps the alert when the request fails', async ({

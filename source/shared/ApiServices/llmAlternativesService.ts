@@ -3,7 +3,7 @@ import {
   IGetLLMSuggestionsRequest,
   ILLMAlternativesResponse,
 } from '../types';
-import {hashString} from '../../ContentScript/utils';
+import {hashString} from '../hash';
 
 export interface LLMAlternativesCacheValue {
   data: ILLMAlternativesResponse | null;

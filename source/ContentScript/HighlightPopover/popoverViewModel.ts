@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 
 import {
   CustomInputElement,
+  IAlert,
   IAlternatives,
   IGetLLMSuggestionsRequest,
 } from '../../shared/types';
@@ -74,18 +75,31 @@ export const usePopoverViewModel = ({
     alert: data.alert,
   });
 
+  // Logging and the LLM request are deliberately separate effects:
+  // llmAlternativesEnabled arrives asynchronously from the host's storage
+  // read, and a combined effect re-ran on that flip and logged a second
+  // popover_open for the same popover. The ref guards the log across any
+  // other re-run cause; the LLM request is *meant* to fire on a late flag.
+  const lastLoggedAlertIdRef = useRef<IAlert['id'] | null>(null);
+
   useEffect(() => {
     if (prevData && prevData.alert.id === data.alert.id) {
       return;
     }
+    if (lastLoggedAlertIdRef.current === data.alert.id) {
+      return;
+    }
+    lastLoggedAlertIdRef.current = data.alert.id;
     analytics.popoverLogs(data.alert, 'popover_open');
+  }, [data.alert.id]);
 
+  useEffect(() => {
     if (llmAlternativesEnabled && data.alert.data.alternatives.length > 0) {
       setLLMSuggestionsRequest({
         alert: data.alert,
       });
     }
-  }, [data, llmAlternativesEnabled]);
+  }, [data.alert.id, llmAlternativesEnabled]);
 
   const hidePopover = (logClose = false) => {
     logClose && analytics.popoverLogs(data.alert, 'popover_close');
@@ -148,7 +162,17 @@ export const usePopoverViewModel = ({
           // all, so the popover never auto-closed and the throw vanished into
           // the error reporter. A timeout is what was always meant.
           hideTimeoutRef.current = window.setTimeout(() => {
+            // Closing removes the button a keyboard user just activated; put
+            // focus back on the input, matching the Escape path — but only
+            // when the popover actually held it (a mouse user's focus never
+            // left the input and must not be disturbed).
+            const focusWasInside = !!document
+              .getElementById('witty-works-ext-popover')
+              ?.contains(document.activeElement);
             hidePopover();
+            if (focusWasInside) {
+              (element as HTMLElement).focus?.();
+            }
           }, 1000);
         })
         .catch(() => {
