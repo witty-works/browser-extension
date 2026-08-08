@@ -3,7 +3,11 @@ const path = require('node:path');
 const { test: base, expect, chromium } = require('@playwright/test');
 
 const { mockNlpApi } = require('./helpers/mockApi');
-const { getExtensionId, signIn, PATH_TO_EXTENSION } = require('./helpers/extension');
+const {
+  getExtensionId,
+  signIn,
+  PATH_TO_EXTENSION,
+} = require('./helpers/extension');
 
 /**
  * Live Google Docs smoke test — local-only.

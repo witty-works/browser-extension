@@ -118,9 +118,10 @@ for (const editor of EDITORS) {
         (settle) =>
           new Promise((resolve) => {
             setTimeout(() => {
-              const text =
-                document.querySelector('#editor')?.textContent || '';
-              resolve(text.includes('chairperson') && !text.includes('chairman'));
+              const text = document.querySelector('#editor')?.textContent || '';
+              resolve(
+                text.includes('chairperson') && !text.includes('chairman')
+              );
             }, settle);
           }),
         editor.applySettleMs,
