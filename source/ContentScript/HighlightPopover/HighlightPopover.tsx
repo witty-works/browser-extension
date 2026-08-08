@@ -34,7 +34,7 @@ import {
   isDashboardAvailable,
   StorageKeys,
 } from '../../shared/constants';
-import {getActiveDocument} from '../ContentScriptApp';
+import {getActiveDocument} from '../../shared/activeDocument';
 import {iframePositionRecquired} from '../../shared/DOMutils';
 import {useStateRef} from '../../shared/customHooks/useStateRef';
 import {

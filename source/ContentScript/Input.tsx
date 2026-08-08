@@ -58,7 +58,7 @@ import {
   getTextDividedByNodes,
   shouldReturnEarly,
 } from './utils';
-import {getActiveDocument} from './ContentScriptApp';
+import {getActiveDocument} from '../shared/activeDocument';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
 import {useCheckEndpointWithCache} from '../shared/ApiServices/useCheckEndpointWithCache';
 import {useCheckEventsLogger} from '../shared/ApiServices/useCheckEventsLogger';

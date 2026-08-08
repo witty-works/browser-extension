@@ -37,6 +37,7 @@ import {
   isMicrosoftOnline,
 } from '../shared/DOMutils';
 import {sendErrorToSentry} from '../shared/errorUtils';
+import {getActiveDocument, setActiveDocument} from '../shared/activeDocument';
 import {useLog, logTypes} from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import throttle from 'lodash.throttle';
@@ -60,16 +61,6 @@ const WW_CONTAINER_STYLE = `
   align-self: flex-start !important;
   box-shadow: none !important;
   `;
-
-let activeDocument = document;
-
-export const setActiveDocument = (document: Document) => {
-  if (document?.body) {
-    activeDocument = document;
-  }
-};
-
-export const getActiveDocument = () => activeDocument;
 
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(

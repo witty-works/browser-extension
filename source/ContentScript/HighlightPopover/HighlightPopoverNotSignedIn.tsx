@@ -13,7 +13,7 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import Star from '../../assets/icons/popup/star.svg';
 
 import './HighlightPopover.scss';
-import {getActiveDocument} from '../ContentScriptApp';
+import {getActiveDocument} from '../../shared/activeDocument';
 import {
   DefaultBaseUrlKey,
   DEV_ENV,

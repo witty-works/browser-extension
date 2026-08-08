@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import {getActiveDocument} from '../../ContentScript/ContentScriptApp';
+import {getActiveDocument} from '../activeDocument';
 import {isGoogleDocs} from '../DOMutils';
 import {getScrollableParentClosestToElement} from '../utils';
 

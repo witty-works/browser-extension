@@ -28,7 +28,7 @@ import {
 import {refresh} from './ApiServices/oauth';
 import {clearTokens, persistTokens, readTokens} from './tokenStore';
 import {IAuthResponse} from './types';
-import {getActiveDocument} from '../ContentScript/ContentScriptApp';
+import {getActiveDocument} from './activeDocument';
 // Extract TxtSentenceNode from a generic node
 export function extractSentenceNode(node: any): any {
   if (node.type === 'Sentence') return node;

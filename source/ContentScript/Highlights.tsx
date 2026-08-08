@@ -24,7 +24,7 @@ import {
   getCorrectedPosition,
   getCorrectedPositionCanvas,
 } from '../shared/utils';
-import {getActiveDocument} from './ContentScriptApp';
+import {getActiveDocument} from '../shared/activeDocument';
 import {useStateRef} from '../shared/customHooks/useStateRef';
 
 interface HighlightsProps {

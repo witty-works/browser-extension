@@ -3,7 +3,8 @@ import {createRoot} from 'react-dom/client';
 import {WTags} from '../shared/constants';
 import {isGoogleDocs, isInputText, isTextArea} from '../shared/DOMutils';
 import {CustomInputElement, DiffChange, INodes} from '../shared/types';
-import ContentScriptApp, {getActiveDocument} from './ContentScriptApp';
+import ContentScriptApp from './ContentScriptApp';
+import {getActiveDocument} from '../shared/activeDocument';
 import {diffChars, diffWords, DiffWordsOptionsNonabortable} from 'diff';
 
 export const getInputText = (element: CustomInputElement | any) => {
