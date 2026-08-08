@@ -19,9 +19,12 @@ import {
 } from '../shared/utils';
 import {sendErrorToSentry} from '../shared/errorUtils';
 import {customRender} from './utils';
+import {initI18n} from '../i18n/i18n';
 import {setBaseUrls} from '../shared/ApiServices/requests';
 import {v4 as uuidv4} from 'uuid';
 import {isMicrosoftOnline} from '../shared/DOMutils';
+
+initI18n();
 
 const handleDomainsFromDashboard = (
   newValue: string | string[],

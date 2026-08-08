@@ -15,15 +15,28 @@ if (!DEV_ENV) {
   delete resources.fr;
 }
 
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    detection: {
-      order: ['navigator'],
-    },
-    resources: resources,
-    fallbackLng: 'en',
-  });
+/**
+ * Initialize the shared i18next instance. Called from the entry points
+ * (content script, popup, options) instead of relying on side-effect imports
+ * scattered across components, so future consumers of the extracted core —
+ * which may run their own i18next — control when and whether this happens
+ * (EDITOR_COMPONENT_PLAN.md, Phase 1 item 6). Idempotent.
+ */
+export const initI18n = (): void => {
+  if (i18n.isInitialized) {
+    return;
+  }
+
+  i18n
+    .use(LanguageDetector)
+    .use(initReactI18next)
+    .init({
+      detection: {
+        order: ['navigator'],
+      },
+      resources: resources,
+      fallbackLng: 'en',
+    });
+};
 
 export default i18n;

@@ -12,6 +12,9 @@ import {
   renderPopupChrome,
   renderUserNotLoggedIn,
 } from './PopupUtils';
+import {initI18n} from '../i18n/i18n';
+
+initI18n();
 
 const renderPopup = async () => {
   browser.storage.local
