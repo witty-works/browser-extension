@@ -17,6 +17,11 @@ const path = require('node:path');
 const PORT = Number(process.env.FIXTURE_PORT) || 5174;
 const ROOT = __dirname;
 
+// Rich-text editors (CKEditor, Quill, TinyMCE) are devDependencies; their
+// dist bundles are exposed under /vendor/ because the test contexts block all
+// non-localhost requests, so a CDN copy could never load.
+const VENDOR_ROOT = path.resolve(ROOT, '..', '..', 'node_modules');
+
 const CONTENT_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -24,16 +29,22 @@ const CONTENT_TYPES = {
   '.gif': 'image/gif',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.json': 'application/json',
 };
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const relative = url.pathname === '/' ? '/index.html' : url.pathname;
 
-  // Resolve then confirm the result is still inside ROOT, so a crafted path
-  // cannot escape the fixture directory.
-  const filePath = path.resolve(ROOT, `.${relative}`);
-  if (!filePath.startsWith(ROOT + path.sep)) {
+  // Resolve then confirm the result is still inside its root, so a crafted
+  // path cannot escape the fixture (or node_modules) directory.
+  const [base, subPath] = relative.startsWith('/vendor/')
+    ? [VENDOR_ROOT, relative.slice('/vendor/'.length)]
+    : [ROOT, relative.slice(1)];
+  const filePath = path.resolve(base, subPath);
+  if (!filePath.startsWith(base + path.sep)) {
     res.writeHead(403).end('Forbidden');
     return;
   }

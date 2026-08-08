@@ -30,7 +30,12 @@ import {
   migrateAccessTokenOffDisk,
   persistTokens,
 } from '../shared/tokenStore';
-import {isWittyMessage, MessageTypes, SignInResult} from '../shared/messages';
+import {
+  isWittyMessage,
+  MessageTypes,
+  OPEN_POPOVER_COMMAND,
+  SignInResult,
+} from '../shared/messages';
 import defaultConfig from '../witty.config.json';
 import {DefaultConfigValue} from '../shared/types';
 import {logTypes, useLog} from '../shared/customHooks/useLog';
@@ -149,6 +154,30 @@ const addEventListeners = () => {
 
   browser.runtime.onUpdateAvailable.addListener(() => {
     browser.runtime.reload();
+  });
+
+  // Keyboard shortcuts only fire in the background; the popover lives in the
+  // content script, so forward the command to the active tab. All frames
+  // receive it and the one owning the focused input reacts.
+  browser.commands?.onCommand.addListener((command: string) => {
+    if (command !== OPEN_POPOVER_COMMAND) {
+      return;
+    }
+
+    browser.tabs
+      .query({active: true, currentWindow: true})
+      .then((tabs) => {
+        const tabId = tabs[0]?.id;
+        if (tabId === undefined) {
+          return undefined;
+        }
+        return browser.tabs.sendMessage(tabId, {
+          type: MessageTypes.OPEN_POPOVER,
+        });
+      })
+      .catch(() => {
+        // No content script in this tab (e.g. browser-internal pages).
+      });
   });
 
   browser.runtime.onInstalled.addListener(function (details: {reason: string}) {

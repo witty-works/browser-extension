@@ -6,5 +6,9 @@
   "appDesc": {
     "message": "Writing inclusively in a consistent manner is hard. It's easy with Witty writing assistant. Make the world inclusive. For everyone.",
     "description": "The description of the extension, displayed in the web store."
+  },
+  "commandOpenPopover": {
+    "message": "Open the Witty suggestions for the text field you are writing in",
+    "description": "Label of the keyboard shortcut shown on the browser shortcuts settings page."
   }
 }

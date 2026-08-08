@@ -103,5 +103,13 @@
       "resources": ["assets/media/*"],
       "matches": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"]
     }
-  ]
+  ],
+  "commands": {
+    "open-highlight-popover": {
+      "suggested_key": {
+        "default": "Alt+Shift+W"
+      },
+      "description": "__MSG_commandOpenPopover__"
+    }
+  }
 }

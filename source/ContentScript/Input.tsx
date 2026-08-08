@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
-import browser from 'webextension-polyfill';
+import browser, {Runtime} from 'webextension-polyfill';
 import {Root, createRoot} from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import defaultConfig from '../witty.config.json';
@@ -63,6 +63,7 @@ import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotS
 import {useCheckEndpointWithCache} from '../shared/ApiServices/useCheckEndpointWithCache';
 import {useCheckEventsLogger} from '../shared/ApiServices/useCheckEventsLogger';
 import {useLLMAlternativesCache} from '../shared/ApiServices/useLLMAlternativesCache';
+import {MessageTypes} from '../shared/messages';
 
 const Input: React.FC<{
   element: CustomInputElement;
@@ -116,6 +117,10 @@ const Input: React.FC<{
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
   const [, , popoverRootRef] = useStateRef<Root | null>(null);
+  // Set when the popover is opened or advanced via the keyboard shortcut, so
+  // the popover knows to take focus. Cleared for the mouse flows, which must
+  // never steal focus from the input while the user is typing.
+  const openedViaKeyboardRef = useRef<boolean>(false);
   const [, , elementSpellcheckRef] = useStateRef<boolean>(false);
   const [hrFeatureDisabled, setHrFeatureDisabled] = useState<boolean>(false);
   const checkEventsLogger = useCheckEventsLogger(
@@ -479,7 +484,19 @@ const Input: React.FC<{
     if (activeIconRef.current == 'passive') setIsHovered(false);
   };
 
-  const handleFocusoutEvent = () => {
+  const handleFocusoutEvent = (event?: Event) => {
+    // Focus moving into the popover (keyboard navigation) must not count as
+    // leaving the field: unmounting the clone would detach the nodes the
+    // alerts point at, and repositioning the popover on the next/previous
+    // alert needs their client rects.
+    const next = (event as FocusEvent | undefined)
+      ?.relatedTarget as Node | null;
+    if (
+      next &&
+      document.getElementById('witty-works-ext-popover')?.contains(next)
+    ) {
+      return;
+    }
     setIsFocused(false);
     setActiveIcon('passive');
   };
@@ -695,6 +712,7 @@ const Input: React.FC<{
       previousPopoverDataRef.current = popoverDataRef.current;
     popoverDataRef.current = null;
     selectedAlertRef.current = null;
+    openedViaKeyboardRef.current = false;
     setSelectedAlertIndex(-1);
   };
 
@@ -703,6 +721,7 @@ const Input: React.FC<{
   };
 
   const handleElementClickEvent = (event: MouseEvent) => {
+    openedViaKeyboardRef.current = false;
     const target = event.target as CustomInputElement;
     setTimeout(
       () => {
@@ -808,6 +827,81 @@ const Input: React.FC<{
     }
     event?.stopPropagation();
   };
+
+  const openFirstAlertPopover = (): void => {
+    const firstNodeIndex = nodesWithAlertsRef.current.findIndex(
+      (node) => node.alerts.length > 0
+    );
+    if (firstNodeIndex === -1) {
+      return;
+    }
+    openedViaKeyboardRef.current = true;
+    setSelectedNodeWithAlertsIndex(firstNodeIndex);
+    setSelectedAlertIndex(0);
+  };
+
+  // The keyboard shortcut cycles: past the last alert it wraps back to the
+  // first, unlike the popover arrow buttons, which stop at the ends.
+  const moveToNextAlertOrWrap = (): void => {
+    const nodes = nodesWithAlertsRef.current;
+    let lastNodeIndex = -1;
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      if (nodes[i].alerts.length > 0) {
+        lastNodeIndex = i;
+        break;
+      }
+    }
+    const atLastAlert =
+      lastNodeIndex === -1 ||
+      (selectedNodeWithAlertsIndex === lastNodeIndex &&
+        selectedAlertIndex === nodes[lastNodeIndex].alerts.length - 1);
+
+    if (atLastAlert) {
+      openFirstAlertPopover();
+    } else {
+      openedViaKeyboardRef.current = true;
+      movePopoverNextOrPrev('next');
+    }
+  };
+
+  useEffect(() => {
+    // Fired when the user presses the shortcut declared in the manifest; the
+    // background worker forwards it to every frame of the active tab (see
+    // Background/index.tsx).
+    const handleCommandMessage = (
+      message: unknown,
+      sender: Runtime.MessageSender
+    ) => {
+      if (
+        sender.id !== browser.runtime.id ||
+        (message as {type?: unknown} | null)?.type !== MessageTypes.OPEN_POPOVER
+      ) {
+        return undefined;
+      }
+
+      // This instance already shows the popover: advance to the next alert.
+      if (popoverDataRef.current) {
+        moveToNextAlertOrWrap();
+        return undefined;
+      }
+
+      // Several Input instances may be mounted (one per watched field, per
+      // frame); only the one bound to the focused field opens its popover.
+      const activeDocument = getActiveDocument();
+      const active = activeDocument.activeElement;
+      const ownsFocus =
+        activeDocument.hasFocus?.() &&
+        active !== null &&
+        (element === active || element.contains?.(active));
+      if (ownsFocus) {
+        openFirstAlertPopover();
+      }
+      return undefined;
+    };
+
+    browser.runtime.onMessage.addListener(handleCommandMessage);
+    return () => browser.runtime.onMessage.removeListener(handleCommandMessage);
+  }, [selectedNodeWithAlertsIndex, selectedAlertIndex]);
 
   useEffect(() => {
     prevSelectedAlertIndex.current = selectedAlertIndex;
@@ -1463,6 +1557,7 @@ const Input: React.FC<{
             movePopoverNextOrPrev={movePopoverNextOrPrev}
             setLLMSuggestionsRequest={setLLMSuggestionsRequest}
             getLLMSuggestions={getLLMSuggestions}
+            focusOnOpen={openedViaKeyboardRef.current}
           />
         </Sentry.ErrorBoundary>
       );
@@ -1474,6 +1569,7 @@ const Input: React.FC<{
             data={popoverDataRef.current}
             prevData={previousPopoverDataRef.current}
             hide={resetPopover}
+            focusOnOpen={openedViaKeyboardRef.current}
           />
         </Sentry.ErrorBoundary>
       );
