@@ -13,7 +13,10 @@ import {
   renderUserNotLoggedIn,
 } from './PopupUtils';
 import {initI18n} from '../i18n/i18n';
+import {registerStorage} from '../shared/platform/storage';
+import {webextensionStorage} from '../shared/platform/webextensionStorage';
 
+registerStorage(webextensionStorage);
 initI18n();
 
 const renderPopup = async () => {

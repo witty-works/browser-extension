@@ -29,6 +29,7 @@ import {refresh} from './ApiServices/oauth';
 import {clearTokens, persistTokens, readTokens} from './tokenStore';
 import {IAuthResponse} from './types';
 import {getActiveDocument} from './activeDocument';
+import {getStorage} from './platform/storage';
 // Extract TxtSentenceNode from a generic node
 export function extractSentenceNode(node: any): any {
   if (node.type === 'Sentence') return node;
@@ -52,8 +53,8 @@ export const storeInLocalStorage = (key: string, value: any) => {
   if (!key) {
     return;
   }
-  browser.storage.local
-    .set({[key]: value})
+  getStorage()
+    .local.set({[key]: value})
     .then(() => {
       //TODO bug, some values are not pronted correctly (for example arrays)
       const componentName = 'Utils';
@@ -164,7 +165,7 @@ export const getNewAccessToken = async () => {
       return;
     }
 
-    const result = await browser.storage.local.get([
+    const result = await getStorage().local.get([
       StorageKeys.API_ENDPOINT_KEY,
       StorageKeys.CUSTOM_ENDPOINT,
     ]);
@@ -222,46 +223,48 @@ export const getRandomToken = () => {
 };
 
 export const updateLabelChrome = (domain: string) => {
-  browser.storage.local.get(null).then((result) => {
-    if (!isSignedInResult(result)) {
-      addBadge('Login');
-      return;
-    }
+  getStorage()
+    .local.get(null)
+    .then((result) => {
+      if (!isSignedInResult(result)) {
+        addBadge('Login');
+        return;
+      }
 
-    const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
-    const domainList = Array.isArray(orgDomains?.list) ? orgDomains.list : [];
-    const isLocked = orgDomains
-      ? (orgDomains.type === 'deny' && domainList.includes(domain)) ||
-        (orgDomains.type === 'allow' && !domainList.includes(domain))
-      : false;
+      const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
+      const domainList = Array.isArray(orgDomains?.list) ? orgDomains.list : [];
+      const isLocked = orgDomains
+        ? (orgDomains.type === 'deny' && domainList.includes(domain)) ||
+          (orgDomains.type === 'allow' && !domainList.includes(domain))
+        : false;
 
-    const isDisabled = result[StorageKeys.DOMAINS]?.includes(domain);
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      const isDisabled = result[StorageKeys.DOMAINS]?.includes(domain);
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-    browser.tabs
-      .query({active: true, currentWindow: true})
-      .then((tabs) => {
-        if (!tabs[0]?.url) return;
+      browser.tabs
+        .query({active: true, currentWindow: true})
+        .then((tabs) => {
+          if (!tabs[0]?.url) return;
 
-        const domainOnDisabledSitesList =
-          defaultConfig.DISABLED_SITES.includes(domain) ||
-          isMicrosoftOnline(new URL(tabs[0].url).href);
-        const numberOfNotifications =
-          result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
+          const domainOnDisabledSitesList =
+            defaultConfig.DISABLED_SITES.includes(domain) ||
+            isMicrosoftOnline(new URL(tabs[0].url).href);
+          const numberOfNotifications =
+            result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
 
-        if (isLocked || isDisabled || domainOnDisabledSitesList) {
-          addBadge('OFF');
-        } else if (numberOfNotifications > 0) {
-          addNotificationBadge(numberOfNotifications);
-        } else {
-          removeBadge();
-        }
-      })
-      .catch((error) => {
-        sendErrorToSentry(error);
-      });
-  });
+          if (isLocked || isDisabled || domainOnDisabledSitesList) {
+            addBadge('OFF');
+          } else if (numberOfNotifications > 0) {
+            addNotificationBadge(numberOfNotifications);
+          } else {
+            removeBadge();
+          }
+        })
+        .catch((error) => {
+          sendErrorToSentry(error);
+        });
+    });
 };
 
 export const getCorrectedPosition = (
@@ -355,8 +358,8 @@ export const generateAlertId = (
 ) => `${text}-${category}-${startOffset}-${endOffset}`;
 
 export const updateConfig = (response: IAuthResponse, force = false) => {
-  browser.storage.local
-    .get(null)
+  getStorage()
+    .local.get(null)
     .then((result) => {
       if (
         response?.config_hash === result[StorageKeys.CONFIG_HASH] &&
@@ -409,8 +412,8 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
 };
 
 export const makeAuthRequest = () => {
-  browser.storage.local
-    .get(null)
+  getStorage()
+    .local.get(null)
     .then(async (result) => {
       registerCustomEndpointFromStorage(result);
       setApiKey(apiKeyFromStorage(result));

@@ -1,11 +1,11 @@
 import {IAlert} from '../types';
 import PostHog from 'posthog-js-lite';
 import {StorageKeys, wittyVersion} from '../constants';
-import browser from 'webextension-polyfill';
 import {storeInLocalStorage} from '../utils';
 import defaultConfig from '../../witty.config.json';
 import {sendErrorToSentry} from '../errorUtils';
 import {getBaseUrls} from './requests';
+import {getStorage} from '../platform/storage';
 
 export const aliasId = async (userId: string, appId: string) => {
   if (!defaultConfig.POSTHOG_ENABLED) return;
@@ -38,8 +38,8 @@ export const aliasId = async (userId: string, appId: string) => {
 export const captureEvent = (eventName: string, eventData: object) => {
   if (!defaultConfig.POSTHOG_ENABLED) return;
 
-  browser.storage.local
-    .get()
+  getStorage()
+    .local.get()
     .then((result) => {
       try {
         const now = new Date();
@@ -62,7 +62,7 @@ export const captureEvent = (eventName: string, eventData: object) => {
           if (lastLoggedHour !== null && currentHour === lastLoggedHour) {
             return;
           }
-          browser.storage.local.set({
+          getStorage().local.set({
             [StorageKeys.LAST_CHECK_EVENT_TIME]: now.toISOString(),
           });
         }

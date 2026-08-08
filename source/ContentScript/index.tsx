@@ -24,7 +24,10 @@ import {initI18n} from '../i18n/i18n';
 import {setBaseUrls} from '../shared/ApiServices/requests';
 import {v4 as uuidv4} from 'uuid';
 import {isMicrosoftOnline} from '../shared/DOMutils';
+import {registerStorage} from '../shared/platform/storage';
+import {webextensionStorage} from '../shared/platform/webextensionStorage';
 
+registerStorage(webextensionStorage);
 initI18n();
 
 const handleDomainsFromDashboard = (
