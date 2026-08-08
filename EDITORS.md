@@ -96,9 +96,18 @@ the **kix canvas**, and keystrokes go through a hidden `about:blank` iframe
   whether the vertical ruler is hidden; canvas is capped at ~2 pages height.
 - **Comment/reply boxes** are ordinary contenteditables. Historically the
   extension ignored them entirely (no focusin listener on Docs pages) and
-  would have misrouted them into kix logic — issue #1078; fixed on branch
-  `1078-google-docs-comments` by parameterizing `isGoogleDocs(element)` to
-  answer false for contenteditables.
+  would have misrouted them into kix logic — issue #1078; fixed by
+  parameterizing `isGoogleDocs(element)` to answer false for
+  contenteditables. Since the fix they get the full generic treatment,
+  including the keyboard-operable popover.
+- **Keyboard shortcut limitation:** the open-popover shortcut
+  (`open-highlight-popover`, see [source/manifest.json](source/manifest.json))
+  cannot open the popover on the *main document*. The content script's
+  handler only reacts when the focused element is inside the input it is
+  bound to, but on Docs focus lives inside the hidden
+  `.docs-texteventtarget-iframe` — never inside the kix tile manager the
+  extension binds to. Comment boxes are unaffected (they hold focus
+  themselves).
 - **Testing:** cannot be fixtured — kix only exists on docs.google.com. The
   live smoke test ([__tests__/gdocs.spec.js](__tests__/gdocs.spec.js)) drives
   a real world-editable scratch doc whose URL lives in the gitignored
