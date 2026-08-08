@@ -153,9 +153,12 @@ const ContentScriptApp: React.FC = () => {
     // Setup mutation observers
     setupMutationObservers();
 
+    // On Google Docs the kix editor never emits focusin for the document
+    // canvas, so it is bootstrapped once directly — but the focusin listener
+    // is still needed there: comment and reply boxes are ordinary
+    // contenteditables that only announce themselves through focus (#1078).
     isGoogleDocs() && handleFocusinElement();
-    !isGoogleDocs() &&
-      document?.addEventListener('focusin', handleFocusinElement, true);
+    document?.addEventListener('focusin', handleFocusinElement, true);
     document?.addEventListener('mouseover', handleMouseOver, true);
     document?.addEventListener('mouseout', handleMouseOut, true);
 
@@ -254,7 +257,10 @@ const ContentScriptApp: React.FC = () => {
       return;
     }
 
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(target)) {
+      // A contenteditable target on a Google Docs page is a comment or reply
+      // box and proceeds as a regular input; anything else is the document
+      // canvas, whose input handling lives on the kix tile manager.
       target = document.querySelector(
         '.kix-rotatingtilemanager'
       ) as CustomInputElement;
@@ -269,7 +275,10 @@ const ContentScriptApp: React.FC = () => {
 
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
-      (isGoogleDocs() && target) ||
+      // The duplicate guard matters now that focusin also fires on Google
+      // Docs pages: every non-contenteditable focus target resolves to the
+      // kix tile manager, which must only be registered once.
+      (isGoogleDocs(target) && target && !inputsRef.current.includes(target)) ||
       (isChatGpt() && target) ||
       isNotion() ||
       isAemRte(target)

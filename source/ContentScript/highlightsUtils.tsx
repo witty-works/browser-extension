@@ -2,12 +2,12 @@ import {isGoogleDocs} from '../shared/DOMutils';
 import {Highlight} from '../shared/types';
 
 export const drawLine = (params: any, color: string, dashedLine: boolean) => {
-  const {context, rect, elementRect, googleDocsRulerIsHidden} = params;
+  const {context, rect, elementRect, googleDocsRulerIsHidden, element} = params;
 
   let x = rect.left - elementRect.left;
   const y = rect.top - elementRect.top;
 
-  if (isGoogleDocs()) {
+  if (isGoogleDocs(element)) {
     x = rect.left - (googleDocsRulerIsHidden ? 15 : 0);
   }
 
@@ -29,11 +29,12 @@ export const drawHighlight = (params: any, color: string) => {
     rect,
     elementRect,
     googleDocsRulerIsHidden,
+    element,
   } = params;
   //the +/- is to add some padding to the highlight
   let x = rect.left - elementRect.left - 1.5;
   const y = rect.top - elementRect.top + 1;
-  if (isGoogleDocs()) {
+  if (isGoogleDocs(element)) {
     x = rect.left - (googleDocsRulerIsHidden ? 15 : 0);
   }
 

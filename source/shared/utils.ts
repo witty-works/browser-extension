@@ -282,7 +282,7 @@ export const getCorrectedPosition = (
     const scrollX = textArea ? 0 : topLevelWindow.scrollX;
 
     const top =
-      isFirefox && !isGoogleDocs()
+      isFirefox && !isGoogleDocs(element)
         ? 0
         : elementRect.top - parentRect.top - scrollY;
     const left = elementRect.left - parentRect.left - scrollX;
