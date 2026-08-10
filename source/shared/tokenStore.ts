@@ -2,6 +2,7 @@ import browser from 'webextension-polyfill';
 
 import {StorageKeys} from './constants';
 import {OAuthTokens} from './ApiServices/oauth';
+import {getStorage, StorageArea} from './platform/storage';
 
 /**
  * Single place where OAuth tokens are persisted and read back.
@@ -30,19 +31,10 @@ export interface StoredTokens {
   expiresAt: number;
 }
 
-type StorageArea = {
-  get: (keys?: any) => Promise<Record<string, any>>;
-  set: (items: Record<string, any>) => Promise<void>;
-  remove?: (keys: any) => Promise<void>;
-};
+const sessionArea = (): StorageArea =>
+  getStorage().session || getStorage().local;
 
-const sessionArea = (): StorageArea => {
-  const session = (browser.storage as any).session;
-
-  return (session as StorageArea) || browser.storage.local;
-};
-
-const usingSessionStorage = (): boolean => !!(browser.storage as any).session;
+const usingSessionStorage = (): boolean => !!getStorage().session;
 
 /**
  * Let content scripts read `storage.session`.
@@ -52,6 +44,11 @@ const usingSessionStorage = (): boolean => !!(browser.storage as any).session;
  * call the API. Call this once from the background service worker. Content
  * scripts are isolated worlds, so page JavaScript still cannot reach it; this
  * grants no more access than `storage.local` already had.
+ *
+ * `setAccessLevel` is a Chrome-specific extension of `storage.session` that
+ * `WittyStorage` deliberately does not model (it has no equivalent for a
+ * non-extension host), so this one call goes straight through
+ * webextension-polyfill rather than through `getStorage()`.
  */
 export const allowSessionStorageInContentScripts = async (): Promise<void> => {
   const session = (browser.storage as any).session;
@@ -73,7 +70,7 @@ export const persistTokens = async (tokens: OAuthTokens): Promise<void> => {
     [StorageKeys.ACCESS_TOKEN]: tokens.accessToken,
   });
 
-  await browser.storage.local.set({
+  await getStorage().local.set({
     [StorageKeys.REFRESH_TOKEN]: tokens.refreshToken,
     [StorageKeys.ACCESS_TOKEN_EXPIRES_AT]: tokens.expiresAt,
     [StorageKeys.SIGNED_IN]: !!tokens.accessToken,
@@ -83,7 +80,7 @@ export const persistTokens = async (tokens: OAuthTokens): Promise<void> => {
 export const readTokens = async (): Promise<StoredTokens> => {
   const [session, local] = await Promise.all([
     sessionArea().get(StorageKeys.ACCESS_TOKEN),
-    browser.storage.local.get([
+    getStorage().local.get([
       StorageKeys.ACCESS_TOKEN,
       StorageKeys.REFRESH_TOKEN,
       StorageKeys.ACCESS_TOKEN_EXPIRES_AT,
@@ -109,7 +106,7 @@ export const readAccessToken = async (): Promise<string> =>
 export const clearTokens = async (): Promise<void> => {
   await sessionArea().set({[StorageKeys.ACCESS_TOKEN]: ''});
 
-  await browser.storage.local.set({
+  await getStorage().local.set({
     [StorageKeys.ACCESS_TOKEN]: '',
     [StorageKeys.REFRESH_TOKEN]: '',
     [StorageKeys.ACCESS_TOKEN_EXPIRES_AT]: 0,
@@ -127,7 +124,7 @@ export const migrateAccessTokenOffDisk = async (): Promise<void> => {
     return;
   }
 
-  const local = await browser.storage.local.get([
+  const local = await getStorage().local.get([
     StorageKeys.ACCESS_TOKEN,
     StorageKeys.SIGNED_IN,
   ]);
@@ -138,7 +135,7 @@ export const migrateAccessTokenOffDisk = async (): Promise<void> => {
   }
 
   await sessionArea().set({[StorageKeys.ACCESS_TOKEN]: onDisk});
-  await browser.storage.local.set({
+  await getStorage().local.set({
     [StorageKeys.ACCESS_TOKEN]: '',
     [StorageKeys.SIGNED_IN]: true,
   });

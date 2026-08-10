@@ -4,7 +4,6 @@ import {useFloating, flip, offset, shift} from '@floating-ui/react-dom';
 
 import {CustomInputElement, IAlert} from '../../shared/types';
 import {useTranslation} from 'react-i18next';
-import '../../i18n/i18n';
 import {namespaces} from '../../i18n/i18n.constants';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
@@ -13,7 +12,7 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import Star from '../../assets/icons/popup/star.svg';
 
 import './HighlightPopover.scss';
-import {getActiveDocument} from '../ContentScriptApp';
+import {getActiveDocument} from '../../shared/activeDocument';
 import {
   DefaultBaseUrlKey,
   DEV_ENV,

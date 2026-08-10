@@ -23,7 +23,6 @@ import {
   isSignedInResult,
 } from '../../shared/utils';
 import {namespaces} from '../../i18n/i18n.constants';
-import '../../i18n/i18n';
 import Toggle from '../../shared/components/Toggle/Toggle';
 import ApiSelector from '../PopupComponents/ApiSelector';
 import DelaySelector from '../PopupComponents/DelaySelector';

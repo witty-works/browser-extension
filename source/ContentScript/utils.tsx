@@ -3,7 +3,8 @@ import {createRoot} from 'react-dom/client';
 import {WTags} from '../shared/constants';
 import {isGoogleDocs, isInputText, isTextArea} from '../shared/DOMutils';
 import {CustomInputElement, DiffChange, INodes} from '../shared/types';
-import ContentScriptApp, {getActiveDocument} from './ContentScriptApp';
+import ContentScriptApp from './ContentScriptApp';
+import {getActiveDocument} from '../shared/activeDocument';
 import {diffChars, diffWords, DiffWordsOptionsNonabortable} from 'diff';
 
 export const getInputText = (element: CustomInputElement | any) => {
@@ -386,12 +387,4 @@ export const shouldReturnEarly = (
   );
 };
 
-export const hashString = (str: string): string => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash;
-  }
-  return hash.toString();
-};
+export {hashString} from '../shared/hash';

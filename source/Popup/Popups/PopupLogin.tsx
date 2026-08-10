@@ -10,7 +10,6 @@ import {
   registerCustomEndpointFromStorage,
 } from '../../shared/constants';
 import {MessageTypes, SignInMessage, SignInResult} from '../../shared/messages';
-import '../../i18n/i18n';
 import '../styles.scss';
 import {namespaces} from '../../i18n/i18n.constants';
 import {appID, setBaseUrls} from '../../shared/ApiServices/requests';

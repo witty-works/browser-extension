@@ -6,7 +6,7 @@ import ActiveIcon from '../../assets/icons/wittyStateIndicator/witty-active.svg'
 import PassiveIcon from '../../assets/icons/wittyStateIndicator/witty-passive.svg';
 import WarningIcon from '../../assets/icons/wittyStateIndicator/witty-warning.svg';
 import {sendErrorToSentry} from '../errorUtils';
-import browser from 'webextension-polyfill';
+import {getStorage} from '../platform/storage';
 import CloseIcon from '../../assets/icons/close-white.svg';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../../i18n/i18n.constants';
@@ -70,8 +70,8 @@ const IconController: React.FC<IconControllerProps> = ({
       .map((node: any) => node.text)
       .join('')?.length || 0;
 
-  browser.storage.local
-    .get(null)
+  getStorage()
+    .local.get(null)
     .then((result) => {
       setUserIsLoggedIn(isSignedInResult(result));
     })

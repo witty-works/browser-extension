@@ -3,7 +3,6 @@ import browser from 'webextension-polyfill';
 import {useTranslation} from 'react-i18next';
 
 import {namespaces} from '../../i18n/i18n.constants';
-import '../../i18n/i18n';
 
 /**
  * Opens the extension's own options page.

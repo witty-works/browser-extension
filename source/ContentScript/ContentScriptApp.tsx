@@ -37,6 +37,7 @@ import {
   isMicrosoftOnline,
 } from '../shared/DOMutils';
 import {sendErrorToSentry} from '../shared/errorUtils';
+import {getActiveDocument, setActiveDocument} from '../shared/activeDocument';
 import {useLog, logTypes} from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import throttle from 'lodash.throttle';
@@ -61,16 +62,6 @@ const WW_CONTAINER_STYLE = `
   box-shadow: none !important;
   `;
 
-let activeDocument = document;
-
-export const setActiveDocument = (document: Document) => {
-  if (document?.body) {
-    activeDocument = document;
-  }
-};
-
-export const getActiveDocument = () => activeDocument;
-
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
     {} as RequestConfig
@@ -88,7 +79,12 @@ const ContentScriptApp: React.FC = () => {
 
   useEffect(() => {
     if (isGoogleSearch()) return;
-    if (isMicrosoftOnline(window.location.href)) return; //needed in addition to the deny list because of iframes
+    // Disables the extension on all Microsoft Online surfaces (Word, Excel,
+    // PowerPoint, Outlook 365, Sharepoint) — needed in addition to the deny
+    // list because of iframes. Every Microsoft-specific branch further down
+    // (Word focus handling, the Excel formula-bar case) is unreachable until
+    // this early return is lifted; they are kept for that eventuality.
+    if (isMicrosoftOnline(window.location.href)) return;
 
     browser.storage.local
       .get(null)

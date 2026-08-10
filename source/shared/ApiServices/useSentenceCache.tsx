@@ -1,4 +1,4 @@
-import {hashString} from '../../ContentScript/utils';
+import {hashString} from '../hash';
 import {IAlert} from '../types';
 import {useRef} from 'react';
 import {generateAlertId, extractSentenceNode} from '../utils';

@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import browser from 'webextension-polyfill';
 import {useTranslation} from 'react-i18next';
 
-import '../i18n/i18n';
 import {namespaces} from '../i18n/i18n.constants';
 import CategoryToggle from './CategoryToggle';
 import {

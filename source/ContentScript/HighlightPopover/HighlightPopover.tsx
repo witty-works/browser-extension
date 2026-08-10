@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {useFloating, flip, offset, shift} from '@floating-ui/react-dom';
 
 import {
@@ -9,9 +9,8 @@ import {
   ResponseConfig,
 } from '../../shared/types';
 import {useTranslation} from 'react-i18next';
-import '../../i18n/i18n';
 import {namespaces} from '../../i18n/i18n.constants';
-import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
+import {usePopoverViewModel} from './popoverViewModel';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
@@ -28,28 +27,10 @@ import ErrorIcon from '../../assets/icons/popover/failure.svg';
 import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 
 import './HighlightPopover.scss';
-import {
-  DEV_ENV,
-  getColor,
-  isDashboardAvailable,
-  StorageKeys,
-} from '../../shared/constants';
-import {getActiveDocument} from '../ContentScriptApp';
+import {getColor} from '../../shared/constants';
+import {getActiveDocument} from '../../shared/activeDocument';
 import {iframePositionRecquired} from '../../shared/DOMutils';
-import {useStateRef} from '../../shared/customHooks/useStateRef';
-import {
-  getScrollableParentClosestToElement,
-  storeInLocalStorage,
-} from '../../shared/utils';
-import browser from 'webextension-polyfill';
-import {readAccessToken} from '../../shared/tokenStore';
-import {renderNotificationToTop} from '../../Notifications/renderNotification';
-import {sendErrorToSentry} from '../../shared/errorUtils';
-import {
-  createUrl,
-  getBaseUrls,
-  buildRequestHeaders,
-} from '../../shared/ApiServices/requests';
+import {getScrollableParentClosestToElement} from '../../shared/utils';
 import parse from 'html-react-parser';
 import {computeDiff} from '../utils';
 import {LLMAlternativesCacheValue} from '../../shared/ApiServices/useLLMAlternativesCache';
@@ -81,6 +62,20 @@ interface PopoverProps {
    * popovers must never steal focus from the input the user is typing in.
    */
   focusOnOpen: boolean;
+  /** Whether AI suggestions are enabled (host-provided configuration). */
+  llmAlternativesEnabled: boolean;
+  /**
+   * Whether a dashboard exists to persist ignores to; without one the
+   * 'ignore permanently' control is hidden (API-key mode has no dashboard).
+   */
+  dashboardAvailable: boolean;
+  /**
+   * Persist a term on the user's dashboard ignore list. Resolves on success,
+   * rejects on failure — the popover only renders the outcome.
+   */
+  ignoreTermPermanently: (term: string) => Promise<void>;
+  /** Host bookkeeping (accept counters, invite nags) when an alternative is applied. */
+  onAlternativeAccepted: () => void;
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
@@ -94,40 +89,43 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   setLLMSuggestionsRequest,
   getLLMSuggestions,
   focusOnOpen,
+  llmAlternativesEnabled,
+  dashboardAvailable,
+  ignoreTermPermanently,
+  onAlternativeAccepted,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
-  const analytics = useAnalytics();
   const {t, i18n} = useTranslation(namespaces.popover);
-  const [alternativeHovered, setAlternativeHovered] =
-    useState<IAlternatives | null>(null);
-  const [showLearningBite, setShowLearningBite, showLearningBiteRef] =
-    useStateRef<boolean>(false);
-  const [accessToken, setAccessToken] = useState<string>('');
-  const [llmAlternatives, setLlmAlternatives] = useState<boolean>(false);
-  // 'Ignore permanently' writes to the dashboard; in API-key mode there is none,
-  // so the control is hidden rather than left to fail. 'Ignore once' is local
-  // and stays available.
-  const [dashboardAvailable, setDashboardAvailable] = useState<boolean>(true);
-  const [isLoading, setIsLoading] = useState<string>('');
-  const [isSuccess, setIsSuccess] = useState<string>('');
-  const [isFailure, setIsFailure] = useState<string>('');
-
-  const llmAlternativesResponse = getLLMSuggestions({
-    alert: data.alert,
+  const {
+    analytics,
+    alternativeHovered,
+    setAlternativeHovered,
+    showLearningBite,
+    setShowLearningBite,
+    showLearningBiteRef,
+    isLoading,
+    isSuccess,
+    isFailure,
+    llmAlternativesResponse,
+    hidePopover,
+    clickAlternative,
+    alternativeKeyDown,
+    handleIgnoreClick,
+    goToAdjacentAlert,
+  } = usePopoverViewModel({
+    element,
+    data,
+    prevData,
+    hide,
+    updateTextWithAlternative,
+    addIgnoredTerm,
+    movePopoverNextOrPrev: updatePopover,
+    setLLMSuggestionsRequest,
+    getLLMSuggestions,
+    llmAlternativesEnabled,
+    ignoreTermPermanently,
+    onAlternativeAccepted,
   });
-
-  useEffect(() => {
-    if (prevData && prevData.alert.id === data.alert.id) {
-      return;
-    }
-    analytics.popoverLogs(data.alert, 'popover_open');
-
-    if (llmAlternatives && data.alert.data.alternatives.length > 0) {
-      setLLMSuggestionsRequest({
-        alert: data.alert,
-      });
-    }
-  }, [data, llmAlternatives]);
 
   useEffect(() => {
     //Dynamically sets the language depending on the text language
@@ -188,16 +186,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
-
-  useEffect(() => {
-    browser.storage.local.get(null).then((result) => {
-      readAccessToken()
-        .then(setAccessToken)
-        .catch(() => setAccessToken(''));
-      setLlmAlternatives(result[StorageKeys.LLM_ALTERNATIVES]);
-      setDashboardAvailable(isDashboardAvailable(result));
-    });
-  }, []);
 
   useEffect(() => {
     refs.setReference(element);
@@ -296,148 +284,6 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       posY <= data.position.y + data.position.height;
 
     if (hasClickedOutsidePopOver && !hasClickedThisHighlight) hidePopover();
-  };
-
-  const hidePopover = (logClose = false) => {
-    logClose && analytics.popoverLogs(data.alert, 'popover_close');
-    setShowLearningBite(false);
-
-    hide();
-    //in case input is removed from the dom before popover is closed (clicking outside the element), also remove it here
-    const popoverContainers =
-      window.document.getElementsByTagName('ww-popover');
-    Array.from(popoverContainers).forEach((popoverContainer) => {
-      popoverContainer.remove();
-    });
-  };
-
-  const incrementAlternativesAccepted = (storage: any) =>
-    storeInLocalStorage(
-      StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED,
-      storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]
-        ? storage[StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED] + 1
-        : 1
-    );
-
-  const renderNotification = (notificationType: string) => {
-    try {
-      if (!window.top) return;
-
-      // centralized render helper
-      renderNotificationToTop(notificationType, element);
-    } catch (error) {
-      DEV_ENV && console.error('Error in renderNotification:', error);
-    }
-  };
-
-  const clickAlternative = (
-    e: MouseEvent | KeyboardEvent,
-    alternative: string
-  ) => {
-    //Log the clicked alternative
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    analytics.alternativeLog(data.alert, alternative);
-
-    browser.storage.local
-      .get(null)
-      .then((result) => {
-        const {
-          [StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED]: alternativesAccepted,
-          [StorageKeys.INVITE_TEAM_FEATURE_FLAG]: teamInviteFlag,
-          [StorageKeys.INVITE_FRIENDS_FEATURE_FLAG]: friendInviteFlag,
-        } = result;
-
-        // The 'salesDemo' prompt ("book a demo") went with the rest of the
-        // upselling, and the /demo page it linked to no longer exists.
-        if (!teamInviteFlag?.active || !friendInviteFlag?.active) {
-          //reset counter if a feature flag is diabled, maybe need to rethink this?
-          storeInLocalStorage(StorageKeys.NUMBER_OF_ALTERNATIVES_ACCEPTED, 0);
-        } else {
-          const incrementedAlternativesAccepted = alternativesAccepted + 1;
-          if (
-            (incrementedAlternativesAccepted ===
-              teamInviteFlag?.triggerNumber &&
-              teamInviteFlag?.active) ||
-            (incrementedAlternativesAccepted ===
-              friendInviteFlag?.triggerNumber &&
-              friendInviteFlag?.active)
-          ) {
-            const notificationType =
-              incrementedAlternativesAccepted === teamInviteFlag?.triggerNumber
-                ? 'inviteTeam'
-                : 'inviteFriends';
-
-            renderNotification(notificationType);
-          }
-        }
-        incrementAlternativesAccepted(result);
-      })
-      .catch((error) => {
-        sendErrorToSentry(error);
-      });
-    updateTextWithAlternative(alternative);
-  };
-
-  /**
-   * Keyboard counterpart of the pointer handlers on the alternative buttons.
-   * Applying an alternative targets the focused element (`execCommand` and the
-   * selection APIs), so focus is returned to the input before replacing.
-   */
-  const alternativeKeyDown =
-    (alternative: string) => (e: React.KeyboardEvent) => {
-      if (e.key !== 'Enter' && e.key !== ' ') {
-        return;
-      }
-      (element as HTMLElement).focus?.();
-      clickAlternative(e.nativeEvent, alternative);
-    };
-
-  const handleIgnoreClick = (ignoreType: string) => () => {
-    analytics.ignoreLog(data.alert);
-    if (ignoreType === 'ignore_once') {
-      addIgnoredTerm(data.alert.data?.text);
-      hidePopover();
-    } else if (ignoreType === 'ignore_permanently') {
-      const requestUrlIgnore = createUrl(
-        getBaseUrls().dashboard,
-        `api/user/language/ignore-words?false_positive=${data.alert.data?.text}`
-      );
-      makeDashboardRequest(requestUrlIgnore, ignoreType);
-    }
-  };
-
-  const makeDashboardRequest = (requestUrl: string, ignoreType: string) => {
-    setIsLoading(ignoreType);
-    setIsSuccess('');
-    setIsFailure('');
-    const headers = buildRequestHeaders(accessToken);
-
-    fetch(requestUrl, {
-      method: 'PUT',
-      headers,
-    })
-      .then(async (response) => {
-        setIsLoading('');
-        if (response.status === 204) {
-          addIgnoredTerm(data.alert.data?.text);
-          setIsSuccess(ignoreType);
-
-          browser.alarms.create('hidePopoverAlarm', {delayInMinutes: 1 / 60}); // 1000 ms in minutes
-
-          browser.alarms.onAlarm.addListener((alarm) => {
-            if (alarm.name === 'hidePopoverAlarm') {
-              hidePopover();
-            }
-          });
-        } else {
-          setIsLoading('');
-          setIsFailure(ignoreType);
-        }
-      })
-      .catch((error) => {
-        sendErrorToSentry(error);
-      });
   };
 
   /**
@@ -604,8 +450,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               className='witty-works-ext-margin-right witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer witty-works-ext-margin-auto witty-works-button'
               style={data.index === 1 ? {display: 'none'} : {}}
               onClick={() => {
-                data.index !== 1 && updatePopover('previous');
-                setShowLearningBite(false);
+                data.index !== 1 && goToAdjacentAlert('previous');
               }}
               aria-label={t('previous')}
               title={t('previous')}
@@ -628,8 +473,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               }
               style={data.index === data.totalAlerts ? {display: 'none'} : {}}
               onClick={() => {
-                data.index !== data.totalAlerts && updatePopover('next');
-                setShowLearningBite(false);
+                data.index !== data.totalAlerts && goToAdjacentAlert('next');
               }}
               aria-label={t('next')}
               title={t('next')}
