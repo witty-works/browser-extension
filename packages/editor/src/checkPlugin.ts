@@ -51,9 +51,12 @@ interface PendingCheck {
 export interface CheckPluginState {
   decorations: DecorationSet;
   pending: PendingCheck | null;
+  /** Bumped by `requestRecheck`; the controller checks when it changes. */
+  recheckRequests: number;
 }
 
 type CheckMeta =
+  | {type: 'recheck'}
   | {type: 'start'; id: number}
   | {type: 'results'; id: number; alerts: Omit<Alert, 'id'>[]};
 
@@ -158,6 +161,10 @@ const applyTransaction = (
 ): CheckPluginState => {
   const meta = tr.getMeta(checkPluginKey) as CheckMeta | undefined;
 
+  if (meta?.type === 'recheck') {
+    return {...value, recheckRequests: value.recheckRequests + 1};
+  }
+
   if (meta?.type === 'start') {
     return {...value, pending: {id: meta.id, mapping: new Mapping()}};
   }
@@ -172,6 +179,7 @@ const applyTransaction = (
         value.decorations
       ),
       pending: null,
+      recheckRequests: value.recheckRequests,
     };
   }
 
@@ -186,6 +194,7 @@ const applyTransaction = (
   }
 
   return {
+    ...value,
     decorations,
     pending: value.pending && {
       id: value.pending.id,
@@ -223,7 +232,13 @@ export class CheckController {
   }
 
   update(view: CheckView, prevState: EditorState): void {
-    if (view.state.doc !== prevState.doc) this.schedule();
+    if (
+      view.state.doc !== prevState.doc ||
+      checkPluginKey.getState(view.state)?.recheckRequests !==
+        checkPluginKey.getState(prevState)?.recheckRequests
+    ) {
+      this.schedule();
+    }
   }
 
   /** Called when an IME composition ends; runs a check it had held back. */
@@ -304,7 +319,11 @@ export const createCheckPlugin = (options: CheckOptions): Plugin => {
     key: checkPluginKey,
     state: {
       init: (): CheckPluginState => {
-        return {decorations: DecorationSet.empty, pending: null};
+        return {
+          decorations: DecorationSet.empty,
+          pending: null,
+          recheckRequests: 0,
+        };
       },
       apply: applyTransaction,
     },
@@ -324,6 +343,19 @@ export const createCheckPlugin = (options: CheckOptions): Plugin => {
     },
   });
 };
+
+/**
+ * Check again without an edit, e.g. after the credentials changed. Goes through
+ * the debounce like any edit.
+ */
+export const requestRecheck = (
+  view: Pick<CheckView, 'state' | 'dispatch'>
+): void =>
+  view.dispatch(
+    view.state.tr
+      .setMeta(checkPluginKey, {type: 'recheck'} satisfies CheckMeta)
+      .setMeta('addToHistory', false)
+  );
 
 /** TipTap wrapper around `createCheckPlugin`. */
 export const WittyCheck = Extension.create<CheckOptions>({

@@ -11,6 +11,7 @@ import {
   checkPluginKey,
   createCheckPlugin,
   getAlerts,
+  requestRecheck,
 } from './checkPlugin';
 
 const schema = getSchema([StarterKit]);
@@ -227,6 +228,18 @@ describe('check plugin', () => {
     await h.answer();
 
     expect(h.shown()).toEqual(before);
+  });
+
+  it('checks again on request without an edit', async () => {
+    const h = createHarness(['Hey guys']);
+    vi.advanceTimersByTime(100);
+    await h.answer();
+
+    requestRecheck(h.view);
+    vi.advanceTimersByTime(100);
+
+    expect(h.check.calls).toHaveLength(2);
+    expect(h.check.calls[1].text).toBe('Hey guys');
   });
 
   it('does not check during an IME composition, and checks after it', async () => {
