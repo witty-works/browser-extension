@@ -27,7 +27,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist/witty-editor.js"
+    "dist/witty-editor.js",
+    "dist/witty-editor.js.LICENSE.txt"
   ],
   "publishConfig": {
     "access": "public",

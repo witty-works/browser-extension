@@ -6,6 +6,8 @@ import {defineConfig, type Plugin} from 'vitest/config';
 import svgr from 'vite-plugin-svgr';
 import cssInjectedByJs from 'vite-plugin-css-injected-by-js';
 
+import {licenseNotices} from './licenseNotices';
+
 // `vite` serves the demo (index.html); `vite build` produces the embeddable
 // bundle: one self-contained dist/witty-editor.js exposing `WittyEditor.mount`.
 const fromRoot = (path: string): string =>
@@ -38,7 +40,7 @@ const banner = (): string => {
       commit = 'unknown';
     }
   }
-  return `/*! @witty-works/editor ${version} (${commit}) | MIT | https://witty.works */`;
+  return `/*! @witty-works/editor ${version} (${commit}) | MIT | https://witty.works | third-party licenses: witty-editor.js.LICENSE.txt */`;
 };
 
 /**
@@ -101,6 +103,7 @@ export default defineConfig({
   },
   plugins: [
     stripCredentials(),
+    licenseNotices(),
     // The shared popover imports its icons as React components, as the
     // extension's @svgr/webpack setup does.
     svgr({include: '**/*.svg', svgrOptions: {exportType: 'default'}}),

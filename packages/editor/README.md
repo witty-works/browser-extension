@@ -53,4 +53,4 @@ It returns a handle:
 
 ## License
 
-MIT
+MIT. The bundle includes third-party software (React, TipTap, ProseMirror, i18next and others); their license notices are in `dist/witty-editor.js.LICENSE.txt`. Serve or ship that file alongside the script.
