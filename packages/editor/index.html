@@ -21,6 +21,22 @@
       #editor .ProseMirror:focus {
         border-color: #4a7bd0;
       }
+      /* Highlight colours from the extension's getColor (hover shade). */
+      .witty-alert {
+        text-decoration: underline wavy;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 3px;
+        text-decoration-skip-ink: none;
+      }
+      .witty-alert--severe { text-decoration-color: #e6635a; }
+      .witty-alert--bias { text-decoration-color: #eb9f46; }
+      .witty-alert--style { text-decoration-color: #f6ec6b; }
+      .witty-alert--inclusive { text-decoration-color: #bcd485; }
+      .witty-alert--corporate { text-decoration-color: #6f9fed; }
+      .meta {
+        color: #666;
+        font-size: 0.875rem;
+      }
       #extracted {
         white-space: pre-wrap;
         background: #f4f4f4;
@@ -32,6 +48,7 @@
   </head>
   <body>
     <h1>witty-editor PoC</h1>
+    <p class="meta">API: <code id="endpoint"></code> · <span id="status" aria-live="polite"></span></p>
     <div id="editor"></div>
     <h2>Text sent to the checker</h2>
     <pre id="extracted"></pre>
