@@ -5,13 +5,14 @@ import {EditorState, type Transaction} from '@tiptap/pm/state';
 
 import type {ICheckResponse, ICheckResponseResult} from './checkClient';
 import {
-  alertTone,
   CheckController,
   type CheckView,
   checkPluginKey,
   createCheckPlugin,
+  dismissAlerts,
   getAlerts,
   requestRecheck,
+  selectAlert,
 } from './checkPlugin';
 
 const schema = getSchema([StarterKit]);
@@ -117,7 +118,13 @@ const createHarness = (paragraphs: string[], check = deferredChecker()) => {
     await Promise.resolve();
   };
 
-  return {view, controller, check, edit, posOf, shown, answer};
+  /** Class attribute of each highlight, in document order. */
+  const classes = () =>
+    (checkPluginKey.getState(view.state)?.decorations.find() ?? []).map(
+      (d) => (d as unknown as {type: {attrs: {class: string}}}).type.attrs.class
+    );
+
+  return {view, controller, check, edit, posOf, shown, answer, classes};
 };
 
 beforeEach(() => {
@@ -314,7 +321,13 @@ describe('check plugin', () => {
       h.view.state.tr.setMeta(checkPluginKey, {
         type: 'results',
         id,
-        alerts: [{from: 5, to: 9, result: {text: 'guys', gravity: 1}}],
+        alerts: [
+          {
+            from: 5,
+            to: 9,
+            detail: {data: {text: 'guys', category: 'x', gravity: 1}},
+          },
+        ],
       });
 
     h.view.dispatch(
@@ -331,16 +344,67 @@ describe('check plugin', () => {
   });
 });
 
-describe('alertTone', () => {
-  it('follows the extension colour rule', () => {
-    const tone = (gravity: number, subcategory = 'x') =>
-      alertTone({gravity, subcategory});
+describe('highlight classes', () => {
+  it('follow the extension colour rule, dotted for orthography', async () => {
+    const h = createHarness(['Hey guys, the chairman']);
+    vi.advanceTimersByTime(100);
+    h.check.calls[0].resolve({
+      results: [
+        {text: 'guys', start: 4, end: 8, category: 'gendered', gravity: 2},
+        {
+          text: 'chairman',
+          start: 14,
+          end: 22,
+          category: 'orthography',
+          gravity: 1,
+        },
+      ],
+    } as ICheckResponse);
+    await Promise.resolve();
+    await Promise.resolve();
 
-    expect(tone(2, 'corporate_rules')).toBe('corporate');
-    expect(tone(0)).toBe('inclusive');
-    expect(tone(1)).toBe('severe');
-    expect(tone(2)).toBe('bias');
-    expect(tone(2.5)).toBe('bias');
-    expect(tone(3)).toBe('style');
+    expect(h.classes()).toEqual([
+      'witty-alert witty-alert--bias',
+      'witty-alert witty-alert--severe witty-alert--dotted',
+    ]);
+  });
+});
+
+describe('popover support', () => {
+  it('draws the selected alert with the fill, and clears it', async () => {
+    const h = createHarness(['Hey guys, the chairman']);
+    vi.advanceTimersByTime(100);
+    await h.answer();
+    const [guys] = h.shown();
+
+    selectAlert(h.view, guys.id);
+    expect(h.classes()[0]).toContain('witty-alert--selected');
+    expect(h.classes()[1]).not.toContain('witty-alert--selected');
+
+    selectAlert(h.view, null);
+    expect(h.classes().join(' ')).not.toContain('witty-alert--selected');
+  });
+
+  it('keeps the selection on the alert across a recheck', async () => {
+    const h = createHarness(['Hey guys, the chairman']);
+    vi.advanceTimersByTime(100);
+    await h.answer();
+    selectAlert(h.view, h.shown()[0].id);
+
+    h.edit((tr) => tr.insertText('Oh. ', 1));
+    vi.advanceTimersByTime(100);
+    await h.answer();
+
+    expect(h.classes()[0]).toContain('witty-alert--selected');
+  });
+
+  it('dismisses every highlight of a term at once', async () => {
+    const h = createHarness(['Hey guys, the chairman and guys']);
+    vi.advanceTimersByTime(100);
+    await h.answer();
+
+    dismissAlerts(h.view, 'guys');
+
+    expect(h.shown().map((a) => a.text)).toEqual(['chairman']);
   });
 });

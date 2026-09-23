@@ -9,11 +9,10 @@ import {
 import {Mapping} from '@tiptap/pm/transform';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
 
-import type {
-  Checker,
-  ICheckResponse,
-  ICheckResponseResult,
-} from './checkClient';
+import {buildSentenceAlertsFromResponse} from '../../../source/shared/ApiServices/checkService';
+import {highlightColorKey} from '../../../source/shared/constants';
+import type {IAlert} from '../../../source/shared/types';
+import type {Checker, ICheckResponse} from './checkClient';
 import {extractText, textRangeToDoc} from './textMap';
 
 /**
@@ -32,6 +31,11 @@ import {extractText, textRangeToDoc} from './textMap';
  * - Nothing is checked while an IME composition is in progress.
  * - Alerts never enter the document: they are decorations only, so they do not
  *   travel with copy/paste, undo history or (later) collaboration.
+ *
+ * Each alert carries the extension's `IAlert`, built by the extension's own
+ * `buildSentenceAlertsFromResponse`, so the shared popover gets exactly the
+ * data it gets in the extension. Its offsets refer to the checked text; the
+ * decoration's `from`/`to` are what is current.
  */
 
 export interface Alert {
@@ -39,7 +43,7 @@ export interface Alert {
   id: string;
   from: number;
   to: number;
-  result: ICheckResponseResult;
+  detail: IAlert;
 }
 
 interface PendingCheck {
@@ -53,59 +57,70 @@ export interface CheckPluginState {
   pending: PendingCheck | null;
   /** Bumped by `requestRecheck`; the controller checks when it changes. */
   recheckRequests: number;
+  /** The alert whose popover is open, drawn with the highlight fill. */
+  selectedId: string | null;
 }
 
 type CheckMeta =
   | {type: 'recheck'}
+  | {type: 'select'; id: string | null}
+  | {type: 'dismiss'; text: string}
   | {type: 'start'; id: number}
   | {type: 'results'; id: number; alerts: Omit<Alert, 'id'>[]};
 
 export const checkPluginKey = new PluginKey<CheckPluginState>('wittyCheck');
 
-const alertKey = (
-  result: ICheckResponseResult,
-  from: number,
-  to: number
-): string => `${result.category}:${result.text}:${from}:${to}`;
-
-export type AlertTone = 'corporate' | 'inclusive' | 'severe' | 'bias' | 'style';
+const alertKey = ({data}: IAlert, from: number, to: number): string =>
+  `${data.category}:${data.text}:${from}:${to}`;
 
 /**
- * Colour group of an alert: the same rule as the extension's `getColor`
- * (source/shared/constants.ts), which cannot be imported without pulling in
- * extension code. Shared from packages/core after the Phase 2 extraction.
+ * Highlight classes, in the extension's look: the colour group from its
+ * `highlightColorKey`, a dotted line for orthography as its canvas draws it,
+ * and the fill while the alert's popover is open.
  */
-export const alertTone = ({
-  gravity,
-  subcategory,
-}: Pick<ICheckResponseResult, 'gravity' | 'subcategory'>): AlertTone => {
-  if (subcategory === 'corporate_rules') return 'corporate';
-  if (!gravity) return 'inclusive';
-  if (gravity < 1.5) return 'severe';
-  if (gravity > 2.5) return 'style';
-  return 'bias';
-};
+const alertClass = ({data}: IAlert, selected: boolean): string =>
+  [
+    'witty-alert',
+    `witty-alert--${highlightColorKey(data.gravity, data.subcategory)}`,
+    data.category === 'orthography' && 'witty-alert--dotted',
+    selected && 'witty-alert--selected',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-const decorate = (alert: Alert): Decoration =>
+const decorate = (alert: Alert, selectedId: string | null): Decoration =>
   Decoration.inline(
     alert.from,
     alert.to,
     {
-      class: `witty-alert witty-alert--${alertTone(alert.result)}`,
+      class: alertClass(alert.detail, alert.id === selectedId),
       'data-alert-id': alert.id,
     },
     {alert}
   );
 
+const alertOf = (decoration: Decoration): Alert => {
+  return {
+    ...(decoration.spec.alert as Alert),
+    from: decoration.from,
+    to: decoration.to,
+  };
+};
+
+/** Rebuild every decoration, e.g. after the selection moved. */
+const redecorate = (
+  decorations: DecorationSet,
+  doc: PMNode,
+  selectedId: string | null
+): DecorationSet =>
+  DecorationSet.create(
+    doc,
+    decorations.find().map((d) => decorate(alertOf(d), selectedId))
+  );
+
 /** Alerts currently shown, in document order. */
 export const getAlerts = (state: EditorState): Alert[] =>
-  (checkPluginKey.getState(state)?.decorations.find() ?? []).map((d) => {
-    return {
-      ...(d.spec.alert as Alert),
-      from: d.from,
-      to: d.to,
-    };
-  });
+  (checkPluginKey.getState(state)?.decorations.find() ?? []).map(alertOf);
 
 /** New-document ranges touched by `tr`. */
 const changedRanges = (tr: Transaction): [number, number][] => {
@@ -130,13 +145,14 @@ const acceptResults = (
   alerts: Omit<Alert, 'id'>[],
   mapping: Mapping,
   doc: PMNode,
-  current: DecorationSet
+  current: DecorationSet,
+  selectedId: string | null
 ): DecorationSet => {
   const existing = new Map<string, string>();
   for (const decoration of current.find()) {
     const alert = decoration.spec.alert as Alert;
     existing.set(
-      alertKey(alert.result, decoration.from, decoration.to),
+      alertKey(alert.detail, decoration.from, decoration.to),
       alert.id
     );
   }
@@ -145,11 +161,11 @@ const acceptResults = (
   for (const alert of alerts) {
     const from = mapping.map(alert.from, 1);
     const to = mapping.map(alert.to, -1);
-    if (doc.textBetween(from, to) !== alert.result.text) continue;
+    if (doc.textBetween(from, to) !== alert.detail.data.text) continue;
 
-    const key = alertKey(alert.result, from, to);
+    const key = alertKey(alert.detail, from, to);
     const id = existing.get(key) ?? `alert-${(nextAlertId += 1)}`;
-    accepted.push(decorate({...alert, id, from, to}));
+    accepted.push(decorate({...alert, id, from, to}, selectedId));
   }
 
   return DecorationSet.create(doc, accepted);
@@ -165,6 +181,25 @@ const applyTransaction = (
     return {...value, recheckRequests: value.recheckRequests + 1};
   }
 
+  if (meta?.type === 'select') {
+    return {
+      ...value,
+      selectedId: meta.id,
+      decorations: redecorate(value.decorations, tr.doc, meta.id),
+    };
+  }
+
+  if (meta?.type === 'dismiss') {
+    return {
+      ...value,
+      decorations: value.decorations.remove(
+        value.decorations
+          .find()
+          .filter((d) => alertOf(d).detail.data.text === meta.text)
+      ),
+    };
+  }
+
   if (meta?.type === 'start') {
     return {...value, pending: {id: meta.id, mapping: new Mapping()}};
   }
@@ -172,14 +207,15 @@ const applyTransaction = (
   if (meta?.type === 'results') {
     if (value.pending?.id !== meta.id) return value;
     return {
+      ...value,
       decorations: acceptResults(
         meta.alerts,
         value.pending.mapping,
         tr.doc,
-        value.decorations
+        value.decorations,
+        value.selectedId
       ),
       pending: null,
-      recheckRequests: value.recheckRequests,
     };
   }
 
@@ -215,6 +251,8 @@ export interface CheckOptions {
   /** Debounce after the last edit, in ms. */
   delay: number;
   onError?: (error: unknown) => void;
+  /** Alerts to leave out, e.g. terms the user chose to ignore. */
+  isIgnored?: (alert: IAlert) => boolean;
 }
 
 export class CheckController {
@@ -284,9 +322,25 @@ export class CheckController {
         if (controller.signal.aborted || this.destroyed) return;
 
         const alerts: Omit<Alert, 'id'>[] = [];
-        for (const result of response.results) {
-          const range = textRangeToDoc(map, result.start, result.end);
-          if (range) alerts.push({...range, result});
+        for (const {alerts: inSentence} of buildSentenceAlertsFromResponse(
+          response,
+          map.text
+        )) {
+          for (const sentenceAlert of inSentence) {
+            if (this.options.isIgnored?.(sentenceAlert)) continue;
+            const start = sentenceAlert.absOffset;
+            const end = start + sentenceAlert.data.text.length;
+            const range = textRangeToDoc(map, start, end);
+            // The popover measures offsets against fullSentence.range, which
+            // is absolute in the checked text; so are these, as in the
+            // extension (checkService makes them sentence-relative).
+            const detail = {
+              ...sentenceAlert,
+              startOffset: start,
+              endOffset: end,
+            };
+            if (range) alerts.push({...range, detail});
+          }
         }
 
         this.view.dispatch(
@@ -323,6 +377,7 @@ export const createCheckPlugin = (options: CheckOptions): Plugin => {
           decorations: DecorationSet.empty,
           pending: null,
           recheckRequests: 0,
+          selectedId: null,
         };
       },
       apply: applyTransaction,
@@ -354,6 +409,28 @@ export const requestRecheck = (
   view.dispatch(
     view.state.tr
       .setMeta(checkPluginKey, {type: 'recheck'} satisfies CheckMeta)
+      .setMeta('addToHistory', false)
+  );
+
+/** Draw `id`'s highlight as selected (its popover is open), or none. */
+export const selectAlert = (
+  view: Pick<CheckView, 'state' | 'dispatch'>,
+  id: string | null
+): void =>
+  view.dispatch(
+    view.state.tr
+      .setMeta(checkPluginKey, {type: 'select', id} satisfies CheckMeta)
+      .setMeta('addToHistory', false)
+  );
+
+/** Remove every highlight of `text` now, e.g. after "ignore once". */
+export const dismissAlerts = (
+  view: Pick<CheckView, 'state' | 'dispatch'>,
+  text: string
+): void =>
+  view.dispatch(
+    view.state.tr
+      .setMeta(checkPluginKey, {type: 'dismiss', text} satisfies CheckMeta)
       .setMeta('addToHistory', false)
   );
 
