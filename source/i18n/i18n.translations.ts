@@ -1,6 +1,21 @@
 import {namespaces} from './i18n.constants';
 
 export const de = {
+  [namespaces.editor]: {
+    toolbar: 'Formatierung',
+    bold: 'Fett',
+    italic: 'Kursiv',
+    underline: 'Unterstrichen',
+    heading: 'Überschrift',
+    bulletList: 'Aufzählung',
+    orderedList: 'Nummerierte Liste',
+    quote: 'Zitat',
+    undo: 'Rückgängig',
+    redo: 'Wiederholen',
+    settings: 'Witty-Einstellungen',
+    closeSettings: 'Einstellungen schliessen',
+    settingsLoading: 'Einstellungen werden geladen …',
+  },
   [namespaces.options]: {
     languageHeadline: 'Sprache und Gender-Formen',
     genderedRolesFormat: 'Generisches Maskulinum',
@@ -190,6 +205,21 @@ export const de = {
 };
 
 export const en = {
+  [namespaces.editor]: {
+    toolbar: 'Formatting',
+    bold: 'Bold',
+    italic: 'Italic',
+    underline: 'Underline',
+    heading: 'Heading',
+    bulletList: 'Bulleted list',
+    orderedList: 'Numbered list',
+    quote: 'Quote',
+    undo: 'Undo',
+    redo: 'Redo',
+    settings: 'Witty settings',
+    closeSettings: 'Close settings',
+    settingsLoading: 'Loading settings…',
+  },
   [namespaces.options]: {
     languageHeadline: 'Language and gender forms',
     genderedRolesFormat: 'Generic masculine',
@@ -379,6 +409,21 @@ export const en = {
 };
 
 export const fr = {
+  [namespaces.editor]: {
+    toolbar: 'Mise en forme',
+    bold: 'Gras',
+    italic: 'Italique',
+    underline: 'Souligné',
+    heading: 'Titre',
+    bulletList: 'Liste à puces',
+    orderedList: 'Liste numérotée',
+    quote: 'Citation',
+    undo: 'Annuler',
+    redo: 'Rétablir',
+    settings: 'Paramètres Witty',
+    closeSettings: 'Fermer les paramètres',
+    settingsLoading: 'Chargement des paramètres…',
+  },
   [namespaces.options]: {
     languageHeadline: 'Langue et formes de genre',
     genderedRolesFormat: 'Masculin générique',

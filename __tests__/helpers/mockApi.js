@@ -221,7 +221,7 @@ const CONFIG_OPTIONS = {
       },
     },
     german_gender_ending: {
-      values: ['/in', '/-in', '_in', '*in', ':in', '(-)', '()', 'In'],
+      values: ['/in', '/-in', '_in', '*in', ':in', '(-)', '()', 'In', 'de-e'],
       default: '*in',
       // `(-)` and `()` are deliberately unlabelled: the dashboard has no wording
       // for them, so the options page must fall back to the raw value.
@@ -232,6 +232,7 @@ const CONFIG_OPTIONS = {
         '/in': 'Slash, f.e Expert/in',
         '/-in': 'Slash dash, f.e Expert/-in',
         In: 'Binnen-I, f.e ExpertIn',
+        'de-e': 'Inklusivum, f.e Experte',
       },
     },
     french_gender_separator: {

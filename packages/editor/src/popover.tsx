@@ -41,8 +41,8 @@ const noAnalytics: PopoverAnalytics = {
 export interface PopoverHostOptions {
   endpoint: string;
   headers: () => Record<string, string>;
-  /** Offer the LLM's sentence rewrites for the alternatives. */
-  llmAlternatives: boolean;
+  /** Offer the LLM's sentence rewrites; read per render, it can change. */
+  llmAlternatives: () => boolean;
   /** How long to wait for them before the plain alternatives stand alone. */
   llmTimeoutMs: number;
   /** Terms ignored this session; filtered from later checks as well. */
@@ -181,7 +181,7 @@ export class PopoverHost {
           this.llmCache.get(getLLMAlternativesCacheKey(request))
         }
         focusOnOpen={this.focusOnOpen}
-        llmAlternativesEnabled={this.options.llmAlternatives}
+        llmAlternativesEnabled={this.options.llmAlternatives()}
         dashboardAvailable={false}
         ignoreTermPermanently={() =>
           Promise.reject(new Error('no dashboard to persist ignores to'))

@@ -21,6 +21,8 @@ import {
   WittyCheck,
 } from './checkPlugin';
 import {PopoverHost} from './popover';
+import {createSettingsStore, type EditorSettings} from './settings';
+import {mountToolbar, TOOLBAR_STYLES} from './toolbar';
 
 /**
  * Embeddable entry point: `WittyEditor.mount(element, options)`. The PoC shape
@@ -47,6 +49,13 @@ export interface MountOptions {
   config?: CheckConfig;
   /** Initial content (HTML). */
   content?: string;
+  /**
+   * The formatting bar with the Witty settings button (categories, gender
+   * formats, spelling, AI suggestions). On by default.
+   */
+  toolbar?: boolean;
+  /** Called when the user changes a setting in the settings panel. */
+  onSettingsChange?: (settings: EditorSettings) => void;
   /** Accessible name of the editable area. */
   label?: string;
   /** Debounce after the last edit, in ms. */
@@ -79,6 +88,7 @@ export interface WittyEditorHandle {
 }
 
 export type {CheckConfig, CheckLang, CheckVariant} from './checkClient';
+export type {EditorSettings} from './settings';
 
 /**
  * Highlights in the extension's look, with its colours: a 2px line in the
@@ -88,6 +98,7 @@ export type {CheckConfig, CheckLang, CheckVariant} from './checkClient';
 const buildStyles = (): string =>
   [
     '.witty-editor .ProseMirror { outline: none; min-height: 8rem; }',
+    TOOLBAR_STYLES,
     '.witty-alert { border-bottom: 2px solid transparent; cursor: pointer; }',
     '.witty-alert--dotted { border-bottom-style: dotted; border-bottom-width: 3px; }',
     '.witty-alert--selected { background-color: var(--witty-alert-fill); border-radius: 4px; }',
@@ -147,6 +158,8 @@ export const mount = (
     lang = 'auto',
     config,
     content = '',
+    toolbar = true,
+    onSettingsChange,
     label = 'Text to check',
     delay = 500,
     llmAlternatives = false,
@@ -159,23 +172,44 @@ export const mount = (
   element.classList.add('witty-editor');
 
   let key = apiKey;
-  let checkConfig = config;
+  // Behind `config`/`setConfig`, the settings panel and the popover's AI
+  // suggestions alike, so none of them can disagree.
+  const settings = createSettingsStore({
+    config: config ?? {},
+    llmAlternatives,
+    orthography: true,
+  });
   const headers = (): Record<string, string> =>
     credentialHeaders({apiKey: key});
-  // Both are read per request, so `setApiKey` and `setConfig` reach the next
-  // check without rebuilding the checker.
+  // Both are read per request, so `setApiKey` and settings changes reach the
+  // next check without rebuilding the checker.
   const check = createHttpChecker({
     endpoint,
     headers,
     lang,
-    config: (): CheckConfig | undefined => checkConfig,
+    config: (): CheckConfig => settings.get().config,
   });
+
+  const editableAttributes = (): Record<string, string> => {
+    return {
+      role: 'textbox',
+      'aria-multiline': 'true',
+      'aria-label': label,
+      // Witty checks spelling; two sets of underlines would compete.
+      spellcheck: settings.get().orthography ? 'false' : 'true',
+    };
+  };
+
+  // Toolbar first, then the editable; both inside the host's element.
+  const toolbarHost = document.createElement('div');
+  const editorHost = document.createElement('div');
+  element.append(...(toolbar ? [toolbarHost] : []), editorHost);
   const ignored = new Set<string>();
   // Created once the editor exists; its triggers only fire after that.
   const popoverRef: {current?: PopoverHost} = {};
 
   const editor = new Editor({
-    element,
+    element: editorHost,
     extensions: [
       StarterKit,
       WittyCheck.configure({
@@ -197,13 +231,9 @@ export const mount = (
       popoverTriggers(() => popoverRef.current),
     ],
     content,
-    editorProps: {
-      attributes: {
-        role: 'textbox',
-        'aria-multiline': 'true',
-        'aria-label': label,
-      },
-    },
+    // TipTap spreads `attributes` into its own, so it has to be an object;
+    // it is replaced when the spelling setting changes.
+    editorProps: {attributes: editableAttributes()},
     onTransaction: ({editor: current, transaction}): void => {
       popoverRef.current?.update();
       // Report whenever the highlights may have changed: results landed, an
@@ -218,12 +248,47 @@ export const mount = (
   const popover = new PopoverHost(editor.view, {
     endpoint,
     headers,
-    llmAlternatives,
+    llmAlternatives: (): boolean => settings.get().llmAlternatives,
     llmTimeoutMs,
     ignored,
-    config: (): CheckConfig | undefined => checkConfig,
+    config: (): CheckConfig => settings.get().config,
   });
   popoverRef.current = popover;
+
+  // Any settings change: rewrites made under the old ones are stale, the text
+  // needs checking again, and the spellcheck attribute may flip.
+  let previous = settings.get();
+  const unsubscribe = settings.subscribe(() => {
+    const next = settings.get();
+    if (
+      next.config !== previous.config ||
+      next.llmAlternatives !== previous.llmAlternatives
+    ) {
+      popover.resetRewrites();
+    }
+    if (next.config !== previous.config) {
+      requestRecheck(editor.view);
+    }
+    if (next.orthography !== previous.orthography) {
+      editor.setOptions({editorProps: {attributes: editableAttributes()}});
+    }
+    previous = next;
+  });
+
+  const toolbarHandle = toolbar
+    ? mountToolbar(toolbarHost, {
+        editor,
+        store: {
+          ...settings,
+          // Changes from the panel are the user's; tell the host.
+          set: (next): void => {
+            settings.set(next);
+            onSettingsChange?.(settings.get());
+          },
+        },
+        api: {endpoint, headers},
+      })
+    : undefined;
 
   return {
     editor,
@@ -233,14 +298,17 @@ export const mount = (
       requestRecheck(editor.view);
     },
     setConfig(next: CheckConfig): void {
-      checkConfig = next;
-      popover.resetRewrites();
-      requestRecheck(editor.view);
+      // Replaces, never merges; the store's subscriber re-checks.
+      settings.set({config: next});
     },
     getText: (): string => editor.getText(),
     destroy: (): void => {
+      unsubscribe();
+      toolbarHandle?.destroy();
       popover.destroy();
       editor.destroy();
+      toolbarHost.remove();
+      editorHost.remove();
     },
   };
 };

@@ -45,3 +45,6 @@ const showExtracted = (): void => {
 };
 handle.editor.on('update', showExtracted);
 showExtracted();
+
+// For poking at the demo from the browser console.
+(window as unknown as {wittyDemo: typeof handle}).wittyDemo = handle;

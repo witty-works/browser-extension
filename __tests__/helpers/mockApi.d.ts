@@ -6,7 +6,16 @@ import type {BrowserContext} from '@playwright/test';
 
 export const SAMPLE_TEXT: string;
 export const ALERTS: Record<string, unknown>[];
-export const CATEGORIES: Record<string, unknown>;
+export const CATEGORIES: {
+  groups: {key: string; label: string}[];
+  categories: {
+    key: string;
+    label: string;
+    parent: string;
+    advanced_key: string | null;
+    proficiency_level: string;
+  }[];
+};
 export const CONFIG_OPTIONS: Record<string, unknown>;
 export function authResponse(): Record<string, unknown>;
 export function checkResponse(text: string): {
