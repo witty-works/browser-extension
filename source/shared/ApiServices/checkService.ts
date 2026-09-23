@@ -1,6 +1,6 @@
 import type {ICachedSentenceAlerts} from './useSentenceCache';
 import {IAlert, ICheckResponse} from '../types';
-import {generateAlertId, extractSentenceNode} from '../utils';
+import {generateAlertId, extractSentenceNode} from '../alerts';
 import {SentenceSplitterSyntax, split} from 'sentence-splitter';
 import {TxtNodeRange} from '@textlint/ast-node-types';
 

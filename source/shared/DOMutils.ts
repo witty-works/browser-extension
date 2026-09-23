@@ -1,6 +1,5 @@
 import chroma from 'chroma-js';
 import {BaseUrls} from './constants';
-import {getDomainWithoutSubdomain} from './utils';
 
 export const isTextArea = (element: Element): element is HTMLTextAreaElement =>
   element instanceof HTMLTextAreaElement || findElement(element, 'TEXTAREA');
@@ -221,4 +220,30 @@ export const textIsLight = (color: any) => {
   const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
   // Using the HSP value, determine whether the color is light or dark
   return hsp > 127.5 ? true : false;
+};
+
+// Kept here rather than in utils.ts, which loads the extension APIs, so the
+// editor component can use the DOM helpers.
+export const getDomainWithoutSubdomain = (url: string) => {
+  const urlParts = url.split('.');
+  return urlParts
+    .slice(0)
+    .slice(urlParts.length - 2)
+    .join('.');
+};
+
+export const getScrollableParentClosestToElement = (element: HTMLElement) => {
+  let style = getComputedStyle(element);
+  const excludeStaticParent = style.position === 'absolute';
+  const overflowRegex = /(auto|scroll)/;
+  if (style.position === 'fixed') return document.body;
+  for (let parent = element; (parent = parent.parentElement as HTMLElement);) {
+    style = getComputedStyle(parent);
+    if (excludeStaticParent && style.position === 'static') {
+      continue;
+    }
+    if (overflowRegex.test(style.overflow + style.overflowY + style.overflowX))
+      return parent;
+  }
+  return document.body;
 };

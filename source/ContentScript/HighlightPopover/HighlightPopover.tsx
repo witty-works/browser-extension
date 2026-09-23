@@ -10,7 +10,7 @@ import {
 } from '../../shared/types';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../../i18n/i18n.constants';
-import {usePopoverViewModel} from './popoverViewModel';
+import {PopoverAnalytics, usePopoverViewModel} from './popoverViewModel';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
@@ -29,11 +29,14 @@ import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import './HighlightPopover.scss';
 import {getColor} from '../../shared/constants';
 import {getActiveDocument} from '../../shared/activeDocument';
-import {iframePositionRecquired} from '../../shared/DOMutils';
-import {getScrollableParentClosestToElement} from '../../shared/utils';
+import {
+  getScrollableParentClosestToElement,
+  iframePositionRecquired,
+} from '../../shared/DOMutils';
+
 import parse from 'html-react-parser';
-import {computeDiff} from '../utils';
-import {LLMAlternativesCacheValue} from '../../shared/ApiServices/useLLMAlternativesCache';
+import {computeDiff} from '../../shared/diff';
+import type {LLMAlternativesCacheValue} from '../../shared/ApiServices/llmAlternativesService';
 
 export interface PopoverData {
   index: number;
@@ -45,6 +48,8 @@ export interface PopoverData {
 }
 
 interface PopoverProps {
+  /** Where the popover reports its events; the extension passes useAnalytics(). */
+  analytics: PopoverAnalytics;
   element: CustomInputElement;
   data: PopoverData;
   prevData: PopoverData | null;
@@ -79,6 +84,7 @@ interface PopoverProps {
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
+  analytics: popoverAnalytics,
   element,
   data,
   prevData,
@@ -113,6 +119,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     handleIgnoreClick,
     goToAdjacentAlert,
   } = usePopoverViewModel({
+    analytics: popoverAnalytics,
     element,
     data,
     prevData,
@@ -427,7 +434,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         position: strategy,
         top: `${y}px`,
         left: `${x}px`,
-        maxWidth: `${showLearningBite ? 850 : 350}px`,
+        // Capped at the viewport so it reflows on narrow screens (WCAG 1.4.10).
+        maxWidth: `min(${showLearningBite ? 850 : 350}px, calc(100vw - 16px))`,
       }}
       onMouseDown={(e) => e.preventDefault()}
     >
@@ -442,8 +450,10 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             href='https://www.witty.works/'
             target='_blank'
             rel='noreferrer'
+            // An inline SVG ignores `alt`; the link carries the name instead.
+            aria-label={t('wittyLogo')}
           >
-            <WittyLogo alt={t('wittyLogo')} />
+            <WittyLogo aria-hidden='true' />
           </a>
           <div className='witty-works-ext-container-row'>
             <button
@@ -542,7 +552,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   </div>
                   <div
                     className='witty-works-ext-rephrasing'
-                    style={{width: '252px', height: '100%'}}
+                    // Shrinks below 252px so the popover fits a 320px
+                    // viewport without horizontal scrolling (WCAG 1.4.10).
+                    style={{flex: '0 1 252px', minWidth: 0, height: '100%'}}
                   >
                     <b>{data.alert.data?.label.split(':').pop()}</b>
                     <br />
@@ -637,7 +649,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
               </div>
             </div>
             {data.alert.data?.explanation?.video_url && (
-              <video width='500' controls>
+              <video width='500' style={{maxWidth: '100%'}} controls>
                 <source
                   src={data.alert.data?.explanation?.video_url}
                   type='video/mp4'
@@ -648,7 +660,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
             {!data.alert.data?.explanation?.video_url &&
               data.alert.data?.explanation?.image_url && (
                 <img
-                  style={{width: '500px'}}
+                  style={{width: '500px', maxWidth: '100%'}}
                   src={data.alert.data?.explanation?.image_url?.src}
                   alt={data.alert.data?.explanation?.image_url?.alt}
                 />

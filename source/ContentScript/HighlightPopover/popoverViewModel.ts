@@ -6,9 +6,8 @@ import {
   IAlternatives,
   IGetLLMSuggestionsRequest,
 } from '../../shared/types';
-import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
 import {useStateRef} from '../../shared/customHooks/useStateRef';
-import {LLMAlternativesCacheValue} from '../../shared/ApiServices/useLLMAlternativesCache';
+import type {LLMAlternativesCacheValue} from '../../shared/ApiServices/llmAlternativesService';
 import type {PopoverData} from './HighlightPopover';
 
 /**
@@ -20,7 +19,19 @@ import type {PopoverData} from './HighlightPopover';
  * popover, with the remaining DOM touch points (container cleanup in
  * hidePopover) pushed out to the host.
  */
+/**
+ * The events the popover reports. Injected by the host, so the popover does not
+ * pull in the extension's analytics pipeline (PostHog, storage, the dashboard
+ * log endpoint); the extension passes `useAnalytics()`.
+ */
+export interface PopoverAnalytics {
+  popoverLogs(alert: IAlert, logType: string): unknown;
+  alternativeLog(alert: IAlert, alternative: string): unknown;
+  ignoreLog(alert: IAlert): unknown;
+}
+
 export interface PopoverViewModelDeps {
+  analytics: PopoverAnalytics;
   element: CustomInputElement;
   data: PopoverData;
   prevData: PopoverData | null;
@@ -38,6 +49,7 @@ export interface PopoverViewModelDeps {
 }
 
 export const usePopoverViewModel = ({
+  analytics,
   element,
   data,
   prevData,
@@ -51,7 +63,6 @@ export const usePopoverViewModel = ({
   ignoreTermPermanently,
   onAlternativeAccepted,
 }: PopoverViewModelDeps) => {
-  const analytics = useAnalytics();
   const [alternativeHovered, setAlternativeHovered] =
     useState<IAlternatives | null>(null);
   const [showLearningBite, setShowLearningBite, showLearningBiteRef] =

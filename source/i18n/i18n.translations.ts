@@ -1,6 +1,29 @@
 import {namespaces} from './i18n.constants';
 
 export const de = {
+  [namespaces.editor]: {
+    toolbar: 'Formatierung',
+    bold: 'Fett',
+    italic: 'Kursiv',
+    underline: 'Unterstrichen',
+    heading: 'Überschrift',
+    bulletList: 'Aufzählung',
+    orderedList: 'Nummerierte Liste',
+    quote: 'Zitat',
+    undo: 'Rückgängig',
+    redo: 'Wiederholen',
+    settings: 'Witty-Einstellungen',
+    closeSettings: 'Einstellungen schliessen',
+    settingsLoading: 'Einstellungen werden geladen …',
+    statusChecking: 'Witty prüft den Text …',
+    statusAlerts_one: '{{count}} Hinweis',
+    statusAlerts_other: '{{count}} Hinweise',
+    statusNoAlerts: 'Keine Hinweise',
+    statusUnauthorized: 'API-Schlüssel fehlt oder wurde nicht akzeptiert',
+    statusFailed: 'Prüfung fehlgeschlagen',
+    shortcutHint:
+      'Mit Alt+Umschalt+W öffnest du den Hinweis an der Cursorposition.',
+  },
   [namespaces.options]: {
     languageHeadline: 'Sprache und Gender-Formen',
     genderedRolesFormat: 'Generisches Maskulinum',
@@ -190,6 +213,28 @@ export const de = {
 };
 
 export const en = {
+  [namespaces.editor]: {
+    toolbar: 'Formatting',
+    bold: 'Bold',
+    italic: 'Italic',
+    underline: 'Underline',
+    heading: 'Heading',
+    bulletList: 'Bulleted list',
+    orderedList: 'Numbered list',
+    quote: 'Quote',
+    undo: 'Undo',
+    redo: 'Redo',
+    settings: 'Witty settings',
+    closeSettings: 'Close settings',
+    settingsLoading: 'Loading settings…',
+    statusChecking: 'Witty is checking the text…',
+    statusAlerts_one: '{{count}} suggestion',
+    statusAlerts_other: '{{count}} suggestions',
+    statusNoAlerts: 'No suggestions',
+    statusUnauthorized: 'API key missing or not accepted',
+    statusFailed: 'Checking failed',
+    shortcutHint: 'Press Alt+Shift+W to open the suggestion at the cursor.',
+  },
   [namespaces.options]: {
     languageHeadline: 'Language and gender forms',
     genderedRolesFormat: 'Generic masculine',
@@ -379,6 +424,29 @@ export const en = {
 };
 
 export const fr = {
+  [namespaces.editor]: {
+    toolbar: 'Mise en forme',
+    bold: 'Gras',
+    italic: 'Italique',
+    underline: 'Souligné',
+    heading: 'Titre',
+    bulletList: 'Liste à puces',
+    orderedList: 'Liste numérotée',
+    quote: 'Citation',
+    undo: 'Annuler',
+    redo: 'Rétablir',
+    settings: 'Paramètres Witty',
+    closeSettings: 'Fermer les paramètres',
+    settingsLoading: 'Chargement des paramètres…',
+    statusChecking: 'Witty vérifie le texte…',
+    statusAlerts_one: '{{count}} suggestion',
+    statusAlerts_other: '{{count}} suggestions',
+    statusNoAlerts: 'Aucune suggestion',
+    statusUnauthorized: 'Clé API manquante ou refusée',
+    statusFailed: 'La vérification a échoué',
+    shortcutHint:
+      'Appuyez sur Alt+Maj+W pour ouvrir la suggestion à la position du curseur.',
+  },
   [namespaces.options]: {
     languageHeadline: 'Langue et formes de genre',
     genderedRolesFormat: 'Masculin générique',

@@ -36,6 +36,7 @@ export default [
     ignores: [
       'node_modules/**',
       'dist/**',
+      'packages/*/dist/**',
       'extension/**',
       'coverage/**',
       'playwright-report/**',
@@ -45,6 +46,13 @@ export default [
 
   // Type-aware linting for the extension source.
   ...typescript({ files: TS, tsconfigPath: './tsconfig.json' }),
+  // Workspace packages are separate TypeScript programs with their own tsconfig.
+  {
+    files: ['packages/editor/**/*.ts', 'packages/editor/**/*.tsx'],
+    languageOptions: {
+      parserOptions: { project: './packages/editor/tsconfig.json' },
+    },
+  },
   ...react({ files: ['**/*.tsx'] }),
 
   // Build scripts, the Playwright suite and its fixture server are plain CJS
@@ -181,5 +189,11 @@ export default [
         { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true },
       ],
     },
+  },
+
+  {
+    // Test helpers are small closures; annotating each return type is noise.
+    files: ['packages/editor/**/*.test.ts'],
+    rules: { '@typescript-eslint/explicit-function-return-type': 'off' },
   },
 ];

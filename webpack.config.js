@@ -184,6 +184,11 @@ module.exports = {
     new webpack.EnvironmentPlugin(['NODE_ENV', 'TARGET_BROWSER']),
     // TESTING is optional, so it gets a default rather than being required
     new webpack.EnvironmentPlugin({ TESTING: 'false' }),
+    // Read here rather than via browser.runtime.getManifest() at runtime, so
+    // shared/constants.ts stays free of extension APIs.
+    new webpack.EnvironmentPlugin({
+      WITTY_VERSION: require('./source/manifest.json').version,
+    }),
     // delete previous build files
     new CleanWebpackPlugin({
       cleanOnceBeforeBuildPatterns: [
