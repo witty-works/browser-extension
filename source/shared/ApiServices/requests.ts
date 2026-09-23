@@ -114,6 +114,28 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
   };
 };
 
+/**
+ * Body of a `/v1.0/rephrase` request: the sentence around `alert`, to be
+ * rewritten with each of its alternatives. Shared with the editor component,
+ * which sends it with its own endpoint and credentials.
+ */
+export const buildLLMSuggestionBody = (
+  sentence: TxtSentenceNode,
+  alert: IAlert
+) => {
+  return {
+    sentence: sentence.raw,
+    text: alert.data.text,
+    start: alert.absOffset - sentence.range[0],
+    gender_separator: alert.data.gender_separator,
+    alternatives: alert.data.alternatives.filter((alt) => !alt.remove),
+    lang: alert.data.language || 'en',
+  };
+};
+
+/** How long an LLM rewrite may take before the popover falls back. */
+export const LLM_SUGGESTION_TIMEOUT_MS = 3000;
+
 export const getLLMSuggestion = (
   sentence: TxtSentenceNode,
   alert: IAlert
@@ -124,16 +146,9 @@ export const getLLMSuggestion = (
       method: 'POST',
       headers: buildRequestHeaders(token),
       body: sentence
-        ? JSON.stringify({
-            sentence: sentence.raw,
-            text: alert.data.text,
-            start: alert.absOffset - sentence.range[0],
-            gender_separator: alert.data.gender_separator,
-            alternatives: alert.data.alternatives.filter((alt) => !alt.remove),
-            lang: alert.data.language || 'en',
-          })
+        ? JSON.stringify(buildLLMSuggestionBody(sentence, alert))
         : null,
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(LLM_SUGGESTION_TIMEOUT_MS),
     },
   };
 };

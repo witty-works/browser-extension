@@ -19,6 +19,17 @@ import {
   isTextArea,
   requiresRectRecalculation,
 } from './DOMutils';
+
+// Moved out so they can be used without the extension APIs; re-exported for
+// existing importers.
+export {extractSentenceNode, generateAlertId} from './alerts';
+
+// Moved to DOMutils so they can be used without the extension APIs; re-exported
+// for existing importers.
+export {
+  getDomainWithoutSubdomain,
+  getScrollableParentClosestToElement,
+} from './DOMutils';
 import {
   createUrl,
   setApiKey,
@@ -30,17 +41,6 @@ import {clearTokens, persistTokens, readTokens} from './tokenStore';
 import {IAuthResponse} from './types';
 import {getActiveDocument} from './activeDocument';
 import {getStorage} from './platform/storage';
-// Extract TxtSentenceNode from a generic node
-export function extractSentenceNode(node: any): any {
-  if (node.type === 'Sentence') return node;
-  if ('children' in node && Array.isArray(node.children)) {
-    return node.children.find(
-      (child: {type?: string}) => child.type === 'Sentence'
-    );
-  }
-  return undefined;
-}
-
 export const isObjectEmpty = (obj: object) =>
   obj &&
   Object.keys(obj).length === 0 &&
@@ -90,13 +90,6 @@ export const storeInLocalStorage = (key: string, value: any) => {
     });
 };
 
-export const getDomainWithoutSubdomain = (url: string) => {
-  const urlParts = url.split('.');
-  return urlParts
-    .slice(0)
-    .slice(urlParts.length - 2)
-    .join('.');
-};
 export const singularTheyToBoolean = (value: string) =>
   value === 'he_or_she' ? false : true;
 
@@ -317,22 +310,6 @@ export const getCorrectedPositionCanvas = (element: HTMLElement) => {
   };
 };
 
-export const getScrollableParentClosestToElement = (element: HTMLElement) => {
-  let style = getComputedStyle(element);
-  const excludeStaticParent = style.position === 'absolute';
-  const overflowRegex = /(auto|scroll)/;
-  if (style.position === 'fixed') return document.body;
-  for (let parent = element; (parent = parent.parentElement as HTMLElement);) {
-    style = getComputedStyle(parent);
-    if (excludeStaticParent && style.position === 'static') {
-      continue;
-    }
-    if (overflowRegex.test(style.overflow + style.overflowY + style.overflowX))
-      return parent;
-  }
-  return document.body;
-};
-
 export const getFrameDepth = (windowToIdentify: Window): number => {
   if (windowToIdentify === window.top) {
     return 0;
@@ -349,13 +326,6 @@ export const shouldInjectIntoWindow = (windowToCheck: Window) => {
     windowToCheck.innerWidth >= 10 && windowToCheck.innerHeight >= 10;
   return frameDepth < 2 && isVisible;
 };
-
-export const generateAlertId = (
-  text: string,
-  category: string,
-  startOffset: number,
-  endOffset: number
-) => `${text}-${category}-${startOffset}-${endOffset}`;
 
 export const updateConfig = (response: IAuthResponse, force = false) => {
   getStorage()

@@ -1,7 +1,7 @@
 import {hashString} from '../hash';
 import {IAlert} from '../types';
 import {useRef} from 'react';
-import {generateAlertId, extractSentenceNode} from '../utils';
+import {generateAlertId, extractSentenceNode} from '../alerts';
 import {SentenceSplitterSyntax, split} from 'sentence-splitter';
 
 interface ISentenceCache {
