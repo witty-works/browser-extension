@@ -11,8 +11,8 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 
 ## Checking
 
-- [ ] **Sentence cache** (`useSentenceCache`): the extension re-checks only changed sentences; the editor sends the whole document on every check.
-- [ ] **Length limit** (`MAX_CHAR_LENGTH_TOTAL`) with the warning icon and explanation; the editor has no limit and ignores `limit_reached`. Part of the plan's open long-document policy.
+- [x] **Sentence cache and long texts** (2.1.0): the editor checks sentence by sentence in requests within the API's limit, caches per sentence, and resends only changed sentences. Unlike the extension it does not cache a batch the API cut short.
+- [x] **Length limit** (2.1.0): `maxTextLength` (default 20000), reported as `limitReached` in `onStatus` and shown under the text. The plan's long-document policy is still open for collaboration (Phase 5).
 - [ ] **HR add-on**: the extension sends `addons: ['hr']` unless disabled for the site; the editor sends no add-ons unless the host sets them in `config`.
 - [ ] **Error-specific handling**: the extension clears alerts on 422 and refreshes the token on 403; the editor reports every error through `onStatus` and leaves the last alerts on screen.
 - [ ] **Installation id**: the editor sends `client: "witty-editor:<version>"` (so the API can version-check it separately from the extension), but always `id: "witty-editor"`; the extension sends a random per-installation id.
@@ -23,6 +23,11 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 - [ ] **"Ignore once" across sessions**: it lasts for the lifetime of the editor instance, and matches the exact text only ("Guys" ≠ "guys").
 - [ ] **Accept counters and invite nags** (`onAlternativeAccepted`); a no-op in the editor.
 - [ ] **Formatting kept on LLM rewrites**: replacing a whole sentence inserts plain text, so bold or italic inside it is lost.
+
+## Bugs found in the extension
+
+- [ ] **Unchecked text counted as checked**: the extension's sentence cache stores every sentence it sent, including those past the API's `TEXT_MAX_LENGTH` cut-off (`limit_reached`), as checked with no alerts. In texts over 1000 characters (the API default) later sentences are never flagged. The editor's `sentenceCheck.ts` shows the fix: don't cache a batch that hit the limit, resend it smaller.
+- [ ] **`MAX_CHAR_LENGTH_REQUEST`** in `witty.config.json` is read nowhere; requests are not split to fit the API's limit.
 
 ## Reporting and notifications
 
@@ -40,7 +45,7 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 
 - [ ] **ES module build and TypeScript types** for bundler users; only the script-tag bundle is published.
 - [ ] **Bundle size**: 287 kB gzipped. chroma-js is loaded but unused by the editor; Preact for the popover would save most of React.
-- [ ] **Browser test of the editor in CI**, and CI running the unit tests, lint and the Firefox smoke suite.
+- [ ] **Browser test of the editor in CI**, and CI running the unit tests, lint and the Firefox smoke suite. Unit tests: `npm run test:coverage -w @witty-works/editor` (coverage thresholds 95% statements, 85% branches). Not covered by them: opening the popover by clicking a highlight, which needs a real layout engine.
 - [ ] **Root scripts** `dev:editor`, `test:unit`, `test:all`.
 - [ ] **Flaky Google Docs e2e test** (`gdocs.spec.js`): it sometimes stalls without highlights, independent of code changes.
 - [ ] **Order-dependent Firefox smoke tests**: "highlights a contenteditable" and "the content script answers the open-popover message" time out in full-suite runs but pass on their own, on older commits too.
