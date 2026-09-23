@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Write source/witty.config.json for a tag build, from the committed example.
  *
@@ -17,20 +16,21 @@ const SOURCE = path.join(__dirname, '..', 'source');
 const EXAMPLE = path.join(SOURCE, 'witty.config.json.example');
 const CONFIG = path.join(SOURCE, 'witty.config.json');
 
-const {assertNoBakedInCredentials} = require('./credentialGuard');
+const { assertNoBakedInCredentials } = require('./credentialGuard');
 
 const main = (args) => {
   const config = JSON.parse(fs.readFileSync(EXAMPLE, 'utf8'));
 
-  const {SENTRY_DSN, SENTRY_SAMPLE_RATE, SENTRY_TRACE_RATE} = process.env;
+  const { SENTRY_DSN, SENTRY_SAMPLE_RATE, SENTRY_TRACE_RATE } = process.env;
   if (SENTRY_DSN) config.SENTRY_DSN = SENTRY_DSN;
-  if (SENTRY_SAMPLE_RATE) config.SENTRY_SAMPLE_RATE = Number(SENTRY_SAMPLE_RATE);
+  if (SENTRY_SAMPLE_RATE)
+    config.SENTRY_SAMPLE_RATE = Number(SENTRY_SAMPLE_RATE);
   if (SENTRY_TRACE_RATE) config.SENTRY_TRACE_RATE = Number(SENTRY_TRACE_RATE);
 
   // Store builds carry no development or local endpoints. A key a user still
   // has stored (e.g. 'Dev') falls back to the build default.
   if (args.includes('--prod')) {
-    config.BASE_URLS = {Prod: config.BASE_URLS.Prod};
+    config.BASE_URLS = { Prod: config.BASE_URLS.Prod };
   }
 
   fs.writeFileSync(CONFIG, `${JSON.stringify(config, null, 2)}\n`);

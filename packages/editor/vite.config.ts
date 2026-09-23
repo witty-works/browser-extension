@@ -20,7 +20,9 @@ const CONFIG_PATH = fromRoot('source/witty.config.json');
 
 const packageVersion = (): string =>
   (
-    JSON.parse(readFileSync(new URL('package.json', import.meta.url), 'utf8')) as {
+    JSON.parse(
+      readFileSync(new URL('package.json', import.meta.url), 'utf8')
+    ) as {
       version: string;
     }
   ).version;

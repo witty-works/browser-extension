@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * One version for the browser extension and the editor package.
  *
@@ -62,7 +61,7 @@ const setVersion = (file, version) => {
   fs.writeFileSync(file, next);
 };
 
-const setManifest = ({manifestVersion, beta, version}) => {
+const setManifest = ({ manifestVersion, beta, version }) => {
   setVersion(MANIFEST, manifestVersion);
   let text = read(MANIFEST).replace(/^ {2}"version_name": "[^"]*",\n/m, '');
   if (beta) {
@@ -129,7 +128,9 @@ const main = (args) => {
     const problems = check(target);
     problems.forEach((problem) => console.error(problem));
     if (!problems.length) {
-      console.log(`${target.version}: files agree (npm dist-tag ${target.distTag})`);
+      console.log(
+        `${target.version}: files agree (npm dist-tag ${target.distTag})`
+      );
     }
     return problems.length ? 1 : 0;
   }
@@ -147,4 +148,4 @@ if (require.main === module) {
   process.exitCode = main(process.argv.slice(2));
 }
 
-module.exports = {parseVersion, check};
+module.exports = { parseVersion, check };
