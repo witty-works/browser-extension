@@ -22,6 +22,14 @@ export interface HttpCheckerOptions {
   client?: string;
 }
 
+/** A non-2xx answer from the API; `status` lets callers tell 401/403 apart. */
+export class CheckHttpError extends Error {
+  constructor(readonly status: number) {
+    super(`check failed: HTTP ${status}`);
+    this.name = 'CheckHttpError';
+  }
+}
+
 /** A `Checker` that POSTs to the NLP API's `/v2.4/check`. */
 export const createHttpChecker =
   ({
@@ -43,7 +51,7 @@ export const createHttpChecker =
     });
 
     if (!response.ok) {
-      throw new Error(`check failed: HTTP ${response.status}`);
+      throw new CheckHttpError(response.status);
     }
 
     return (await response.json()) as ICheckResponse;
