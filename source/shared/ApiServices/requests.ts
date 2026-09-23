@@ -68,6 +68,10 @@ export const setApiKey = (key: string) => (apiKey = key);
 /** NLP API paths, relative to the endpoint's base URL. */
 export const CHECK_PATH = 'v2.4/check';
 export const REPHRASE_PATH = 'v1.0/rephrase';
+export const CONFIG_OPTIONS_PATH = 'v2.0/config-options';
+/** Category list with labels in `locale`; unauthenticated and cacheable. */
+export const categoriesPath = (locale: string): string =>
+  `v2.0/categories?locale=${encodeURIComponent(locale)}`;
 
 export const JSON_HEADERS: Readonly<Record<string, string>> = {
   Accept: 'application/json',
@@ -216,12 +220,7 @@ export const getLLMSuggestion = (
  */
 export const getCategories = (locale: string): IRequest => {
   return {
-    url:
-      BASE_URL_API &&
-      createUrl(
-        BASE_URL_API,
-        `v2.0/categories?locale=${encodeURIComponent(locale)}`
-      ),
+    url: BASE_URL_API && createUrl(BASE_URL_API, categoriesPath(locale)),
     config: {
       method: 'GET',
       headers: {Accept: 'application/json'},
@@ -237,7 +236,7 @@ export const getCategories = (locale: string): IRequest => {
  */
 export const getConfigOptions = (): IRequest => {
   return {
-    url: BASE_URL_API && createUrl(BASE_URL_API, 'v2.0/config-options'),
+    url: BASE_URL_API && createUrl(BASE_URL_API, CONFIG_OPTIONS_PATH),
     config: {
       method: 'GET',
       headers: {Accept: 'application/json'},
