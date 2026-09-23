@@ -24,11 +24,17 @@ import type {
   IConfigOptionsResponse,
 } from '@witty/core/types';
 import {namespaces} from '@witty/i18n/i18n.constants';
+// The extension's own status logos, as its input overlay shows them.
+import LoadingIcon from '@witty/core/StateIndicatorIcons/LoadingIcon';
+import ActiveIcon from '@witty/assets/icons/wittyStateIndicator/witty-active.svg';
+import WarningIcon from '@witty/assets/icons/wittyStateIndicator/witty-warning.svg';
 
 import {
+  type CheckStatus,
   type EditorSettings,
   languageFormatOf,
   type SettingsStore,
+  type StatusStore,
   withCategoryLevel,
   withFormatField,
 } from './settings';
@@ -195,13 +201,58 @@ const SettingsPanel: React.FC<{
  * single tab stop with arrow-key navigation between the buttons (the ARIA
  * toolbar pattern).
  */
+/** Announced text for a status; empty while checking, to stay quiet while typing. */
+const useStatusText = (
+  status: CheckStatus
+): {text: string; announce: string} => {
+  const {t} = useTranslation(namespaces.editor);
+  switch (status.state) {
+    case 'checking':
+      return {text: t('statusChecking'), announce: ''};
+    case 'idle': {
+      const text = status.alerts
+        ? t('statusAlerts', {count: status.alerts})
+        : t('statusNoAlerts');
+      return {text, announce: text};
+    }
+    case 'unauthorized':
+      return {text: t('statusUnauthorized'), announce: t('statusUnauthorized')};
+    default:
+      return {text: t('statusFailed'), announce: t('statusFailed')};
+  }
+};
+
+const prefersReducedMotion = (): boolean =>
+  typeof matchMedia === 'function' &&
+  matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * The Witty logo in the state the extension would show it in. The animated
+ * one loops for as long as a check runs, so with reduced motion requested the
+ * static logo stands in; the live region still says what is happening.
+ */
+const StatusIcon: React.FC<{status: CheckStatus}> = ({status}) => {
+  if (status.state === 'checking') {
+    return prefersReducedMotion() ? (
+      <ActiveIcon aria-hidden='true' style={{opacity: 0.5}} />
+    ) : (
+      <LoadingIcon />
+    );
+  }
+  if (status.state === 'idle') return <ActiveIcon aria-hidden='true' />;
+  return <WarningIcon aria-hidden='true' />;
+};
+
 const Toolbar: React.FC<{
   editor: Editor;
   store: SettingsStore;
+  status: StatusStore;
   loadOptions: () => Promise<PreferenceOptions>;
-}> = ({editor, store, loadOptions}) => {
+}> = ({editor, store, status: statusStore, loadOptions}) => {
   const {t} = useTranslation(namespaces.editor);
   useEditorVersion(editor);
+  const {status} = useSyncExternalStore(statusStore.subscribe, statusStore.get);
+  const statusText = useStatusText(status);
   const [focusIndex, setFocusIndex] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
@@ -340,18 +391,21 @@ const Toolbar: React.FC<{
             buttons.current[count - 1] = button;
           }}
           type='button'
-          className='witty-editor-tool witty-editor-tool--settings'
+          className={`witty-editor-tool witty-editor-tool--settings is-${status.state}`}
           aria-label={t('settings')}
-          title={t('settings')}
+          title={`${t('settings')} · ${statusText.text}`}
           aria-expanded={settingsOpen}
           aria-controls={panelId}
           tabIndex={focusIndex === count - 1 ? 0 : -1}
           onFocus={() => setFocusIndex(count - 1)}
           onClick={() => setSettingsOpen((open) => !open)}
         >
-          ⚙
+          <StatusIcon status={status} />
         </button>
       </div>
+      <span className='witty-editor-sr-only' role='status' aria-live='polite'>
+        {statusText.announce}
+      </span>
       {settingsOpen && (
         <SettingsPanel
           id={panelId}
@@ -385,7 +439,13 @@ export const TOOLBAR_STYLES = `
 }
 .witty-editor-tool--italic { font-style: italic; }
 .witty-editor-tool--underline { text-decoration: underline; }
-.witty-editor-tool--settings { margin-left: auto; }
+.witty-editor-tool--settings {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.witty-editor-tool--settings svg { display: block; }
 .witty-editor-tool:hover { background: #f2f2f2; }
 .witty-editor-tool[aria-pressed='true'] { background: #e8eefb; border-color: #9fb8ea; }
 .witty-editor-tool[aria-disabled='true'] { opacity: 0.4; cursor: default; }
@@ -417,7 +477,12 @@ export interface ToolbarHandle {
 /** Render the toolbar into `container`. */
 export const mountToolbar = (
   container: HTMLElement,
-  props: {editor: Editor; store: SettingsStore; api: ApiOptions}
+  props: {
+    editor: Editor;
+    store: SettingsStore;
+    api: ApiOptions;
+    status: StatusStore;
+  }
 ): ToolbarHandle => {
   // Loaded once per editor, when the panel first opens; a failed load is
   // tried again the next time.
@@ -435,6 +500,7 @@ export const mountToolbar = (
     <Toolbar
       editor={props.editor}
       store={props.store}
+      status={props.status}
       loadOptions={loadOptions}
     />
   );

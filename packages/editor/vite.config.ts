@@ -70,6 +70,7 @@ export default defineConfig({
     alias: {
       '@witty/core': fromRoot('source/shared'),
       '@witty/i18n': fromRoot('source/i18n'),
+      '@witty/assets': fromRoot('source/assets'),
       '@witty/ui': fromRoot('source/ContentScript/HighlightPopover'),
       '@witty/test-fixtures': fromRoot('__tests__/helpers'),
     },

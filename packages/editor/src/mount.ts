@@ -3,7 +3,9 @@ import StarterKit from '@tiptap/starter-kit';
 import {Plugin} from '@tiptap/pm/state';
 
 import {highlightColors} from '@witty/core/constants';
+import i18n from 'i18next';
 import {initI18n} from '@witty/i18n/i18n';
+import {namespaces} from '@witty/i18n/i18n.constants';
 import {
   credentialHeaders,
   LLM_SUGGESTION_TIMEOUT_MS,
@@ -21,7 +23,12 @@ import {
   WittyCheck,
 } from './checkPlugin';
 import {PopoverHost} from './popover';
-import {createSettingsStore, type EditorSettings} from './settings';
+import {
+  type CheckStatus,
+  createSettingsStore,
+  createStore,
+  type EditorSettings,
+} from './settings';
 import {mountToolbar, TOOLBAR_STYLES} from './toolbar';
 
 /**
@@ -98,6 +105,10 @@ export type {EditorSettings} from './settings';
 const buildStyles = (): string =>
   [
     '.witty-editor .ProseMirror { outline: none; min-height: 8rem; }',
+    // Its own focus indicator rather than relying on the host page for one.
+    '.witty-editor .ProseMirror:focus-visible { outline: 2px solid #55b8e9; outline-offset: 2px; border-radius: 2px; }',
+    // Read by screen readers, not shown.
+    '.witty-editor-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }',
     TOOLBAR_STYLES,
     '.witty-alert { border-bottom: 2px solid transparent; cursor: pointer; }',
     '.witty-alert--dotted { border-bottom-style: dotted; border-bottom-width: 3px; }',
@@ -150,6 +161,8 @@ const popoverTriggers = (host: () => PopoverHost | undefined): Extension =>
     },
   });
 
+let nextEditorId = 0;
+
 export const mount = (
   element: HTMLElement,
   {
@@ -190,11 +203,18 @@ export const mount = (
     config: (): CheckConfig => settings.get().config,
   });
 
+  // Highlights are visual only; tell screen reader users how to reach them.
+  const hint = document.createElement('span');
+  hint.id = `witty-editor-hint-${(nextEditorId += 1)}`;
+  hint.className = 'witty-editor-sr-only';
+  hint.textContent = i18n.t('shortcutHint', {ns: namespaces.editor});
+
   const editableAttributes = (): Record<string, string> => {
     return {
       role: 'textbox',
       'aria-multiline': 'true',
       'aria-label': label,
+      'aria-describedby': hint.id,
       // Witty checks spelling; two sets of underlines would compete.
       spellcheck: settings.get().orthography ? 'false' : 'true',
     };
@@ -203,7 +223,12 @@ export const mount = (
   // Toolbar first, then the editable; both inside the host's element.
   const toolbarHost = document.createElement('div');
   const editorHost = document.createElement('div');
-  element.append(...(toolbar ? [toolbarHost] : []), editorHost);
+  element.append(...(toolbar ? [toolbarHost] : []), editorHost, hint);
+
+  // What the Witty button shows; the host's onStatus keeps its own shape.
+  const status = createStore<{status: CheckStatus}>({
+    status: {state: 'idle', alerts: 0},
+  });
   const ignored = new Set<string>();
   // Created once the editor exists; its triggers only fire after that.
   const popoverRef: {current?: PopoverHost} = {};
@@ -216,17 +241,19 @@ export const mount = (
         check,
         delay,
         isIgnored: (alert) => ignored.has(alert.data.text),
-        onError: (error) =>
-          onStatus?.(
+        onError: (error) => {
+          const next: EditorStatus =
             error instanceof CheckHttpError &&
-              (error.status === 401 || error.status === 403)
+            (error.status === 401 || error.status === 403)
               ? {state: 'unauthorized'}
               : {
                   state: 'error',
                   message:
                     error instanceof Error ? error.message : String(error),
-                }
-          ),
+                };
+          status.set({status: next});
+          onStatus?.(next);
+        },
       }),
       popoverTriggers(() => popoverRef.current),
     ],
@@ -239,8 +266,19 @@ export const mount = (
       // Report whenever the highlights may have changed: results landed, an
       // edit removed some, or "ignore once" dismissed them.
       const meta = transaction.getMeta(checkPluginKey)?.type;
+      if (meta === 'start') {
+        status.set({status: {state: 'checking'}});
+      }
       if (transaction.docChanged || meta === 'results' || meta === 'dismiss') {
-        onStatus?.({state: 'idle', alerts: getAlerts(current.state).length});
+        const idle = {
+          state: 'idle',
+          alerts: getAlerts(current.state).length,
+        } as const;
+        // An edit during a check leaves it checking; results settle it.
+        if (meta !== undefined || status.get().status.state !== 'checking') {
+          status.set({status: idle});
+        }
+        onStatus?.(idle);
       }
     },
   });
@@ -287,6 +325,7 @@ export const mount = (
           },
         },
         api: {endpoint, headers},
+        status,
       })
     : undefined;
 
@@ -309,6 +348,7 @@ export const mount = (
       editor.destroy();
       toolbarHost.remove();
       editorHost.remove();
+      hint.remove();
     },
   };
 };

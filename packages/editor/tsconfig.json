@@ -22,6 +22,7 @@
     "paths": {
       "@witty/core/*": ["../../source/shared/*"],
       "@witty/i18n/*": ["../../source/i18n/*"],
+      "@witty/assets/*": ["../../source/assets/*"],
       "@witty/ui/*": ["../../source/ContentScript/HighlightPopover/*"],
       "@witty/test-fixtures/*": ["../../__tests__/helpers/*"]
     }

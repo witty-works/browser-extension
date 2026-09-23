@@ -20,20 +20,23 @@ export interface EditorSettings {
   orthography: boolean;
 }
 
-export interface SettingsStore {
-  get(): EditorSettings;
-  set(next: Partial<EditorSettings>): void;
+/** A value React components and plain code can both read and watch. */
+export interface Store<T> {
+  get(): T;
+  set(next: Partial<T>): void;
   subscribe(listener: () => void): () => void;
 }
 
-export const createSettingsStore = (initial: EditorSettings): SettingsStore => {
-  let settings = initial;
+export type SettingsStore = Store<EditorSettings>;
+
+export const createStore = <T extends object>(initial: T): Store<T> => {
+  let value = initial;
   const listeners = new Set<() => void>();
 
   return {
-    get: (): EditorSettings => settings,
+    get: (): T => value,
     set(next): void {
-      settings = {...settings, ...next};
+      value = {...value, ...next};
       listeners.forEach((listener) => listener());
     },
     subscribe(listener): () => void {
@@ -44,6 +47,18 @@ export const createSettingsStore = (initial: EditorSettings): SettingsStore => {
     },
   };
 };
+
+export const createSettingsStore = (initial: EditorSettings): SettingsStore =>
+  createStore(initial);
+
+/** What the Witty button shows and the live region announces. */
+export type CheckStatus =
+  | {state: 'checking'}
+  | {state: 'idle'; alerts: number}
+  | {state: 'unauthorized'}
+  | {state: 'error'; message: string};
+
+export type StatusStore = Store<{status: CheckStatus}>;
 
 type FormatField = keyof Pick<
   CheckConfig,

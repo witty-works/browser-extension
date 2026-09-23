@@ -182,3 +182,61 @@ describe('settings panel', () => {
     expect(document.activeElement).toBe(tool('Witty settings'));
   });
 });
+
+describe('Witty status button', () => {
+  const statusButton = () => tool('Witty settings');
+  const liveRegion = () =>
+    document.querySelector('.witty-editor-toolbar ~ [role="status"]');
+
+  it('announces the number of suggestions once the check is done', async () => {
+    const element = document.createElement('div');
+    document.body.append(element);
+    handle = mount(element, {
+      endpoint: 'https://api.example/',
+      // Two of the mock's alerts: "guys" and "chairman".
+      content: '<p>Hey guys, the chairman will assume the leadership role.</p>',
+      delay: 0,
+    });
+
+    await vi.waitFor(() =>
+      expect(liveRegion()?.textContent).toBe('2 suggestions')
+    );
+    expect(statusButton().classList).toContain('is-idle');
+    expect(statusButton().getAttribute('title')).toBe(
+      'Witty settings · 2 suggestions'
+    );
+  });
+
+  it('shows the check in progress, and stays silent meanwhile', async () => {
+    let answer: (response: Response) => void = () => undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            answer = resolve;
+          })
+      )
+    );
+    mountEditor();
+
+    await vi.waitFor(() =>
+      expect(statusButton()?.classList).toContain('is-checking')
+    );
+    expect(liveRegion()?.textContent).toBe('');
+
+    answer(new Response(JSON.stringify(checkResponse('Hello world'))));
+    await vi.waitFor(() =>
+      expect(liveRegion()?.textContent).toBe('No suggestions')
+    );
+  });
+
+  it('describes the editable with the keyboard shortcut', async () => {
+    const editor = mountEditor();
+    const id = editor.editor.view.dom.getAttribute('aria-describedby');
+
+    expect(document.getElementById(id!)?.textContent).toBe(
+      'Press Alt+Shift+W to open the suggestion at the cursor.'
+    );
+  });
+});
