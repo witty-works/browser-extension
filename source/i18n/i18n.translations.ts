@@ -23,6 +23,7 @@ export const de = {
     statusFailed: 'Prüfung fehlgeschlagen',
     shortcutHint:
       'Mit Alt+Umschalt+W öffnest du den Hinweis an der Cursorposition.',
+    limitReached: 'Nur ein Teil dieses Textes wurde geprüft.',
   },
   [namespaces.options]: {
     languageHeadline: 'Sprache und Gender-Formen',
@@ -234,6 +235,7 @@ export const en = {
     statusUnauthorized: 'API key missing or not accepted',
     statusFailed: 'Checking failed',
     shortcutHint: 'Press Alt+Shift+W to open the suggestion at the cursor.',
+    limitReached: 'Only part of this text was checked.',
   },
   [namespaces.options]: {
     languageHeadline: 'Language and gender forms',
@@ -446,6 +448,7 @@ export const fr = {
     statusFailed: 'La vérification a échoué',
     shortcutHint:
       'Appuyez sur Alt+Maj+W pour ouvrir la suggestion à la position du curseur.',
+    limitReached: 'Seule une partie de ce texte a été vérifiée.',
   },
   [namespaces.options]: {
     languageHeadline: 'Langue et formes de genre',

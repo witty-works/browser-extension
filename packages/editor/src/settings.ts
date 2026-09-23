@@ -54,7 +54,7 @@ export const createSettingsStore = (initial: EditorSettings): SettingsStore =>
 /** What the Witty button shows and the live region announces. */
 export type CheckStatus =
   | {state: 'checking'}
-  | {state: 'idle'; alerts: number}
+  | {state: 'idle'; alerts: number; limitReached: boolean}
   | {state: 'unauthorized'}
   | {state: 'error'; message: string};
 

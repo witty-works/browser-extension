@@ -19,6 +19,7 @@ import {
 import {
   checkPluginKey,
   getAlerts,
+  isLimitReached,
   requestRecheck,
   WittyCheck,
 } from './checkPlugin';
@@ -38,7 +39,11 @@ import {mountToolbar, TOOLBAR_STYLES} from './toolbar';
  */
 
 export type EditorStatus =
-  | {state: 'idle'; alerts: number}
+  /**
+   * `limitReached`: part of the text was not checked, because it is longer
+   * than `maxTextLength` or a sentence exceeds what the API checks at once.
+   */
+  | {state: 'idle'; alerts: number; limitReached: boolean}
   | {state: 'unauthorized'}
   | {state: 'error'; message: string};
 
@@ -65,6 +70,19 @@ export interface MountOptions {
   onSettingsChange?: (settings: EditorSettings) => void;
   /** Accessible name of the editable area. */
   label?: string;
+  /**
+   * Ids of elements that further describe the editable area, separated by
+   * spaces; added to its `aria-describedby` after the component's own hint.
+   */
+  describedBy?: string;
+  /**
+   * Characters per check request; longer texts are checked sentence by
+   * sentence over several requests. Match the API's TEXT_MAX_LENGTH (1000 by
+   * default); a lower limit is detected and batches shrink.
+   */
+  maxRequestLength?: number;
+  /** Characters of the text checked at all (default 20000). */
+  maxTextLength?: number;
   /** Debounce after the last edit, in ms. */
   delay?: number;
   /**
@@ -91,6 +109,11 @@ export interface WittyEditorHandle {
   setConfig(config: CheckConfig): void;
   /** Plain text of the document. */
   getText(): string;
+  /**
+   * The current settings: what `onSettingsChange` receives, as a copy. For a
+   * host that sends the same `config` with its own API calls.
+   */
+  getSettings(): EditorSettings;
   destroy(): void;
 }
 
@@ -106,6 +129,7 @@ const buildStyles = (): string =>
   [
     '.witty-editor .ProseMirror { outline: none; min-height: 8rem; }',
     // Its own focus indicator rather than relying on the host page for one.
+    '.witty-editor-limit { margin: 0.25rem 0 0; font-size: 0.875em; color: #595959; }',
     '.witty-editor .ProseMirror:focus-visible { outline: 2px solid #55b8e9; outline-offset: 2px; border-radius: 2px; }',
     // Read by screen readers, not shown.
     '.witty-editor-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }',
@@ -174,6 +198,9 @@ export const mount = (
     toolbar = true,
     onSettingsChange,
     label = 'Text to check',
+    describedBy,
+    maxRequestLength,
+    maxTextLength,
     delay = 500,
     llmAlternatives = false,
     llmTimeoutMs = LLM_SUGGESTION_TIMEOUT_MS,
@@ -214,7 +241,7 @@ export const mount = (
       role: 'textbox',
       'aria-multiline': 'true',
       'aria-label': label,
-      'aria-describedby': hint.id,
+      'aria-describedby': [hint.id, describedBy].filter(Boolean).join(' '),
       // Witty checks spelling; two sets of underlines would compete.
       spellcheck: settings.get().orthography ? 'false' : 'true',
     };
@@ -223,11 +250,22 @@ export const mount = (
   // Toolbar first, then the editable; both inside the host's element.
   const toolbarHost = document.createElement('div');
   const editorHost = document.createElement('div');
-  element.append(...(toolbar ? [toolbarHost] : []), editorHost, hint);
+  // Visible as well as announced, for hosts that do not read limitReached.
+  const limitHint = document.createElement('p');
+  limitHint.className = 'witty-editor-limit';
+  limitHint.hidden = true;
+  limitHint.textContent = i18n.t('limitReached', {ns: namespaces.editor});
+
+  element.append(
+    ...(toolbar ? [toolbarHost] : []),
+    editorHost,
+    limitHint,
+    hint
+  );
 
   // What the Witty button shows; the host's onStatus keeps its own shape.
   const status = createStore<{status: CheckStatus}>({
-    status: {state: 'idle', alerts: 0},
+    status: {state: 'idle', alerts: 0, limitReached: false},
   });
   const ignored = new Set<string>();
   // Created once the editor exists; its triggers only fire after that.
@@ -240,6 +278,11 @@ export const mount = (
       WittyCheck.configure({
         check,
         delay,
+        maxRequestLength,
+        maxTextLength,
+        // Results depend on these as much as on the text.
+        cacheScope: (): string =>
+          JSON.stringify([settings.get().config, lang, key]),
         isIgnored: (alert) => ignored.has(alert.data.text),
         onError: (error) => {
           const next: EditorStatus =
@@ -265,18 +308,30 @@ export const mount = (
       popoverRef.current?.update();
       // Report whenever the highlights may have changed: results landed, an
       // edit removed some, or "ignore once" dismissed them.
-      const meta = transaction.getMeta(checkPluginKey)?.type;
-      if (meta === 'start') {
+      const meta = transaction.getMeta(checkPluginKey) as
+        {type?: string; complete?: boolean} | undefined;
+      if (meta?.type === 'start') {
         status.set({status: {state: 'checking'}});
       }
-      if (transaction.docChanged || meta === 'results' || meta === 'dismiss') {
+      if (
+        transaction.docChanged ||
+        meta?.type === 'results' ||
+        meta?.type === 'dismiss'
+      ) {
         const idle = {
           state: 'idle',
           alerts: getAlerts(current.state).length,
+          limitReached: isLimitReached(current.state),
         } as const;
-        // An edit during a check leaves it checking; results settle it.
-        if (meta !== undefined || status.get().status.state !== 'checking') {
+        // Settled by results of the last batch or a dismissal. An edit during
+        // a check leaves it checking, as do results of an unfinished long text.
+        const settled =
+          meta?.type === 'dismiss' ||
+          (meta?.type === 'results' && meta.complete !== false) ||
+          (meta === undefined && status.get().status.state !== 'checking');
+        if (settled) {
           status.set({status: idle});
+          limitHint.hidden = !idle.limitReached;
         }
         onStatus?.(idle);
       }
@@ -341,6 +396,10 @@ export const mount = (
       settings.set({config: next});
     },
     getText: (): string => editor.getText(),
+    getSettings: (): EditorSettings => {
+      const current = settings.get();
+      return {...current, config: structuredClone(current.config)};
+    },
     destroy: (): void => {
       unsubscribe();
       toolbarHandle?.destroy();
@@ -349,6 +408,7 @@ export const mount = (
       toolbarHost.remove();
       editorHost.remove();
       hint.remove();
+      limitHint.remove();
     },
   };
 };
