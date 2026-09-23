@@ -1,6 +1,10 @@
-import {Editor} from '@tiptap/core';
+import {Editor, Extension} from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
+import {Plugin} from '@tiptap/pm/state';
 
+import {highlightColors} from '../../../source/shared/constants';
+import {initI18n} from '../../../source/i18n/i18n';
+import {LLM_SUGGESTION_TIMEOUT_MS} from '../../../source/shared/ApiServices/requests';
 import {CheckHttpError, createHttpChecker} from './checkClient';
 import {
   checkPluginKey,
@@ -8,6 +12,7 @@ import {
   requestRecheck,
   WittyCheck,
 } from './checkPlugin';
+import {PopoverHost} from './popover';
 
 /**
  * Embeddable entry point: `WittyEditor.mount(element, options)`. The PoC shape
@@ -31,6 +36,16 @@ export interface MountOptions {
   label?: string;
   /** Debounce after the last edit, in ms. */
   delay?: number;
+  /**
+   * Offer the LLM's sentence rewrites in the popover (`/v1.0/rephrase`). The
+   * extension takes this from the organisation config.
+   */
+  llmAlternatives?: boolean;
+  /**
+   * How long to wait for the rewrites, in ms. The extension's 3s suits a
+   * hosted model; a local one (Ollama) needs longer.
+   */
+  llmTimeoutMs?: number;
   onStatus?: (status: EditorStatus) => void;
 }
 
@@ -43,21 +58,22 @@ export interface WittyEditorHandle {
   destroy(): void;
 }
 
-/** Underline colours from the extension's getColor (hover shade). */
-const STYLES = `
-.witty-editor .ProseMirror { outline: none; min-height: 8rem; }
-.witty-alert {
-  text-decoration: underline wavy;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-  text-decoration-skip-ink: none;
-}
-.witty-alert--severe { text-decoration-color: #e6635a; }
-.witty-alert--bias { text-decoration-color: #eb9f46; }
-.witty-alert--style { text-decoration-color: #f6ec6b; }
-.witty-alert--inclusive { text-decoration-color: #bcd485; }
-.witty-alert--corporate { text-decoration-color: #6f9fed; }
-`;
+/**
+ * Highlights in the extension's look, with its colours: a 2px line in the
+ * group colour (dotted for orthography) and, while the popover is open, the
+ * rounded fill at 20% opacity.
+ */
+const buildStyles = (): string =>
+  [
+    '.witty-editor .ProseMirror { outline: none; min-height: 8rem; }',
+    '.witty-alert { border-bottom: 2px solid transparent; cursor: pointer; }',
+    '.witty-alert--dotted { border-bottom-style: dotted; border-bottom-width: 3px; }',
+    '.witty-alert--selected { background-color: var(--witty-alert-fill); border-radius: 4px; }',
+    ...Object.entries(highlightColors).map(
+      ([key, colors]) =>
+        `.witty-alert--${key} { border-bottom-color: ${colors.hover}; --witty-alert-fill: ${colors.highlight}33; }`
+    ),
+  ].join('\n');
 
 const STYLE_ID = 'witty-editor-styles';
 
@@ -65,9 +81,41 @@ const injectStyles = (): void => {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement('style');
   style.id = STYLE_ID;
-  style.textContent = STYLES;
+  style.textContent = buildStyles();
   document.head.append(style);
 };
+
+/** Opens the popover on a click on a highlight, and on the shortcut. */
+const popoverTriggers = (host: () => PopoverHost | undefined): Extension =>
+  Extension.create({
+    name: 'wittyPopoverTriggers',
+
+    addKeyboardShortcuts() {
+      return {
+        // The extension's default for its open-highlight-popover command.
+        'Alt-Shift-w': (): boolean => host()?.openAtSelection() ?? false,
+      };
+    },
+
+    addProseMirrorPlugins(): Plugin[] {
+      return [
+        new Plugin({
+          props: {
+            handleClick: (view, pos): boolean => {
+              const alert = getAlerts(view.state).find(
+                (candidate) => candidate.from <= pos && pos < candidate.to
+              );
+              if (!alert) return false;
+              // After this click has reached the open popover's
+              // click-outside handler, which would otherwise close the new one.
+              setTimeout(() => host()?.open(alert.id));
+              return false;
+            },
+          },
+        }),
+      ];
+    },
+  });
 
 export const mount = (
   element: HTMLElement,
@@ -77,17 +125,21 @@ export const mount = (
     content = '',
     label = 'Text to check',
     delay = 500,
+    llmAlternatives = false,
+    llmTimeoutMs = LLM_SUGGESTION_TIMEOUT_MS,
     onStatus,
   }: MountOptions = {}
 ): WittyEditorHandle => {
+  initI18n();
   injectStyles();
   element.classList.add('witty-editor');
 
   let key = apiKey;
-  const check = createHttpChecker({
-    endpoint,
-    headers: (): Record<string, string> => (key ? {'x-key': key} : {}),
-  });
+  const headers = (): Record<string, string> => (key ? {'x-key': key} : {});
+  const check = createHttpChecker({endpoint, headers});
+  const ignored = new Set<string>();
+  // Created once the editor exists; its triggers only fire after that.
+  const popoverRef: {current?: PopoverHost} = {};
 
   const editor = new Editor({
     element,
@@ -96,6 +148,7 @@ export const mount = (
       WittyCheck.configure({
         check,
         delay,
+        isIgnored: (alert) => ignored.has(alert.data.text),
         onError: (error) =>
           onStatus?.(
             error instanceof CheckHttpError &&
@@ -104,6 +157,7 @@ export const mount = (
               : {state: 'error', message: String(error)}
           ),
       }),
+      popoverTriggers(() => popoverRef.current),
     ],
     content,
     editorProps: {
@@ -114,6 +168,7 @@ export const mount = (
       },
     },
     onTransaction: ({editor: current, transaction}): void => {
+      popoverRef.current?.update();
       // Report when results land or an edit may have removed highlights.
       if (
         transaction.docChanged ||
@@ -124,6 +179,15 @@ export const mount = (
     },
   });
 
+  const popover = new PopoverHost(editor.view, {
+    endpoint,
+    headers,
+    llmAlternatives,
+    llmTimeoutMs,
+    ignored,
+  });
+  popoverRef.current = popover;
+
   return {
     editor,
     setApiKey(next: string): void {
@@ -131,6 +195,9 @@ export const mount = (
       requestRecheck(editor.view);
     },
     getText: (): string => editor.getText(),
-    destroy: (): void => editor.destroy(),
+    destroy: (): void => {
+      popover.destroy();
+      editor.destroy();
+    },
   };
 };

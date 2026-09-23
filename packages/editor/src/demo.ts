@@ -2,12 +2,13 @@ import {mount} from './mount';
 import {extractText} from './textMap';
 
 /**
- * PoC demo. `?api=` picks the NLP API; the default is a local one. With the
+ * PoC demo. `?api=` picks the NLP API; the default is a local one. `?llm=1`
+ * offers the LLM's sentence rewrites in the popover. With the
  * e2e suite's mock: `node __tests__/fixtures/server.js`, then
  * `?api=http://localhost:5174/mock-api/`.
  */
-const endpoint =
-  new URLSearchParams(location.search).get('api') ?? 'http://localhost:8000/';
+const params = new URLSearchParams(location.search);
+const endpoint = params.get('api') ?? 'http://localhost:8000/';
 
 const extracted = document.querySelector<HTMLElement>('#extracted')!;
 const status = document.querySelector<HTMLElement>('#status')!;
@@ -16,6 +17,9 @@ document.querySelector<HTMLElement>('#endpoint')!.textContent = endpoint;
 
 const handle = mount(document.querySelector<HTMLElement>('#editor')!, {
   endpoint,
+  llmAlternatives: params.get('llm') === '1',
+  // Local models are slow; the extension's 3s would time out every time.
+  llmTimeoutMs: 30000,
   content:
     '<p>Hey guys, the chairman will assume the leadership role.</p>' +
     '<ul><li><p>First point</p></li><li><p>Second point</p></li></ul>' +

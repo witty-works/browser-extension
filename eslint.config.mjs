@@ -48,7 +48,7 @@ export default [
   ...typescript({ files: TS, tsconfigPath: './tsconfig.json' }),
   // Workspace packages are separate TypeScript programs with their own tsconfig.
   {
-    files: ['packages/editor/**/*.ts'],
+    files: ['packages/editor/**/*.ts', 'packages/editor/**/*.tsx'],
     languageOptions: {
       parserOptions: { project: './packages/editor/tsconfig.json' },
     },
