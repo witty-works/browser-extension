@@ -4,7 +4,6 @@ import StarterKit from '@tiptap/starter-kit';
 import type {Node as PMNode} from '@tiptap/pm/model';
 
 import {
-  codePointIndexer,
   docPosToText,
   extractText,
   textRangeToDoc,
@@ -202,32 +201,14 @@ describe('docPosToText', () => {
   });
 });
 
-describe('codePointIndexer', () => {
-  it('is the identity for text without astral characters', () => {
-    const toIndex = codePointIndexer('Hey guys');
-    expect(toIndex(4)).toBe(4);
-    expect(toIndex(8)).toBe(8);
-    expect(toIndex(9)).toBeNull();
-    expect(toIndex(-1)).toBeNull();
-  });
-
-  it('accounts for characters outside the BMP', () => {
-    const value = '👋 Hey guys';
-    const toIndex = codePointIndexer(value);
-
-    // The API sees "guys" at code points 6..10; in UTF-16 the wave is 2 units.
-    expect(value.slice(toIndex(6)!, toIndex(10)!)).toBe('guys');
-    expect(toIndex(10)).toBe(value.length);
-    expect(toIndex(11)).toBeNull();
-  });
-
-  it('resolves API offsets after an emoji to the right document range', () => {
+describe('API offsets', () => {
+  it('index the extracted text directly after an emoji', () => {
     const node = doc(paragraph(text('Thanks 🙏')), paragraph(text('Hey guys')));
     const map = extractText(node);
-    const toIndex = codePointIndexer(map.text);
 
-    // What the API reports for "guys": "Thanks 🙏\nHey " is 13 code points.
-    const range = textRangeToDoc(map, toIndex(13)!, toIndex(17)!);
+    // UTF-16 offsets, as the NLP API reports them: the emoji is two units, so
+    // "guys" is at 14..18 (it would be 13..17 in code points).
+    const range = textRangeToDoc(map, 14, 18);
     expect(range).not.toBeNull();
     expect(node.textBetween(range!.from, range!.to)).toBe('guys');
   });

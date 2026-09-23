@@ -19,9 +19,10 @@ import type {Node as PMNode} from '@tiptap/pm/model';
  * - Separators and placeholders exist only in the string: they map to no
  *   document position, so an alert can never start or end on one.
  *
- * Offsets in `text` are UTF-16 indices (JavaScript string indices). The API
- * reports code-point offsets (spaCy's `token.idx`); convert with
- * `codePointIndexer` before resolving a range.
+ * Offsets in `text` are UTF-16 indices (JavaScript string indices), which is
+ * what the API reports: it converts spaCy's code-point offsets before
+ * responding (`utf16_offsets` in the NLP API), so alert offsets index `text`
+ * directly, emoji included.
  */
 
 /** A run of `text` that maps 1:1 onto document positions. */
@@ -152,32 +153,4 @@ export const docPosToText = (map: TextMap, pos: number): number | null => {
     }
   }
   return null;
-};
-
-// A high surrogate starts every character outside the BMP.
-const ASTRAL = /[\uD800-\uDBFF]/;
-
-/**
- * Converter from the API's code-point offsets to UTF-16 indices in `text`;
- * returns `null` for an offset past the end. Characters outside the BMP (most
- * emoji) are one code point but two UTF-16 units, so the two drift apart after
- * the first such character. Built once per checked text: the common all-BMP
- * case is the identity.
- */
-export const codePointIndexer = (
-  text: string
-): ((codePoints: number) => number | null) => {
-  if (!ASTRAL.test(text)) {
-    return (codePoints) =>
-      codePoints >= 0 && codePoints <= text.length ? codePoints : null;
-  }
-
-  const indices: number[] = [];
-  for (let index = 0; index < text.length;) {
-    indices.push(index);
-    index += (text.codePointAt(index) ?? 0) > 0xffff ? 2 : 1;
-  }
-  indices.push(text.length);
-
-  return (codePoints) => indices[codePoints] ?? null;
 };
