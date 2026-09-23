@@ -1,4 +1,4 @@
-import {IAlert, IRequest, RequestConfig} from '../types';
+import {IAlert, IAlternatives, IRequest, RequestConfig} from '../types';
 import {
   BaseUrls,
   DefaultBaseUrlKey,
@@ -65,50 +65,94 @@ export const setToken = (tok: string) => (token = tok);
  */
 export const setApiKey = (key: string) => (apiKey = key);
 
+/** NLP API paths, relative to the endpoint's base URL. */
+export const CHECK_PATH = 'v2.4/check';
+export const REPHRASE_PATH = 'v1.0/rephrase';
+
+export const JSON_HEADERS: Readonly<Record<string, string>> = {
+  Accept: 'application/json',
+  'Content-Type': 'application/json',
+};
+
+/**
+ * The one credential header a request carries: an API key as `x-key`, else a
+ * bearer token. Never both — the API would resolve two different identities
+ * from one request. Shared with the editor component.
+ */
+export const credentialHeaders = (credentials: {
+  apiKey?: string;
+  token?: string;
+}): Record<string, string> => {
+  if (credentials.apiKey) return {'x-key': credentials.apiKey};
+  if (credentials.token) {
+    return {Authorization: `Bearer ${credentials.token}`};
+  }
+  return {};
+};
+
 export const buildRequestHeaders = (
   useToken?: string
 ): {[key: string]: string} => {
-  const headers: {[key: string]: string} = {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  };
-
   // Build-time key first (CI only), then the user's runtime key, then the
-  // OAuth bearer token. An x-key and an Authorization header are never sent
-  // together: the API would resolve two different identities from one request.
-  if (X_KEY) {
-    headers['x-key'] = X_KEY;
-    return headers;
-  }
+  // OAuth bearer token.
+  return {
+    ...JSON_HEADERS,
+    ...credentialHeaders({apiKey: X_KEY || apiKey, token: useToken}),
+  };
+};
 
-  if (apiKey) {
-    headers['x-key'] = apiKey;
-    return headers;
-  }
+export interface CheckBodyFields {
+  text: string;
+  lang?: string;
+  id: string;
+  client: string;
+  config?: object;
+  configHash?: string;
+  organizationConfigHash?: string;
+}
 
-  if (useToken) {
-    headers['Authorization'] = `Bearer ${useToken}`;
-  }
-
-  return headers;
+/**
+ * Body of a `/v2.4/check` request. Optional fields are left out when not
+ * given, so the API's precedence rules (request over a stored "suggestion",
+ * stored "force" over both) see only what the client actually chose. Shared
+ * with the editor component.
+ */
+export const buildCheckBody = (
+  fields: CheckBodyFields
+): Record<string, unknown> => {
+  const {text, lang = 'auto', id, client, config} = fields;
+  return {
+    text,
+    lang,
+    id,
+    client,
+    ...(config !== undefined ? {config} : {}),
+    ...(fields.configHash !== undefined
+      ? {config_hash: fields.configHash}
+      : {}),
+    ...(fields.organizationConfigHash !== undefined
+      ? {organization_config_hash: fields.organizationConfigHash}
+      : {}),
+  };
 };
 
 export const getAnalyzedTextResults = (text: string): IRequest => {
   return {
-    url: createUrl(BASE_URL_API, 'v2.4/check'),
+    url: createUrl(BASE_URL_API, CHECK_PATH),
     config: {
       method: 'POST',
       headers: buildRequestHeaders(token),
       body: text
-        ? JSON.stringify({
-            text: text,
-            lang: 'auto',
-            id: appID,
-            client: wittyVersion,
-            config: requestConfig,
-            config_hash: configHash,
-            organization_config_hash: organizationConfigHash,
-          })
+        ? JSON.stringify(
+            buildCheckBody({
+              text,
+              id: appID,
+              client: wittyVersion,
+              config: requestConfig,
+              configHash,
+              organizationConfigHash,
+            })
+          )
         : null,
     },
   };
@@ -119,10 +163,19 @@ export const getAnalyzedTextResults = (text: string): IRequest => {
  * rewritten with each of its alternatives. Shared with the editor component,
  * which sends it with its own endpoint and credentials.
  */
+export interface LLMSuggestionBody {
+  sentence: string;
+  text: string;
+  start: number;
+  gender_separator?: string;
+  alternatives: IAlternatives[];
+  lang: string;
+}
+
 export const buildLLMSuggestionBody = (
   sentence: TxtSentenceNode,
   alert: IAlert
-) => {
+): LLMSuggestionBody => {
   return {
     sentence: sentence.raw,
     text: alert.data.text,
@@ -141,7 +194,7 @@ export const getLLMSuggestion = (
   alert: IAlert
 ): IRequest => {
   return {
-    url: createUrl(BASE_URL_API, 'v1.0/rephrase'),
+    url: createUrl(BASE_URL_API, REPHRASE_PATH),
     config: {
       method: 'POST',
       headers: buildRequestHeaders(token),

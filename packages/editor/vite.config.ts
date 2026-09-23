@@ -43,13 +43,13 @@ const stripCredentials = (): Plugin => {
   return {
     name: 'witty-strip-credentials',
     enforce: 'pre',
-    load(id) {
+    load(id): string | null {
       if (id.split('?')[0] !== CONFIG_PATH) return null;
       const config = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
       for (const key of CREDENTIAL_KEYS) delete config[key];
       return JSON.stringify(config);
     },
-    generateBundle(_options, bundle) {
+    generateBundle(_options, bundle): void {
       const values = secrets();
       for (const output of Object.values(bundle)) {
         const code =

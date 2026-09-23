@@ -2,7 +2,7 @@ import defaultConfig from '../witty.config.json';
 
 // Injected at build time (the manifest version for the extension), so this
 // module stays free of extension APIs and the editor component can import it.
-export const wittyVersion = process.env.WITTY_VERSION;
+export const wittyVersion: string = process.env.WITTY_VERSION || '';
 
 //Development
 // Driven by the build (`NODE_ENV=production` for `npm run build:*`), never

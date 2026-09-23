@@ -4,7 +4,10 @@ import {Plugin} from '@tiptap/pm/state';
 
 import {highlightColors} from '@witty/core/constants';
 import {initI18n} from '@witty/i18n/i18n';
-import {LLM_SUGGESTION_TIMEOUT_MS} from '@witty/core/ApiServices/requests';
+import {
+  credentialHeaders,
+  LLM_SUGGESTION_TIMEOUT_MS,
+} from '@witty/core/ApiServices/requests';
 import {
   type CheckConfig,
   CheckHttpError,
@@ -157,7 +160,8 @@ export const mount = (
 
   let key = apiKey;
   let checkConfig = config;
-  const headers = (): Record<string, string> => (key ? {'x-key': key} : {});
+  const headers = (): Record<string, string> =>
+    credentialHeaders({apiKey: key});
   // Both are read per request, so `setApiKey` and `setConfig` reach the next
   // check without rebuilding the checker.
   const check = createHttpChecker({

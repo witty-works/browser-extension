@@ -1,5 +1,10 @@
-// Type-only: erased at build time, so nothing from the extension is bundled.
-// Moves to packages/core with the Phase 2 extraction.
+// The request shape is shared with the extension, so both send the same body
+// and credential headers.
+import {
+  buildCheckBody,
+  CHECK_PATH,
+  JSON_HEADERS,
+} from '@witty/core/ApiServices/requests';
 import type {ICheckResponse} from '@witty/core/types';
 
 export type {ICheckResponse, ICheckResponseResult} from '@witty/core/types';
@@ -150,21 +155,13 @@ export const createHttpChecker =
   }: HttpCheckerOptions): Checker =>
   async (text, signal) => {
     const cleaned = cleanConfig(config?.());
-    const response = await fetch(`${endpoint}v2.4/check`, {
+    const response = await fetch(`${endpoint}${CHECK_PATH}`, {
       method: 'POST',
       signal,
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(headers ? await headers() : {}),
-      },
-      body: JSON.stringify({
-        text,
-        lang,
-        id: client,
-        client,
-        ...(cleaned ? {config: cleaned} : {}),
-      }),
+      headers: {...JSON_HEADERS, ...(headers ? await headers() : {})},
+      body: JSON.stringify(
+        buildCheckBody({text, lang, id: client, client, config: cleaned})
+      ),
     });
 
     if (!response.ok) {

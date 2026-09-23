@@ -11,7 +11,11 @@ import {
   getLLMAlternativesCacheKey,
   type LLMAlternativesCacheValue,
 } from '@witty/core/ApiServices/llmAlternativesService';
-import {buildLLMSuggestionBody} from '@witty/core/ApiServices/requests';
+import {
+  buildLLMSuggestionBody,
+  JSON_HEADERS,
+  REPHRASE_PATH,
+} from '@witty/core/ApiServices/requests';
 import type {
   CustomInputElement,
   IGetLLMSuggestionsRequest,
@@ -236,13 +240,9 @@ export class PopoverHost {
     this.llmCache.set(key, createLoadingCacheValue());
     this.render();
 
-    fetch(`${this.options.endpoint}v1.0/rephrase`, {
+    fetch(`${this.options.endpoint}${REPHRASE_PATH}`, {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...this.options.headers(),
-      },
+      headers: {...JSON_HEADERS, ...this.options.headers()},
       body: JSON.stringify(this.rewriteBody(request)),
       signal: AbortSignal.timeout(this.options.llmTimeoutMs),
     })
