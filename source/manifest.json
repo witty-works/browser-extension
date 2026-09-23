@@ -104,6 +104,7 @@
       "matches": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"]
     }
   ],
+  "__firefox__web_accessible_resources": ["assets/media/*"],
   "commands": {
     "open-highlight-popover": {
       "suggested_key": {
