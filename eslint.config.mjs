@@ -189,4 +189,10 @@ export default [
       ],
     },
   },
+
+  {
+    // Test helpers are small closures; annotating each return type is noise.
+    files: ['packages/editor/**/*.test.ts'],
+    rules: { '@typescript-eslint/explicit-function-return-type': 'off' },
+  },
 ];
