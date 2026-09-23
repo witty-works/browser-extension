@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>witty-editor PoC</title>
+    <style>
+      body {
+        font: 16px/1.5 system-ui, sans-serif;
+        max-width: 48rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      #editor .ProseMirror {
+        min-height: 10rem;
+        padding: 0.75rem;
+        border: 1px solid #bbb;
+        border-radius: 4px;
+        outline: none;
+      }
+      #editor .ProseMirror:focus {
+        border-color: #4a7bd0;
+      }
+      #extracted {
+        white-space: pre-wrap;
+        background: #f4f4f4;
+        padding: 0.75rem;
+        border-radius: 4px;
+        min-height: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>witty-editor PoC</h1>
+    <div id="editor"></div>
+    <h2>Text sent to the checker</h2>
+    <pre id="extracted"></pre>
+    <script type="module" src="/src/demo.ts"></script>
+  </body>
+</html>
