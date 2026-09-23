@@ -6,7 +6,9 @@ import {EditorState, type Transaction} from '@tiptap/pm/state';
 import type {ICheckResponse, ICheckResponseResult} from './checkClient';
 import {
   CheckController,
+  type CheckOptions,
   type CheckView,
+  isLimitReached,
   checkPluginKey,
   createCheckPlugin,
   dismissAlerts,
@@ -57,7 +59,11 @@ const deferredChecker = () => {
 };
 
 /** Minimal view: applies transactions and notifies the controller. */
-const createHarness = (paragraphs: string[], check = deferredChecker()) => {
+const createHarness = (
+  paragraphs: string[],
+  check = deferredChecker(),
+  options: Partial<CheckOptions> = {}
+) => {
   const plugin = createCheckPlugin({check: check.check, delay: 100});
   const doc = schema.nodeFromJSON({
     type: 'doc',
@@ -83,6 +89,7 @@ const createHarness = (paragraphs: string[], check = deferredChecker()) => {
   const controller = new CheckController(view, {
     check: check.check,
     delay: 100,
+    ...options,
   });
   ref.controller = controller;
 
@@ -406,5 +413,129 @@ describe('popover support', () => {
     dismissAlerts(h.view, 'guys');
 
     expect(h.shown().map((a) => a.text)).toEqual(['chairman']);
+  });
+});
+
+describe('long texts', () => {
+  // Five sentences of 23 characters, the flagged word in each.
+  const LONG = [1, 2, 3, 4, 5].map((n) => `Guys number ${n} is here.`);
+  const longText = LONG.join(' ');
+
+  /** Flags every "Guys" in the request text. */
+  const respondGuys = (text: string): ICheckResponse => {
+    const results: ICheckResponseResult[] = [];
+    for (
+      let at = text.indexOf('Guys');
+      at !== -1;
+      at = text.indexOf('Guys', at + 1)
+    ) {
+      results.push({
+        text: 'Guys',
+        start: at,
+        end: at + 4,
+        category: 'x',
+        gravity: 2,
+      } as ICheckResponseResult);
+    }
+    return {results} as ICheckResponse;
+  };
+
+  /** Answer every request as it comes, until nothing more is asked. */
+  const answerAll = async (h: ReturnType<typeof createHarness>) => {
+    for (let round = 0; round < 20; round += 1) {
+      vi.advanceTimersByTime(100);
+      const open = h.check.calls.filter((call) => !call.signal.aborted);
+      const last = open.at(-1);
+      if (!last || (last as {answered?: boolean}).answered) return;
+      (last as {answered?: boolean}).answered = true;
+      last.resolve(respondGuys(last.text));
+      await Promise.resolve();
+      await Promise.resolve();
+    }
+  };
+
+  it('checks a text longer than one request, sentence by sentence', async () => {
+    const h = createHarness([longText], deferredChecker(), {
+      maxRequestLength: 50,
+    });
+    await answerAll(h);
+
+    // Every request within the budget, every sentence checked once.
+    expect(h.check.calls.length).toBeGreaterThan(1);
+    for (const call of h.check.calls)
+      expect(call.text.length).toBeLessThanOrEqual(50);
+    expect(h.check.calls.map((c) => c.text).join(' ')).toBe(longText);
+    expect(h.shown()).toHaveLength(5);
+    expect(isLimitReached(h.view.state)).toBe(false);
+  });
+
+  it('sends only the sentence that changed', async () => {
+    const h = createHarness([longText], deferredChecker(), {
+      maxRequestLength: 50,
+    });
+    await answerAll(h);
+    const before = h.check.calls.length;
+
+    h.edit((tr) => tr.insertText('!', h.posOf('number 3') + 8));
+    await answerAll(h);
+
+    expect(h.check.calls.slice(before).map((c) => c.text)).toEqual([
+      'Guys number 3! is here.',
+    ]);
+    expect(h.shown()).toHaveLength(5);
+  });
+
+  it('retries a batch cut short by the API in smaller pieces', async () => {
+    const check = deferredChecker();
+    const h = createHarness([longText], check, {maxRequestLength: 1000});
+    vi.advanceTimersByTime(100);
+
+    // The deployment's limit is lower than assumed: the first batch is cut.
+    check.calls[0].resolve({
+      ...respondGuys(check.calls[0].text.slice(0, 40)),
+      limit_reached: true,
+    } as ICheckResponse);
+    await Promise.resolve();
+    await Promise.resolve();
+    // Nothing from the cut batch counts as checked.
+    expect(h.shown()).toEqual([]);
+
+    await answerAll(h);
+    expect(check.calls[1].text.length).toBeLessThanOrEqual(500);
+    expect(h.shown()).toHaveLength(5);
+  });
+
+  it('reports a sentence too long to check in one request', async () => {
+    const check = deferredChecker();
+    const h = createHarness(
+      ['Guys ' + 'and more words '.repeat(20) + 'here.'],
+      check,
+      {
+        maxRequestLength: 100,
+      }
+    );
+    vi.advanceTimersByTime(100);
+    check.calls[0].resolve({
+      ...respondGuys(check.calls[0].text),
+      limit_reached: true,
+    } as ICheckResponse);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(h.shown()).toHaveLength(1);
+    expect(isLimitReached(h.view.state)).toBe(true);
+    vi.advanceTimersByTime(100);
+    expect(check.calls).toHaveLength(1);
+  });
+
+  it('reports a text longer than maxTextLength, checking only its beginning', async () => {
+    const h = createHarness([longText], deferredChecker(), {maxTextLength: 50});
+    await answerAll(h);
+
+    expect(h.check.calls.map((c) => c.text)).toEqual([
+      LONG.slice(0, 2).join(' '),
+    ]);
+    expect(h.shown()).toHaveLength(2);
+    expect(isLimitReached(h.view.state)).toBe(true);
   });
 });

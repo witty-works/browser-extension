@@ -103,7 +103,9 @@ export const buildSentenceAlertsFromResponse = (
             endOffset: adjustedEnd,
             popOverIsOpen: false,
             data: {
-              language: checkEndpointResponse.language,
+              // A result's own language where it has one: results assembled
+              // from several checks (the editor's sentence cache) can differ.
+              language: result.language || checkEndpointResponse.language,
               gender_separator: checkEndpointResponse.gender_separator,
               category: result.category,
               subcategory: result.subcategory,

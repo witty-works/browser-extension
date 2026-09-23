@@ -12,7 +12,18 @@ import {Decoration, DecorationSet} from '@tiptap/pm/view';
 import {buildSentenceAlertsFromResponse} from '@witty/core/ApiServices/checkService';
 import {highlightColorKey} from '@witty/core/constants';
 import type {IAlert} from '@witty/core/types';
-import type {Checker, ICheckResponse} from './checkClient';
+import type {
+  Checker,
+  ICheckResponse,
+  ICheckResponseResult,
+} from './checkClient';
+import {
+  CheckBudget,
+  planBatch,
+  resultsBySentence,
+  SentenceCache,
+  splitSentences,
+} from './sentenceCheck';
 import {extractText, textRangeToDoc} from './textMap';
 
 /**
@@ -59,6 +70,11 @@ export interface CheckPluginState {
   recheckRequests: number;
   /** The alert whose popover is open, drawn with the highlight fill. */
   selectedId: string | null;
+  /**
+   * The last check left part of the text unchecked: the text is longer than
+   * `maxTextLength`, or a sentence was longer than the API checks at once.
+   */
+  limitReached: boolean;
 }
 
 type CheckMeta =
@@ -66,7 +82,14 @@ type CheckMeta =
   | {type: 'select'; id: string | null}
   | {type: 'dismiss'; text: string}
   | {type: 'start'; id: number}
-  | {type: 'results'; id: number; alerts: Omit<Alert, 'id'>[]};
+  | {
+      type: 'results';
+      id: number;
+      alerts: Omit<Alert, 'id'>[];
+      limitReached: boolean;
+      /** False while further batches of a long text are still to come. */
+      complete: boolean;
+    };
 
 export const checkPluginKey = new PluginKey<CheckPluginState>('wittyCheck');
 
@@ -117,6 +140,10 @@ const redecorate = (
     doc,
     decorations.find().map((d) => decorate(alertOf(d), selectedId))
   );
+
+/** Whether the last check left part of the text unchecked. */
+export const isLimitReached = (state: EditorState): boolean =>
+  checkPluginKey.getState(state)?.limitReached ?? false;
 
 /** Alerts currently shown, in document order. */
 export const getAlerts = (state: EditorState): Alert[] =>
@@ -216,6 +243,7 @@ const applyTransaction = (
         value.selectedId
       ),
       pending: null,
+      limitReached: meta.limitReached,
     };
   }
 
@@ -253,7 +281,24 @@ export interface CheckOptions {
   onError?: (error: unknown) => void;
   /** Alerts to leave out, e.g. terms the user chose to ignore. */
   isIgnored?: (alert: IAlert) => boolean;
+  /**
+   * Characters per request. The NLP API checks at most TEXT_MAX_LENGTH
+   * characters of a text (1000 by default); longer texts are checked in
+   * several requests, sentence by sentence. A lower deployment limit is
+   * detected and the batches shrink.
+   */
+  maxRequestLength?: number;
+  /** Characters of the text checked at all; the rest is reported as unchecked. */
+  maxTextLength?: number;
+  /**
+   * Identifies everything besides the text that changes results (config,
+   * credentials, language). The sentence cache is emptied when it changes.
+   */
+  cacheScope?: () => string;
 }
+
+export const DEFAULT_MAX_REQUEST_LENGTH = 1000;
+export const DEFAULT_MAX_TEXT_LENGTH = 20000;
 
 export class CheckController {
   private timer: ReturnType<typeof setTimeout> | undefined;
@@ -261,22 +306,29 @@ export class CheckController {
   private checkId = 0;
   private deferredByComposition = false;
   private destroyed = false;
+  private readonly cache = new SentenceCache();
+  private readonly budget: CheckBudget;
+  /** Last detected language, for results assembled purely from the cache. */
+  private language = '';
 
   constructor(
     private readonly view: CheckView,
     private readonly options: CheckOptions
   ) {
+    this.budget = new CheckBudget(
+      options.maxRequestLength ?? DEFAULT_MAX_REQUEST_LENGTH
+    );
     this.schedule();
   }
 
   update(view: CheckView, prevState: EditorState): void {
-    if (
-      view.state.doc !== prevState.doc ||
+    const recheck =
       checkPluginKey.getState(view.state)?.recheckRequests !==
-        checkPluginKey.getState(prevState)?.recheckRequests
-    ) {
-      this.schedule();
-    }
+      checkPluginKey.getState(prevState)?.recheckRequests;
+    // A recheck is asked for when something besides the text changed, so
+    // nothing cached can be trusted.
+    if (recheck) this.cache.clear();
+    if (recheck || view.state.doc !== prevState.doc) this.schedule();
   }
 
   /** Called when an IME composition ends; runs a check it had held back. */
@@ -306,6 +358,19 @@ export class CheckController {
 
     const {doc} = this.view.state;
     const map = extractText(doc);
+    this.cache.useScope(this.options.cacheScope?.() ?? '');
+
+    // Sentences past maxTextLength are never sent; the rest are checked in
+    // batches, one request per run, until every sentence is cached.
+    const maxTextLength = this.options.maxTextLength ?? DEFAULT_MAX_TEXT_LENGTH;
+    const sentences = splitSentences(map.text);
+    const inScope = sentences.filter(({end}) => end <= maxTextLength);
+    const truncated = inScope.length < sentences.length;
+    const batch = planBatch(
+      map.text,
+      inScope.filter((sentence) => !this.cache.get(sentence)),
+      this.budget.value
+    );
 
     this.view.dispatch(
       this.view.state.tr
@@ -313,17 +378,68 @@ export class CheckController {
         .setMeta('addToHistory', false)
     );
 
-    const request = map.text
-      ? this.options.check(map.text, controller.signal)
-      : Promise.resolve({results: []} as unknown as ICheckResponse);
+    const request = batch
+      ? this.options.check(batch.text, controller.signal)
+      : Promise.resolve(null);
 
     request
       .then((response) => {
         if (controller.signal.aborted || this.destroyed) return;
 
+        if (response && batch) {
+          if (response.language) this.language = response.language;
+          const limited = !!response.limit_reached;
+          // A batch cut short by the API is not cached (its tail was never
+          // checked); it is sent again in smaller pieces. Only a sentence that
+          // is too long on its own is kept, marked as partly checked.
+          const retrySmaller =
+            limited && batch.parts.length > 1 && this.budget.shrink();
+          if (!retrySmaller) {
+            const bySentence = resultsBySentence(batch, response.results ?? []);
+            for (const [sentence, results] of bySentence) {
+              // Each keeps the language its batch was detected as.
+              this.cache.set(sentence, {
+                results: results.map((result) => {
+                  return {
+                    ...result,
+                    language: result.language || response.language,
+                  };
+                }),
+                partial: limited,
+              });
+            }
+          }
+        }
+
+        // The whole text's alerts, from the cache, in the checked text's
+        // offsets: what the staleness protocol maps into the current document.
+        const results: ICheckResponseResult[] = [];
+        let partial = false;
+        let remaining = false;
+        for (const sentence of inScope) {
+          const cached = this.cache.get(sentence);
+          if (!cached) {
+            remaining = true;
+            continue;
+          }
+          partial ||= cached.partial;
+          for (const result of cached.results) {
+            results.push({
+              ...result,
+              start: result.start + sentence.start,
+              end: result.end + sentence.start,
+            });
+          }
+        }
+
         const alerts: Omit<Alert, 'id'>[] = [];
         for (const {alerts: inSentence} of buildSentenceAlertsFromResponse(
-          response,
+          {
+            ...(response ?? {}),
+            results,
+            language: this.language,
+            limit_reached: partial,
+          } as ICheckResponse,
           map.text
         )) {
           for (const sentenceAlert of inSentence) {
@@ -349,9 +465,18 @@ export class CheckController {
               type: 'results',
               id,
               alerts,
+              limitReached: truncated || partial,
+              complete: !remaining,
             } satisfies CheckMeta)
             .setMeta('addToHistory', false)
         );
+
+        // More sentences to go: the next batch right away. An edit in the
+        // meantime reschedules with the usual debounce instead.
+        if (remaining) {
+          clearTimeout(this.timer);
+          this.timer = setTimeout(() => this.run(), 0);
+        }
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted || this.destroyed) return;
@@ -378,6 +503,7 @@ export const createCheckPlugin = (options: CheckOptions): Plugin => {
           pending: null,
           recheckRequests: 0,
           selectedId: null,
+          limitReached: false,
         };
       },
       apply: applyTransaction,
