@@ -6,8 +6,10 @@ name: Publish editor
 #   2.1.0          npm dist-tag latest
 #   2.1.0-beta.3   npm dist-tag beta
 #
-# Needs the repository secret NPM_TOKEN: an npm token with publish rights on
-# the @witty-works scope.
+# No npm token: npm trusts this workflow (trusted publishing, configured in the
+# package's settings on npmjs.com) through the run's OIDC identity. It may only
+# stage a version; a maintainer approves it on npmjs.com with 2FA, or with
+# `npm stage approve <stage-id>`, before it is published.
 
 on:
   push:
@@ -17,7 +19,8 @@ on:
 
 permissions:
   contents: read
-  # npm provenance: links the published package to this workflow run.
+  # Trusted publishing and provenance both authenticate with the run's OIDC
+  # token.
   id-token: write
 
 jobs:
@@ -32,6 +35,9 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
 
+      # Staged publishing needs npm 12.
+      - run: npm install -g npm@12
+
       - name: Check the tag matches the version in the repo
         run: node build/releaseVersion.js --check "${GITHUB_REF_NAME}"
 
@@ -40,10 +46,16 @@ jobs:
       - name: Use the example config
         run: cp source/witty.config.json.example source/witty.config.json
 
-      # prepublishOnly runs the type check, the unit tests and the build.
-      - name: Publish
+      # Run explicitly rather than relying on prepublishOnly during staging.
+      - name: Type check, test and build
         run: |
-          dist_tag=$(node -p "require('./build/releaseVersion.js').parseVersion(process.argv[1]).distTag" "${GITHUB_REF_NAME}")
-          npm publish -w @witty-works/editor --tag "${dist_tag}"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm run typecheck -w @witty-works/editor
+          npm test -w @witty-works/editor
+          npm run build -w @witty-works/editor
+
+      # From the package directory: `npm stage` is not workspace-aware.
+      - name: Stage for approval
+        working-directory: packages/editor
+        run: |
+          dist_tag=$(node -p "require('../../build/releaseVersion.js').parseVersion(process.argv[1]).distTag" "${GITHUB_REF_NAME}")
+          npm stage publish --tag "${dist_tag}" --provenance
