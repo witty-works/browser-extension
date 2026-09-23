@@ -9,6 +9,27 @@ export const removeHTMLTags = (htmlString: string) => {
   return textContent.trim();
 };
 
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+/**
+ * The sentence comes from the user's document and the rewrite from an LLM;
+ * neither is markup. The diff is rendered as HTML, so every piece of text is
+ * escaped before it is wrapped in <ins>/<del>.
+ */
+const escapeHtml = (text: string): string =>
+  text.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+
+/**
+ * HTML for the words `newSentence` changes in `originalSentence`: insertions in
+ * <ins>, deletions in <del>, with up to 50 characters of context either side.
+ * All text in it is escaped, so it is safe to render as HTML.
+ */
 export const computeDiff = (
   language: string,
   originalSentence: string,
@@ -51,10 +72,10 @@ export const computeDiff = (
 
       tag = diffElement.added ? 'ins' : 'del';
       if (diffElement.value !== 'undefined') {
-        diff += `<${tag}>${diffElement.value}</${tag}>`;
+        diff += `<${tag}>${escapeHtml(diffElement.value)}</${tag}>`;
       }
     } else if (diff !== '' && i < diffElements.length - 1) {
-      diff += diffElement.value;
+      diff += escapeHtml(diffElement.value);
     }
   }
 
@@ -77,7 +98,7 @@ export const computeDiff = (
         value = '...' + value;
       }
 
-      diff = value + diff;
+      diff = escapeHtml(value) + diff;
     }
 
     stringLengthDiff -= value.length;
@@ -91,7 +112,7 @@ export const computeDiff = (
         value = value + '...';
       }
 
-      diff = diff + value;
+      diff = diff + escapeHtml(value);
     }
   }
 
