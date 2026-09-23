@@ -1,0 +1,22 @@
+{
+  "name": "@witty-works/editor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "<witty-editor>: Witty's checker as an embeddable editor (EDITOR_COMPONENT_PLAN.md)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.31.3",
+    "@tiptap/pm": "3.31.3",
+    "@tiptap/starter-kit": "3.31.3"
+  }
+}

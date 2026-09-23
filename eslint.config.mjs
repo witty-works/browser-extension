@@ -45,6 +45,13 @@ export default [
 
   // Type-aware linting for the extension source.
   ...typescript({ files: TS, tsconfigPath: './tsconfig.json' }),
+  // Workspace packages are separate TypeScript programs with their own tsconfig.
+  {
+    files: ['packages/editor/**/*.ts'],
+    languageOptions: {
+      parserOptions: { project: './packages/editor/tsconfig.json' },
+    },
+  },
   ...react({ files: ['**/*.tsx'] }),
 
   // Build scripts, the Playwright suite and its fixture server are plain CJS
