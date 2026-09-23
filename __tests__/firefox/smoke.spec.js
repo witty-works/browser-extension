@@ -52,6 +52,15 @@ test.describe('Firefox smoke', () => {
         return signedIn === false;
       })
     );
+
+    // Signing out badges the toolbar button. MV3 has `action`, MV2 only
+    // `browserAction`; the badge helpers write to whichever exists.
+    await poll(() =>
+      page.evaluate(async () => {
+        const action = browser.action || browser.browserAction;
+        return (await action.getBadgeText({})) === 'Login';
+      })
+    );
   });
 
   test('registers the open-popover command', async ({ firefox }) => {
