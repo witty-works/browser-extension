@@ -3,19 +3,16 @@ import browser from 'webextension-polyfill';
 import {useTranslation} from 'react-i18next';
 
 import {namespaces} from '../i18n/i18n.constants';
-import CategoryToggle from './CategoryToggle';
+import CheckPreferences from '../shared/components/CheckPreferences/CheckPreferences';
 import {
   applyLevelToDisabled,
   AuthMode,
-  CONFIG_OPTION_FIELDS,
   BaseUrl,
   BaseUrls,
   CUSTOM_BASE_URL_KEY,
   DefaultBaseUrlKey,
   HelpLinks,
   isAcceptableEndpointUrl,
-  levelFromDisabled,
-  LOCKED_PROFICIENCY,
   ProficiencyLevel,
   registerCustomEndpoint,
   registerCustomEndpointFromStorage,
@@ -187,17 +184,6 @@ const Options: React.FC = () => {
     setLanguageFormat(next);
     storeInLocalStorage(StorageKeys.LANGUAGE_FORMAT, next);
   };
-
-  /**
-   * Human label for a value.
-   *
-   * Comes from the API, which serves the dashboard's own wording via the same
-   * data files that carry the category labels — so the two surfaces cannot
-   * drift. Values the dashboard has no wording for (punctuation such as `(-)`)
-   * fall back to the value itself, which reads fine untranslated.
-   */
-  const formatValueLabel = (field: string, value: string) =>
-    configOptions[field]?.labels?.[value] || value;
 
   const withTrailingSlash = (value: string) =>
     value.endsWith('/') ? value : `${value}/`;
@@ -423,131 +409,26 @@ const Options: React.FC = () => {
         </div>
       </section>
 
-      <section>
-        <h2>{t('customisationHeadline')}</h2>
-        <p className='witty-options-muted'>{t('orgOverrideNote')}</p>
-
-        <label>
-          <input
-            type='checkbox'
-            id='opt-orthography'
-            checked={orthography}
-            onChange={(event) => {
-              setOrthography(event.target.checked);
-              storeInLocalStorage(
-                StorageKeys.ORTHOGRAPHY,
-                event.target.checked
-              );
-            }}
-          />
-          &nbsp;{t('orthography')}
-        </label>
-
-        <label>
-          <input
-            type='checkbox'
-            id='opt-llm-alternatives'
-            checked={llmAlternatives}
-            onChange={(event) => {
-              setLlmAlternatives(event.target.checked);
-              storeInLocalStorage(
-                StorageKeys.LLM_ALTERNATIVES,
-                event.target.checked
-              );
-            }}
-          />
-          &nbsp;{t('llmAlternatives')}
-        </label>
-      </section>
-
-      {/*
-        Rendered from whatever category list the server reported. A deployment
-        that reports none simply does not offer the section; the NLP API has to
-        expose the list before this appears.
-      */}
-      {Object.keys(configOptions).length > 0 && (
-        <section id='language-format-section'>
-          <h2>{t('languageHeadline')}</h2>
-          <p className='witty-options-muted'>{t('orgOverrideNote')}</p>
-
-          {CONFIG_OPTION_FIELDS.filter((field) => configOptions[field]).map(
-            (field) => {
-              const option = configOptions[field];
-              const labelKey = {
-                gendered_roles_format: 'genderedRolesFormat',
-                german_gender_ending: 'germanGenderEnding',
-                french_gender_separator: 'frenchGenderSeparator',
-              }[field];
-
-              return (
-                <div className='witty-format-field' key={field}>
-                  <label htmlFor={`opt-${field}`}>{t(labelKey)}</label>
-                  <p className='witty-options-muted'>{t(`${labelKey}Hint`)}</p>
-                  <select
-                    id={`opt-${field}`}
-                    data-field={field}
-                    value={languageFormat[field] || ''}
-                    onChange={(event) =>
-                      setFormatField(field, event.target.value)
-                    }
-                  >
-                    <option value=''>
-                      {t('useApiDefault')}
-                      {option.default ? ` (${option.default})` : ''}
-                    </option>
-                    {option.values.map((value) => (
-                      <option value={value} key={value}>
-                        {formatValueLabel(field, value)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              );
-            }
-          )}
-        </section>
-      )}
-
-      {categories.length > 0 && (
-        <section id='categories-section'>
-          <h2>{t('categoriesHeadline')}</h2>
-          <p className='witty-options-muted'>{t('categoriesIntro')}</p>
-
-          {categoryGroups.map((group) => {
-            const inGroup = categories.filter(
-              (category) => category.parent === group.key
-            );
-            if (!inGroup.length) {
-              return null;
-            }
-
-            return (
-              <div className='witty-category-group' key={group.key}>
-                <h3>{group.label || group.key}</h3>
-                {inGroup.map((category) => (
-                  <CategoryToggle
-                    key={category.key}
-                    categoryKey={category.key}
-                    label={category.label || category.key}
-                    hasAdvanced={!!category.advanced_key}
-                    locked={category.proficiency_level === LOCKED_PROFICIENCY}
-                    value={levelFromDisabled(
-                      category.key,
-                      category.advanced_key,
-                      disabledCategories
-                    )}
-                    onChange={(level) => setCategoryLevel(category, level)}
-                  />
-                ))}
-              </div>
-            );
-          })}
-        </section>
-      )}
-
-      {categoriesError && (
-        <p className='witty-options-muted'>{t('categoriesFailed')}</p>
-      )}
+      <CheckPreferences
+        orthography={orthography}
+        onOrthographyChange={(enabled) => {
+          setOrthography(enabled);
+          storeInLocalStorage(StorageKeys.ORTHOGRAPHY, enabled);
+        }}
+        llmAlternatives={llmAlternatives}
+        onLlmAlternativesChange={(enabled) => {
+          setLlmAlternatives(enabled);
+          storeInLocalStorage(StorageKeys.LLM_ALTERNATIVES, enabled);
+        }}
+        configOptions={configOptions}
+        languageFormat={languageFormat}
+        onFormatFieldChange={setFormatField}
+        categories={categories}
+        categoryGroups={categoryGroups}
+        disabledCategories={disabledCategories}
+        onCategoryLevelChange={setCategoryLevel}
+        categoriesError={categoriesError}
+      />
     </div>
   );
 };

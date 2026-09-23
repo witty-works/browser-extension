@@ -1,8 +1,8 @@
 import React from 'react';
 import {useTranslation} from 'react-i18next';
 
-import {namespaces} from '../i18n/i18n.constants';
-import {ProficiencyLevel} from '../shared/constants';
+import {namespaces} from '../../../i18n/i18n.constants';
+import {ProficiencyLevel} from '../../constants';
 
 interface CategoryToggleProps {
   categoryKey: string;
