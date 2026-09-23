@@ -10,7 +10,7 @@ import {
 } from '../../shared/types';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../../i18n/i18n.constants';
-import {usePopoverViewModel} from './popoverViewModel';
+import {PopoverAnalytics, usePopoverViewModel} from './popoverViewModel';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
@@ -29,11 +29,14 @@ import IgnoreIcon from '../../assets/icons/popover/ignore.svg';
 import './HighlightPopover.scss';
 import {getColor} from '../../shared/constants';
 import {getActiveDocument} from '../../shared/activeDocument';
-import {iframePositionRecquired} from '../../shared/DOMutils';
-import {getScrollableParentClosestToElement} from '../../shared/utils';
+import {
+  getScrollableParentClosestToElement,
+  iframePositionRecquired,
+} from '../../shared/DOMutils';
+
 import parse from 'html-react-parser';
-import {computeDiff} from '../utils';
-import {LLMAlternativesCacheValue} from '../../shared/ApiServices/useLLMAlternativesCache';
+import {computeDiff} from '../../shared/diff';
+import type {LLMAlternativesCacheValue} from '../../shared/ApiServices/llmAlternativesService';
 
 export interface PopoverData {
   index: number;
@@ -45,6 +48,8 @@ export interface PopoverData {
 }
 
 interface PopoverProps {
+  /** Where the popover reports its events; the extension passes useAnalytics(). */
+  analytics: PopoverAnalytics;
   element: CustomInputElement;
   data: PopoverData;
   prevData: PopoverData | null;
@@ -79,6 +84,7 @@ interface PopoverProps {
 }
 
 const HighlightPopover: React.FC<PopoverProps> = ({
+  analytics: popoverAnalytics,
   element,
   data,
   prevData,
@@ -113,6 +119,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     handleIgnoreClick,
     goToAdjacentAlert,
   } = usePopoverViewModel({
+    analytics: popoverAnalytics,
     element,
     data,
     prevData,

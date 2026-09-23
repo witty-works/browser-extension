@@ -74,10 +74,13 @@ import {useCheckEndpointWithCache} from '../shared/ApiServices/useCheckEndpointW
 import {useCheckEventsLogger} from '../shared/ApiServices/useCheckEventsLogger';
 import {useLLMAlternativesCache} from '../shared/ApiServices/useLLMAlternativesCache';
 import {MessageTypes} from '../shared/messages';
+import {useAnalytics} from '../shared/ApiServices/useAnalytics';
+import {REMOVE_ALTERNATIVE, resolveAlternative} from '../shared/alerts';
 
 const Input: React.FC<{
   element: CustomInputElement;
 }> = ({element}) => {
+  const popoverAnalytics = useAnalytics();
   const [authResponse, authErrorResponse, setConfigHasChanged] =
     useAuthEndpoint();
   const [, , previousElementStateRef] = useStateRef<{
@@ -1384,24 +1387,21 @@ const Input: React.FC<{
     return nodesWithAlertsTemp;
   };
 
-  const updateTextWithAlternative = (alternative: string) => {
-    const isRemoveAlternative = alternative === ' ';
-    isRemoveAlternative && (alternative = '');
-    alternative = alternative.replace(/\(\(/g, '[').replace(/\)\)/g, ']');
+  const updateTextWithAlternative = (chosen: string) => {
+    const isRemoveAlternative = chosen === REMOVE_ALTERNATIVE;
     const alert = selectedAlertRef.current as IAlert;
+    const resolved = resolveAlternative(
+      chosen,
+      getLLMSuggestions({alert})?.data?.results
+    );
+    const alternative = resolved.text;
 
     let startOffset = alert.startOffset;
     let endOffset = alert.endOffset;
 
-    if (!isRemoveAlternative) {
-      const llmAlternative = getLLMSuggestions({
-        alert,
-      })?.data?.results?.get(alternative);
-      if (llmAlternative) {
-        alternative = llmAlternative;
-        startOffset = alert.data.fullSentence.range[0];
-        endOffset = alert.data.fullSentence.range[1];
-      }
+    if (resolved.scope === 'sentence') {
+      startOffset = alert.data.fullSentence.range[0];
+      endOffset = alert.data.fullSentence.range[1];
     }
 
     const node = popoverDataRef.current?.node as Node;
@@ -1640,6 +1640,7 @@ const Input: React.FC<{
       popoverRootRef.current?.render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
+            analytics={popoverAnalytics}
             element={element}
             data={popoverDataRef.current}
             prevData={previousPopoverDataRef.current}
