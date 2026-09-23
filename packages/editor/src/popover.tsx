@@ -55,6 +55,9 @@ export class PopoverHost {
   private prevData: React.ComponentProps<typeof HighlightPopover>['prevData'] =
     null;
   private readonly llmCache = new Map<string, LLMAlternativesCacheValue>();
+  /** Bumped by `resetRewrites`; answers from an older generation are dropped. */
+  private rewriteGeneration = 0;
+  private destroyed = false;
 
   constructor(
     private readonly view: EditorView,
@@ -71,6 +74,7 @@ export class PopoverHost {
   }
 
   open(id: string, {viaKeyboard = false} = {}): void {
+    if (this.destroyed) return;
     this.focusOnOpen = viaKeyboard;
     this.openId = id;
     selectAlert(this.view, id);
@@ -106,7 +110,21 @@ export class PopoverHost {
     this.render();
   }
 
+  /**
+   * Forget the LLM rewrites, e.g. after the key or the gender format changed:
+   * a cached answer was produced with the old ones. Requests still in flight
+   * are ignored when they arrive.
+   */
+  resetRewrites(): void {
+    this.llmCache.clear();
+    this.rewriteGeneration += 1;
+  }
+
   destroy(): void {
+    // Late callbacks (a rewrite arriving, a click's deferred open) must not
+    // render into the unmounted root.
+    this.destroyed = true;
+    this.openId = null;
     this.root.unmount();
     this.container.remove();
   }
@@ -116,6 +134,7 @@ export class PopoverHost {
   }
 
   private render(): void {
+    if (this.destroyed) return;
     const alerts = getAlerts(this.view.state);
     const index = alerts.findIndex((alert) => alert.id === this.openId);
     const alert = alerts[index];
@@ -209,8 +228,11 @@ export class PopoverHost {
 
   private requestRewrites(request: IGetLLMSuggestionsRequest): void {
     const key = getLLMAlternativesCacheKey(request);
-    if (this.llmCache.has(key)) return;
+    // A failure is not final: the next time the popover asks, try again.
+    const cached = this.llmCache.get(key);
+    if (cached && !cached.error) return;
 
+    const generation = this.rewriteGeneration;
     this.llmCache.set(key, createLoadingCacheValue());
     this.render();
 
@@ -226,18 +248,14 @@ export class PopoverHost {
     })
       .then(async (response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        this.llmCache.set(
-          key,
-          buildResolvedCacheValue(await response.json(), null)
-        );
+        return buildResolvedCacheValue(await response.json(), null);
       })
-      .catch((error: unknown) => {
-        this.llmCache.set(
-          key,
-          buildResolvedCacheValue(null, {message: String(error)} as never)
-        );
-      })
-      .finally(() => {
+      .catch((error: unknown) =>
+        buildResolvedCacheValue(null, {message: String(error)} as never)
+      )
+      .then((value) => {
+        if (this.destroyed || generation !== this.rewriteGeneration) return;
+        this.llmCache.set(key, value);
         if (this.openId !== null) this.render();
       });
   }

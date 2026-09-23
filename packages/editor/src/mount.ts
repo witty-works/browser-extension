@@ -202,11 +202,10 @@ export const mount = (
     },
     onTransaction: ({editor: current, transaction}): void => {
       popoverRef.current?.update();
-      // Report when results land or an edit may have removed highlights.
-      if (
-        transaction.docChanged ||
-        transaction.getMeta(checkPluginKey)?.type === 'results'
-      ) {
+      // Report whenever the highlights may have changed: results landed, an
+      // edit removed some, or "ignore once" dismissed them.
+      const meta = transaction.getMeta(checkPluginKey)?.type;
+      if (transaction.docChanged || meta === 'results' || meta === 'dismiss') {
         onStatus?.({state: 'idle', alerts: getAlerts(current.state).length});
       }
     },
@@ -226,10 +225,12 @@ export const mount = (
     editor,
     setApiKey(next: string): void {
       key = next;
+      popover.resetRewrites();
       requestRecheck(editor.view);
     },
     setConfig(next: CheckConfig): void {
       checkConfig = next;
+      popover.resetRewrites();
       requestRecheck(editor.view);
     },
     getText: (): string => editor.getText(),
