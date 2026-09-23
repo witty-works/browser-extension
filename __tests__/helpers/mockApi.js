@@ -310,6 +310,29 @@ const mockNlpApi = async (context) => {
 };
 
 /**
+ * The same canned responses keyed by pathname, for harnesses that cannot
+ * intercept requests in the browser. The Firefox smoke suite points the
+ * extension's custom endpoint at the fixture server, which answers through
+ * this. Returns `null` for a path the mock does not know.
+ */
+const mockApiResponse = (pathname, requestBody = '') => {
+  if (pathname.endsWith('/v2.0/auth')) return authResponse();
+  if (pathname.endsWith('/v2.4/check')) {
+    let text = '';
+    try {
+      text = JSON.parse(requestBody || '{}').text || '';
+    } catch (error) {
+      text = '';
+    }
+    return checkResponse(text);
+  }
+  if (pathname.endsWith('/v2.0/categories')) return CATEGORIES;
+  if (pathname.endsWith('/v2.0/config-options')) return CONFIG_OPTIONS;
+  if (pathname.endsWith('/v1.0/rephrase')) return { sentence: '', results: {} };
+  return null;
+};
+
+/**
  * Fail the test rather than silently reaching the internet. Any request that
  * escapes the mocks above is a bug in the harness — the whole point is that the
  * suite runs with no deployed dashboard and no NLP API.
@@ -340,6 +363,7 @@ module.exports = {
   ALERTS,
   authResponse,
   checkResponse,
+  mockApiResponse,
   mockNlpApi,
   blockExternalRequests,
 };
