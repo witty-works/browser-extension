@@ -19,17 +19,6 @@ import {
   isTextArea,
   requiresRectRecalculation,
 } from './DOMutils';
-
-// Moved out so they can be used without the extension APIs; re-exported for
-// existing importers.
-export {extractSentenceNode, generateAlertId} from './alerts';
-
-// Moved to DOMutils so they can be used without the extension APIs; re-exported
-// for existing importers.
-export {
-  getDomainWithoutSubdomain,
-  getScrollableParentClosestToElement,
-} from './DOMutils';
 import {
   createUrl,
   setApiKey,
@@ -41,6 +30,17 @@ import {clearTokens, persistTokens, readTokens} from './tokenStore';
 import {IAuthResponse} from './types';
 import {getActiveDocument} from './activeDocument';
 import {getStorage} from './platform/storage';
+
+// Moved out so they can be used without the extension APIs; re-exported for
+// existing importers.
+export {extractSentenceNode, generateAlertId} from './alerts';
+
+// Moved to DOMutils so they can be used without the extension APIs; re-exported
+// for existing importers.
+export {
+  getDomainWithoutSubdomain,
+  getScrollableParentClosestToElement,
+} from './DOMutils';
 export const isObjectEmpty = (obj: object) =>
   obj &&
   Object.keys(obj).length === 0 &&

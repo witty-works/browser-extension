@@ -391,11 +391,7 @@ export interface IHighlightColors {
 
 /** Colour group of an alert; see `highlightColorKey`. */
 export type HighlightColorKey =
-  | 'corporate'
-  | 'inclusive'
-  | 'severe'
-  | 'style'
-  | 'bias';
+  'corporate' | 'inclusive' | 'severe' | 'style' | 'bias';
 
 /**
  * Highlight colours per group. Exported so hosts that style highlights with
