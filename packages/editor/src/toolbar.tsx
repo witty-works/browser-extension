@@ -371,6 +371,9 @@ export const switchMessage = (
     disabled: t('switchDisabled'),
     unsupported: t('switchUnsupported'),
     unavailable: t('switchInklusivum'),
+    forced: t('switchForced', {
+      format: formatLabel(options, result.applied ?? ''),
+    }),
   }[result.outcome];
   // What was checked is switched; the rest may still hold other forms.
   return result.limitReached &&

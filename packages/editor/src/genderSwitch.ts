@@ -46,6 +46,8 @@ export type SwitchOutcome =
   | 'disabled'
   /** The API predates bulk alerts. */
   | 'unsupported'
+  /** The account forces another format; nothing was changed. */
+  | 'forced'
   /** Not a format the API can switch to (the Inklusivum, for now). */
   | 'unavailable';
 
@@ -56,6 +58,16 @@ export interface GenderFormatSwitchResult {
   count: number;
   /** Part of the text was not checked, so it may hold unswitched forms. */
   limitReached: boolean;
+  /** With `forced`: the format the account enforces. */
+  applied?: string;
+}
+
+/** What a switch's check responses said about the request. */
+export interface SwitchCheckInfo {
+  /** The format the API applied (`gender_separator`), per German response. */
+  separators: string[];
+  /** `bulk_actions` per response; `undefined` where the API sent none. */
+  bulkActions: (string[] | undefined)[];
 }
 
 /**
@@ -136,7 +148,8 @@ export const hasFormsOutside = (text: string, target: string): boolean =>
   [...text.matchAll(NOUN_ENDING)].some((match) => formOf(match) !== target);
 
 /**
- * Why a switch rewrote nothing. `alerts` are the switch check's results.
+ * Why a switch rewrote nothing, guessed for an API that sends no
+ * `bulk_actions`. `alerts` are the switch check's results.
  *
  * - Alerts in the gender-format subcategory without `bulk`: an API version
  *   that predates bulk alerts.
@@ -155,4 +168,42 @@ export const noSwitchReason = (
   if (genderAlerts.some(({detail}) => !detail.data.bulk)) return 'unsupported';
   if (!genderAlerts.length && hasFormsOutside(text, target)) return 'disabled';
   return 'nothing';
+};
+
+/**
+ * What a switch does, from its check responses and the bulk alerts found.
+ *
+ * - The API applied another format than the target: the account forces that
+ *   one, and the bulk alerts convert towards it. Nothing is applied.
+ * - Bulk alerts: they are applied.
+ * - `bulk_actions` without "gender_format": the account keeps these alerts
+ *   off, even though the switch asked for them.
+ * - `bulk_actions` with it: nothing needed switching.
+ * - No `bulk_actions` (API versions up to 2.4.8): the guess of
+ *   `noSwitchReason`.
+ */
+export const decideSwitch = (
+  info: SwitchCheckInfo,
+  target: string,
+  text: string,
+  alerts: Alert[]
+):
+  | {outcome: 'switched'; apply: Alert[]}
+  | {outcome: 'forced'; applied: string}
+  | {
+      outcome: Extract<SwitchOutcome, 'nothing' | 'disabled' | 'unsupported'>;
+    } => {
+  const applied = info.separators.find((separator) => separator !== target);
+  if (applied) return {outcome: 'forced', applied};
+  const apply = bulkAlerts(alerts);
+  if (apply.length) return {outcome: 'switched', apply};
+  const known = info.bulkActions.filter(
+    (groups): groups is string[] => groups !== undefined
+  );
+  if (!known.length) return {outcome: noSwitchReason(text, target, alerts)};
+  return {
+    outcome: known.some((groups) => groups.includes(GENDER_FORMAT_BULK))
+      ? 'nothing'
+      : 'disabled',
+  };
 };

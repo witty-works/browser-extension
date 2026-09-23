@@ -26,11 +26,11 @@ import {
 } from './checkPlugin';
 import {
   applyAlerts,
-  bulkAlerts,
+  decideSwitch,
   GENDER_FORMAT_BULK,
   type GenderFormatSwitchResult,
-  noSwitchReason,
   SWITCHABLE_FORMATS,
+  type SwitchCheckInfo,
   switchRequestConfig,
 } from './genderSwitch';
 import {PopoverHost} from './popover';
@@ -258,8 +258,10 @@ export const mount = (
   let switchConfig: CheckConfig | null = null;
   const requestConfig = (): CheckConfig =>
     switchConfig ?? settings.get().config;
-  // Whether the API sends bulk alerts: known once one arrives, or once a
-  // switch finds an API that predates them.
+  // What the switch's own check responses said; collected while it runs.
+  let switchInfo: SwitchCheckInfo | null = null;
+  // Whether the API has bulk actions: every response of one that has says so
+  // (`bulk_actions`); a switch can also find an API that predates them.
   let bulkSupport: 'unknown' | 'yes' | 'no' = 'unknown';
   // Both are read per request, so `setApiKey` and settings changes reach the
   // next check without rebuilding the checker.
@@ -270,9 +272,21 @@ export const mount = (
     config: requestConfig,
   });
   const check: Checker = async (text, signal) => {
+    const info = switchInfo;
     const response = await httpCheck(text, signal);
-    if (response.results?.some((result) => result.bulk === GENDER_FORMAT_BULK))
+    if (
+      response.bulk_actions ||
+      response.results?.some((result) => result.bulk === GENDER_FORMAT_BULK)
+    ) {
       bulkSupport = 'yes';
+    }
+    if (info) {
+      info.bulkActions.push(response.bulk_actions);
+      // For German only: other languages report their own format.
+      if (response.language?.startsWith('de') && response.gender_separator) {
+        info.separators.push(response.gender_separator);
+      }
+    }
     return response;
   };
 
@@ -460,13 +474,15 @@ export const mount = (
     // 1. The target becomes the configured format (the toolbar shows it), and
     //    the switch's checks ask for the gender-format alerts regardless of
     //    the user's category settings, which stay as they are.
-    const userConfig = {
-      ...settings.get().config,
-      german_gender_ending: ending,
-    };
+    const previousConfig = settings.get().config;
+    const userConfig = {...previousConfig, german_gender_ending: ending};
     switchConfig = switchRequestConfig(userConfig, ending).config;
+    const info: SwitchCheckInfo = {separators: [], bulkActions: []};
+    switchInfo = info;
     const checked = nextCompleteCheck();
     settings.set({config: userConfig});
+    // Also clears the sentence cache: only fresh responses say which format
+    // the API applied.
     requestRecheck(editor.view);
 
     let limitReached: boolean;
@@ -475,30 +491,41 @@ export const mount = (
       limitReached = await checked;
     } finally {
       switchConfig = null;
+      switchInfo = null;
     }
 
-    // 3. All bulk alerts in one transaction: one undo restores the text.
-    const alerts = getAlerts(editor.state);
-    const bulk = bulkAlerts(alerts);
+    // 3. All bulk alerts in one transaction: one undo restores the text. Not
+    //    when the account forces another format: they would convert to that.
+    const decision = decideSwitch(
+      info,
+      target,
+      editor.state.doc.textContent,
+      getAlerts(editor.state)
+    );
     let result: GenderFormatSwitchResult;
-    if (bulk.length) {
+    if (decision.outcome === 'switched') {
       editor.view.dispatch(
-        applyAlerts(editor.state, bulk).setMeta(SWITCH_META, true)
+        applyAlerts(editor.state, decision.apply).setMeta(SWITCH_META, true)
       );
       result = {
         outcome: 'switched',
         target,
-        count: bulk.length,
+        count: decision.apply.length,
         limitReached,
       };
-    } else {
-      const outcome = noSwitchReason(
-        editor.state.doc.textContent,
+    } else if (decision.outcome === 'forced') {
+      // The setting would not take effect either.
+      settings.set({config: previousConfig});
+      result = {
+        outcome: 'forced',
         target,
-        alerts
-      );
-      if (outcome === 'unsupported') bulkSupport = 'no';
-      result = {outcome, target, count: 0, limitReached};
+        count: 0,
+        limitReached,
+        applied: decision.applied,
+      };
+    } else {
+      if (decision.outcome === 'unsupported') bulkSupport = 'no';
+      result = {outcome: decision.outcome, target, count: 0, limitReached};
     }
     // Back to the user's own settings for the underlines.
     requestRecheck(editor.view);

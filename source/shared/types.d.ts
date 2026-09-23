@@ -114,6 +114,13 @@ export interface ICheckResponse {
   config_changed: boolean;
   notifications: number;
   gender_separator: string;
+  /**
+   * The `bulk` groups this request can return, whether or not a result does:
+   * `["gender_format"]` for German with a separator format, inclusive roles
+   * and the gender-format alerts on; `[]` otherwise. Absent on API versions
+   * without bulk actions (up to 2.4.8).
+   */
+  bulk_actions?: string[];
 }
 
 export interface ICheckResponseResult {

@@ -6,6 +6,7 @@ import type {Alert} from './checkPlugin';
 import type {CheckConfig} from './checkClient';
 import {
   bulkAlerts,
+  decideSwitch,
   hasFormsOutside,
   noSwitchReason,
   switchRequestConfig,
@@ -96,20 +97,66 @@ describe('noSwitchReason', () => {
   });
 });
 
+describe('decideSwitch', () => {
+  const bulk = alert({bulk: 'gender_format', alternatives: [{text: ':innen'}]});
+
+  it('applies nothing when the API applied another format', () => {
+    expect(
+      decideSwitch(
+        {separators: ['In'], bulkActions: [['gender_format']]},
+        ':in',
+        'Lehrer*innen',
+        [bulk]
+      )
+    ).toEqual({outcome: 'forced', applied: 'In'});
+  });
+
+  it('applies the bulk alerts', () => {
+    expect(
+      decideSwitch(
+        {separators: [':in'], bulkActions: [['gender_format']]},
+        ':in',
+        'Lehrer*innen',
+        [bulk]
+      )
+    ).toEqual({outcome: 'switched', apply: [bulk]});
+  });
+
+  it('reads bulk_actions for why nothing was switched', () => {
+    const decide = (bulkActions: (string[] | undefined)[]) =>
+      decideSwitch({separators: [], bulkActions}, ':in', 'Lehrer*innen', [])
+        .outcome;
+
+    expect(decide([['gender_format']])).toBe('nothing');
+    expect(decide([[]])).toBe('disabled');
+    // Without bulk_actions, the guess from the text.
+    expect(decide([undefined])).toBe('disabled');
+    expect(decide([])).toBe('disabled');
+  });
+});
+
 // A stand-in for the NLP API: every `*in`/`*innen` form is an alert in the
 // gender-format subcategory, converted to the requested format.
 let bodies: {text: string; config?: CheckConfig}[];
-let api: {bulk: string | null; honoursConfig: boolean};
+let api: {
+  bulk: string | null;
+  honoursConfig: boolean;
+  /** Sends `bulk_actions`, as APIs after 2.4.8 do. */
+  bulkActions: boolean;
+  /** A format the account forces, whatever the request asks for. */
+  forced: string | null;
+};
 let handle: WittyEditorHandle | undefined;
 let statuses: EditorStatus[];
 
+const applied = (config: CheckConfig = {}) =>
+  api.forced ?? config.german_gender_ending ?? '*in';
+const switchable = (config: CheckConfig = {}) =>
+  api.honoursConfig && !config.disabled_categories?.includes(SUBCATEGORY);
+
 const genderResults = (text: string, config: CheckConfig = {}) => {
-  const target = config.german_gender_ending ?? '*in';
-  const off =
-    !api.honoursConfig ||
-    config.disabled_categories?.includes(SUBCATEGORY) ||
-    target === '*in';
-  if (off) return [];
+  const target = applied(config);
+  if (!switchable(config) || target === '*in') return [];
   const results = [...text.matchAll(/\p{L}+\*in(?:nen)?/gu)].map((match) => {
     return {
       text: match[0],
@@ -118,7 +165,13 @@ const genderResults = (text: string, config: CheckConfig = {}) => {
       category: 'gendered',
       subcategory: SUBCATEGORY,
       alternatives: [
-        {text: match[0].replace('*', target.replace('in', '')), remove: false},
+        {
+          text:
+            target === 'In'
+              ? match[0].replace('*i', 'I')
+              : match[0].replace('*', target.slice(0, -2)),
+          remove: false,
+        },
       ],
       explanation: {text: 'Gender format', long_text: ''},
       label: 'Gender format',
@@ -147,14 +200,19 @@ const genderResults = (text: string, config: CheckConfig = {}) => {
 beforeEach(() => {
   bodies = [];
   statuses = [];
-  api = {bulk: 'gender_format', honoursConfig: true};
+  api = {
+    bulk: 'gender_format',
+    honoursConfig: true,
+    bulkActions: true,
+    forced: null,
+  };
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {
       if (url.includes('/v2.0/categories')) {
         return new Response(JSON.stringify(CATEGORIES));
       }
-      if (url.endsWith('/v2.0/config-options')) {
+      if (url.includes('/v2.0/config-options')) {
         return new Response(JSON.stringify(CONFIG_OPTIONS));
       }
       const body = JSON.parse(String(init?.body));
@@ -164,6 +222,12 @@ beforeEach(() => {
           results: genderResults(body.text, body.config),
           language: 'de',
           limit_reached: false,
+          gender_separator: applied(body.config),
+          ...(api.bulkActions
+            ? {
+                bulk_actions: switchable(body.config) ? ['gender_format'] : [],
+              }
+            : {}),
         })
       );
     })
@@ -315,6 +379,58 @@ describe('switchGenderFormat', () => {
     );
   });
 
+  it('changes nothing when the account forces another format', async () => {
+    api.forced = 'In';
+    const editor = mountEditor({config: {german_gender_ending: '*in'}});
+    await vi.waitFor(() => expect(bodies.length).toBeGreaterThan(0));
+
+    const result = await editor.switchGenderFormat(':in');
+
+    expect(result).toEqual({
+      outcome: 'forced',
+      target: ':in',
+      count: 0,
+      limitReached: false,
+      applied: 'In',
+    });
+    expect(editor.getText()).toBe(TEXT);
+    expect(editor.getSettings().config).toEqual({german_gender_ending: '*in'});
+    await vi.waitFor(() =>
+      expect(liveRegion()?.textContent).toBe(
+        'Your organisation sets the gender format to Binnen-I, f.e ExpertIn. The text was not changed.'
+      )
+    );
+  });
+
+  it('notices a forced format with the text checked already', async () => {
+    api.forced = 'In';
+    // The same config the switch asks with: every sentence is cached.
+    const config: CheckConfig = {
+      german_gender_ending: ':in',
+      gendered_roles_format: 'inclusive_gender',
+    };
+    const editor = mountEditor({config});
+    await vi.waitFor(() => expect(bodies.length).toBeGreaterThan(0));
+    await vi.waitFor(() =>
+      expect(statuses.at(-1)).toMatchObject({state: 'idle'})
+    );
+
+    expect((await editor.switchGenderFormat(':in')).outcome).toBe('forced');
+    expect(editor.getText()).toBe(TEXT);
+  });
+
+  it('switches to the format the account forces', async () => {
+    api.forced = 'In';
+    const editor = mountEditor({config: {german_gender_ending: 'In'}});
+    await vi.waitFor(() => expect(bodies.length).toBeGreaterThan(0));
+
+    // Already underlined for In: the switch checks afresh all the same.
+    const result = await editor.switchGenderFormat('In');
+
+    expect(result.outcome).toBe('switched');
+    expect(editor.getText()).toContain('LehrerInnen');
+  });
+
   it('says so when the account keeps the switch off', async () => {
     api.honoursConfig = false;
     const editor = mountEditor();
@@ -328,6 +444,14 @@ describe('switchGenderFormat', () => {
         'Switching the gender format is turned off for this account.'
       )
     );
+  });
+
+  it('guesses a disabled switch on an API without bulk_actions', async () => {
+    api.honoursConfig = false;
+    api.bulkActions = false;
+    const editor = mountEditor();
+
+    expect((await editor.switchGenderFormat(':in')).outcome).toBe('disabled');
   });
 
   it('says when nothing needed changing', async () => {
@@ -353,8 +477,21 @@ describe('switchGenderFormat', () => {
     expect(editor.getText()).toBe(TEXT);
   });
 
+  it('trusts bulk_actions over gender-format alerts without bulk', async () => {
+    // Guessing from the alerts would call this API unsupported.
+    api.bulk = null;
+    const editor = mountEditor();
+
+    expect((await editor.switchGenderFormat(':in')).outcome).toBe('nothing');
+    await openMenu();
+    expect(
+      menuItem('Switch gender format').getAttribute('aria-disabled')
+    ).toBeNull();
+  });
+
   it('knows an API without bulk alerts, and says so in the menu', async () => {
     api.bulk = null;
+    api.bulkActions = false;
     const editor = mountEditor();
 
     expect((await editor.switchGenderFormat(':in')).outcome).toBe(
