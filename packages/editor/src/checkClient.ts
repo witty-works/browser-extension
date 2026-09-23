@@ -5,6 +5,7 @@ import {
   CHECK_PATH,
   JSON_HEADERS,
 } from '@witty/core/ApiServices/requests';
+import {wittyVersion} from '@witty/core/constants';
 import type {ICheckResponse} from '@witty/core/types';
 
 export type {ICheckResponse, ICheckResponseResult} from '@witty/core/types';
@@ -87,7 +88,13 @@ export interface HttpCheckerOptions {
   /** Extra headers, e.g. an Authorization header from a credential provider. */
   headers?: () => Promise<Record<string, string>> | Record<string, string>;
   lang?: CheckLang;
+  /**
+   * `name:version`, as the API parses it: without a name it assumes the
+   * browser extension ("web-ext") and applies that client's minimum version.
+   */
   client?: string;
+  /** Anonymous installation id, as the extension sends one. */
+  id?: string;
   /**
    * Read per request, like `headers`, so `setConfig` reaches the next check
    * without re-creating the editor.
@@ -150,7 +157,8 @@ export const createHttpChecker =
     endpoint,
     headers,
     lang = 'auto',
-    client = 'witty-editor-poc',
+    client = `witty-editor:${wittyVersion}`,
+    id = 'witty-editor',
     config,
   }: HttpCheckerOptions): Checker =>
   async (text, signal) => {
@@ -160,7 +168,7 @@ export const createHttpChecker =
       signal,
       headers: {...JSON_HEADERS, ...(headers ? await headers() : {})},
       body: JSON.stringify(
-        buildCheckBody({text, lang, id: client, client, config: cleaned})
+        buildCheckBody({text, lang, id, client, config: cleaned})
       ),
     });
 
