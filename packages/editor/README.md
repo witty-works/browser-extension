@@ -47,7 +47,7 @@ It returns a handle:
 - `setConfig(config)`: replace the whole check config (no merging) and check again; `{}` sends none.
 - `getSettings()`: the current settings, `{config, llmAlternatives, orthography}`, as a copy; the same object `onSettingsChange` receives.
 - `getText()`: the document as plain text.
-- `switchGenderFormat(target)`: rewrite the text into a German gender format, as the menu does (see below). Resolves with `{outcome, target, count, limitReached}`; `outcome` is `switched`, `nothing`, `disabled` (the account keeps these alerts off), `unsupported` (the API has no bulk alerts) or `unavailable` (the Inklusivum).
+- `switchGenderFormat(target)`: rewrite the text into a German gender format, as the menu does (see below). Resolves with `{outcome, target, count, limitReached}`; `outcome` is `switched`, `nothing`, `disabled` (the account keeps these alerts off), `forced` (the account forces another format, given as `applied`; nothing is changed), `unsupported` (the API has no bulk alerts) or `unavailable` (the Inklusivum).
 - `editor`: the underlying [TipTap](https://tiptap.dev) editor.
 - `destroy()`: remove the editor and everything it added to the page.
 
@@ -63,15 +63,18 @@ A switch makes the chosen format the configured one, waits until the whole text 
 
 The switch's checks ask for the gender-format alerts even where the account turned them off: `gendered_denominations_ending_advanced` is taken out of `disabled_categories` and `gendered_roles_format` is `inclusive_gender`, for those requests only; the user's settings stay as they are. If the API still sends none, because the account's stored configuration forces them off, the editor says "Switching the gender format is turned off for this account".
 
+An organisation or user config can also force the gender format. The API then converts towards the forced format, whatever the request asks for, so the editor compares the check response's `gender_separator` with the chosen format first. If they differ, it changes nothing, keeps the previous setting, and says which format the organisation sets (outcome `forced`).
+
 ### The `bulk` contract
 
 The editor decides what to apply by `bulk` alone, never by subcategory:
 
 - A check result with `bulk: "gender_format"` belongs to the switch to the configured `german_gender_ending`. It has exactly one alternative, the form in that format, and such results never overlap.
 - `bulk` is absent (or `null`) on every other result. Unknown `bulk` values are ignored.
-- An API without bulk alerts sends gender-format results without `bulk`; the editor then reports that the server doesn't support switching yet, and marks the menu entry so.
+- Every check response lists the groups the request can return in `bulk_actions`, whether or not a result does: `["gender_format"]` for German with a separator format, inclusive roles and the gender-format alerts on, `[]` otherwise. After the switch's check, a list without `"gender_format"` means the account keeps the switch off.
+- `gender_separator` in the check response is the format the API applied; for German it is a `german_gender_ending` value.
 
-Switching needs an NLP API that sets `bulk` on `POST /v2.4/check` results; releases up to 2.4.8 do not.
+Switching needs an NLP API that sends `bulk_actions`; releases up to 2.4.8 do not. With those, the editor falls back to guessing from the results: gender-format results without `bulk` mean the server doesn't support switching yet, and the menu entry says so.
 
 ## Long texts
 
