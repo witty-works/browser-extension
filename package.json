@@ -27,7 +27,8 @@
     "test": "npm run build:test && npx playwright test",
     "test:ui": "npm run build:test && npx playwright test --ui",
     "test:update-snapshots": "npm run build:test && npx playwright test --update-snapshots",
-    "test:firefox": "npm run build:test:firefox && npx playwright test --config playwright.firefox.config.js"
+    "test:firefox": "npm run build:test:firefox && npx playwright test --config playwright.firefox.config.js",
+    "release-version": "node build/releaseVersion.js"
   },
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.9",
