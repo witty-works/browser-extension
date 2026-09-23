@@ -119,6 +119,7 @@ export const buildSentenceAlertsFromResponse = (
               gravity: result.gravity,
               limit_reached: result.limit_reached,
               source: result.source,
+              bulk: result.bulk,
             },
           });
         }

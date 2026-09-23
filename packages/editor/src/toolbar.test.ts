@@ -56,6 +56,21 @@ const tool = (label: string) =>
     `.witty-editor-toolbar button[aria-label="${label}"]`
   )!;
 
+const menuItem = (label: string) =>
+  [
+    ...document.querySelectorAll<HTMLElement>(
+      '[role="menu"] [role="menuitem"]'
+    ),
+  ].find((item) => item.textContent?.startsWith(label))!;
+
+/** Opens the W menu and chooses an entry. */
+const chooseFromMenu = async (label: string) => {
+  await vi.waitFor(() => expect(tool('Witty menu')).not.toBeNull());
+  tool('Witty menu').click();
+  await vi.waitFor(() => expect(menuItem(label)).toBeDefined());
+  menuItem(label).click();
+};
+
 describe('toolbar', () => {
   it('toggles bold on the selection and shows it as pressed', async () => {
     const editor = mountEditor();
@@ -103,8 +118,7 @@ describe('toolbar', () => {
 
 describe('settings panel', () => {
   const openSettings = async () => {
-    await vi.waitFor(() => expect(tool('Witty settings')).not.toBeNull());
-    tool('Witty settings').click();
+    await chooseFromMenu('Settings');
     await vi.waitFor(() =>
       expect(document.querySelector('select[data-field]')).not.toBeNull()
     );
@@ -114,7 +128,9 @@ describe('settings panel', () => {
     mountEditor();
     await openSettings();
 
-    expect(tool('Witty settings').getAttribute('aria-expanded')).toBe('true');
+    expect(
+      document.querySelector('.witty-editor-settings')?.getAttribute('role')
+    ).toBe('region');
     expect(document.querySelectorAll('.witty-category-toggle').length).toBe(
       CATEGORIES.categories.length
     );
@@ -167,7 +183,7 @@ describe('settings panel', () => {
     await vi.waitFor(() => expect(spellcheck()).toBe('true'));
   });
 
-  it('closes on Escape and returns focus to the settings button', async () => {
+  it('closes on Escape and returns focus to the W icon', async () => {
     mountEditor();
     await openSettings();
     const panel = document.querySelector('.witty-editor-settings')!;
@@ -179,12 +195,12 @@ describe('settings panel', () => {
     await vi.waitFor(() =>
       expect(document.querySelector('.witty-editor-settings')).toBeNull()
     );
-    expect(document.activeElement).toBe(tool('Witty settings'));
+    expect(document.activeElement).toBe(tool('Witty menu'));
   });
 });
 
 describe('Witty status button', () => {
-  const statusButton = () => tool('Witty settings');
+  const statusButton = () => tool('Witty menu');
   const liveRegion = () =>
     document.querySelector('.witty-editor-toolbar ~ [role="status"]');
 
@@ -203,7 +219,7 @@ describe('Witty status button', () => {
     );
     expect(statusButton().classList).toContain('is-idle');
     expect(statusButton().getAttribute('title')).toBe(
-      'Witty settings · 2 suggestions'
+      'Witty menu · 2 suggestions'
     );
   });
 
@@ -311,10 +327,14 @@ describe('host API', () => {
     });
 
     settings.config.german_gender_ending = 'de-e';
-    expect(editor.getSettings().config).toEqual({german_gender_ending: ':in'});
+    expect(editor.getSettings().config).toEqual({
+      german_gender_ending: ':in',
+    });
 
     editor.setConfig({french_gender_separator: '·'});
-    expect(editor.getSettings().config).toEqual({french_gender_separator: '·'});
+    expect(editor.getSettings().config).toEqual({
+      french_gender_separator: '·',
+    });
   });
 
   it('keeps the host description when the attributes are applied again', async () => {
@@ -328,8 +348,7 @@ describe('host API', () => {
     ]);
 
     // The spelling setting re-applies the editable's attributes.
-    await vi.waitFor(() => expect(tool('Witty settings')).not.toBeNull());
-    tool('Witty settings').click();
+    await chooseFromMenu('Settings');
     await vi.waitFor(() =>
       expect(
         document.querySelector('input[id$="opt-orthography"]')
@@ -400,8 +419,7 @@ describe('toolbar formatting', () => {
 
 describe('settings panel changes', () => {
   const openSettings = async () => {
-    await vi.waitFor(() => expect(tool('Witty settings')).not.toBeNull());
-    tool('Witty settings').click();
+    await chooseFromMenu('Settings');
     await vi.waitFor(() =>
       expect(document.querySelector('.witty-category-toggle')).not.toBeNull()
     );
@@ -453,19 +471,20 @@ describe('settings panel changes', () => {
       })
     );
     mountEditor();
-    await vi.waitFor(() => expect(tool('Witty settings')).not.toBeNull());
-    tool('Witty settings').click();
+    await chooseFromMenu('Settings');
     await vi.waitFor(() =>
       expect(
         document.querySelector('.witty-editor-settings')?.textContent
       ).toContain('Could not load categories.')
     );
 
-    tool('Witty settings').click();
+    document
+      .querySelector<HTMLButtonElement>('.witty-editor-settings-close')!
+      .click();
     await vi.waitFor(() =>
       expect(document.querySelector('.witty-editor-settings')).toBeNull()
     );
-    tool('Witty settings').click();
+    await chooseFromMenu('Settings');
     await vi.waitFor(() => expect(categoryRequests).toBe(2));
   });
 });
@@ -493,7 +512,7 @@ describe('check failures', () => {
       expect(statuses.at(-1)).toEqual({state: 'unauthorized'})
     );
     await vi.waitFor(() =>
-      expect(tool('Witty settings').classList).toContain('is-unauthorized')
+      expect(tool('Witty menu').classList).toContain('is-unauthorized')
     );
     expect(
       document.querySelector('.witty-editor-toolbar ~ [role="status"]')

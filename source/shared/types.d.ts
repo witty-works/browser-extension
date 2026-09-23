@@ -131,6 +131,13 @@ export interface ICheckResponseResult {
   language: string;
   limit_reached: boolean;
   source: ISource;
+  /**
+   * A bulk action this alert belongs to: accepting every alert of the group
+   * (each has exactly one alternative) performs it. "gender_format" switches
+   * the text to the configured German gender format. Absent otherwise, and on
+   * API versions without bulk actions.
+   */
+  bulk?: string | null;
 }
 
 //AUTH/REFRESHTOKEN ENDPOINT
@@ -217,6 +224,8 @@ export interface IAlertContentData {
   gravity: number;
   limit_reached: boolean;
   source: ISource;
+  /** See ICheckResponseResult.bulk. */
+  bulk?: string | null;
 }
 
 //POPOVER

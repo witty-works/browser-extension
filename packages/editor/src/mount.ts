@@ -12,6 +12,7 @@ import {
 } from '@witty/core/ApiServices/requests';
 import {
   type CheckConfig,
+  type Checker,
   CheckHttpError,
   type CheckLang,
   createHttpChecker,
@@ -23,6 +24,15 @@ import {
   requestRecheck,
   WittyCheck,
 } from './checkPlugin';
+import {
+  applyAlerts,
+  bulkAlerts,
+  GENDER_FORMAT_BULK,
+  type GenderFormatSwitchResult,
+  noSwitchReason,
+  SWITCHABLE_FORMATS,
+  switchRequestConfig,
+} from './genderSwitch';
 import {PopoverHost} from './popover';
 import {
   type CheckStatus,
@@ -30,7 +40,15 @@ import {
   createStore,
   type EditorSettings,
 } from './settings';
-import {mountToolbar, TOOLBAR_STYLES} from './toolbar';
+import {
+  createOptionsLoader,
+  mountToolbar,
+  switchMessage,
+  TOOLBAR_STYLES,
+} from './toolbar';
+
+/** Marks the switch's own edit, which must not clear its message. */
+const SWITCH_META = 'wittyGenderFormatSwitch';
 
 /**
  * Embeddable entry point: `WittyEditor.mount(element, options)`. The PoC shape
@@ -43,7 +61,13 @@ export type EditorStatus =
    * `limitReached`: part of the text was not checked, because it is longer
    * than `maxTextLength` or a sentence exceeds what the API checks at once.
    */
-  | {state: 'idle'; alerts: number; limitReached: boolean}
+  | {
+      state: 'idle';
+      alerts: number;
+      limitReached: boolean;
+      /** Set once, on the status right after a gender format switch. */
+      genderFormatSwitch?: GenderFormatSwitchResult;
+    }
   | {state: 'unauthorized'}
   | {state: 'error'; message: string};
 
@@ -114,11 +138,19 @@ export interface WittyEditorHandle {
    * host that sends the same `config` with its own API calls.
    */
   getSettings(): EditorSettings;
+  /**
+   * Rewrite every gendered form in the text into `target` (a German gender
+   * ending such as ':in'), in one undoable step, and make it the configured
+   * format. Resolves once the text has been checked and switched. Needs an NLP
+   * API with bulk alerts; see the README.
+   */
+  switchGenderFormat(target: string): Promise<GenderFormatSwitchResult>;
   destroy(): void;
 }
 
 export type {CheckConfig, CheckLang, CheckVariant} from './checkClient';
 export type {EditorSettings} from './settings';
+export type {GenderFormatSwitchResult, SwitchOutcome} from './genderSwitch';
 
 /**
  * Highlights in the extension's look, with its colours: a 2px line in the
@@ -221,14 +253,41 @@ export const mount = (
   });
   const headers = (): Record<string, string> =>
     credentialHeaders({apiKey: key});
+  // While a gender format switch runs, its checks use this config instead:
+  // the user's, with the gender-format alerts switched on. Never stored.
+  let switchConfig: CheckConfig | null = null;
+  const requestConfig = (): CheckConfig =>
+    switchConfig ?? settings.get().config;
+  // Whether the API sends bulk alerts: known once one arrives, or once a
+  // switch finds an API that predates them.
+  let bulkSupport: 'unknown' | 'yes' | 'no' = 'unknown';
   // Both are read per request, so `setApiKey` and settings changes reach the
   // next check without rebuilding the checker.
-  const check = createHttpChecker({
+  const httpCheck = createHttpChecker({
     endpoint,
     headers,
     lang,
-    config: (): CheckConfig => settings.get().config,
+    config: requestConfig,
   });
+  const check: Checker = async (text, signal) => {
+    const response = await httpCheck(text, signal);
+    if (response.results?.some((result) => result.bulk === GENDER_FORMAT_BULK))
+      bulkSupport = 'yes';
+    return response;
+  };
+
+  // Callers waiting for the next complete check (a switch): armed when a
+  // check starts after they began waiting, settled by its last batch.
+  interface CheckWaiter {
+    armed: boolean;
+    resolve: (limitReached: boolean) => void;
+    reject: (error: unknown) => void;
+  }
+  const waiters = new Set<CheckWaiter>();
+  const nextCompleteCheck = (): Promise<boolean> =>
+    new Promise((resolve, reject) => {
+      waiters.add({armed: false, resolve, reject});
+    });
 
   // Highlights are visual only; tell screen reader users how to reach them.
   const hint = document.createElement('span');
@@ -264,8 +323,9 @@ export const mount = (
   );
 
   // What the Witty button shows; the host's onStatus keeps its own shape.
-  const status = createStore<{status: CheckStatus}>({
+  const status = createStore<{status: CheckStatus; notice: string | null}>({
     status: {state: 'idle', alerts: 0, limitReached: false},
+    notice: null,
   });
   const ignored = new Set<string>();
   // Created once the editor exists; its triggers only fire after that.
@@ -281,8 +341,7 @@ export const mount = (
         maxRequestLength,
         maxTextLength,
         // Results depend on these as much as on the text.
-        cacheScope: (): string =>
-          JSON.stringify([settings.get().config, lang, key]),
+        cacheScope: (): string => JSON.stringify([requestConfig(), lang, key]),
         isIgnored: (alert) => ignored.has(alert.data.text),
         onError: (error) => {
           const next: EditorStatus =
@@ -296,6 +355,8 @@ export const mount = (
                 };
           status.set({status: next});
           onStatus?.(next);
+          waiters.forEach((waiter) => waiter.reject(error));
+          waiters.clear();
         },
       }),
       popoverTriggers(() => popoverRef.current),
@@ -312,6 +373,20 @@ export const mount = (
         {type?: string; complete?: boolean} | undefined;
       if (meta?.type === 'start') {
         status.set({status: {state: 'checking'}});
+        waiters.forEach((waiter) => {
+          waiter.armed = true;
+        });
+      }
+      if (meta?.type === 'results' && meta.complete !== false) {
+        for (const waiter of waiters) {
+          if (!waiter.armed) continue;
+          waiter.resolve(isLimitReached(current.state));
+          waiters.delete(waiter);
+        }
+      }
+      // A switch's message stays until the user edits the text.
+      if (transaction.docChanged && !transaction.getMeta(SWITCH_META)) {
+        if (status.get().notice) status.set({notice: null});
       }
       if (
         transaction.docChanged ||
@@ -368,6 +443,88 @@ export const mount = (
     previous = next;
   });
 
+  const loadOptions = createOptionsLoader({endpoint, headers});
+  const t = (name: string, options?: Record<string, unknown>): string =>
+    i18n.t(name, {ns: namespaces.editor, ...options});
+
+  let switching: Promise<GenderFormatSwitchResult> | null = null;
+
+  const runSwitch = async (
+    target: string
+  ): Promise<GenderFormatSwitchResult> => {
+    const ending = target as NonNullable<CheckConfig['german_gender_ending']>;
+    if (!SWITCHABLE_FORMATS.includes(ending)) {
+      return {outcome: 'unavailable', target, count: 0, limitReached: false};
+    }
+
+    // 1. The target becomes the configured format (the toolbar shows it), and
+    //    the switch's checks ask for the gender-format alerts regardless of
+    //    the user's category settings, which stay as they are.
+    const userConfig = {
+      ...settings.get().config,
+      german_gender_ending: ending,
+    };
+    switchConfig = switchRequestConfig(userConfig, ending).config;
+    const checked = nextCompleteCheck();
+    settings.set({config: userConfig});
+    requestRecheck(editor.view);
+
+    let limitReached: boolean;
+    try {
+      // 2. Every batch of the text, not only the first.
+      limitReached = await checked;
+    } finally {
+      switchConfig = null;
+    }
+
+    // 3. All bulk alerts in one transaction: one undo restores the text.
+    const alerts = getAlerts(editor.state);
+    const bulk = bulkAlerts(alerts);
+    let result: GenderFormatSwitchResult;
+    if (bulk.length) {
+      editor.view.dispatch(
+        applyAlerts(editor.state, bulk).setMeta(SWITCH_META, true)
+      );
+      result = {
+        outcome: 'switched',
+        target,
+        count: bulk.length,
+        limitReached,
+      };
+    } else {
+      const outcome = noSwitchReason(
+        editor.state.doc.textContent,
+        target,
+        alerts
+      );
+      if (outcome === 'unsupported') bulkSupport = 'no';
+      result = {outcome, target, count: 0, limitReached};
+    }
+    // Back to the user's own settings for the underlines.
+    requestRecheck(editor.view);
+
+    // 4. Said in the live region and to the host.
+    const options = await loadOptions().catch(() => null);
+    status.set({notice: switchMessage(t, result, options)});
+    onStatus?.({
+      state: 'idle',
+      alerts: getAlerts(editor.state).length,
+      limitReached: isLimitReached(editor.state),
+      genderFormatSwitch: result,
+    });
+    return result;
+  };
+
+  const switchGenderFormat = (
+    target: string
+  ): Promise<GenderFormatSwitchResult> => {
+    // One at a time: a second request waits for the running one.
+    switching = (switching ?? Promise.resolve())
+      .catch(() => undefined)
+      .then(() => runSwitch(target));
+    return switching;
+  };
+
   const toolbarHandle = toolbar
     ? mountToolbar(toolbarHost, {
         editor,
@@ -379,8 +536,15 @@ export const mount = (
             onSettingsChange?.(settings.get());
           },
         },
-        api: {endpoint, headers},
         status,
+        loadOptions,
+        onSwitch: async (target) => {
+          const result = await switchGenderFormat(target);
+          // Chosen in the menu: the gender format setting is the user's.
+          onSettingsChange?.(settings.get());
+          return result;
+        },
+        switchSupported: (): boolean => bulkSupport !== 'no',
       })
     : undefined;
 
@@ -396,6 +560,7 @@ export const mount = (
       settings.set({config: next});
     },
     getText: (): string => editor.getText(),
+    switchGenderFormat,
     getSettings: (): EditorSettings => {
       const current = settings.get();
       return {...current, config: structuredClone(current.config)};
