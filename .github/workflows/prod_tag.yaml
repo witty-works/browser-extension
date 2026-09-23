@@ -1,9 +1,10 @@
 name: Build prod extension and source code from tag
 
+# Store releases: tags like 2.1.0 (see build/releaseVersion.js).
 on:
   push:
     tags:
-      - "*"
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   build:
@@ -22,23 +23,12 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Disable development mode, hide dev/local URLs, default to prod API
-        run: |
-          sed 's/export const DEV_ENV = true;/export const DEV_ENV = false;/' source/shared/constants.ts > constants.ts
-          mv constants.ts source/shared/constants.ts
-          sed -r 's/https:\/\/.+\.site\//https:\/\/127.0.0.1\//' source/shared/constants.ts > constants.ts
-          mv constants.ts source/shared/constants.ts
-          sed -r "s/DefaultBaseUrlKey = 'Dev'/DefaultBaseUrlKey = 'Prod'/" source/shared/constants.ts > constants.ts
-          mv constants.ts source/shared/constants.ts
+      - name: Check the tag matches the version in the repo
+        run: node build/releaseVersion.js --check "${GITHUB_REF_NAME}"
 
-      - name: Set Prod Sentry Settings
-        run: |
-          sed -r "s#\"SENTRY_DSN\": \"\",#\"SENTRY_DSN\": \"${SENTRY_DSN}\",#" source/witty.config.json > witty.config.json
-          mv witty.config.json source/witty.config.json
-          sed -r "s#\"SENTRY_SAMPLE_RATE\": 0.0,#\"SENTRY_SAMPLE_RATE\": ${SENTRY_SAMPLE_RATE},#" source/witty.config.json > witty.config.json
-          mv witty.config.json source/witty.config.json
-          sed -r "s#\"SENTRY_TRACE_RATE\": 0.0,#\"SENTRY_TRACE_RATE\": ${SENTRY_TRACE_RATE},#" source/witty.config.json > witty.config.json
-          mv witty.config.json source/witty.config.json
+      # Only the Prod endpoint, and the prod Sentry settings from env.
+      - name: Write the release config
+        run: node build/prepareReleaseConfig.js --prod
 
       - name: Remove git
         run: rm -rf .git
@@ -62,12 +52,6 @@ jobs:
         if: steps.cache-npm.outputs.cache-hit != 'true'
         run: |
           npm ci
-
-      - name: Copy example config if missing
-        run: |
-          if [ -f source/witty.config.json.example ] && [ ! -f source/witty.config.json ]; then
-            cp source/witty.config.json.example source/witty.config.json
-          fi
 
       - name: Build Prod Firefox artifacts
         run: |
