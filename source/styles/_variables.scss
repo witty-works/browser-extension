@@ -13,6 +13,10 @@ $lightGreen: #f1fff3;
 $opaqueGreen: #5fca7d4d;
 $wittyPurple: #9489db;
 $orange: #f06464;
+// $orange as text or behind white text: at least 4.5:1 (WCAG AA) on every
+// highlight background colour the popover cards use, and on white. $orange
+// itself reaches 1.65–3.13:1.
+$accessibleRed: #8b1b1b;
 // fonts
 $lato: Lato, Arial, Helvetica, sans-serif;
 // font weights
