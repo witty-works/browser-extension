@@ -150,3 +150,66 @@ describe('popover in the editor', () => {
     expect(popover()).toBeNull();
   });
 });
+
+const alternativeButton = (label: string) =>
+  [
+    ...document.querySelectorAll<HTMLButtonElement>(
+      '.witty-works-ext-wittyworks-popover-alternative-btn'
+    ),
+  ].find((button) => button.textContent === label);
+
+describe('applying from the popover', () => {
+  it('replaces the word, closes the popover, and undoes in one step', async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(alternativeButton('everyone')).toBeDefined());
+    // The popover applies on pointerdown, before focus leaves the editor.
+    alternativeButton('everyone')!.dispatchEvent(
+      new PointerEvent('pointerdown', {bubbles: true})
+    );
+
+    await vi.waitFor(() => expect(popover()).toBeNull());
+    expect(editor.getText()).toContain('Hey everyone,');
+
+    editor.editor.commands.undo();
+    expect(editor.getText()).toContain('Hey guys,');
+  });
+
+  it('moves to the next alert', async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(1));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(popover()?.textContent).toContain('1 of'));
+    popover()!
+      .querySelector<HTMLButtonElement>('button[aria-label="Next result"]')!
+      .click();
+
+    await vi.waitFor(() => expect(popover()?.textContent).toContain('2 of'));
+  });
+});
+
+describe('ignore once', () => {
+  it('keeps the term ignored when the text is checked again', async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(1));
+    const before = lastAlertCount()!;
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(popover()).not.toBeNull());
+    [...document.querySelectorAll('button')]
+      .find((button) => button.textContent?.includes('Ignore once'))!
+      .click();
+    await vi.waitFor(() => expect(lastAlertCount()).toBe(before - 1));
+
+    // A new key forces every sentence to be checked again.
+    editor.setApiKey('another-key');
+    await vi.waitFor(() =>
+      expect(statuses.at(-1)).toMatchObject({state: 'idle'})
+    );
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(lastAlertCount()).toBe(before - 1);
+  });
+});

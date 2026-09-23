@@ -8,6 +8,7 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "types": ["vite/client"],
     // The shared popover and helpers come from the extension's source tree,
     // which is written against these settings.

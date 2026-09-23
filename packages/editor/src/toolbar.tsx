@@ -210,9 +210,12 @@ const useStatusText = (
     case 'checking':
       return {text: t('statusChecking'), announce: ''};
     case 'idle': {
-      const text = status.alerts
+      const count = status.alerts
         ? t('statusAlerts', {count: status.alerts})
         : t('statusNoAlerts');
+      const text = status.limitReached
+        ? `${count}. ${t('limitReached')}`
+        : count;
       return {text, announce: text};
     }
     case 'unauthorized':

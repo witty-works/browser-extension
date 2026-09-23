@@ -6,7 +6,7 @@ import {defineConfig, type Plugin} from 'vitest/config';
 import svgr from 'vite-plugin-svgr';
 import cssInjectedByJs from 'vite-plugin-css-injected-by-js';
 
-import {licenseNotices} from './licenseNotices';
+import {licenseNotices} from './licenseNotices.ts';
 
 // `vite` serves the demo (index.html); `vite build` produces the embeddable
 // bundle: one self-contained dist/witty-editor.js exposing `WittyEditor.mount`.
@@ -142,5 +142,13 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    // `npm run test:coverage`: fails below these, so coverage cannot slide
+    // unnoticed. What stays uncovered needs a real layout engine (clicking a
+    // highlight) and is exercised in the browser instead.
+    coverage: {
+      include: ['src/**'],
+      exclude: ['src/**/*.test.ts', 'src/demo.ts'],
+      thresholds: {statements: 95, branches: 85, functions: 90, lines: 95},
+    },
   },
 });
