@@ -1,15 +1,19 @@
 name: Publish editor
 
-# Publishes @witty-works/editor to npm when a tag like `editor-v0.1.0` is
-# pushed. The tag has to match packages/editor/package.json's version.
+# Publishes @witty-works/editor to npm from the same version tags that build
+# the extension (see build/releaseVersion.js):
 #
-# Needs the repository secret NPM_TOKEN: an npm automation token with publish
-# rights on the @witty-works scope.
+#   2.1.0          npm dist-tag latest
+#   2.1.0-beta.3   npm dist-tag beta
+#
+# Needs the repository secret NPM_TOKEN: an npm token with publish rights on
+# the @witty-works scope.
 
 on:
   push:
     tags:
-      - "editor-v*"
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+"
 
 permissions:
   contents: read
@@ -28,13 +32,8 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
 
-      - name: Check the tag matches the package version
-        run: |
-          version=$(node -p "require('./packages/editor/package.json').version")
-          if [ "${GITHUB_REF_NAME}" != "editor-v${version}" ]; then
-            echo "Tag ${GITHUB_REF_NAME} does not match package version ${version}" >&2
-            exit 1
-          fi
+      - name: Check the tag matches the version in the repo
+        run: node build/releaseVersion.js --check "${GITHUB_REF_NAME}"
 
       # The example config carries no credentials, so none can be bundled; the
       # editor build also strips them and fails if any turn up.
@@ -43,6 +42,8 @@ jobs:
 
       # prepublishOnly runs the type check, the unit tests and the build.
       - name: Publish
-        run: npm publish -w @witty-works/editor
+        run: |
+          dist_tag=$(node -p "require('./build/releaseVersion.js').parseVersion(process.argv[1]).distTag" "${GITHUB_REF_NAME}")
+          npm publish -w @witty-works/editor --tag "${dist_tag}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
