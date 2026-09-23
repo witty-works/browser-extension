@@ -14,6 +14,8 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 
+const { mockApiResponse } = require('../helpers/mockApi');
+
 const PORT = Number(process.env.FIXTURE_PORT) || 5174;
 const ROOT = __dirname;
 
@@ -34,8 +36,46 @@ const CONTENT_TYPES = {
   '.json': 'application/json',
 };
 
+// The Playwright suite intercepts NLP API calls in the browser. The Firefox
+// smoke suite cannot, so it points the extension's custom endpoint here instead
+// and gets the same canned responses.
+const MOCK_API_PREFIX = '/mock-api/';
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+};
+
+const serveMockApi = (req, res, url) => {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, CORS_HEADERS).end();
+    return;
+  }
+
+  let body = '';
+  req.on('data', (chunk) => {
+    body += chunk;
+  });
+  req.on('end', () => {
+    const response = mockApiResponse(url.pathname, body);
+    if (!response) {
+      res.writeHead(404, CORS_HEADERS).end('Not found');
+      return;
+    }
+    res
+      .writeHead(200, { ...CORS_HEADERS, 'Content-Type': 'application/json' })
+      .end(JSON.stringify(response));
+  });
+};
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
+  if (url.pathname.startsWith(MOCK_API_PREFIX)) {
+    serveMockApi(req, res, url);
+    return;
+  }
+
   const relative = url.pathname === '/' ? '/index.html' : url.pathname;
 
   // Resolve then confirm the result is still inside its root, so a crafted

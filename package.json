@@ -23,9 +23,11 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "build:test": "cross-env NODE_ENV=production cross-env TESTING=true cross-env TARGET_BROWSER=chrome webpack",
+    "build:test:firefox": "cross-env NODE_ENV=production cross-env TESTING=true cross-env TARGET_BROWSER=firefox webpack",
     "test": "npm run build:test && npx playwright test",
     "test:ui": "npm run build:test && npx playwright test --ui",
-    "test:update-snapshots": "npm run build:test && npx playwright test --update-snapshots"
+    "test:update-snapshots": "npm run build:test && npx playwright test --update-snapshots",
+    "test:firefox": "npm run build:test:firefox && npx playwright test --config playwright.firefox.config.js"
   },
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.9",
@@ -103,6 +105,7 @@
     "postcss": "^8.5.25",
     "postcss-loader": "^8.2.1",
     "prettier": "^3.9.6",
+    "puppeteer": "^25.11.0",
     "quill": "^2.0.3",
     "resolve-url-loader": "^5.0.0",
     "sass": "^1.102.0",

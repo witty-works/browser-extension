@@ -223,7 +223,8 @@ const alternativeBoxes = (page) =>
   }, ALTERNATIVE_BTN);
 
 /**
- * Click the highlighted `word` to open its popover.
+ * Viewport centre of `needle` inside `#editor`. Runs in the page; shared with
+ * the Firefox smoke suite, which drives the page through Puppeteer.
  *
  * The coordinate is measured rather than guessed: the fixture font is
  * proportional, so the x offset of a word is the rendered width of the text
@@ -231,72 +232,76 @@ const alternativeBoxes = (page) =>
  * popover whose alternatives were all short — and therefore never exercised the
  * truncation path the popover tests exist to cover.
  */
-const openPopoverForWord = async (page, word) => {
-  const target = await page.evaluate((needle) => {
-    const el = document.querySelector('#editor');
+const measureWordCenter = (needle) => {
+  const el = document.querySelector('#editor');
 
-    // For contenteditable editors the word's position can be measured
-    // exactly from its text node — editor chrome (toolbars, own paddings,
-    // paragraph margins) makes the font-metric arithmetic below unreliable.
-    // A textarea has no text nodes, hence the measured-width fallback.
-    if (!(el instanceof HTMLTextAreaElement)) {
-      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-      let node;
-      while ((node = walker.nextNode())) {
-        const index = node.textContent.indexOf(needle);
-        if (index === -1) continue;
-        const range = document.createRange();
-        range.setStart(node, index);
-        range.setEnd(node, index + needle.length);
-        const r = range.getBoundingClientRect();
-        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-      }
-      throw new Error(`fixture text has no "${needle}"`);
+  // For contenteditable editors the word's position can be measured
+  // exactly from its text node — editor chrome (toolbars, own paddings,
+  // paragraph margins) makes the font-metric arithmetic below unreliable.
+  // A textarea has no text nodes, hence the measured-width fallback.
+  if (!(el instanceof HTMLTextAreaElement)) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const index = node.textContent.indexOf(needle);
+      if (index === -1) continue;
+      const range = document.createRange();
+      range.setStart(node, index);
+      range.setEnd(node, index + needle.length);
+      const r = range.getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
     }
+    throw new Error(`fixture text has no "${needle}"`);
+  }
 
-    const text = el.value;
-    const index = text.indexOf(needle);
-    if (index === -1) throw new Error(`fixture text has no "${needle}"`);
+  const text = el.value;
+  const index = text.indexOf(needle);
+  if (index === -1) throw new Error(`fixture text has no "${needle}"`);
 
-    const style = getComputedStyle(el);
-    const ctx = document.createElement('canvas').getContext('2d');
-    ctx.font = style.font || `${style.fontSize} ${style.fontFamily}`;
+  const style = getComputedStyle(el);
+  const ctx = document.createElement('canvas').getContext('2d');
+  ctx.font = style.font || `${style.fontSize} ${style.fontFamily}`;
 
-    const before = ctx.measureText(text.slice(0, index)).width;
-    const half = ctx.measureText(needle).width / 2;
-    const r = el.getBoundingClientRect();
+  const before = ctx.measureText(text.slice(0, index)).width;
+  const half = ctx.measureText(needle).width / 2;
+  const r = el.getBoundingClientRect();
 
-    return {
-      x:
-        r.x +
-        parseFloat(style.paddingLeft) +
-        parseFloat(style.borderLeftWidth) +
-        before +
-        half,
-      // Vertical middle of the first line.
-      y:
-        r.y +
-        parseFloat(style.paddingTop) +
-        parseFloat(style.borderTopWidth) +
-        parseFloat(style.lineHeight) / 2,
-    };
-  }, word);
+  return {
+    x:
+      r.x +
+      parseFloat(style.paddingLeft) +
+      parseFloat(style.borderLeftWidth) +
+      before +
+      half,
+    // Vertical middle of the first line.
+    y:
+      r.y +
+      parseFloat(style.paddingTop) +
+      parseFloat(style.borderTopWidth) +
+      parseFloat(style.lineHeight) / 2,
+  };
+};
+
+/** Whether any element (shadow-DOM aware) carries `cls`. Runs in the page. */
+const hasElementWithClass = (cls) => {
+  const walk = (root) => {
+    for (const el of root.querySelectorAll('*')) {
+      if (el.classList.contains(cls)) return true;
+      if (el.shadowRoot && walk(el.shadowRoot)) return true;
+    }
+    return false;
+  };
+  return walk(document);
+};
+
+/** Click the highlighted `word` to open its popover. */
+const openPopoverForWord = async (page, word) => {
+  const target = await page.evaluate(measureWordCenter, word);
 
   await page.mouse.click(target.x, target.y);
-  await page.waitForFunction(
-    (cls) => {
-      const walk = (root) => {
-        for (const el of root.querySelectorAll('*')) {
-          if (el.classList.contains(cls)) return true;
-          if (el.shadowRoot && walk(el.shadowRoot)) return true;
-        }
-        return false;
-      };
-      return walk(document);
-    },
-    ALTERNATIVE_BTN,
-    { timeout: 15000 }
-  );
+  await page.waitForFunction(hasElementWithClass, ALTERNATIVE_BTN, {
+    timeout: 15000,
+  });
 
   // Returned so callers can assert the popover is anchored to the word that
   // opened it, not merely that it exists somewhere on the page.
@@ -398,6 +403,9 @@ module.exports = {
   popoverBox,
   pressOpenPopoverShortcut,
   ALTERNATIVE_BTN,
+  PAINTED_PIXELS,
+  measureWordCenter,
+  hasElementWithClass,
   FIXTURE_ORIGIN,
   PATH_TO_EXTENSION,
 };

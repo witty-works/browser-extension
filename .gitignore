@@ -59,8 +59,10 @@ dist/
 
 #test results
 test-results/
+test-results-firefox/
 source/witty.config.json
 playwright-report/
+playwright-report-firefox/
 
 # local-only test targets (e.g. a shared Google Doc URL that must not be
 # published); tests depending on it skip themselves when the file is absent
