@@ -1,25 +1,53 @@
 {
   "name": "@witty-works/editor",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Witty's inclusive-language checker as an embeddable rich-text editor",
+  "keywords": [
+    "witty",
+    "inclusive language",
+    "editor",
+    "tiptap",
+    "writing assistant"
+  ],
+  "homepage": "https://github.com/witty-works/browser-extension/tree/dev/packages/editor#readme",
+  "bugs": "https://github.com/witty-works/browser-extension/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/witty-works/browser-extension.git",
+    "directory": "packages/editor"
+  },
+  "license": "MIT",
+  "author": "Witty Works <contact@witty.works> (https://witty.works)",
   "type": "module",
-  "description": "<witty-editor>: Witty's checker as an embeddable editor (EDITOR_COMPONENT_PLAN.md)",
+  "browser": "dist/witty-editor.js",
+  "unpkg": "dist/witty-editor.js",
+  "jsdelivr": "dist/witty-editor.js",
+  "exports": {
+    "./witty-editor.js": "./dist/witty-editor.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/witty-editor.js"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "devDependencies": {
+    "@tiptap/core": "3.31.3",
+    "@tiptap/pm": "3.31.3",
+    "@tiptap/starter-kit": "3.31.3",
     "happy-dom": "20.14.5",
     "vite": "8.3.0",
     "vite-plugin-css-injected-by-js": "5.0.2",
     "vite-plugin-svgr": "5.2.0",
     "vitest": "5.0.1"
-  },
-  "dependencies": {
-    "@tiptap/core": "3.31.3",
-    "@tiptap/pm": "3.31.3",
-    "@tiptap/starter-kit": "3.31.3"
   }
 }

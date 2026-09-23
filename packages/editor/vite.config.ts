@@ -1,3 +1,4 @@
+import {execSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
@@ -16,6 +17,22 @@ const {CREDENTIAL_KEYS} = createRequire(import.meta.url)(
 ) as {CREDENTIAL_KEYS: string[]};
 
 const CONFIG_PATH = fromRoot('source/witty.config.json');
+
+/** Which version and commit a copy of the bundle is, wherever it ends up. */
+const banner = (): string => {
+  const {version} = JSON.parse(
+    readFileSync(new URL('package.json', import.meta.url), 'utf8')
+  ) as {version: string};
+  let commit = process.env.GITHUB_SHA?.slice(0, 8) ?? '';
+  if (!commit) {
+    try {
+      commit = execSync('git rev-parse --short=8 HEAD').toString().trim();
+    } catch (error) {
+      commit = 'unknown';
+    }
+  }
+  return `/*! @witty-works/editor ${version} (${commit}) | MIT | https://witty.works */`;
+};
 
 /**
  * Keep credentials in witty.config.json out of the bundle.
@@ -82,6 +99,18 @@ export default defineConfig({
     svgr({include: '**/*.svg', svgrOptions: {exportType: 'default'}}),
     // Its stylesheet ships inside the script, so hosts include one file.
     cssInjectedByJs(),
+    // Last, so the banner stays the first line after the CSS injection code
+    // has been prepended.
+    {
+      name: 'witty-banner',
+      enforce: 'post',
+      generateBundle(_options, bundle): void {
+        const text = banner();
+        for (const output of Object.values(bundle)) {
+          if (output.type === 'chunk') output.code = `${text}\n${output.code}`;
+        }
+      },
+    },
   ],
   build: {
     lib: {
