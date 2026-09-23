@@ -383,52 +383,69 @@ export enum Colors {
   cyan = '#37D1E5',
   green = '#5fca7d',
 }
-interface IHighlightColors {
+export interface IHighlightColors {
   default: string;
   highlight: string;
   hover: string;
 }
 
-const inclusiveGreen: IHighlightColors = {
-  hover: '#BCD485',
-  default: '#D3E4AC',
-  highlight: '#BCD485',
+/** Colour group of an alert; see `highlightColorKey`. */
+export type HighlightColorKey =
+  | 'corporate'
+  | 'inclusive'
+  | 'severe'
+  | 'style'
+  | 'bias';
+
+/**
+ * Highlight colours per group. Exported so hosts that style highlights with
+ * CSS (the editor component) use the same values the extension paints.
+ */
+export const highlightColors: Record<HighlightColorKey, IHighlightColors> = {
+  inclusive: {
+    hover: '#BCD485',
+    default: '#D3E4AC',
+    highlight: '#BCD485',
+  },
+  corporate: {
+    hover: '#6f9FED',
+    default: '#A1BEED',
+    highlight: '#6f9FED',
+  },
+  style: {
+    hover: '#F6EC6B',
+    default: '#FFFFD3',
+    highlight: '#F6EC6B',
+  },
+  // Unconscious bias and gendered language.
+  bias: {
+    hover: '#EB9F46',
+    default: '#F8E7CB',
+    highlight: '#EB9F46',
+  },
+  // Openly discriminating language and grammar.
+  severe: {
+    hover: '#E6635A',
+    default: '#F7D4D4',
+    highlight: '#E6635A',
+  },
 };
 
-const corporateBlue: IHighlightColors = {
-  hover: '#6f9FED',
-  default: '#A1BEED',
-  highlight: '#6f9FED',
-};
-
-const styleYellow: IHighlightColors = {
-  hover: '#F6EC6B',
-  default: '#FFFFD3',
-  highlight: '#F6EC6B',
-};
-
-const unconsciousBiasAndGenderedOrange: IHighlightColors = {
-  hover: '#EB9F46',
-  default: '#F8E7CB',
-  highlight: '#EB9F46',
-};
-
-const openlyDiscriminatingAndGrammarRed: IHighlightColors = {
-  hover: '#E6635A',
-  default: '#F7D4D4',
-  highlight: '#E6635A',
+export const highlightColorKey = (
+  gravity: number,
+  subcategory: string
+): HighlightColorKey => {
+  if (subcategory === 'corporate_rules') return 'corporate';
+  if (!gravity) return 'inclusive';
+  if (gravity < 1.5) return 'severe';
+  if (gravity > 2.5) return 'style';
+  return 'bias';
 };
 
 export const getColor = (
   gravity: number,
   subcategory: string
-): IHighlightColors => {
-  if (subcategory === 'corporate_rules') return corporateBlue;
-  if (!gravity) return inclusiveGreen;
-  else if (gravity < 1.5) return openlyDiscriminatingAndGrammarRed;
-  else if (gravity > 2.5) return styleYellow;
-  else return unconsciousBiasAndGenderedOrange;
-};
+): IHighlightColors => highlightColors[highlightColorKey(gravity, subcategory)];
 
 //German Gender Endings
 export enum GermanGenderEndings {
