@@ -17,6 +17,7 @@ import type {
   IGetLLMSuggestionsRequest,
 } from '../../../source/shared/types';
 import {type Alert, dismissAlerts, getAlerts, selectAlert} from './checkPlugin';
+import {type CheckConfig, genderSeparatorFor} from './checkClient';
 import {resolveReplacement} from './replacement';
 
 /**
@@ -42,6 +43,8 @@ export interface PopoverHostOptions {
   llmTimeoutMs: number;
   /** Terms ignored this session; filtered from later checks as well. */
   ignored: Set<string>;
+  /** The check config, so rewrites use the same gender format. */
+  config: () => CheckConfig | undefined;
 }
 
 export class PopoverHost {
@@ -192,6 +195,18 @@ export class PopoverHost {
     this.view.focus();
   }
 
+  private rewriteBody(request: IGetLLMSuggestionsRequest): object {
+    const body = buildLLMSuggestionBody(
+      request.alert.data.fullSentence,
+      request.alert
+    );
+    const separator = genderSeparatorFor(
+      request.alert.data.language,
+      this.options.config()
+    );
+    return separator ? {...body, gender_separator: separator} : body;
+  }
+
   private requestRewrites(request: IGetLLMSuggestionsRequest): void {
     const key = getLLMAlternativesCacheKey(request);
     if (this.llmCache.has(key)) return;
@@ -206,9 +221,7 @@ export class PopoverHost {
         'Content-Type': 'application/json',
         ...this.options.headers(),
       },
-      body: JSON.stringify(
-        buildLLMSuggestionBody(request.alert.data.fullSentence, request.alert)
-      ),
+      body: JSON.stringify(this.rewriteBody(request)),
       signal: AbortSignal.timeout(this.options.llmTimeoutMs),
     })
       .then(async (response) => {

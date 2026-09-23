@@ -5,7 +5,12 @@ import {Plugin} from '@tiptap/pm/state';
 import {highlightColors} from '../../../source/shared/constants';
 import {initI18n} from '../../../source/i18n/i18n';
 import {LLM_SUGGESTION_TIMEOUT_MS} from '../../../source/shared/ApiServices/requests';
-import {CheckHttpError, createHttpChecker} from './checkClient';
+import {
+  type CheckConfig,
+  CheckHttpError,
+  type CheckLang,
+  createHttpChecker,
+} from './checkClient';
 import {
   checkPluginKey,
   getAlerts,
@@ -30,6 +35,13 @@ export interface MountOptions {
   endpoint?: string;
   /** Sent as `x-key`. Set later with `setApiKey`; never read from the DOM. */
   apiKey?: string;
+  /** Language of the text, or `auto` (the default) to let the API detect it. */
+  lang?: CheckLang;
+  /**
+   * Per-request check config. Only the fields set here are sent, so the user's
+   * stored settings keep deciding the rest. Replace it later with `setConfig`.
+   */
+  config?: CheckConfig;
   /** Initial content (HTML). */
   content?: string;
   /** Accessible name of the editable area. */
@@ -53,10 +65,17 @@ export interface WittyEditorHandle {
   editor: Editor;
   /** Replace the API key (empty string clears it) and check again. */
   setApiKey(key: string): void;
+  /**
+   * Replace the whole check config — this does not merge — and check again.
+   * `{}` goes back to sending no `config`, i.e. the account's own settings.
+   */
+  setConfig(config: CheckConfig): void;
   /** Plain text of the document. */
   getText(): string;
   destroy(): void;
 }
+
+export type {CheckConfig, CheckLang, CheckVariant} from './checkClient';
 
 /**
  * Highlights in the extension's look, with its colours: a 2px line in the
@@ -122,6 +141,8 @@ export const mount = (
   {
     endpoint = `${location.origin}/`,
     apiKey = '',
+    lang = 'auto',
+    config,
     content = '',
     label = 'Text to check',
     delay = 500,
@@ -135,8 +156,16 @@ export const mount = (
   element.classList.add('witty-editor');
 
   let key = apiKey;
+  let checkConfig = config;
   const headers = (): Record<string, string> => (key ? {'x-key': key} : {});
-  const check = createHttpChecker({endpoint, headers});
+  // Both are read per request, so `setApiKey` and `setConfig` reach the next
+  // check without rebuilding the checker.
+  const check = createHttpChecker({
+    endpoint,
+    headers,
+    lang,
+    config: (): CheckConfig | undefined => checkConfig,
+  });
   const ignored = new Set<string>();
   // Created once the editor exists; its triggers only fire after that.
   const popoverRef: {current?: PopoverHost} = {};
@@ -154,7 +183,11 @@ export const mount = (
             error instanceof CheckHttpError &&
               (error.status === 401 || error.status === 403)
               ? {state: 'unauthorized'}
-              : {state: 'error', message: String(error)}
+              : {
+                  state: 'error',
+                  message:
+                    error instanceof Error ? error.message : String(error),
+                }
           ),
       }),
       popoverTriggers(() => popoverRef.current),
@@ -185,6 +218,7 @@ export const mount = (
     llmAlternatives,
     llmTimeoutMs,
     ignored,
+    config: (): CheckConfig | undefined => checkConfig,
   });
   popoverRef.current = popover;
 
@@ -192,6 +226,10 @@ export const mount = (
     editor,
     setApiKey(next: string): void {
       key = next;
+      requestRecheck(editor.view);
+    },
+    setConfig(next: CheckConfig): void {
+      checkConfig = next;
       requestRecheck(editor.view);
     },
     getText: (): string => editor.getText(),
