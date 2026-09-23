@@ -9,13 +9,16 @@ import type {Node as PMNode} from '@tiptap/pm/model';
  *
  * - Every textblock (paragraph, heading, list item paragraph, table cell
  *   paragraph) contributes its inline text, and consecutive textblocks are
- *   separated by `\n` — so words in adjacent blocks or cells never join into a
- *   phantom word the checker would flag.
- * - A hard break is `\n`.
+ *   separated by a blank line (`\n\n`). The checker only treats a blank line as
+ *   a paragraph boundary: with a single `\n`, an unpunctuated list item runs
+ *   into the next block as one sentence and the next block's first word is
+ *   flagged for capitalization.
+ * - A hard break is `\n`, a line break within the paragraph.
  * - Content the checker must not see — code blocks, inline `code` marks and
  *   inline atom nodes (mentions, images) — is excluded. Excluded inline
- *   content leaves a single space so its neighbours stay separate words; code
- *   blocks are skipped whole.
+ *   content leaves one U+FFFC OBJECT REPLACEMENT CHARACTER, which keeps its
+ *   neighbours separate words without the typography flag a doubled space
+ *   draws. Code blocks are skipped whole.
  * - Separators and placeholders exist only in the string: they map to no
  *   document position, so an alert can never start or end on one.
  *
@@ -37,8 +40,9 @@ export interface TextMap {
   segments: Segment[];
 }
 
-const BLOCK_SEPARATOR = '\n';
-const EXCLUDED_PLACEHOLDER = ' ';
+const BLOCK_SEPARATOR = '\n\n';
+const HARD_BREAK = '\n';
+const EXCLUDED_PLACEHOLDER = '\uFFFC';
 
 const EXCLUDED_BLOCKS = new Set(['codeBlock']);
 const EXCLUDED_MARKS = new Set(['code']);
@@ -71,6 +75,12 @@ export const extractText = (doc: PMNode): TextMap => {
     text += chunk;
   };
 
+  // Adjacent excluded runs (e.g. a code span with two marks) collapse into one.
+  const appendPlaceholder = (): void => {
+    if (!text.endsWith(EXCLUDED_PLACEHOLDER))
+      append(EXCLUDED_PLACEHOLDER, null);
+  };
+
   doc.descendants((node, pos) => {
     if (EXCLUDED_BLOCKS.has(node.type.name)) {
       return false;
@@ -84,8 +94,7 @@ export const extractText = (doc: PMNode): TextMap => {
 
     if (node.isText) {
       if (node.marks.some((mark) => EXCLUDED_MARKS.has(mark.type.name))) {
-        if (!text.endsWith(EXCLUDED_PLACEHOLDER))
-          append(EXCLUDED_PLACEHOLDER, null);
+        appendPlaceholder();
       } else {
         append(node.text ?? '', pos);
       }
@@ -93,12 +102,12 @@ export const extractText = (doc: PMNode): TextMap => {
     }
 
     if (node.type.name === 'hardBreak') {
-      append(BLOCK_SEPARATOR, null);
+      append(HARD_BREAK, null);
       return false;
     }
 
     if (node.isInline && node.isAtom) {
-      append(EXCLUDED_PLACEHOLDER, null);
+      appendPlaceholder();
       return false;
     }
 

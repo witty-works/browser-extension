@@ -62,7 +62,7 @@ describe('extractText', () => {
     const node = doc(paragraph(text('Hello')), paragraph(text('world')));
     const map = extractText(node);
 
-    expect(map.text).toBe('Hello\nworld');
+    expect(map.text).toBe('Hello\n\nworld');
     expectFaithful(node, map);
   });
 
@@ -80,7 +80,7 @@ describe('extractText', () => {
     );
     const map = extractText(node);
 
-    expect(map.text).toBe('Title\none\ntwo\nquoted');
+    expect(map.text).toBe('Title\n\none\n\ntwo\n\nquoted');
     expectFaithful(node, map);
   });
 
@@ -106,13 +106,13 @@ describe('extractText', () => {
     expectFaithful(node, map);
   });
 
-  it('replaces inline code with a single unmapped space', () => {
+  it('replaces inline code with an unmapped placeholder', () => {
     const node = doc(
       paragraph(text('call '), text('guysFn()', [{type: 'code'}]), text(' now'))
     );
     const map = extractText(node);
 
-    expect(map.text).toBe('call  now');
+    expect(map.text).toBe('call \uFFFC now');
     expect(map.text).not.toContain('guys');
     expectFaithful(node, map);
   });
@@ -122,7 +122,7 @@ describe('extractText', () => {
       paragraph(text('foo'), text('x', [{type: 'code'}]), text('bar'))
     );
 
-    expect(extractText(node).text).toBe('foo bar');
+    expect(extractText(node).text).toBe('foo\uFFFCbar');
   });
 
   it('skips code blocks entirely', () => {
@@ -133,11 +133,11 @@ describe('extractText', () => {
     );
     const map = extractText(node);
 
-    expect(map.text).toBe('before\nafter');
+    expect(map.text).toBe('before\n\nafter');
     expectFaithful(node, map);
   });
 
-  it('replaces inline atoms with an unmapped space', () => {
+  it('replaces inline atoms with an unmapped placeholder', () => {
     const node = doc(
       paragraph(
         text('ask'),
@@ -147,7 +147,7 @@ describe('extractText', () => {
     );
     const map = extractText(node);
 
-    expect(map.text).toBe('ask today');
+    expect(map.text).toBe('ask\uFFFCtoday');
     expectFaithful(node, map);
   });
 
@@ -207,8 +207,8 @@ describe('API offsets', () => {
     const map = extractText(node);
 
     // UTF-16 offsets, as the NLP API reports them: the emoji is two units, so
-    // "guys" is at 14..18 (it would be 13..17 in code points).
-    const range = textRangeToDoc(map, 14, 18);
+    // "guys" is at 15..19 (it would be 14..18 in code points).
+    const range = textRangeToDoc(map, 15, 19);
     expect(range).not.toBeNull();
     expect(node.textBetween(range!.from, range!.to)).toBe('guys');
   });
