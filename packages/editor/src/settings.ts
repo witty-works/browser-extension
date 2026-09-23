@@ -58,7 +58,11 @@ export type CheckStatus =
   | {state: 'unauthorized'}
   | {state: 'error'; message: string};
 
-export type StatusStore = Store<{status: CheckStatus}>;
+export type StatusStore = Store<{
+  status: CheckStatus;
+  /** A one-off message, e.g. a gender format switch's result; announced first. */
+  notice: string | null;
+}>;
 
 type FormatField = keyof Pick<
   CheckConfig,

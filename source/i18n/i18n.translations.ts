@@ -24,6 +24,24 @@ export const de = {
     shortcutHint:
       'Mit Alt+Umschalt+W öffnest du den Hinweis an der Cursorposition.',
     limitReached: 'Nur ein Teil dieses Textes wurde geprüft.',
+    menu: 'Witty-Menü',
+    menuSettings: 'Einstellungen …',
+    menuSwitchGender: 'Gender-Form wechseln …',
+    menuHelp: 'Hilfe',
+    menuAbout: 'Über Witty',
+    switchTitle: 'Gender-Form wechseln',
+    switchIntro:
+      'Schreibt alle gegenderten Formen im Text in die gewählte Form um. Mit Rückgängig machst du das in einem Schritt rückgängig.',
+    switchCurrent: 'aktuell',
+    switching: 'Der Text wird geprüft und umgeschrieben …',
+    switched_one: '{{count}} Form auf {{format}} umgestellt.',
+    switched_other: '{{count}} Formen auf {{format}} umgestellt.',
+    switchNothing: 'Nichts umzustellen: Der Text verwendet bereits {{format}}.',
+    switchDisabled:
+      'Das Wechseln der Gender-Form ist für dieses Konto ausgeschaltet.',
+    switchUnsupported:
+      'Der Server unterstützt das Wechseln der Gender-Form noch nicht.',
+    switchInklusivum: 'In das Inklusivum kann noch nicht gewechselt werden.',
   },
   [namespaces.options]: {
     languageHeadline: 'Sprache und Gender-Formen',
@@ -236,6 +254,24 @@ export const en = {
     statusFailed: 'Checking failed',
     shortcutHint: 'Press Alt+Shift+W to open the suggestion at the cursor.',
     limitReached: 'Only part of this text was checked.',
+    menu: 'Witty menu',
+    menuSettings: 'Settings…',
+    menuSwitchGender: 'Switch gender format…',
+    menuHelp: 'Help',
+    menuAbout: 'About Witty',
+    switchTitle: 'Switch gender format',
+    switchIntro:
+      'Rewrites every gendered form in the text into the format you choose. Undo reverses it in one step.',
+    switchCurrent: 'current',
+    switching: 'Checking and rewriting the text…',
+    switched_one: 'Switched {{count}} form to {{format}}.',
+    switched_other: 'Switched {{count}} forms to {{format}}.',
+    switchNothing: 'Nothing to switch: the text already uses {{format}}.',
+    switchDisabled:
+      'Switching the gender format is turned off for this account.',
+    switchUnsupported:
+      "The server doesn't support switching the gender format yet.",
+    switchInklusivum: "Switching to the Inklusivum isn't available yet.",
   },
   [namespaces.options]: {
     languageHeadline: 'Language and gender forms',
@@ -449,6 +485,24 @@ export const fr = {
     shortcutHint:
       'Appuyez sur Alt+Maj+W pour ouvrir la suggestion à la position du curseur.',
     limitReached: 'Seule une partie de ce texte a été vérifiée.',
+    menu: 'Menu Witty',
+    menuSettings: 'Paramètres…',
+    menuSwitchGender: 'Changer la forme inclusive…',
+    menuHelp: 'Aide',
+    menuAbout: 'À propos de Witty',
+    switchTitle: 'Changer la forme inclusive',
+    switchIntro:
+      'Réécrit toutes les formes genrées du texte dans la forme choisie. Annuler rétablit le texte en une seule étape.',
+    switchCurrent: 'actuelle',
+    switching: 'Vérification et réécriture du texte…',
+    switched_one: '{{count}} forme passée en {{format}}.',
+    switched_other: '{{count}} formes passées en {{format}}.',
+    switchNothing: 'Rien à changer : le texte utilise déjà {{format}}.',
+    switchDisabled:
+      'Le changement de forme inclusive est désactivé pour ce compte.',
+    switchUnsupported:
+      'Le serveur ne permet pas encore de changer la forme inclusive.',
+    switchInklusivum: "Le passage à l'Inklusivum n'est pas encore disponible.",
   },
   [namespaces.options]: {
     languageHeadline: 'Langue et formes de genre',

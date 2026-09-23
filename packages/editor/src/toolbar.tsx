@@ -30,6 +30,11 @@ import ActiveIcon from '@witty/assets/icons/wittyStateIndicator/witty-active.svg
 import WarningIcon from '@witty/assets/icons/wittyStateIndicator/witty-warning.svg';
 
 import {
+  type GenderFormatSwitchResult,
+  INKLUSIVUM,
+  SWITCHABLE_FORMATS,
+} from './genderSwitch';
+import {
   type CheckStatus,
   type EditorSettings,
   languageFormatOf,
@@ -38,6 +43,11 @@ import {
   withCategoryLevel,
   withFormatField,
 } from './settings';
+
+/** Where the W menu's Help and About entries lead. */
+export const HELP_URL =
+  'https://www.witty.works/en/help/how-do-i-use-the-witty-editor';
+export const ABOUT_URL = 'https://www.witty.works/';
 
 interface Tool {
   key: string;
@@ -71,7 +81,7 @@ const useEditorVersion = (editor: Editor): number => {
 const useSettings = (store: SettingsStore): EditorSettings =>
   useSyncExternalStore(store.subscribe, store.get);
 
-interface ApiOptions {
+export interface ApiOptions {
   endpoint: string;
   headers: () => Record<string, string>;
 }
@@ -117,6 +127,30 @@ const loadPreferenceOptions = async (
         : {},
   };
 };
+
+/**
+ * Loads the options once per editor, on first use; a failed load is tried
+ * again the next time.
+ */
+export const createOptionsLoader = (
+  api: ApiOptions
+): (() => Promise<PreferenceOptions>) => {
+  let cached: Promise<PreferenceOptions> | undefined;
+  return (): Promise<PreferenceOptions> => {
+    cached ??= loadPreferenceOptions(api).then((options) => {
+      if (options.categoriesError) cached = undefined;
+      return options;
+    });
+    return cached;
+  };
+};
+
+/** Human label of a gender format, as the settings panel shows it. */
+export const formatLabel = (
+  options: PreferenceOptions | null,
+  value: string
+): string =>
+  options?.configOptions.german_gender_ending?.labels?.[value] || value;
 
 const usePreferenceOptions = (
   load: () => Promise<PreferenceOptions>
@@ -196,11 +230,243 @@ const SettingsPanel: React.FC<{
   );
 };
 
+interface MenuItem {
+  key: string;
+  label: string;
+  /** A link opens in a new tab; otherwise `run`. */
+  href?: string;
+  run?: () => void;
+  disabled?: boolean;
+  note?: string;
+}
+
 /**
- * Formatting bar above the editor, ending in the Witty settings button. A
- * single tab stop with arrow-key navigation between the buttons (the ARIA
- * toolbar pattern).
+ * The W icon's menu (the ARIA menu button pattern): arrow keys, Home and End
+ * move, Enter or Space activates, Escape closes and returns focus to the icon,
+ * Tab closes.
  */
+const WittyMenu: React.FC<{
+  id: string;
+  label: string;
+  items: MenuItem[];
+  /** The button that opens the menu: moving focus there is not leaving it. */
+  anchor: () => HTMLElement | null;
+  onClose: (returnFocus: boolean) => void;
+}> = ({id, label, items, anchor, onClose}) => {
+  const refs = useRef<(HTMLElement | null)[]>([]);
+  const [current, setActive] = useState(0);
+
+  useEffect(() => {
+    refs.current[0]?.focus();
+  }, []);
+
+  const move = (index: number): void => {
+    const next = (index + items.length) % items.length;
+    setActive(next);
+    refs.current[next]?.focus();
+  };
+
+  const onKeyDown = (event: React.KeyboardEvent): void => {
+    // The menu sits inside the toolbar, whose keys are not the menu's.
+    event.stopPropagation();
+    const focused = refs.current.indexOf(document.activeElement as HTMLElement);
+    const active = focused < 0 ? current : focused;
+    const keys: Record<string, number> = {
+      ArrowDown: active + 1,
+      ArrowUp: active - 1,
+      Home: 0,
+      End: items.length - 1,
+    };
+    if (event.key in keys) {
+      event.preventDefault();
+      move(keys[event.key]);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose(true);
+    } else if (event.key === 'Tab') {
+      onClose(false);
+    }
+  };
+
+  return (
+    <div
+      id={id}
+      className='witty-editor-menu'
+      role='menu'
+      // Focus goes to the items; this only keeps a click on the gaps inside.
+      tabIndex={-1}
+      aria-label={label}
+      onKeyDown={onKeyDown}
+      // Clicking or tabbing elsewhere closes it.
+      onBlur={(event) => {
+        const next = event.relatedTarget as Node | null;
+        if (next && (event.currentTarget.contains(next) || next === anchor())) {
+          return;
+        }
+        onClose(false);
+      }}
+    >
+      {items.map((item, index) => {
+        const common = {
+          ref: (element: HTMLElement | null): void => {
+            refs.current[index] = element;
+          },
+          role: 'menuitem',
+          tabIndex: index === current ? 0 : -1,
+          className: 'witty-editor-menu-item',
+          onFocus: (): void => setActive(index),
+          // Safari does not focus a clicked button, which would blur the menu
+          // and close it before the click.
+          onMouseDown: (event: React.MouseEvent): void =>
+            event.preventDefault(),
+        };
+        return (
+          <div key={item.key} role='none'>
+            {item.href ? (
+              <a
+                {...common}
+                href={item.href}
+                target='_blank'
+                rel='noopener noreferrer'
+                onClick={() => onClose(false)}
+              >
+                {item.label}
+              </a>
+            ) : (
+              <button
+                {...common}
+                type='button'
+                aria-disabled={item.disabled || undefined}
+                onClick={() => !item.disabled && item.run?.()}
+              >
+                {item.label}
+                {item.note && (
+                  <span className='witty-editor-menu-note'>{item.note}</span>
+                )}
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+/** What a switch did, in words; shared by the panel and the live region. */
+export const switchMessage = (
+  t: Translate,
+  result: GenderFormatSwitchResult,
+  options: PreferenceOptions | null
+): string => {
+  const format = formatLabel(options, result.target);
+  const text = {
+    switched: t('switched', {count: result.count, format}),
+    nothing: t('switchNothing', {format}),
+    disabled: t('switchDisabled'),
+    unsupported: t('switchUnsupported'),
+    unavailable: t('switchInklusivum'),
+  }[result.outcome];
+  // What was checked is switched; the rest may still hold other forms.
+  return result.limitReached &&
+    (result.outcome === 'switched' || result.outcome === 'nothing')
+    ? `${text} ${t('limitReached')}`
+    : text;
+};
+
+/** Choice of the format to switch the text to, and the switch's result. */
+const SwitchPanel: React.FC<{
+  id: string;
+  store: SettingsStore;
+  loadOptions: () => Promise<PreferenceOptions>;
+  onSwitch: (target: string) => Promise<GenderFormatSwitchResult>;
+  onClose: () => void;
+}> = ({id, store, loadOptions, onSwitch, onClose}) => {
+  const {t} = useTranslation(namespaces.editor);
+  const settings = useSettings(store);
+  const options = usePreferenceOptions(loadOptions);
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  const current = settings.config.german_gender_ending;
+
+  const choose = (target: string): void => {
+    setBusy(true);
+    setMessage(t('switching'));
+    onSwitch(target)
+      .then((result) => setMessage(switchMessage(t, result, options)))
+      .catch(() => setMessage(t('statusFailed')))
+      .finally(() => setBusy(false));
+  };
+
+  return (
+    // Escape closes the panel from anywhere inside it; the controls in it are
+    // the interactive elements.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    <div
+      id={id}
+      className='witty-editor-settings witty-editor-switch witty-preferences'
+      role='region'
+      aria-label={t('switchTitle')}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          event.stopPropagation();
+          onClose();
+        }
+      }}
+    >
+      <button
+        type='button'
+        className='witty-editor-settings-close'
+        aria-label={t('closeSettings')}
+        title={t('closeSettings')}
+        onClick={onClose}
+      >
+        ×
+      </button>
+      <h2>{t('switchTitle')}</h2>
+      <p className='witty-options-muted'>{t('switchIntro')}</p>
+      <ul className='witty-editor-switch-formats'>
+        {SWITCHABLE_FORMATS.map((format) => (
+          <li key={format}>
+            <button
+              type='button'
+              className='witty-editor-switch-format'
+              aria-disabled={busy || undefined}
+              aria-current={format === current || undefined}
+              onClick={() => !busy && choose(format)}
+            >
+              {formatLabel(options, format)}
+              {format === current && ` (${t('switchCurrent')})`}
+            </button>
+          </li>
+        ))}
+        <li>
+          <button
+            type='button'
+            className='witty-editor-switch-format'
+            aria-disabled='true'
+            aria-describedby={`${id}-inklusivum`}
+          >
+            {formatLabel(options, INKLUSIVUM)}
+          </button>
+          <span id={`${id}-inklusivum`} className='witty-options-muted'>
+            {' '}
+            {t('switchInklusivum')}
+          </span>
+        </li>
+      </ul>
+      <p
+        className='witty-editor-switch-result'
+        role='status'
+        aria-live='polite'
+      >
+        {message}
+      </p>
+    </div>
+  );
+};
+
 /** Announced text for a status; empty while checking, to stay quiet while typing. */
 const useStatusText = (
   status: CheckStatus
@@ -219,7 +485,10 @@ const useStatusText = (
       return {text, announce: text};
     }
     case 'unauthorized':
-      return {text: t('statusUnauthorized'), announce: t('statusUnauthorized')};
+      return {
+        text: t('statusUnauthorized'),
+        announce: t('statusUnauthorized'),
+      };
     default:
       return {text: t('statusFailed'), announce: t('statusFailed')};
   }
@@ -246,18 +515,37 @@ const StatusIcon: React.FC<{status: CheckStatus}> = ({status}) => {
   return <WarningIcon aria-hidden='true' />;
 };
 
+/**
+ * Formatting bar above the editor, ending in the W icon that opens the Witty
+ * menu. A single tab stop with arrow-key navigation between the buttons (the
+ * ARIA toolbar pattern).
+ */
 const Toolbar: React.FC<{
   editor: Editor;
   store: SettingsStore;
   status: StatusStore;
   loadOptions: () => Promise<PreferenceOptions>;
-}> = ({editor, store, status: statusStore, loadOptions}) => {
+  onSwitch: (target: string) => Promise<GenderFormatSwitchResult>;
+  switchSupported: () => boolean;
+}> = ({
+  editor,
+  store,
+  status: statusStore,
+  loadOptions,
+  onSwitch,
+  switchSupported,
+}) => {
   const {t} = useTranslation(namespaces.editor);
   useEditorVersion(editor);
-  const {status} = useSyncExternalStore(statusStore.subscribe, statusStore.get);
+  const {status, notice} = useSyncExternalStore(
+    statusStore.subscribe,
+    statusStore.get
+  );
   const statusText = useStatusText(status);
   const [focusIndex, setFocusIndex] = useState(0);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [panel, setPanel] = useState<'settings' | 'switch' | null>(null);
+  const menuId = useId();
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const panelId = useId();
 
@@ -355,10 +643,37 @@ const Toolbar: React.FC<{
     }
   };
 
-  const closeSettings = (): void => {
-    setSettingsOpen(false);
+  const focusMenuButton = (): void => {
     buttons.current[count - 1]?.focus();
   };
+
+  const closePanel = (): void => {
+    setPanel(null);
+    focusMenuButton();
+  };
+
+  const openPanel = (next: 'settings' | 'switch'): void => {
+    setMenuOpen(false);
+    setPanel(next);
+  };
+
+  const supported = switchSupported();
+  const menuItems: MenuItem[] = [
+    {
+      key: 'settings',
+      label: t('menuSettings'),
+      run: () => openPanel('settings'),
+    },
+    {
+      key: 'switch',
+      label: t('menuSwitchGender'),
+      run: () => openPanel('switch'),
+      disabled: !supported,
+      note: supported ? undefined : t('switchUnsupported'),
+    },
+    {key: 'help', label: t('menuHelp'), href: HELP_URL},
+    {key: 'about', label: t('menuAbout'), href: ABOUT_URL},
+  ];
 
   return (
     <>
@@ -395,26 +710,55 @@ const Toolbar: React.FC<{
           }}
           type='button'
           className={`witty-editor-tool witty-editor-tool--settings is-${status.state}`}
-          aria-label={t('settings')}
-          title={`${t('settings')} · ${statusText.text}`}
-          aria-expanded={settingsOpen}
-          aria-controls={panelId}
+          aria-label={t('menu')}
+          title={`${t('menu')} · ${statusText.text}`}
+          aria-haspopup='menu'
+          aria-expanded={menuOpen}
+          aria-controls={menuOpen ? menuId : undefined}
           tabIndex={focusIndex === count - 1 ? 0 : -1}
           onFocus={() => setFocusIndex(count - 1)}
-          onClick={() => setSettingsOpen((open) => !open)}
+          onClick={() => setMenuOpen((open) => !open)}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowDown') {
+              event.preventDefault();
+              event.stopPropagation();
+              setMenuOpen(true);
+            }
+          }}
         >
           <StatusIcon status={status} />
         </button>
+        {menuOpen && (
+          <WittyMenu
+            id={menuId}
+            label={t('menu')}
+            items={menuItems}
+            anchor={() => buttons.current[count - 1]}
+            onClose={(returnFocus) => {
+              setMenuOpen(false);
+              if (returnFocus) focusMenuButton();
+            }}
+          />
+        )}
       </div>
       <span className='witty-editor-sr-only' role='status' aria-live='polite'>
-        {statusText.announce}
+        {notice ?? statusText.announce}
       </span>
-      {settingsOpen && (
+      {panel === 'settings' && (
         <SettingsPanel
           id={panelId}
           store={store}
           loadOptions={loadOptions}
-          onClose={closeSettings}
+          onClose={closePanel}
+        />
+      )}
+      {panel === 'switch' && (
+        <SwitchPanel
+          id={panelId}
+          store={store}
+          loadOptions={loadOptions}
+          onSwitch={onSwitch}
+          onClose={closePanel}
         />
       )}
     </>
@@ -442,6 +786,52 @@ export const TOOLBAR_STYLES = `
 }
 .witty-editor-tool--italic { font-style: italic; }
 .witty-editor-tool--underline { text-decoration: underline; }
+.witty-editor-toolbar { position: relative; }
+.witty-editor-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  min-width: 14rem;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.witty-editor-menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #1a1a1a;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.witty-editor-menu-item:hover { background: #f2f2f2; }
+.witty-editor-menu-item:focus-visible { background: #f2f2f2; outline: 2px solid #55b8e9; outline-offset: -2px; }
+.witty-editor-menu-item[aria-disabled='true'] { color: #595959; cursor: default; }
+.witty-editor-menu-note { display: block; font-size: 0.85em; }
+.witty-editor-switch h2 { font-size: 17px; margin: 0 0 0.4em; }
+.witty-editor-switch-formats { list-style: none; margin: 0.5rem 0; padding: 0; display: grid; gap: 0.25rem; }
+.witty-editor-switch-format {
+  font: inherit;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+.witty-editor-switch-format[aria-current='true'] { border-color: #9fb8ea; background: #e8eefb; }
+.witty-editor-switch-format[aria-disabled='true'] { color: #595959; cursor: default; }
+.witty-editor-switch-format:focus-visible { outline: 2px solid #55b8e9; outline-offset: 1px; }
+.witty-editor-switch-result { min-height: 1.5em; font-weight: 600; }
 .witty-editor-tool--settings {
   margin-left: auto;
   display: inline-flex;
@@ -483,29 +873,13 @@ export const mountToolbar = (
   props: {
     editor: Editor;
     store: SettingsStore;
-    api: ApiOptions;
     status: StatusStore;
+    loadOptions: () => Promise<PreferenceOptions>;
+    onSwitch: (target: string) => Promise<GenderFormatSwitchResult>;
+    switchSupported: () => boolean;
   }
 ): ToolbarHandle => {
-  // Loaded once per editor, when the panel first opens; a failed load is
-  // tried again the next time.
-  let cached: Promise<PreferenceOptions> | undefined;
-  const loadOptions = (): Promise<PreferenceOptions> => {
-    cached ??= loadPreferenceOptions(props.api).then((options) => {
-      if (options.categoriesError) cached = undefined;
-      return options;
-    });
-    return cached;
-  };
-
   const root: Root = createRoot(container);
-  root.render(
-    <Toolbar
-      editor={props.editor}
-      store={props.store}
-      status={props.status}
-      loadOptions={loadOptions}
-    />
-  );
+  root.render(<Toolbar {...props} />);
   return {destroy: (): void => root.unmount()};
 };
