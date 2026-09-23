@@ -235,10 +235,13 @@ test.describe('Options — category levels', () => {
     // Starts fully enabled: nothing about it is in the disabled list.
     expect(await level(options, 'gendered_nouns')).toBe('2');
 
-    // advanced -> off
+    // advanced -> off: both keys, since the API does not derive the
+    // advanced one from the base key
     await toggle.click();
     expect(await level(options, 'gendered_nouns')).toBe('0');
-    expect(await disabled(options)).toContain('gendered_nouns');
+    expect(await disabled(options)).toEqual(
+      expect.arrayContaining(['gendered_nouns', 'gendered_nouns_advanced'])
+    );
 
     // off -> basic: the base key is enabled again, only the advanced variant off
     await toggle.click();

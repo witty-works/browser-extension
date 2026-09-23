@@ -340,7 +340,14 @@ export const levelFromDisabled = (
   return advancedKey ? ProficiencyLevel.Advanced : ProficiencyLevel.Basic;
 };
 
-/** Apply a level to a `disabled_categories` list, returning the new list. */
+/**
+ * Apply a level to a `disabled_categories` list, returning the new list.
+ *
+ * Off disables the advanced key as well: the API does not derive it from the
+ * base key (an advanced subcategory's parent is the category group, e.g.
+ * `plain_language_advanced` belongs to `cultural-diversity`), so disabling the
+ * base key alone would leave the advanced alerts on.
+ */
 export const applyLevelToDisabled = (
   key: string,
   advancedKey: string | null | undefined,
@@ -351,6 +358,7 @@ export const applyLevelToDisabled = (
 
   if (level === ProficiencyLevel.Off) {
     next.push(key);
+    if (advancedKey) next.push(advancedKey);
   } else if (level === ProficiencyLevel.Basic && advancedKey) {
     next.push(advancedKey);
   }
