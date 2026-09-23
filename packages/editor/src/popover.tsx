@@ -3,19 +3,19 @@ import {createRoot, type Root} from 'react-dom/client';
 import type {EditorView} from '@tiptap/pm/view';
 
 // The extension's popover, unchanged: same UI, same view model, same styles.
-import HighlightPopover from '../../../source/ContentScript/HighlightPopover/HighlightPopover';
-import type {PopoverAnalytics} from '../../../source/ContentScript/HighlightPopover/popoverViewModel';
+import HighlightPopover from '@witty/ui/HighlightPopover';
+import type {PopoverAnalytics} from '@witty/ui/popoverViewModel';
 import {
   buildResolvedCacheValue,
   createLoadingCacheValue,
   getLLMAlternativesCacheKey,
   type LLMAlternativesCacheValue,
-} from '../../../source/shared/ApiServices/llmAlternativesService';
-import {buildLLMSuggestionBody} from '../../../source/shared/ApiServices/requests';
+} from '@witty/core/ApiServices/llmAlternativesService';
+import {buildLLMSuggestionBody} from '@witty/core/ApiServices/requests';
 import type {
   CustomInputElement,
   IGetLLMSuggestionsRequest,
-} from '../../../source/shared/types';
+} from '@witty/core/types';
 import {type Alert, dismissAlerts, getAlerts, selectAlert} from './checkPlugin';
 import {type CheckConfig, genderSeparatorFor} from './checkClient';
 import {resolveReplacement} from './replacement';

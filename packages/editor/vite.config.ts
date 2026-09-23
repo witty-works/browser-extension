@@ -1,10 +1,23 @@
+import {fileURLToPath} from 'node:url';
 import {defineConfig} from 'vitest/config';
 import svgr from 'vite-plugin-svgr';
 import cssInjectedByJs from 'vite-plugin-css-injected-by-js';
 
 // `vite` serves the demo (index.html); `vite build` produces the embeddable
 // bundle: one self-contained dist/witty-editor.js exposing `WittyEditor.mount`.
+const fromRoot = (path: string): string =>
+  fileURLToPath(new URL(`../../${path}`, import.meta.url));
+
 export default defineConfig({
+  // Shared code by name; see "paths" in tsconfig.json, which mirrors this.
+  resolve: {
+    alias: {
+      '@witty/core': fromRoot('source/shared'),
+      '@witty/i18n': fromRoot('source/i18n'),
+      '@witty/ui': fromRoot('source/ContentScript/HighlightPopover'),
+      '@witty/test-fixtures': fromRoot('__tests__/helpers'),
+    },
+  },
   plugins: [
     // The shared popover imports its icons as React components, as the
     // extension's @svgr/webpack setup does.

@@ -3,7 +3,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {TextSelection} from '@tiptap/pm/state';
 
 // The e2e suite's canned API: the same sample text and alerts.
-import {checkResponse, SAMPLE_TEXT} from '../../../__tests__/helpers/mockApi';
+import {checkResponse, SAMPLE_TEXT} from '@witty/test-fixtures/mockApi';
 import {type EditorStatus, mount, type WittyEditorHandle} from './mount';
 
 let handle: WittyEditorHandle | undefined;

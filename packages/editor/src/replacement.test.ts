@@ -4,7 +4,7 @@ import StarterKit from '@tiptap/starter-kit';
 import type {Node as PMNode} from '@tiptap/pm/model';
 import {EditorState} from '@tiptap/pm/state';
 
-import type {IAlert} from '../../../source/shared/types';
+import type {IAlert} from '@witty/core/types';
 import type {Alert} from './checkPlugin';
 import {resolveReplacement} from './replacement';
 import {extractText, textRangeToDoc} from './textMap';

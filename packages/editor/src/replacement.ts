@@ -1,9 +1,6 @@
 import type {Node as PMNode} from '@tiptap/pm/model';
 
-import {
-  REMOVE_ALTERNATIVE,
-  resolveAlternative,
-} from '../../../source/shared/alerts';
+import {REMOVE_ALTERNATIVE, resolveAlternative} from '@witty/core/alerts';
 import type {Alert} from './checkPlugin';
 
 export interface Replacement {

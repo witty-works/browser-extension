@@ -2,9 +2,9 @@ import {Editor, Extension} from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import {Plugin} from '@tiptap/pm/state';
 
-import {highlightColors} from '../../../source/shared/constants';
-import {initI18n} from '../../../source/i18n/i18n';
-import {LLM_SUGGESTION_TIMEOUT_MS} from '../../../source/shared/ApiServices/requests';
+import {highlightColors} from '@witty/core/constants';
+import {initI18n} from '@witty/i18n/i18n';
+import {LLM_SUGGESTION_TIMEOUT_MS} from '@witty/core/ApiServices/requests';
 import {
   type CheckConfig,
   CheckHttpError,

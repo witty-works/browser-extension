@@ -9,9 +9,9 @@ import {
 import {Mapping} from '@tiptap/pm/transform';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
 
-import {buildSentenceAlertsFromResponse} from '../../../source/shared/ApiServices/checkService';
-import {highlightColorKey} from '../../../source/shared/constants';
-import type {IAlert} from '../../../source/shared/types';
+import {buildSentenceAlertsFromResponse} from '@witty/core/ApiServices/checkService';
+import {highlightColorKey} from '@witty/core/constants';
+import type {IAlert} from '@witty/core/types';
 import type {Checker, ICheckResponse} from './checkClient';
 import {extractText, textRangeToDoc} from './textMap';
 

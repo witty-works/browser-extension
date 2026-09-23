@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import {describe, expect, it} from 'vitest';
 
-import {computeDiff} from '../../../source/shared/diff';
+import {computeDiff} from '@witty/core/diff';
 
 /** Parse the diff as the popover does and return what it would render. */
 const render = (html: string) => {

@@ -1,11 +1,8 @@
 // Type-only: erased at build time, so nothing from the extension is bundled.
 // Moves to packages/core with the Phase 2 extraction.
-import type {ICheckResponse} from '../../../source/shared/types';
+import type {ICheckResponse} from '@witty/core/types';
 
-export type {
-  ICheckResponse,
-  ICheckResponseResult,
-} from '../../../source/shared/types';
+export type {ICheckResponse, ICheckResponseResult} from '@witty/core/types';
 
 /** Checks `text`; must reject (or resolve, ignored) once `signal` aborts. */
 export type Checker = (

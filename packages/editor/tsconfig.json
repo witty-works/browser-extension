@@ -14,7 +14,17 @@
     "jsx": "react",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    // Shared code by name rather than by ../../../ path. Today the names point
+    // into the extension's source tree; extracting packages/core and
+    // packages/ui (EDITOR_COMPONENT_PLAN.md, Phase 2) moves the targets, not
+    // the imports. Keep in sync with resolve.alias in vite.config.ts.
+    "paths": {
+      "@witty/core/*": ["../../source/shared/*"],
+      "@witty/i18n/*": ["../../source/i18n/*"],
+      "@witty/ui/*": ["../../source/ContentScript/HighlightPopover/*"],
+      "@witty/test-fixtures/*": ["../../__tests__/helpers/*"]
+    }
   },
   "include": [
     "src",
