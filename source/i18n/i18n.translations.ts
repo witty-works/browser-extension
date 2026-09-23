@@ -42,6 +42,8 @@ export const de = {
     switchUnsupported:
       'Der Server unterstützt das Wechseln der Gender-Form noch nicht.',
     switchInklusivum: 'In das Inklusivum kann noch nicht gewechselt werden.',
+    switchForced:
+      'Deine Organisation legt die Gender-Form auf {{format}} fest. Der Text wurde nicht geändert.',
   },
   [namespaces.options]: {
     languageHeadline: 'Sprache und Gender-Formen',
@@ -272,6 +274,8 @@ export const en = {
     switchUnsupported:
       "The server doesn't support switching the gender format yet.",
     switchInklusivum: "Switching to the Inklusivum isn't available yet.",
+    switchForced:
+      'Your organisation sets the gender format to {{format}}. The text was not changed.',
   },
   [namespaces.options]: {
     languageHeadline: 'Language and gender forms',
@@ -503,6 +507,8 @@ export const fr = {
     switchUnsupported:
       'Le serveur ne permet pas encore de changer la forme inclusive.',
     switchInklusivum: "Le passage à l'Inklusivum n'est pas encore disponible.",
+    switchForced:
+      "Votre organisation impose la forme inclusive {{format}}. Le texte n'a pas été modifié.",
   },
   [namespaces.options]: {
     languageHeadline: 'Langue et formes de genre',
