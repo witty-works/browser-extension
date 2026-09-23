@@ -64,6 +64,16 @@ describe('createHttpChecker', () => {
     expect((await check({})).lang).toBe('auto');
   });
 
+  it('identifies itself as witty-editor with its version', async () => {
+    const {version} = (await import('../package.json')).default;
+    const body = await check({});
+
+    // The API splits `client` on ":"; without a name it would assume the
+    // browser extension and apply that client's minimum version.
+    expect(body.client).toBe(`witty-editor:${version}`);
+    expect(body.id).toBe('witty-editor');
+  });
+
   it('reads the config per request', async () => {
     const bodies = captureBodies();
     let config: CheckConfig = {german_gender_ending: '*in'};

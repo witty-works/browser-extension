@@ -15,7 +15,7 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 - [ ] **Length limit** (`MAX_CHAR_LENGTH_TOTAL`) with the warning icon and explanation; the editor has no limit and ignores `limit_reached`. Part of the plan's open long-document policy.
 - [ ] **HR add-on**: the extension sends `addons: ['hr']` unless disabled for the site; the editor sends no add-ons unless the host sets them in `config`.
 - [ ] **Error-specific handling**: the extension clears alerts on 422 and refreshes the token on 403; the editor reports every error through `onStatus` and leaves the last alerts on screen.
-- [ ] **Client identity**: every editor sends `id: 'witty-editor-poc'` and version `editor-0.0.0`, so the API cannot tell users or releases apart.
+- [ ] **Installation id**: the editor sends `client: "witty-editor:<version>"` (so the API can version-check it separately from the extension), but always `id: "witty-editor"`; the extension sends a random per-installation id.
 
 ## Popover actions
 
@@ -27,7 +27,7 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 ## Reporting and notifications
 
 - [ ] **Analytics** (PostHog, dashboard log endpoint): the popover gets a no-op analytics object.
-- [ ] **Error reporting**: nothing is connected to the shared `reportError` hook (Sentry in the extension).
+- [ ] **Sentry error reporting**: nothing is connected to the shared `reportError` hook, which the extension wires to Sentry.
 - [ ] **Notifications**: "pin Witty", the post-update notice, the survey.
 
 ## Accessibility (from the review)
@@ -43,6 +43,7 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 - [ ] **Browser test of the editor in CI**, and CI running the unit tests, lint and the Firefox smoke suite.
 - [ ] **Root scripts** `dev:editor`, `test:unit`, `test:all`.
 - [ ] **Flaky Google Docs e2e test** (`gdocs.spec.js`): it sometimes stalls without highlights, independent of code changes.
+- [ ] **Order-dependent Firefox smoke tests**: "highlights a contenteditable" and "the content script answers the open-popover message" time out in full-suite runs but pass on their own, on older commits too.
 
 ## Only relevant in the extension
 

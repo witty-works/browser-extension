@@ -18,11 +18,18 @@ const {CREDENTIAL_KEYS} = createRequire(import.meta.url)(
 
 const CONFIG_PATH = fromRoot('source/witty.config.json');
 
+const packageVersion = (): string =>
+  (
+    JSON.parse(
+      readFileSync(new URL('package.json', import.meta.url), 'utf8')
+    ) as {
+      version: string;
+    }
+  ).version;
+
 /** Which version and commit a copy of the bundle is, wherever it ends up. */
 const banner = (): string => {
-  const {version} = JSON.parse(
-    readFileSync(new URL('package.json', import.meta.url), 'utf8')
-  ) as {version: string};
+  const version = packageVersion();
   let commit = process.env.GITHUB_SHA?.slice(0, 8) ?? '';
   if (!commit) {
     try {
@@ -126,7 +133,9 @@ export default defineConfig({
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
     'process.env.TESTING': JSON.stringify('false'),
-    'process.env.WITTY_VERSION': JSON.stringify('editor-0.0.0'),
+    // The editor's own version (the release version, see
+    // build/releaseVersion.js), sent to the API as `witty-editor:<version>`.
+    'process.env.WITTY_VERSION': JSON.stringify(packageVersion()),
   },
   test: {
     environment: 'node',
