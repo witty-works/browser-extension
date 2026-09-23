@@ -108,9 +108,13 @@ const loadPreferenceOptions = async (
     return response.json();
   };
 
+  const locale = navigator.language || 'en-US';
   const [categories, options] = await Promise.allSettled([
-    get(categoriesPath(navigator.language || 'en-US')),
-    get(CONFIG_OPTIONS_PATH),
+    get(categoriesPath(locale)),
+    // Labels in the UI's language; APIs up to 2.4.8 refuse `locale`.
+    get(
+      `${CONFIG_OPTIONS_PATH}?locale=${encodeURIComponent(locale.split('-')[0])}`
+    ).catch(() => get(CONFIG_OPTIONS_PATH)),
   ]);
   const list =
     categories.status === 'fulfilled'

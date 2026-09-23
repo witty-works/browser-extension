@@ -22,7 +22,7 @@ beforeEach(() => {
       if (url.includes('/v2.0/categories')) {
         return new Response(JSON.stringify(CATEGORIES));
       }
-      if (url.endsWith('/v2.0/config-options')) {
+      if (url.includes('/v2.0/config-options')) {
         return new Response(JSON.stringify(CONFIG_OPTIONS));
       }
       const body = JSON.parse(String(init?.body));
@@ -452,6 +452,42 @@ describe('settings panel changes', () => {
 
     expect(settingsChanges.at(-1)?.llmAlternatives).toBe(true);
     expect(handle?.getSettings().llmAlternatives).toBe(true);
+  });
+
+  it('asks for labels in its language, and without on older APIs', async () => {
+    const optionUrls: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.includes('/v2.0/categories')) {
+          return new Response(JSON.stringify(CATEGORIES));
+        }
+        if (url.includes('/v2.0/config-options')) {
+          optionUrls.push(url);
+          // APIs up to 2.4.8 refuse the parameter.
+          return url.includes('?locale=')
+            ? new Response('{}', {status: 422})
+            : new Response(JSON.stringify(CONFIG_OPTIONS));
+        }
+        const body = JSON.parse(String(init?.body));
+        return new Response(JSON.stringify(checkResponse(body.text)));
+      })
+    );
+    mountEditor();
+    await openSettings();
+
+    const locale = navigator.language.split('-')[0];
+    expect(optionUrls).toEqual([
+      `https://api.example/v2.0/config-options?locale=${locale}`,
+      'https://api.example/v2.0/config-options',
+    ]);
+    await vi.waitFor(() =>
+      expect(
+        document.querySelector(
+          'select[data-field="german_gender_ending"] option[value=":in"]'
+        )?.textContent
+      ).toBe('Colon, f.e Expert:in')
+    );
   });
 
   it('says when the categories cannot be loaded, and tries again next time', async () => {
