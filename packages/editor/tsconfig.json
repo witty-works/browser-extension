@@ -30,6 +30,7 @@
   "include": [
     "src",
     "vite.config.ts",
+    "licenseNotices.ts",
     "../../source/custom.d.ts",
     "../../source/react-jsx.d.ts",
     "../../source/shared/env.d.ts"
