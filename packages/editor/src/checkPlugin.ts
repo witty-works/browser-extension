@@ -79,6 +79,7 @@ export interface CheckPluginState {
 
 type CheckMeta =
   | {type: 'recheck'}
+  | {type: 'clear'}
   | {type: 'select'; id: string | null}
   | {type: 'dismiss'; text: string}
   | {type: 'start'; id: number}
@@ -206,6 +207,16 @@ const applyTransaction = (
 
   if (meta?.type === 'recheck') {
     return {...value, recheckRequests: value.recheckRequests + 1};
+  }
+
+  if (meta?.type === 'clear') {
+    return {
+      ...value,
+      decorations: DecorationSet.empty,
+      pending: null,
+      selectedId: null,
+      limitReached: false,
+    };
   }
 
   if (meta?.type === 'select') {
@@ -535,6 +546,19 @@ export const requestRecheck = (
   view.dispatch(
     view.state.tr
       .setMeta(checkPluginKey, {type: 'recheck'} satisfies CheckMeta)
+      .setMeta('addToHistory', false)
+  );
+
+/**
+ * Remove every highlight, e.g. when the API refuses the text; an open popover
+ * closes with its alert.
+ */
+export const clearAlerts = (
+  view: Pick<CheckView, 'state' | 'dispatch'>
+): void =>
+  view.dispatch(
+    view.state.tr
+      .setMeta(checkPluginKey, {type: 'clear'} satisfies CheckMeta)
       .setMeta('addToHistory', false)
   );
 

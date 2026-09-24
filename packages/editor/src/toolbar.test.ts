@@ -7,7 +7,12 @@ import {
   checkResponse,
   CONFIG_OPTIONS,
 } from '@witty/test-fixtures/mockApi';
-import {type EditorSettings, mount, type WittyEditorHandle} from './mount';
+import {
+  type EditorSettings,
+  type EditorStatus,
+  mount,
+  type WittyEditorHandle,
+} from './mount';
 
 let handle: WittyEditorHandle | undefined;
 let checkBodies: Record<string, unknown>[];
@@ -570,6 +575,126 @@ describe('check failures', () => {
 
     await vi.waitFor(() => expect(statuses.at(-1)?.state).toBe('error'));
     expect(statuses.at(-1)?.message).toBe('check failed: HTTP 500: nope');
+  });
+});
+
+describe('refused checks', () => {
+  const alertCount = () =>
+    document.querySelectorAll('.ProseMirror .witty-alert').length;
+
+  /** Mounts with two alerts on screen, then lets the API answer `status`. */
+  const refuseWith = async (status: number, body: unknown) => {
+    const statuses: EditorStatus[] = [];
+    const element = document.createElement('div');
+    document.body.append(element);
+    handle = mount(element, {
+      endpoint: 'https://api.example/',
+      content: '<p>Hey guys, the chairman will assume the leadership role.</p>',
+      delay: 0,
+      onStatus: (next) => statuses.push(next),
+    });
+    await vi.waitFor(() => expect(alertCount()).toBe(2));
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(body), {status}))
+    );
+    handle.setApiKey('next');
+    await vi.waitFor(() => expect(statuses.at(-1)?.state).not.toBe('idle'));
+    return statuses.at(-1)!;
+  };
+
+  it('asks for a newer editor when the API refuses its version', async () => {
+    const detail =
+      "Client version '2.3.0' not supported, please use at least '2.4.0'.";
+
+    expect(await refuseWith(400, {detail})).toEqual({
+      state: 'outdated',
+      message: detail,
+    });
+    expect(alertCount()).toBe(0);
+    await vi.waitFor(() =>
+      expect(
+        document.querySelector('.witty-editor-toolbar ~ [role="status"]')
+          ?.textContent
+      ).toBe(
+        'This version of the Witty editor is no longer supported. The site needs to update it.'
+      )
+    );
+  });
+
+  it('says when the language could not be determined', async () => {
+    const body = {
+      detail: [
+        {
+          loc: ['body', 'text'],
+          msg: 'Language could not be determined',
+          type: 'value_error.not_supported',
+        },
+      ],
+    };
+
+    expect(await refuseWith(422, body)).toEqual({state: 'unsupportedLanguage'});
+    expect(alertCount()).toBe(0);
+    expect(tool('Witty menu').getAttribute('title')).toBe(
+      "Witty menu · Witty can't tell the language of this text."
+    );
+  });
+
+  it('reports a rejected request as an error', async () => {
+    const body = {
+      detail: [{loc: ['body', 'lang'], msg: 'not a language', type: 'enum'}],
+    };
+
+    expect(await refuseWith(422, body)).toEqual({
+      state: 'error',
+      message: 'check failed: HTTP 422: lang: not a language',
+    });
+  });
+
+  it('clears the alerts of a key no longer accepted', async () => {
+    expect(await refuseWith(401, {detail: 'nope'})).toEqual({
+      state: 'unauthorized',
+    });
+    expect(alertCount()).toBe(0);
+  });
+
+  it('keeps the alerts through a server error', async () => {
+    expect((await refuseWith(503, {detail: 'down'})).state).toBe('error');
+    expect(alertCount()).toBe(2);
+  });
+});
+
+describe('installation id', () => {
+  const ids = () => checkBodies.map((body) => body.id);
+
+  it('sends one random id per editor', async () => {
+    const first = mountEditor();
+    await vi.waitFor(() => expect(checkBodies).toHaveLength(1));
+    first.setApiKey('again');
+    await vi.waitFor(() => expect(checkBodies).toHaveLength(2));
+    first.destroy();
+    mountEditor();
+    await vi.waitFor(() => expect(checkBodies).toHaveLength(3));
+
+    const [a, b, c] = ids();
+    expect(a).toMatch(/^[0-9a-f]{32}$/);
+    expect(b).toBe(a);
+    expect(c).not.toBe(a);
+  });
+
+  it("sends the host's id", async () => {
+    const element = document.createElement('div');
+    document.body.append(element);
+    handle = mount(element, {
+      endpoint: 'https://api.example/',
+      content: '<p>Hello</p>',
+      delay: 0,
+      installationId: 'site-42',
+    });
+
+    await vi.waitFor(() => expect(ids()).toEqual(['site-42']));
+    expect(checkBodies[0].client).toMatch(/^witty-editor:\d+\.\d+\.\d+/);
   });
 });
 

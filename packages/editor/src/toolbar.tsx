@@ -491,6 +491,10 @@ const useStatusText = (
         text: t('statusUnauthorized'),
         announce: t('statusUnauthorized'),
       };
+    case 'outdated':
+      return {text: t('statusOutdated'), announce: t('statusOutdated')};
+    case 'unsupportedLanguage':
+      return {text: t('statusLanguage'), announce: t('statusLanguage')};
     default:
       return {text: t('statusFailed'), announce: t('statusFailed')};
   }

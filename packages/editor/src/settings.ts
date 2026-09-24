@@ -56,6 +56,8 @@ export type CheckStatus =
   | {state: 'checking'}
   | {state: 'idle'; alerts: number; limitReached: boolean}
   | {state: 'unauthorized'}
+  | {state: 'outdated'; message: string}
+  | {state: 'unsupportedLanguage'}
   | {state: 'error'; message: string};
 
 export type StatusStore = Store<{
