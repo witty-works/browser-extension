@@ -146,6 +146,9 @@ export default defineConfig({
     // unnoticed. What stays uncovered needs a real layout engine (clicking a
     // highlight) and is exercised in the browser instead.
     coverage: {
+      // lcov for SonarCloud (sonar-project.properties), with paths from the
+      // repository root, where it resolves them; text for the console.
+      reporter: ['text', 'html', ['lcov', {projectRoot: '../..'}]],
       include: ['src/**'],
       exclude: ['src/**/*.test.ts', 'src/demo.ts'],
       thresholds: {statements: 95, branches: 85, functions: 90, lines: 95},
