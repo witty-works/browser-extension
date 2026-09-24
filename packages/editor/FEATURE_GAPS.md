@@ -21,8 +21,7 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 
 ## Bugs found in the extension
 
-- [ ] **Unchecked text counted as checked**: the extension's sentence cache stores every sentence it sent, including those past the API's `TEXT_MAX_LENGTH` cut-off (`limit_reached`), as checked with no alerts. In texts over 1000 characters (the API default) later sentences are never flagged. The editor's `sentenceCheck.ts` shows the fix: don't cache a batch that hit the limit, resend it smaller.
-- [ ] **`MAX_CHAR_LENGTH_REQUEST`** in `witty.config.json` is read nowhere; requests are not split to fit the API's limit.
+- [ ] **Highlight off its word in a wrapped textarea**: in `__tests__/fixtures/textarea.html`, with a text wrapping over several lines, the highlight of "guys" in the last sentence is drawn about twelve characters to its right, under "welcome."; the same text in a contenteditable is placed correctly. Probably the textarea clone wrapping differently from the textarea. Found with `__tests__/longText.spec.js`, which uses a contenteditable for that reason.
 
 ## Reporting and notifications
 
