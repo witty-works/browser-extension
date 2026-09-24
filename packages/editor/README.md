@@ -48,7 +48,7 @@ It returns a handle:
 - `setConfig(config)`: replace the whole check config (no merging) and check again; `{}` sends none.
 - `getSettings()`: the current settings, `{config, llmAlternatives, orthography}`, as a copy; the same object `onSettingsChange` receives.
 - `getText()`: the document as plain text.
-- `switchGenderFormat(target)`: rewrite the text into a German gender format, as the menu does (see below). Resolves with `{outcome, target, count, limitReached}`; `outcome` is `switched`, `nothing`, `disabled` (the account keeps these alerts off), `forced` (the account forces another format, given as `applied`; nothing is changed), `unsupported` (the API has no bulk alerts) or `unavailable` (the Inklusivum).
+- `switchGenderFormat(target)`: rewrite the text into a German or French gender format, as the menu does (see below); `target` is a `german_gender_ending` or `french_gender_separator` value. Resolves with `{outcome, target, count, limitReached}`; `outcome` is `switched`, `nothing`, `fromInklusivum` (nothing switched, and the text was in the Inklusivum, which the API cannot convert out of yet), `disabled` (the account keeps these alerts off), `forced` (the account forces another format, given as `applied`; nothing is changed), `unsupported` (the API cannot switch to this target yet) or `unavailable` (not a gender format).
 - `editor`: the underlying [TipTap](https://tiptap.dev) editor.
 - `destroy()`: remove the editor and everything it added to the page.
 
@@ -71,27 +71,48 @@ The W icon and the live region say the same to the user. Checks send `client: "w
 The W icon at the end of the toolbar shows whether Witty is checking, and opens a menu (a keyboard-operable ARIA menu: arrow keys, Home and End move, Escape closes and returns focus to the icon):
 
 - **Settings…**: Witty's categories and preferences, as in the browser extension.
-- **Switch gender format…**: rewrites every gendered form in the text into one of the eight German separator formats (`/in`, `/-in`, `_in`, `*in`, `:in`, `(-)`, `()`, `In`), labelled as in the settings. It also genders roles in the generic masculine (`Der Lehrer` → `Die:der Lehrer:in`) and pair formulas (`Schüler und Schülerinnen` → `Schüler:innen`), as far as the API marks them. The Inklusivum (`de-e`) is listed but not available yet.
+- **Switch gender format…**: rewrites every gendered form in the text into another format, labelled as in the settings (see [Switching the gender format](#switching-the-gender-format)).
 - **Help** and **About**: the Witty Works help on the editor and the website, in a new tab.
+
+### Switching the gender format
+
+The formats offered depend on the text's language:
+
+- **German:** the eight separator formats (`/in`, `/-in`, `_in`, `*in`, `:in`, `(-)`, `()`, `In`) and the Inklusivum (`de-e`).
+- **French:** the six separator formats `·` (`enseignant·es`), `·s` (`enseignant·e·s`), `.`, `.s`, `/` and `/s`.
+
+The language is the one the host fixed with `lang`, or else what the API detected. A text with both German and French gets both groups, headed "German" and "French", the language of most of the text first; a text in neither (or not checked yet) gets both too. The API detects one language per request, and a short text goes in one request, so a short text mixing both languages is taken as the language of most of it; only longer texts, checked in several requests, show both groups.
+
+A switch sets the target in its language's field (`german_gender_ending` or `french_gender_separator`) and leaves the other language's alone. It rewrites, as far as the API marks them:
+
+- forms in another format: `Lehrer*innen` → `Lehrer:innen`, `enseignant.e.s` → `enseignant·es`, and the articles and short endings that go with them (`die*der`, `jede/-r`, `la·le`, `un·e`);
+- roles in the generic masculine: `Der Lehrer` → `Die:der Lehrer:in`, `le directeur` → `la·le responsable`;
+- pair formulas and doublets, as a whole: `Schüler und Schülerinnen` → `Schüler:innen`, `les enseignantes et les enseignants` → `les enseignant·es`.
+
+In a mixed text, a switch applies only alerts in its own language (the result's `language`, or its request's), so switching the French format never touches the German text.
+
+**The Inklusivum.** Switching into it declines nouns for number and case (`Lehrer*innen` → `Lehrerne`, `den Schüler:innen` → `den Schülernen`) and converts articles (`die*der` → `de`, `jede/-r` → `jedey`). It leaves as written what the API cannot convert: compounds (`Mitarbeiter*innenbefragung`), nouns missing from its lexicon, and nouns whose case it cannot tell. So a switch into the Inklusivum can be partial even when the whole text was checked. Switching out of the Inklusivum is not supported by the API yet: a switch from a text in the Inklusivum finds nothing, and the editor says so (outcome `fromInklusivum`) rather than "nothing to switch".
+
+**API versions.** French and the Inklusivum need API versions that support them (NLP API PR #1247 for French, the Inklusivum branch stacked on it). Before those are deployed, the API answers a French or Inklusivum switch with `bulk_actions: []`; the editor then reports the target as not supported by the server yet and marks it so in the panel for the rest of the session. It reads this from the API rather than hard-coding which targets work.
 
 A switch makes the chosen format the configured one, waits until the whole text has been checked (every batch of a long text), and then applies all alerts the API marked with `bulk: "gender_format"` in one transaction, so a single undo restores the text. The result is announced once, in the editor's live region, and passed to `onStatus` as `genderFormatSwitch`; `count` includes the gendered masculines. If only part of the text was checked (`limitReached`), what was checked is switched and the message says so.
 
-The switch's checks ask for the gender-format alerts even where the account turned them off: `gendered_denominations_ending_advanced` is taken out of `disabled_categories` and `gendered_roles_format` is `inclusive_gender`, for those requests only; the user's settings stay as they are. If the API still sends none, because the account's stored configuration forces them off, the editor says "Switching the gender format is turned off for this account".
+The switch's checks ask for the gender-format alerts even where the account turned them off: `gendered_denominations_ending_advanced` is taken out of `disabled_categories` and `gendered_roles_format` is `inclusive_gender`, for those requests only; the user's settings stay as they are. If the API still sends none, because the account's stored configuration forces them off, the editor says "Switching the gender format is turned off for this account". For French and the Inklusivum it cannot tell that case from an API that does not support the target yet (both answer `bulk_actions: []`), and says the latter.
 
-An organisation or user config can also force the gender format. The API then converts towards the forced format, whatever the request asks for, so the editor compares the check response's `gender_separator` with the chosen format first. If they differ, it changes nothing, keeps the previous setting, and says which format the organisation sets (outcome `forced`).
+An organisation or user config can also force the gender format. The API then converts towards the forced format, whatever the request asks for, so the editor compares the check response's `gender_separator` with the chosen format first, for the requests in the switched language. If they differ, it changes nothing, keeps the previous setting, and says which format the organisation sets (outcome `forced`).
 
 ### The `bulk` contract
 
 The editor decides what to apply by `bulk` alone, never by subcategory:
 
-- A check result with `bulk: "gender_format"` belongs to the switch to the configured `german_gender_ending`: a form in another separator format, a role in the generic masculine, or a pair formula the API recognises.
+- A check result with `bulk: "gender_format"` belongs to the switch to the configured format of its language (`german_gender_ending` or `french_gender_separator`): a form in another format, a role in the generic masculine, or a pair formula or doublet the API recognises.
 - `bulk_alternative` is the index into its `alternatives` of the one the switch applies. The editor applies `alternatives[bulk_alternative]` when the index is an integer within range and that alternative has a `text`, and skips the result otherwise.
 - Without `bulk_alternative` (API versions before it), a result is applied only if it has exactly one alternative, which is then the form in the target format.
 - Such results never overlap, and applying all of them in any order gives the same text.
 - Feminine forms, address forms, pronouns and pair formulas the API didn't recognise are left out by the API on purpose; the editor applies nothing it isn't marked for.
 - `bulk` is absent (or `null`) on every other result. Unknown `bulk` values are ignored.
-- Every check response lists the groups the request can return in `bulk_actions`, whether or not a result does: `["gender_format"]` for German with a separator format, inclusive roles and the gender-format alerts on, `[]` otherwise. After the switch's check, a list without `"gender_format"` means the account keeps the switch off.
-- `gender_separator` in the check response is the format the API applied; for German it is a `german_gender_ending` value.
+- Every check response lists the groups the request can return in `bulk_actions`, whether or not a result does: `["gender_format"]` for German (with any format, the Inklusivum included) and for French, with inclusive roles and the gender-format alerts on; `[]` otherwise, and for French and the Inklusivum on API versions that cannot switch there. After the switch's check, a list without `"gender_format"` means the account keeps the switch off, or, for French and the Inklusivum, that the API cannot switch there yet.
+- `gender_separator` in the check response is the format the API applied in the request's language: a `german_gender_ending` value for German, a `french_gender_separator` value for French.
 
 Switching needs an NLP API that sends `bulk_actions`; releases up to 2.4.8 do not. With those, the editor falls back to guessing from the results: gender-format results without `bulk` mean the server doesn't support switching yet, and the menu entry says so.
 
