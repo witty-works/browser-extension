@@ -2,9 +2,11 @@
 
 [Witty](https://witty.works)'s inclusive-language checker as an embeddable rich-text editor. It checks as you type, underlines what Witty flags, and offers alternatives in the same popover as the Witty browser extension. It includes a formatting toolbar and Witty's settings (categories, gender formats, spelling, AI suggestions).
 
-One self-contained script: no framework, no stylesheet to include.
+One self-contained script: no framework, no stylesheet to include. As a script tag or as an ES module for bundlers, with TypeScript types.
 
 ## Usage
+
+### Script tag
 
 ```html
 <div id="editor"></div>
@@ -20,6 +22,28 @@ One self-contained script: no framework, no stylesheet to include.
 ```
 
 Pin an exact version, as above, rather than a range: the script runs with access to the page. Or `npm install @witty-works/editor` and serve `node_modules/@witty-works/editor/dist/witty-editor.js` yourself. Releases are published from CI with npm provenance.
+
+### With a bundler
+
+```bash
+npm install @witty-works/editor
+```
+
+```ts
+import {mount, type EditorStatus} from '@witty-works/editor';
+
+const editor = mount(document.getElementById('editor')!, {
+  endpoint: 'https://your-nlp-api.example/',
+  onStatus: (status: EditorStatus) => console.log(status),
+});
+editor.setApiKey(keyFromYourBackend);
+```
+
+The package's main entry is an ES module (`dist/witty-editor.mjs`) exporting `mount`, with types (`dist/witty-editor.d.ts`) for the options, the handle, `onStatus` and the settings: `MountOptions`, `WittyEditorHandle`, `EditorStatus`, `EditorSettings`, `CheckConfig`, `CheckLang`, `GenderFormatSwitchResult` and the rest. It works like the script: the same editor, React, TipTap and styles included (injected when the module is imported), nothing to configure in the bundler. It is not minified; your bundler does that. It does not share your page's React, so a React app loads a second copy for the editor.
+
+The type of the handle's `editor` property comes from TipTap: install `@tiptap/core` (version 3, an optional peer dependency) if you use it from TypeScript. Nothing else needs it.
+
+For the script tag in a TypeScript project, the same types describe the global: `declare const WittyEditor: typeof import('@witty-works/editor');`.
 
 ## `WittyEditor.mount(element, options)`
 

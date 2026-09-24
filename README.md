@@ -45,7 +45,7 @@ cp source/witty.config.json.example source/witty.config.json
 | `npm run lint` | ESLint over the repository |
 | `npm run typecheck` | TypeScript for the extension and the editor |
 | `npm run test:unit` | The editor's unit tests, with coverage thresholds |
-| `npm run test:editor` | Build the editor and run its browser tests |
+| `npm run test:editor` | Build the editor, check its type declarations from a consumer's side, and run its browser tests |
 | `npm test` | Build the extension for testing and run its Chromium suite |
 | `npm run test:firefox` | The extension's Firefox smoke suite |
 | `npm run test:all` | All of the above checks and tests, as CI runs them |
@@ -215,7 +215,7 @@ For `chrome` this compiles to `{"name": "SuperChrome"}`. Separate several vendor
 - `?llm=1` offers the AI sentence rewrites in the popover.
 - Against the mock API instead of a real one: start `node __tests__/fixtures/server.js` and open `?api=http://localhost:5174/mock-api/`.
 
-`npm run build -w @witty-works/editor` writes the published bundle, `packages/editor/dist/witty-editor.js`, with its third-party licence notices next to it.
+`npm run build -w @witty-works/editor` writes what is published: `dist/witty-editor.js` (the script, global `WittyEditor`), `dist/witty-editor.mjs` (the ES module) and `dist/witty-editor.d.ts` (the types), with each bundle's third-party licence notices next to it. The types are generated from [src/api.ts](packages/editor/src/api.ts), the one place the public types are defined; keep it free of imports other than types from `@tiptap/core`, which the build enforces.
 
 ### Shared code
 
@@ -240,7 +240,7 @@ All suites run offline: they serve their own fixture pages and answer every NLP 
 | Suite | Command | What |
 |---|---|---|
 | Editor unit tests | `npm run test:unit` | Vitest with happy-dom over `packages/editor/src`, with coverage thresholds (95% statements, 85% branches, 90% functions, 95% lines) |
-| Editor browser tests | `npm run test:editor` | Playwright, headless Chromium: the built bundle on `__tests__/fixtures/editor.html`. Covers what happy-dom cannot, such as opening the popover by clicking a highlight |
+| Editor browser tests | `npm run test:editor` | Playwright, headless Chromium: the built script on `__tests__/fixtures/editor.html` and the ES module on `editor-module.html`. Covers what happy-dom cannot, such as opening the popover by clicking a highlight. It first type-checks `packages/editor/types-test/consumer.ts` against the built declarations, as a host project would |
 | Extension, Chromium | `npm test` | Playwright with the extension loaded, headed |
 | Extension, Firefox | `npm run test:firefox` | A smoke suite in Firefox driven by Puppeteer, headless |
 
