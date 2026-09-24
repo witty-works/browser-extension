@@ -42,6 +42,8 @@ test('opens the popover by clicking a highlight and applies an alternative', asy
 });
 
 test('opens the popover at the cursor with Alt+Shift+W', async ({ page }) => {
+  // The shortcut opens the alert at the cursor, so the check must be done.
+  await expect(highlight(page, 'guys')).toBeVisible();
   // The caret into "guys" from the start of the text, without a click on it.
   await page.locator('.ProseMirror p').click({ position: { x: 2, y: 5 } });
   await page.keyboard.press('Home');
