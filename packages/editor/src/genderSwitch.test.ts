@@ -5,7 +5,7 @@ import {CATEGORIES, CONFIG_OPTIONS} from '@witty/test-fixtures/mockApi';
 import type {Alert} from './checkPlugin';
 import type {CheckConfig} from './checkClient';
 import {
-  bulkAlerts,
+  bulkEdits,
   decideSwitch,
   hasFormsOutside,
   noSwitchReason,
@@ -48,20 +48,74 @@ describe('switchRequestConfig', () => {
   });
 });
 
-describe('bulkAlerts', () => {
+describe('bulkEdits', () => {
   const one = [{text: 'Lehrer:innen'}];
+  const several = [
+    {text: 'Lehrkraft'},
+    {text: 'Die:der Lehrer:in'},
+    {text: 'Der Lehrer oder die Lehrerin'},
+  ];
+  const texts = (alerts: Alert[]) => bulkEdits(alerts).map(({text}) => text);
 
-  it('takes only the gender_format group, with exactly one alternative', () => {
-    const switched = alert({bulk: 'gender_format', alternatives: one});
-    const alerts = [
-      switched,
-      alert({bulk: 'something_new', alternatives: one}),
-      alert({alternatives: one}),
-      alert({bulk: 'gender_format', alternatives: [...one, ...one]}),
-      alert({bulk: 'gender_format', alternatives: [{text: null}]}),
-    ];
+  it('applies the alternative bulk_alternative names', () => {
+    expect(
+      texts([
+        alert({
+          bulk: 'gender_format',
+          alternatives: several,
+          bulk_alternative: 1,
+        }),
+        alert({bulk: 'gender_format', alternatives: one, bulk_alternative: 0}),
+      ])
+    ).toEqual(['Die:der Lehrer:in', 'Lehrer:innen']);
+  });
 
-    expect(bulkAlerts(alerts)).toEqual([switched]);
+  it('skips an index out of range, or missing with several alternatives', () => {
+    expect(
+      texts([
+        alert({
+          bulk: 'gender_format',
+          alternatives: several,
+          bulk_alternative: 3,
+        }),
+        alert({
+          bulk: 'gender_format',
+          alternatives: several,
+          bulk_alternative: -1,
+        }),
+        alert({
+          bulk: 'gender_format',
+          alternatives: several,
+          bulk_alternative: 1.5,
+        }),
+        alert({bulk: 'gender_format', alternatives: several}),
+        alert({
+          bulk: 'gender_format',
+          alternatives: several,
+          bulk_alternative: null,
+        }),
+        alert({
+          bulk: 'gender_format',
+          alternatives: [{remove: true}, ...several],
+          bulk_alternative: 0,
+        }),
+      ])
+    ).toEqual([]);
+  });
+
+  it('takes the only alternative from an API without bulk_alternative', () => {
+    expect(texts([alert({bulk: 'gender_format', alternatives: one})])).toEqual([
+      'Lehrer:innen',
+    ]);
+  });
+
+  it('takes only the gender_format group', () => {
+    expect(
+      texts([
+        alert({bulk: 'something_new', alternatives: one, bulk_alternative: 0}),
+        alert({alternatives: one}),
+      ])
+    ).toEqual([]);
   });
 });
 
@@ -119,7 +173,10 @@ describe('decideSwitch', () => {
         'Lehrer*innen',
         [bulk]
       )
-    ).toEqual({outcome: 'switched', apply: [bulk]});
+    ).toEqual({
+      outcome: 'switched',
+      apply: [{from: 1, to: 2, text: ':innen'}],
+    });
   });
 
   it('reads bulk_actions for why nothing was switched', () => {
@@ -145,6 +202,8 @@ let api: {
   bulkActions: boolean;
   /** A format the account forces, whatever the request asks for. */
   forced: string | null;
+  /** `bulk_alternative` of the generic masculine "Der Lehrer"; left out if undefined. */
+  roleIndex: number | undefined;
 };
 let handle: WittyEditorHandle | undefined;
 let statuses: EditorStatus[];
@@ -157,7 +216,9 @@ const switchable = (config: CheckConfig = {}) =>
 const genderResults = (text: string, config: CheckConfig = {}) => {
   const target = applied(config);
   if (!switchable(config) || target === '*in') return [];
-  const results = [...text.matchAll(/\p{L}+\*in(?:nen)?/gu)].map((match) => {
+  const results: Record<string, unknown>[] = [
+    ...text.matchAll(/\p{L}+\*in(?:nen)?/gu),
+  ].map((match) => {
     return {
       text: match[0],
       start: match.index,
@@ -181,6 +242,24 @@ const genderResults = (text: string, config: CheckConfig = {}) => {
       ...(api.bulk ? {bulk: api.bulk} : {}),
     };
   });
+  // A role in the generic masculine: several alternatives, one for the switch.
+  const role = text.indexOf('Der Lehrer ');
+  if (role >= 0) {
+    const separator = target.slice(0, -2);
+    results.push({
+      ...results[0],
+      text: 'Der Lehrer',
+      start: role,
+      end: role + 10,
+      subcategory: 'gendered_roles',
+      alternatives: [
+        {text: 'Die Lehrkraft', remove: false},
+        {text: `Die${separator}der Lehrer${separator}in`, remove: false},
+        {text: 'Der Lehrer oder die Lehrerin', remove: false},
+      ],
+      ...(api.roleIndex === undefined ? {} : {bulk_alternative: api.roleIndex}),
+    });
+  }
   // Not part of the switch, whatever the server calls it.
   const other = text.indexOf('Chef');
   if (other >= 0) {
@@ -205,6 +284,7 @@ beforeEach(() => {
     honoursConfig: true,
     bulkActions: true,
     forced: null,
+    roleIndex: 1,
   };
   vi.stubGlobal(
     'fetch',
@@ -307,6 +387,40 @@ describe('switchGenderFormat', () => {
     editor.editor.commands.undo();
     expect(editor.getText()).toBe(TEXT);
   });
+
+  it('genders a generic masculine with the alternative the API names', async () => {
+    const editor = mountEditor({
+      content: '<p>Der Lehrer kommt. Die Schüler*innen warten.</p>',
+    });
+
+    const result = await editor.switchGenderFormat(':in');
+
+    expect(editor.getText()).toBe(
+      'Die:der Lehrer:in kommt. Die Schüler:innen warten.'
+    );
+    expect(result.count).toBe(2);
+    editor.editor.commands.undo();
+    expect(editor.getText()).toBe(
+      'Der Lehrer kommt. Die Schüler*innen warten.'
+    );
+  });
+
+  it.each([[5], [undefined]])(
+    'leaves a generic masculine with bulk_alternative %s alone',
+    async (index) => {
+      api.roleIndex = index;
+      const editor = mountEditor({
+        content: '<p>Der Lehrer kommt. Die Schüler*innen warten.</p>',
+      });
+
+      const result = await editor.switchGenderFormat(':in');
+
+      expect(editor.getText()).toBe(
+        'Der Lehrer kommt. Die Schüler:innen warten.'
+      );
+      expect(result.count).toBe(1);
+    }
+  );
 
   it('waits for every batch of a long text', async () => {
     const sentences = Array.from(
@@ -638,5 +752,13 @@ describe('W menu', () => {
     await vi.waitFor(() =>
       expect(formats[4].getAttribute('aria-current')).toBe('true')
     );
+
+    // Shown in the panel, announced by one live region only.
+    const announcing = [
+      ...document.querySelectorAll(
+        '[aria-live], [role="status"], [role="alert"]'
+      ),
+    ].filter((region) => region.textContent?.includes('Switched'));
+    expect(announcing).toEqual([liveRegion()]);
   });
 });

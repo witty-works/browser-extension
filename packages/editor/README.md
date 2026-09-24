@@ -8,7 +8,7 @@ One self-contained script: no framework, no stylesheet to include.
 
 ```html
 <div id="editor"></div>
-<script src="https://cdn.jsdelivr.net/npm/@witty-works/editor@2.2.1/dist/witty-editor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@witty-works/editor@2.3.0/dist/witty-editor.js"></script>
 <script>
   const editor = WittyEditor.mount(document.getElementById('editor'), {
     endpoint: 'https://your-nlp-api.example/',
@@ -56,10 +56,10 @@ It returns a handle:
 The W icon at the end of the toolbar shows whether Witty is checking, and opens a menu (a keyboard-operable ARIA menu: arrow keys, Home and End move, Escape closes and returns focus to the icon):
 
 - **Settings…**: Witty's categories and preferences, as in the browser extension.
-- **Switch gender format…**: rewrites every gendered form in the text into one of the eight German separator formats (`/in`, `/-in`, `_in`, `*in`, `:in`, `(-)`, `()`, `In`), labelled as in the settings. The Inklusivum (`de-e`) is listed but not available yet.
+- **Switch gender format…**: rewrites every gendered form in the text into one of the eight German separator formats (`/in`, `/-in`, `_in`, `*in`, `:in`, `(-)`, `()`, `In`), labelled as in the settings. It also genders roles in the generic masculine (`Der Lehrer` → `Die:der Lehrer:in`) and pair formulas (`Schüler und Schülerinnen` → `Schüler:innen`), as far as the API marks them. The Inklusivum (`de-e`) is listed but not available yet.
 - **Help** and **About**: the Witty Works help on the editor and the website, in a new tab.
 
-A switch makes the chosen format the configured one, waits until the whole text has been checked (every batch of a long text), and then applies all alerts the API marked with `bulk: "gender_format"` in one transaction, so a single undo restores the text. The result is announced in the live region and passed to `onStatus` as `genderFormatSwitch`. If only part of the text was checked (`limitReached`), what was checked is switched and the message says so.
+A switch makes the chosen format the configured one, waits until the whole text has been checked (every batch of a long text), and then applies all alerts the API marked with `bulk: "gender_format"` in one transaction, so a single undo restores the text. The result is announced once, in the editor's live region, and passed to `onStatus` as `genderFormatSwitch`; `count` includes the gendered masculines. If only part of the text was checked (`limitReached`), what was checked is switched and the message says so.
 
 The switch's checks ask for the gender-format alerts even where the account turned them off: `gendered_denominations_ending_advanced` is taken out of `disabled_categories` and `gendered_roles_format` is `inclusive_gender`, for those requests only; the user's settings stay as they are. If the API still sends none, because the account's stored configuration forces them off, the editor says "Switching the gender format is turned off for this account".
 
@@ -69,7 +69,11 @@ An organisation or user config can also force the gender format. The API then co
 
 The editor decides what to apply by `bulk` alone, never by subcategory:
 
-- A check result with `bulk: "gender_format"` belongs to the switch to the configured `german_gender_ending`. It has exactly one alternative, the form in that format, and such results never overlap.
+- A check result with `bulk: "gender_format"` belongs to the switch to the configured `german_gender_ending`: a form in another separator format, a role in the generic masculine, or a pair formula the API recognises.
+- `bulk_alternative` is the index into its `alternatives` of the one the switch applies. The editor applies `alternatives[bulk_alternative]` when the index is an integer within range and that alternative has a `text`, and skips the result otherwise.
+- Without `bulk_alternative` (API versions before it), a result is applied only if it has exactly one alternative, which is then the form in the target format.
+- Such results never overlap, and applying all of them in any order gives the same text.
+- Feminine forms, address forms, pronouns and pair formulas the API didn't recognise are left out by the API on purpose; the editor applies nothing it isn't marked for.
 - `bulk` is absent (or `null`) on every other result. Unknown `bulk` values are ignored.
 - Every check response lists the groups the request can return in `bulk_actions`, whether or not a result does: `["gender_format"]` for German with a separator format, inclusive roles and the gender-format alerts on, `[]` otherwise. After the switch's check, a list without `"gender_format"` means the account keeps the switch off.
 - `gender_separator` in the check response is the format the API applied; for German it is a `german_gender_ending` value.

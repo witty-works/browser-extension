@@ -120,6 +120,7 @@ export const buildSentenceAlertsFromResponse = (
               limit_reached: result.limit_reached,
               source: result.source,
               bulk: result.bulk,
+              bulk_alternative: result.bulk_alternative,
             },
           });
         }
