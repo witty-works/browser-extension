@@ -173,20 +173,4 @@ export class SentenceCache {
   }
 }
 
-/**
- * How many characters to send per request. Starts at the API's default
- * TEXT_MAX_LENGTH; when a deployment's limit is lower, a multi-sentence batch
- * comes back with `limit_reached` and the budget halves until batches fit.
- */
-export class CheckBudget {
-  static readonly MINIMUM = 100;
-
-  constructor(public value: number) {}
-
-  /** Returns false when the batch cannot be made smaller. */
-  shrink(): boolean {
-    if (this.value <= CheckBudget.MINIMUM) return false;
-    this.value = Math.max(CheckBudget.MINIMUM, Math.floor(this.value / 2));
-    return true;
-  }
-}
+export {CheckBudget} from '@witty/core/ApiServices/checkBudget';
