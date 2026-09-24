@@ -9,12 +9,14 @@ import {type EditorStatus, mount, type WittyEditorHandle} from './mount';
 let handle: WittyEditorHandle | undefined;
 let statuses: EditorStatus[];
 let rephraseCalls: number;
+let rephraseBodies: Record<string, unknown>[];
 /** How the next rephrase request is answered. */
 let rephrase: () => Promise<Response>;
 
 beforeEach(() => {
   statuses = [];
   rephraseCalls = 0;
+  rephraseBodies = [];
   rephrase = async () =>
     new Response(JSON.stringify({sentence: '', results: {}}), {status: 200});
   vi.stubGlobal(
@@ -22,6 +24,7 @@ beforeEach(() => {
     vi.fn(async (url: string, init: RequestInit) => {
       if (url.endsWith('/v1.0/rephrase')) {
         rephraseCalls += 1;
+        rephraseBodies.push(JSON.parse(String(init.body)));
         return rephrase();
       }
       const {text} = JSON.parse(String(init.body));
@@ -106,6 +109,8 @@ describe('popover in the editor', () => {
 
     openPopoverOn(editor, 'guys');
     await vi.waitFor(() => expect(rephraseCalls).toBe(1));
+    // The API checks the editor's minimum version on this request too.
+    expect(rephraseBodies[0].client).toMatch(/^witty-editor:\d+\.\d+\.\d+/);
     await closePopover();
 
     editor.setConfig({german_gender_ending: ':in'});

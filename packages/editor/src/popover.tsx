@@ -21,7 +21,11 @@ import type {
   IGetLLMSuggestionsRequest,
 } from '@witty/core/types';
 import {type Alert, dismissAlerts, getAlerts, selectAlert} from './checkPlugin';
-import {type CheckConfig, genderSeparatorFor} from './checkClient';
+import {
+  type CheckConfig,
+  EDITOR_CLIENT,
+  genderSeparatorFor,
+} from './checkClient';
 import {resolveReplacement} from './replacement';
 
 /**
@@ -219,10 +223,10 @@ export class PopoverHost {
   }
 
   private rewriteBody(request: IGetLLMSuggestionsRequest): object {
-    const body = buildLLMSuggestionBody(
-      request.alert.data.fullSentence,
-      request.alert
-    );
+    const body = {
+      ...buildLLMSuggestionBody(request.alert.data.fullSentence, request.alert),
+      client: EDITOR_CLIENT,
+    };
     const separator = genderSeparatorFor(
       request.alert.data.language,
       this.options.config()

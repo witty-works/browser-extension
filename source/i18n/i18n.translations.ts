@@ -44,7 +44,17 @@ export const de = {
       'Das Wechseln der Gender-Form ist für dieses Konto ausgeschaltet.',
     switchUnsupported:
       'Der Server unterstützt das Wechseln der Gender-Form noch nicht.',
-    switchInklusivum: 'In das Inklusivum kann noch nicht gewechselt werden.',
+    switchFromInklusivum:
+      'Nichts umgestellt: Aus dem Inklusivum kann noch nicht in eine andere Form gewechselt werden.',
+    switchUnsupportedTarget:
+      'Der Server kann noch nicht auf {{format}} umstellen.',
+    switchUnsupportedNote: 'Vom Server noch nicht unterstützt.',
+    switchUnavailable:
+      '{{format}} ist keine Gender-Form, auf die umgestellt werden kann.',
+    switchInklusivumNote:
+      'Zusammensetzungen und unbekannte Wörter bleiben, wie sie sind; zurück geht es noch nicht.',
+    switchGerman: 'Deutsch',
+    switchFrench: 'Französisch',
     switchForced:
       'Deine Organisation legt die Gender-Form auf {{format}} fest. Der Text wurde nicht geändert.',
   },
@@ -279,7 +289,16 @@ export const en = {
       'Switching the gender format is turned off for this account.',
     switchUnsupported:
       "The server doesn't support switching the gender format yet.",
-    switchInklusivum: "Switching to the Inklusivum isn't available yet.",
+    switchFromInklusivum:
+      "Nothing switched: switching out of the Inklusivum isn't supported yet.",
+    switchUnsupportedTarget: "The server can't switch to {{format}} yet.",
+    switchUnsupportedNote: 'Not supported by the server yet.',
+    switchUnavailable:
+      '{{format}} is not a gender format the editor can switch to.',
+    switchInklusivumNote:
+      "Compounds and words Witty doesn't know stay as written; switching back isn't possible yet.",
+    switchGerman: 'German',
+    switchFrench: 'French',
     switchForced:
       'Your organisation sets the gender format to {{format}}. The text was not changed.',
   },
@@ -508,14 +527,24 @@ export const fr = {
       'Réécrit toutes les formes genrées du texte dans la forme choisie. Annuler rétablit le texte en une seule étape.',
     switchCurrent: 'actuelle',
     switching: 'Vérification et réécriture du texte…',
-    switched_one: '{{count}} forme passée en {{format}}.',
-    switched_other: '{{count}} formes passées en {{format}}.',
+    switched_one: '{{count}} forme convertie en {{format}}.',
+    switched_other: '{{count}} formes converties en {{format}}.',
     switchNothing: 'Rien à changer : le texte utilise déjà {{format}}.',
     switchDisabled:
       'Le changement de forme inclusive est désactivé pour ce compte.',
     switchUnsupported:
       'Le serveur ne permet pas encore de changer la forme inclusive.',
-    switchInklusivum: "Le passage à l'Inklusivum n'est pas encore disponible.",
+    switchFromInklusivum:
+      "Rien n'a été converti : le passage de l'Inklusivum à une autre forme n'est pas encore possible.",
+    switchUnsupportedTarget:
+      'Le serveur ne peut pas encore convertir en {{format}}.',
+    switchUnsupportedNote: 'Pas encore pris en charge par le serveur.',
+    switchUnavailable:
+      "{{format}} n'est pas une forme inclusive vers laquelle convertir.",
+    switchInklusivumNote:
+      "Les mots composés et les mots inconnus restent tels quels ; le retour n'est pas encore possible.",
+    switchGerman: 'Allemand',
+    switchFrench: 'Français',
     switchForced:
       "Votre organisation impose la forme inclusive {{format}}. Le texte n'a pas été modifié.",
   },

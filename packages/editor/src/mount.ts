@@ -22,6 +22,7 @@ import {
   checkPluginKey,
   clearAlerts,
   getAlerts,
+  getTextLanguages,
   isLimitReached,
   requestRecheck,
   WittyCheck,
@@ -31,8 +32,12 @@ import {
   decideSwitch,
   GENDER_FORMAT_BULK,
   type GenderFormatSwitchResult,
+  FORMAT_FIELD,
+  formatLanguage,
+  INKLUSIVUM,
   SWITCHABLE_FORMATS,
   type SwitchCheckInfo,
+  type SwitchLanguage,
   switchRequestConfig,
 } from './genderSwitch';
 import {PopoverHost} from './popover';
@@ -311,6 +316,9 @@ export const mount = (
   // Whether the API has bulk actions: every response of one that has says so
   // (`bulk_actions`); a switch can also find an API that predates them.
   let bulkSupport: 'unknown' | 'yes' | 'no' = 'unknown';
+  // Targets a switch found the API cannot convert to yet (`bulk_actions`
+  // without "gender_format" for French or the Inklusivum).
+  const unsupportedTargets = new Set<string>();
   // Both are read per request, so `setApiKey` and settings changes reach the
   // next check without rebuilding the checker.
   const httpCheck = createHttpChecker({
@@ -329,13 +337,11 @@ export const mount = (
     ) {
       bulkSupport = 'yes';
     }
-    if (info) {
-      info.bulkActions.push(response.bulk_actions);
-      // For German only: other languages report their own format.
-      if (response.language?.startsWith('de') && response.gender_separator) {
-        info.separators.push(response.gender_separator);
-      }
-    }
+    info?.responses.push({
+      language: response.language,
+      separator: response.gender_separator,
+      bulkActions: response.bulk_actions,
+    });
     return response;
   };
 
@@ -508,21 +514,39 @@ export const mount = (
 
   let switching: Promise<GenderFormatSwitchResult> | null = null;
 
+  /**
+   * The languages whose formats "Switch gender format…" offers: the host's
+   * `lang` if it fixed German or French, otherwise German and French as far as
+   * the API found them in the text, most of the text first. A text in neither
+   * (or not checked yet) gets both.
+   */
+  const switchLanguages = (): SwitchLanguage[] => {
+    const fixed = lang.slice(0, 2);
+    if (fixed === 'de' || fixed === 'fr') return [fixed];
+    const found = getTextLanguages(editor.state);
+    const present = (['de', 'fr'] as const)
+      .filter((language) => found[language])
+      .sort((a, b) => found[b] - found[a]);
+    return present.length ? present : ['de', 'fr'];
+  };
+
   const runSwitch = async (
     target: string
   ): Promise<GenderFormatSwitchResult> => {
-    const ending = target as NonNullable<CheckConfig['german_gender_ending']>;
-    if (!SWITCHABLE_FORMATS.includes(ending)) {
+    const language = formatLanguage(target);
+    if (!language) {
       return {outcome: 'unavailable', target, count: 0, limitReached: false};
     }
 
-    // 1. The target becomes the configured format (the toolbar shows it), and
-    //    the switch's checks ask for the gender-format alerts regardless of
-    //    the user's category settings, which stay as they are.
+    // 1. The target becomes the configured format of its language (the
+    //    toolbar shows it; the other language's stays), and the switch's
+    //    checks ask for the gender-format alerts regardless of the user's
+    //    category settings, which stay as they are.
+    const field = FORMAT_FIELD[language];
     const previousConfig = settings.get().config;
-    const userConfig = {...previousConfig, german_gender_ending: ending};
-    switchConfig = switchRequestConfig(userConfig, ending).config;
-    const info: SwitchCheckInfo = {separators: [], bulkActions: []};
+    const userConfig: CheckConfig = {...previousConfig, [field]: target};
+    switchConfig = switchRequestConfig(userConfig, target, language).config;
+    const info: SwitchCheckInfo = {responses: []};
     switchInfo = info;
     const checked = nextCompleteCheck();
     settings.set({config: userConfig});
@@ -545,7 +569,8 @@ export const mount = (
       info,
       target,
       editor.state.doc.textContent,
-      getAlerts(editor.state)
+      getAlerts(editor.state),
+      {language, previous: previousConfig[field]}
     );
     let result: GenderFormatSwitchResult;
     if (decision.outcome === 'switched') {
@@ -569,7 +594,19 @@ export const mount = (
         applied: decision.applied,
       };
     } else {
-      if (decision.outcome === 'unsupported') bulkSupport = 'no';
+      if (decision.outcome === 'unsupported') {
+        // An API without bulk actions at all, or one that cannot switch to
+        // this target yet: then the other targets it can't either.
+        const knowsBulkActions = info.responses.some(
+          ({bulkActions}) => bulkActions
+        );
+        if (!knowsBulkActions && language === 'de') bulkSupport = 'no';
+        const targets =
+          language === 'fr' ? SWITCHABLE_FORMATS.fr : [INKLUSIVUM];
+        if (knowsBulkActions || language === 'fr') {
+          targets.forEach((format) => unsupportedTargets.add(format));
+        }
+      }
       result = {outcome: decision.outcome, target, count: 0, limitReached};
     }
     // Back to the user's own settings for the underlines.
@@ -616,7 +653,9 @@ export const mount = (
           onSettingsChange?.(settings.get());
           return result;
         },
-        switchSupported: (): boolean => bulkSupport !== 'no',
+        switchSupported: (target?: string): boolean =>
+          bulkSupport !== 'no' && !(target && unsupportedTargets.has(target)),
+        switchLanguages,
       })
     : undefined;
 

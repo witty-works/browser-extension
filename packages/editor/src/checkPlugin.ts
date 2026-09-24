@@ -75,6 +75,11 @@ export interface CheckPluginState {
    * `maxTextLength`, or a sentence was longer than the API checks at once.
    */
   limitReached: boolean;
+  /**
+   * Characters of the checked text per language the API detected (`de`,
+   * `fr`, ...), from the last check.
+   */
+  languages: Record<string, number>;
 }
 
 type CheckMeta =
@@ -88,6 +93,7 @@ type CheckMeta =
       id: number;
       alerts: Omit<Alert, 'id'>[];
       limitReached: boolean;
+      languages: Record<string, number>;
       /** False while further batches of a long text are still to come. */
       complete: boolean;
     };
@@ -145,6 +151,10 @@ const redecorate = (
 /** Whether the last check left part of the text unchecked. */
 export const isLimitReached = (state: EditorState): boolean =>
   checkPluginKey.getState(state)?.limitReached ?? false;
+
+/** Characters per detected language (`de`, `fr`, ...), from the last check. */
+export const getTextLanguages = (state: EditorState): Record<string, number> =>
+  checkPluginKey.getState(state)?.languages ?? {};
 
 /** Alerts currently shown, in document order. */
 export const getAlerts = (state: EditorState): Alert[] =>
@@ -216,6 +226,7 @@ const applyTransaction = (
       pending: null,
       selectedId: null,
       limitReached: false,
+      languages: {},
     };
   }
 
@@ -255,6 +266,7 @@ const applyTransaction = (
       ),
       pending: null,
       limitReached: meta.limitReached,
+      languages: meta.languages,
     };
   }
 
@@ -417,6 +429,7 @@ export class CheckController {
                   };
                 }),
                 partial: limited,
+                language: response.language,
               });
             }
           }
@@ -427,6 +440,7 @@ export class CheckController {
         const results: ICheckResponseResult[] = [];
         let partial = false;
         let remaining = false;
+        const languages: Record<string, number> = {};
         for (const sentence of inScope) {
           const cached = this.cache.get(sentence);
           if (!cached) {
@@ -434,6 +448,11 @@ export class CheckController {
             continue;
           }
           partial ||= cached.partial;
+          const language = cached.language?.slice(0, 2);
+          if (language) {
+            languages[language] =
+              (languages[language] ?? 0) + sentence.text.length;
+          }
           for (const result of cached.results) {
             results.push({
               ...result,
@@ -477,6 +496,7 @@ export class CheckController {
               id,
               alerts,
               limitReached: truncated || partial,
+              languages,
               complete: !remaining,
             } satisfies CheckMeta)
             .setMeta('addToHistory', false)
@@ -515,6 +535,7 @@ export const createCheckPlugin = (options: CheckOptions): Plugin => {
           recheckRequests: 0,
           selectedId: null,
           limitReached: false,
+          languages: {},
         };
       },
       apply: applyTransaction,

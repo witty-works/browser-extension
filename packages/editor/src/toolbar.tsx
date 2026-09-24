@@ -30,9 +30,12 @@ import ActiveIcon from '@witty/assets/icons/wittyStateIndicator/witty-active.svg
 import WarningIcon from '@witty/assets/icons/wittyStateIndicator/witty-warning.svg';
 
 import {
+  FORMAT_FIELD,
+  formatLanguage,
   type GenderFormatSwitchResult,
   INKLUSIVUM,
   SWITCHABLE_FORMATS,
+  type SwitchLanguage,
 } from './genderSwitch';
 import {
   type CheckStatus,
@@ -149,12 +152,15 @@ export const createOptionsLoader = (
   };
 };
 
-/** Human label of a gender format, as the settings panel shows it. */
+/** Human label of a gender format, German or French, as the settings panel shows it. */
 export const formatLabel = (
   options: PreferenceOptions | null,
   value: string
-): string =>
-  options?.configOptions.german_gender_ending?.labels?.[value] || value;
+): string => {
+  const language = formatLanguage(value);
+  const field = language ? FORMAT_FIELD[language] : 'german_gender_ending';
+  return options?.configOptions[field]?.labels?.[value] || value;
+};
 
 const usePreferenceOptions = (
   load: () => Promise<PreferenceOptions>
@@ -368,9 +374,10 @@ export const switchMessage = (
   const text = {
     switched: t('switched', {count: result.count, format}),
     nothing: t('switchNothing', {format}),
+    fromInklusivum: t('switchFromInklusivum'),
     disabled: t('switchDisabled'),
-    unsupported: t('switchUnsupported'),
-    unavailable: t('switchInklusivum'),
+    unsupported: t('switchUnsupportedTarget', {format}),
+    unavailable: t('switchUnavailable', {format}),
     forced: t('switchForced', {
       format: formatLabel(options, result.applied ?? ''),
     }),
@@ -388,14 +395,19 @@ const SwitchPanel: React.FC<{
   store: SettingsStore;
   loadOptions: () => Promise<PreferenceOptions>;
   onSwitch: (target: string) => Promise<GenderFormatSwitchResult>;
+  /** Whether the API can switch to `target`, as far as the editor knows. */
+  supported: (target: string) => boolean;
+  /** The languages whose formats to offer, the main one first. */
+  languages: SwitchLanguage[];
   onClose: () => void;
-}> = ({id, store, loadOptions, onSwitch, onClose}) => {
+}> = ({id, store, loadOptions, onSwitch, supported, languages, onClose}) => {
   const {t} = useTranslation(namespaces.editor);
   const settings = useSettings(store);
   const options = usePreferenceOptions(loadOptions);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const current = settings.config.german_gender_ending;
+  // Group headings only when both languages are offered.
+  const grouped = languages.length > 1;
 
   const choose = (target: string): void => {
     setBusy(true);
@@ -404,6 +416,40 @@ const SwitchPanel: React.FC<{
       .then((result) => setMessage(switchMessage(t, result, options)))
       .catch(() => setMessage(t('statusFailed')))
       .finally(() => setBusy(false));
+  };
+
+  const formatButton = (
+    language: SwitchLanguage,
+    format: string
+  ): React.ReactElement => {
+    const current = settings.config[FORMAT_FIELD[language]] === format;
+    const available = supported(format);
+    // What the Inklusivum leaves as written, or why a format is not offered.
+    let note: string | null = null;
+    if (!available) note = t('switchUnsupportedNote');
+    else if (format === INKLUSIVUM) note = t('switchInklusivumNote');
+    const noteId = `${id}-${language}-${SWITCHABLE_FORMATS[language].indexOf(format as never)}`;
+    return (
+      <li key={format}>
+        <button
+          type='button'
+          className='witty-editor-switch-format'
+          aria-disabled={busy || !available || undefined}
+          aria-current={current || undefined}
+          aria-describedby={note ? noteId : undefined}
+          onClick={() => !busy && available && choose(format)}
+        >
+          {formatLabel(options, format)}
+          {current && ` (${t('switchCurrent')})`}
+        </button>
+        {note && (
+          <span id={noteId} className='witty-options-muted'>
+            {' '}
+            {note}
+          </span>
+        )}
+      </li>
+    );
   };
 
   return (
@@ -433,36 +479,23 @@ const SwitchPanel: React.FC<{
       </button>
       <h2>{t('switchTitle')}</h2>
       <p className='witty-options-muted'>{t('switchIntro')}</p>
-      <ul className='witty-editor-switch-formats'>
-        {SWITCHABLE_FORMATS.map((format) => (
-          <li key={format}>
-            <button
-              type='button'
-              className='witty-editor-switch-format'
-              aria-disabled={busy || undefined}
-              aria-current={format === current || undefined}
-              onClick={() => !busy && choose(format)}
-            >
-              {formatLabel(options, format)}
-              {format === current && ` (${t('switchCurrent')})`}
-            </button>
-          </li>
-        ))}
-        <li>
-          <button
-            type='button'
-            className='witty-editor-switch-format'
-            aria-disabled='true'
-            aria-describedby={`${id}-inklusivum`}
-          >
-            {formatLabel(options, INKLUSIVUM)}
-          </button>
-          <span id={`${id}-inklusivum`} className='witty-options-muted'>
-            {' '}
-            {t('switchInklusivum')}
-          </span>
-        </li>
-      </ul>
+      {languages.map((language) => (
+        <section
+          key={language}
+          aria-labelledby={grouped ? `${id}-${language}` : undefined}
+        >
+          {grouped && (
+            <h3 id={`${id}-${language}`}>
+              {t(language === 'de' ? 'switchGerman' : 'switchFrench')}
+            </h3>
+          )}
+          <ul className='witty-editor-switch-formats' lang={language}>
+            {SWITCHABLE_FORMATS[language].map((format) =>
+              formatButton(language, format)
+            )}
+          </ul>
+        </section>
+      ))}
       {/* Shown here, announced once: by the editor's live region. */}
       <p className='witty-editor-switch-result'>{message}</p>
     </div>
@@ -532,7 +565,8 @@ const Toolbar: React.FC<{
   status: StatusStore;
   loadOptions: () => Promise<PreferenceOptions>;
   onSwitch: (target: string) => Promise<GenderFormatSwitchResult>;
-  switchSupported: () => boolean;
+  switchSupported: (target?: string) => boolean;
+  switchLanguages: () => SwitchLanguage[];
 }> = ({
   editor,
   store,
@@ -540,6 +574,7 @@ const Toolbar: React.FC<{
   loadOptions,
   onSwitch,
   switchSupported,
+  switchLanguages,
 }) => {
   const {t} = useTranslation(namespaces.editor);
   useEditorVersion(editor);
@@ -764,6 +799,8 @@ const Toolbar: React.FC<{
           store={store}
           loadOptions={loadOptions}
           onSwitch={onSwitch}
+          supported={switchSupported}
+          languages={switchLanguages()}
           onClose={closePanel}
         />
       )}
@@ -882,7 +919,8 @@ export const mountToolbar = (
     status: StatusStore;
     loadOptions: () => Promise<PreferenceOptions>;
     onSwitch: (target: string) => Promise<GenderFormatSwitchResult>;
-    switchSupported: () => boolean;
+    switchSupported: (target?: string) => boolean;
+    switchLanguages: () => SwitchLanguage[];
   }
 ): ToolbarHandle => {
   const root: Root = createRoot(container);
