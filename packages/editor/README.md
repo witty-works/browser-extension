@@ -70,6 +70,7 @@ It returns a handle:
 
 - `setApiKey(key)`: replace the API key and check again.
 - `setConfig(config)`: replace the whole check config (no merging) and check again; `{}` sends none.
+- `updateSettings(settings)`: change settings from the host, e.g. its own form, as the settings panel does (the panel follows). The fields given replace the current ones and the rest stay: `updateSettings({llmAlternatives: true})`, `updateSettings({orthography: false})`. `config`, when given, is replaced whole, as with `setConfig`; to change one field of it, start from `getSettings().config`. Calls `onSettingsChange` once if anything changed, and nothing happens if nothing did. A changed `config` checks the text again; popovers opened afterwards follow `llmAlternatives`, an open one keeps what it shows. A value of the wrong type (`llmAlternatives: 'false'`, a `config` that is not an object) throws a `TypeError` and changes nothing. Unlike `setConfig`, which is for the host's own changes, this reports to `onSettingsChange`, so a host that stores the settings there sees changes from its form and from the panel alike.
 - `getSettings()`: the current settings, `{config, llmAlternatives, orthography}`, as a copy; the same object `onSettingsChange` receives.
 - `getText()`: the document as plain text.
 - `switchGenderFormat(target)`: rewrite the text into a German or French gender format, as the menu does (see below); `target` is a `german_gender_ending` or `french_gender_separator` value. Resolves with `{outcome, target, count, limitReached}`; `outcome` is `switched`, `nothing`, `fromInklusivum` (nothing switched, and the text was in the Inklusivum, which the API cannot convert out of yet), `disabled` (the account keeps these alerts off), `forced` (the account forces another format, given as `applied`; nothing is changed), `unsupported` (the API cannot switch to this target yet) or `unavailable` (not a gender format).
@@ -154,6 +155,13 @@ Part of a text can stay unchecked: anything past `maxTextLength`, or a single se
   - `img-src https://www.witty.works` for the pictures in the explanations ("learning bites").
   - `connect-src` for the API endpoint's origin, when it differs from the page's.
 - **CORS:** the NLP API must allow the page's origin.
+
+## Settings from the host: what to keep in mind
+
+- **The switches are not access control.** Anything running in the page can call the handle, and a user can from the browser console. So `llmAlternatives: false` is a default, not a limit. Who may use the LLM at all is the NLP API's decision (`LLM_ACCESS` and its allow list, and whether clients may ask for it, `CLIENT_CONFIG_ENABLED`); how many requests they make is not limited by the API, so a deployment that has to ration them needs a rate limit in front of it. The same goes for everything in `config`: an organisation's forced settings are applied by the API, whatever the editor sends.
+- **Keep the handle to yourself.** Don't put it on `window`; any script on the page could then change settings or read the text. The API key can only be set through it, never read back.
+- **Settings hold no secrets.** `getSettings()` and `onSettingsChange` never include the API key, so hosts can store the settings, e.g. per user.
+- **Spelling and the browser.** `orthography: false` lets the browser's own spellcheck underline the text again. Some browsers' enhanced spellcheck (Chrome, Edge) sends the text to the vendor's service; with `orthography: true` (the default) the editor turns the browser's spellcheck off.
 
 ## Storage
 
