@@ -20,7 +20,14 @@ const alert = (data: Record<string, unknown>): Alert =>
     from: 1,
     to: 2,
     id: 1,
-    detail: {data: {subcategory: SUBCATEGORY, alternatives: [], ...data}},
+    detail: {
+      data: {
+        subcategory: SUBCATEGORY,
+        alternatives: [],
+        language: 'de',
+        ...data,
+      },
+    },
   }) as unknown as Alert;
 
 describe('switchRequestConfig', () => {
@@ -157,7 +164,11 @@ describe('decideSwitch', () => {
   it('applies nothing when the API applied another format', () => {
     expect(
       decideSwitch(
-        {separators: ['In'], bulkActions: [['gender_format']]},
+        {
+          responses: [
+            {language: 'de', separator: 'In', bulkActions: ['gender_format']},
+          ],
+        },
         ':in',
         'Lehrer*innen',
         [bulk]
@@ -168,7 +179,11 @@ describe('decideSwitch', () => {
   it('applies the bulk alerts', () => {
     expect(
       decideSwitch(
-        {separators: [':in'], bulkActions: [['gender_format']]},
+        {
+          responses: [
+            {language: 'de', separator: ':in', bulkActions: ['gender_format']},
+          ],
+        },
         ':in',
         'Lehrer*innen',
         [bulk]
@@ -180,15 +195,57 @@ describe('decideSwitch', () => {
   });
 
   it('reads bulk_actions for why nothing was switched', () => {
-    const decide = (bulkActions: (string[] | undefined)[]) =>
-      decideSwitch({separators: [], bulkActions}, ':in', 'Lehrer*innen', [])
-        .outcome;
+    const decide = (
+      bulkActions: string[] | undefined,
+      target = ':in',
+      previous?: string
+    ) =>
+      decideSwitch(
+        {responses: [{language: 'de', bulkActions}]},
+        target,
+        'Lehrer*innen',
+        [],
+        {previous}
+      ).outcome;
 
-    expect(decide([['gender_format']])).toBe('nothing');
-    expect(decide([[]])).toBe('disabled');
-    // Without bulk_actions, the guess from the text.
-    expect(decide([undefined])).toBe('disabled');
+    expect(decide(['gender_format'])).toBe('nothing');
+    expect(decide(['gender_format'], ':in', 'de-e')).toBe('fromInklusivum');
     expect(decide([])).toBe('disabled');
+    // An API that cannot switch into the Inklusivum answers the same way.
+    expect(decide([], 'de-e')).toBe('unsupported');
+    // Without bulk_actions, the guess from the text.
+    expect(decide(undefined)).toBe('disabled');
+  });
+
+  it('looks only at the switched language', () => {
+    const french = alert({
+      bulk: 'gender_format',
+      alternatives: [{text: 'enseignant·es'}],
+      language: 'fr',
+    });
+    const info = {
+      responses: [
+        {language: 'de', separator: '*in', bulkActions: ['gender_format']},
+        {language: 'fr', separator: '·', bulkActions: ['gender_format']},
+      ],
+    };
+
+    // The German format differs from the French target, and is no force.
+    expect(decideSwitch(info, '·', '', [french], {language: 'fr'})).toEqual({
+      outcome: 'switched',
+      apply: [{from: 1, to: 2, text: 'enseignant·es'}],
+    });
+    expect(decideSwitch(info, '*in', '', [french]).outcome).toBe('nothing');
+    // No text in the language at all.
+    expect(
+      decideSwitch({responses: []}, '·', '', [], {language: 'fr'}).outcome
+    ).toBe('nothing');
+    // French on an API without bulk_actions: it cannot switch French.
+    expect(
+      decideSwitch({responses: [{language: 'fr'}]}, '·', '', [], {
+        language: 'fr',
+      }).outcome
+    ).toBe('unsupported');
   });
 });
 
@@ -621,12 +678,12 @@ describe('switchGenderFormat', () => {
     );
   });
 
-  it('does not switch to the Inklusivum', async () => {
+  it('does not switch to something that is no gender format', async () => {
     const editor = mountEditor();
     await vi.waitFor(() => expect(bodies.length).toBeGreaterThan(0));
     const before = bodies.length;
 
-    expect((await editor.switchGenderFormat('de-e')).outcome).toBe(
+    expect((await editor.switchGenderFormat('xyz')).outcome).toBe(
       'unavailable'
     );
     expect(bodies).toHaveLength(before);
@@ -737,9 +794,7 @@ describe('W menu', () => {
     expect(labels[3]).toBe('Genderstar, f.e Expert*in');
     const inklusivum = formats[8];
     expect(inklusivum.textContent).toBe('Inklusivum, f.e Experte');
-    expect(inklusivum.getAttribute('aria-disabled')).toBe('true');
-    inklusivum.click();
-    expect(editor.getSettings().config).toEqual({});
+    expect(inklusivum.getAttribute('aria-disabled')).toBeNull();
 
     formats[4].click(); // Colon
 
