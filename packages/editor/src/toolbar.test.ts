@@ -460,6 +460,67 @@ describe('settings panel changes', () => {
     expect(handle?.getSettings().llmAlternatives).toBe(true);
   });
 
+  it("applies the host's settings in one change", async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(checkBodies.length).toBeGreaterThan(0));
+    const before = checkBodies.length;
+    const spellcheck = () => editor.editor.view.dom.getAttribute('spellcheck');
+    expect(spellcheck()).toBe('false');
+    const config = {german_gender_ending: ':in' as const};
+
+    editor.updateSettings({orthography: false, config});
+
+    expect(settingsChanges).toHaveLength(1);
+    expect(settingsChanges[0]).toEqual({
+      config: {german_gender_ending: ':in'},
+      llmAlternatives: false,
+      orthography: false,
+    });
+    await vi.waitFor(() => expect(spellcheck()).toBe('true'));
+    await vi.waitFor(() => expect(checkBodies.length).toBe(before + 1));
+    expect(checkBodies.at(-1)?.config).toEqual({german_gender_ending: ':in'});
+
+    // The host's object stays its own.
+    (config as {german_gender_ending: string}).german_gender_ending = '*in';
+    expect(editor.getSettings().config).toEqual({german_gender_ending: ':in'});
+    // The same again: no change, no check.
+    editor.updateSettings({config: {german_gender_ending: ':in'}});
+    expect(settingsChanges).toHaveLength(1);
+  });
+
+  it('refuses settings of the wrong type, changing nothing', () => {
+    const editor = mountEditor();
+    const loose = editor.updateSettings as (settings: unknown) => void;
+
+    expect(() => loose({llmAlternatives: 'false'})).toThrow(TypeError);
+    expect(() => loose({orthography: 1})).toThrow(TypeError);
+    expect(() => loose({config: null})).toThrow(TypeError);
+    expect(() => loose({config: [], llmAlternatives: true})).toThrow(TypeError);
+    expect(editor.getSettings()).toEqual({
+      config: {},
+      llmAlternatives: false,
+      orthography: true,
+    });
+    expect(settingsChanges).toEqual([]);
+  });
+
+  it('shows AI suggestions switched by the host', async () => {
+    const editor = mountEditor();
+    await openSettings();
+    const checkbox = () =>
+      document.querySelector<HTMLInputElement>(
+        'input[id$="opt-llm-alternatives"]'
+      )!;
+    expect(checkbox().checked).toBe(false);
+
+    editor.updateSettings({llmAlternatives: true});
+
+    await vi.waitFor(() => expect(checkbox().checked).toBe(true));
+    expect(settingsChanges.map((settings) => settings.llmAlternatives)).toEqual(
+      [true]
+    );
+  });
+
   it('asks for labels in its language, and without on older APIs', async () => {
     const optionUrls: string[] = [];
     vi.stubGlobal(

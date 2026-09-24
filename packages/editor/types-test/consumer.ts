@@ -30,6 +30,9 @@ const handle: WittyEditorHandle = mount(document.createElement('div'), {
 });
 
 handle.setApiKey('key');
+handle.updateSettings({llmAlternatives: false, orthography: true});
+// @ts-expect-error settings are booleans
+handle.updateSettings({llmAlternatives: 'false'});
 handle
   .switchGenderFormat('de-e')
   .then((result: GenderFormatSwitchResult) => result.outcome === 'forced');

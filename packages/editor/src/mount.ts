@@ -536,17 +536,17 @@ export const mount: Mount = (
     return switching;
   };
 
+  // Changes the user makes (the settings panel) or asks for through the host
+  // (updateSettings); either way, tell the host.
+  const changeSettings = (next: Partial<EditorSettings>): void => {
+    settings.set(next);
+    onSettingsChange?.(settings.get());
+  };
+
   const toolbarHandle = toolbar
     ? mountToolbar(toolbarHost, {
         editor,
-        store: {
-          ...settings,
-          // Changes from the panel are the user's; tell the host.
-          set: (next): void => {
-            settings.set(next);
-            onSettingsChange?.(settings.get());
-          },
-        },
+        store: {...settings, set: changeSettings},
         status,
         loadOptions,
         onSwitch: async (target) => {
@@ -571,6 +571,49 @@ export const mount: Mount = (
     setConfig(next: CheckConfig): void {
       // Replaces, never merges; the store's subscriber re-checks.
       settings.set({config: next});
+    },
+    updateSettings(next: Partial<EditorSettings>): void {
+      // Hosts in plain JavaScript bypass the types: a string "false" would
+      // read as true and switch LLM requests on. Refuse, changing nothing.
+      for (const field of ['llmAlternatives', 'orthography'] as const) {
+        if (next[field] !== undefined && typeof next[field] !== 'boolean') {
+          throw new TypeError(`updateSettings: ${field} must be a boolean`);
+        }
+      }
+      if (
+        next.config !== undefined &&
+        (typeof next.config !== 'object' ||
+          next.config === null ||
+          Array.isArray(next.config))
+      ) {
+        throw new TypeError('updateSettings: config must be an object');
+      }
+      const current = settings.get();
+      const changed: Partial<EditorSettings> = {};
+      if (
+        next.llmAlternatives !== undefined &&
+        next.llmAlternatives !== current.llmAlternatives
+      ) {
+        changed.llmAlternatives = next.llmAlternatives;
+      }
+      if (
+        next.orthography !== undefined &&
+        next.orthography !== current.orthography
+      ) {
+        changed.orthography = next.orthography;
+      }
+      // A copy: the host keeps its object, the editor its settings.
+      if (
+        next.config !== undefined &&
+        JSON.stringify(next.config) !== JSON.stringify(current.config)
+      ) {
+        changed.config = structuredClone(next.config);
+      }
+      // Nothing new: no check, no onSettingsChange.
+      if (!Object.keys(changed).length) return;
+      // The store's subscriber checks again for a new config, drops the
+      // rewrites already fetched, and flips the browser spellcheck.
+      changeSettings(changed);
     },
     getText: (): string => editor.getText(),
     switchGenderFormat,
