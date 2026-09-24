@@ -69,13 +69,13 @@ For the script tag in a TypeScript project, the same types describe the global: 
 It returns a handle:
 
 - `setApiKey(key)`: replace the API key and check again.
-- `setConfig(config)`: replace the whole check config (no merging) and check again; `{}` sends none.
+- `setConfig(config)`: replace the whole check config (no merging) and check again; `{}` sends none. The same config again changes nothing, so a host can pass its config on every render. The editor keeps a copy: changing the object afterwards has no effect.
 - `updateSettings(settings)`: change settings from the host, e.g. its own form, as the settings panel does (the panel follows). The fields given replace the current ones and the rest stay: `updateSettings({llmAlternatives: true})`, `updateSettings({orthography: false})`. `config`, when given, is replaced whole, as with `setConfig`; to change one field of it, start from `getSettings().config`. Calls `onSettingsChange` once if anything changed, and nothing happens if nothing did. A changed `config` checks the text again; popovers opened afterwards follow `llmAlternatives`, an open one keeps what it shows. A value of the wrong type (`llmAlternatives: 'false'`, a `config` that is not an object) throws a `TypeError` and changes nothing. Unlike `setConfig`, which is for the host's own changes, this reports to `onSettingsChange`, so a host that stores the settings there sees changes from its form and from the panel alike.
 - `getSettings()`: the current settings, `{config, llmAlternatives, orthography}`, as a copy; the same object `onSettingsChange` receives.
 - `getText()`: the document as plain text.
-- `switchGenderFormat(target)`: rewrite the text into a German or French gender format, as the menu does (see below); `target` is a `german_gender_ending` or `french_gender_separator` value. Resolves with `{outcome, target, count, limitReached}`; `outcome` is `switched`, `nothing`, `fromInklusivum` (nothing switched, and the text was in the Inklusivum, which the API cannot convert out of yet), `disabled` (the account keeps these alerts off), `forced` (the account forces another format, given as `applied`; nothing is changed), `unsupported` (the API cannot switch to this target yet) or `unavailable` (not a gender format).
+- `switchGenderFormat(target)`: rewrite the text into a German or French gender format, as the menu does (see below); `target` is a `german_gender_ending` or `french_gender_separator` value. Resolves with `{outcome, target, count, limitReached}`; `outcome` is `switched`, `nothing`, `fromInklusivum` (nothing switched, and the text was in the Inklusivum, which the API cannot convert out of yet), `disabled` (the account keeps these alerts off), `forced` (the account forces another format, given as `applied`; nothing is changed), `unsupported` (the API cannot switch to this target yet) or `unavailable` (not a gender format). Rejects if the switch's check fails (e.g. a refused key or a timeout; the previous settings are restored and nothing is rewritten) or the editor is destroyed meanwhile (an error named `EditorDestroyedError`).
 - `editor`: the underlying [TipTap](https://tiptap.dev) editor.
-- `destroy()`: remove the editor and everything it added to the page.
+- `destroy()`: remove the editor and everything it added to the page. A switch still running rejects.
 
 ## Status and errors
 
@@ -87,7 +87,7 @@ It returns a handle:
 | `{state: 'unauthorized'}` | The API refused the key (401) or the token behind it (403) | Cleared |
 | `{state: 'outdated', message}` | The API no longer supports this editor version (400); `message` is the API's explanation. The page needs to load a newer version | Cleared |
 | `{state: 'unsupportedLanguage'}` | The API could not tell the text's language (422) | Cleared |
-| `{state: 'error', message}` | Anything else, e.g. the API is unreachable or answered 5xx | Kept until the next check |
+| `{state: 'error', message}` | Anything else, e.g. the API is unreachable, answered 5xx, or gave no answer within 30 seconds | Kept until the next check |
 
 The W icon and the live region say the same to the user. Checks send `client: "witty-editor:<version>"`, so the API can require a minimum version for the editor separately from the browser extension (`web-ext`).
 

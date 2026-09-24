@@ -3,6 +3,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
   type CheckConfig,
   CheckHttpError,
+  CheckTimeoutError,
   createHttpChecker,
   genderSeparatorFor,
 } from './checkClient';
@@ -114,6 +115,54 @@ describe('createHttpChecker', () => {
     expect((error as Error).message).toBe(
       "check failed: HTTP 422: config.german_gender_ending: Input should be '/in', ..."
     );
+  });
+});
+
+describe('createHttpChecker timeouts', () => {
+  /** A fetch that never answers, until its signal aborts it. */
+  const hang = () =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init.signal?.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError'))
+            );
+          })
+      )
+    );
+
+  it('fails a request that takes longer than its timeout', async () => {
+    hang();
+    const checker = createHttpChecker({
+      endpoint: 'https://api.example/',
+      timeoutMs: 20,
+    });
+
+    const error = await checker('Hallo', new AbortController().signal).catch(
+      (caught: unknown) => caught
+    );
+
+    expect(error).toBeInstanceOf(CheckTimeoutError);
+    expect((error as Error).message).toBe(
+      'check failed: no answer within 0.02s'
+    );
+  });
+
+  it('is aborted by its caller without counting as a timeout', async () => {
+    hang();
+    const controller = new AbortController();
+    const pending = createHttpChecker({
+      endpoint: 'https://api.example/',
+      timeoutMs: 10_000,
+    })('Hallo', controller.signal).catch((caught: unknown) => caught);
+
+    controller.abort();
+
+    const error = await pending;
+    expect(error).not.toBeInstanceOf(CheckTimeoutError);
+    expect((error as Error).name).toBe('AbortError');
   });
 });
 

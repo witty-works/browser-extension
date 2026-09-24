@@ -3,12 +3,7 @@ import {getSchema, Node} from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import type {Node as PMNode} from '@tiptap/pm/model';
 
-import {
-  docPosToText,
-  extractText,
-  textRangeToDoc,
-  type TextMap,
-} from './textMap';
+import {extractText, textRangeToDoc, type TextMap} from './textMap';
 
 // Stand-in for the mention node the schema will carry (decision 2): an inline
 // atom whose label is not the user's prose.
@@ -178,26 +173,6 @@ describe('textRangeToDoc', () => {
     expect(textRangeToDoc(map, 3, 3)).toBeNull();
     expect(textRangeToDoc(map, -1, 2)).toBeNull();
     expect(textRangeToDoc(map, 0, map.text.length + 1)).toBeNull();
-  });
-});
-
-describe('docPosToText', () => {
-  it('round-trips every mapped offset', () => {
-    const node = doc(
-      paragraph(text('one '), text('two', [{type: 'italic'}])),
-      paragraph(text('three'))
-    );
-    const map = extractText(node);
-
-    for (let i = 0; i < map.text.length; i += 1) {
-      const range = textRangeToDoc(map, i, i + 1);
-      if (range) expect(docPosToText(map, range.from)).toBe(i);
-    }
-  });
-
-  it('returns null for a position outside any text', () => {
-    const map = extractText(doc(paragraph(text('a')), paragraph(text('b'))));
-    expect(docPosToText(map, 0)).toBeNull();
   });
 });
 

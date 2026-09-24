@@ -34,9 +34,27 @@ export const cleanConfig = (config?: CheckConfig): CheckConfig | undefined => {
     : undefined;
 };
 
+/**
+ * How long a check request may take before it fails, in ms. A long batch
+ * takes the API a few seconds; without a limit, a request that never returns
+ * would leave the check, and a gender format switch waiting for it, pending
+ * for good.
+ */
+export const CHECK_TIMEOUT_MS = 30_000;
+
+/** A check request that took longer than its timeout. */
+export class CheckTimeoutError extends Error {
+  constructor(timeoutMs: number) {
+    super(`check failed: no answer within ${timeoutMs / 1000}s`);
+    this.name = 'CheckTimeoutError';
+  }
+}
+
 export interface HttpCheckerOptions {
   /** API base URL with trailing slash, e.g. `https://default.api.witty.works/`. */
   endpoint: string;
+  /** See CHECK_TIMEOUT_MS. */
+  timeoutMs?: number;
   /** Extra headers, e.g. an Authorization header from a credential provider. */
   headers?: () => Promise<Record<string, string>> | Record<string, string>;
   lang?: CheckLang;
@@ -133,22 +151,43 @@ export const createHttpChecker =
     // `mount` passes a random one per editor.
     id = 'witty-editor',
     config,
+    timeoutMs = CHECK_TIMEOUT_MS,
   }: HttpCheckerOptions): Checker =>
   async (text, signal) => {
     const cleaned = cleanConfig(config?.());
-    const response = await fetch(`${endpoint}${CHECK_PATH}`, {
-      method: 'POST',
-      signal,
-      headers: {...JSON_HEADERS, ...(headers ? await headers() : {})},
-      body: JSON.stringify(
-        buildCheckBody({text, lang, id, client, config: cleaned})
-      ),
-    });
+    // Aborted by the caller (a newer check) or by the timeout, whichever
+    // comes first; only the timeout is an error.
+    const controller = new AbortController();
+    const abort = (): void => controller.abort();
+    if (signal.aborted) abort();
+    signal.addEventListener('abort', abort);
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeoutMs);
 
-    if (!response.ok) {
-      const {detail, types} = await errorDetail(response);
-      throw new CheckHttpError(response.status, detail, types);
+    try {
+      const response = await fetch(`${endpoint}${CHECK_PATH}`, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {...JSON_HEADERS, ...(headers ? await headers() : {})},
+        body: JSON.stringify(
+          buildCheckBody({text, lang, id, client, config: cleaned})
+        ),
+      });
+
+      if (!response.ok) {
+        const {detail, types} = await errorDetail(response);
+        throw new CheckHttpError(response.status, detail, types);
+      }
+
+      return (await response.json()) as ICheckResponse;
+    } catch (error) {
+      if (timedOut) throw new CheckTimeoutError(timeoutMs);
+      throw error;
+    } finally {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
     }
-
-    return (await response.json()) as ICheckResponse;
   };

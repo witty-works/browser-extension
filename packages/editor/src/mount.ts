@@ -21,25 +21,12 @@ import {
   checkPluginKey,
   clearAlerts,
   getAlerts,
-  getTextLanguages,
   isLimitReached,
   requestRecheck,
   WittyCheck,
 } from './checkPlugin';
-import {
-  applyEdits,
-  decideSwitch,
-  GENDER_FORMAT_BULK,
-  type GenderFormatSwitchResult,
-  FORMAT_FIELD,
-  formatLanguage,
-  INKLUSIVUM,
-  SWITCHABLE_FORMATS,
-  type SwitchCheckInfo,
-  type SwitchLanguage,
-  switchRequestConfig,
-} from './genderSwitch';
 import type {EditorStatus, Mount, MountOptions, WittyEditorHandle} from './api';
+import {createCheckWaiters} from './checkWaiters';
 import {PopoverHost} from './popover';
 import {
   type CheckStatus,
@@ -48,11 +35,11 @@ import {
   type EditorSettings,
 } from './settings';
 import {
-  createOptionsLoader,
-  mountToolbar,
-  switchMessage,
-  TOOLBAR_STYLES,
-} from './toolbar';
+  createSwitchController,
+  SWITCH_META,
+  type SwitchController,
+} from './switchController';
+import {createOptionsLoader, mountToolbar, TOOLBAR_STYLES} from './toolbar';
 
 /**
  * A random id for `installationId`. `crypto.randomUUID` needs a secure
@@ -82,9 +69,6 @@ const errorStatus = (
   }
   return {state: 'error', message};
 };
-
-/** Marks the switch's own edit, which must not clear its message. */
-const SWITCH_META = 'wittyGenderFormatSwitch';
 
 /**
  * Embeddable entry point: `WittyEditor.mount(element, options)`. The PoC shape
@@ -208,19 +192,14 @@ export const mount: Mount = (
   });
   const headers = (): Record<string, string> =>
     credentialHeaders({apiKey: key});
-  // While a gender format switch runs, its checks use this config instead:
-  // the user's, with the gender-format alerts switched on. Never stored.
-  let switchConfig: CheckConfig | null = null;
+  // Set once the editor exists: the gender format switch, whose checks use
+  // their own config while it runs.
+  const switcherRef: {current?: SwitchController} = {};
   const requestConfig = (): CheckConfig =>
-    switchConfig ?? settings.get().config;
-  // What the switch's own check responses said; collected while it runs.
-  let switchInfo: SwitchCheckInfo | null = null;
-  // Whether the API has bulk actions: every response of one that has says so
-  // (`bulk_actions`); a switch can also find an API that predates them.
-  let bulkSupport: 'unknown' | 'yes' | 'no' = 'unknown';
-  // Targets a switch found the API cannot convert to yet (`bulk_actions`
-  // without "gender_format" for French or the Inklusivum).
-  const unsupportedTargets = new Set<string>();
+    switcherRef.current?.requestConfig() ?? settings.get().config;
+  let destroyed = false;
+  // Callers waiting for the next complete check (the switch).
+  const waiters = createCheckWaiters();
   // Both are read per request, so `setApiKey` and settings changes reach the
   // next check without rebuilding the checker.
   const httpCheck = createHttpChecker({
@@ -231,34 +210,11 @@ export const mount: Mount = (
     config: requestConfig,
   });
   const check: Checker = async (text, signal) => {
-    const info = switchInfo;
+    const record = switcherRef.current?.request();
     const response = await httpCheck(text, signal);
-    if (
-      response.bulk_actions ||
-      response.results?.some((result) => result.bulk === GENDER_FORMAT_BULK)
-    ) {
-      bulkSupport = 'yes';
-    }
-    info?.responses.push({
-      language: response.language,
-      separator: response.gender_separator,
-      bulkActions: response.bulk_actions,
-    });
+    record?.(response);
     return response;
   };
-
-  // Callers waiting for the next complete check (a switch): armed when a
-  // check starts after they began waiting, settled by its last batch.
-  interface CheckWaiter {
-    armed: boolean;
-    resolve: (limitReached: boolean) => void;
-    reject: (error: unknown) => void;
-  }
-  const waiters = new Set<CheckWaiter>();
-  const nextCompleteCheck = (): Promise<boolean> =>
-    new Promise((resolve, reject) => {
-      waiters.add({armed: false, resolve, reject});
-    });
 
   // Highlights are visual only; tell screen reader users how to reach them.
   const hint = document.createElement('span');
@@ -322,8 +278,7 @@ export const mount: Mount = (
           if (next.state !== 'error') clearAlerts(editor.view);
           status.set({status: next});
           onStatus?.(next);
-          waiters.forEach((waiter) => waiter.reject(error));
-          waiters.clear();
+          waiters.failed(error);
         },
       }),
       popoverTriggers(() => popoverRef.current),
@@ -340,16 +295,10 @@ export const mount: Mount = (
         {type?: string; complete?: boolean} | undefined;
       if (meta?.type === 'start') {
         status.set({status: {state: 'checking'}});
-        waiters.forEach((waiter) => {
-          waiter.armed = true;
-        });
+        waiters.started();
       }
       if (meta?.type === 'results' && meta.complete !== false) {
-        for (const waiter of waiters) {
-          if (!waiter.armed) continue;
-          waiter.resolve(isLimitReached(current.state));
-          waiters.delete(waiter);
-        }
+        waiters.completed(isLimitReached(current.state));
       }
       // A switch's message stays until the user edits the text.
       if (transaction.docChanged && !transaction.getMeta(SWITCH_META)) {
@@ -414,127 +363,19 @@ export const mount: Mount = (
   const t = (name: string, options?: Record<string, unknown>): string =>
     i18n.t(name, {ns: namespaces.editor, ...options});
 
-  let switching: Promise<GenderFormatSwitchResult> | null = null;
-
-  /**
-   * The languages whose formats "Switch gender format…" offers: the host's
-   * `lang` if it fixed German or French, otherwise German and French as far as
-   * the API found them in the text, most of the text first. A text in neither
-   * (or not checked yet) gets both.
-   */
-  const switchLanguages = (): SwitchLanguage[] => {
-    const fixed = lang.slice(0, 2);
-    if (fixed === 'de' || fixed === 'fr') return [fixed];
-    const found = getTextLanguages(editor.state);
-    const present = (['de', 'fr'] as const)
-      .filter((language) => found[language])
-      .sort((a, b) => found[b] - found[a]);
-    return present.length ? present : ['de', 'fr'];
-  };
-
-  const runSwitch = async (
-    target: string
-  ): Promise<GenderFormatSwitchResult> => {
-    const language = formatLanguage(target);
-    if (!language) {
-      return {outcome: 'unavailable', target, count: 0, limitReached: false};
-    }
-
-    // 1. The target becomes the configured format of its language (the
-    //    toolbar shows it; the other language's stays), and the switch's
-    //    checks ask for the gender-format alerts regardless of the user's
-    //    category settings, which stay as they are.
-    const field = FORMAT_FIELD[language];
-    const previousConfig = settings.get().config;
-    const userConfig: CheckConfig = {...previousConfig, [field]: target};
-    switchConfig = switchRequestConfig(userConfig, target, language).config;
-    const info: SwitchCheckInfo = {responses: []};
-    switchInfo = info;
-    const checked = nextCompleteCheck();
-    settings.set({config: userConfig});
-    // Also clears the sentence cache: only fresh responses say which format
-    // the API applied.
-    requestRecheck(editor.view);
-
-    let limitReached: boolean;
-    try {
-      // 2. Every batch of the text, not only the first.
-      limitReached = await checked;
-    } finally {
-      switchConfig = null;
-      switchInfo = null;
-    }
-
-    // 3. All bulk alerts in one transaction: one undo restores the text. Not
-    //    when the account forces another format: they would convert to that.
-    const decision = decideSwitch(
-      info,
-      target,
-      editor.state.doc.textContent,
-      getAlerts(editor.state),
-      {language, previous: previousConfig[field]}
-    );
-    let result: GenderFormatSwitchResult;
-    if (decision.outcome === 'switched') {
-      editor.view.dispatch(
-        applyEdits(editor.state, decision.apply).setMeta(SWITCH_META, true)
-      );
-      result = {
-        outcome: 'switched',
-        target,
-        count: decision.apply.length,
-        limitReached,
-      };
-    } else if (decision.outcome === 'forced') {
-      // The setting would not take effect either.
-      settings.set({config: previousConfig});
-      result = {
-        outcome: 'forced',
-        target,
-        count: 0,
-        limitReached,
-        applied: decision.applied,
-      };
-    } else {
-      if (decision.outcome === 'unsupported') {
-        // An API without bulk actions at all, or one that cannot switch to
-        // this target yet: then the other targets it can't either.
-        const knowsBulkActions = info.responses.some(
-          ({bulkActions}) => bulkActions
-        );
-        if (!knowsBulkActions && language === 'de') bulkSupport = 'no';
-        const targets =
-          language === 'fr' ? SWITCHABLE_FORMATS.fr : [INKLUSIVUM];
-        if (knowsBulkActions || language === 'fr') {
-          targets.forEach((format) => unsupportedTargets.add(format));
-        }
-      }
-      result = {outcome: decision.outcome, target, count: 0, limitReached};
-    }
-    // Back to the user's own settings for the underlines.
-    requestRecheck(editor.view);
-
-    // 4. Said in the live region and to the host.
-    const options = await loadOptions().catch(() => null);
-    status.set({notice: switchMessage(t, result, options)});
-    onStatus?.({
-      state: 'idle',
-      alerts: getAlerts(editor.state).length,
-      limitReached: isLimitReached(editor.state),
-      genderFormatSwitch: result,
-    });
-    return result;
-  };
-
-  const switchGenderFormat = (
-    target: string
-  ): Promise<GenderFormatSwitchResult> => {
-    // One at a time: a second request waits for the running one.
-    switching = (switching ?? Promise.resolve())
-      .catch(() => undefined)
-      .then(() => runSwitch(target));
-    return switching;
-  };
+  const switchController = createSwitchController({
+    editor,
+    settings,
+    status,
+    waiters,
+    loadOptions,
+    t,
+    lang,
+    onStatus,
+    destroyed: (): boolean => destroyed,
+  });
+  switcherRef.current = switchController;
+  const {switchGenderFormat} = switchController;
 
   // Changes the user makes (the settings panel) or asks for through the host
   // (updateSettings); either way, tell the host.
@@ -555,9 +396,8 @@ export const mount: Mount = (
           onSettingsChange?.(settings.get());
           return result;
         },
-        switchSupported: (target?: string): boolean =>
-          bulkSupport !== 'no' && !(target && unsupportedTargets.has(target)),
-        switchLanguages,
+        switchSupported: switchController.supported,
+        switchLanguages: switchController.languages,
       })
     : undefined;
 
@@ -569,8 +409,12 @@ export const mount: Mount = (
       requestRecheck(editor.view);
     },
     setConfig(next: CheckConfig): void {
-      // Replaces, never merges; the store's subscriber re-checks.
-      settings.set({config: next});
+      // Replaces, never merges; the store's subscriber re-checks. The same
+      // config again changes nothing, so a host may pass it on every render.
+      if (JSON.stringify(next) === JSON.stringify(settings.get().config)) {
+        return;
+      }
+      settings.set({config: structuredClone(next)});
     },
     updateSettings(next: Partial<EditorSettings>): void {
       // Hosts in plain JavaScript bypass the types: a string "false" would
@@ -622,6 +466,9 @@ export const mount: Mount = (
       return {...current, config: structuredClone(current.config)};
     },
     destroy: (): void => {
+      destroyed = true;
+      // A switch waiting for its check ends with an error, not never.
+      waiters.destroy();
       unsubscribe();
       toolbarHandle?.destroy();
       popover.destroy();

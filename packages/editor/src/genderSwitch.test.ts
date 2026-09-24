@@ -4,7 +4,10 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {CATEGORIES, CONFIG_OPTIONS} from '@witty/test-fixtures/mockApi';
 import type {Alert} from './checkPlugin';
 import type {CheckConfig} from './checkClient';
+import {EditorDestroyedError} from './checkWaiters';
+import {CheckHttpError} from './checkClient';
 import {
+  applyEdits,
   bulkEdits,
   decideSwitch,
   hasFormsOutside,
@@ -417,6 +420,85 @@ const openMenu = async () => {
   tool('Witty menu').click();
   await vi.waitFor(() => expect(menuItems()).toHaveLength(4));
 };
+
+describe('applyEdits', () => {
+  it('skips an edit overlapping one further back', () => {
+    const editor = mountEditor({content: '<p>abcdefghij</p>'});
+    // Positions from 1: "cde" and "efg" overlap; "ij" stands alone.
+    const tr = applyEdits(editor.editor.state, [
+      {from: 3, to: 6, text: 'X'},
+      {from: 5, to: 8, text: 'Y'},
+      {from: 9, to: 11, text: 'Z'},
+    ]);
+
+    expect(tr.doc.textContent).toBe('abcdYhZ');
+  });
+});
+
+describe('a switch that cannot finish', () => {
+  it('restores the settings when its check fails', async () => {
+    const editor = mountEditor({config: {german_gender_ending: '*in'}});
+    await vi.waitFor(() => expect(bodies.length).toBeGreaterThan(0));
+    await vi.waitFor(() =>
+      expect(statuses.at(-1)).toMatchObject({state: 'idle'})
+    );
+    // The key stops being accepted.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.includes('/v2.4/check')) {
+          bodies.push(JSON.parse(String(init?.body)));
+          return new Response('{"detail":"nope"}', {status: 401});
+        }
+        return new Response(JSON.stringify(CONFIG_OPTIONS));
+      })
+    );
+    const before = bodies.length;
+
+    const error = await editor
+      .switchGenderFormat(':in')
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(CheckHttpError);
+    expect(editor.getSettings().config).toEqual({german_gender_ending: '*in'});
+    expect(editor.getText()).toBe(TEXT);
+    // Checked again with the restored settings.
+    await vi.waitFor(() =>
+      expect(bodies.at(-1)?.config?.german_gender_ending).toBe('*in')
+    );
+    expect(bodies.length).toBeGreaterThan(before + 1);
+  });
+
+  it('ends with an error when the editor is destroyed', async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(bodies.length).toBeGreaterThan(0));
+    // The API stops answering.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError'))
+            );
+          })
+      )
+    );
+    const pending = editor
+      .switchGenderFormat(':in')
+      .catch((caught: unknown) => caught);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    editor.destroy();
+    handle = undefined;
+
+    expect(await pending).toBeInstanceOf(EditorDestroyedError);
+    // Queued behind it: refused as well, not left waiting.
+    expect(
+      await editor.switchGenderFormat('_in').catch((caught: unknown) => caught)
+    ).toBeInstanceOf(EditorDestroyedError);
+  });
+});
 
 describe('switchGenderFormat', () => {
   it('applies exactly the bulk alerts, undone in one step', async () => {
