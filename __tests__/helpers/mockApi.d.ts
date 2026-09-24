@@ -18,6 +18,10 @@ export const CATEGORIES: {
 };
 export const CONFIG_OPTIONS: Record<string, unknown>;
 export function authResponse(): Record<string, unknown>;
+export function buildCheckResult(
+  alert: Record<string, unknown>,
+  index: number
+): Record<string, unknown>;
 export function checkResponse(text: string): {
   results: Record<string, unknown>[];
   language: string;

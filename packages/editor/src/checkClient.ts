@@ -116,11 +116,19 @@ export const genderSeparatorFor = (
   return undefined;
 };
 
-/** A non-2xx answer from the API; `status` lets callers tell 401/403 apart. */
+/** The error type of a 422 the API sends for text in a language it can't tell. */
+export const LANGUAGE_NOT_SUPPORTED = 'value_error.not_supported';
+
+/**
+ * A non-2xx answer from the API. `status` lets callers tell 401/403 apart;
+ * `types` are the `type`s of the API's validation errors, e.g. a 422 for an
+ * undetermined language (`LANGUAGE_NOT_SUPPORTED`) from one for a bad request.
+ */
 export class CheckHttpError extends Error {
   constructor(
     readonly status: number,
-    detail?: string
+    readonly detail?: string,
+    readonly types: string[] = []
   ) {
     super(`check failed: HTTP ${status}${detail ? `: ${detail}` : ''}`);
     this.name = 'CheckHttpError';
@@ -130,25 +138,30 @@ export class CheckHttpError extends Error {
 /**
  * The API's own explanation of a refused request, e.g. which config value a
  * 422 rejected. FastAPI sends `detail` as a string or as a list of
- * `{loc, msg}` validation errors.
+ * `{loc, msg, type}` validation errors.
  */
-const errorDetail = async (response: Response): Promise<string | undefined> => {
+const errorDetail = async (
+  response: Response
+): Promise<{detail?: string; types: string[]}> => {
   try {
     const {detail} = (await response.json()) as {
-      detail?: string | {loc?: unknown[]; msg?: string}[];
+      detail?: string | {loc?: unknown[]; msg?: string; type?: string}[];
     };
-    if (typeof detail === 'string') return detail;
+    if (typeof detail === 'string') return {detail, types: []};
     if (Array.isArray(detail)) {
-      return detail
-        .map(({loc, msg}) =>
-          [loc?.slice(1).join('.'), msg].filter(Boolean).join(': ')
-        )
-        .join('; ');
+      return {
+        detail: detail
+          .map(({loc, msg}) =>
+            [loc?.slice(1).join('.'), msg].filter(Boolean).join(': ')
+          )
+          .join('; '),
+        types: detail.flatMap(({type}) => (type ? [type] : [])),
+      };
     }
   } catch (error) {
     // Not JSON; the status alone has to do.
   }
-  return undefined;
+  return {types: []};
 };
 
 /** A `Checker` that POSTs to the NLP API's `/v2.4/check`. */
@@ -158,6 +171,7 @@ export const createHttpChecker =
     headers,
     lang = 'auto',
     client = `witty-editor:${wittyVersion}`,
+    // `mount` passes a random one per editor.
     id = 'witty-editor',
     config,
   }: HttpCheckerOptions): Checker =>
@@ -173,7 +187,8 @@ export const createHttpChecker =
     });
 
     if (!response.ok) {
-      throw new CheckHttpError(response.status, await errorDetail(response));
+      const {detail, types} = await errorDetail(response);
+      throw new CheckHttpError(response.status, detail, types);
     }
 
     return (await response.json()) as ICheckResponse;

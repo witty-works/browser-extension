@@ -160,7 +160,11 @@ const typeAndWaitForHighlights = async (page, text = SAMPLE_TEXT) => {
 const openPopoverForWord = async (page, word) => {
   const target = await page.evaluate(measureWordCenter, word);
   await page.mouse.click(target.x, target.y);
-  await page.waitForFunction(hasElementWithClass, { timeout: 15000 }, ALTERNATIVE_BTN);
+  await page.waitForFunction(
+    hasElementWithClass,
+    { timeout: 15000 },
+    ALTERNATIVE_BTN
+  );
 };
 
 const test = base.extend({

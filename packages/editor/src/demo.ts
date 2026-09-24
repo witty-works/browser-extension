@@ -30,7 +30,9 @@ const handle = mount(document.querySelector<HTMLElement>('#editor')!, {
         ? `${next.alerts} alert${next.alerts === 1 ? '' : 's'}`
         : next.state === 'unauthorized'
           ? 'API key missing or rejected'
-          : next.message;
+          : next.state === 'unsupportedLanguage'
+            ? 'language not recognised'
+            : next.message;
   },
 });
 

@@ -21,6 +21,9 @@ export const de = {
     statusNoAlerts: 'Keine Hinweise',
     statusUnauthorized: 'API-Schlüssel fehlt oder wurde nicht akzeptiert',
     statusFailed: 'Prüfung fehlgeschlagen',
+    statusOutdated:
+      'Diese Version des Witty-Editors wird nicht mehr unterstützt. Die Website muss sie aktualisieren.',
+    statusLanguage: 'Witty kann die Sprache dieses Textes nicht erkennen.',
     shortcutHint:
       'Mit Alt+Umschalt+W öffnest du den Hinweis an der Cursorposition.',
     limitReached: 'Nur ein Teil dieses Textes wurde geprüft.',
@@ -254,6 +257,9 @@ export const en = {
     statusNoAlerts: 'No suggestions',
     statusUnauthorized: 'API key missing or not accepted',
     statusFailed: 'Checking failed',
+    statusOutdated:
+      'This version of the Witty editor is no longer supported. The site needs to update it.',
+    statusLanguage: "Witty can't tell the language of this text.",
     shortcutHint: 'Press Alt+Shift+W to open the suggestion at the cursor.',
     limitReached: 'Only part of this text was checked.',
     menu: 'Witty menu',
@@ -486,6 +492,9 @@ export const fr = {
     statusNoAlerts: 'Aucune suggestion',
     statusUnauthorized: 'Clé API manquante ou refusée',
     statusFailed: 'La vérification a échoué',
+    statusOutdated:
+      "Cette version de l'éditeur Witty n'est plus prise en charge. Le site doit la mettre à jour.",
+    statusLanguage: 'Witty ne reconnaît pas la langue de ce texte.',
     shortcutHint:
       'Appuyez sur Alt+Maj+W pour ouvrir la suggestion à la position du curseur.',
     limitReached: 'Seule une partie de ce texte a été vérifiée.',

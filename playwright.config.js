@@ -14,11 +14,15 @@ const FIXTURE_PORT = Number(process.env.FIXTURE_PORT) || 5174;
 module.exports = defineConfig({
   testDir: './__tests__',
   // The Firefox smoke suite has its own config (playwright.firefox.config.js).
-  testIgnore: ['firefox/**'],
+  testIgnore: ['firefox/**', 'editor/**'],
   // Extensions need a persistent context, and two contexts loading the same
   // unpacked extension at once interfere with each other.
   workers: 1,
   fullyParallel: false,
+  // A few tests time out in full-suite runs but pass on their own (see
+  // packages/editor/FEATURE_GAPS.md); in CI they get another go, and the
+  // report lists them as flaky.
+  retries: process.env.CI ? 2 : 0,
   timeout: 60_000,
   expect: {
     timeout: 10_000,

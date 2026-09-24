@@ -28,6 +28,11 @@
     "test:ui": "npm run build:test && npx playwright test --ui",
     "test:update-snapshots": "npm run build:test && npx playwright test --update-snapshots",
     "test:firefox": "npm run build:test:firefox && npx playwright test --config playwright.firefox.config.js",
+    "test:editor": "npm run build -w @witty-works/editor && npx playwright test --config playwright.editor.config.js",
+    "test:unit": "npm run test:coverage -w @witty-works/editor",
+    "test:all": "npm run lint && npm run typecheck && npm run test:unit && npm run test:editor && npm test && npm run test:firefox",
+    "typecheck": "tsc --noEmit && npm run typecheck -w @witty-works/editor",
+    "dev:editor": "npm run dev -w @witty-works/editor",
     "release-version": "node build/releaseVersion.js"
   },
   "dependencies": {

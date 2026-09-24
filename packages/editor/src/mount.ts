@@ -15,10 +15,12 @@ import {
   type Checker,
   CheckHttpError,
   type CheckLang,
+  LANGUAGE_NOT_SUPPORTED,
   createHttpChecker,
 } from './checkClient';
 import {
   checkPluginKey,
+  clearAlerts,
   getAlerts,
   isLimitReached,
   requestRecheck,
@@ -47,6 +49,35 @@ import {
   TOOLBAR_STYLES,
 } from './toolbar';
 
+/**
+ * A random id for `installationId`. `crypto.randomUUID` needs a secure
+ * context; `getRandomValues` works on any page.
+ */
+const randomId = (): string =>
+  Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) =>
+    byte.toString(16).padStart(2, '0')
+  ).join('');
+
+/** What a failed check means for the user. */
+const errorStatus = (
+  error: unknown
+): Exclude<EditorStatus, {state: 'idle'}> => {
+  const message = error instanceof Error ? error.message : String(error);
+  if (!(error instanceof CheckHttpError)) return {state: 'error', message};
+  if (error.status === 401 || error.status === 403) {
+    return {state: 'unauthorized'};
+  }
+  // An API version or client version the API no longer supports.
+  if (error.status === 400) {
+    return {state: 'outdated', message: error.detail ?? message};
+  }
+  // Validation errors are 422s too; only this one is about the text.
+  if (error.status === 422 && error.types.includes(LANGUAGE_NOT_SUPPORTED)) {
+    return {state: 'unsupportedLanguage'};
+  }
+  return {state: 'error', message};
+};
+
 /** Marks the switch's own edit, which must not clear its message. */
 const SWITCH_META = 'wittyGenderFormatSwitch';
 
@@ -68,7 +99,16 @@ export type EditorStatus =
       /** Set once, on the status right after a gender format switch. */
       genderFormatSwitch?: GenderFormatSwitchResult;
     }
+  /** The API refused the key (401), or the token behind it (403). */
   | {state: 'unauthorized'}
+  /**
+   * The API no longer supports this version of the editor (400): the host
+   * page needs to load a newer one. `message` is the API's explanation.
+   */
+  | {state: 'outdated'; message: string}
+  /** The API could not tell the text's language (422). */
+  | {state: 'unsupportedLanguage'}
+  /** Anything else, e.g. the API is unreachable; the last alerts stay. */
   | {state: 'error'; message: string};
 
 export interface MountOptions {
@@ -109,6 +149,13 @@ export interface MountOptions {
   maxTextLength?: number;
   /** Debounce after the last edit, in ms. */
   delay?: number;
+  /**
+   * Opaque id sent with each check (`id`), as the extension sends its
+   * installation id; it only ends up in the API's request logs. Defaults to
+   * a random id per editor, kept in memory. Pass a stable one, never personal
+   * data, to tell installations apart across page loads.
+   */
+  installationId?: string;
   /**
    * Offer the LLM's sentence rewrites in the popover (`/v1.0/rephrase`). The
    * extension takes this from the organisation config.
@@ -234,6 +281,7 @@ export const mount = (
     maxRequestLength,
     maxTextLength,
     delay = 500,
+    installationId = randomId(),
     llmAlternatives = false,
     llmTimeoutMs = LLM_SUGGESTION_TIMEOUT_MS,
     onStatus,
@@ -269,6 +317,7 @@ export const mount = (
     endpoint,
     headers,
     lang,
+    id: installationId,
     config: requestConfig,
   });
   const check: Checker = async (text, signal) => {
@@ -358,15 +407,11 @@ export const mount = (
         cacheScope: (): string => JSON.stringify([requestConfig(), lang, key]),
         isIgnored: (alert) => ignored.has(alert.data.text),
         onError: (error) => {
-          const next: EditorStatus =
-            error instanceof CheckHttpError &&
-            (error.status === 401 || error.status === 403)
-              ? {state: 'unauthorized'}
-              : {
-                  state: 'error',
-                  message:
-                    error instanceof Error ? error.message : String(error),
-                };
+          const next = errorStatus(error);
+          // The API refused the text as such: the last alerts no longer
+          // stand. Anything else (unreachable, a server error) is likely
+          // passing, so they stay until the next check.
+          if (next.state !== 'error') clearAlerts(editor.view);
           status.set({status: next});
           onStatus?.(next);
           waiters.forEach((waiter) => waiter.reject(error));

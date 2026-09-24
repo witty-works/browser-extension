@@ -115,6 +115,16 @@ export enum StorageKeys {
  * than being silently neutered.
  */
 export const X_KEY = DEV_ENV ? defaultConfig.X_KEY || '' : '';
+
+/**
+ * Characters per check request: the NLP API checks at most TEXT_MAX_LENGTH
+ * (1000 by default) and flags a longer request with `limit_reached`. Longer
+ * texts are sent sentence by sentence in batches of up to this many; a lower
+ * limit on the server is detected and batches shrink (see CheckBudget).
+ */
+export const MAX_CHAR_LENGTH_REQUEST: number =
+  defaultConfig.MAX_CHAR_LENGTH_REQUEST || 1000;
+
 export const STATIC_ACCESS_TOKEN = DEV_ENV
   ? defaultConfig.ACCESS_TOKEN || ''
   : '';
