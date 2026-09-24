@@ -100,6 +100,31 @@ export class PopoverHost {
     return true;
   }
 
+  /**
+   * Where the popover points: the highlight's first line box. A highlight can
+   * wrap onto the next line, where its end lies left of its start, so its two
+   * end points do not make one box; the first line does, as in the extension.
+   */
+  private anchorRect(alert: Alert): DOMRect {
+    const from = this.view.domAtPos(alert.from);
+    const to = this.view.domAtPos(alert.to);
+    const range = document.createRange();
+    range.setStart(from.node, from.offset);
+    range.setEnd(to.node, to.offset);
+    const first = [...range.getClientRects()].find((rect) => rect.width > 0);
+    if (first) return first;
+
+    // No layout to measure (a hidden editor, a test DOM): the end points.
+    const start = this.view.coordsAtPos(alert.from);
+    const end = this.view.coordsAtPos(alert.to);
+    return new DOMRect(
+      start.left,
+      start.top,
+      Math.max(end.right - start.left, 1),
+      start.bottom - start.top
+    );
+  }
+
   close(): void {
     if (this.openId === null) return;
     this.openId = null;
@@ -151,19 +176,12 @@ export class PopoverHost {
       return;
     }
 
-    const start = this.view.coordsAtPos(alert.from);
-    const end = this.view.coordsAtPos(alert.to);
     const data = {
       // 1-based, as the extension counts ("1 of 3").
       index: index + 1,
       totalAlerts: alerts.length,
       alert: alert.detail,
-      position: new DOMRect(
-        start.left,
-        start.top,
-        Math.max(end.right - start.left, 1),
-        start.bottom - start.top
-      ),
+      position: this.anchorRect(alert),
       node: this.view.domAtPos(alert.from).node,
     };
 
