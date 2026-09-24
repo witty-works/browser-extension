@@ -116,6 +116,13 @@ export const genderSeparatorFor = (
   return undefined;
 };
 
+/**
+ * `client` on every request the editor makes, as the API parses it
+ * (`name:version`): it checks the editor against its own minimum version
+ * (MINIMUM_VERSION_WITTY_EDITOR), separately from the extension.
+ */
+export const EDITOR_CLIENT = `witty-editor:${wittyVersion}`;
+
 /** The error type of a 422 the API sends for text in a language it can't tell. */
 export const LANGUAGE_NOT_SUPPORTED = 'value_error.not_supported';
 
@@ -170,7 +177,7 @@ export const createHttpChecker =
     endpoint,
     headers,
     lang = 'auto',
-    client = `witty-editor:${wittyVersion}`,
+    client = EDITOR_CLIENT,
     // `mount` passes a random one per editor.
     id = 'witty-editor',
     config,
