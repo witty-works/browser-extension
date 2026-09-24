@@ -39,10 +39,8 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 
 - [ ] **ES module build and TypeScript types** for bundler users; only the script-tag bundle is published.
 - [ ] **Bundle size**: 287 kB gzipped. chroma-js is loaded but unused by the editor; Preact for the popover would save most of React.
-- [ ] **Browser test of the editor in CI**, and CI running the unit tests, lint and the Firefox smoke suite. Unit tests: `npm run test:coverage -w @witty-works/editor` (coverage thresholds 95% statements, 85% branches). Not covered by them: opening the popover by clicking a highlight, which needs a real layout engine.
-- [ ] **Root scripts** `dev:editor`, `test:unit`, `test:all`.
 - [ ] **Flaky Google Docs e2e test** (`gdocs.spec.js`): it sometimes stalls without highlights, independent of code changes.
-- [ ] **Order-dependent Firefox smoke tests**: "highlights a contenteditable" and "the content script answers the open-popover message" time out in full-suite runs but pass on their own, on older commits too.
+- [ ] **Order-dependent e2e tests**: in Firefox, "highlights a contenteditable" and "the content script answers the open-popover message" time out in full-suite runs but pass on their own, on older commits too. In Chromium, a full local run (2026-09-24) failed four tests in `editors.spec.js` (CKEditor popover), `ignore.spec.js` (API-key mode) and `runtimeErrors.spec.js` that passed when run on their own. CI retries failed tests twice (`retries` in `playwright.config.js`), which hides these rather than fixing them.
 
 ## Only relevant in the extension
 
