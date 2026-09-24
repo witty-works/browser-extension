@@ -131,6 +131,8 @@ interface CachedSentence {
   results: ICheckResponseResult[];
   /** The API checked only the beginning (a sentence over its limit). */
   partial: boolean;
+  /** The language the API detected for the batch the sentence was in. */
+  language?: string;
 }
 
 /**
