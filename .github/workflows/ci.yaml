@@ -1,0 +1,101 @@
+name: CI
+
+# Lint, type checks, the editor's unit tests with coverage, and the browser
+# suites: the editor on a fixture page, the extension in Chromium, and the
+# Firefox smoke suite. Everything runs offline against the mock NLP API
+# (__tests__/helpers/mockApi.js); no dashboard, API or credentials needed.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Use the example config
+        run: cp source/witty.config.json.example source/witty.config.json
+      - run: npm run lint
+      - run: npm run typecheck
+      # Coverage thresholds are enforced by the editor's vite.config.ts.
+      - run: npm run test:unit
+
+  editor-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Use the example config
+        run: cp source/witty.config.json.example source/witty.config.json
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:editor
+      - name: Upload test results
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-test-results
+          path: |
+            test-results-editor
+            playwright-report-editor
+
+  extension-chromium:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Use the example config
+        run: cp source/witty.config.json.example source/witty.config.json
+      - run: npx playwright install --with-deps chromium
+      # Extensions need a headed browser.
+      - run: xvfb-run npm test
+      - name: Upload test results
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-test-results
+          path: |
+            test-results
+            playwright-report
+
+  extension-firefox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Use the example config
+        run: cp source/witty.config.json.example source/witty.config.json
+      # Playwright runs the suite and serves the fixtures; Puppeteer drives
+      # Firefox (see __tests__/firefox/helpers.js), headless. Playwright only
+      # provides Firefox's system libraries here.
+      - run: npx playwright install-deps firefox
+      - run: npx puppeteer browsers install firefox@stable
+      - run: npm run test:firefox
+      - name: Upload test results
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-test-results
+          path: |
+            test-results-firefox
+            playwright-report-firefox
