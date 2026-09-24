@@ -10,7 +10,7 @@ One self-contained script: no framework, no stylesheet to include. As a script t
 
 ```html
 <div id="editor"></div>
-<script src="https://cdn.jsdelivr.net/npm/@witty-works/editor@2.5.0/dist/witty-editor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@witty-works/editor@2.6.0/dist/witty-editor.js"></script>
 <script>
   const editor = WittyEditor.mount(document.getElementById('editor'), {
     endpoint: 'https://your-nlp-api.example/',
