@@ -12,6 +12,7 @@ import {
   switchRequestConfig,
 } from './genderSwitch';
 import {type EditorStatus, mount, type WittyEditorHandle} from './mount';
+import type {MountOptions} from './api';
 
 const SUBCATEGORY = 'gendered_denominations_ending_advanced';
 
@@ -380,7 +381,7 @@ afterEach(() => {
 
 const TEXT = 'Die Lehrer*innen und der Chef. Alle Schüler*innen kommen.';
 
-const mountEditor = (options: Parameters<typeof mount>[1] = {}) => {
+const mountEditor = (options: MountOptions = {}) => {
   const element = document.createElement('div');
   document.body.append(element);
   handle = mount(element, {

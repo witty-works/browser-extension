@@ -2,6 +2,9 @@ import type {EditorState, Transaction} from '@tiptap/pm/state';
 
 import type {CheckConfig} from './checkClient';
 import type {Alert} from './checkPlugin';
+import type {SwitchOutcome} from './api';
+
+export type {GenderFormatSwitchResult, SwitchOutcome} from './api';
 
 /**
  * Switching a text's gender format in one step, driven by the API's bulk
@@ -62,36 +65,6 @@ const inLanguage = (
 
 /** The subcategory holding the gender-format alerts. */
 const GENDER_ENDING_SUBCATEGORY = 'gendered_denominations_ending_advanced';
-
-export type SwitchOutcome =
-  /** Forms were rewritten. */
-  | 'switched'
-  /** Nothing in the text needed rewriting. */
-  | 'nothing'
-  /** The account's configuration keeps these alerts off (a stored force). */
-  | 'disabled'
-  /** The API predates bulk alerts. */
-  | 'unsupported'
-  /** The account forces another format; nothing was changed. */
-  | 'forced'
-  /**
-   * Nothing to switch, and the text was in the Inklusivum: the API does not
-   * convert out of it yet, so nothing may well have been possible.
-   */
-  | 'fromInklusivum'
-  /** Not a gender format of German or French. */
-  | 'unavailable';
-
-export interface GenderFormatSwitchResult {
-  outcome: SwitchOutcome;
-  target: string;
-  /** Forms rewritten. */
-  count: number;
-  /** Part of the text was not checked, so it may hold unswitched forms. */
-  limitReached: boolean;
-  /** With `forced`: the format the account enforces. */
-  applied?: string;
-}
 
 /** What one of a switch's check responses said about its batch. */
 export interface SwitchResponse {

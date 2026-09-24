@@ -14,7 +14,6 @@ import {
   type CheckConfig,
   type Checker,
   CheckHttpError,
-  type CheckLang,
   LANGUAGE_NOT_SUPPORTED,
   createHttpChecker,
 } from './checkClient';
@@ -40,6 +39,7 @@ import {
   type SwitchLanguage,
   switchRequestConfig,
 } from './genderSwitch';
+import type {EditorStatus, Mount, MountOptions, WittyEditorHandle} from './api';
 import {PopoverHost} from './popover';
 import {
   type CheckStatus,
@@ -92,117 +92,19 @@ const SWITCH_META = 'wittyGenderFormatSwitch';
  * Phase 3.
  */
 
-export type EditorStatus =
-  /**
-   * `limitReached`: part of the text was not checked, because it is longer
-   * than `maxTextLength` or a sentence exceeds what the API checks at once.
-   */
-  | {
-      state: 'idle';
-      alerts: number;
-      limitReached: boolean;
-      /** Set once, on the status right after a gender format switch. */
-      genderFormatSwitch?: GenderFormatSwitchResult;
-    }
-  /** The API refused the key (401), or the token behind it (403). */
-  | {state: 'unauthorized'}
-  /**
-   * The API no longer supports this version of the editor (400): the host
-   * page needs to load a newer one. `message` is the API's explanation.
-   */
-  | {state: 'outdated'; message: string}
-  /** The API could not tell the text's language (422). */
-  | {state: 'unsupportedLanguage'}
-  /** Anything else, e.g. the API is unreachable; the last alerts stay. */
-  | {state: 'error'; message: string};
-
-export interface MountOptions {
-  /** NLP API base URL with trailing slash; defaults to the page's origin. */
-  endpoint?: string;
-  /** Sent as `x-key`. Set later with `setApiKey`; never read from the DOM. */
-  apiKey?: string;
-  /** Language of the text, or `auto` (the default) to let the API detect it. */
-  lang?: CheckLang;
-  /**
-   * Per-request check config. Only the fields set here are sent, so the user's
-   * stored settings keep deciding the rest. Replace it later with `setConfig`.
-   */
-  config?: CheckConfig;
-  /** Initial content (HTML). */
-  content?: string;
-  /**
-   * The formatting bar with the Witty settings button (categories, gender
-   * formats, spelling, AI suggestions). On by default.
-   */
-  toolbar?: boolean;
-  /** Called when the user changes a setting in the settings panel. */
-  onSettingsChange?: (settings: EditorSettings) => void;
-  /** Accessible name of the editable area. */
-  label?: string;
-  /**
-   * Ids of elements that further describe the editable area, separated by
-   * spaces; added to its `aria-describedby` after the component's own hint.
-   */
-  describedBy?: string;
-  /**
-   * Characters per check request; longer texts are checked sentence by
-   * sentence over several requests. Match the API's TEXT_MAX_LENGTH (1000 by
-   * default); a lower limit is detected and batches shrink.
-   */
-  maxRequestLength?: number;
-  /** Characters of the text checked at all (default 20000). */
-  maxTextLength?: number;
-  /** Debounce after the last edit, in ms. */
-  delay?: number;
-  /**
-   * Opaque id sent with each check (`id`), as the extension sends its
-   * installation id; it only ends up in the API's request logs. Defaults to
-   * a random id per editor, kept in memory. Pass a stable one, never personal
-   * data, to tell installations apart across page loads.
-   */
-  installationId?: string;
-  /**
-   * Offer the LLM's sentence rewrites in the popover (`/v1.0/rephrase`). The
-   * extension takes this from the organisation config.
-   */
-  llmAlternatives?: boolean;
-  /**
-   * How long to wait for the rewrites, in ms. The extension's 3s suits a
-   * hosted model; a local one (Ollama) needs longer.
-   */
-  llmTimeoutMs?: number;
-  onStatus?: (status: EditorStatus) => void;
-}
-
-export interface WittyEditorHandle {
-  editor: Editor;
-  /** Replace the API key (empty string clears it) and check again. */
-  setApiKey(key: string): void;
-  /**
-   * Replace the whole check config — this does not merge — and check again.
-   * `{}` goes back to sending no `config`, i.e. the account's own settings.
-   */
-  setConfig(config: CheckConfig): void;
-  /** Plain text of the document. */
-  getText(): string;
-  /**
-   * The current settings: what `onSettingsChange` receives, as a copy. For a
-   * host that sends the same `config` with its own API calls.
-   */
-  getSettings(): EditorSettings;
-  /**
-   * Rewrite every gendered form in the text into `target` (a German gender
-   * ending such as ':in'), in one undoable step, and make it the configured
-   * format. Resolves once the text has been checked and switched. Needs an NLP
-   * API with bulk alerts; see the README.
-   */
-  switchGenderFormat(target: string): Promise<GenderFormatSwitchResult>;
-  destroy(): void;
-}
-
-export type {CheckConfig, CheckLang, CheckVariant} from './checkClient';
-export type {EditorSettings} from './settings';
-export type {GenderFormatSwitchResult, SwitchOutcome} from './genderSwitch';
+// The package's public types; see api.ts.
+export type {
+  CheckConfig,
+  CheckLang,
+  CheckVariant,
+  EditorSettings,
+  EditorStatus,
+  GenderFormatSwitchResult,
+  Mount,
+  MountOptions,
+  SwitchOutcome,
+  WittyEditorHandle,
+} from './api';
 
 /**
  * Highlights in the extension's look, with its colours: a 2px line in the
@@ -271,7 +173,7 @@ const popoverTriggers = (host: () => PopoverHost | undefined): Extension =>
 
 let nextEditorId = 0;
 
-export const mount = (
+export const mount: Mount = (
   element: HTMLElement,
   {
     endpoint = `${location.origin}/`,

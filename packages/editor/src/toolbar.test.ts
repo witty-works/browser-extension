@@ -13,6 +13,7 @@ import {
   mount,
   type WittyEditorHandle,
 } from './mount';
+import type {MountOptions} from './api';
 
 let handle: WittyEditorHandle | undefined;
 let checkBodies: Record<string, unknown>[];
@@ -263,7 +264,7 @@ describe('Witty status button', () => {
 });
 
 describe('host API', () => {
-  const mountWith = (options: Parameters<typeof mount>[1]) => {
+  const mountWith = (options: MountOptions) => {
     const element = document.createElement('div');
     document.body.append(element);
     handle = mount(element, {

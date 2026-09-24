@@ -4,6 +4,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {CATEGORIES, CONFIG_OPTIONS} from '@witty/test-fixtures/mockApi';
 import type {CheckConfig} from './checkClient';
 import {mount, type WittyEditorHandle} from './mount';
+import type {MountOptions} from './api';
 
 /**
  * "Switch gender format…" for French texts and into the Inklusivum, against a
@@ -161,10 +162,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const mountEditor = (
-  content: string,
-  options: Parameters<typeof mount>[1] = {}
-) => {
+const mountEditor = (content: string, options: MountOptions = {}) => {
   const element = document.createElement('div');
   document.body.append(element);
   handle = mount(element, {

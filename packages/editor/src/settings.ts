@@ -2,23 +2,9 @@ import {applyLevelToDisabled, ProficiencyLevel} from '@witty/core/constants';
 import type {ICategory} from '@witty/core/types';
 
 import type {CheckConfig} from './checkClient';
+import type {EditorSettings} from './api';
 
-/**
- * What the user can change in the editor's settings panel, and what the host
- * can set through the handle. One store, so the panel, `setConfig` and the
- * checker never disagree.
- */
-export interface EditorSettings {
-  /** Sent with every check; only fields that were set. */
-  config: CheckConfig;
-  /** Offer the LLM's sentence rewrites in the popover. */
-  llmAlternatives: boolean;
-  /**
-   * Witty checks spelling, so the browser's own spellcheck is off. Off here,
-   * the browser underlines misspellings as well.
-   */
-  orthography: boolean;
-}
+export type {EditorSettings} from './api';
 
 /** A value React components and plain code can both read and watch. */
 export interface Store<T> {
