@@ -5,8 +5,11 @@ name: CI
 # Firefox smoke suite. Everything runs offline against the mock NLP API
 # (__tests__/helpers/mockApi.js); no dashboard, API or credentials needed.
 
+# Pull requests are tested as a pull request; pushes only on the long-lived
+# branches, so a pull request's pushes are not tested twice.
 on:
   push:
+    branches: [dev, main]
   pull_request:
 
 permissions:
