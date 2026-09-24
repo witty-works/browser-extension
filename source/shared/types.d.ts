@@ -140,11 +140,17 @@ export interface ICheckResponseResult {
   source: ISource;
   /**
    * A bulk action this alert belongs to: accepting every alert of the group
-   * (each has exactly one alternative) performs it. "gender_format" switches
+   * (each with its `bulk_alternative`) performs it. "gender_format" switches
    * the text to the configured German gender format. Absent otherwise, and on
    * API versions without bulk actions.
    */
   bulk?: string | null;
+  /**
+   * With `bulk`: the index into `alternatives` of the one the bulk action
+   * applies. Absent on API versions whose bulk results have exactly one
+   * alternative.
+   */
+  bulk_alternative?: number | null;
 }
 
 //AUTH/REFRESHTOKEN ENDPOINT
@@ -233,6 +239,8 @@ export interface IAlertContentData {
   source: ISource;
   /** See ICheckResponseResult.bulk. */
   bulk?: string | null;
+  /** See ICheckResponseResult.bulk_alternative. */
+  bulk_alternative?: number | null;
 }
 
 //POPOVER
