@@ -152,14 +152,3 @@ export const textRangeToDoc = (
     to: segment.pos + (end - segment.textStart),
   };
 };
-
-/** Offset in `text` of document position `pos`, or `null` if it maps to none. */
-export const docPosToText = (map: TextMap, pos: number): number | null => {
-  for (const segment of map.segments) {
-    const length = segment.textEnd - segment.textStart;
-    if (pos >= segment.pos && pos <= segment.pos + length) {
-      return segment.textStart + (pos - segment.pos);
-    }
-  }
-  return null;
-};
