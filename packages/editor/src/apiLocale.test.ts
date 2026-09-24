@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 
-import {apiLocale} from '@witty/core/ApiServices/apiLocale';
+import {apiLanguage, apiLocale} from '@witty/core/ApiServices/apiLocale';
 import {categoriesPath} from '@witty/core/ApiServices/requests';
 
 describe('apiLocale', () => {
@@ -18,6 +18,17 @@ describe('apiLocale', () => {
     ['x?y=1', 'en'],
   ])('maps %s to %s', (language, locale) => {
     expect(apiLocale(language)).toBe(locale);
+  });
+});
+
+describe('apiLanguage', () => {
+  it.each([
+    ['de-CH', 'de'],
+    ['FR', 'fr'],
+    ['it-IT', 'en'],
+    [undefined, 'en'],
+  ])('maps %s to %s', (language, expected) => {
+    expect(apiLanguage(language)).toBe(expected);
   });
 });
 
