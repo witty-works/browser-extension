@@ -4,6 +4,8 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {CATEGORIES, CONFIG_OPTIONS} from '@witty/test-fixtures/mockApi';
 import type {Alert} from './checkPlugin';
 import type {CheckConfig} from './checkClient';
+import {EditorDestroyedError} from './checkWaiters';
+import {CheckHttpError} from './checkClient';
 import {
   applyEdits,
   bulkEdits,
@@ -430,6 +432,71 @@ describe('applyEdits', () => {
     ]);
 
     expect(tr.doc.textContent).toBe('abcdYhZ');
+  });
+});
+
+describe('a switch that cannot finish', () => {
+  it('restores the settings when its check fails', async () => {
+    const editor = mountEditor({config: {german_gender_ending: '*in'}});
+    await vi.waitFor(() => expect(bodies.length).toBeGreaterThan(0));
+    await vi.waitFor(() =>
+      expect(statuses.at(-1)).toMatchObject({state: 'idle'})
+    );
+    // The key stops being accepted.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.includes('/v2.4/check')) {
+          bodies.push(JSON.parse(String(init?.body)));
+          return new Response('{"detail":"nope"}', {status: 401});
+        }
+        return new Response(JSON.stringify(CONFIG_OPTIONS));
+      })
+    );
+    const before = bodies.length;
+
+    const error = await editor
+      .switchGenderFormat(':in')
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(CheckHttpError);
+    expect(editor.getSettings().config).toEqual({german_gender_ending: '*in'});
+    expect(editor.getText()).toBe(TEXT);
+    // Checked again with the restored settings.
+    await vi.waitFor(() =>
+      expect(bodies.at(-1)?.config?.german_gender_ending).toBe('*in')
+    );
+    expect(bodies.length).toBeGreaterThan(before + 1);
+  });
+
+  it('ends with an error when the editor is destroyed', async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(bodies.length).toBeGreaterThan(0));
+    // The API stops answering.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError'))
+            );
+          })
+      )
+    );
+    const pending = editor
+      .switchGenderFormat(':in')
+      .catch((caught: unknown) => caught);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    editor.destroy();
+    handle = undefined;
+
+    expect(await pending).toBeInstanceOf(EditorDestroyedError);
+    // Queued behind it: refused as well, not left waiting.
+    expect(
+      await editor.switchGenderFormat('_in').catch((caught: unknown) => caught)
+    ).toBeInstanceOf(EditorDestroyedError);
   });
 });
 
