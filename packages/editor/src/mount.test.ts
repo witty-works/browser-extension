@@ -73,4 +73,25 @@ describe('mount', () => {
     await checked(3);
     expect(bodies[2]).not.toHaveProperty('config');
   });
+
+  it('setConfig with the same config changes nothing', async () => {
+    const config = {german_gender_ending: '*in' as const};
+    const editor = mountEditor({config});
+    await checked(1);
+
+    // As a host passing its config on every render would.
+    editor.setConfig({german_gender_ending: '*in'});
+    editor.setConfig({...config});
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(bodies).toHaveLength(1);
+
+    // The editor keeps its own copy.
+    const next: {german_gender_ending: '*in' | ':in'} = {
+      german_gender_ending: ':in',
+    };
+    editor.setConfig(next);
+    next.german_gender_ending = '*in';
+    await checked(2);
+    expect(editor.getSettings().config).toEqual({german_gender_ending: ':in'});
+  });
 });

@@ -409,8 +409,12 @@ export const mount: Mount = (
       requestRecheck(editor.view);
     },
     setConfig(next: CheckConfig): void {
-      // Replaces, never merges; the store's subscriber re-checks.
-      settings.set({config: next});
+      // Replaces, never merges; the store's subscriber re-checks. The same
+      // config again changes nothing, so a host may pass it on every render.
+      if (JSON.stringify(next) === JSON.stringify(settings.get().config)) {
+        return;
+      }
+      settings.set({config: structuredClone(next)});
     },
     updateSettings(next: Partial<EditorSettings>): void {
       // Hosts in plain JavaScript bypass the types: a string "false" would
