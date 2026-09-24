@@ -24,6 +24,17 @@ const ROOT = __dirname;
 // non-localhost requests, so a CDN copy could never load.
 const VENDOR_ROOT = path.resolve(ROOT, '..', '..', 'node_modules');
 
+// The editor package's build, as published (`npm run build -w
+// @witty-works/editor`), for the editor's browser tests under /editor-dist/.
+const EDITOR_DIST_ROOT = path.resolve(
+  ROOT,
+  '..',
+  '..',
+  'packages',
+  'editor',
+  'dist'
+);
+
 const CONTENT_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -82,7 +93,9 @@ const server = http.createServer((req, res) => {
   // path cannot escape the fixture (or node_modules) directory.
   const [base, subPath] = relative.startsWith('/vendor/')
     ? [VENDOR_ROOT, relative.slice('/vendor/'.length)]
-    : [ROOT, relative.slice(1)];
+    : relative.startsWith('/editor-dist/')
+      ? [EDITOR_DIST_ROOT, relative.slice('/editor-dist/'.length)]
+      : [ROOT, relative.slice(1)];
   const filePath = path.resolve(base, subPath);
   if (!filePath.startsWith(base + path.sep)) {
     res.writeHead(403).end('Forbidden');
