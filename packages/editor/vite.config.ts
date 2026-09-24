@@ -90,68 +90,93 @@ const stripCredentials = (): Plugin => {
   };
 };
 
-export default defineConfig({
-  // Shared code by name; see "paths" in tsconfig.json, which mirrors this.
-  resolve: {
-    alias: {
-      '@witty/core': fromRoot('source/shared'),
-      '@witty/i18n': fromRoot('source/i18n'),
-      '@witty/assets': fromRoot('source/assets'),
-      '@witty/ui': fromRoot('source/ContentScript/HighlightPopover'),
-      '@witty/test-fixtures': fromRoot('__tests__/helpers'),
+/**
+ * Preact in place of React, in the editor's bundle only (the extension keeps
+ * React): the shared code is written against React's API and runs on
+ * preact/compat unchanged, in 16% less bundle (FEATURE_GAPS.md). The unit
+ * tests stay on React: Vitest loads libraries such as react-i18next from
+ * node_modules as they are, so they would bring React next to Preact. The
+ * browser tests (`npm run test:editor`) run on the bundle, so on Preact.
+ */
+const PREACT = [
+  {find: /^react-dom\/client$/, replacement: 'preact/compat/client'},
+  {find: /^react\/jsx-runtime$/, replacement: 'preact/jsx-runtime'},
+  {find: /^react-dom$/, replacement: 'preact/compat'},
+  {find: /^react$/, replacement: 'preact/compat'},
+];
+
+export default defineConfig(({command}) => {
+  return {
+    // Shared code by name; see "paths" in tsconfig.json, which mirrors this.
+    resolve: {
+      alias: [
+        {find: '@witty/core', replacement: fromRoot('source/shared')},
+        {find: '@witty/i18n', replacement: fromRoot('source/i18n')},
+        {find: '@witty/assets', replacement: fromRoot('source/assets')},
+        {
+          find: '@witty/ui',
+          replacement: fromRoot('source/ContentScript/HighlightPopover'),
+        },
+        {
+          find: '@witty/test-fixtures',
+          replacement: fromRoot('__tests__/helpers'),
+        },
+        ...(command === 'build' ? PREACT : []),
+      ],
     },
-  },
-  plugins: [
-    stripCredentials(),
-    licenseNotices(),
-    // The shared popover imports its icons as React components, as the
-    // extension's @svgr/webpack setup does.
-    svgr({include: '**/*.svg', svgrOptions: {exportType: 'default'}}),
-    // Its stylesheet ships inside the script, so hosts include one file.
-    cssInjectedByJs(),
-    // Last, so the banner stays the first line after the CSS injection code
-    // has been prepended.
-    {
-      name: 'witty-banner',
-      enforce: 'post',
-      generateBundle(_options, bundle): void {
-        const text = banner();
-        for (const output of Object.values(bundle)) {
-          if (output.type === 'chunk') output.code = `${text}\n${output.code}`;
-        }
+    plugins: [
+      stripCredentials(),
+      licenseNotices(),
+      // The shared popover imports its icons as React components, as the
+      // extension's @svgr/webpack setup does.
+      svgr({include: '**/*.svg', svgrOptions: {exportType: 'default'}}),
+      // Its stylesheet ships inside the script, so hosts include one file.
+      cssInjectedByJs(),
+      // Last, so the banner stays the first line after the CSS injection code
+      // has been prepended.
+      {
+        name: 'witty-banner',
+        enforce: 'post',
+        generateBundle(_options, bundle): void {
+          const text = banner();
+          for (const output of Object.values(bundle)) {
+            if (output.type === 'chunk')
+              output.code = `${text}\n${output.code}`;
+          }
+        },
+      },
+    ],
+    build: {
+      lib: {
+        entry: 'src/mount.ts',
+        name: 'WittyEditor',
+        formats: ['iife'],
+        fileName: (): string => 'witty-editor.js',
       },
     },
-  ],
-  build: {
-    lib: {
-      entry: 'src/mount.ts',
-      name: 'WittyEditor',
-      formats: ['iife'],
-      fileName: () => 'witty-editor.js',
+    // Build-time constants the shared extension code reads. Library mode leaves
+    // process.env alone for consumers to set; a script tag has no consumer build
+    // step, so resolve them here.
+    define: {
+      'process.env.NODE_ENV': JSON.stringify('production'),
+      'process.env.TESTING': JSON.stringify('false'),
+      // The editor's own version (the release version, see
+      // build/releaseVersion.js), sent to the API as `witty-editor:<version>`.
+      'process.env.WITTY_VERSION': JSON.stringify(packageVersion()),
     },
-  },
-  // Build-time constants the shared extension code reads. Library mode leaves
-  // process.env alone for consumers to set; a script tag has no consumer build
-  // step, so resolve them here.
-  define: {
-    'process.env.NODE_ENV': JSON.stringify('production'),
-    'process.env.TESTING': JSON.stringify('false'),
-    // The editor's own version (the release version, see
-    // build/releaseVersion.js), sent to the API as `witty-editor:<version>`.
-    'process.env.WITTY_VERSION': JSON.stringify(packageVersion()),
-  },
-  test: {
-    environment: 'node',
-    // `npm run test:coverage`: fails below these, so coverage cannot slide
-    // unnoticed. What stays uncovered needs a real layout engine (clicking a
-    // highlight) and is exercised in the browser instead.
-    coverage: {
-      // lcov for SonarCloud (sonar-project.properties), with paths from the
-      // repository root, where it resolves them; text for the console.
-      reporter: ['text', 'html', ['lcov', {projectRoot: '../..'}]],
-      include: ['src/**'],
-      exclude: ['src/**/*.test.ts', 'src/demo.ts'],
-      thresholds: {statements: 95, branches: 85, functions: 90, lines: 95},
+    test: {
+      environment: 'node',
+      // `npm run test:coverage`: fails below these, so coverage cannot slide
+      // unnoticed. What stays uncovered needs a real layout engine (clicking a
+      // highlight) and is exercised in the browser instead.
+      coverage: {
+        // lcov for SonarCloud (sonar-project.properties), with paths from the
+        // repository root, where it resolves them; text for the console.
+        reporter: ['text', 'html', ['lcov', {projectRoot: '../..'}]],
+        include: ['src/**'],
+        exclude: ['src/**/*.test.ts', 'src/demo.ts'],
+        thresholds: {statements: 95, branches: 85, functions: 90, lines: 95},
+      },
     },
-  },
+  };
 });
