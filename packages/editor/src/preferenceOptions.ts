@@ -29,6 +29,8 @@ export interface PreferenceOptions {
   categoryGroups: ICategoryGroup[];
   configOptions: Record<string, IConfigOption>;
   categoriesError: boolean;
+  /** The gender formats could not be loaded: labels fall back to values. */
+  configOptionsError: boolean;
 }
 
 /**
@@ -67,12 +69,13 @@ const loadPreferenceOptions = async (
       options.status === 'fulfilled'
         ? (options.value as IConfigOptionsResponse).options || {}
         : {},
+    configOptionsError: options.status !== 'fulfilled',
   };
 };
 
 /**
- * Loads the options once per editor, on first use; a failed load is tried
- * again the next time.
+ * Loads the options once per editor, on first use. A load that failed, for the
+ * categories or the gender formats, is tried again the next time.
  */
 export const createOptionsLoader = (
   api: ApiOptions
@@ -80,7 +83,9 @@ export const createOptionsLoader = (
   let cached: Promise<PreferenceOptions> | undefined;
   return (): Promise<PreferenceOptions> => {
     cached ??= loadPreferenceOptions(api).then((options) => {
-      if (options.categoriesError) cached = undefined;
+      if (options.categoriesError || options.configOptionsError) {
+        cached = undefined;
+      }
       return options;
     });
     return cached;

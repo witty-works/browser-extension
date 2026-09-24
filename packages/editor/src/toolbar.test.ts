@@ -225,6 +225,46 @@ describe('settings panel', () => {
       expect(document.activeElement).toBe(tool('Witty menu'))
     );
   });
+
+  it('loads the gender formats again after a failed load', async () => {
+    let failOptions = true;
+    const optionRequests: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.includes('/v2.0/categories')) {
+          return new Response(JSON.stringify(CATEGORIES));
+        }
+        if (url.includes('/v2.0/config-options')) {
+          optionRequests.push(url);
+          return failOptions
+            ? new Response('{}', {status: 503})
+            : new Response(JSON.stringify(CONFIG_OPTIONS));
+        }
+        const body = JSON.parse(String(init?.body));
+        return new Response(JSON.stringify(checkResponse(body.text)));
+      })
+    );
+    mountEditor();
+    const formatSelect = () =>
+      document.querySelector('select[data-field="german_gender_ending"]');
+
+    await chooseFromMenu('Settings');
+    await vi.waitFor(() =>
+      expect(document.querySelector('.witty-category-toggle')).not.toBeNull()
+    );
+    expect(formatSelect()).toBeNull();
+    const failed = optionRequests.length;
+
+    failOptions = false;
+    document
+      .querySelector<HTMLButtonElement>('.witty-editor-settings-close')!
+      .click();
+    await chooseFromMenu('Settings');
+
+    await vi.waitFor(() => expect(formatSelect()).not.toBeNull());
+    expect(optionRequests.length).toBeGreaterThan(failed);
+  });
 });
 
 describe('Witty status button', () => {
