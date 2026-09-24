@@ -134,9 +134,10 @@ describe('settings panel', () => {
     mountEditor();
     await openSettings();
 
-    expect(
-      document.querySelector('.witty-editor-settings')?.getAttribute('role')
-    ).toBe('region');
+    // A labelled section: a region to assistive technology.
+    const panel = document.querySelector('.witty-editor-settings');
+    expect(panel?.tagName).toBe('SECTION');
+    expect(panel?.getAttribute('aria-label')).toBe('Witty settings');
     expect(document.querySelectorAll('.witty-category-toggle').length).toBe(
       CATEGORIES.categories.length
     );
@@ -214,7 +215,7 @@ describe('settings panel', () => {
     await vi.waitFor(() =>
       expect(document.activeElement?.getAttribute('aria-label')).toBe(region)
     );
-    expect(document.activeElement?.getAttribute('role')).toBe('region');
+    expect(document.activeElement?.tagName).toBe('SECTION');
   });
 
   it('returns focus to the W icon after opening Help', async () => {

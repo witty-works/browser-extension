@@ -24,7 +24,7 @@ export const WittyMenu: React.FC<{
   onClose: (returnFocus: boolean) => void;
 }> = ({id, label, items, anchor, onClose}) => {
   const refs = useRef<(HTMLElement | null)[]>([]);
-  const [current, setActive] = useState(0);
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
     refs.current[0]?.focus();
@@ -40,10 +40,10 @@ export const WittyMenu: React.FC<{
     // The menu sits inside the toolbar, whose keys are not the menu's.
     event.stopPropagation();
     const focused = refs.current.indexOf(document.activeElement as HTMLElement);
-    const active = focused < 0 ? current : focused;
+    const from = focused < 0 ? active : focused;
     const keys: Record<string, number> = {
-      ArrowDown: active + 1,
-      ArrowUp: active - 1,
+      ArrowDown: from + 1,
+      ArrowUp: from - 1,
       Home: 0,
       End: items.length - 1,
     };
@@ -82,7 +82,7 @@ export const WittyMenu: React.FC<{
             refs.current[index] = element;
           },
           role: 'menuitem',
-          tabIndex: index === current ? 0 : -1,
+          tabIndex: index === active ? 0 : -1,
           className: 'witty-editor-menu-item',
           onFocus: (): void => setActive(index),
           // Safari does not focus a clicked button, which would blur the menu

@@ -54,21 +54,23 @@ const Panel: React.FC<{
   children: React.ReactNode;
 }> = ({id, label, className, onClose, children}) => {
   const {t} = useTranslation(namespaces.editor);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
     ref.current?.focus();
   }, []);
 
   return (
-    // Escape closes the panel from anywhere inside it; the controls in it are
-    // the interactive elements, the region itself only takes focus on open.
+    // A labelled section is a region. Escape closes the panel from anywhere
+    // inside it; the controls in it are the interactive elements, the section
+    // itself only takes focus on open.
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <div
+    <section
       ref={ref}
       id={id}
-      className={`witty-editor-settings witty-preferences${className ? ` ${className}` : ''}`}
-      role='region'
+      className={['witty-editor-settings', 'witty-preferences', className]
+        .filter(Boolean)
+        .join(' ')}
       aria-label={label}
       tabIndex={-1}
       onKeyDown={(event) => {
@@ -88,7 +90,7 @@ const Panel: React.FC<{
         ×
       </button>
       {children}
-    </div>
+    </section>
   );
 };
 
