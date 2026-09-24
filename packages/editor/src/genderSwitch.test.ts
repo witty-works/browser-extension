@@ -5,6 +5,7 @@ import {CATEGORIES, CONFIG_OPTIONS} from '@witty/test-fixtures/mockApi';
 import type {Alert} from './checkPlugin';
 import type {CheckConfig} from './checkClient';
 import {
+  applyEdits,
   bulkEdits,
   decideSwitch,
   hasFormsOutside,
@@ -417,6 +418,20 @@ const openMenu = async () => {
   tool('Witty menu').click();
   await vi.waitFor(() => expect(menuItems()).toHaveLength(4));
 };
+
+describe('applyEdits', () => {
+  it('skips an edit overlapping one further back', () => {
+    const editor = mountEditor({content: '<p>abcdefghij</p>'});
+    // Positions from 1: "cde" and "efg" overlap; "ij" stands alone.
+    const tr = applyEdits(editor.editor.state, [
+      {from: 3, to: 6, text: 'X'},
+      {from: 5, to: 8, text: 'Y'},
+      {from: 9, to: 11, text: 'Z'},
+    ]);
+
+    expect(tr.doc.textContent).toBe('abcdYhZ');
+  });
+});
 
 describe('switchGenderFormat', () => {
   it('applies exactly the bulk alerts, undone in one step', async () => {

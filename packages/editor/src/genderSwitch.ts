@@ -156,15 +156,23 @@ export const bulkEdits = (
     return text === null ? [] : [{from, to, text}];
   });
 
-/** Make every edit in one transaction, so a single undo reverses it. */
+/**
+ * Make every edit in one transaction, so a single undo reverses it. The API
+ * promises bulk alerts never overlap; should two do anyway, the one further
+ * back is kept and the other skipped, rather than rewriting text an earlier
+ * edit already replaced.
+ */
 export const applyEdits = (
   state: EditorState,
   edits: BulkEdit[]
 ): Transaction => {
   const tr = state.tr;
+  let applied = Infinity;
   // Back to front, so earlier positions stay valid.
   for (const {from, to, text} of [...edits].sort((a, b) => b.from - a.from)) {
+    if (to > applied) continue;
     tr.insertText(text, from, to);
+    applied = from;
   }
   return tr;
 };
