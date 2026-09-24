@@ -1,21 +1,16 @@
 # Editor feature gaps
 
-Browser extension features the editor component (`@witty-works/editor`) does not have yet, plus other open items from the reviews. Tick items off, or move them to the plan, as they land. See also [EDITOR_COMPONENT_PLAN.md](../../EDITOR_COMPONENT_PLAN.md).
+Browser extension features the editor component (`@witty-works/editor`) does not have yet, plus other open items from the reviews. Remove items as they land, or move them to the plan; the list only shows what is still open. See also [EDITOR_COMPONENT_PLAN.md](../../EDITOR_COMPONENT_PLAN.md).
 
 ## Accounts and configuration
 
 - [ ] **OAuth sign-in** through the dashboard, with token refresh. The editor only takes an API key via `setApiKey`; the plan's `credentialProvider` (short-lived, scoped tokens) is not built either.
 - [ ] **Organisation config from `/v2.0/auth`**: organisation defaults for AI suggestions, spell checking and categories, config hashes, and reacting to `config_changed`. Without it the settings panel shows the editor's local settings only, not what the organisation suggests or forces.
-- [ ] **Minimum-version check**: the extension asks for an update when the API answers 400 for an outdated client; the editor reports a generic error.
 - [ ] **Stored settings**: the extension keeps settings in browser storage; the editor hands changes to the host via `onSettingsChange` and remembers nothing itself.
 
 ## Checking
 
-- [x] **Sentence cache and long texts** (2.1.0): the editor checks sentence by sentence in requests within the API's limit, caches per sentence, and resends only changed sentences. Unlike the extension it does not cache a batch the API cut short.
-- [x] **Length limit** (2.1.0): `maxTextLength` (default 20000), reported as `limitReached` in `onStatus` and shown under the text. The plan's long-document policy is still open for collaboration (Phase 5).
 - [ ] **HR add-on**: the extension sends `addons: ['hr']` unless disabled for the site; the editor sends no add-ons unless the host sets them in `config`.
-- [ ] **Error-specific handling**: the extension clears alerts on 422 and refreshes the token on 403; the editor reports every error through `onStatus` and leaves the last alerts on screen.
-- [ ] **Installation id**: the editor sends `client: "witty-editor:<version>"` (so the API can version-check it separately from the extension), but always `id: "witty-editor"`; the extension sends a random per-installation id.
 
 ## Popover actions
 

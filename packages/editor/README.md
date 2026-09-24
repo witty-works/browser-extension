@@ -38,7 +38,8 @@ Pin an exact version, as above, rather than a range: the script runs with access
 | `delay` | `500` | Debounce after the last edit, in ms |
 | `maxRequestLength` | `1000` | Characters per check request; set it to the API's `TEXT_MAX_LENGTH` if that differs (see Long texts) |
 | `maxTextLength` | `20000` | Characters of the text checked at all |
-| `onStatus` | none | `{state: 'idle', alerts, limitReached}`, `{state: 'unauthorized'}` or `{state: 'error', message}`; after a gender format switch, the idle status also has `genderFormatSwitch` |
+| `installationId` | random per editor | Opaque id sent with each check, as the extension sends its installation id; it only ends up in the API's request logs. Pass a stable one to tell installations apart across page loads, never personal data |
+| `onStatus` | none | The check's state (see Status and errors) |
 | `onSettingsChange` | none | Called with the settings when the user changes one, e.g. to store them |
 
 It returns a handle:
@@ -50,6 +51,20 @@ It returns a handle:
 - `switchGenderFormat(target)`: rewrite the text into a German gender format, as the menu does (see below). Resolves with `{outcome, target, count, limitReached}`; `outcome` is `switched`, `nothing`, `disabled` (the account keeps these alerts off), `forced` (the account forces another format, given as `applied`; nothing is changed), `unsupported` (the API has no bulk alerts) or `unavailable` (the Inklusivum).
 - `editor`: the underlying [TipTap](https://tiptap.dev) editor.
 - `destroy()`: remove the editor and everything it added to the page.
+
+## Status and errors
+
+`onStatus` receives:
+
+| Status | When | Alerts |
+|---|---|---|
+| `{state: 'idle', alerts, limitReached}` | A check finished; after a gender format switch it also has `genderFormatSwitch` | Shown |
+| `{state: 'unauthorized'}` | The API refused the key (401) or the token behind it (403) | Cleared |
+| `{state: 'outdated', message}` | The API no longer supports this editor version (400); `message` is the API's explanation. The page needs to load a newer version | Cleared |
+| `{state: 'unsupportedLanguage'}` | The API could not tell the text's language (422) | Cleared |
+| `{state: 'error', message}` | Anything else, e.g. the API is unreachable or answered 5xx | Kept until the next check |
+
+The W icon and the live region say the same to the user. Checks send `client: "witty-editor:<version>"`, so the API can require a minimum version for the editor separately from the browser extension (`web-ext`).
 
 ## The Witty menu
 
