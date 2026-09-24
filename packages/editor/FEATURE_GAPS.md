@@ -37,7 +37,6 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 
 ## Packaging and workflow
 
-- [ ] **ES module build and TypeScript types** for bundler users; only the script-tag bundle is published.
 - [ ] **Bundle size**: 293 kB gzipped (2.5.0). Aliasing `react`/`react-dom` to `preact/compat` in the editor's build only, with no source changes, gives 246 kB (-16%), and the editor's browser tests pass on it (tried 2026-09-24; not adopted). chroma-js comes in through `source/shared/DOMutils.ts`.
 - [ ] **Flaky Google Docs e2e test** (`gdocs.spec.js`): it sometimes stalls without highlights, independent of code changes.
 - [ ] **Order-dependent e2e tests**: in Firefox, "highlights a contenteditable" and "the content script answers the open-popover message" time out in full-suite runs but pass on their own, on older commits too. In Chromium, a full local run (2026-09-24) failed four tests in `editors.spec.js` (CKEditor popover), `ignore.spec.js` (API-key mode) and `runtimeErrors.spec.js` that passed when run on their own. CI retries failed tests twice (`retries` in `playwright.config.js`), which hides these rather than fixing them.

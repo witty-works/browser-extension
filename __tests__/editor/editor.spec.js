@@ -68,3 +68,23 @@ test('opens the Witty menu from the W icon', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Witty menu' })).toBeFocused();
 });
+
+test('works the same as an ES module', async ({ page }) => {
+  // No WittyEditor global: the module only exports `mount`.
+  await page.goto('/editor-module.html');
+
+  await expect(highlight(page, 'guys')).toBeVisible();
+  expect(await page.evaluate(() => typeof window.WittyEditor)).toBe(
+    'undefined'
+  );
+  await highlight(page, 'guys').click();
+  await expect(page.locator(ALTERNATIVE).first()).toBeVisible();
+  // Its styles are injected on import, as with the script tag.
+  expect(
+    await page.evaluate(() =>
+      [...document.querySelectorAll('style')].some((style) =>
+        style.textContent.includes('.witty-alert')
+      )
+    )
+  ).toBe(true);
+});

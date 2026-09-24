@@ -7,6 +7,9 @@ import {
 } from '@witty/core/ApiServices/requests';
 import {wittyVersion} from '@witty/core/constants';
 import type {ICheckResponse} from '@witty/core/types';
+import type {CheckConfig, CheckLang} from './api';
+
+export type {CheckConfig, CheckLang, CheckVariant} from './api';
 
 export type {ICheckResponse, ICheckResponseResult} from '@witty/core/types';
 
@@ -15,57 +18,6 @@ export type Checker = (
   text: string,
   signal: AbortSignal
 ) => Promise<ICheckResponse>;
-
-/** Languages `POST /v2.4/check` accepts; `auto` detects. */
-export type CheckLang =
-  | 'auto'
-  | 'en'
-  | 'de'
-  | 'fr'
-  | 'de-DE'
-  | 'de-CH'
-  | 'de-AT'
-  | 'en-US'
-  | 'en-GB'
-  | 'fr-FR';
-
-/** Regional variants, for `primary_language` and `preferred_variants`. */
-export type CheckVariant =
-  'de-DE' | 'de-CH' | 'de-AT' | 'en-US' | 'en-GB' | 'fr-FR';
-
-/**
- * Per-request `config` for `POST /v2.4/check`.
- *
- * Every field is optional, and only the ones a caller actually set are sent:
- * a field in the request overrides the user's stored config where that config
- * marks it `suggestion`, an omitted field keeps the stored value or the server
- * default, and a stored `force` wins either way. Filling in defaults here would
- * silently override the account's own settings.
- *
- * `alternatives_max_count` is deliberately absent — the server overwrites it.
- */
-export interface CheckConfig {
-  /** Gender ending, as offered by `GET /v2.0/config-options`. `de-e` is Inklusivum. */
-  german_gender_ending?:
-    '/in' | '/-in' | '_in' | '*in' | ':in' | '(-)' | '()' | 'In' | 'de-e';
-  french_gender_separator?: '·' | '·s' | '.' | '.s' | '/' | '/s';
-  gendered_roles_format?:
-    'none' | 'both' | 'inclusive_gender' | 'binary_gender';
-  /**
-   * Category keys from `GET /v2.0/categories`. A category and its
-   * `advanced_key` have to be disabled together.
-   */
-  disabled_categories?: string[];
-  show_inspiration_alternatives?: boolean;
-  primary_language?: CheckVariant;
-  preferred_languages?: ('en' | 'de' | 'fr')[];
-  preferred_variants?: CheckVariant[];
-  addons?: string[];
-  /** Ignored unless the deployment sets `CLIENT_CONFIG_ENABLED`. */
-  store_context?: boolean;
-  /** Same, and the operator's `LLM_ACCESS` policy can still turn it off. */
-  llm_alternatives?: boolean;
-}
 
 /**
  * Drops `undefined` fields, and the whole object once nothing is left: an

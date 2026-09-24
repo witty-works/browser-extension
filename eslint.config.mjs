@@ -41,6 +41,9 @@ export default [
       'coverage/**',
       'playwright-report/**',
       'test-results/**',
+      // Type-checked against the built declarations (`npm run test:types`),
+      // which only exist after a build.
+      'packages/editor/types-test/**',
     ],
   },
 

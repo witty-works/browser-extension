@@ -9,7 +9,10 @@ import cssInjectedByJs from 'vite-plugin-css-injected-by-js';
 import {licenseNotices} from './licenseNotices.ts';
 
 // `vite` serves the demo (index.html); `vite build` produces the embeddable
-// bundle: one self-contained dist/witty-editor.js exposing `WittyEditor.mount`.
+// bundle twice, each self-contained (React, TipTap and the styles included):
+// dist/witty-editor.js for a script tag, exposing `WittyEditor.mount`, and
+// dist/witty-editor.mjs, an ES module exporting `mount`, for bundlers. The
+// types come from `npm run build:types`.
 const fromRoot = (path: string): string =>
   fileURLToPath(new URL(`../../${path}`, import.meta.url));
 
@@ -30,7 +33,7 @@ const packageVersion = (): string =>
   ).version;
 
 /** Which version and commit a copy of the bundle is, wherever it ends up. */
-const banner = (): string => {
+const banner = (fileName: string): string => {
   const version = packageVersion();
   let commit = process.env.GITHUB_SHA?.slice(0, 8) ?? '';
   if (!commit) {
@@ -40,7 +43,7 @@ const banner = (): string => {
       commit = 'unknown';
     }
   }
-  return `/*! @witty-works/editor ${version} (${commit}) | MIT | https://witty.works | third-party licenses: witty-editor.js.LICENSE.txt */`;
+  return `/*! @witty-works/editor ${version} (${commit}) | MIT | https://witty.works | third-party licenses: ${fileName}.LICENSE.txt */`;
 };
 
 /**
@@ -115,9 +118,10 @@ export default defineConfig({
       name: 'witty-banner',
       enforce: 'post',
       generateBundle(_options, bundle): void {
-        const text = banner();
         for (const output of Object.values(bundle)) {
-          if (output.type === 'chunk') output.code = `${text}\n${output.code}`;
+          if (output.type === 'chunk') {
+            output.code = `${banner(output.fileName)}\n${output.code}`;
+          }
         }
       },
     },
@@ -126,8 +130,9 @@ export default defineConfig({
     lib: {
       entry: 'src/mount.ts',
       name: 'WittyEditor',
-      formats: ['iife'],
-      fileName: () => 'witty-editor.js',
+      formats: ['iife', 'es'],
+      fileName: (format) =>
+        format === 'es' ? 'witty-editor.mjs' : 'witty-editor.js',
     },
   },
   // Build-time constants the shared extension code reads. Library mode leaves

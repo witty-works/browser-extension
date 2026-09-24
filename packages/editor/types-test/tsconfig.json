@@ -1,0 +1,14 @@
+{
+  // Deliberately not extending the editor's tsconfig: no path aliases, only
+  // what a host project would have.
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["dom", "es2022"],
+    "strict": true,
+    "noEmit": true,
+    "types": []
+  },
+  "files": ["consumer.ts"]
+}

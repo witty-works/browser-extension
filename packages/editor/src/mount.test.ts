@@ -2,6 +2,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
 import {mount, type WittyEditorHandle} from './mount';
+import type {MountOptions} from './api';
 
 /** Check request bodies the mounted editor sends, in order. */
 let bodies: Record<string, unknown>[];
@@ -24,7 +25,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const mountEditor = (options: Parameters<typeof mount>[1]) => {
+const mountEditor = (options: MountOptions) => {
   const element = document.createElement('div');
   document.body.append(element);
   handle = mount(element, {
