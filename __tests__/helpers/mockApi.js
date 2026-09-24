@@ -363,6 +363,7 @@ module.exports = {
   SAMPLE_TEXT,
   ALERTS,
   authResponse,
+  buildCheckResult,
   checkResponse,
   mockApiResponse,
   mockNlpApi,
