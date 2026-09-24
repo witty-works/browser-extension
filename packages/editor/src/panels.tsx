@@ -42,8 +42,9 @@ const usePreferenceOptions = (
 
 /**
  * A panel below the toolbar: a labelled region with a close button, closed by
- * Escape from anywhere inside it; closing returns focus to the W icon (the
- * toolbar does that).
+ * Escape from anywhere inside it. Focus moves into it when it opens (the menu
+ * item that opened it is gone), so keyboard and screen reader users land in
+ * it; closing returns focus to the W icon (the toolbar does that).
  */
 const Panel: React.FC<{
   id: string;
@@ -53,15 +54,23 @@ const Panel: React.FC<{
   children: React.ReactNode;
 }> = ({id, label, className, onClose, children}) => {
   const {t} = useTranslation(namespaces.editor);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    ref.current?.focus();
+  }, []);
+
   return (
     // Escape closes the panel from anywhere inside it; the controls in it are
-    // the interactive elements.
+    // the interactive elements, the region itself only takes focus on open.
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
+      ref={ref}
       id={id}
       className={`witty-editor-settings witty-preferences${className ? ` ${className}` : ''}`}
       role='region'
       aria-label={label}
+      tabIndex={-1}
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
           event.stopPropagation();
@@ -219,7 +228,7 @@ export const SwitchPanel: React.FC<{
               {t(language === 'de' ? 'switchGerman' : 'switchFrench')}
             </h3>
           )}
-          <ul className='witty-editor-switch-formats' lang={language}>
+          <ul className='witty-editor-switch-formats'>
             {SWITCHABLE_FORMATS[language].map((format) =>
               formatButton(language, format)
             )}

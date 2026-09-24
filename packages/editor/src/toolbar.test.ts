@@ -203,6 +203,28 @@ describe('settings panel', () => {
     );
     expect(document.activeElement).toBe(tool('Witty menu'));
   });
+
+  it.each([
+    ['Settings', 'Witty settings'],
+    ['Switch gender format', 'Switch gender format'],
+  ])('moves focus into the panel opened with %s', async (item, region) => {
+    mountEditor();
+    await chooseFromMenu(item);
+
+    await vi.waitFor(() =>
+      expect(document.activeElement?.getAttribute('aria-label')).toBe(region)
+    );
+    expect(document.activeElement?.getAttribute('role')).toBe('region');
+  });
+
+  it('returns focus to the W icon after opening Help', async () => {
+    mountEditor();
+    await chooseFromMenu('Help');
+
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(tool('Witty menu'))
+    );
+  });
 });
 
 describe('Witty status button', () => {

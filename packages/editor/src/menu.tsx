@@ -98,7 +98,8 @@ export const WittyMenu: React.FC<{
                 href={item.href}
                 target='_blank'
                 rel='noopener noreferrer'
-                onClick={() => onClose(false)}
+                // The page opens in a new tab; back here, focus is on the icon.
+                onClick={() => onClose(true)}
               >
                 {item.label}
               </a>
