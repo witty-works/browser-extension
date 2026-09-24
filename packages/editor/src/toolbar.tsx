@@ -463,13 +463,8 @@ const SwitchPanel: React.FC<{
           </span>
         </li>
       </ul>
-      <p
-        className='witty-editor-switch-result'
-        role='status'
-        aria-live='polite'
-      >
-        {message}
-      </p>
+      {/* Shown here, announced once: by the editor's live region. */}
+      <p className='witty-editor-switch-result'>{message}</p>
     </div>
   );
 };
