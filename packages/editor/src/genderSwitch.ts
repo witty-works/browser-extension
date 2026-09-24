@@ -7,12 +7,15 @@ import type {Alert} from './checkPlugin';
  * Switching a text's German gender format in one step, driven by the API's
  * bulk alerts (EDITOR: "Switch gender format…" in the W menu).
  *
- * With `config.german_gender_ending` set to the target, the NLP API marks every
- * gendered form written in another format with `bulk: "gender_format"` and
- * gives it exactly one alternative, the same form in the target format. The
- * alerts never overlap, and accepting all of them is the switch. Only `bulk`
- * decides what is applied; older API versions have the same subcategory but
- * convert incompletely (articles and determiners were skipped).
+ * With `config.german_gender_ending` set to the target, the NLP API marks with
+ * `bulk: "gender_format"` every gendered form written in another format, every
+ * role in the generic masculine, and the pair formulas it recognises. Each
+ * names the alternative to apply in `bulk_alternative` (a separator mismatch
+ * has exactly one; older API versions leave the index out for those). The
+ * alerts never overlap, and accepting all of them, in any order, is the
+ * switch. Only `bulk` decides what is applied; older API versions have the
+ * same subcategory but convert incompletely (articles and determiners were
+ * skipped).
  */
 
 export const GENDER_FORMAT_BULK = 'gender_format';
@@ -101,30 +104,54 @@ export const switchRequestConfig = (
   };
 };
 
+/** One replacement of a bulk action. */
+export interface BulkEdit {
+  from: number;
+  to: number;
+  text: string;
+}
+
 /**
- * The alerts a switch applies: marked for the bulk action, with exactly the
- * one alternative the contract promises. Anything else is left one-by-one.
+ * The alternative a bulk action applies: `alternatives[bulk_alternative]`.
+ * Without `bulk_alternative` (older API versions), the only alternative, if
+ * there is exactly one. `null` for anything else.
  */
-export const bulkAlerts = (
+const bulkAlternative = ({
+  alternatives,
+  bulk_alternative: index,
+}: Alert['detail']['data']): string | null => {
+  let chosen;
+  if (index === undefined || index === null) {
+    chosen = alternatives?.length === 1 ? alternatives[0] : undefined;
+  } else if (Number.isInteger(index)) {
+    chosen = alternatives?.[index];
+  }
+  return typeof chosen?.text === 'string' ? chosen.text : null;
+};
+
+/**
+ * What a switch applies: the chosen alternative of every alert marked for the
+ * bulk action. Anything else is left one-by-one.
+ */
+export const bulkEdits = (
   alerts: Alert[],
   group = GENDER_FORMAT_BULK
-): Alert[] =>
-  alerts.filter(
-    ({detail}) =>
-      detail.data.bulk === group &&
-      detail.data.alternatives?.length === 1 &&
-      typeof detail.data.alternatives[0].text === 'string'
-  );
+): BulkEdit[] =>
+  alerts.flatMap(({from, to, detail}) => {
+    if (detail.data.bulk !== group) return [];
+    const text = bulkAlternative(detail.data);
+    return text === null ? [] : [{from, to, text}];
+  });
 
-/** Accept every alert in one transaction, so a single undo reverses it. */
-export const applyAlerts = (
+/** Make every edit in one transaction, so a single undo reverses it. */
+export const applyEdits = (
   state: EditorState,
-  alerts: Alert[]
+  edits: BulkEdit[]
 ): Transaction => {
   const tr = state.tr;
   // Back to front, so earlier positions stay valid.
-  for (const alert of [...alerts].sort((a, b) => b.from - a.from)) {
-    tr.insertText(alert.detail.data.alternatives[0].text, alert.from, alert.to);
+  for (const {from, to, text} of [...edits].sort((a, b) => b.from - a.from)) {
+    tr.insertText(text, from, to);
   }
   return tr;
 };
@@ -188,14 +215,14 @@ export const decideSwitch = (
   text: string,
   alerts: Alert[]
 ):
-  | {outcome: 'switched'; apply: Alert[]}
+  | {outcome: 'switched'; apply: BulkEdit[]}
   | {outcome: 'forced'; applied: string}
   | {
       outcome: Extract<SwitchOutcome, 'nothing' | 'disabled' | 'unsupported'>;
     } => {
   const applied = info.separators.find((separator) => separator !== target);
   if (applied) return {outcome: 'forced', applied};
-  const apply = bulkAlerts(alerts);
+  const apply = bulkEdits(alerts);
   if (apply.length) return {outcome: 'switched', apply};
   const known = info.bulkActions.filter(
     (groups): groups is string[] => groups !== undefined

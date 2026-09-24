@@ -25,7 +25,7 @@ import {
   WittyCheck,
 } from './checkPlugin';
 import {
-  applyAlerts,
+  applyEdits,
   decideSwitch,
   GENDER_FORMAT_BULK,
   type GenderFormatSwitchResult,
@@ -505,7 +505,7 @@ export const mount = (
     let result: GenderFormatSwitchResult;
     if (decision.outcome === 'switched') {
       editor.view.dispatch(
-        applyAlerts(editor.state, decision.apply).setMeta(SWITCH_META, true)
+        applyEdits(editor.state, decision.apply).setMeta(SWITCH_META, true)
       );
       result = {
         outcome: 'switched',
