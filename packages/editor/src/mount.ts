@@ -39,7 +39,9 @@ import {
   SWITCH_META,
   type SwitchController,
 } from './switchController';
-import {createOptionsLoader, mountToolbar, TOOLBAR_STYLES} from './toolbar';
+import {createOptionsLoader} from './preferenceOptions';
+import {mountToolbar} from './toolbar';
+import {TOOLBAR_STYLES} from './toolbarStyles';
 
 /**
  * A random id for `installationId`. `crypto.randomUUID` needs a secure

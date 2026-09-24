@@ -23,12 +23,37 @@ import {
   switchRequestConfig,
 } from './genderSwitch';
 import type {SettingsStore, StatusStore} from './settings';
-import {type PreferenceOptions, switchMessage} from './toolbar';
+import {formatLabel, type PreferenceOptions} from './preferenceOptions';
 
 /** Marks the switch's own edit, which must not clear its message. */
 export const SWITCH_META = 'wittyGenderFormatSwitch';
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+/** What a switch did, in words; shared by the panel and the live region. */
+export const switchMessage = (
+  t: Translate,
+  result: GenderFormatSwitchResult,
+  options: PreferenceOptions | null
+): string => {
+  const format = formatLabel(options, result.target);
+  const text = {
+    switched: t('switched', {count: result.count, format}),
+    nothing: t('switchNothing', {format}),
+    fromInklusivum: t('switchFromInklusivum'),
+    disabled: t('switchDisabled'),
+    unsupported: t('switchUnsupportedTarget', {format}),
+    unavailable: t('switchUnavailable', {format}),
+    forced: t('switchForced', {
+      format: formatLabel(options, result.applied ?? ''),
+    }),
+  }[result.outcome];
+  // What was checked is switched; the rest may still hold other forms.
+  return result.limitReached &&
+    (result.outcome === 'switched' || result.outcome === 'nothing')
+    ? `${text} ${t('limitReached')}`
+    : text;
+};
 
 export interface SwitchControllerOptions {
   editor: Editor;
