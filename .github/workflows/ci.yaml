@@ -1,8 +1,8 @@
 name: CI
 
-# Lint, type checks, the editor's unit tests with coverage, and the browser
-# suites: the editor on a fixture page, the extension in Chromium, and the
-# Firefox smoke suite. Everything runs offline against the mock NLP API
+# Lint, type checks, the editor's unit tests with coverage (sent to
+# SonarCloud), and the browser suites: the editor on a fixture page, the
+# extension in Chromium, and the Firefox smoke suite. Everything runs offline against the mock NLP API
 # (__tests__/helpers/mockApi.js); no dashboard, API or credentials needed.
 
 # Pull requests are tested as a pull request; pushes only on the long-lived
@@ -20,6 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # SonarCloud attributes issues to authors and works out what is new
+          # from the history, so a shallow clone degrades its analysis.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -31,6 +35,14 @@ jobs:
       - run: npm run typecheck
       # Coverage thresholds are enforced by the editor's vite.config.ts.
       - run: npm run test:unit
+      # Pull requests from forks get no secrets, so no token to scan with.
+      - name: SonarCloud scan
+        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          # For the pull request decoration.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   editor-browser:
     runs-on: ubuntu-latest

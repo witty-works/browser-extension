@@ -248,7 +248,7 @@ Before the first run, install the browsers: `npx playwright install chromium` an
 
 ### CI
 
-[`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) runs on pull requests and on pushes to `dev` and `main`: lint, type checks and the unit tests in one job, and each browser suite in its own. In CI, Playwright retries a failed test twice, because a few extension tests fail in full-suite runs but pass on their own (see [FEATURE_GAPS.md](packages/editor/FEATURE_GAPS.md)); the report lists them as flaky. Failed runs upload their test results and report.
+[`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) runs on pull requests and on pushes to `dev` and `main`: lint, type checks and the unit tests in one job, followed by a [SonarCloud](https://sonarcloud.io/project/overview?id=witty-works_browser-extension) scan with the unit tests' coverage (skipped for pull requests from forks, which get no token), and each browser suite in its own job. Coverage is only measured for the editor; `sonar-project.properties` excludes the extension's code from it. In CI, Playwright retries a failed test twice, because a few extension tests fail in full-suite runs but pass on their own (see [FEATURE_GAPS.md](packages/editor/FEATURE_GAPS.md)); the report lists them as flaky. Failed runs upload their test results and report.
 
 ### How the extension suites stay standalone
 
