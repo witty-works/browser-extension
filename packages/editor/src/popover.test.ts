@@ -4,7 +4,12 @@ import {TextSelection} from '@tiptap/pm/state';
 
 // The e2e suite's canned API: the same sample text and alerts.
 import {checkResponse, SAMPLE_TEXT} from '@witty/test-fixtures/mockApi';
-import {type EditorStatus, mount, type WittyEditorHandle} from './mount';
+import {
+  type EditorSettings,
+  type EditorStatus,
+  mount,
+  type WittyEditorHandle,
+} from './mount';
 
 let handle: WittyEditorHandle | undefined;
 let statuses: EditorStatus[];
@@ -40,7 +45,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const mountEditor = () => {
+const mountEditor = (options: Parameters<typeof mount>[1] = {}) => {
   const element = document.createElement('div');
   document.body.append(element);
   handle = mount(element, {
@@ -49,6 +54,7 @@ const mountEditor = () => {
     delay: 0,
     llmAlternatives: true,
     onStatus: (status) => statuses.push(status),
+    ...options,
   });
   return handle;
 };
@@ -118,6 +124,45 @@ describe('popover in the editor', () => {
     openPopoverOn(editor, 'guys');
 
     await vi.waitFor(() => expect(rephraseCalls).toBe(2));
+  });
+
+  it('follows updateSettings from the next popover on', async () => {
+    const changes: EditorSettings[] = [];
+    const editor = mountEditor({
+      llmAlternatives: false,
+      onSettingsChange: (settings) => changes.push(settings),
+    });
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    // Off, as mounted: the popover asks for no rewrites.
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(popover()).not.toBeNull());
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(rephraseCalls).toBe(0);
+    await closePopover();
+
+    editor.updateSettings({llmAlternatives: true});
+
+    expect(editor.getSettings().llmAlternatives).toBe(true);
+    expect(changes.map((settings) => settings.llmAlternatives)).toEqual([true]);
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(rephraseCalls).toBe(1));
+    await closePopover();
+
+    // Setting what is already set changes nothing.
+    editor.updateSettings({llmAlternatives: true});
+    expect(changes).toHaveLength(1);
+
+    editor.updateSettings({llmAlternatives: false});
+
+    expect(changes.map((settings) => settings.llmAlternatives)).toEqual([
+      true,
+      false,
+    ]);
+    openPopoverOn(editor, 'chairman');
+    await vi.waitFor(() => expect(popover()).not.toBeNull());
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(rephraseCalls).toBe(1);
   });
 
   it('retries rewrites that failed', async () => {

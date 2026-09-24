@@ -197,6 +197,16 @@ export interface WittyEditorHandle {
    * `{}` goes back to sending no `config`, i.e. the account's own settings.
    */
   setConfig(config: CheckConfig): void;
+  /**
+   * Change settings as the settings panel does, e.g. from the host's own form
+   * (the panel follows): the fields given replace the current ones, the rest
+   * stay. `config`, when given, is replaced whole, as with `setConfig`; start
+   * from a copy of `getSettings().config` to change one field of it. Calls
+   * `onSettingsChange` once if anything changed. A changed `config` checks
+   * again; popovers opened afterwards follow `llmAlternatives`, an open one
+   * keeps what it shows.
+   */
+  updateSettings(settings: Partial<EditorSettings>): void;
   /** Plain text of the document. */
   getText(): string;
   /**
