@@ -80,7 +80,10 @@ test.describe('Firefox smoke', () => {
     const box = await page.evaluate((cls) => {
       const walk = (root) => {
         for (const el of root.querySelectorAll('*')) {
-          if (el.classList.contains(cls) && el.textContent.includes('everyone')) {
+          if (
+            el.classList.contains(cls) &&
+            el.textContent.includes('everyone')
+          ) {
             const r = el.getBoundingClientRect();
             return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
           }
