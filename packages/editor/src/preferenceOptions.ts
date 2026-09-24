@@ -11,6 +11,8 @@ import type {
   IConfigOptionsResponse,
 } from '@witty/core/types';
 
+import {apiLocale} from '@witty/core/ApiServices/apiLocale';
+
 import {FORMAT_FIELD, formatLanguage} from './genderSwitch';
 
 /**
@@ -48,13 +50,13 @@ const loadPreferenceOptions = async (
     return response.json();
   };
 
-  const locale = navigator.language || 'en-US';
+  const locale = apiLocale(navigator.language);
   const [categories, options] = await Promise.allSettled([
     get(categoriesPath(locale)),
     // Labels in the UI's language; APIs up to 2.4.8 refuse `locale`.
-    get(
-      `${CONFIG_OPTIONS_PATH}?locale=${encodeURIComponent(locale.split('-')[0])}`
-    ).catch(() => get(CONFIG_OPTIONS_PATH)),
+    get(`${CONFIG_OPTIONS_PATH}?locale=${locale.split('-')[0]}`).catch(() =>
+      get(CONFIG_OPTIONS_PATH)
+    ),
   ]);
   const list =
     categories.status === 'fulfilled'
