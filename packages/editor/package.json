@@ -19,16 +19,31 @@
   "license": "MIT",
   "author": "Witty Works <contact@witty.works> (https://witty.works)",
   "type": "module",
+  "main": "dist/witty-editor.mjs",
+  "module": "dist/witty-editor.mjs",
+  "types": "dist/witty-editor.d.ts",
   "browser": "dist/witty-editor.js",
   "unpkg": "dist/witty-editor.js",
   "jsdelivr": "dist/witty-editor.js",
   "exports": {
+    ".": {
+      "types": "./dist/witty-editor.d.ts",
+      "import": "./dist/witty-editor.mjs",
+      "default": "./dist/witty-editor.mjs"
+    },
     "./witty-editor.js": "./dist/witty-editor.js",
+    "./witty-editor.mjs": {
+      "types": "./dist/witty-editor.d.ts",
+      "default": "./dist/witty-editor.mjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
     "dist/witty-editor.js",
-    "dist/witty-editor.js.LICENSE.txt"
+    "dist/witty-editor.js.LICENSE.txt",
+    "dist/witty-editor.mjs",
+    "dist/witty-editor.mjs.LICENSE.txt",
+    "dist/witty-editor.d.ts"
   ],
   "publishConfig": {
     "access": "public",
@@ -36,11 +51,21 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run build:types",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+    "prepublishOnly": "npm run typecheck && npm test && npm run build",
+    "build:types": "tsc -p tsconfig.api.json && node buildTypes.mjs",
+    "test:types": "tsc -p types-test/tsconfig.json"
+  },
+  "peerDependencies": {
+    "@tiptap/core": "^3.31.3"
+  },
+  "peerDependenciesMeta": {
+    "@tiptap/core": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@tiptap/core": "3.31.3",
