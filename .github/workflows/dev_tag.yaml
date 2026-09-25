@@ -79,6 +79,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ github.ref_name }}
+        # A re-run keeps the page that is there.
         run: |
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "The release page for ${VERSION} exists already."
+            exit 0
+          fi
           gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" \
             --verify-tag --title "$VERSION" --generate-notes --prerelease
