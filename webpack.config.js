@@ -46,24 +46,37 @@ const sentryRelease = process.env.SENTRY_VERSION_STRING
   ? `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`
   : require('./source/manifest.json').version;
 
-const sentryWebpackPluginInstance =
+// The `*-with-sourcemaps` builds, for the tag workflows, upload or fail: a
+// missing token would otherwise skip the upload without a word.
+if (
   process.env.SENTRY_SOURCEMAPS &&
-  process.env.SENTRY_AUTH_TOKEN &&
-  process.env.SENTRY_VERSION_STRING
-    ? sentryWebpackPlugin({
-        org: 'witty-works-ag',
-        project: 'browser-extension',
+  !(process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_VERSION_STRING)
+) {
+  throw new Error(
+    'SENTRY_SOURCEMAPS needs SENTRY_AUTH_TOKEN and SENTRY_VERSION_STRING'
+  );
+}
 
-        // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
-        // and need `project:releases` and `org:read` scopes
-        authToken: process.env.SENTRY_AUTH_TOKEN,
-        release: {
-          name: sentryRelease,
-        },
-      })
-    : () => {
-        this.apply = () => {};
-      };
+const sentryWebpackPluginInstance = process.env.SENTRY_SOURCEMAPS
+  ? sentryWebpackPlugin({
+      org: 'witty-works-ag',
+      project: 'browser-extension',
+
+      // An organization auth token (Sentry settings, Organization Tokens).
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      release: {
+        name: sentryRelease,
+      },
+      // A release build whose upload failed fails too: the plugin only logs
+      // the error, and the upload runs too late for a throw to stop webpack.
+      errorHandler: (error) => {
+        console.error(error);
+        process.exitCode = 1;
+      },
+    })
+  : () => {
+      this.apply = () => {};
+    };
 
 // Refuses to compile credentials into a shippable build. See build/credentialGuard.js.
 assertNoBakedInCredentials({
