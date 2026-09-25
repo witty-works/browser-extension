@@ -12,11 +12,7 @@ import {
   ICheckResponseResult,
   IFeatureFlagItems,
 } from '../types';
-import {
-  captureEvent,
-  getRequestData,
-  getResponseData,
-} from './analyticsUtils';
+import {captureEvent, getRequestData, getResponseData} from './analyticsUtils';
 
 export const useAnalytics = () => {
   return {
@@ -26,13 +22,13 @@ export const useAnalytics = () => {
       inputLength: number,
       requestType: string,
       checkLogEventId: string,
-      hrFeatureDisabled: boolean,
+      hrFeatureDisabled: boolean
     ) {
       const checkResponseResultsWithoutContext = checkResponse.results.map(
         (result) => {
-          const { context, ...resultWithoutContext } = result;
+          const {context, ...resultWithoutContext} = result;
           return resultWithoutContext;
-        },
+        }
       ) as ICheckResponseResult[];
 
       const checkLogItems: ICheckLogItems = {
@@ -46,7 +42,6 @@ export const useAnalytics = () => {
         response__organizationId: authResponse
           ? authResponse.organization_id
           : undefined,
-        response__plan: authResponse ? authResponse.plan : undefined,
         response__results: checkResponseResultsWithoutContext,
       };
 
@@ -59,7 +54,7 @@ export const useAnalytics = () => {
       inputLength: number,
       requestType: string,
       checkLogEventId: string,
-      hrFeatureDisabled: boolean,
+      hrFeatureDisabled: boolean
     ) {
       const checkLogItems: ICheckResultLogItems = {
         request__id: checkLogEventId,
@@ -71,7 +66,6 @@ export const useAnalytics = () => {
         response__organizationId: authResponse
           ? authResponse.organization_id
           : undefined,
-        response__plan: authResponse ? authResponse.plan : undefined,
         response__data__text: checkResponse.text_id,
         response__data__text__matched: checkResponse.text,
         response__data__category: checkResponse.category,
@@ -81,11 +75,12 @@ export const useAnalytics = () => {
         response__data__label: checkResponse.label,
         response__data__explanation__text: checkResponse.explanation?.text,
         response__data__explanation__icon: checkResponse.explanation?.icon,
-        response__data__explanation__icon_image: checkResponse.explanation?.icon_image,
+        response__data__explanation__icon_image:
+          checkResponse.explanation?.icon_image,
         response__data__explanation__url: checkResponse.explanation?.url,
         response__data__alternatives: checkResponse.alternatives,
         response__data__gravity: checkResponse.gravity,
-        response__data__language:  checkResponse.language,
+        response__data__language: checkResponse.language,
       };
 
       captureEvent(requestType, checkLogItems);
@@ -160,6 +155,6 @@ export const useAnalytics = () => {
         ...getRequestData(),
       };
       captureEvent('feature_flag', featureFlagItems);
-    }
+    },
   };
 };

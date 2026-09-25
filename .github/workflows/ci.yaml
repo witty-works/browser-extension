@@ -1,0 +1,128 @@
+name: CI
+
+# Lint, type checks, the editor's unit tests with coverage (sent to
+# SonarCloud), and the browser suites: the editor on a fixture page, the
+# extension in Chromium, and the Firefox smoke suite. Everything runs offline against the mock NLP API
+# (__tests__/helpers/mockApi.js); no dashboard, API or credentials needed.
+
+# Pull requests are tested as a pull request; pushes only on the long-lived
+# branches, so a pull request's pushes are not tested twice.
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # SonarCloud attributes issues to authors and works out what is new
+          # from the history, so a shallow clone degrades its analysis.
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Use the example config
+        run: cp source/witty.config.json.example source/witty.config.json
+      - run: npm run lint
+      - run: npm run typecheck
+      # Coverage thresholds are enforced by the editor's vite.config.ts.
+      - run: npm run test:unit
+      # Pull requests from forks get no secrets, so no token to scan with.
+      - name: SonarCloud scan
+        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
+        env:
+          # For the pull request decoration.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  editor-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Use the example config
+        run: cp source/witty.config.json.example source/witty.config.json
+      # Playwright's browsers, kept per lockfile (so per Playwright version):
+      # a hit skips the download; the system packages install either way.
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:editor
+      - name: Upload test results
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: editor-test-results
+          path: |
+            test-results-editor
+            playwright-report-editor
+
+  extension-chromium:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Use the example config
+        run: cp source/witty.config.json.example source/witty.config.json
+      # Playwright's browsers, kept per lockfile (so per Playwright version):
+      # a hit skips the download; the system packages install either way.
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      # Extensions need a headed browser.
+      - run: xvfb-run npm test
+      - name: Upload test results
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: extension-test-results
+          path: |
+            test-results
+            playwright-report
+
+  extension-firefox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Use the example config
+        run: cp source/witty.config.json.example source/witty.config.json
+      # Playwright runs the suite and serves the fixtures; Puppeteer drives
+      # Firefox (see __tests__/firefox/helpers.js), headless. Playwright only
+      # provides Firefox's system libraries here.
+      - run: npx playwright install-deps firefox
+      - run: npx puppeteer browsers install firefox@stable
+      - run: npm run test:firefox
+      - name: Upload test results
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: firefox-test-results
+          path: |
+            test-results-firefox
+            playwright-report-firefox

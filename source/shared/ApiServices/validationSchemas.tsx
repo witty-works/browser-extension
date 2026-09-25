@@ -1,11 +1,11 @@
-import { Schema } from 'jsonschema';
+import {Schema} from 'jsonschema';
 
 export const checkResponseOrgConfigPropertySchema: Schema = {
   type: 'object',
   properties: {
     value: {
       anyOf: [
-        { type: 'string' },
+        {type: 'string'},
         {
           type: 'array',
           items: {
@@ -13,15 +13,12 @@ export const checkResponseOrgConfigPropertySchema: Schema = {
             title: 'config type string[]',
           },
         },
-        { type: 'boolean' },
-        { type: 'number' },
+        {type: 'boolean'},
+        {type: 'number'},
       ],
     },
     status: {
-      anyOf: [
-        { type: 'string' },
-        { type: 'null' },
-      ],
+      anyOf: [{type: 'string'}, {type: 'null'}],
     },
   },
   required: ['value'],
@@ -61,7 +58,8 @@ export const checkResponseResultSchema: Schema = {
       type: 'integer',
     },
     alternatives: {
-      description: 'the list of alternative words to replace the problematic word',
+      description:
+        'the list of alternative words to replace the problematic word',
       type: 'array',
       items: {
         title: 'alternative',
@@ -182,10 +180,11 @@ export const llmAlternativesResponseSchema: Schema = {
       type: 'string',
     },
     results: {
-      description: 'Mapping of alternative phrase -> full sentence with that phrase',
+      description:
+        'Mapping of alternative phrase -> full sentence with that phrase',
       type: 'object',
       patternProperties: {
-        '.*': { type: 'string' },
+        '.*': {type: 'string'},
       },
       additionalProperties: false,
     },

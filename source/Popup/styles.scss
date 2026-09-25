@@ -1,5 +1,5 @@
-@import '../styles/fonts';
-@import '../styles/variables';
+@use '../styles/fonts' as *;
+@use '../styles/variables' as *;
 
 // FONTS
 .witty-works-ext-lato-small-paragraph-title-h4 {
@@ -118,7 +118,7 @@
     #9489db 71.64%,
     #37d1e5 101.91%,
     #5acfb9 131.52%
-  )
+  );
 }
 
 .witty-works-ext-light-gray-background {

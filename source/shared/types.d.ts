@@ -1,5 +1,5 @@
 //API REQUEST/RESPONSE
-import { TxtSentenceNode } from 'sentence-splitter';
+import {TxtSentenceNode} from 'sentence-splitter';
 
 export interface IRequest {
   url: string;
@@ -16,9 +16,9 @@ export interface IGetLLMSuggestionsRequest {
 }
 
 export interface DiffChange {
-  added: boolean,
-  removed: boolean,
-  value: string
+  added: boolean;
+  removed: boolean;
+  value: string;
 }
 
 export interface IEndpointError {
@@ -31,9 +31,70 @@ export interface IEndpointError {
 export interface ResponseConfig {
   orthography: ConfigProperty;
   categories?: any;
+  llm_alternatives?: ConfigProperty;
 }
+/** One togglable category from `GET /v2.0/categories`. */
+export interface ICategory {
+  key: string;
+  label?: string | null;
+  /** Diversity dimension this driver belongs to; matches ICategoryGroup.key. */
+  parent: string;
+  /**
+   * The key that disables only the advanced rules, or null when the category
+   * has no advanced tier. Supplied by the API rather than derived, so the
+   * suffix convention stays server-side.
+   */
+  advanced_key?: string | null;
+  proficiency_level?: string | null;
+}
+
+export interface ICategoryGroup {
+  key: string;
+  label?: string | null;
+}
+
+export interface ICategoriesResponse {
+  categories: ICategory[];
+  groups: ICategoryGroup[];
+}
+
+/** One enum-typed config field from `GET /v2.0/config-options`. */
+export interface IConfigOption {
+  values: string[];
+  default?: string | null;
+  /**
+   * Optional value → display label map.
+   *
+   * The category endpoint already carries labels sourced from the dashboard's
+   * JSON. When the same is done for these fields the extension picks them up
+   * automatically; until then it falls back to its own strings, which are a
+   * copy of the dashboard's wording and will drift.
+   */
+  labels?: Record<string, string>;
+}
+
+export interface IConfigOptionsResponse {
+  options: Record<string, IConfigOption>;
+}
+
 export interface RequestConfig {
   addons: string[];
+  /**
+   * Categories the user switched off locally.
+   *
+   * The API seeds its own `disabled_categories` from this and then layers
+   * organisation force-rules on top, so a client choice is honoured unless the
+   * deployment explicitly overrides it. See `apply_configs` in the NLP API.
+   */
+  disabled_categories?: string[];
+  /**
+   * Gender ending and role-format preferences, as offered by
+   * `GET /v2.0/config-options`. Sent only when the user has chosen one, so the
+   * API's own default applies otherwise.
+   */
+  german_gender_ending?: string;
+  french_gender_separator?: string;
+  gendered_roles_format?: string;
 }
 export interface ConfigProperty {
   value: string | string[] | boolean | number;
@@ -53,6 +114,13 @@ export interface ICheckResponse {
   config_changed: boolean;
   notifications: number;
   gender_separator: string;
+  /**
+   * The `bulk` groups this request can return, whether or not a result does:
+   * `["gender_format"]` for German with a separator format, inclusive roles
+   * and the gender-format alerts on; `[]` otherwise. Absent on API versions
+   * without bulk actions (up to 2.4.8).
+   */
+  bulk_actions?: string[];
 }
 
 export interface ICheckResponseResult {
@@ -70,13 +138,25 @@ export interface ICheckResponseResult {
   language: string;
   limit_reached: boolean;
   source: ISource;
+  /**
+   * A bulk action this alert belongs to: accepting every alert of the group
+   * (each with its `bulk_alternative`) performs it. "gender_format" switches
+   * the text to the configured German gender format. Absent otherwise, and on
+   * API versions without bulk actions.
+   */
+  bulk?: string | null;
+  /**
+   * With `bulk`: the index into `alternatives` of the one the bulk action
+   * applies. Absent on API versions whose bulk results have exactly one
+   * alternative.
+   */
+  bulk_alternative?: number | null;
 }
 
 //AUTH/REFRESHTOKEN ENDPOINT
 export interface IAuthResponse {
   config: ResponseConfig;
   organization_config: ResponseConfig;
-  plan: string;
   min_version: string;
 
   //private account
@@ -90,7 +170,6 @@ export interface IAuthResponse {
   organization_name?: string;
   organization_domains: IDomains;
   organization_config_hash: string;
-  organization_trial_ends_at?: string;
 }
 
 export interface IDomains {
@@ -115,13 +194,10 @@ export interface Highlight {
   startOffset: number;
   endOffset: number;
   node: Node;
-  plan?: string;
 }
 
 export type CustomInputElement =
-  | HTMLTextAreaElement
-  | HTMLInputElement
-  | HTMLDivElement;
+  HTMLTextAreaElement | HTMLInputElement | HTMLDivElement;
 
 //ALERTS
 export interface INodeWithAlerts {
@@ -144,7 +220,6 @@ export interface IAlert {
   data: IAlertContentData;
   organizationId?: string;
   userId?: string;
-  plan?: string;
   rect?: any;
 }
 export interface IAlertContentData {
@@ -162,6 +237,10 @@ export interface IAlertContentData {
   gravity: number;
   limit_reached: boolean;
   source: ISource;
+  /** See ICheckResponseResult.bulk. */
+  bulk?: string | null;
+  /** See ICheckResponseResult.bulk_alternative. */
+  bulk_alternative?: number | null;
 }
 
 //POPOVER
@@ -185,7 +264,7 @@ export interface IImage {
 
 export interface IExplanation {
   text: string;
-  long_text?: string
+  long_text?: string;
   icon: string;
   icon_image: string;
   url: string;
@@ -209,7 +288,6 @@ export interface ILogItems {
   response__startOffset: number;
   response__endOffset: number;
   response__popOverIsOpen: boolean;
-  response__plan?: string;
   response__data__language: string;
   response__data__category: string;
   response__data__subcategory: string;
@@ -256,7 +334,6 @@ export interface ICheckLogItems {
   request__client: string;
   request__text__length: number;
   response__organizationId?: string;
-  response__plan?: string;
   response__results: ICheckResponseResult[];
   response__data__language: string;
   response__limit_reached: boolean;
@@ -270,7 +347,6 @@ export interface ICheckResultLogItems {
   request__client: string;
   request__text__length: number;
   response__organizationId?: string;
-  response__plan?: string;
   response__data__text: string;
   response__data__text__matched: string;
   response__data__category: string;
@@ -290,12 +366,7 @@ export interface ICheckResultLogItems {
 }
 
 export type DefaultConfigValue =
-  | string
-  | boolean
-  | number
-  | string[]
-  | object
-  | (() => string);
+  string | boolean | number | string[] | object | (() => string);
 
 export interface IDomainRequest {
   domain: string;
@@ -305,11 +376,6 @@ export interface IDomainRequest {
 export interface EnableWittyToggle {
   enabled: boolean;
   updateDashboard: boolean;
-}
-
-export interface IgnoredCategory {
-  category: string;
-  timestamp: number;
 }
 
 export interface FeatureFlag {
@@ -322,7 +388,6 @@ export interface FeatureFlag {
 }
 
 export interface FeatureFlags {
-  salesDemoFlag: FeatureFlag | null;
   teamInviteFlag: FeatureFlag | null;
   friendInviteFlag: FeatureFlag | null;
 }

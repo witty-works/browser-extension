@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import browser from 'webextension-polyfill';
-import { dropdownOptions, StorageKeys } from '../../shared/constants';
+import {dropdownOptions, StorageKeys} from '../../shared/constants';
 import '../styles.scss';
 import Dropdown from '../../shared/components/Dropdown/Dropdown';
 import defaultConfig from '../../witty.config.json';
-import { logTypes, useLog } from '../../shared/customHooks/useLog';
-import { sendErrorToSentry } from '../../shared/errorUtils';
+import {logTypes, useLog} from '../../shared/customHooks/useLog';
+import {sendErrorToSentry} from '../../shared/errorUtils';
 
 export interface OptionProp {
   key: string;
@@ -23,7 +23,7 @@ const DelaySelector: React.FC = () => {
 
   const handleDropdownChange = (value: string) => {
     browser.storage.local
-      .set({ [StorageKeys.API_DELAY]: value })
+      .set({[StorageKeys.API_DELAY]: value})
       .then(() => {
         log(`Witty ${StorageKeys.API_DELAY} *${value}* correctly saved`);
       })

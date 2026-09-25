@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Witty editor fixture (ES module)</title>
+  </head>
+  <body>
+    <!-- The ES module build, imported as a bundler would; see
+         __tests__/editor/editor.spec.js. -->
+    <div id="editor"></div>
+    <script type="module">
+      import { mount } from '/editor-dist/witty-editor.mjs';
+
+      window.statuses = [];
+      window.handle = mount(document.getElementById('editor'), {
+        endpoint: `${location.origin}/mock-api/`,
+        lang: 'en',
+        content:
+          '<p>Hey guys, the chairman will assume the leadership role. This is a spelling mistacke.</p>',
+        delay: 0,
+        onStatus: (status) => window.statuses.push(status),
+      });
+    </script>
+  </body>
+</html>

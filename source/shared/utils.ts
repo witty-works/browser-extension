@@ -1,6 +1,17 @@
 import browser from 'webextension-polyfill';
-import { BaseUrls, DefaultBaseUrlKey, DEV_ENV, StorageKeys, wittyVersion } from './constants';
-import { sendErrorToSentry } from './errorUtils';
+import {
+  apiKeyFromStorage,
+  BaseUrls,
+  DefaultBaseUrlKey,
+  DEV_ENV,
+  getAuthMode,
+  registerCustomEndpointFromStorage,
+  STATIC_ACCESS_TOKEN,
+  StorageKeys,
+  wittyVersion,
+  X_KEY,
+} from './constants';
+import {sendErrorToSentry} from './errorUtils';
 import defaultConfig from '../witty.config.json';
 import {
   isGoogleDocs,
@@ -8,10 +19,28 @@ import {
   isTextArea,
   requiresRectRecalculation,
 } from './DOMutils';
-import { createUrl, getToken } from './ApiServices/requests';
-import { IAuthResponse } from './types';
-import { getActiveDocument } from '../ContentScript/ContentScriptApp';
+import {
+  createUrl,
+  setApiKey,
+  setToken,
+  buildRequestHeaders,
+} from './ApiServices/requests';
+import {refresh} from './ApiServices/oauth';
+import {clearTokens, persistTokens, readTokens} from './tokenStore';
+import {IAuthResponse} from './types';
+import {getActiveDocument} from './activeDocument';
+import {getStorage} from './platform/storage';
 
+// Moved out so they can be used without the extension APIs; re-exported for
+// existing importers.
+export {extractSentenceNode, generateAlertId} from './alerts';
+
+// Moved to DOMutils so they can be used without the extension APIs; re-exported
+// for existing importers.
+export {
+  getDomainWithoutSubdomain,
+  getScrollableParentClosestToElement,
+} from './DOMutils';
 export const isObjectEmpty = (obj: object) =>
   obj &&
   Object.keys(obj).length === 0 &&
@@ -24,8 +53,8 @@ export const storeInLocalStorage = (key: string, value: any) => {
   if (!key) {
     return;
   }
-  browser.storage.local
-    .set({ [key]: value })
+  getStorage()
+    .local.set({[key]: value})
     .then(() => {
       //TODO bug, some values are not pronted correctly (for example arrays)
       const componentName = 'Utils';
@@ -49,24 +78,18 @@ export const storeInLocalStorage = (key: string, value: any) => {
       const componentName = 'Utils';
       const message = `onBrowserStorage Error: ${error}`;
 
-      DEV_ENV && console.log(
-        `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
-        `color: #55B8E9`,
-        `color: #5fca7d`,
-        `color: #f00`
-      );
+      DEV_ENV &&
+        console.log(
+          `%c[Witty v${wittyVersion}]%c[Component: ${componentName}] %c${message}`,
+          `color: #55B8E9`,
+          `color: #5fca7d`,
+          `color: #f00`
+        );
 
       sendErrorToSentry(error);
     });
 };
 
-export const getDomainWithoutSubdomain = (url: string) => {
-  const urlParts = url.split('.');
-  return urlParts
-    .slice(0)
-    .slice(urlParts.length - 2)
-    .join('.');
-};
 export const singularTheyToBoolean = (value: string) =>
   value === 'he_or_she' ? false : true;
 
@@ -100,54 +123,81 @@ export const addBadge = (text: string) => {
   browser.action?.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
-  browser.action?.setBadgeText({ text: text });
+  browser.action?.setBadgeText({text: text});
   // for firefox mv2
   browser.browserAction?.setBadgeBackgroundColor({
     color: [190, 190, 190, 230],
   });
-  browser.browserAction?.setBadgeText({ text: text });
-}
+  browser.browserAction?.setBadgeText({text: text});
+};
 
+/**
+ * Obtain a fresh access token using the stored refresh token.
+ *
+ * Replaces the old POST to the dashboard's `/api/refresh-token`, which routed to
+ * a controller method deleted along with Azure AD B2C. This now uses the
+ * standard OAuth2 `refresh_token` grant against `/oauth/token`.
+ */
 export const getNewAccessToken = async () => {
-  browser.storage.local.get(StorageKeys.REFRESH_TOKEN).then((result) => {
-    if (!result[StorageKeys.REFRESH_TOKEN]) {
+  // If X_KEY is configured, do not attempt to refresh tokens
+  if (X_KEY) return;
+
+  try {
+    const stored = await readTokens();
+
+    // If the access token matches a statically configured one, never refresh
+    // it. Guarded on a non-empty value: in release builds STATIC_ACCESS_TOKEN
+    // is '', and an unauthenticated install also has '' in storage, so an
+    // unguarded comparison would match and skip the refresh entirely.
+    if (STATIC_ACCESS_TOKEN && stored.accessToken === STATIC_ACCESS_TOKEN) {
+      return;
+    }
+
+    if (!stored.refreshToken) {
       logOut();
       return;
     }
-    const request = getToken(result[StorageKeys.REFRESH_TOKEN]);
-    if (!request.config) {
-      logOut();
-      return;
-    }
-    fetch(request.url, request.config).then(async (response) => {
-      if (!response || !response.ok) {
-        logOut();
-        return;
-      }
-      const responseJson = await response.json();
-      storeInLocalStorage(
-        StorageKeys.REFRESH_TOKEN,
-        responseJson.refresh_token
-      );
-      storeInLocalStorage(StorageKeys.ACCESS_TOKEN, responseJson.access_token);
-    });
-  });
+
+    const result = await getStorage().local.get([
+      StorageKeys.API_ENDPOINT_KEY,
+      StorageKeys.CUSTOM_ENDPOINT,
+    ]);
+    registerCustomEndpointFromStorage(result);
+    const urlKey =
+      (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey;
+
+    // Passport rotates refresh tokens, so both values must be written back —
+    // continuing to present the previous refresh token after a successful
+    // rotation is rejected.
+    const tokens = await refresh(urlKey, stored.refreshToken);
+    await persistTokens(tokens);
+    setToken(tokens.accessToken);
+  } catch (error) {
+    // A refresh failure means the refresh token is expired, revoked, or was
+    // issued by a different deployment. None of those are recoverable without
+    // the user signing in again, so fail closed rather than leaving stale
+    // credentials that will keep 401-ing.
+    sendErrorToSentry(error);
+    logOut();
+  }
 };
 
 export const logOut = () => {
   storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
   storeInLocalStorage(StorageKeys.USER_ID, '');
   storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
-  storeInLocalStorage(StorageKeys.ACCESS_TOKEN, '');
-  storeInLocalStorage(StorageKeys.REFRESH_TOKEN, '');
-  storeInLocalStorage(StorageKeys.PLAN, '');
+  storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+  // Goes through the store so the session-held access token is cleared too,
+  // not just the on-disk refresh token.
+  clearTokens().catch((error) => sendErrorToSentry(error));
+  setToken('');
   addBadge('Login');
 };
 
 export const removeBadge = () => {
-  browser.action?.setBadgeText({ text: '' });
+  browser.action?.setBadgeText({text: ''});
   // for firefox mv2
-  browser.browserAction?.setBadgeText({ text: '' });
+  browser.browserAction?.setBadgeText({text: ''});
 };
 
 export const getRandomToken = () => {
@@ -166,43 +216,55 @@ export const getRandomToken = () => {
 };
 
 export const updateLabelChrome = (domain: string) => {
-  browser.storage.local.get(null).then((result) => {
-    if (!result[StorageKeys.ACCESS_TOKEN]) {
-      addBadge('Login');
-      return;
-    }
-
-    const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
-    const domainList = Array.isArray(orgDomains?.list) ? orgDomains.list : [];
-    const isLocked = orgDomains 
-      ? (orgDomains.type === 'deny' && domainList.includes(domain)) || 
-        (orgDomains.type === 'allow' && !domainList.includes(domain))
-      : false;
-
-    const isDisabled = result[StorageKeys.DOMAINS]?.includes(domain);
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      if (!tabs[0]?.url) return;
-      
-      const domainOnDisabledSitesList = defaultConfig.DISABLED_SITES.includes(domain) || isMicrosoftOnline(new URL(tabs[0].url).href);
-      const numberOfNotifications = result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
-      
-      if (isLocked || isDisabled || domainOnDisabledSitesList) {
-        addBadge('OFF');
-      } else if (numberOfNotifications > 0) {
-        addNotificationBadge(numberOfNotifications);
-      } else {
-        removeBadge();
+  getStorage()
+    .local.get(null)
+    .then((result) => {
+      if (!isSignedInResult(result)) {
+        addBadge('Login');
+        return;
       }
-    }).catch((error) => {
-      sendErrorToSentry(error);
+
+      const orgDomains = result[StorageKeys.ORGANIZATION_DOMAINS];
+      const domainList = Array.isArray(orgDomains?.list) ? orgDomains.list : [];
+      const isLocked = orgDomains
+        ? (orgDomains.type === 'deny' && domainList.includes(domain)) ||
+          (orgDomains.type === 'allow' && !domainList.includes(domain))
+        : false;
+
+      const isDisabled = result[StorageKeys.DOMAINS]?.includes(domain);
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+      browser.tabs
+        .query({active: true, currentWindow: true})
+        .then((tabs) => {
+          if (!tabs[0]?.url) return;
+
+          const domainOnDisabledSitesList =
+            defaultConfig.DISABLED_SITES.includes(domain) ||
+            isMicrosoftOnline(new URL(tabs[0].url).href);
+          const numberOfNotifications =
+            result[StorageKeys.NUMBER_OF_NOTIFICATIONS];
+
+          if (isLocked || isDisabled || domainOnDisabledSitesList) {
+            addBadge('OFF');
+          } else if (numberOfNotifications > 0) {
+            addNotificationBadge(numberOfNotifications);
+          } else {
+            removeBadge();
+          }
+        })
+        .catch((error) => {
+          sendErrorToSentry(error);
+        });
     });
-  });
 };
 
-export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLElement | null, element: HTMLElement) => {
+export const getCorrectedPosition = (
+  elementRect: DOMRect,
+  parentElement: HTMLElement | null,
+  element: HTMLElement
+) => {
   const parentRect = parentElement?.getBoundingClientRect();
   const isFirefox = navigator.userAgent.match(/firefox|fxios/i);
   const textArea = isTextArea(element);
@@ -210,18 +272,21 @@ export const getCorrectedPosition = (elementRect: DOMRect, parentElement: HTMLEl
   if (requiresRectRecalculation(element)) {
     elementRect = element.getBoundingClientRect();
   }
-const topLevelWindow = element.ownerDocument.defaultView;
+  const topLevelWindow = element.ownerDocument.defaultView;
   if (parentRect && !isObjectEmpty(parentRect) && topLevelWindow) {
     const scrollY = textArea ? 0 : topLevelWindow.scrollY;
     const scrollX = textArea ? 0 : topLevelWindow.scrollX;
 
-    const top = isFirefox && !isGoogleDocs() ? 0 : elementRect.top - parentRect.top - scrollY;
+    const top =
+      isFirefox && !isGoogleDocs(element)
+        ? 0
+        : elementRect.top - parentRect.top - scrollY;
     const left = elementRect.left - parentRect.left - scrollX;
 
-    return { top, left };
+    return {top, left};
   }
 
-  return { top: elementRect.top, left: elementRect.left };
+  return {top: elementRect.top, left: elementRect.left};
 };
 
 export const getCorrectedPositionCanvas = (element: HTMLElement) => {
@@ -230,61 +295,41 @@ export const getCorrectedPositionCanvas = (element: HTMLElement) => {
   const scrollLeft = element.parentElement?.parentElement?.scrollLeft;
   const scrollTop = element.parentElement?.parentElement?.scrollTop;
 
-  const isPageless = element.querySelectorAll('.kix-page-paginated').length === 0;
+  const isPageless =
+    element.querySelectorAll('.kix-page-paginated').length === 0;
   const googleDocsToolbarLeftRect = getActiveDocument()
     .getElementsByClassName('left-sidebar-container-content')[0]
     ?.getBoundingClientRect();
 
   return {
     top: scrollTop ? scrollTop : 0,
-    left: updatedElementRect.left + (scrollLeft ? scrollLeft : 0) +
-      (isPageless ? (googleDocsToolbarLeftRect?.width || 0) : 0),
+    left:
+      updatedElementRect.left +
+      (scrollLeft ? scrollLeft : 0) +
+      (isPageless ? googleDocsToolbarLeftRect?.width || 0 : 0),
   };
-};
-
-export const getScrollableParentClosestToElement = (element: HTMLElement) => {
-  let style = getComputedStyle(element);
-  const excludeStaticParent = style.position === 'absolute';
-  const overflowRegex = /(auto|scroll)/;
-  if (style.position === 'fixed') return document.body;
-  for (let parent = element; (parent = parent.parentElement as HTMLElement); ) {
-    style = getComputedStyle(parent);
-    if (excludeStaticParent && style.position === 'static') {
-      continue;
-    }
-    if (overflowRegex.test(style.overflow + style.overflowY + style.overflowX))
-      return parent;
-  }
-  return document.body;
 };
 
 export const getFrameDepth = (windowToIdentify: Window): number => {
   if (windowToIdentify === window.top) {
     return 0;
-  }
-  else if (windowToIdentify.parent === window.top) {
+  } else if (windowToIdentify.parent === window.top) {
     return 1;
   }
 
-  return 1 + getFrameDepth (windowToIdentify.parent);
+  return 1 + getFrameDepth(windowToIdentify.parent);
 };
 
 export const shouldInjectIntoWindow = (windowToCheck: Window) => {
   const frameDepth = getFrameDepth(windowToCheck);
-  const isVisible = windowToCheck.innerWidth >= 10 && windowToCheck.innerHeight >= 10;
+  const isVisible =
+    windowToCheck.innerWidth >= 10 && windowToCheck.innerHeight >= 10;
   return frameDepth < 2 && isVisible;
 };
 
-export const generateAlertId = (text: string, category: string, startOffset: number, endOffset: number) => {
-  return `${text}-${category}-${startOffset}-${endOffset}`;
-};
-
-export const updateConfig = (
-  response: IAuthResponse,
-  force: boolean = false
-) => {
-  browser.storage.local
-    .get(null)
+export const updateConfig = (response: IAuthResponse, force = false) => {
+  getStorage()
+    .local.get(null)
     .then((result) => {
       if (
         response?.config_hash === result[StorageKeys.CONFIG_HASH] &&
@@ -302,9 +347,11 @@ export const updateConfig = (
       );
       storeInLocalStorage(StorageKeys.USER_ID, response?.id);
       storeInLocalStorage(StorageKeys.DOMAINS, response?.domains.list); //type not relevant here -> always 'deny'
-      storeInLocalStorage(StorageKeys.PLAN, response?.plan);
       // @ts-ignore
-      storeInLocalStorage(StorageKeys.LLM_ALTERNATIVES, response?.organization_config?.llm_alternatives?.value)
+      storeInLocalStorage(
+        StorageKeys.LLM_ALTERNATIVES,
+        response?.organization_config?.llm_alternatives?.value
+      );
       storeInLocalStorage(
         StorageKeys.ORGANIZATION_DOMAINS,
         response?.organization_domains
@@ -320,6 +367,13 @@ export const updateConfig = (
           StorageKeys.ORTHOGRAPHY,
           response.organization_config.categories.orthography
         );
+        // Keep the reported category keys so the options page can offer
+        // per-category toggles. Deployments that report none simply do not get
+        // the section.
+        storeInLocalStorage(
+          StorageKeys.CATEGORIES,
+          Object.keys(response.organization_config.categories)
+        );
       }
     })
     .catch((error) => {
@@ -328,40 +382,99 @@ export const updateConfig = (
 };
 
 export const makeAuthRequest = () => {
-  browser.storage.local
-    .get(null)
-    .then((result) => {
+  getStorage()
+    .local.get(null)
+    .then(async (result) => {
+      registerCustomEndpointFromStorage(result);
+      setApiKey(apiKeyFromStorage(result));
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
+      const {accessToken} = await readTokens();
 
-      if (
-        result[StorageKeys.ACCESS_TOKEN]
-      ) {
+      if (accessToken) {
+        const headers = buildRequestHeaders(accessToken);
+
         const config = {
           method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${result[StorageKeys.ACCESS_TOKEN]}`,
-          },
+          headers,
         };
 
-        fetch(
-          createUrl(
-            BaseUrls[urls].api,
-            'v2.0/auth'
-          ),
-          config
-        ).then(async (response) => {
-          if (response.ok) {
-            const json = await response.json();
-            updateConfig(json, true);
+        fetch(createUrl(BaseUrls[urls].api, 'v2.0/auth'), config).then(
+          async (response) => {
+            if (response.ok) {
+              const json = await response.json();
+              updateConfig(json, true);
+              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+            } else {
+              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+            }
           }
-        });
+        );
+      } else if (X_KEY || apiKeyFromStorage(result)) {
+        // No token in storage but an X_KEY is configured in the extension config.
+        // Try the auth endpoint using the configured X-KEY header. Do NOT store the raw key.
+        const headers = buildRequestHeaders();
+        const config = {
+          method: 'POST',
+          headers,
+        };
+
+        fetch(createUrl(BaseUrls[urls].api, 'v2.0/auth'), config)
+          .then(async (response) => {
+            if (response.ok) {
+              const json = await response.json();
+              updateConfig(json, true);
+              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+            } else {
+              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+            }
+          })
+          .catch((e) => {
+            storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+            sendErrorToSentry(e);
+          });
+      } else if (STATIC_ACCESS_TOKEN) {
+        // No token in storage but a default token is available in config — store and use it.
+        storeInLocalStorage(StorageKeys.ACCESS_TOKEN, STATIC_ACCESS_TOKEN);
+        storeInLocalStorage(StorageKeys.SIGNED_IN, true);
+        try {
+          setToken(STATIC_ACCESS_TOKEN);
+        } catch (e) {
+          // swallow any errors setting token — best effort fallback
+          sendErrorToSentry(e);
+        }
       }
     })
     .catch((error) => {
       sendErrorToSentry(error);
     });
+};
+
+/**
+ * Decide sign-in state from a `storage.local.get(null)` snapshot.
+ *
+ * Reads the `signedIn` marker rather than the access token: the token now lives
+ * in `storage.session` and is absent from this snapshot. `ACCESS_TOKEN` is still
+ * consulted so installs that have not yet run the migration — or browsers
+ * without session storage — keep working.
+ */
+export const isSignedInResult = (result: any): boolean => {
+  if (X_KEY) {
+    return true;
+  }
+
+  // In API-key mode the key *is* the credential — there is no account and no
+  // token. Returning false here would make the extension consider itself signed
+  // out and refuse to send any text, which is the correct behaviour for a
+  // missing key and wrong for a present one.
+  if (getAuthMode(result) === 'apiKey') {
+    return !!apiKeyFromStorage(result);
+  }
+
+  return !!(
+    result[StorageKeys.SIGNED_IN] ||
+    result[StorageKeys.ACCESS_TOKEN] ||
+    result[StorageKeys.CHECK_ENDPOINT_SUCCESS]
+  );
 };

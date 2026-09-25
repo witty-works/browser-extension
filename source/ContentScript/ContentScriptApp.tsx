@@ -1,23 +1,27 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import { createRoot } from 'react-dom/client';
+import {createRoot} from 'react-dom/client';
 import browser from 'webextension-polyfill';
 
-import { CustomInputElement, RequestConfig } from '../shared/types';
-import { useStateRef } from '../shared/customHooks/useStateRef';
+import {CustomInputElement, RequestConfig} from '../shared/types';
+import {useStateRef} from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
+  apiKeyFromStorage,
   WTags,
   StorageKeys,
   DefaultBaseUrlKey,
   DEV_ENV,
+  registerCustomEndpointFromStorage,
 } from '../shared/constants';
 import {
   getBaseUrls,
   setAppID,
   setBaseUrls,
+  setApiKey,
   setRequestConfig,
   setToken,
 } from '../shared/ApiServices/requests';
+import {readAccessToken} from '../shared/tokenStore';
 import {
   isInputElement,
   nodeExistsInDOM,
@@ -30,14 +34,15 @@ import {
   isGoogleSearch,
   isMicrosoftOnlineExcel,
   isAemRte,
-  isMicrosoftOnline
+  isMicrosoftOnline,
 } from '../shared/DOMutils';
-import { sendErrorToSentry } from '../shared/errorUtils';
-import { useLog, logTypes } from '../shared/customHooks/useLog';
+import {sendErrorToSentry} from '../shared/errorUtils';
+import {getActiveDocument, setActiveDocument} from '../shared/activeDocument';
+import {useLog, logTypes} from '../shared/customHooks/useLog';
 import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import throttle from 'lodash.throttle';
-import { getDomainWithoutSubdomain, storeInLocalStorage } from '../shared/utils';
-import Notification from '../Notifications/Notification';
+import {getDomainWithoutSubdomain, storeInLocalStorage} from '../shared/utils';
+import renderNotificationToTop from '../Notifications/renderNotification';
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
   z-index: 2147483647 !important;
@@ -57,18 +62,6 @@ const WW_CONTAINER_STYLE = `
   box-shadow: none !important;
   `;
 
-let activeDocument = document;
-
-export const setActiveDocument = (document: Document) => {
-  if (document?.body) {
-    activeDocument = document;
-  }
-};
-
-export const getActiveDocument = () => {
-  return activeDocument;
-};
-
 const ContentScriptApp: React.FC = () => {
   const [reqConfig, setReqConfig, reqConfigRef] = useStateRef(
     {} as RequestConfig
@@ -77,44 +70,68 @@ const ContentScriptApp: React.FC = () => {
   const [, setInputsMap, inputsMapRef] = useStateRef(new Map());
   const [, setHoveredElement, hoveredElementRef] =
     useStateRef<CustomInputElement | null>(null);
-  const [pinNotificationStored, setPinNotificationStored] = useState<boolean | null>(null);
+  const [pinNotificationStored, setPinNotificationStored] = useState<
+    boolean | null
+  >(null);
   const [, , elementRef] = useStateRef<CustomInputElement | null>(null);
 
   const log = useLog('ContentScriptApp');
 
   useEffect(() => {
     if (isGoogleSearch()) return;
-    if (isMicrosoftOnline(window.location.href)) return; //needed in addition to the deny list because of iframes
+    // Disables the extension on all Microsoft Online surfaces (Word, Excel,
+    // PowerPoint, Outlook 365, Sharepoint) — needed in addition to the deny
+    // list because of iframes. Every Microsoft-specific branch further down
+    // (Word focus handling, the Excel formula-bar case) is unreachable until
+    // this early return is lifted; they are kept for that eventuality.
+    if (isMicrosoftOnline(window.location.href)) return;
 
     browser.storage.local
       .get(null)
       .then((result) => {
         setAppID(result[StorageKeys.APP_ID]);
+        registerCustomEndpointFromStorage(result);
         setBaseUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-        setToken(result[StorageKeys.ACCESS_TOKEN]);
-        storeInLocalStorage(StorageKeys.CONFIG_HASH, result[StorageKeys.CONFIG_HASH]);
-        storeInLocalStorage(StorageKeys.ORGANIZATION_CONFIG_HASH, result[StorageKeys.ORGANIZATION_CONFIG_HASH]);
+        setApiKey(apiKeyFromStorage(result));
+        readAccessToken()
+          .then(setToken)
+          .catch(() => setToken(''));
+        storeInLocalStorage(
+          StorageKeys.CONFIG_HASH,
+          result[StorageKeys.CONFIG_HASH]
+        );
+        storeInLocalStorage(
+          StorageKeys.ORGANIZATION_CONFIG_HASH,
+          result[StorageKeys.ORGANIZATION_CONFIG_HASH]
+        );
 
         //Enable/disable spellchecker on the website
         getActiveDocument().body.spellcheck = result[StorageKeys.ORTHOGRAPHY]
           ? (getActiveDocument().body.spellcheck = false) //needed here for linkedin, could be removed when we fix focusin issue
           : (getActiveDocument().body.spellcheck = true);
-          
+
         setPinNotificationStored(result[StorageKeys.PIN_NOTIFICATION_SHOWED]);
-        
+
         //Define API requests config
         const domain = getDomainWithoutSubdomain(window.location.hostname);
-        const isHrFeatureDisabled = result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS]?.includes(domain);
+        const isHrFeatureDisabled =
+          result[StorageKeys.HR_FEATURES_DISABLED_DOMAINS]?.includes(domain);
         const requestConfig: RequestConfig = {
           addons: isHrFeatureDisabled ? [] : ['hr'],
+          disabled_categories:
+            (result[StorageKeys.DISABLED_CATEGORIES] as string[]) || [],
+          // Spread rather than set individually: only fields the user actually
+          // chose are stored, so the API's own default stands for the rest.
+          ...((result[StorageKeys.LANGUAGE_FORMAT] as Record<string, string>) ||
+            {}),
         };
         setReqConfig(requestConfig);
 
-        if(result[StorageKeys.EXTENSION_WAS_UPDATED]) {
+        if (result[StorageKeys.EXTENSION_WAS_UPDATED]) {
           renderNotification('update');
           browser.storage.local.set({
             [StorageKeys.EXTENSION_WAS_UPDATED]: false,
@@ -132,9 +149,12 @@ const ContentScriptApp: React.FC = () => {
     // Setup mutation observers
     setupMutationObservers();
 
+    // On Google Docs the kix editor never emits focusin for the document
+    // canvas, so it is bootstrapped once directly — but the focusin listener
+    // is still needed there: comment and reply boxes are ordinary
+    // contenteditables that only announce themselves through focus (#1078).
     isGoogleDocs() && handleFocusinElement();
-    !isGoogleDocs() &&
-      document?.addEventListener('focusin', handleFocusinElement, true);
+    document?.addEventListener('focusin', handleFocusinElement, true);
     document?.addEventListener('mouseover', handleMouseOver, true);
     document?.addEventListener('mouseout', handleMouseOut, true);
 
@@ -153,7 +173,11 @@ const ContentScriptApp: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if(pinNotificationStored === null || window.location.href.includes(getBaseUrls().dashboard)) return;
+    if (
+      pinNotificationStored === null ||
+      window.location.href.includes(getBaseUrls().dashboard)
+    )
+      return;
 
     if (!pinNotificationStored) {
       renderNotification('pin');
@@ -164,48 +188,50 @@ const ContentScriptApp: React.FC = () => {
   const renderNotification = (notificationType: string) => {
     try {
       if (!window.top) return;
-  
+
       const notificationWrapper = document.createElement('div');
       notificationWrapper.id = 'ww-notification';
-      window.top.document.body.insertBefore(notificationWrapper, window.top.document.body.firstChild);
-
-      const root = createRoot(notificationWrapper);
-      root.render(
-        <Notification
-          notificationType={notificationType}
-          element={elementRef.current}
-        />
+      window.top.document.body.insertBefore(
+        notificationWrapper,
+        window.top.document.body.firstChild
       );
 
+      renderNotificationToTop(notificationType, elementRef.current);
     } catch (error) {
-      DEV_ENV && console.error("Error in renderNotification:", error);
+      DEV_ENV && console.error('Error in renderNotification:', error);
     }
   };
-  
 
   //TODO specify changes type
   //TODO review all cases
   const storageChange = useCallback((changes: any) => {
     // TODO fix this changes: any ^
-    let changedItems = Object.keys(changes);
+    const changedItems = Object.keys(changes);
 
-    for (let item of changedItems) {
+    for (const item of changedItems) {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
           setBaseUrls(changes[item].newValue);
           break;
-        case StorageKeys.ACCESS_TOKEN:
-          setToken(changes[item].newValue);
+        case StorageKeys.SIGNED_IN:
+          // The marker is a boolean; the token itself lives in storage.session,
+          // so re-read it rather than assigning the marker.
+          changes[item].newValue
+            ? readAccessToken()
+                .then(setToken)
+                .catch(() => setToken(''))
+            : setToken('');
           break;
         case StorageKeys.HR_FEATURES_DISABLED_DOMAINS:
           setReqConfig({
             ...reqConfigRef.current,
-            addons: 
-              changes[item].newValue.includes(getDomainWithoutSubdomain(window.location.hostname))
-                ? reqConfigRef.current.addons.filter((addon) => addon !== 'hr')
-                : [...reqConfigRef.current.addons, 'hr'],
-            });
-            break;
+            addons: changes[item].newValue.includes(
+              getDomainWithoutSubdomain(window.location.hostname)
+            )
+              ? reqConfigRef.current.addons.filter((addon) => addon !== 'hr')
+              : [...reqConfigRef.current.addons, 'hr'],
+          });
+          break;
       }
     }
   }, []);
@@ -219,11 +245,18 @@ const ContentScriptApp: React.FC = () => {
     //if no target, target is the child of #docs-texteventtarget-descendant
 
     //excel only active in formula bar
-    if(isMicrosoftOnlineExcel(window.location.href) && target?.id && !target.id.includes('formulaBar')) {
+    if (
+      isMicrosoftOnlineExcel(window.location.href) &&
+      target?.id &&
+      !target.id.includes('formulaBar')
+    ) {
       return;
     }
-  
-    if (isGoogleDocs()) {
+
+    if (isGoogleDocs(target)) {
+      // A contenteditable target on a Google Docs page is a comment or reply
+      // box and proceeds as a regular input; anything else is the document
+      // canvas, whose input handling lives on the kix tile manager.
       target = document.querySelector(
         '.kix-rotatingtilemanager'
       ) as CustomInputElement;
@@ -233,27 +266,35 @@ const ContentScriptApp: React.FC = () => {
     } else if (isNotion() && target.querySelector('main')) {
       target = target.querySelector('main') as CustomInputElement;
     } else if (isAemRte(target)) {
-      if(target.tagName === 'A') return;     
-    } 
+      if (target.tagName === 'A') return;
+    }
 
     if (
       (isInputElement(target) && !inputsRef.current.includes(target)) ||
-      (isGoogleDocs() && target) ||
+      // The duplicate guard matters now that focusin also fires on Google
+      // Docs pages: every non-contenteditable focus target resolves to the
+      // kix tile manager, which must only be registered once.
+      (isGoogleDocs(target) && target && !inputsRef.current.includes(target)) ||
       (isChatGpt() && target) ||
-      isNotion() || 
+      isNotion() ||
       isAemRte(target)
     ) {
       setActiveDocument(target.ownerDocument);
       setHoveredElement(null);
       setInputs([...inputsRef.current, target]);
-      handleNewInput().then(addedInputsMap => {
-        if (addedInputsMap instanceof Map) {
-          const mergedInputsMap = new Map([...inputsMapRef.current, ...addedInputsMap]);
-          setInputsMap(mergedInputsMap);
-        }
-      }).catch((error) => {
-        sendErrorToSentry(error);
-      });
+      handleNewInput()
+        .then((addedInputsMap) => {
+          if (addedInputsMap instanceof Map) {
+            const mergedInputsMap = new Map([
+              ...inputsMapRef.current,
+              ...addedInputsMap,
+            ]);
+            setInputsMap(mergedInputsMap);
+          }
+        })
+        .catch((error) => {
+          sendErrorToSentry(error);
+        });
     }
   }, []);
 
@@ -275,7 +316,8 @@ const ContentScriptApp: React.FC = () => {
 
   const handleMouseOut = useCallback((event: MouseEvent) => {
     const target = event.target as CustomInputElement;
-    if (!hoveredElementRef.current?.isEqualNode(target)) setHoveredElement(null);
+    if (!hoveredElementRef.current?.isEqualNode(target))
+      setHoveredElement(null);
   }, []);
 
   useEffect(() => {
@@ -294,8 +336,13 @@ const ContentScriptApp: React.FC = () => {
         hoveredIndicatorContainer,
         hoveredElementRef.current
       );
-    
+
       const root = createRoot(hoveredIndicatorContainer);
+      try {
+        (hoveredIndicatorContainer as any).__wittyRoot = root;
+      } catch (err) {
+        // ignore
+      }
       root.render(
         <StateIndicatorIcon
           element={
@@ -312,53 +359,77 @@ const ContentScriptApp: React.FC = () => {
     }
   }, [hoveredElementRef.current]);
 
-  const removeAllHoverIndicators = () => {
-    const indicatorElements = getActiveDocument().querySelectorAll(WTags.WW_MOUSEOVER_INDICATOR);
-    for (let element of indicatorElements) {
-      element.remove();
+  const removeAllHoverIndicators = async () => {
+    const indicatorElements = getActiveDocument().querySelectorAll(
+      WTags.WW_MOUSEOVER_INDICATOR
+    );
+    for (const element of indicatorElements) {
+      try {
+        const {safeUnmountAndRemove} = await import('./utils');
+        safeUnmountAndRemove(element as HTMLElement);
+      } catch (err) {
+        try {
+          element.remove();
+        } catch (err2) {
+          // ignore
+        }
+      }
     }
   };
-  const handleNewInput = () => {
-    return browser.storage.local.get().then((result) => {
-      const addedInputsMap = new Map();
+  const handleNewInput = () =>
+    browser.storage.local
+      .get()
+      .then((result) => {
+        const addedInputsMap = new Map();
 
-      const disabledDomains = [
-        ...(result[StorageKeys.DOMAINS]?.list || []),
-        ...(result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'deny' && result[StorageKeys.ORGANIZATION_DOMAINS]?.list || []), //could be something wrong here, what if its an allow list? 
-      ];
-      const domain = getDomainWithoutSubdomain(window.location.hostname);
-      if (!disabledDomains.includes(domain)) {
-        //> 1 prevents issues when starting with empty doc
-        if (isGoogleDocs() && inputsRef.current.length > 1) {
-          //remove any input that does not contain <g> as a child
-          inputsRef.current.filter((input) => {
-            const gElements = input.querySelectorAll('g');
-            return gElements.length > 0;
-          });
-        }
-        if (inputsRef.current.length > 0) {
-          log(
-            `Analyzed inputs:`,
-            logTypes.INFO,
-            inputsRef.current.length > 0 ? inputsRef.current : 'None'
-          );
-          inputsRef.current.forEach((input: CustomInputElement) => {
-            if (!input?.parentElement) return;
-            const sibling = input.previousElementSibling as HTMLElement;
+        const disabledDomains = [
+          ...(result[StorageKeys.DOMAINS]?.list || []),
+          ...((result[StorageKeys.ORGANIZATION_DOMAINS]?.type === 'deny' &&
+            result[StorageKeys.ORGANIZATION_DOMAINS]?.list) ||
+            []), //could be something wrong here, what if its an allow list?
+        ];
+        const domain = getDomainWithoutSubdomain(window.location.hostname);
+        if (!disabledDomains.includes(domain)) {
+          //> 1 prevents issues when starting with empty doc
+          if (isGoogleDocs() && inputsRef.current.length > 1) {
+            //remove any input that does not contain <g> as a child
+            inputsRef.current.filter((input) => {
+              const gElements = input.querySelectorAll('g');
+              return gElements.length > 0;
+            });
+          }
+          if (inputsRef.current.length > 0) {
+            log(
+              `Analyzed inputs:`,
+              logTypes.INFO,
+              inputsRef.current.length > 0 ? inputsRef.current : 'None'
+            );
+            inputsRef.current.forEach((input: CustomInputElement) => {
+              if (!input?.parentElement) return;
+              const sibling = input.previousElementSibling as HTMLElement;
 
-            if (sibling?.tagName?.toLowerCase() === WTags.WW_CONTAINER.toLowerCase() || sibling?.tagName?.toLowerCase() === WTags.WW_SHADOW_ROOT_CONTAINER.toLowerCase()) return;
+              if (
+                sibling?.tagName?.toLowerCase() ===
+                  WTags.WW_CONTAINER.toLowerCase() ||
+                sibling?.tagName?.toLowerCase() ===
+                  WTags.WW_SHADOW_ROOT_CONTAINER.toLowerCase()
+              )
+                return;
 
-            const shadowHost = getActiveDocument().createElement(WTags.WW_SHADOW_ROOT_CONTAINER);
-            getActiveDocument().body.appendChild(shadowHost);
+              const shadowHost = getActiveDocument().createElement(
+                WTags.WW_SHADOW_ROOT_CONTAINER
+              );
+              getActiveDocument().body.appendChild(shadowHost);
 
-            const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
-            const highlightsContainer: HTMLElement =
-              getActiveDocument().createElement(WTags.WW_CONTAINER);
-            shadowRoot.appendChild(highlightsContainer);
+              const shadowRoot = shadowHost.attachShadow({mode: 'open'});
+              const highlightsContainer: HTMLElement =
+                getActiveDocument().createElement(WTags.WW_CONTAINER);
+              shadowRoot.appendChild(highlightsContainer);
 
-            highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
+              highlightsContainer.style.cssText = WW_CONTAINER_STYLE;
 
-            if (isGoogleSheets() && input.classList.contains('cell-input')) return;
+              if (isGoogleSheets() && input.classList.contains('cell-input'))
+                return;
               //get first ancestior that is a div
               const ancestor = input?.closest('div');
 
@@ -373,29 +444,43 @@ const ContentScriptApp: React.FC = () => {
               } else {
                 const parentElement =
                   input.tagName === 'rect' ? ancestor : input.parentElement;
-                  parentElement?.insertBefore(shadowHost, input);
+                parentElement?.insertBefore(shadowHost, input);
               }
               elementRef.current = input;
               const root = createRoot(highlightsContainer);
+              try {
+                (shadowHost as any).__wittyRoot = root;
+              } catch (err) {
+                // ignore
+              }
               root.render(<Input element={input} />);
 
               addedInputsMap.set(input, shadowHost);
-          });
+            });
+          }
         }
-      }
 
-      return addedInputsMap;
-    }).catch((error) => {
-      sendErrorToSentry(error);
-    });
-  };
+        return addedInputsMap;
+      })
+      .catch((error) => {
+        sendErrorToSentry(error);
+      });
 
-  const removeOldInput = (container: HTMLElement | undefined) => {
+  const removeOldInput = async (container: HTMLElement | undefined) => {
     if (!container) {
       return;
     }
     if (container.parentNode?.contains(container)) {
-      container.parentNode.removeChild(container);
+      try {
+        const {safeUnmountAndRemove} = await import('./utils');
+        safeUnmountAndRemove(container as HTMLElement);
+      } catch (err) {
+        try {
+          container.parentNode.removeChild(container);
+        } catch (err2) {
+          // ignore
+        }
+      }
     }
   };
 
@@ -404,12 +489,15 @@ const ContentScriptApp: React.FC = () => {
     // If not, remove them from the list of inputs. This way the highlights are also removed
     const inputVisibilityObserver = new MutationObserver(() => {
       inputsRef.current.forEach((input: CustomInputElement) => {
-        if (!nodeExistsInDOM(getActiveDocument(), input) || !elementIsVisible(input)) {
+        if (
+          !nodeExistsInDOM(getActiveDocument(), input) ||
+          !elementIsVisible(input)
+        ) {
           removeOldInput(inputsMapRef.current.get(input));
 
           setInputs([
             ...inputsRef.current.filter(
-                (filterInput: CustomInputElement) => filterInput !== input
+              (filterInput: CustomInputElement) => filterInput !== input
             ),
           ]);
           const inputsMap = inputsMapRef.current;
@@ -440,8 +528,8 @@ const ContentScriptApp: React.FC = () => {
       iframes.forEach((iframe: HTMLIFrameElement) => {
         if (iframe.contentDocument?.body) {
           iframe.contentDocument.body?.addEventListener(
-              'focusin',
-              handleFocusinElement
+            'focusin',
+            handleFocusinElement
           );
         }
       });
@@ -450,8 +538,8 @@ const ContentScriptApp: React.FC = () => {
         iframes.forEach((iframe: HTMLIFrameElement) => {
           if (iframe.contentDocument?.body) {
             iframe.contentDocument.body.removeEventListener(
-                'focusin',
-                handleFocusinElement
+              'focusin',
+              handleFocusinElement
             );
           }
         });
@@ -460,22 +548,22 @@ const ContentScriptApp: React.FC = () => {
 
     iframeAddedObserver.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
     });
-  }
+  };
 
   useEffect(() => {
     const shadowObservers = new Map<ShadowRoot, MutationObserver>();
 
     const addIframeListenersInShadowRoot = (node: ShadowRoot) => {
-      node.addEventListener(
-        'focusin',
-        handleFocusinElement
-      );
+      node.addEventListener('focusin', handleFocusinElement);
 
       const iframes = node.querySelectorAll('iframe');
       iframes.forEach((iframe) => {
-        iframe.contentDocument?.body?.addEventListener('focusin', handleFocusinElement);
+        iframe.contentDocument?.body?.addEventListener(
+          'focusin',
+          handleFocusinElement
+        );
       });
     };
 
@@ -490,14 +578,17 @@ const ContentScriptApp: React.FC = () => {
             }
             if (node instanceof HTMLIFrameElement) {
               setTimeout(() => {
-                node.contentDocument?.body?.addEventListener('focusin', handleFocusinElement);
+                node.contentDocument?.body?.addEventListener(
+                  'focusin',
+                  handleFocusinElement
+                );
               }, 1000);
             }
           });
         });
       });
 
-      shadowObserver.observe(shadowRoot, { childList: true, subtree: true });
+      shadowObserver.observe(shadowRoot, {childList: true, subtree: true});
       shadowObservers.set(shadowRoot, shadowObserver);
 
       addIframeListenersInShadowRoot(shadowRoot);
@@ -513,7 +604,7 @@ const ContentScriptApp: React.FC = () => {
           observeShadowRoot(child.shadowRoot);
         }
       });
-    }
+    };
 
     const mainObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -526,7 +617,7 @@ const ContentScriptApp: React.FC = () => {
     });
 
     setTimeout(() => {
-      mainObserver.observe(document.body, { childList: true, subtree: true });
+      mainObserver.observe(document.body, {childList: true, subtree: true});
 
       document.querySelectorAll('*').forEach((element) => {
         if (element.shadowRoot) {
@@ -537,7 +628,7 @@ const ContentScriptApp: React.FC = () => {
 
     return () => {
       mainObserver.disconnect();
-      shadowObservers.forEach(observer => observer.disconnect());
+      shadowObservers.forEach((observer) => observer.disconnect());
       shadowObservers.clear();
       console.log('Shadow DOM observers disconnected');
     };

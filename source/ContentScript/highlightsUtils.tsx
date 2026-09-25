@@ -1,14 +1,13 @@
-import { isGoogleDocs } from '../shared/DOMutils';
-import { Highlight } from '../shared/types';
+import {isGoogleDocs} from '../shared/DOMutils';
+import {Highlight} from '../shared/types';
 
 export const drawLine = (params: any, color: string, dashedLine: boolean) => {
-  const { context, rect, elementRect, googleDocsRulerIsHidden } = params;
+  const {context, rect, elementRect, googleDocsRulerIsHidden, element} = params;
 
   let x = rect.left - elementRect.left;
-  let y = rect.top - elementRect.top;
+  const y = rect.top - elementRect.top;
 
-  
-  if (isGoogleDocs()) {
+  if (isGoogleDocs(element)) {
     x = rect.left - (googleDocsRulerIsHidden ? 15 : 0);
   }
 
@@ -24,17 +23,24 @@ export const drawLine = (params: any, color: string, dashedLine: boolean) => {
 };
 
 export const drawHighlight = (params: any, color: string) => {
-  const { roundedHighlight, context, rect, elementRect, googleDocsRulerIsHidden } = params;
+  const {
+    roundedHighlight,
+    context,
+    rect,
+    elementRect,
+    googleDocsRulerIsHidden,
+    element,
+  } = params;
   //the +/- is to add some padding to the highlight
   let x = rect.left - elementRect.left - 1.5;
-  let y = rect.top - elementRect.top + 1;
-  if (isGoogleDocs()) {
+  const y = rect.top - elementRect.top + 1;
+  if (isGoogleDocs(element)) {
     x = rect.left - (googleDocsRulerIsHidden ? 15 : 0);
   }
 
-  let width = rect.width + 3;
-  let height = rect.height - 1;
-  let radius = 4;
+  const width = rect.width + 3;
+  const height = rect.height - 1;
+  const radius = 4;
 
   context.clearRect(x - 1, y, width + 2, height + 2); // clear the previous rectangle
   roundedHighlight.moveTo(x + radius, y);

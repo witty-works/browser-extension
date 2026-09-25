@@ -1,22 +1,27 @@
-import { useState, useEffect } from 'react';
-import { IEndpointError, IRequest } from '../types';
-import { useLog, logTypes } from '../customHooks/useLog';
-import { Validator, ValidatorResult, Schema } from 'jsonschema';
-import { DEV_ENV } from '../constants';
+import {useState, useEffect} from 'react';
+import {IEndpointError, IRequest} from '../types';
+import {useLog, logTypes} from '../customHooks/useLog';
+import {Validator, ValidatorResult, Schema} from 'jsonschema';
+import {DEV_ENV, SCHEMA_VALIDATION_FAILED} from '../constants';
+import {sendErrorToSentry} from '../errorUtils';
 
 const validator = new Validator();
 
 const useApiResult = <TResponse,>(
   request: IRequest | null,
-  responseSchema: Schema | null,
+  responseSchema: Schema | null
 ): [TResponse | null, IEndpointError | null] => {
   const validateResponse = (response: any): ValidatorResult | null => {
     if (responseSchema === null) return null;
     return validator.validate(response, responseSchema);
   };
 
-  const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(null);
-  const [endpointError, setEndpointError] = useState<IEndpointError | null>(null);
+  const [endpointResponse, setEndpointResponse] = useState<TResponse | null>(
+    null
+  );
+  const [endpointError, setEndpointError] = useState<IEndpointError | null>(
+    null
+  );
   const log = useLog('useApiResult');
 
   useEffect(() => {
@@ -34,11 +39,16 @@ const useApiResult = <TResponse,>(
       ) {
         return;
       }
-      request.config = { ...request.config };
+      // A newer request, or unmounting, supersedes this one: its answer
+      // must not land. Paired with whatever state came since, a late check
+      // response would put its alerts on the wrong text.
+      const controller = new AbortController();
+      request.config = {...request.config, signal: controller.signal};
       log('Request:', logTypes.INFO, request);
 
       fetch(request.url, request.config)
         .then(async (response) => {
+          if (controller.signal.aborted) return;
           log('Response: ', logTypes.INFO, response);
 
           if (!response.ok) {
@@ -50,11 +60,37 @@ const useApiResult = <TResponse,>(
           }
 
           const responseResults: any = await response.json();
+          if (controller.signal.aborted) return;
           const validationResult = validateResponse(responseResults);
 
           if (validationResult && !validationResult.valid) {
-            DEV_ENV && console.log('validateResponse.errors', validationResult.errors);
-            log(`JSON Schema Error: ${validationResult.errors.join(', ')}`, logTypes.ERROR);
+            const detail = validationResult.errors
+              .map((schemaError) => schemaError.stack)
+              .join('; ');
+
+            DEV_ENV &&
+              console.log('validateResponse.errors', validationResult.errors);
+            log(`JSON Schema Error: ${detail}`, logTypes.ERROR);
+
+            // Returning here without reporting anything used to drop the whole
+            // response on the floor: no highlights appeared, no error was
+            // raised, and the result was indistinguishable from the API saying
+            // the text was fine. It also left useLLMAlternativesCache waiting
+            // on a request that would never resolve, so the popover span
+            // whatever it had been given forever.
+            //
+            // A schema mismatch means the API contract moved under us, which is
+            // worth a Sentry event rather than a log line nobody reads.
+            sendErrorToSentry(
+              new Error(`Response failed schema validation: ${detail}`)
+            );
+            setEndpointResponse(null);
+            setEndpointError({
+              status: SCHEMA_VALIDATION_FAILED,
+              message: detail,
+              request,
+              responseSchema,
+            });
             return;
           }
 
@@ -62,9 +98,13 @@ const useApiResult = <TResponse,>(
           setEndpointError(null);
         })
         .catch((error: Error) => {
+          if (controller.signal.aborted) return;
           log(error.message, logTypes.ERROR);
         });
+
+      return (): void => controller.abort();
     }
+    return undefined;
   }, [request]);
 
   return [endpointResponse, endpointError];

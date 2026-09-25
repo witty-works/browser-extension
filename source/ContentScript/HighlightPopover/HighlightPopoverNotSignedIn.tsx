@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import CSS from 'csstype';
-import { useFloating, flip, offset, shift } from '@floating-ui/react-dom';
+import {useFloating, flip, offset, shift} from '@floating-ui/react-dom';
 
-import { CustomInputElement, IAlert } from '../../shared/types';
-import { useTranslation } from 'react-i18next';
-import '../../i18n/i18n';
-import { namespaces } from '../../i18n/i18n.constants';
+import {CustomInputElement, IAlert} from '../../shared/types';
+import {useTranslation} from 'react-i18next';
+import {namespaces} from '../../i18n/i18n.constants';
 
 import CloseIcon from '../../assets/icons/popover/close.svg';
 import WittyLogo from '../../assets/icons/popover/logo.svg';
@@ -13,18 +12,20 @@ import SadFace from '../../assets/icons/popup/sadFace.svg';
 import Star from '../../assets/icons/popup/star.svg';
 
 import './HighlightPopover.scss';
-import { getActiveDocument } from '../ContentScriptApp';
+import {getActiveDocument} from '../../shared/activeDocument';
 import {
-  BaseUrls,
   DefaultBaseUrlKey,
   DEV_ENV,
   StorageKeys,
+  X_KEY,
+  registerCustomEndpointFromStorage,
 } from '../../shared/constants';
+import {MessageTypes, SignInMessage, SignInResult} from '../../shared/messages';
 import browser from 'webextension-polyfill';
-import { setBaseUrls } from '../../shared/ApiServices/requests';
-import { sendErrorToSentry } from '../../shared/errorUtils';
-import { logTypes, useLog } from '../../shared/customHooks/useLog';
-import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import {setBaseUrls} from '../../shared/ApiServices/requests';
+import {sendErrorToSentry} from '../../shared/errorUtils';
+import {logTypes, useLog} from '../../shared/customHooks/useLog';
+import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
 
 export interface PopoverData {
   index: number;
@@ -39,6 +40,8 @@ interface PopoverProps {
   data: PopoverData;
   prevData: PopoverData | null;
   hide: () => void;
+  /** See HighlightPopover: take focus when opened via the keyboard shortcut. */
+  focusOnOpen: boolean;
 }
 
 const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
@@ -46,15 +49,14 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   data,
   prevData,
   hide,
+  focusOnOpen,
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const analytics = useAnalytics();
 
-  const { t, i18n } = useTranslation(namespaces.popover);
-  const [urls, setUrls] = useState<string>(DEV_ENV ? 'Dev' : 'Prod');
-  const [popupsBlocked, setPopupsBlocked] = useState(false);
-  const [loginUrl, setLoginUrl] = useState('');
-  const [displayCopiedMessage, setDisplayCopiedMessage] = useState(false);
+  const {t, i18n} = useTranslation(namespaces.popover);
+  const [urls, setUrls] = useState<string>(DefaultBaseUrlKey);
+  const [signInError, setSignInError] = useState(false);
   const log = useLog('PopupLogin');
 
   const onStorageError = (error: unknown) => {
@@ -70,13 +72,17 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     analytics.popoverLogs(data.alert, 'popover_open');
   }, [data]);
 
-  const logIn = async (urls: string, register = false) => {
-    const optionsPageUrl = browser.runtime.getURL('options.html');
-    const registerString = register ? 'register=true&' : '';
-    const url = `${BaseUrls[urls].dashboard}browser-login?${registerString}redirect_uri=${optionsPageUrl}?target=${BaseUrls[urls].dashboard}editor?onboarding=true`;
-    if (!window.open(url, '_blank')) {
-      setPopupsBlocked(true);
-      setLoginUrl(url);
+  // Content scripts cannot reach `browser.identity`, so the background worker
+  // runs the OAuth flow on our behalf.
+  const logIn = async (register = false) => {
+    const result = (await browser.runtime.sendMessage({
+      type: MessageTypes.SIGN_IN,
+      register,
+    } as SignInMessage)) as SignInResult | undefined;
+
+    if (result?.status === 'error') {
+      log(`Sign-in failed: ${result.message}`, logTypes.ERROR);
+      setSignInError(true);
     }
   };
 
@@ -84,6 +90,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     browser.storage.local
       .get(null)
       .then((result) => {
+        registerCustomEndpointFromStorage(result);
         setUrls(
           result[StorageKeys.API_ENDPOINT_KEY]
             ? result[StorageKeys.API_ENDPOINT_KEY]
@@ -102,9 +109,33 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     setBaseUrls(urls);
   }, [urls]);
 
+  // If X_KEY is configured, don't show sign-in flow in popovers
+  if (X_KEY) {
+    return (
+      <div id='witty-works-ext-popover'>
+        <div
+          id='witty-works-ext-popover-content'
+          className='witty-works-ext-lato-popover-text'
+        >
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-full-padding witty-works-ext-justify-start witty-works-ext-margin-top witty-works-ext-cursor-pointer witty-works-ext-full-padding witty-works-ext-light-gray-background'>
+            <div className='witty-works-ext-margin-right'>
+              <SadFace />
+            </div>
+            <div
+              className='witty-works-ext-lato-popover-text witty-works-ext-margin-left'
+              style={{color: '#E6635A'}}
+            >
+              {t('apiKeyConfiguredNotice')}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const storageChange = (changes: any) => {
-    let changedItems = Object.keys(changes);
-    for (let item of changedItems) {
+    const changedItems = Object.keys(changes);
+    for (const item of changedItems) {
       if (item === StorageKeys.API_ENDPOINT_KEY) {
         setUrls(changes[item].newValue);
       }
@@ -115,28 +146,32 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     i18n.changeLanguage(data.alert.data.language);
   }, [data.alert.data.language]);
 
-  const elementCords = (dat: PopoverData) => ({
-    name: 'elementCords',
-    options: dat,
-    fn: ({ placement, rects }: any) => {
-      const calcNewX: number = dat.position.x;
-      const calcNewY: number = placement.includes('bottom')
-        ? dat.position.y + dat.position.height + doc.scrollTop
-        : dat.position.y - rects.floating.height + doc.scrollTop;
+  const elementCords = (dat: PopoverData) => {
+    return {
+      name: 'elementCords',
+      options: dat,
+      fn: ({placement, rects}: any) => {
+        const calcNewX: number = dat.position.x;
+        const calcNewY: number = placement.includes('bottom')
+          ? dat.position.y + dat.position.height + doc.scrollTop
+          : dat.position.y - rects.floating.height + doc.scrollTop;
 
-      return {
-        x: calcNewX,
-        y: calcNewY,
-      };
-    },
-  });
+        return {
+          x: calcNewX,
+          y: calcNewY,
+        };
+      },
+    };
+  };
 
-  const { x, y, reference, floating, strategy, refs } = useFloating({
+  // floating-ui v1 replaced the `reference`/`floating` callback refs with
+  // refs.setReference/refs.setFloating; refs.floating still holds the element.
+  const {x, y, strategy, refs} = useFloating({
     placement: 'bottom-start',
     middleware: [elementCords(data), flip(), offset(4), shift()],
   });
 
-  useEffect(() => reference(element), [reference]);
+  useEffect(() => refs.setReference(element), [refs.setReference]);
 
   useEffect(() => {
     document?.addEventListener('click', handleClickOutside);
@@ -160,6 +195,42 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     };
   }, [refs.floating.current]);
 
+  useEffect(() => {
+    if (!focusOnOpen) {
+      return;
+    }
+    refs.floating.current?.focus();
+  }, [data.alert.id, focusOnOpen, refs.floating.current]);
+
+  useEffect(() => {
+    const activeDoc = getActiveDocument();
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      const focusWasInside = refs.floating.current?.contains(
+        document.activeElement
+      );
+      hidePopover(true);
+      if (focusWasInside) {
+        (element as HTMLElement).focus?.();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeydown, true);
+    if (activeDoc !== document) {
+      activeDoc?.addEventListener('keydown', handleKeydown, true);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeydown, true);
+      if (activeDoc !== document) {
+        activeDoc?.removeEventListener('keydown', handleKeydown, true);
+      }
+    };
+  }, [refs.floating.current]);
+
   const handleClickOutside = (event: MouseEvent) => {
     const hasClickedOutsidePopOver: boolean | null =
       refs.floating.current &&
@@ -178,7 +249,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
     if (hasClickedOutsidePopOver && !hasClickedThisHighlight) hidePopover();
   };
 
-  const hidePopover = (logClose: boolean = false) => {
+  const hidePopover = (logClose = false) => {
     logClose && analytics.popoverLogs(data.alert, 'popover_close');
     hide();
   };
@@ -192,7 +263,10 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
   return (
     <div
       id='witty-works-ext-popover'
-      ref={floating}
+      ref={refs.setFloating}
+      role='dialog'
+      aria-label={t('suggestionsDialog')}
+      tabIndex={-1}
       style={PopoverStyling}
       onMouseDown={(e) => e.preventDefault()}
     >
@@ -205,11 +279,13 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             className='witty-works-ext-margin-right witty-works-ext-cursor-pointer'
             href='https://www.witty.works/'
             target='_blank'
+            rel='noreferrer'
           >
             <WittyLogo alt={t('wittyLogo')} />
           </a>
-          <div
-            className='witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
+          <button
+            type='button'
+            className='witty-works-button witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer'
             onClick={() => {
               hidePopover(true);
             }}
@@ -217,7 +293,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             title={t('close')}
           >
             <CloseIcon alt={t('close')} />
-          </div>
+          </button>
         </div>
 
         <div className='witty-works-ext-separator' />
@@ -231,7 +307,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 
             <div
               className='witty-works-ext-wittyworks-container witty-works-ext-container-row witty-works-ext-lato-popover-text-gray witty-works-ext-cursor-pointer '
-              style={{ padding: 0 }}
+              style={{padding: 0}}
             >
               <div className='witty-works-ext-margin-right'>
                 {t('signedOutText')}
@@ -267,76 +343,54 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
           </div>
         </div>
 
-        {!popupsBlocked && (
-          <div className='witty-works-ext-left witty-works-ext-margin-bottom'>
-            <div
-              className='witty-works-ext-button witty-works-ext-primary-button-red'
+        <div className='witty-works-ext-left witty-works-ext-margin-bottom'>
+          <button
+            type='button'
+            className='witty-works-ext-button witty-works-ext-primary-button-red'
+            onClick={() => {
+              setSignInError(false);
+              logIn().catch((error) => {
+                log(`logIn Error: ${error}`, logTypes.ERROR);
+                sendErrorToSentry(error);
+                setSignInError(true);
+              });
+            }}
+          >
+            {t('signIn')}
+          </button>
+          <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
+            {t('dontHaveAccount')}
+            &nbsp;
+            <button
+              type='button'
+              className='witty-works-button witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
               onClick={() => {
-                logIn(urls).catch((error) => {
+                setSignInError(false);
+                logIn(true).catch((error) => {
                   log(`logIn Error: ${error}`, logTypes.ERROR);
                   sendErrorToSentry(error);
-                  setPopupsBlocked(true);
+                  setSignInError(true);
                 });
               }}
             >
-              {t('signIn')}
-            </div>
-            <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
-              {t('dontHaveAccount')}
-              &nbsp;
-              <span
-                className='witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
-                onClick={() => {
-                  logIn(urls, true).catch((error) => {
-                    log(`logIn Error: ${error}`, logTypes.ERROR);
-                    sendErrorToSentry(error);
-                    setPopupsBlocked(true);
-                  });
-                }}
-              >
-                {t('signUp')}
-              </span>
-            </div>
+              {t('signUp')}
+            </button>
           </div>
-        )}
-        {popupsBlocked && (
-          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-full-padding witty-works-ext-margin-bottom witty-works-ext-cursor-pointer witty-works-ext-light-gray-background'>
+        </div>
+        {/*
+          Sign-in no longer opens a window, so there is no popup for the browser
+          to block. What can still fail is the OAuth flow itself.
+        */}
+        {signInError && (
+          <div className='witty-works-ext-wittyworks-container witty-works-ext-container-rounded witty-works-ext-full-padding witty-works-ext-margin-bottom witty-works-ext-light-gray-background'>
             <div
               className='witty-works-ext-lato-small-paragraph-title-h4'
-              style={{ marginRight: 'auto' }}
+              style={{marginRight: 'auto'}}
             >
-              {t('popupsBlocked')}
+              {t('signInFailed')}
             </div>
             <div className='witty-works-ext-lato-popup-text'>
-              {t('popupsBlockedText')}
-            </div>
-            <div
-              className='witty-works-ext-container-row'
-              style={{ marginRight: 'auto' }}
-            >
-              <div
-                className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
-                onClick={() => {
-                  navigator.clipboard.writeText(loginUrl);
-                  setDisplayCopiedMessage(true);
-                  browser.alarms.create('hideCopiedMessageAlarm', { delayInMinutes: 1.5 / 60 }); // 1500 ms in minutes
-                  browser.alarms.onAlarm.addListener((alarm) => {
-                    if (alarm.name === 'hideCopiedMessageAlarm') {
-                      setDisplayCopiedMessage(false);
-                    }
-                  });
-                }}
-              >
-                {t('copyLink')}
-              </div>
-              {displayCopiedMessage && (
-                <div
-                  className='witty-works-ext-lato-popup-text'
-                  style={{ marginTop: '1.5em' }}
-                >
-                  {t('copiedConfirmation')}
-                </div>
-              )}
+              {t('signInFailedText')}
             </div>
           </div>
         )}

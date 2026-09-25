@@ -1,7 +1,8 @@
-@import '../../styles/variables';
-@import '../../styles/fonts';
+@use '../../styles/variables' as *;
+@use '../../styles/fonts' as *;
 
-.witty-works-button { //neutralizes default button styling
+.witty-works-button {
+  //neutralizes default button styling
   background-color: transparent !important;
   border: none !important;
   cursor: pointer !important;
@@ -23,6 +24,7 @@
   box-shadow: 1px 0 18px 7px rgba(50, 50, 50, 0.1);
   border-radius: 5px;
   min-width: 272px;
+  box-sizing: border-box;
   z-index: 2147483647;
 }
 
@@ -53,9 +55,32 @@
   padding: 3px 8px;
   border-radius: 4px;
   cursor: pointer;
+  // The alternatives are real <button>s (keyboard operable); undo the UA
+  // button chrome without the blanket .witty-works-button !important reset,
+  // which would also kill this class's background and padding.
+  border: none;
+  font: inherit;
+  text-align: left;
 
   &.witty-works-ext-remove-text {
     text-decoration: line-through !important;
+  }
+}
+
+// The "learn more" toggle is a <button> sharing the dropdown-select look with
+// the neighboring <a>; strip only the UA button background.
+button.witty-works-ext-dropdown-select {
+  background: none;
+}
+
+// Keyboard focus must stay visible inside the popover: this outranks the
+// `outline: none !important` in the .witty-works-button reset (higher
+// specificity, later in the cascade).
+#witty-works-ext-popover {
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid $wittyPurple !important;
+    outline-offset: 1px;
   }
 }
 
@@ -66,7 +91,7 @@
   &:hover {
     filter: invert(39%) sepia(86%) saturate(747%) hue-rotate(323deg)
       brightness(109%) contrast(80%);
-    color: $orange;
+    color: $accessibleRed;
     cursor: pointer;
   }
 }
@@ -175,9 +200,9 @@
 
 .witty-works-ext-secondary-button-purple {
   background: $white;
-  border: 1px solid $orange;
+  border: 1px solid $accessibleRed;
   border-radius: 8px;
-  color: $orange;
+  color: $accessibleRed;
 }
 
 .witty-works-ext-secondary-button-red {
@@ -200,7 +225,7 @@
     #9489db 71.64%,
     #37d1e5 101.91%,
     #5acfb9 131.52%
-  )
+  );
 }
 
 .witty-works-ext-light-gray-background {
@@ -337,8 +362,9 @@
   background-color: $whiteGray;
   border: 0;
   height: 1px;
-  width: 110%;
-  margin-left: -1em;
+  // Edge to edge across the popover's 8px side padding, and no further.
+  width: calc(100% + 16px);
+  margin-left: -8px;
   overflow: hidden;
 }
 
@@ -373,9 +399,9 @@
   line-height: 14px;
   margin-right: 1em;
   cursor: pointer;
-  border: 1px solid $orange;
+  border: 1px solid $accessibleRed;
   border-radius: 8px;
-  color: $orange;
+  color: $accessibleRed;
 }
 
 .witty-works-dig-deeper {
@@ -392,6 +418,6 @@
   max-width: fit-content;
   margin-top: 20px;
   border-radius: 8px;
-  background-color: $orange;
+  background-color: $accessibleRed;
   color: $white;
 }

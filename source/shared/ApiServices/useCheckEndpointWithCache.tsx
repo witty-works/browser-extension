@@ -1,77 +1,95 @@
 import {useEffect, useRef, useState} from 'react';
-import {ICachedSentenceAlerts, useSentenceCache} from './useSentenceCache';
-import {IAlert, ICheckResponse} from "../types";
-import {useCheckEndpoint} from "./useEndpoint";
-import {generateAlertId} from "../utils";
-import { SentenceSplitterSyntax, split } from 'sentence-splitter';
-import { TxtNodeRange } from '@textlint/ast-node-types';
+import {useSentenceCache} from './useSentenceCache';
+import {CheckBudget} from './checkBudget';
+import {MAX_CHAR_LENGTH_REQUEST} from '../constants';
+import {ICheckResponse} from '../types';
+import {useCheckEndpoint} from './useEndpoint';
+import type {CheckEndpointCachedResponse} from './checkService';
+import {
+  adjustAlertPositions,
+  buildCachedResponse,
+  buildSentenceAlertsFromResponse,
+} from './checkService';
 
-interface CheckEndpointCachedResponse {
-  alerts: IAlert[];
-  checkEndpointResponse: ICheckResponse | undefined;
-}
+export const useCheckEndpointWithCache = (
+  onCheckResultsReceived: (
+    result: ICheckResponse,
+    checkedTextLength: number
+  ) => void
+) => {
+  const {checkCache, addToCache} = useSentenceCache();
+  const [cachedCheckEndpointResponse, setCachedCheckEndpointResponse] =
+    useState<CheckEndpointCachedResponse | null>(null);
+  const cachedCheckEndpointResponseRef =
+    useRef<CheckEndpointCachedResponse | null>(null);
+  const [checkEndpointResponse, checkEndpointError, setTextToCheck] =
+    useCheckEndpoint();
+  const lastCheckedTextRef = useRef<string | null>(null);
+  const lastBatchSizeRef = useRef(0);
+  const lastWholeTextRef = useRef<string | null>(null);
+  const budgetRef = useRef(new CheckBudget(MAX_CHAR_LENGTH_REQUEST));
+  // Set once batches at the smallest budget still come back cut short: from
+  // then on, one sentence per request.
+  const oneSentenceRef = useRef(false);
 
-export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: ICheckResponse, checkedTextLength: number) => void) => {
-
-  const { checkCache, addToCache } = useSentenceCache();
-  const [cachedCheckEndpointResponse, setCachedCheckEndpointResponse] = useState<CheckEndpointCachedResponse | null>(null);
-  const cachedCheckEndpointResponseRef = useRef<CheckEndpointCachedResponse | null>(null);
-  const [checkEndpointResponse, checkEndpointError, setTextToCheck] = useCheckEndpoint();
-  const lastCheckedTextRef = useRef<string | null>();
-  const lastWholeTextRef = useRef<string | null>();
-
-  const checkTextWithCache = (updatedText: string, checkEndpointResponse?: ICheckResponse) => {
+  const checkTextWithCache = (
+    updatedText: string,
+    checkEndpointResponse?: ICheckResponse
+  ) => {
     lastWholeTextRef.current = updatedText;
-    const { cachedAlerts, nonCachedSentences: uncachedSentences } = checkCache(updatedText);
+    const {cachedAlerts, nonCachedSentences: uncachedSentences} =
+      checkCache(updatedText);
 
     if (uncachedSentences.length > 0) {
-      const textToCheck = uncachedSentences.join(' ');
+      // One batch per request, within the API's limit; the response handler
+      // below sends the next one until every sentence is cached. A sentence
+      // longer than the budget goes on its own.
+      const batch = [uncachedSentences[0]];
+      let length = uncachedSentences[0].length;
+      for (const sentence of oneSentenceRef.current
+        ? []
+        : uncachedSentences.slice(1)) {
+        length += 1 + sentence.length;
+        if (length > budgetRef.current.value) break;
+        batch.push(sentence);
+      }
+      const textToCheck = batch.join(' ');
       lastCheckedTextRef.current = textToCheck;
+      lastBatchSizeRef.current = batch.length;
       setTextToCheck(textToCheck);
     }
 
-    const response = {
-      alerts: [...cachedAlerts].sort((firstAlert, secondAlert) => {
-        return firstAlert.startOffset < secondAlert.startOffset ? -1 : 1;
-      }),
+    const response = buildCachedResponse(
+      cachedAlerts,
       checkEndpointResponse,
-    };
+      uncachedSentences.length > 0
+    );
     setCachedCheckEndpointResponse(response);
     cachedCheckEndpointResponseRef.current = response;
   };
 
-  const adjustLocalAlertPositions = (changedOffset: number, originalLength: number, newLength: number) => {
+  const adjustLocalAlertPositions = (
+    changedOffset: number,
+    originalLength: number,
+    newLength: number
+  ) => {
     if (!cachedCheckEndpointResponseRef.current) {
       return;
     }
 
-    const {alerts} = cachedCheckEndpointResponseRef.current
-    const adjustedAlerts = alerts.map((alert) => {
-      if (alert.startOffset >= changedOffset) {
-        const newStartOffset = alert.startOffset + newLength - originalLength;
-        const newEndOffset = alert.endOffset + newLength - originalLength;
-        return {
-          ...alert,
-          id: generateAlertId(alert.data.text, alert.data.category, newStartOffset, newEndOffset),
-          startOffset: newStartOffset,
-          endOffset: newEndOffset,
-          data: {
-            ...alert.data,
-            fullSentence: {
-              ...alert.data.fullSentence,
-              range: [alert.data.fullSentence.range[0], alert.data.fullSentence.range[1] + newLength - originalLength] as TxtNodeRange
-            }
-          }
-        };
-      }
+    const {alerts} = cachedCheckEndpointResponseRef.current;
+    const adjustedAlerts = adjustAlertPositions(
+      alerts,
+      changedOffset,
+      originalLength,
+      newLength
+    );
 
-      return alert;
-    });
-
-    const response = {
-      alerts: adjustedAlerts,
-      checkEndpointResponse: cachedCheckEndpointResponseRef.current.checkEndpointResponse,
-    };
+    const response = buildCachedResponse(
+      adjustedAlerts,
+      cachedCheckEndpointResponseRef.current.checkEndpointResponse,
+      cachedCheckEndpointResponseRef.current.checking
+    );
     setCachedCheckEndpointResponse(response);
     cachedCheckEndpointResponseRef.current = response;
   };
@@ -81,56 +99,42 @@ export const useCheckEndpointWithCache = (onCheckResultsReceived: (result: IChec
       return;
     }
 
-    const {results} = checkEndpointResponse;
-    const lastCheckedTextSentences = split(lastCheckedTextRef.current).filter(s => s.type === SentenceSplitterSyntax.Sentence);
-    const sentencesAlerts: ICachedSentenceAlerts[] = [];
+    onCheckResultsReceived(
+      checkEndpointResponse,
+      (lastCheckedTextRef.current && lastCheckedTextRef.current.length) || 0
+    );
 
-    onCheckResultsReceived(checkEndpointResponse, (lastCheckedTextRef.current && lastCheckedTextRef.current.length) || 0);
-
-    lastCheckedTextSentences.forEach(sentence => {
-      const sentenceStartOffset = sentence.range[0];
-      const sentenceEndOffset = sentence.range[1];
-      const alerts: IAlert[] = [];
-
-      results.forEach((result) => {
-        if (result.start >= sentenceStartOffset && result.end <= sentenceEndOffset) {
-          const adjustedStart = result.start - sentence.range[0];
-          const adjustedEnd = result.end - sentence.range[0];
-
-          alerts.push({
-            id: generateAlertId(result.text, result.category, result.start, result.end),
-            startOffset: adjustedStart,
-            absOffset: result.start,
-            endOffset: adjustedEnd,
-            popOverIsOpen: false,
-            data: {
-              language: checkEndpointResponse.language,
-              gender_separator: checkEndpointResponse.gender_separator,
-              category: result.category,
-              subcategory: result.subcategory,
-              context: result.context,
-              fullSentence: sentence,
-              text: result.text,
-              text_id: result.text_id,
-              label: result.label,
-              explanation: result.explanation,
-              alternatives: result.alternatives,
-              gravity: result.gravity,
-              limit_reached: result.limit_reached,
-              source: result.source,
-            },
-          });
-        }
-      });
-
-      sentencesAlerts.push({
-        sentence: sentence.raw,
-        alerts
-      });
-    });
-    addToCache(sentencesAlerts);
-    lastWholeTextRef.current && checkTextWithCache(lastWholeTextRef.current, checkEndpointResponse);
+    // The API checked only the start of a batch it flags `limit_reached`:
+    // caching all of it would count the rest as checked, with no alerts. So
+    // it is sent again in smaller batches, down to one sentence each. A
+    // single sentence too long for the API is cached with what came back, as
+    // the most there is to get.
+    const shrink = (): boolean => {
+      if (budgetRef.current.shrink()) return true;
+      if (oneSentenceRef.current) return false;
+      oneSentenceRef.current = true;
+      return true;
+    };
+    const retrySmaller =
+      checkEndpointResponse.limit_reached &&
+      lastBatchSizeRef.current > 1 &&
+      shrink();
+    if (!retrySmaller) {
+      addToCache(
+        buildSentenceAlertsFromResponse(
+          checkEndpointResponse,
+          lastCheckedTextRef.current
+        )
+      );
+    }
+    lastWholeTextRef.current &&
+      checkTextWithCache(lastWholeTextRef.current, checkEndpointResponse);
   }, [checkEndpointResponse]);
 
-  return [cachedCheckEndpointResponse, checkEndpointError, checkTextWithCache, adjustLocalAlertPositions] as const;
+  return [
+    cachedCheckEndpointResponse,
+    checkEndpointError,
+    checkTextWithCache,
+    adjustLocalAlertPositions,
+  ] as const;
 };

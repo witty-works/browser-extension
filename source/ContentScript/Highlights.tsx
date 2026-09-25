@@ -1,7 +1,13 @@
-import React, { useEffect, useRef } from 'react';
-import { sendErrorToSentry } from '../shared/errorUtils';
-import { CustomInputElement, Highlight, IAlert, INodeWithAlerts, Position } from '../shared/types';
-import { getColor } from '../shared/constants';
+import React, {useEffect, useRef} from 'react';
+import {sendErrorToSentry} from '../shared/errorUtils';
+import {
+  CustomInputElement,
+  Highlight,
+  IAlert,
+  INodeWithAlerts,
+  Position,
+} from '../shared/types';
+import {getColor} from '../shared/constants';
 import {
   getZIndex,
   isGmail,
@@ -10,19 +16,16 @@ import {
   isHubspot,
   isTextArea,
   isAemRte,
-  nodeExistsInDOM, isTinyMceEditor,
+  nodeExistsInDOM,
+  isTinyMceEditor,
 } from '../shared/DOMutils';
-import {
-  drawHighlight,
-  drawLine,
-  getGreenhouseHeight,
-} from './highlightsUtils';
+import {drawHighlight, drawLine, getGreenhouseHeight} from './highlightsUtils';
 import {
   getCorrectedPosition,
   getCorrectedPositionCanvas,
 } from '../shared/utils';
-import { getActiveDocument } from './ContentScriptApp';
-import { useStateRef } from '../shared/customHooks/useStateRef';
+import {getActiveDocument} from '../shared/activeDocument';
+import {useStateRef} from '../shared/customHooks/useStateRef';
 
 interface HighlightsProps {
   elementScroll: Position;
@@ -42,12 +45,12 @@ const Highlights: React.FC<HighlightsProps> = ({
   selectedAlert,
   removeHighlights,
   forceHighlightUpdate,
-}: HighlightsProps) => {  
+}: HighlightsProps) => {
   const doc = getActiveDocument().documentElement || getActiveDocument().body;
   const canvasRef = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
 
   const [highlights, setHighlights] = useStateRef<Highlight[]>([]);
-  const correctedPosition = isGoogleDocs()
+  const correctedPosition = isGoogleDocs(element)
     ? getCorrectedPositionCanvas(element)
     : getCorrectedPosition(
         elementRect,
@@ -57,13 +60,13 @@ const Highlights: React.FC<HighlightsProps> = ({
 
   const canvasSize = {
     width: elementRect.width,
-    height: isGoogleDocs() //2000 is about the height of two pages in google docs
+    height: isGoogleDocs(element) //2000 is about the height of two pages in google docs
       ? 2000
       : isGreenhouse()
-      ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
-      : isGmail() || isHubspot()
-      ? elementRect.height - correctedPosition.top //prevents expanding canvas when scrolling
-      : elementRect.height 
+        ? getGreenhouseHeight(highlights) //fix for greenhouse tinymc editor as height is not set propperly
+        : isGmail() || isHubspot()
+          ? elementRect.height - correctedPosition.top //prevents expanding canvas when scrolling
+          : elementRect.height,
   };
 
   useEffect(() => {
@@ -73,7 +76,7 @@ const Highlights: React.FC<HighlightsProps> = ({
     const highlightsTemp: Highlight[] = [];
     let googleDocsToolbarTopRect = {} as DOMRect;
     let googleDocsToolbarLeftRect = {} as DOMRect;
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       googleDocsToolbarTopRect = getActiveDocument()
         .getElementsByClassName('kix-document-top-shadow-inner')[0]
         ?.getBoundingClientRect();
@@ -81,15 +84,25 @@ const Highlights: React.FC<HighlightsProps> = ({
         .getElementsByClassName('left-sidebar-container-content')[0]
         ?.getBoundingClientRect();
     }
-    nodesWithAlerts.forEach(({ node, alerts }) => {
-      if (!isTextArea(element) && !(typeof node !== 'undefined' && nodeExistsInDOM(getActiveDocument(), node))) {
+    nodesWithAlerts.forEach(({node, alerts}) => {
+      if (
+        !isTextArea(element) &&
+        !(
+          typeof node !== 'undefined' &&
+          nodeExistsInDOM(getActiveDocument(), node)
+        )
+      ) {
         return;
       }
       alerts.forEach((alert: IAlert) => {
         const range = getActiveDocument().createRange();
         try {
-          const nodeForRange = node.nodeType === Node.TEXT_NODE ? node : node.childNodes[0];
-          if (alert.endOffset <= nodeForRange.textContent.length && alert.startOffset <= nodeForRange.textContent.length) {
+          const nodeForRange =
+            node.nodeType === Node.TEXT_NODE ? node : node.childNodes[0];
+          if (
+            alert.endOffset <= nodeForRange.textContent.length &&
+            alert.startOffset <= nodeForRange.textContent.length
+          ) {
             range.selectNode(nodeForRange);
             range.setStart(nodeForRange, alert.startOffset);
             range.setEnd(nodeForRange, alert.endOffset);
@@ -101,33 +114,40 @@ const Highlights: React.FC<HighlightsProps> = ({
 
         const rangeRects = range.getClientRects();
         for (let i = 0; i < rangeRects.length; i++) {
-          const rects: DOMRect[] = [rangeRects[i]].map(
-            (rect: DOMRect) => {
-              return {
-                ...rect,
-                width: rect.width,
-                height: rect.height,
-                left: isGoogleDocs()
-                  ? rect.left -
+          const rects: DOMRect[] = [rangeRects[i]].map((rect: DOMRect) => {
+            return {
+              ...rect,
+              width: rect.width,
+              height: rect.height,
+              left: isGoogleDocs(element)
+                ? rect.left -
                   googleDocsToolbarLeftRect?.width -
                   googleDocsToolbarLeftRect?.left
-                  : rect.left,
-                top: isGoogleDocs()
-                  ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
-                  : isAemRte(element)
-                    ? rect.top + element.scrollTop
-                    : isTinyMceEditor(element) ? rect.top + doc.scrollTop :
-                      rect.top + doc.scrollTop - (isTextArea(element) ? elementScroll.top : 0),
-              };
-            }
-          );
-          if (isGoogleDocs() && (rects[0].top < 0 || rects[0].top > window.innerHeight || (node.textContent && alert.data && !node.textContent.includes(alert.data.text)))) {
+                : rect.left,
+              top: isGoogleDocs(element)
+                ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
+                : isAemRte(element)
+                  ? rect.top + element.scrollTop
+                  : isTinyMceEditor(element)
+                    ? rect.top + doc.scrollTop
+                    : rect.top +
+                      doc.scrollTop -
+                      (isTextArea(element) ? elementScroll.top : 0),
+            };
+          });
+          if (
+            isGoogleDocs(element) &&
+            (rects[0].top < 0 ||
+              rects[0].top > window.innerHeight ||
+              (node.textContent &&
+                alert.data &&
+                !node.textContent.includes(alert.data.text)))
+          ) {
             return;
           } else {
             const newHighlight: Highlight = {
               rects,
               id: alert.id,
-              plan: alert.plan,
               data: alert.data,
               startOffset: alert.startOffset,
               endOffset: alert.endOffset,
@@ -156,16 +176,21 @@ const Highlights: React.FC<HighlightsProps> = ({
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     let googleDocsRulerIsHidden = false;
-    if (isGoogleDocs()) {
+    if (isGoogleDocs(element)) {
       const rulerElement = document.getElementById('kix-vertical-ruler');
-      googleDocsRulerIsHidden = rulerElement?.style.display == 'none' || rulerElement?.offsetHeight == 0;
+      googleDocsRulerIsHidden =
+        rulerElement?.style.display == 'none' ||
+        rulerElement?.offsetHeight == 0;
     }
-    
+
     highlights.forEach((highlight) => {
       if (highlight.rects && highlight.rects.length === 0) return;
 
       const [rect] = highlight.rects;
-      const colours = getColor(highlight.data.gravity, highlight.data.subcategory);
+      const colours = getColor(
+        highlight.data.gravity,
+        highlight.data.subcategory
+      );
       const hoverColor = colours.hover;
       const highlightColor = colours.highlight;
       const dashedLine = highlight.data?.category == 'orthography';
@@ -208,7 +233,7 @@ const Highlights: React.FC<HighlightsProps> = ({
           zIndex: getZIndex(element),
         } as React.CSSProperties
       }
-    ></canvas>
+    />
   );
 };
 

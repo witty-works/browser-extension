@@ -1,0 +1,13 @@
+{
+  // Emits the declarations of the public API types (src/api.ts) alone, for
+  // buildTypes.mjs to turn into dist/witty-editor.d.ts.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist/.types"
+  },
+  "include": [],
+  "files": ["src/api.ts"]
+}

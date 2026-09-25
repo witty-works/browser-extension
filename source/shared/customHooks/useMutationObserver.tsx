@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
 const DEFAULT_OPTIONS = {
-  config: { attributes: true, childList: true, subtree: true },
+  config: {attributes: true, childList: true, subtree: true},
 };
 
 export const useMutationObserver = (
@@ -18,7 +18,7 @@ export const useMutationObserver = (
 
   useEffect(() => {
     if (!observer) return;
-    const { config } = options;
+    const {config} = options;
     observer.observe(targetElement, config);
     return () => {
       if (observer) {

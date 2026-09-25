@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["dom", "dom.iterable", "es2022"],
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client"],
+    // The shared popover and helpers come from the extension's source tree,
+    // which is written against these settings.
+    "jsx": "react",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    // Shared code by name rather than by ../../../ path. Today the names point
+    // into the extension's source tree; extracting packages/core and
+    // packages/ui (EDITOR_COMPONENT_PLAN.md, Phase 2) moves the targets, not
+    // the imports. Keep in sync with resolve.alias in vite.config.ts.
+    "paths": {
+      "@witty/core/*": ["../../source/shared/*"],
+      "@witty/i18n/*": ["../../source/i18n/*"],
+      "@witty/assets/*": ["../../source/assets/*"],
+      "@witty/ui/*": ["../../source/ContentScript/HighlightPopover/*"],
+      "@witty/test-fixtures/*": ["../../__tests__/helpers/*"]
+    }
+  },
+  "include": [
+    "src",
+    "vite.config.ts",
+    "licenseNotices.ts",
+    "../../source/custom.d.ts",
+    "../../source/react-jsx.d.ts",
+    "../../source/shared/env.d.ts"
+  ]
+}

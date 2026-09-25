@@ -1,27 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import './styles.scss';
 import WittyIcon from '../assets/icons/witty-icon.svg';
 import CloseIcon from '../assets/icons/close-white.svg';
-import { useTranslation } from 'react-i18next';
-import { namespaces } from '../i18n/i18n.constants';
-import { getBaseUrls } from '../shared/ApiServices/requests';
+import {useTranslation} from 'react-i18next';
+import {namespaces} from '../i18n/i18n.constants';
+import {getBaseUrls} from '../shared/ApiServices/requests';
 import defaultConfig from '../witty.config.json';
-import { getTextDividedByNodes } from '../ContentScript/utils';
-import { CustomInputElement, FeatureFlags } from '../shared/types';
+import {getTextDividedByNodes} from '../ContentScript/utils';
+import {CustomInputElement, FeatureFlags} from '../shared/types';
 import browser from 'webextension-polyfill';
-import { StorageKeys } from '../shared/constants';
-import { useAnalytics } from '../shared/ApiServices/useAnalytics';
+import {HelpLinks, StorageKeys} from '../shared/constants';
+import {useAnalytics} from '../shared/ApiServices/useAnalytics';
 
 interface NotificationProps {
   notificationType: string;
   element: CustomInputElement | null;
+  onClose?: () => void;
 }
 
 const Notification: React.FC<NotificationProps> = ({
   notificationType,
   element,
+  onClose,
 }: NotificationProps) => {
-  const { t } = useTranslation(namespaces.notifications);
+  const {t} = useTranslation(namespaces.notifications);
   const totalTextLength = element
     ? getTextDividedByNodes(element)
         .map((node: any) => node.text)
@@ -30,7 +32,6 @@ const Notification: React.FC<NotificationProps> = ({
   const english = window.navigator.language.includes('en');
 
   const [featureFlags, setFeatureFlags] = useState<FeatureFlags>({
-    salesDemoFlag: null,
     teamInviteFlag: null,
     friendInviteFlag: null,
   });
@@ -38,9 +39,6 @@ const Notification: React.FC<NotificationProps> = ({
   useEffect(() => {
     // Load feature flags when the component mounts
     const fetchData = async () => {
-      const salesDemoFlag = await browser.storage.local.get(
-        StorageKeys.SALES_DEMO_FEATURE_FLAG
-      );
       const teamInviteFlag = await browser.storage.local.get(
         StorageKeys.INVITE_TEAM_FEATURE_FLAG
       );
@@ -49,9 +47,9 @@ const Notification: React.FC<NotificationProps> = ({
       );
 
       setFeatureFlags({
-        salesDemoFlag: salesDemoFlag[StorageKeys.SALES_DEMO_FEATURE_FLAG],
         teamInviteFlag: teamInviteFlag[StorageKeys.INVITE_TEAM_FEATURE_FLAG],
-        friendInviteFlag: friendInviteFlag[StorageKeys.INVITE_FRIENDS_FEATURE_FLAG],
+        friendInviteFlag:
+          friendInviteFlag[StorageKeys.INVITE_FRIENDS_FEATURE_FLAG],
       });
     };
 
@@ -62,7 +60,8 @@ const Notification: React.FC<NotificationProps> = ({
   let notificationText = '';
   let notificationButton = '';
   let notificationLink = '';
-  const isFeatureFlagNotification = notificationType === 'salesDemo' || notificationType === 'inviteTeam' || notificationType === 'inviteFriends';
+  const isFeatureFlagNotification =
+    notificationType === 'inviteTeam' || notificationType === 'inviteFriends';
   const analytics = useAnalytics();
 
   switch (notificationType) {
@@ -73,23 +72,9 @@ const Notification: React.FC<NotificationProps> = ({
     case 'totalMaxCharLengthReached':
       notificationHeadline = t('totalMaxCharLengthReachedNotificationHeadline');
       notificationText = t('totalMaxCharLengthReachedNotificationText', {
-        limit: defaultConfig.MAX_CHAR_LENGTH_TOTAL_FREEMIUM,
+        limit: defaultConfig.MAX_CHAR_LENGTH_TOTAL,
         total: totalTextLength,
       });
-      notificationButton = t('subscriptionButton');
-      notificationLink = getBaseUrls().dashboard + 'team/subscription';
-      break;
-    case 'salesDemo':
-      notificationHeadline = english
-        ? featureFlags.salesDemoFlag?.notificationHeadline_en || ''
-        : featureFlags.salesDemoFlag?.notificationHeadline_de || '';
-      notificationText = english
-        ? featureFlags.salesDemoFlag?.notificationText_en || ''
-        : featureFlags.salesDemoFlag?.notificationText_de || '';
-      notificationButton = english
-        ? featureFlags.salesDemoFlag?.notificationButton_en || ''
-        : featureFlags.salesDemoFlag?.notificationButton_de || '';
-      notificationLink = 'https://www.witty.works/demo';
       break;
     case 'inviteTeam':
       notificationHeadline = english
@@ -101,7 +86,11 @@ const Notification: React.FC<NotificationProps> = ({
       notificationButton = english
         ? featureFlags.teamInviteFlag?.notificationButton_en || ''
         : featureFlags.teamInviteFlag?.notificationButton_de || '';
-      notificationLink = getBaseUrls().dashboard + 'team/show';
+      // Empty in API-key mode; renderNotification skips a button without a link
+      // rather than producing 'undefinedteam/show'.
+      notificationLink = getBaseUrls().dashboard
+        ? getBaseUrls().dashboard + 'team/show'
+        : '';
       break;
     case 'inviteFriends':
       notificationHeadline = english
@@ -126,47 +115,59 @@ const Notification: React.FC<NotificationProps> = ({
       notificationHeadline = t('minVersionNotInstalledNotificationHeadline');
       notificationText = t('minVersionNotInstalledNotificationText');
       notificationButton = t('minVersionNotInstalledNotificationButton');
-      notificationLink = 'https://www.witty.works/en/help/how-can-i-update-witty';
-      break;
-    case 'trial_ended':
-      notificationHeadline = t('trialEndedNotificationHeadline');
-      notificationText = t('trialEndedNotificationText');
-      notificationButton = t('subscriptionButton');
-      notificationLink = getBaseUrls().dashboard + 'team/subscription';
+      notificationLink = HelpLinks.updateWitty;
       break;
   }
 
   return (
-    <div className="witty-works-notification-wrapper">
-      <div className="witty-works-ext-container-row witty-works-notification-headline-wrapper">
-        <div className="witty-works-notification-headline">{notificationHeadline}</div>
+    <div className='witty-works-notification-wrapper'>
+      <div className='witty-works-ext-container-row witty-works-notification-headline-wrapper'>
+        <div className='witty-works-notification-headline'>
+          {notificationHeadline}
+        </div>
         <CloseIcon
           onClick={() => {
-            const notificationWrapper = document.getElementsByClassName('witty-works-notification-wrapper')[0];
-            isFeatureFlagNotification && analytics.featureFlagLog(notificationType, false);
-            if (notificationWrapper) {
-              notificationWrapper.remove();
+            isFeatureFlagNotification &&
+              analytics.featureFlagLog(notificationType, false);
+            if (typeof onClose === 'function') {
+              onClose();
+            } else {
+              const notificationWrapper = document.getElementsByClassName(
+                'witty-works-notification-wrapper'
+              )[0];
+              if (notificationWrapper) {
+                notificationWrapper.remove();
+              }
             }
           }}
-          style={{ cursor: 'pointer', marginRight: '-1em' }}
+          style={{cursor: 'pointer', marginRight: '-1em'}}
         />
       </div>
-      <div className="witty-works-ext-container-row">
-        {notificationType === 'pin' && <WittyIcon className="witty-works-notification-icon" />}
-        <div className="witty-works-notification-text">
-          {notificationText} 
+      <div className='witty-works-ext-container-row'>
+        {notificationType === 'pin' && (
+          <WittyIcon className='witty-works-notification-icon' />
+        )}
+        <div className='witty-works-notification-text'>
+          {notificationText}
           {notificationButton && (
-            <div className="witty-works-ext-left">
+            <div className='witty-works-ext-left'>
               <div
-                className="witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top"
+                className='witty-works-ext-button witty-works-ext-primary-button-red witty-works-ext-margin-top'
                 onClick={() => {
                   window.open(notificationLink, '_blank');
-                  isFeatureFlagNotification && analytics.featureFlagLog(notificationType, true);
+                  isFeatureFlagNotification &&
+                    analytics.featureFlagLog(notificationType, true);
 
-                  //close notification once it has been clicked 
-                  const notificationWrapper = document.getElementsByClassName('witty-works-notification-wrapper')[0];
-                  if (notificationWrapper) {
-                    notificationWrapper.remove();
+                  //close notification once it has been clicked
+                  if (typeof onClose === 'function') {
+                    onClose();
+                  } else {
+                    const notificationWrapper = document.getElementsByClassName(
+                      'witty-works-notification-wrapper'
+                    )[0];
+                    if (notificationWrapper) {
+                      notificationWrapper.remove();
+                    }
                   }
                 }}
               >
@@ -178,9 +179,14 @@ const Notification: React.FC<NotificationProps> = ({
       </div>
       {notificationType === 'pin' && (
         <img
-          className="witty-works-pin-gif"
-          src="https://www.witty.works/hubfs/pin_witty-2.gif"
-          alt="pin-extension"
+          className='witty-works-pin-gif'
+          // Served from the extension rather than from witty.works. This
+          // notification is injected into the host page, so the host page's
+          // img-src decides whether the image loads — and a strict policy
+          // blocks a remote URL outright. Only the extension's own origin
+          // (via web_accessible_resources) survives; data: and blob: do not.
+          src={browser.runtime.getURL('assets/media/pin-witty.gif')}
+          alt='pin-extension'
         />
       )}
     </div>

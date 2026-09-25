@@ -1,74 +1,75 @@
 import chroma from 'chroma-js';
-import { BaseUrls } from './constants';
-import { getDomainWithoutSubdomain } from './utils';
+import {BaseUrls} from './constants';
 
-export const isTextArea = (
-  element: Element
-): element is HTMLTextAreaElement => {
-  return (
-    element instanceof HTMLTextAreaElement || findElement(element, 'TEXTAREA')
-  );
-};
+export const isTextArea = (element: Element): element is HTMLTextAreaElement =>
+  element instanceof HTMLTextAreaElement || findElement(element, 'TEXTAREA');
 
-export const isInShadowDOM = (element: Element) => {
-  return element.getRootNode() instanceof ShadowRoot;
-};
+export const isInShadowDOM = (element: Element) =>
+  element.getRootNode() instanceof ShadowRoot;
 
 export const isInputText = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.type === 'text';
 
-export const isGoogleDocs = (): boolean => {
-  return window.location.href.includes('docs.google.com/document');
+/**
+ * Whether the kix-canvas handling applies. Location alone is not enough: a
+ * Google Docs page also contains ordinary contenteditables — the comment and
+ * reply boxes — which must be treated like any other contenteditable input
+ * (#1078). Pass the element whenever one is in scope; the bare form remains
+ * for page-level decisions (script wiring, observers).
+ */
+export const isGoogleDocs = (element?: Element | null): boolean => {
+  if (!window.location.href.includes('docs.google.com/document')) {
+    return false;
+  }
+
+  return !(element && isHTMLElementContentEditable(element));
 };
 
-export const isGmail = (): boolean => {
-  return window.location.hostname === 'mail.google.com';
-};
+export const isGmail = (): boolean =>
+  window.location.hostname === 'mail.google.com';
 
 export const isAemRte = (element: Element): boolean => {
   const CQrteElement = element?.closest('#CQrte');
   return !!CQrteElement;
-}
-
-export const isGoogleSearch = (): boolean => {
-  return window.location.hostname === 'www.google.com';
-}
-
-export const isHubspot = (): boolean => {
-  return window.location.hostname.includes('hubspot');
 };
 
-export const isChromeWebstore = (url: string): boolean => {
-  return url.includes('google.com') && url.includes('webstore');
-};
+export const isGoogleSearch = (): boolean =>
+  window.location.hostname === 'www.google.com';
+
+export const isHubspot = (): boolean =>
+  window.location.hostname.includes('hubspot');
+
+export const isChromeWebstore = (url: string): boolean =>
+  url.includes('google.com') && url.includes('webstore');
 
 //can be removed when powerpoint works
-export const isMicrosoftOnline = (windowUrl: string): boolean => {
-  return (windowUrl.includes('onedrive.live.com') || isMicrosoftOnlineWord(windowUrl) || isOutlook(windowUrl) || isMicrosoftOnlineExcel(windowUrl) || isMicrosoftOnlinePowerPoint(windowUrl))
-}
+export const isMicrosoftOnline = (windowUrl: string): boolean =>
+  windowUrl.includes('onedrive.live.com') ||
+  isMicrosoftOnlineWord(windowUrl) ||
+  isOutlook(windowUrl) ||
+  isMicrosoftOnlineExcel(windowUrl) ||
+  isMicrosoftOnlinePowerPoint(windowUrl);
 
-export const isMicrosoftOnlineSharepoint = (): boolean => {
-  return window.location.hostname.includes('sharepoint.com');
-}
+export const isMicrosoftOnlineSharepoint = (): boolean =>
+  window.location.hostname.includes('sharepoint.com');
 
 export const isMicrosoftOnlineExcel = (windowUrl: string): boolean => {
   const triggerWords = ['chc-excel', '.xlsx'];
-  return triggerWords.some(word => windowUrl.includes(word));
-}
+  return triggerWords.some((word) => windowUrl.includes(word));
+};
 
 export const isMicrosoftOnlinePowerPoint = (windowUrl: string): boolean => {
   const triggerWords = ['chc-powerpoint', '.pptx'];
-  return triggerWords.some(word => windowUrl.includes(word));
-}
+  return triggerWords.some((word) => windowUrl.includes(word));
+};
 
 export const isMicrosoftOnlineWord = (windowUrl: string): boolean => {
   const triggerWords = ['chc-word-edit', 'wordeditorframe', '.docx'];
-  return triggerWords.some(word => windowUrl.includes(word));
-}
+  return triggerWords.some((word) => windowUrl.includes(word));
+};
 
-export const isOffice = (): boolean => {
-  return window.location.hostname.includes('office.com');
-}
+export const isOffice = (): boolean =>
+  window.location.hostname.includes('office.com');
 
 export const isOutlook = (windowUrl?: string): boolean => {
   if (windowUrl) {
@@ -80,7 +81,7 @@ export const isOutlook = (windowUrl?: string): boolean => {
   }
 
   return false;
-}
+};
 
 export const isWittyEditor = (): boolean => {
   const dashboardBaseUrls = Object.values(BaseUrls).map(
@@ -88,23 +89,18 @@ export const isWittyEditor = (): boolean => {
   );
   const isDashboard = dashboardBaseUrls
     .map((url) => window.location.href.includes(url))
-    .reduce((acc, curr) => {
-      return acc || curr;
-    }, false);
+    .reduce((acc, curr) => acc || curr, false);
   return window.location.href.includes('editor') && isDashboard;
 };
 
-export const isTrello = (): boolean => {
-  return window.location.hostname.includes('trello');
-}
+export const isTrello = (): boolean =>
+  window.location.hostname.includes('trello');
 
-export const isGoogleSheets = (): boolean => {
-  return window.location.href.includes('docs.google.com/spreadsheets');
-};
+export const isGoogleSheets = (): boolean =>
+  window.location.href.includes('docs.google.com/spreadsheets');
 
-export const isNotion = (): boolean => {
-  return window.location.hostname === 'www.notion.so';
-};
+export const isNotion = (): boolean =>
+  window.location.hostname === 'www.notion.so';
 
 export const isCkEditor = (element: Element): boolean => {
   const ckEditor = element?.closest('.ck-content');
@@ -116,16 +112,14 @@ export const isTinyMceEditor = (element: Element): boolean => {
   return !!tinymceEditor;
 };
 
-export const isBambooHr = (): boolean => {
-  return window.location.hostname.includes('bamboohr');
-};
+export const isBambooHr = (): boolean =>
+  window.location.hostname.includes('bamboohr');
 
-export const isModX = (): boolean => {
-  return window.location.hostname.includes('modx');
-};
+export const isModX = (): boolean => window.location.hostname.includes('modx');
 
 export const isFroalaEditor = (element: Element): boolean => {
-  const foralaEditor = element?.closest('.fr-element') || element?.closest('.fr-view');
+  const foralaEditor =
+    element?.closest('.fr-element') || element?.closest('.fr-view');
   return !!foralaEditor;
 };
 
@@ -134,43 +128,41 @@ export const isRedactorEditor = (element: Element): boolean => {
   return !!redactorEditor;
 };
 
-export const isRecruitee = (): boolean => {
-  return window.location.hostname.includes('recruitee.com');
-}
+export const isRecruitee = (): boolean =>
+  window.location.hostname.includes('recruitee.com');
 
-export const isGreenhouse = (): boolean => {
-  return window.location.hostname.includes('greenhouse');
-};
+export const isGreenhouse = (): boolean =>
+  window.location.hostname.includes('greenhouse');
 
-export const isTypo3 = (): boolean => {
-  return window.location.hostname.includes('typo3');
-};
+export const isTypo3 = (): boolean =>
+  window.location.hostname.includes('typo3');
 
-export const isLinkedin = (): boolean => {
-  return window.location.hostname === 'www.linkedin.com';
-};
+export const isLinkedin = (): boolean =>
+  window.location.hostname === 'www.linkedin.com';
 
 export const isHTMLElementContentEditable = (element: Element): boolean => {
   const elementAsHtmlElement = element as HTMLElement;
   return elementAsHtmlElement?.contentEditable === 'true';
 };
 
-export const isChatGpt = () => {
-  return window.location.href.includes('chat.openai.com') ? true : false;
-};
+export const isChatGpt = () =>
+  window.location.href.includes('chat.openai.com') ? true : false;
 //Ignore anything that is not a TextArea, an Input type=text or a contenteditable
 export const isInputElement = (element: Element) =>
   isTextArea(element) ||
   // isInputText(element) ||      Temporaly disabled as it could capture passwords
   isHTMLElementContentEditable(element);
 
-export const getZIndex = (element: Element) => {
-  return isGoogleDocs() || isBambooHr() || isFroalaEditor(element) || isGmail() || isModX()
-    ? 501 
+export const getZIndex = (element: Element) =>
+  isGoogleDocs() ||
+  isBambooHr() ||
+  isFroalaEditor(element) ||
+  isGmail() ||
+  isModX()
+    ? 501
     : isRedactorEditor(element) || isRecruitee()
-    ? 9999998 //make sure highlights are the second largest (smaller than popover)
-    : 'auto';
-};
+      ? 9999998 //make sure highlights are the second largest (smaller than popover)
+      : 'auto';
 
 export const requiresRectRecalculation = (element: Element) => {
   const domain = getDomainWithoutSubdomain(window.location.hostname);
@@ -179,15 +171,13 @@ export const requiresRectRecalculation = (element: Element) => {
     isTextArea(element) ||
     domain === 'personio.de' ||
     isCkEditor(element) ||
-    // isTinyMceEditor(element) ||
     isBambooHr()
   );
 };
 
-export const iframePositionRecquired = (element: Element) => {
+export const iframePositionRecquired = (element: Element) =>
   // maybe isTypo3() and isGreenhose() conditions can be substituted by elementWithinIframe()
-  return isTypo3() || isGreenhouse() || elementWithinIframe(element);
-};
+  isTypo3() || isGreenhouse() || elementWithinIframe(element);
 
 export const findElement = (node: Node, element: string): boolean => {
   if (node && node.nodeName === element) {
@@ -214,16 +204,15 @@ export const nodeExistsInDOM = (document: Document, node: Node): boolean => {
   }
 
   return false;
-}
+};
 
 export const elementIsVisible = (element: Element): boolean => {
   const rect: DOMRect = element.getBoundingClientRect();
   return rect.width > 0 && rect.height > 0 ? true : false;
 };
 
-export const elementWithinIframe = (element: Element): boolean => {
-    return !!element.ownerDocument.defaultView?.frameElement;
-};
+export const elementWithinIframe = (element: Element): boolean =>
+  !!element.ownerDocument.defaultView?.frameElement;
 
 export const textIsLight = (color: any) => {
   const [r, g, b] = chroma(color).rgb();
@@ -231,4 +220,30 @@ export const textIsLight = (color: any) => {
   const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
   // Using the HSP value, determine whether the color is light or dark
   return hsp > 127.5 ? true : false;
+};
+
+// Kept here rather than in utils.ts, which loads the extension APIs, so the
+// editor component can use the DOM helpers.
+export const getDomainWithoutSubdomain = (url: string) => {
+  const urlParts = url.split('.');
+  return urlParts
+    .slice(0)
+    .slice(urlParts.length - 2)
+    .join('.');
+};
+
+export const getScrollableParentClosestToElement = (element: HTMLElement) => {
+  let style = getComputedStyle(element);
+  const excludeStaticParent = style.position === 'absolute';
+  const overflowRegex = /(auto|scroll)/;
+  if (style.position === 'fixed') return document.body;
+  for (let parent = element; (parent = parent.parentElement as HTMLElement);) {
+    style = getComputedStyle(parent);
+    if (excludeStaticParent && style.position === 'static') {
+      continue;
+    }
+    if (overflowRegex.test(style.overflow + style.overflowY + style.overflowX))
+      return parent;
+  }
+  return document.body;
 };

@@ -1,9 +1,12 @@
-import {logTypes, useLog} from "../customHooks/useLog";
-import {useAnalytics} from "./useAnalytics";
-import {IAuthResponse, ICheckResponse} from "../types";
-import {useStateRef} from "../customHooks/useStateRef";
+import {logTypes, useLog} from '../customHooks/useLog';
+import {useAnalytics} from './useAnalytics';
+import {IAuthResponse, ICheckResponse} from '../types';
+import {useStateRef} from '../customHooks/useStateRef';
 
-export const useCheckEventsLogger = (authResponse: IAuthResponse | null, hrFeatureDisabled: boolean) => {
+export const useCheckEventsLogger = (
+  authResponse: IAuthResponse | null,
+  hrFeatureDisabled: boolean
+) => {
   const analytics = useAnalytics();
   const log = useLog('CheckEventsLogger');
 
@@ -29,26 +32,30 @@ export const useCheckEventsLogger = (authResponse: IAuthResponse | null, hrFeatu
       );
     },
 
-    logNewCheckResponses(checkEndpointResponse: ICheckResponse, textContentLength: number)  {
+    logNewCheckResponses(
+      checkEndpointResponse: ICheckResponse,
+      textContentLength: number
+    ) {
       const checkEndpointResponseWithoutOrthography = {
         ...checkEndpointResponse,
-        results: checkEndpointResponse.results.filter((result: any) => {
-          return result.data?.category !== 'orthography';
-        }),
+        results: checkEndpointResponse.results.filter(
+          (result: any) => result.data?.category !== 'orthography'
+        ),
       };
 
       if (checkEndpointResponseWithoutOrthography.results.length === 0) return;
 
       for (const result of checkEndpointResponseWithoutOrthography.results) {
-        result && analytics.checkResultLog(
-          result,
-          authResponse,
-          textContentLength,
-          'check_highlights',
-          checkLogEventIdRef.current,
-          hrFeatureDisabled
-        );
+        result &&
+          analytics.checkResultLog(
+            result,
+            authResponse,
+            textContentLength,
+            'check_highlights',
+            checkLogEventIdRef.current,
+            hrFeatureDisabled
+          );
       }
     },
-  }
+  };
 };

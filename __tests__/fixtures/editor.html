@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Witty editor fixture</title>
+  </head>
+  <body>
+    <!-- The published bundle against the fixture server's mock API; see
+         __tests__/editor/editor.spec.js. -->
+    <div id="editor"></div>
+    <script src="/editor-dist/witty-editor.js"></script>
+    <script>
+      window.statuses = [];
+      window.handle = WittyEditor.mount(document.getElementById('editor'), {
+        endpoint: `${location.origin}/mock-api/`,
+        lang: 'en',
+        content:
+          '<p>Hey guys, the chairman will assume the leadership role. This is a spelling mistacke.</p>',
+        delay: 0,
+        onStatus: (status) => window.statuses.push(status),
+      });
+    </script>
+  </body>
+</html>

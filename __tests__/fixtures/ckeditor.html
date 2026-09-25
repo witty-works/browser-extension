@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CKEditor 5 fixture</title>
+    <link rel="stylesheet" href="/fixture.css" />
+    <link rel="stylesheet" href="/vendor/ckeditor5/dist/browser/ckeditor5.css" />
+    <script src="/vendor/ckeditor5/dist/browser/ckeditor5.umd.js"></script>
+    <style>
+      /* Pin the editable's geometry so the word-coordinate math in the test
+         helpers (padding + measured text width) holds. */
+      .ck.ck-content {
+        width: 800px;
+        min-height: 300px;
+        padding: 12px;
+        font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
+        font-size: 16px;
+        line-height: 24px;
+      }
+      .ck.ck-content p {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      The editable region CKEditor creates carries the .ck-content class the
+      extension's isCkEditor() detection keys on, so this exercises the real
+      CKEditor replacement path (Delete keydown + synthetic paste), not the
+      generic contenteditable one.
+    -->
+    <div id="editor-host"></div>
+    <script>
+      const {ClassicEditor, Essentials, Paragraph} = window.CKEDITOR;
+
+      ClassicEditor.create(document.getElementById('editor-host'), {
+        licenseKey: 'GPL',
+        plugins: [Essentials, Paragraph],
+        toolbar: [],
+      }).then((editor) => {
+        // The suite's helpers address the editable area as #editor. The id
+        // must go through the view writer: CKEditor owns the editable's DOM
+        // attributes and wipes anything set directly on the element at the
+        // next render (e.g. on focus).
+        editor.editing.view.change((writer) => {
+          const root = editor.editing.view.document.getRoot();
+          writer.setAttribute('id', 'editor', root);
+          writer.setAttribute('spellcheck', 'false', root);
+        });
+        window.__editorReady = true;
+      });
+    </script>
+  </body>
+</html>

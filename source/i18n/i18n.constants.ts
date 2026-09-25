@@ -7,6 +7,8 @@ export const namespaces = {
   errors: 'errors',
   iconController: 'iconController',
   notifications: 'notifications',
+  options: 'options',
+  editor: 'editor',
 };
 
 export const languages = {

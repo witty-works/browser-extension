@@ -9,8 +9,9 @@ const ExtReloader = require('webpack-ext-reloader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WextManifestWebpackPlugin = require('wext-manifest-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
-const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const { sentryWebpackPlugin } = require('@sentry/webpack-plugin');
+const { assertNoBakedInCredentials } = require('./build/credentialGuard');
 
 const viewsPath = path.join(__dirname, 'views');
 const sourcePath = path.join(__dirname, 'source');
@@ -21,36 +22,55 @@ const targetBrowser = process.env.TARGET_BROWSER;
 const extensionReloaderPlugin =
   nodeEnv === 'development'
     ? new ExtReloader({
-      port: 9090,
-      reloadPage: true,
-      entries: {
-        // TODO: reload manifest on update
-        contentScript: 'contentScript',
-        background: 'background',
-        extensionPage: ['popup', 'options'],
-      },
-    })
+        port: 9090,
+        reloadPage: true,
+        entries: {
+          // TODO: reload manifest on update
+          contentScript: 'contentScript',
+          background: 'background',
+          extensionPage: ['popup', 'options'],
+        },
+      })
     : () => {
-      this.apply = () => { };
-    };
+        this.apply = () => {};
+      };
+
+/**
+ * The Sentry release: the one the source maps are uploaded to, and the one the
+ * extension reports its errors under (SENTRY_RELEASE, see Background and
+ * ContentScript), so Sentry applies the maps. Release builds name it after the
+ * tag, channel and browser (`2.6.1-prod-chrome`); other builds use the
+ * manifest version.
+ */
+const sentryRelease = process.env.SENTRY_VERSION_STRING
+  ? `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`
+  : require('./source/manifest.json').version;
 
 const sentryWebpackPluginInstance =
-  process.env.SENTRY_SOURCEMAPS && process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_VERSION_STRING
+  process.env.SENTRY_SOURCEMAPS &&
+  process.env.SENTRY_AUTH_TOKEN &&
+  process.env.SENTRY_VERSION_STRING
     ? sentryWebpackPlugin({
-      org: "witty-works-ag",
-      project: "browser-extension",
+        org: 'witty-works-ag',
+        project: 'browser-extension',
 
-      // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
-      // and need `project:releases` and `org:read` scopes
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      release: {
-        name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`
-      },
-    })
+        // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
+        // and need `project:releases` and `org:read` scopes
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        release: {
+          name: sentryRelease,
+        },
+      })
     : () => {
-      this.apply = () => { };
-    };
+        this.apply = () => {};
+      };
 
+// Refuses to compile credentials into a shippable build. See build/credentialGuard.js.
+assertNoBakedInCredentials({
+  nodeEnv,
+  testing: process.env.TESTING === 'true',
+  configPath: path.join(sourcePath, 'witty.config.json'),
+});
 
 const getExtensionFileType = (browser) => {
   if (browser === 'opera') {
@@ -91,7 +111,7 @@ module.exports = {
 
   resolve: {
     fallback: {
-      "url": require.resolve("url/")
+      url: require.resolve('url/'),
     },
     extensions: ['.ts', '.tsx', '.js', '.json'],
     alias: {
@@ -118,13 +138,13 @@ module.exports = {
         test: /\.svg$/,
         use: [
           {
-            loader: "babel-loader"
+            loader: 'babel-loader',
           },
           {
             loader: '@svgr/webpack',
             options: { babel: false },
-          }
-        ]
+          },
+        ],
       },
       {
         test: /\.(js|ts)x?$/,
@@ -173,6 +193,14 @@ module.exports = {
     new ForkTsCheckerWebpackPlugin(),
     // environmental variables
     new webpack.EnvironmentPlugin(['NODE_ENV', 'TARGET_BROWSER']),
+    // TESTING is optional, so it gets a default rather than being required
+    new webpack.EnvironmentPlugin({ TESTING: 'false' }),
+    // Read here rather than via browser.runtime.getManifest() at runtime, so
+    // shared/constants.ts stays free of extension APIs.
+    new webpack.EnvironmentPlugin({
+      WITTY_VERSION: require('./source/manifest.json').version,
+      SENTRY_RELEASE: sentryRelease,
+    }),
     // delete previous build files
     new CleanWebpackPlugin({
       cleanOnceBeforeBuildPatterns: [

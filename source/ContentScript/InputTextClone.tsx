@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { getCorrectedPosition } from '../shared/utils';
+import React, {useRef} from 'react';
+import {getCorrectedPosition} from '../shared/utils';
 
 interface InputTextCloneProps {
   element: HTMLInputElement;

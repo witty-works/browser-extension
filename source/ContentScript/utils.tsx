@@ -1,13 +1,17 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { WTags } from '../shared/constants';
-import { isGoogleDocs, isInputText, isTextArea } from '../shared/DOMutils';
-import { CustomInputElement, DiffChange, INodes } from '../shared/types';
-import ContentScriptApp, { getActiveDocument } from './ContentScriptApp';
-import { diffChars, diffWords, WordsOptions } from 'diff';
+import {createRoot} from 'react-dom/client';
+import {WTags} from '../shared/constants';
+import {isGoogleDocs, isInputText, isTextArea} from '../shared/DOMutils';
+import {CustomInputElement, INodes} from '../shared/types';
+import ContentScriptApp from './ContentScriptApp';
+import {getActiveDocument} from '../shared/activeDocument';
+import {diffChars} from 'diff';
+
+// Moved to shared/diff so the popover can use it outside the content script.
+export {computeDiff, removeHTMLTags} from '../shared/diff';
 
 export const getInputText = (element: CustomInputElement | any) => {
-  if (isGoogleDocs()) {
+  if (isGoogleDocs(element)) {
     let text = '';
     if (element.childNodes) {
       for (let i = 0; i < element.childNodes.length; i++) {
@@ -21,11 +25,11 @@ export const getInputText = (element: CustomInputElement | any) => {
   } else {
     return getNodesWithNewlines(element)
       .map((node) => node.text)
-      .join('')
+      .join('');
   }
 };
 
-export const customRender = (enabled: boolean, scriptId: string) => {  
+export const customRender = (enabled: boolean, scriptId: string) => {
   const doc = document.documentElement;
   const body = document.body;
 
@@ -41,34 +45,81 @@ export const customRender = (enabled: boolean, scriptId: string) => {
     body?.appendChild(popoverElement);
   }
 
-  let scriptPopoverElement = body?.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
+  let scriptPopoverElement = body?.querySelector(
+    `${WTags.WW_POPOVER}-${scriptId}`
+  );
   if (!scriptPopoverElement) {
-    scriptPopoverElement = document.createElement(`${WTags.WW_POPOVER}-${scriptId}`);
+    scriptPopoverElement = document.createElement(
+      `${WTags.WW_POPOVER}-${scriptId}`
+    );
     body?.appendChild(scriptPopoverElement);
   }
 
   if (scriptPopoverElement) {
+    // If we've previously created a root for this element, unmount it first
+    const existingRoot = (scriptPopoverElement as any).__wittyRoot;
+    if (existingRoot && typeof existingRoot.unmount === 'function') {
+      try {
+        existingRoot.unmount();
+      } catch (err) {
+        // ignore
+      }
+      try {
+        delete (scriptPopoverElement as any).__wittyRoot;
+      } catch (err) {
+        // ignore
+      }
+    }
+
     const root = createRoot(scriptPopoverElement);
+    try {
+      (scriptPopoverElement as any).__wittyRoot = root;
+    } catch (err) {
+      // ignore
+    }
     root.render(enabled ? <ContentScriptApp /> : <></>);
   }
 
   // Remove all extra WW_CONTAINER elements if witty is disabled or more than one is found
-  const containers = getActiveDocument().querySelectorAll(WTags.WW_SHADOW_ROOT_CONTAINER);
+  const containers = getActiveDocument().querySelectorAll(
+    WTags.WW_SHADOW_ROOT_CONTAINER
+  );
   if (containers) {
     for (let i = enabled ? 1 : 0; i < containers.length; i++) {
-      containers[i].remove();
+      safeUnmountAndRemove(containers[i] as HTMLElement);
     }
   }
 };
 
-export const removeHTMLTags = (htmlString: string)=> {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(htmlString, 'text/html');
-  const textContent = doc.body.textContent ?? '';
-  return textContent.trim();
+export const safeUnmountAndRemove = (el: HTMLElement | null | undefined) => {
+  if (!el) return;
+  try {
+    const root = (el as any).__wittyRoot;
+    if (root && typeof root.unmount === 'function') {
+      try {
+        root.unmount();
+      } catch (err) {
+        // ignore
+      }
+    }
+  } catch (err) {
+    // ignore
+  }
+  try {
+    el.remove();
+  } catch (err) {
+    // ignore
+  }
 };
 
-export const getFirstTextDiff = (oldText: string, newText: string): { changedOffset: number, originalLength: number, newLength: number } | null => {
+export const getFirstTextDiff = (
+  oldText: string,
+  newText: string
+): {
+  changedOffset: number;
+  originalLength: number;
+  newLength: number;
+} | null => {
   const diff = diffChars(oldText, newText);
 
   let changedOffset = 0;
@@ -97,88 +148,16 @@ export const getFirstTextDiff = (oldText: string, newText: string): { changedOff
   }
 
   if (originalLength !== newLength) {
-    return { changedOffset, originalLength, newLength };
+    return {changedOffset, originalLength, newLength};
   }
 
   return null;
-}
+};
 
-export const computeDiff = (language: string, originalSentence: string, newSentence: string) => {
-  let options: WordsOptions = {
-    intlSegmenter: new (Intl as any).Segmenter(language, { granularity: 'word' })
-  }
-
-  let diffElements: DiffChange[] = diffWords(
-    originalSentence,
-    newSentence,
-    options
-  );
-
-  const maxDiffLength = 120;
-  const minDiffLength = 50;
-
-  let diffElement: DiffChange;
-
-  let diff: string = '';
-  let tag: string = '';
-
-  let start: number = 0;
-  let end: number = diffElements.length - 1;
-
-  for (let i = 0; i < diffElements.length; i++) {
-    diffElement = diffElements[i]
-    if (diffElement.added || diffElement.removed) {
-      if (diff === '') {
-        start = i;
-      } else if (diff.endsWith('</ins>') || diff.endsWith('</del>')) {
-        diff += ' '
-      }
-      end = i;
-
-      tag = diffElement.added ? 'ins' : 'del';
-      if (diffElement.value !== 'undefined') {
-        diff += `<${tag}>${diffElement.value}</${tag}>`;
-      }
-    } else if (diff !== '' && i < diffElements.length - 1) {
-      diff += diffElement.value;
-    }
-  }
-
-  const strippedString = removeHTMLTags(diff);
-  let stringLengthDiff = maxDiffLength - strippedString.length
-  if (stringLengthDiff > 0) {
-    let value = '';
-    if (start > 0) {
-      value = diffElements[0].value.substring(
-        Math.max(0, diffElements[0].value.length - Math.min(minDiffLength, stringLengthDiff)),
-        diffElements[0].value.length
-      );
-
-      if (value != diffElements[0].value) {
-        value = value.slice(value.indexOf(' '));
-        value = '...' + value
-      }
-
-      diff = value + diff;
-    }
-
-    stringLengthDiff -= value.length
-    if (end < diffElements.length - 1 && stringLengthDiff) {
-      let value = diffElements[diffElements.length - 1].value.substring(0, Math.min(minDiffLength, stringLengthDiff));
-      if (value != diffElements[diffElements.length - 1].value) {
-        value = value.substring(0, value.lastIndexOf(' '));
-        value = value + '...'
-      }
-
-      diff = diff + value;
-    }
-  }
-
-  return diff
-}
-
-export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: string }[] => {
-  const nodesWithNewlines: { node: Node; text: string }[] = [];
+export const getNodesWithNewlines = (
+  element: HTMLElement
+): {node: Node; text: string}[] => {
+  const nodesWithNewlines: {node: Node; text: string}[] = [];
   let lastWasBlock = false; // Tracks whether the last processed element was a block
 
   function walk(node: Node, isRoot = false): void {
@@ -196,7 +175,10 @@ export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: 
         }
 
         // Add the current text node
-        nodesWithNewlines.push({ node, text: node.textContent.replace(/\ufeff/g, '') });
+        nodesWithNewlines.push({
+          node,
+          text: node.textContent.replace(/\ufeff/g, ''),
+        });
         lastWasBlock = false;
       }
     } else if (node.nodeType === Node.ELEMENT_NODE) {
@@ -214,7 +196,8 @@ export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: 
 
       // Before processing children, check if it's a block-level element
       const isBlockElement =
-        window.getComputedStyle(element).display === 'block' || element.tagName === 'DIV';
+        window.getComputedStyle(element).display === 'block' ||
+        element.tagName === 'DIV';
 
       // Add newline if transitioning to a block-level element
       if (isBlockElement && !isRoot && !lastWasBlock) {
@@ -228,7 +211,7 @@ export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: 
       }
 
       // Process child nodes recursively
-      element.childNodes.forEach(child => walk(child));
+      element.childNodes.forEach((child) => walk(child));
 
       // Mark block-level elements
       lastWasBlock = isBlockElement;
@@ -238,12 +221,14 @@ export const getNodesWithNewlines = (element: HTMLElement): { node: Node; text: 
   // Start recursion
   walk(element, true);
   return nodesWithNewlines;
-}
+};
 
-export const getTextDividedByNodes = (element: CustomInputElement): { node: Node; text: string }[] => {
-  if (isGoogleDocs()) {
+export const getTextDividedByNodes = (
+  element: CustomInputElement
+): {node: Node; text: string}[] => {
+  if (isGoogleDocs(element)) {
     const clone = findCloneContainer();
-    let divs = [] as Node[];
+    const divs = [] as Node[];
     if (clone?.firstChild) {
       for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
         const divElement = clone.firstChild.childNodes[i];
@@ -251,22 +236,26 @@ export const getTextDividedByNodes = (element: CustomInputElement): { node: Node
       }
     }
     return divs.map((node) => {
-      return { node, text: node.textContent || '' };
+      return {node, text: node.textContent || ''};
     });
   } else if (isTextArea(element) || isInputText(element)) {
-    return [{ node: element, text: element.value }];
+    return [{node: element, text: element.value}];
   } else {
     return getNodesWithNewlines(element);
   }
 };
 
 export const findCloneContainer = (): Element | null => {
-  const shadowRootContainer = document.querySelector(WTags.WW_SHADOW_ROOT_CONTAINER);
+  const shadowRootContainer = document.querySelector(
+    WTags.WW_SHADOW_ROOT_CONTAINER
+  );
   if (!shadowRootContainer) {
     return null;
   }
 
-  return shadowRootContainer.shadowRoot ? shadowRootContainer.shadowRoot.querySelector(WTags.WW_CLONE) : null;
+  return shadowRootContainer.shadowRoot
+    ? shadowRootContainer.shadowRoot.querySelector(WTags.WW_CLONE)
+    : null;
 };
 
 export const getScrollParent = (
@@ -291,21 +280,18 @@ const areNodesEqual = (node1: INodes, node2: Node): boolean => {
     return node1.node === (node2 as HTMLTextAreaElement).value;
   }
   return node1.node === node2.textContent;
-}
+};
 
-export const shouldReturnEarly = (prevNodes: INodes[] | null, currentNodes: Node[] | null): boolean => {
+export const shouldReturnEarly = (
+  prevNodes: INodes[] | null,
+  currentNodes: Node[] | null
+): boolean => {
   if (!prevNodes || !currentNodes || prevNodes.length !== currentNodes.length) {
     return false;
   }
-  return prevNodes.every((node, index) => areNodesEqual(node, currentNodes[index]));
-}
-
-export const hashString = (str: string): string => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash;
-  }
-  return hash.toString();
+  return prevNodes.every((node, index) =>
+    areNodesEqual(node, currentNodes[index])
+  );
 };
+
+export {hashString} from '../shared/hash';

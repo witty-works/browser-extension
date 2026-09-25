@@ -3,8 +3,8 @@ import browser from 'webextension-polyfill';
 
 import Settings from '../../assets/icons/popup/settings.svg';
 import Logo from '../../assets/icons/witty-logo-color.svg';
-import { getBaseUrls } from '../../shared/ApiServices/requests';
-import { useAnalytics } from '../../shared/ApiServices/useAnalytics';
+import {getBaseUrls} from '../../shared/ApiServices/requests';
+import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
 
 import '../styles.scss';
 
@@ -19,15 +19,12 @@ const PopupHeader: React.FC<PopupHeaderProps> = ({
   const analytics = useAnalytics();
 
   function handleClickLogo() {
-    browser.tabs.create({ url: 'https://www.witty.works/' });
+    browser.tabs.create({url: 'https://www.witty.works/'});
   }
 
   function handleClickSettings() {
     analytics.dashboardLog('cogwheel_popup');
-    window.open(
-      getBaseUrls().dashboard + 'user/language',
-      '_blank'
-    );
+    window.open(getBaseUrls().dashboard + 'user/language', '_blank');
   }
 
   return (

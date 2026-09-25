@@ -1,4 +1,4 @@
-import { DEV_ENV, Colors, wittyVersion } from '../constants';
+import {DEV_ENV, Colors, wittyVersion} from '../constants';
 
 export enum logTypes {
   INFO = 'info',
