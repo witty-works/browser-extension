@@ -95,3 +95,23 @@ jobs:
           name: chrome
           path: |
             extension/chrome
+
+  # main follows the releases: a pull request from the release into main, for
+  # a maintainer to approve and merge (main requires a reviewed pull request).
+  release-to-main:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Open a pull request from the release into main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          git push origin "HEAD:refs/heads/release/${VERSION}"
+          gh pr create --base main --head "release/${VERSION}" \
+            --title "Release ${VERSION}" \
+            --body "Brings main to release ${VERSION}. Merge with a merge commit; the release branch can be deleted afterwards."
