@@ -87,6 +87,33 @@ export const genderSeparatorFor = (
 };
 
 /**
+ * The NLP API base URL the editor sends requests to, from the `endpoint`
+ * option: resolved against the page (so `/nlp/` works, and no option means
+ * the page's own origin), `http:` or `https:` only, without query or
+ * fragment, and ending in a slash so paths can be appended. Anything else
+ * throws a `TypeError` when the editor is mounted rather than failing later
+ * on the first request.
+ */
+export const apiEndpoint = (
+  value: string | undefined,
+  page: string
+): string => {
+  let url: URL;
+  try {
+    url = new URL(value ?? '/', page);
+  } catch (error) {
+    throw new TypeError(`endpoint is not a URL: ${String(value)}`);
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    throw new TypeError(`endpoint must be an http(s) URL: ${String(value)}`);
+  }
+  url.search = '';
+  url.hash = '';
+  if (!url.pathname.endsWith('/')) url.pathname = `${url.pathname}/`;
+  return url.href;
+};
+
+/**
  * `client` on every request the editor makes, as the API parses it
  * (`name:version`): it checks the editor against its own minimum version
  * (MINIMUM_VERSION_WITTY_EDITOR), separately from the extension.

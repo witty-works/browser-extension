@@ -74,6 +74,17 @@ describe('mount', () => {
     expect(bodies[2]).not.toHaveProperty('config');
   });
 
+  it('refuses an endpoint that is not an http(s) URL', () => {
+    const element = document.createElement('div');
+
+    expect(() => mount(element, {endpoint: 'javascript:alert(1)'})).toThrow(
+      TypeError
+    );
+    // Nothing was set up.
+    expect(element.childElementCount).toBe(0);
+    expect(bodies).toEqual([]);
+  });
+
   it('setConfig with the same config changes nothing', async () => {
     const config = {german_gender_ending: '*in' as const};
     const editor = mountEditor({config});
