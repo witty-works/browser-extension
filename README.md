@@ -341,7 +341,7 @@ Commit the change, merge it, and push a tag with the same name from `dev`:
 | `2.4.0` | [prod_tag.yaml](.github/workflows/prod_tag.yaml) builds the Chrome and Firefox packages and a source archive as workflow artifacts, for the store listings | [publish-editor.yaml](.github/workflows/publish-editor.yaml) stages `2.4.0` with provenance, dist-tag `latest` |
 | `2.4.0-beta.1` | [dev_tag.yaml](.github/workflows/dev_tag.yaml) builds the Chrome package for the dev listing, with manifest version `2.4.0.1` and `version_name` `2.4.0-beta.1` | Staged as `2.4.0-beta.1`, dist-tag `beta` |
 
-Both workflows first check that the tag matches the version in the repository. The editor is published through npm trusted publishing, without a token: the workflow can only stage a version, and a maintainer approves it on npmjs.com (or with `npm stage approve <id>`) before it is public. Uploading the extension packages to the stores is manual. Every push also builds a development Chrome package ([branch.yaml](.github/workflows/branch.yaml)).
+Both workflows first check that the tag's commit is on `dev` or `main`, and that the tag matches the version in the repository; a tag anywhere else builds and publishes nothing. All workflows run on Node 22, pin their actions to commit SHAs, and run with read-only repository access (the editor's publishing also gets an OIDC token for npm). The editor is published through npm trusted publishing, without a token: the workflow can only stage a version, and a maintainer approves it on npmjs.com (or with `npm stage approve <id>`) before it is public. Uploading the extension packages to the stores is manual. Every push also builds a development Chrome package ([branch.yaml](.github/workflows/branch.yaml)).
 
 ## Linting and TypeScript
 

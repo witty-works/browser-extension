@@ -6,6 +6,10 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 
+# Reading the repository is all these builds need.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,11 +21,22 @@ jobs:
       SENTRY_VERSION_STRING: ${{github.ref_name}}-prod
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          node-version: "20"
+          # The history, to check where the tag's commit is.
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
           cache: "npm"
+
+      # Only a commit on dev or main is released: a matching tag pushed on any
+      # other branch builds nothing.
+      - name: Check the tag is on dev or main
+        run: |
+          git fetch --no-tags origin dev main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/dev ||
+            git merge-base --is-ancestor "$GITHUB_SHA" origin/main
 
       - name: Check the tag matches the version in the repo
         run: node build/releaseVersion.js --check "${GITHUB_REF_NAME}"
@@ -37,19 +52,12 @@ jobs:
         run: zip release.zip ./ -r
 
       - name: Upload source code
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: source-code
           path: release.zip
 
-      - id: cache-npm
-        uses: actions/cache@v4
-        with:
-          path: ./node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-
       - name: Install dependencies
-        if: steps.cache-npm.outputs.cache-hit != 'true'
         run: |
           npm ci
 
@@ -61,7 +69,7 @@ jobs:
         run: rm -rf extension/firefox/js/*.map
 
       - name: Store Firefox Prod artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: firefox
           path: |
@@ -83,7 +91,7 @@ jobs:
           sed -i '/"key":/d' extension/chrome/manifest.json
 
       - name: Store Chrome Prod artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: chrome
           path: |
