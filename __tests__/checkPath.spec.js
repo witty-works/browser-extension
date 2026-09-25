@@ -80,6 +80,7 @@ test.describe('Check requests', () => {
       })
       .toBe(2);
     await openPopoverForWord(page, 'guys');
+    expect(await paintedAt(page, 'guys')).toBeGreaterThan(0);
   });
 
   test('counts a check as done only after its last batch', async ({

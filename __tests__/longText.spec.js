@@ -48,6 +48,7 @@ test.describe('Long texts', () => {
         .poll(() => paintedAt(page, 'guys'), { timeout: 15000 })
         .toBeGreaterThan(0);
       await openPopoverForWord(page, 'guys');
+      expect(await paintedAt(page, 'guys')).toBeGreaterThan(0);
     });
   }
 
@@ -71,5 +72,6 @@ test.describe('Long texts', () => {
       .poll(() => requests.includes(second), { timeout: 15000 })
       .toBe(true);
     await openPopoverForWord(page, 'guys');
+    expect(requests).toContain(second);
   });
 });
