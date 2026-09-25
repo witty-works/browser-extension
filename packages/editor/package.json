@@ -1,6 +1,6 @@
 {
   "name": "@witty-works/editor",
-  "version": "2.6.1",
+  "version": "2.6.2",
   "description": "Witty's inclusive-language checker as an embeddable rich-text editor",
   "keywords": [
     "witty",
