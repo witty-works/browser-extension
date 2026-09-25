@@ -1067,6 +1067,11 @@ const Input: React.FC<{
     document.documentElement.setAttribute('witty-could-determine-lang', 'true');
     setRemoveHighlights(false);
 
+    // The alerts found so far show right away; the check counts as done, and
+    // its notification count as current, only after the last batch.
+    setAlerts([...checkEndpointCachedResponse.alerts]);
+    if (checkEndpointCachedResponse.checking) return;
+
     if (checkEndpointCachedResponse.checkEndpointResponse) {
       const checkEndpointResponse =
         checkEndpointCachedResponse.checkEndpointResponse;
@@ -1080,7 +1085,6 @@ const Input: React.FC<{
     }
 
     setActiveIcon('active');
-    setAlerts([...checkEndpointCachedResponse.alerts]);
   }, [checkEndpointCachedResponse]);
 
   useEffect(() => {
