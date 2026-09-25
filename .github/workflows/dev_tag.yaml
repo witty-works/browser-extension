@@ -66,3 +66,19 @@ jobs:
           name: chrome-dev
           path: |
             extension/chrome
+
+  # The release's page on GitHub, with notes generated from the pull requests
+  # since the previous release.
+  release-page:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" \
+            --verify-tag --title "$VERSION" --generate-notes --prerelease
