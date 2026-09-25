@@ -23,11 +23,11 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
     element
   );
 
-  const paddingLeftAndRight =
-    elementStyles.paddingLeft && elementStyles.paddingRight
-      ? parseInt(elementStyles.paddingLeft.split('px')[0]) +
-        parseInt(elementStyles.paddingRight.split('px')[0])
-      : 0;
+  // The clone has to wrap its lines exactly where the textarea does, or every
+  // highlight after the first differing line break lands on the wrong word.
+  // So it mirrors the textarea's box: its full size as border-box, with each
+  // border and padding as the textarea has them, whatever box-sizing the page
+  // gives the textarea, and every property that decides where lines break.
   return (
     <div
       ref={(ref) => {
@@ -49,17 +49,31 @@ const TextAreaClone: React.FC<TextAreaCloneProps> = ({
           paddingLeft: elementStyles.paddingLeft,
           paddingRight: elementStyles.paddingRight,
           paddingBottom: elementStyles.paddingBottom,
-          width: elementRect.width - paddingLeftAndRight,
+          boxSizing: 'border-box',
+          width: elementRect.width,
           height: elementRect.height,
+          borderStyle: 'solid',
+          borderColor: 'transparent',
+          borderTopWidth: elementStyles.borderTopWidth,
+          borderRightWidth: elementStyles.borderRightWidth,
+          borderBottomWidth: elementStyles.borderBottomWidth,
+          borderLeftWidth: elementStyles.borderLeftWidth,
           fontSize: elementStyles.fontSize,
           fontWeight: elementStyles.fontWeight,
+          fontStyle: elementStyles.fontStyle,
+          fontVariant: elementStyles.fontVariant,
           lineHeight: elementStyles.lineHeight,
           fontFamily: elementStyles.fontFamily,
-          border: `${elementStyles.borderBottomWidth} solid black`,
+          letterSpacing: elementStyles.letterSpacing,
+          wordSpacing: elementStyles.wordSpacing,
+          textIndent: elementStyles.textIndent,
+          textTransform: elementStyles.textTransform,
+          tabSize: elementStyles.tabSize,
+          direction: elementStyles.direction,
+          overflowWrap: elementStyles.overflowWrap,
+          wordBreak: elementStyles.wordBreak,
           visibility: 'hidden',
           pointerEvents: 'none',
-          boxSizing: elementStyles.boxSizing,
-          letterSpacing: elementStyles.letterSpacing,
         } as React.CSSProperties
       }
     >
