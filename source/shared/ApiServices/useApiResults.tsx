@@ -39,11 +39,16 @@ const useApiResult = <TResponse,>(
       ) {
         return;
       }
-      request.config = {...request.config};
+      // A newer request, or unmounting, supersedes this one: its answer
+      // must not land. Paired with whatever state came since, a late check
+      // response would put its alerts on the wrong text.
+      const controller = new AbortController();
+      request.config = {...request.config, signal: controller.signal};
       log('Request:', logTypes.INFO, request);
 
       fetch(request.url, request.config)
         .then(async (response) => {
+          if (controller.signal.aborted) return;
           log('Response: ', logTypes.INFO, response);
 
           if (!response.ok) {
@@ -55,6 +60,7 @@ const useApiResult = <TResponse,>(
           }
 
           const responseResults: any = await response.json();
+          if (controller.signal.aborted) return;
           const validationResult = validateResponse(responseResults);
 
           if (validationResult && !validationResult.valid) {
@@ -92,9 +98,13 @@ const useApiResult = <TResponse,>(
           setEndpointError(null);
         })
         .catch((error: Error) => {
+          if (controller.signal.aborted) return;
           log(error.message, logTypes.ERROR);
         });
+
+      return (): void => controller.abort();
     }
+    return undefined;
   }, [request]);
 
   return [endpointResponse, endpointError];
