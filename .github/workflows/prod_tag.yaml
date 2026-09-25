@@ -45,11 +45,10 @@ jobs:
       - name: Write the release config
         run: node build/prepareReleaseConfig.js --prod
 
-      - name: Remove git
-        run: rm -rf .git
-
+      # Without the repository history, which stays for the build: the Sentry
+      # plugin reads it to attach the release's commits.
       - name: Zip source code
-        run: zip release.zip ./ -r
+        run: zip -r release.zip . -x '.git/*'
 
       - name: Upload source code
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -96,3 +95,23 @@ jobs:
           name: chrome
           path: |
             extension/chrome
+
+  # main follows the releases: a pull request from the release into main, for
+  # a maintainer to approve and merge (main requires a reviewed pull request).
+  release-to-main:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Open a pull request from the release into main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          git push origin "HEAD:refs/heads/release/${VERSION}"
+          gh pr create --base main --head "release/${VERSION}" \
+            --title "Release ${VERSION}" \
+            --body "Brings main to release ${VERSION}. Merge with a merge commit; the release branch can be deleted afterwards."

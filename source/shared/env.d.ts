@@ -12,5 +12,10 @@ declare const process: {
     TESTING: string;
     /** Client version sent to the API: the manifest version in the extension. */
     WITTY_VERSION: string;
+    /**
+     * The Sentry release errors are reported under, the same one the source
+     * maps are uploaded to; set by webpack.config.js, extension only.
+     */
+    SENTRY_RELEASE: string;
   };
 };
