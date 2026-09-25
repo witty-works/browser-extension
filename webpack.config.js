@@ -35,6 +35,17 @@ const extensionReloaderPlugin =
         this.apply = () => {};
       };
 
+/**
+ * The Sentry release: the one the source maps are uploaded to, and the one the
+ * extension reports its errors under (SENTRY_RELEASE, see Background and
+ * ContentScript), so Sentry applies the maps. Release builds name it after the
+ * tag, channel and browser (`2.6.1-prod-chrome`); other builds use the
+ * manifest version.
+ */
+const sentryRelease = process.env.SENTRY_VERSION_STRING
+  ? `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`
+  : require('./source/manifest.json').version;
+
 const sentryWebpackPluginInstance =
   process.env.SENTRY_SOURCEMAPS &&
   process.env.SENTRY_AUTH_TOKEN &&
@@ -47,7 +58,7 @@ const sentryWebpackPluginInstance =
         // and need `project:releases` and `org:read` scopes
         authToken: process.env.SENTRY_AUTH_TOKEN,
         release: {
-          name: `${process.env.SENTRY_VERSION_STRING}-${targetBrowser}`,
+          name: sentryRelease,
         },
       })
     : () => {
@@ -188,6 +199,7 @@ module.exports = {
     // shared/constants.ts stays free of extension APIs.
     new webpack.EnvironmentPlugin({
       WITTY_VERSION: require('./source/manifest.json').version,
+      SENTRY_RELEASE: sentryRelease,
     }),
     // delete previous build files
     new CleanWebpackPlugin({

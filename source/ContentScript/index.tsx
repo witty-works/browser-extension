@@ -159,7 +159,8 @@ const initialize = () => {
   if (sentryDSN) {
     Sentry.init({
       dsn: sentryDSN,
-      release: wittyVersion,
+      // The release the source maps were uploaded to (webpack.config.js).
+      release: process.env.SENTRY_RELEASE,
       integrations: [Sentry.browserTracingIntegration()],
       sampleRate: sentrySampleRate,
       tracesSampleRate: sentryTraceRate,
