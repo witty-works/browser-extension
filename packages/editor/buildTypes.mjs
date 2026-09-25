@@ -13,9 +13,11 @@ const emitted = new URL('dist/.types/api.d.ts', import.meta.url);
 const target = new URL('dist/witty-editor.d.ts', import.meta.url);
 
 const declarations = readFileSync(emitted, 'utf8');
-const imports = [...declarations.matchAll(/from\s+['"]([^'"]+)['"]/g)].map(
-  ([, specifier]) => specifier
-);
+// Both forms tsc writes: `import ... from 'x'` and an inline `import('x').T`.
+const imports = [
+  ...declarations.matchAll(/from\s+['"]([^'"]+)['"]/g),
+  ...declarations.matchAll(/import\(\s*['"]([^'"]+)['"]\s*\)/g),
+].map(([, specifier]) => specifier);
 const foreign = imports.filter((specifier) => specifier !== '@tiptap/core');
 if (foreign.length) {
   throw new Error(
