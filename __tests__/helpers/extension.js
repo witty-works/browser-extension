@@ -150,6 +150,49 @@ const PAINTED_PIXELS = `
   })()
 `;
 
+/**
+ * Painted highlight pixels in a small box around `word`, where its underline
+ * should be: more than zero means a highlight is drawn on the word itself,
+ * not merely somewhere in the field.
+ */
+const paintedAt = async (page, word) => {
+  const center = await page.evaluate(measureWordCenter, word);
+  return page.evaluate(({ x, y }) => {
+    const count = (canvas) => {
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return 0;
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+        return 0;
+      }
+      const scale = canvas.width / rect.width;
+      // Half a short word to each side; from the text's middle to below it.
+      const left = Math.max(0, Math.round((x - 10 - rect.left) * scale));
+      const top = Math.max(0, Math.round((y - 4 - rect.top) * scale));
+      const width = Math.round(20 * scale);
+      const height = Math.round(20 * scale);
+      try {
+        const { data } = canvas
+          .getContext('2d')
+          .getImageData(left, top, width, height);
+        let n = 0;
+        for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) n += 1;
+        return n;
+      } catch (error) {
+        return 0;
+      }
+    };
+    const walk = (root) => {
+      let total = 0;
+      for (const el of root.querySelectorAll('*')) {
+        if (el.tagName === 'CANVAS') total += count(el);
+        if (el.shadowRoot) total += walk(el.shadowRoot);
+      }
+      return total;
+    };
+    return walk(document);
+  }, center);
+};
+
 const hasHighlightCanvas = async (page) =>
   (await page.evaluate(PAINTED_PIXELS)) > 0;
 
@@ -258,27 +301,63 @@ const measureWordCenter = (needle) => {
   const index = text.indexOf(needle);
   if (index === -1) throw new Error(`fixture text has no "${needle}"`);
 
+  // Where the browser puts the word, wrapped lines included: a mirror of the
+  // textarea's box and text, laid out by the browser, with the word in a
+  // span. Independent of the extension's own clone, so a clone that wraps
+  // differently shows up as a highlight away from this point.
   const style = getComputedStyle(el);
-  const ctx = document.createElement('canvas').getContext('2d');
-  ctx.font = style.font || `${style.fontSize} ${style.fontFamily}`;
-
-  const before = ctx.measureText(text.slice(0, index)).width;
-  const half = ctx.measureText(needle).width / 2;
   const r = el.getBoundingClientRect();
+  const mirror = document.createElement('div');
+  for (const property of [
+    'boxSizing',
+    'paddingTop',
+    'paddingRight',
+    'paddingBottom',
+    'paddingLeft',
+    'borderTopWidth',
+    'borderRightWidth',
+    'borderBottomWidth',
+    'borderLeftWidth',
+    'fontFamily',
+    'fontSize',
+    'fontWeight',
+    'fontStyle',
+    'lineHeight',
+    'letterSpacing',
+    'wordSpacing',
+    'textIndent',
+    'tabSize',
+    'overflowWrap',
+    'wordBreak',
+  ]) {
+    mirror.style[property] = style[property];
+  }
+  Object.assign(mirror.style, {
+    position: 'absolute',
+    visibility: 'hidden',
+    top: '0',
+    left: '0',
+    width: `${el.offsetWidth}px`,
+    borderStyle: 'solid',
+    whiteSpace: 'pre-wrap',
+    overflowY: style.overflowY,
+    height: `${el.offsetHeight}px`,
+  });
+  mirror.append(document.createTextNode(text.slice(0, index)));
+  const word = document.createElement('span');
+  word.textContent = needle;
+  mirror.append(
+    word,
+    document.createTextNode(text.slice(index + needle.length))
+  );
+  document.body.append(mirror);
+  const box = mirror.getBoundingClientRect();
+  const w = word.getBoundingClientRect();
+  mirror.remove();
 
   return {
-    x:
-      r.x +
-      parseFloat(style.paddingLeft) +
-      parseFloat(style.borderLeftWidth) +
-      before +
-      half,
-    // Vertical middle of the first line.
-    y:
-      r.y +
-      parseFloat(style.paddingTop) +
-      parseFloat(style.borderTopWidth) +
-      parseFloat(style.lineHeight) / 2,
+    x: r.x + (w.x - box.x) + w.width / 2 - el.scrollLeft,
+    y: r.y + (w.y - box.y) + w.height / 2 - el.scrollTop,
   };
 };
 
@@ -404,6 +483,7 @@ module.exports = {
   pressOpenPopoverShortcut,
   ALTERNATIVE_BTN,
   PAINTED_PIXELS,
+  paintedAt,
   measureWordCenter,
   hasElementWithClass,
   FIXTURE_ORIGIN,

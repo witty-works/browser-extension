@@ -4,12 +4,9 @@ const {
   signIn,
   setEditorText,
   openPopoverForWord,
+  paintedAt,
 } = require('./helpers/extension');
-const {
-  ALERTS,
-  buildCheckResult,
-  checkResponse,
-} = require('./helpers/mockApi');
+const { routeCheck, filler } = require('./helpers/checkRoute');
 
 /**
  * Texts longer than the NLP API checks at once (TEXT_MAX_LENGTH, 1000 by
@@ -17,68 +14,64 @@ const {
  * `limit_reached`; the rest must be sent again, not counted as checked.
  */
 test.describe('Long texts', () => {
-  test('checks the sentences past the API limit too', async ({
+  for (const fixture of ['textarea', 'contenteditable']) {
+    test(`checks the sentences past the API limit too, in a ${fixture}`, async ({
+      page,
+      context,
+      extensionId,
+    }) => {
+      // A deployment with a lower limit than the build's
+      // MAX_CHAR_LENGTH_REQUEST.
+      const LIMIT = 300;
+      const requests = await routeCheck(context, { limit: LIMIT });
+
+      await signIn(context, extensionId);
+      await page.goto(`/${fixture}.html`);
+      // Long enough to wrap over several lines, where a textarea's clone
+      // once wrapped differently from the textarea itself.
+      await setEditorText(page, `${filler(12)} Hey guys, welcome.`);
+
+      // The last sentence reached the API in a request it checked in full...
+      await expect
+        .poll(
+          () =>
+            requests.some(
+              (text) => text.includes('Hey guys') && text.length <= LIMIT
+            ),
+          { timeout: 15000 }
+        )
+        .toBe(true);
+
+      // ...and its highlight is drawn on the word, not beside it. (Clicking
+      // alone would not tell: a textarea finds the alert by the caret.)
+      await expect
+        .poll(() => paintedAt(page, 'guys'), { timeout: 15000 })
+        .toBeGreaterThan(0);
+      await openPopoverForWord(page, 'guys');
+      expect(await paintedAt(page, 'guys')).toBeGreaterThan(0);
+    });
+  }
+
+  test('checks sentence by sentence where the API checks less than the smallest batch', async ({
     page,
     context,
     extensionId,
   }) => {
-    // A deployment with a lower limit than the build's MAX_CHAR_LENGTH_REQUEST,
-    // flagging "guys" only where it looked.
-    const LIMIT = 300;
-    const requests = [];
-    const [guys] = ALERTS;
-    await context.route(
-      (url) => url.pathname.endsWith('/v2.4/check'),
-      (route) => {
-        const text = JSON.parse(route.request().postData() || '{}').text || '';
-        requests.push(text);
-        const results = [...text.slice(0, LIMIT).matchAll(/\bguys\b/g)].map(
-          (match, index) =>
-            buildCheckResult(
-              { ...guys, start: match.index, end: match.index + 4 },
-              index
-            )
-        );
-        return route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            ...checkResponse(''),
-            results,
-            limit_reached: text.length > LIMIT,
-          }),
-        });
-      }
-    );
+    // Below the extension's smallest batch (100 characters): two short
+    // sentences fit one batch, but the API stops before the second's "guys".
+    const LIMIT = 60;
+    const first = 'We start the meeting at nine in the main hall now.';
+    const second = 'Welcome to our team, dear guys.';
+    const requests = await routeCheck(context, { limit: LIMIT });
 
     await signIn(context, extensionId);
-    // A contenteditable: in a textarea, wrapped lines can place the highlight
-    // off the word (a separate issue), which the click below depends on.
     await page.goto('/contenteditable.html');
+    await setEditorText(page, `${first} ${second}`);
 
-    const filler = Array.from(
-      { length: 12 },
-      (_, index) => `Sentence number ${index} is filler without any issue.`
-    ).join(' ');
-    await setEditorText(page, `${filler} Hey guys, welcome.`);
-
-    // The last sentence reached the API in a request it checked in full...
     await expect
-      .poll(() => requests.some((text) => text.includes('Hey guys')), {
-        timeout: 15000,
-      })
+      .poll(() => requests.includes(second), { timeout: 15000 })
       .toBe(true);
-    await expect
-      .poll(
-        () =>
-          requests.some(
-            (text) => text.includes('Hey guys') && text.length <= LIMIT
-          ),
-        { timeout: 15000 }
-      )
-      .toBe(true);
-
-    // ...and its alert is there to open.
     await openPopoverForWord(page, 'guys');
+    expect(requests).toContain(second);
   });
 });

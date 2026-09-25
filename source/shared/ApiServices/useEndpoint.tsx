@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import useApiResults from './useApiResults';
 import {getAnalyzedTextResults, getLLMSuggestion} from './requests';
 import defaultConfig from '../../witty.config.json';
@@ -14,11 +14,18 @@ import {
 } from './validationSchemas';
 
 export const useCheckEndpoint = () => {
-  const [textToAnalyze, setTextToAnalyse] = useState<string>('');
+  // Every call sends a request, the same text too: after a failed request,
+  // the batch that failed is asked for again. `sent` tells the calls apart.
+  const [toAnalyze, setToAnalyze] = useState({text: '', sent: 0});
   const request: IRequest = useMemo(
-    () => getAnalyzedTextResults(textToAnalyze),
-    [textToAnalyze]
+    () => getAnalyzedTextResults(toAnalyze.text),
+    [toAnalyze]
   );
+  const setTextToAnalyse = useCallback((text: string): void => {
+    setToAnalyze(({sent}) => {
+      return {text, sent: sent + 1};
+    });
+  }, []);
 
   const [checkResponse, errorResponse] = useApiResults<ICheckResponse>(
     request,

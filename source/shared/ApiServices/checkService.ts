@@ -7,19 +7,26 @@ import {TxtNodeRange} from '@textlint/ast-node-types';
 export interface CheckEndpointCachedResponse {
   alerts: IAlert[];
   checkEndpointResponse: ICheckResponse | undefined;
+  /**
+   * More of the text is still being checked (another batch is on its way):
+   * the alerts so far can be shown, but the check is not finished.
+   */
+  checking: boolean;
 }
 
 // Combines the sentence cache's hits with the (still in-flight) endpoint
 // response into the shape callers render, sorted back into reading order.
 export const buildCachedResponse = (
   cachedAlerts: IAlert[],
-  checkEndpointResponse?: ICheckResponse
+  checkEndpointResponse?: ICheckResponse,
+  checking = false
 ): CheckEndpointCachedResponse => {
   return {
     alerts: [...cachedAlerts].sort((firstAlert, secondAlert) =>
       firstAlert.startOffset < secondAlert.startOffset ? -1 : 1
     ),
     checkEndpointResponse,
+    checking,
   };
 };
 

@@ -28,6 +28,9 @@ export const useCheckEndpointWithCache = (
   const lastBatchSizeRef = useRef(0);
   const lastWholeTextRef = useRef<string | null>(null);
   const budgetRef = useRef(new CheckBudget(MAX_CHAR_LENGTH_REQUEST));
+  // Set once batches at the smallest budget still come back cut short: from
+  // then on, one sentence per request.
+  const oneSentenceRef = useRef(false);
 
   const checkTextWithCache = (
     updatedText: string,
@@ -43,7 +46,9 @@ export const useCheckEndpointWithCache = (
       // longer than the budget goes on its own.
       const batch = [uncachedSentences[0]];
       let length = uncachedSentences[0].length;
-      for (const sentence of uncachedSentences.slice(1)) {
+      for (const sentence of oneSentenceRef.current
+        ? []
+        : uncachedSentences.slice(1)) {
         length += 1 + sentence.length;
         if (length > budgetRef.current.value) break;
         batch.push(sentence);
@@ -54,7 +59,11 @@ export const useCheckEndpointWithCache = (
       setTextToCheck(textToCheck);
     }
 
-    const response = buildCachedResponse(cachedAlerts, checkEndpointResponse);
+    const response = buildCachedResponse(
+      cachedAlerts,
+      checkEndpointResponse,
+      uncachedSentences.length > 0
+    );
     setCachedCheckEndpointResponse(response);
     cachedCheckEndpointResponseRef.current = response;
   };
@@ -78,7 +87,8 @@ export const useCheckEndpointWithCache = (
 
     const response = buildCachedResponse(
       adjustedAlerts,
-      cachedCheckEndpointResponseRef.current.checkEndpointResponse
+      cachedCheckEndpointResponseRef.current.checkEndpointResponse,
+      cachedCheckEndpointResponseRef.current.checking
     );
     setCachedCheckEndpointResponse(response);
     cachedCheckEndpointResponseRef.current = response;
@@ -96,12 +106,19 @@ export const useCheckEndpointWithCache = (
 
     // The API checked only the start of a batch it flags `limit_reached`:
     // caching all of it would count the rest as checked, with no alerts. So
-    // it is sent again in smaller batches. A single sentence too long for the
-    // API is cached with what came back, as the most there is to get.
+    // it is sent again in smaller batches, down to one sentence each. A
+    // single sentence too long for the API is cached with what came back, as
+    // the most there is to get.
+    const shrink = (): boolean => {
+      if (budgetRef.current.shrink()) return true;
+      if (oneSentenceRef.current) return false;
+      oneSentenceRef.current = true;
+      return true;
+    };
     const retrySmaller =
       checkEndpointResponse.limit_reached &&
       lastBatchSizeRef.current > 1 &&
-      budgetRef.current.shrink();
+      shrink();
     if (!retrySmaller) {
       addToCache(
         buildSentenceAlertsFromResponse(
