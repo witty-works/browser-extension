@@ -19,10 +19,6 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 - [ ] **Accept counters and invite nags** (`onAlternativeAccepted`); a no-op in the editor.
 - [ ] **Formatting kept on LLM rewrites**: replacing a whole sentence inserts plain text, so bold or italic inside it is lost.
 
-## Bugs found in the extension
-
-- [ ] **Highlight off its word in a wrapped textarea**: in `__tests__/fixtures/textarea.html`, with a text wrapping over several lines, the highlight of "guys" in the last sentence is drawn about twelve characters to its right, under "welcome."; the same text in a contenteditable is placed correctly. Probably the textarea clone wrapping differently from the textarea. Found with `__tests__/longText.spec.js`, which uses a contenteditable for that reason.
-
 ## Reporting and notifications
 
 - [ ] **Analytics** (PostHog, dashboard log endpoint): the popover gets a no-op analytics object.
