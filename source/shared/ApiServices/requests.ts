@@ -7,6 +7,7 @@ import {
   X_KEY,
 } from '../constants';
 import {TxtSentenceNode} from 'sentence-splitter';
+import {apiLocale} from './apiLocale';
 
 let BASE_URL_API = '';
 let BASE_URL_DASHBOARD = '';
@@ -69,9 +70,12 @@ export const setApiKey = (key: string) => (apiKey = key);
 export const CHECK_PATH = 'v2.4/check';
 export const REPHRASE_PATH = 'v1.0/rephrase';
 export const CONFIG_OPTIONS_PATH = 'v2.0/config-options';
-/** Category list with labels in `locale`; unauthenticated and cacheable. */
+/**
+ * Category list with labels in `locale` (the UI's language; one the API does
+ * not accept falls back, see apiLocale); unauthenticated and cacheable.
+ */
 export const categoriesPath = (locale: string): string =>
-  `v2.0/categories?locale=${encodeURIComponent(locale)}`;
+  `v2.0/categories?locale=${apiLocale(locale)}`;
 
 export const JSON_HEADERS: Readonly<Record<string, string>> = {
   Accept: 'application/json',

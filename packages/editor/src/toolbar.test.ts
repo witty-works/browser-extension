@@ -134,9 +134,10 @@ describe('settings panel', () => {
     mountEditor();
     await openSettings();
 
-    expect(
-      document.querySelector('.witty-editor-settings')?.getAttribute('role')
-    ).toBe('region');
+    // A labelled section: a region to assistive technology.
+    const panel = document.querySelector('.witty-editor-settings');
+    expect(panel?.tagName).toBe('SECTION');
+    expect(panel?.getAttribute('aria-label')).toBe('Witty settings');
     expect(document.querySelectorAll('.witty-category-toggle').length).toBe(
       CATEGORIES.categories.length
     );
@@ -202,6 +203,68 @@ describe('settings panel', () => {
       expect(document.querySelector('.witty-editor-settings')).toBeNull()
     );
     expect(document.activeElement).toBe(tool('Witty menu'));
+  });
+
+  it.each([
+    ['Settings', 'Witty settings'],
+    ['Switch gender format', 'Switch gender format'],
+  ])('moves focus into the panel opened with %s', async (item, region) => {
+    mountEditor();
+    await chooseFromMenu(item);
+
+    await vi.waitFor(() =>
+      expect(document.activeElement?.getAttribute('aria-label')).toBe(region)
+    );
+    expect(document.activeElement?.tagName).toBe('SECTION');
+  });
+
+  it('returns focus to the W icon after opening Help', async () => {
+    mountEditor();
+    await chooseFromMenu('Help');
+
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(tool('Witty menu'))
+    );
+  });
+
+  it('loads the gender formats again after a failed load', async () => {
+    let failOptions = true;
+    const optionRequests: string[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.includes('/v2.0/categories')) {
+          return new Response(JSON.stringify(CATEGORIES));
+        }
+        if (url.includes('/v2.0/config-options')) {
+          optionRequests.push(url);
+          return failOptions
+            ? new Response('{}', {status: 503})
+            : new Response(JSON.stringify(CONFIG_OPTIONS));
+        }
+        const body = JSON.parse(String(init?.body));
+        return new Response(JSON.stringify(checkResponse(body.text)));
+      })
+    );
+    mountEditor();
+    const formatSelect = () =>
+      document.querySelector('select[data-field="german_gender_ending"]');
+
+    await chooseFromMenu('Settings');
+    await vi.waitFor(() =>
+      expect(document.querySelector('.witty-category-toggle')).not.toBeNull()
+    );
+    expect(formatSelect()).toBeNull();
+    const failed = optionRequests.length;
+
+    failOptions = false;
+    document
+      .querySelector<HTMLButtonElement>('.witty-editor-settings-close')!
+      .click();
+    await chooseFromMenu('Settings');
+
+    await vi.waitFor(() => expect(formatSelect()).not.toBeNull());
+    expect(optionRequests.length).toBeGreaterThan(failed);
   });
 });
 

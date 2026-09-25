@@ -12,6 +12,7 @@ import {
 } from '@witty/core/ApiServices/requests';
 import {
   type CheckConfig,
+  apiEndpoint,
   type Checker,
   CheckHttpError,
   LANGUAGE_NOT_SUPPORTED,
@@ -39,7 +40,9 @@ import {
   SWITCH_META,
   type SwitchController,
 } from './switchController';
-import {createOptionsLoader, mountToolbar, TOOLBAR_STYLES} from './toolbar';
+import {createOptionsLoader} from './preferenceOptions';
+import {mountToolbar} from './toolbar';
+import {TOOLBAR_STYLES} from './toolbarStyles';
 
 /**
  * A random id for `installationId`. `crypto.randomUUID` needs a secure
@@ -160,7 +163,7 @@ let nextEditorId = 0;
 export const mount: Mount = (
   element: HTMLElement,
   {
-    endpoint = `${location.origin}/`,
+    endpoint: endpointOption,
     apiKey = '',
     lang = 'auto',
     config,
@@ -178,6 +181,8 @@ export const mount: Mount = (
     onStatus,
   }: MountOptions = {}
 ): WittyEditorHandle => {
+  // Checked before anything is set up: a bad endpoint fails here.
+  const endpoint = apiEndpoint(endpointOption, location.href);
   initI18n();
   injectStyles();
   element.classList.add('witty-editor');

@@ -1,6 +1,7 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 
 import {
+  apiEndpoint,
   type CheckConfig,
   CheckHttpError,
   CheckTimeoutError,
@@ -183,4 +184,26 @@ describe('genderSeparatorFor', () => {
     expect(genderSeparatorFor('de', {})).toBeUndefined();
     expect(genderSeparatorFor('de', undefined)).toBeUndefined();
   });
+});
+
+describe('apiEndpoint', () => {
+  const page = 'https://host.example/app/page.html?x=1';
+
+  it.each([
+    [undefined, 'https://host.example/'],
+    ['https://api.example', 'https://api.example/'],
+    ['https://api.example/nlp/', 'https://api.example/nlp/'],
+    ['http://localhost:8000/', 'http://localhost:8000/'],
+    ['/nlp', 'https://host.example/nlp/'],
+    ['https://api.example/?key=x#y', 'https://api.example/'],
+  ])('takes %s as %s', (value, expected) => {
+    expect(apiEndpoint(value, page)).toBe(expected);
+  });
+
+  it.each([['javascript:alert(1)'], ['ftp://api.example/'], ['http://[::1']])(
+    'refuses %s',
+    (value) => {
+      expect(() => apiEndpoint(value, page)).toThrow(TypeError);
+    }
+  );
 });

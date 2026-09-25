@@ -49,7 +49,7 @@ For the script tag in a TypeScript project, the same types describe the global: 
 
 | Option | Default | |
 |---|---|---|
-| `endpoint` | page origin | NLP API base URL, with trailing slash |
+| `endpoint` | page origin | NLP API base URL; a relative one resolves against the page, and a missing trailing slash is added. Anything but an `http(s)` URL throws a `TypeError` |
 | `apiKey` | none | Sent as `x-key`; prefer `setApiKey` |
 | `lang` | `'auto'` | Text language: `auto`, `en`, `de`, `fr` or a variant such as `de-CH` |
 | `config` | none | Check config (gender formats, disabled categories, …); only fields you set are sent |

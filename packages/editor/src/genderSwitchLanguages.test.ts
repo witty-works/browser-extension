@@ -374,6 +374,8 @@ describe('a mixed document', () => {
 
     expect(headings()).toEqual(['German', 'French']);
     expect(formats).toHaveLength(9 + 6);
+    // The labels are in the UI's language, whichever group they are in.
+    expect(document.querySelector('.witty-editor-switch [lang]')).toBeNull();
   });
 
   it('applies only the switched language', async () => {
