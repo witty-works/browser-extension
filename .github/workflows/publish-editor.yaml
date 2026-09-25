@@ -27,16 +27,28 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # The history, to check where the tag's commit is.
+          fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
 
-      # Staged publishing needs npm 12.
-      - run: npm install -g npm@12
+      # Staged publishing needs npm 12; pinned, as the release is published
+      # with it.
+      - run: npm install -g npm@12.1.0
+
+      # Only a commit on dev or main is released: a matching tag pushed on any
+      # other branch builds nothing.
+      - name: Check the tag is on dev or main
+        run: |
+          git fetch --no-tags origin dev main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/dev ||
+            git merge-base --is-ancestor "$GITHUB_SHA" origin/main
 
       - name: Check the tag matches the version in the repo
         run: node build/releaseVersion.js --check "${GITHUB_REF_NAME}"

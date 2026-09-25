@@ -54,9 +54,28 @@ const banner = (fileName: string): string => {
  * witty-editor.js even though production code never reads it. The extension
  * guards its release builds by refusing to build; the editor is always built
  * as production and vendored elsewhere, so it strips the fields instead, and
- * fails the build if any credential value still turns up in the output.
+ * fails the build if any credential value still turns up in the output
+ * (checkForCredentials).
  */
 const stripCredentials = (): Plugin => {
+  return {
+    name: 'witty-strip-credentials',
+    enforce: 'pre',
+    load(id): string | null {
+      if (id.split('?')[0] !== CONFIG_PATH) return null;
+      const config = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
+      for (const key of CREDENTIAL_KEYS) delete config[key];
+      return JSON.stringify(config);
+    },
+  };
+};
+
+/**
+ * Fail the build if a credential value from witty.config.json turns up in any
+ * file written, whatever put it there. The last plugin, so it sees each file
+ * as written: after the injected CSS, the licence notices and the banner.
+ */
+const checkForCredentials = (): Plugin => {
   const secrets = (): string[] => {
     try {
       const config = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
@@ -70,14 +89,8 @@ const stripCredentials = (): Plugin => {
   };
 
   return {
-    name: 'witty-strip-credentials',
-    enforce: 'pre',
-    load(id): string | null {
-      if (id.split('?')[0] !== CONFIG_PATH) return null;
-      const config = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
-      for (const key of CREDENTIAL_KEYS) delete config[key];
-      return JSON.stringify(config);
-    },
+    name: 'witty-check-credentials',
+    enforce: 'post',
     generateBundle(_options, bundle): void {
       const values = secrets();
       for (const output of Object.values(bundle)) {
@@ -125,6 +138,7 @@ export default defineConfig({
         }
       },
     },
+    checkForCredentials(),
   ],
   build: {
     lib: {
