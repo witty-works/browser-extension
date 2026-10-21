@@ -108,7 +108,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ github.ref_name }}
+        # A re-run keeps the page that is there.
         run: |
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "The release page for ${VERSION} exists already."
+            exit 0
+          fi
           gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" \
             --verify-tag --title "$VERSION" --generate-notes
 
@@ -122,12 +127,26 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # The history, to check whether main has the release already.
+          fetch-depth: 0
+      # A re-run opens nothing new: not once main has the release, nor while
+      # its pull request is open.
       - name: Open a pull request from the release into main
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ github.ref_name }}
         run: |
+          git fetch --no-tags origin main
+          if git merge-base --is-ancestor HEAD origin/main; then
+            echo "main has ${VERSION} already."
+            exit 0
+          fi
           git push origin "HEAD:refs/heads/release/${VERSION}"
+          if [ -n "$(gh pr list --base main --head "release/${VERSION}" --json number --jq '.[].number')" ]; then
+            echo "The pull request for ${VERSION} is open already."
+            exit 0
+          fi
           gh pr create --base main --head "release/${VERSION}" \
             --title "Release ${VERSION}" \
             --body "Brings main to release ${VERSION}. Merge with a merge commit; the release branch can be deleted afterwards."
