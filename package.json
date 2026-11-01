@@ -1,6 +1,6 @@
 {
   "name": "witty",
-  "version": "2.6.3",
+  "version": "2.6.4",
   "description": "Witty - inclusive writing assistant",
   "private": true,
   "workspaces": ["packages/*"],
