@@ -112,7 +112,7 @@
     "postcss": "^8.5.25",
     "postcss-loader": "^8.2.1",
     "prettier": "^3.9.6",
-    "puppeteer": "^25.11.0",
+    "puppeteer": "^25.16.0",
     "quill": "^2.0.3",
     "resolve-url-loader": "^5.0.0",
     "sass": "^1.102.0",
