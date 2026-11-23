@@ -69,7 +69,7 @@
   },
   "devDependencies": {
     "@abhijithvijayan/eslint-config": "^3.0.1",
-    "@abhijithvijayan/tsconfig": "^1.3.0",
+    "@abhijithvijayan/tsconfig": "^1.5.1",
     "@babel/core": "^8.0.1",
     "@babel/eslint-parser": "^8.0.1",
     "@babel/plugin-transform-destructuring": "^8.0.1",
