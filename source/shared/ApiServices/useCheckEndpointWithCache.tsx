@@ -40,12 +40,13 @@ export const useCheckEndpointWithCache = (
     const {cachedAlerts, nonCachedSentences: uncachedSentences} =
       checkCache(updatedText);
 
-    if (uncachedSentences.length > 0) {
+    const [firstSentence] = uncachedSentences;
+    if (firstSentence !== undefined) {
       // One batch per request, within the API's limit; the response handler
       // below sends the next one until every sentence is cached. A sentence
       // longer than the budget goes on its own.
-      const batch = [uncachedSentences[0]];
-      let length = uncachedSentences[0].length;
+      const batch = [firstSentence];
+      let length = firstSentence.length;
       for (const sentence of oneSentenceRef.current
         ? []
         : uncachedSentences.slice(1)) {

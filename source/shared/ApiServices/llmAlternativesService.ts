@@ -67,4 +67,4 @@ export const buildResolvedCacheValue = (
 // cache entry it belongs to.
 export const findLoadingCacheKey = (
   cache: LLMSuggestionsCacheMap
-): string | undefined => Object.keys(cache).find((key) => cache[key].loading);
+): string | undefined => Object.keys(cache).find((key) => cache[key]?.loading);
