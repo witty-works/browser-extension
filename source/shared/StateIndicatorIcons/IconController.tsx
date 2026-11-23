@@ -53,8 +53,9 @@ const IconController: React.FC<IconControllerProps> = ({
       widthAdjustment = -15;
     }
 
-    if (gDocsPage?.length > 0) {
-      elementRect = gDocsPage[0].getBoundingClientRect();
+    const firstPage = gDocsPage?.[0];
+    if (firstPage) {
+      elementRect = firstPage.getBoundingClientRect();
     }
 
     iconPositionGoogleDocs = {

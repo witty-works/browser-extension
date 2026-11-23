@@ -74,8 +74,8 @@ const Highlights: React.FC<HighlightsProps> = ({
       setHighlights([]);
 
     const highlightsTemp: Highlight[] = [];
-    let googleDocsToolbarTopRect = {} as DOMRect;
-    let googleDocsToolbarLeftRect = {} as DOMRect;
+    let googleDocsToolbarTopRect: DOMRect | undefined = {} as DOMRect;
+    let googleDocsToolbarLeftRect: DOMRect | undefined = {} as DOMRect;
     if (isGoogleDocs(element)) {
       googleDocsToolbarTopRect = getActiveDocument()
         .getElementsByClassName('kix-document-top-shadow-inner')[0]
@@ -113,32 +113,33 @@ const Highlights: React.FC<HighlightsProps> = ({
         }
 
         const rangeRects = range.getClientRects();
-        for (let i = 0; i < rangeRects.length; i++) {
-          const rects: DOMRect[] = [rangeRects[i]].map((rect: DOMRect) => {
-            return {
-              ...rect,
-              width: rect.width,
-              height: rect.height,
-              left: isGoogleDocs(element)
-                ? rect.left -
-                  googleDocsToolbarLeftRect?.width -
-                  googleDocsToolbarLeftRect?.left
-                : rect.left,
-              top: isGoogleDocs(element)
-                ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
-                : isAemRte(element)
-                  ? rect.top + element.scrollTop
-                  : isTinyMceEditor(element)
-                    ? rect.top + doc.scrollTop
-                    : rect.top +
-                      doc.scrollTop -
-                      (isTextArea(element) ? elementScroll.top : 0),
-            };
-          });
+        for (const rect of Array.from(rangeRects)) {
+          const highlightRect: DOMRect = {
+            ...rect,
+            width: rect.width,
+            height: rect.height,
+            // Without the left sidebar the offset is 0, as for the top
+            // toolbar below, rather than NaN.
+            left: isGoogleDocs(element)
+              ? rect.left -
+                (googleDocsToolbarLeftRect?.width || 0) -
+                (googleDocsToolbarLeftRect?.left || 0)
+              : rect.left,
+            top: isGoogleDocs(element)
+              ? (rect?.top || 0) - (googleDocsToolbarTopRect?.top || 0)
+              : isAemRte(element)
+                ? rect.top + element.scrollTop
+                : isTinyMceEditor(element)
+                  ? rect.top + doc.scrollTop
+                  : rect.top +
+                    doc.scrollTop -
+                    (isTextArea(element) ? elementScroll.top : 0),
+          };
+          const rects: DOMRect[] = [highlightRect];
           if (
             isGoogleDocs(element) &&
-            (rects[0].top < 0 ||
-              rects[0].top > window.innerHeight ||
+            (highlightRect.top < 0 ||
+              highlightRect.top > window.innerHeight ||
               (node.textContent &&
                 alert.data &&
                 !node.textContent.includes(alert.data.text)))

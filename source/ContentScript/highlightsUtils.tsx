@@ -56,15 +56,8 @@ export const drawHighlight = (params: any, color: string) => {
 };
 
 export const getGreenhouseHeight = (highlights: Highlight[]) => {
-  if (
-    !highlights ||
-    !highlights[highlights.length - 1] ||
-    !highlights[highlights.length - 1].rects[0]
-  )
-    return 0;
-  return (
-    highlights[highlights.length - 1].rects[0].top -
-    highlights[0].rects[0].top +
-    50
-  );
+  const lastRect = highlights?.[highlights.length - 1]?.rects[0];
+  const firstRect = highlights?.[0]?.rects[0];
+  if (!lastRect || !firstRect) return 0;
+  return lastRect.top - firstRect.top + 50;
 };

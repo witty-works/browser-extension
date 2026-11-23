@@ -4,6 +4,11 @@
     "sourceMap": true,
     "target": "es2015", // ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017','ES2018' or 'ESNEXT'.
     "module": "esnext", // Module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'.
+    // Webpack bundles the extension, so imports resolve as a bundler does; the
+    // base's node16 would demand file extensions on relative imports.
+    "moduleResolution": "bundler",
+    // The background script imports witty.config.json; the base turns it off.
+    "resolveJsonModule": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "types": ["resize-observer-browser"],
     "declaration": false,

@@ -23,7 +23,8 @@ const HTML_ESCAPES: Record<string, string> = {
  * escaped before it is wrapped in <ins>/<del>.
  */
 const escapeHtml = (text: string): string =>
-  text.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+  // The pattern matches only keys of HTML_ESCAPES, so the fallback never applies.
+  text.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
 
 /**
  * HTML for the words `newSentence` changes in `originalSentence`: insertions in
@@ -52,16 +53,13 @@ export const computeDiff = (
   const maxDiffLength = 120;
   const minDiffLength = 50;
 
-  let diffElement: DiffChange;
-
   let diff = '';
   let tag = '';
 
   let start = 0;
   let end: number = diffElements.length - 1;
 
-  for (let i = 0; i < diffElements.length; i++) {
-    diffElement = diffElements[i];
+  for (const [i, diffElement] of diffElements.entries()) {
     if (diffElement.added || diffElement.removed) {
       if (diff === '') {
         start = i;
@@ -83,17 +81,17 @@ export const computeDiff = (
   let stringLengthDiff = maxDiffLength - strippedString.length;
   if (stringLengthDiff > 0) {
     let value = '';
-    if (start > 0) {
-      value = diffElements[0].value.substring(
+    const firstElement = diffElements[0];
+    if (start > 0 && firstElement) {
+      value = firstElement.value.substring(
         Math.max(
           0,
-          diffElements[0].value.length -
-            Math.min(minDiffLength, stringLengthDiff)
+          firstElement.value.length - Math.min(minDiffLength, stringLengthDiff)
         ),
-        diffElements[0].value.length
+        firstElement.value.length
       );
 
-      if (value != diffElements[0].value) {
+      if (value != firstElement.value) {
         value = value.slice(value.indexOf(' '));
         value = '...' + value;
       }
@@ -102,12 +100,13 @@ export const computeDiff = (
     }
 
     stringLengthDiff -= value.length;
-    if (end < diffElements.length - 1 && stringLengthDiff) {
-      let value = diffElements[diffElements.length - 1].value.substring(
+    const lastElement = diffElements[diffElements.length - 1];
+    if (end < diffElements.length - 1 && stringLengthDiff && lastElement) {
+      let value = lastElement.value.substring(
         0,
         Math.min(minDiffLength, stringLengthDiff)
       );
-      if (value != diffElements[diffElements.length - 1].value) {
+      if (value != lastElement.value) {
         value = value.substring(0, value.lastIndexOf(' '));
         value = value + '...';
       }

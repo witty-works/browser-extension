@@ -30,8 +30,10 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
   );
 
   //get 3d child of each page
+  // childNodeIndex has one entry per page, so it has a first entry whenever
+  // this callback runs.
   const pageElementsContainingSvg = Array.from(pages).map(
-    (page) => page?.childNodes[childNodeIndex[0]]
+    (page) => page?.childNodes[childNodeIndex[0]!]
   );
 
   for (const pageElementContainingSvg of pageElementsContainingSvg) {
@@ -48,18 +50,13 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
         areaLabelSplit?.forEach((label, index) => {
           if (label === '') {
             areaLabelSplit[index] = '\xa0'; //multiple spaces in a row -> automatically truncated
-          } else if (
-            areaLabelSplit[index].length == 1 &&
-            !areaLabelSplit[index].match(/[a-zA-Z]/)
-          ) {
+          } else if (label.length == 1 && !label.match(/[a-zA-Z]/)) {
             //not alfabetical character
             areaLabelSplit[index] = ' ' + label + ' '; //single character -> add space before and after
           } else if (
             (index !== 0 || //dont add space if last character is a special character or the first char of next word is a special character
               index !== areaLabelSplit.length - 1) &&
-            !areaLabelSplit[index]
-              .charAt(areaLabelSplit[index].length - 1)
-              ?.match(/[\(\[\"\'\“\-\_\`]/) &&
+            !label.charAt(label.length - 1)?.match(/[\(\[\"\'\“\-\_\`]/) &&
             !areaLabelSplit[index + 1]?.charAt(0)?.match(/[\)\]\"\'\”\-\_\`]/)
           ) {
             areaLabelSplit[index] = label + ' ';
@@ -85,7 +82,8 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
             /matrix\(([^,]+),[^,]+,[^,]+,([^,]+),[^,]+,[^,]+\)/
           );
           if (matrixMatch) {
-            scaleX = parseFloat(matrixMatch[1]);
+            // Group 1 always participates when the pattern matches.
+            scaleX = parseFloat(matrixMatch[1]!);
           }
         }
         const elementStyles = window.getComputedStyle(svgRectElement);
@@ -109,7 +107,9 @@ const GoogleDocsClone: React.FC<GoogleDocsCloneProps> = ({
                     elementStylesFontArray[elementStylesFontArray.length - 3],
                   fontSize: `${
                     parseFloat(
-                      elementStylesFontArray[elementStylesFontArray.length - 2]
+                      elementStylesFontArray[
+                        elementStylesFontArray.length - 2
+                      ] ?? ''
                     ) * scaleX
                   }px`,
                   fontFamily: extractedFont

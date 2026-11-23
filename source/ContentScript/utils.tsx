@@ -230,8 +230,7 @@ export const getTextDividedByNodes = (
     const clone = findCloneContainer();
     const divs = [] as Node[];
     if (clone?.firstChild) {
-      for (let i = 0; i < clone.firstChild.childNodes.length; i++) {
-        const divElement = clone.firstChild.childNodes[i];
+      for (const divElement of Array.from(clone.firstChild.childNodes)) {
         divs.push(divElement);
       }
     }
@@ -289,8 +288,9 @@ export const shouldReturnEarly = (
   if (!prevNodes || !currentNodes || prevNodes.length !== currentNodes.length) {
     return false;
   }
+  // The lengths match (checked above), so every index is in range.
   return prevNodes.every((node, index) =>
-    areNodesEqual(node, currentNodes[index])
+    areNodesEqual(node, currentNodes[index]!)
   );
 };
 

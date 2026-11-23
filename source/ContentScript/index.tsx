@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react';
 import {browser, Storage} from 'webextension-polyfill-ts';
 import {
-  BaseUrls,
+  resolveBaseUrl,
   StorageKeys,
   wittyVersion,
   exposeWittyIdAllowList,
@@ -44,15 +44,13 @@ const storageChange = (
   scriptId: string
 ) => {
   const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
-  const changedItems = Object.keys(changes);
-
-  for (const item of changedItems) {
+  for (const [item, change] of Object.entries(changes)) {
     if (item === StorageKeys.DOMAINS) {
-      handleDomainsFromDashboard(changes[item].newValue, scriptId);
+      handleDomainsFromDashboard(change.newValue, scriptId);
     }
 
     if (item === StorageKeys.ORGANIZATION_DOMAINS) {
-      const orgDomains = changes[item].newValue;
+      const orgDomains = change.newValue;
       const isOnOrgDomainList =
         (orgDomains?.type === 'deny' &&
           orgDomains.list?.includes(currentDomain)) ||
@@ -99,7 +97,7 @@ const initialize = () => {
           // only be signed in from its own UI now, via the OAuth flow the
           // background worker runs. A page-supplied URL that hands credentials
           // to the extension is exactly the pattern that was removed.
-          const loginUrl = `${BaseUrls[apiEndpoint].dashboard}login`;
+          const loginUrl = `${resolveBaseUrl(apiEndpoint).dashboard}login`;
           wittyIsInstalledElement.setAttribute('login-url', loginUrl);
         }
       })
