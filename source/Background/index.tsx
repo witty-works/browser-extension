@@ -1,6 +1,9 @@
 import browser, {Tabs} from 'webextension-polyfill';
 import * as Sentry from '@sentry/react';
-import {SENTRY_DATA_COLLECTION} from '../shared/sentryOptions';
+import {
+  SENTRY_PRIVACY_OPTIONS,
+  sentryIntegrations,
+} from '../shared/sentryOptions';
 
 import {
   StorageKeys,
@@ -74,11 +77,13 @@ if (sentryDSN) {
     dsn: sentryDSN,
     // The release the source maps were uploaded to (webpack.config.js).
     release: process.env.SENTRY_RELEASE,
-    integrations: [Sentry.browserTracingIntegration()],
+    // Its spans name the background script and the requests it makes itself;
+    // no page is involved. See SENTRY_PRIVACY_OPTIONS.
+    integrations: sentryIntegrations([Sentry.browserTracingIntegration()]),
     sampleRate: sentrySampleRate,
     tracesSampleRate: sentryTraceRate,
-    // Nothing about the user, their pages or requests: see SENTRY_DATA_COLLECTION.
-    dataCollection: SENTRY_DATA_COLLECTION,
+    // Nothing about the user, their pages or requests: see sentryOptions.ts.
+    ...SENTRY_PRIVACY_OPTIONS,
   });
   registerErrorReporter((error) => Sentry.captureException(error));
 }
