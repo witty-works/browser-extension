@@ -128,7 +128,7 @@
   "main": "index.js",
   "//": [
     "tmp: useragent 2.3.0 (via webpack-ext-reloader, development builds only) asks for tmp 0.0.x, which has GHSA-52f5-9888-hmc6, GHSA-ph9p-34f9-6g65 and GHSA-7c78-jf6q-g5cm; 0.2.7 fixes all three. useragent only calls tmp.file(callback), in its update path, which 0.2.7 keeps. Remove the entry once webpack-ext-reloader drops useragent or useragent moves to a fixed tmp.",
-    "overrides: glob 9.0.0 to 14.0.1 has GHSA-3g3m-2fjr-6pw4. archiver-utils 5.0.2 (via filemanager-webpack-plugin and archiver 7) asks for glob ^10 and has no newer release.",
+    "archiver-utils glob: glob 9.0.0 to 14.0.1 has GHSA-3g3m-2fjr-6pw4. archiver-utils 5.0.2 (via filemanager-webpack-plugin and archiver 7) asks for glob ^10 and has no newer release.",
     "It is lifted to glob 14 here. It calls only glob.sync(pattern, options), which glob 14 keeps. Remove the entry once archiver-utils requires glob 14.",
     "html-dom-parser 8.0.2, which html-react-parser 6.1.7 and later pin, ships a bundled copy of domelementtype under lib/node_modules without its package.json, so Vite cannot resolve it and the editor build fails. Held at 8.0.1 until a fixed release; remove the entry then.",
     "eslint-plugin-jsx-a11y-x 0.2.0 asks for minimatch ^10.2.5, and minimatch below 11.0.1 has GHSA-g3hv-75wg-m249. The plugin only calls minimatch(name, pattern) on component names from this config, which minimatch 11 keeps. Its main branch has replaced minimatch with picomatch; remove the entry once that is released."
