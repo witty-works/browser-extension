@@ -19,11 +19,6 @@ updates:
     labels:
       - dependencies
     ignore:
-      # 25.17.0 rolls its Firefox to 159, with which the Firefox smoke harness
-      # no longer reaches the extension's pages. Lift with the harness fix.
-      - dependency-name: puppeteer
-        versions:
-          - ">= 25.17.0"
       # eslint 10: eslint-plugin-jsx-a11y and eslint-plugin-react have no
       # release that accepts it yet, so npm cannot install it. Lift once they do.
       - dependency-name: eslint
