@@ -162,6 +162,23 @@ const ContentScriptApp: React.FC = () => {
       const focusedElement = getActiveDocument()?.activeElement as HTMLElement;
       focusedElement?.blur();
       focusedElement?.focus();
+    } else if (!isGoogleDocs()) {
+      // A field can be focused before this listener exists: an `autofocus`
+      // field, or one the user clicked early. Firefox injects content scripts
+      // at document_idle, which can come after the load event. Its focusin has
+      // already fired, so register it here; the duplicate guard in
+      // handleFocusinElement skips it if a focusin registers it as well.
+      let focused = getActiveDocument()?.activeElement ?? null;
+      while (focused?.shadowRoot?.activeElement) {
+        focused = focused.shadowRoot.activeElement;
+      }
+      if (
+        focused &&
+        focused !== focused.ownerDocument.body &&
+        isInputElement(focused)
+      ) {
+        handleFocusinElement({target: focused} as unknown as Event);
+      }
     }
 
     return () => {

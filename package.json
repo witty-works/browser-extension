@@ -110,7 +110,7 @@
     "postcss": "^8.5.33",
     "postcss-loader": "^8.2.1",
     "prettier": "^3.10.1",
-    "puppeteer": "25.16.0",
+    "puppeteer": "^25.18.1",
     "quill": "^2.0.3",
     "resolve-url-loader": "^5.0.0",
     "sass": "^1.108.2",
@@ -130,7 +130,6 @@
     "overrides: glob 9.0.0 to 14.0.1 has GHSA-3g3m-2fjr-6pw4. archiver-utils 5.0.2 (via filemanager-webpack-plugin and archiver 7) asks for glob ^10 and has no newer release.",
     "It is lifted to glob 14 here. It calls only glob.sync(pattern, options), which glob 14 keeps. Remove the entry once archiver-utils requires glob 14.",
     "html-dom-parser 8.0.2, which html-react-parser 6.1.7 and later pin, ships a bundled copy of domelementtype under lib/node_modules without its package.json, so Vite cannot resolve it and the editor build fails. Held at 8.0.1 until a fixed release; remove the entry then.",
-    "puppeteer is held at 25.16.0: 25.17.0 rolls its Firefox to 159, with which the Firefox smoke harness (__tests__/firefox/helpers.js) no longer reaches the extension's pages, so every Firefox test times out. Lift it once the harness works with Firefox 159.",
     "eslint-plugin-jsx-a11y-x 0.2.0 asks for minimatch ^10.2.5, and minimatch below 11.0.1 has GHSA-g3hv-75wg-m249. The plugin only calls minimatch(name, pattern) on component names from this config, which minimatch 11 keeps. Its main branch has replaced minimatch with picomatch; remove the entry once that is released."
   ],
   "overrides": {
