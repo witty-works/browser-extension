@@ -18,6 +18,7 @@ export const TOOLBAR_STYLES = `
   font-weight: 600;
   cursor: pointer;
 }
+.witty-editor-tool-glyph::before { content: attr(data-glyph); }
 .witty-editor-tool--italic { font-style: italic; }
 .witty-editor-tool--underline { text-decoration: underline; }
 .witty-editor-toolbar { position: relative; }
