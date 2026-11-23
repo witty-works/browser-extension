@@ -21,7 +21,7 @@ jobs:
       SENTRY_VERSION_STRING: ${{github.ref_name}}-prod
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # The history, to check where the tag's commit is.
           fetch-depth: 0
@@ -126,7 +126,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # The history, to check whether main has the release already.
           fetch-depth: 0
