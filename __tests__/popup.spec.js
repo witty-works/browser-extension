@@ -66,6 +66,9 @@ test.describe('Popup', () => {
     );
 
     await expect.poll(() => authRequests.length).toBeGreaterThan(0);
+    // To the endpoint the stored key names, as built into this extension.
+    const { BASE_URLS } = require('../source/witty.config.json');
+    expect(authRequests[0].startsWith(BASE_URLS.Prod.api)).toBe(true);
   });
 
   test('shows the sign-in state when signed out', async ({
