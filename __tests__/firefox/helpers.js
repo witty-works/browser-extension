@@ -153,8 +153,25 @@ const waitForHighlights = (page, timeout = 15000) =>
     { timeout, polling: 250 }
   );
 
+/**
+ * Focus the fixture's editor once the content script can see it.
+ *
+ * Firefox runs the content script at `document_idle`, which can come after the
+ * `load` event that `page.goto` waits for. A click that lands before the
+ * content script has added its `focusin` listener is never seen, and the field
+ * is not registered until it is focused again. The content script adds a
+ * `ww-shadow-root-container` when it registers a field, so focus again until
+ * that element appears.
+ */
+const focusEditor = (page) =>
+  poll(async () => {
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.click('#editor');
+    return page.waitForSelector('ww-shadow-root-container', { timeout: 500 });
+  });
+
 const typeAndWaitForHighlights = async (page, text = SAMPLE_TEXT) => {
-  await page.click('#editor');
+  await focusEditor(page);
   await page.keyboard.type(text);
   await waitForHighlights(page);
 };
