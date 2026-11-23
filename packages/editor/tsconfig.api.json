@@ -6,6 +6,9 @@
     "noEmit": false,
     "declaration": true,
     "emitDeclarationOnly": true,
+    // TypeScript 6 defaults rootDir to this directory; buildTypes.mjs expects
+    // the declarations at dist/.types/api.d.ts, not dist/.types/src/.
+    "rootDir": "src",
     "outDir": "dist/.types"
   },
   "include": [],
