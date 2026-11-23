@@ -343,7 +343,7 @@ const Input: React.FC<{
           const selRange = sel.getRangeAt(0).cloneRange();
           const selRects = selRange.getClientRects();
           if (selRects && selRects.length > 0)
-            googleDocsElementCursorRect = selRects[0];
+            googleDocsElementCursorRect = selRects.item(0);
         }
       } catch (err) {
         // ignore selection failures
@@ -902,20 +902,21 @@ const Input: React.FC<{
   const movePopoverNextOrPrev = (direction: string): void => {
     if (direction === 'previous') {
       if (selectedAlertIndex === 0) {
+        const previousNode =
+          nodesWithAlertsRef.current[selectedNodeWithAlertsIndex - 1];
+        // Already at the first node: there is no previous alert.
+        if (!previousNode) return;
         setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex - 1);
-        setSelectedAlertIndex(
-          nodesWithAlertsRef.current[selectedNodeWithAlertsIndex - 1].alerts
-            .length - 1
-        );
+        setSelectedAlertIndex(previousNode.alerts.length - 1);
       } else {
         setSelectedAlertIndex(selectedAlertIndex - 1);
       }
     } else {
-      if (
-        selectedAlertIndex ===
-        nodesWithAlertsRef.current[selectedNodeWithAlertsIndex].alerts.length -
-          1
-      ) {
+      const currentNode =
+        nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
+      // No node is selected: there is no next alert to move to.
+      if (!currentNode) return;
+      if (selectedAlertIndex === currentNode.alerts.length - 1) {
         setSelectedNodeWithAlertsIndex(selectedNodeWithAlertsIndex + 1);
         setSelectedAlertIndex(0);
       } else {
@@ -941,16 +942,16 @@ const Input: React.FC<{
   const moveToNextAlertOrWrap = (): void => {
     const nodes = nodesWithAlertsRef.current;
     let lastNodeIndex = -1;
-    for (let i = nodes.length - 1; i >= 0; i--) {
-      if (nodes[i].alerts.length > 0) {
+    for (const [i, node] of nodes.entries()) {
+      if (node.alerts.length > 0) {
         lastNodeIndex = i;
-        break;
       }
     }
+    const lastNode = nodes[lastNodeIndex];
     const atLastAlert =
-      lastNodeIndex === -1 ||
+      !lastNode ||
       (selectedNodeWithAlertsIndex === lastNodeIndex &&
-        selectedAlertIndex === nodes[lastNodeIndex].alerts.length - 1);
+        selectedAlertIndex === lastNode.alerts.length - 1);
 
     if (atLastAlert) {
       openFirstAlertPopover();
@@ -1008,9 +1009,11 @@ const Input: React.FC<{
     ) {
       const oneNodeWithAlerts =
         nodesWithAlertsRef.current[selectedNodeWithAlertsIndex];
+      // The selected index can outlive a change to the nodes.
+      if (!oneNodeWithAlerts) return;
 
       const selectedAlert = oneNodeWithAlerts.alerts[selectedAlertIndex];
-      selectedAlertRef.current = selectedAlert;
+      selectedAlertRef.current = selectedAlert ?? null;
 
       const range = getActiveDocument().createRange();
       const nodeText =
@@ -1019,10 +1022,10 @@ const Input: React.FC<{
           : oneNodeWithAlerts.node.childNodes[0];
 
       if (
-        nodeText.textContent &&
-        (!selectedAlert ||
-          selectedAlert.endOffset > nodeText.textContent.length ||
-          selectedAlert.startOffset > nodeText.textContent.length)
+        !selectedAlert ||
+        (nodeText.textContent &&
+          (selectedAlert.endOffset > nodeText.textContent.length ||
+            selectedAlert.startOffset > nodeText.textContent.length))
       )
         return;
 
@@ -1104,9 +1107,12 @@ const Input: React.FC<{
       );
 
     //handle case where a word has multiple alerts of different gravity
-    const whereMinGravity = (alert0: IAlert, ...alerts: IAlert[]): IAlert =>
+    const whereMinGravity = (
+      alert0: IAlert,
+      ...alerts: (IAlert | undefined)[]
+    ): IAlert =>
       [alert0, ...alerts]
-        .filter(Boolean)
+        .filter((alert): alert is IAlert => Boolean(alert))
         .reduce((minAlert, currentAlert) =>
           minAlert.data?.category === 'orthography' &&
           currentAlert.data?.category !== 'orthography'

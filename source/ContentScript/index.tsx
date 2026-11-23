@@ -44,15 +44,13 @@ const storageChange = (
   scriptId: string
 ) => {
   const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
-  const changedItems = Object.keys(changes);
-
-  for (const item of changedItems) {
+  for (const [item, change] of Object.entries(changes)) {
     if (item === StorageKeys.DOMAINS) {
-      handleDomainsFromDashboard(changes[item].newValue, scriptId);
+      handleDomainsFromDashboard(change.newValue, scriptId);
     }
 
     if (item === StorageKeys.ORGANIZATION_DOMAINS) {
-      const orgDomains = changes[item].newValue;
+      const orgDomains = change.newValue;
       const isOnOrgDomainList =
         (orgDomains?.type === 'deny' &&
           orgDomains.list?.includes(currentDomain)) ||
