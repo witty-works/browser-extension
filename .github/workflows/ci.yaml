@@ -40,12 +40,9 @@ jobs:
       - run: npm run typecheck
       # Coverage thresholds are enforced by the editor's vite.config.ts.
       - run: npm run test:unit
-      # Pull requests from forks get no secrets, so no token to scan with, and
-      # neither do Dependabot's runs. Handing it over as a Dependabot secret
-      # would expose it to the not yet reviewed packages the run installs;
-      # their changes are dependencies, not code to analyse.
+      # Pull requests from forks get no secrets, so no token to scan with.
       - name: SonarCloud scan
-        if: ${{ (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && github.actor != 'dependabot[bot]' }}
+        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
         uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0
         env:
           # For the pull request decoration.
