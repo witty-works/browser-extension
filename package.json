@@ -128,7 +128,17 @@
     "wext-manifest-webpack-plugin": "^1.4.1"
   },
   "main": "index.js",
+  "//": [
+    "overrides: glob 9.0.0 to 14.0.1 has GHSA-3g3m-2fjr-6pw4. archiver-utils 5.0.2 (via filemanager-webpack-plugin and archiver 7) asks for glob ^10 and has no newer release; @sentry/bundler-plugins 10 (via @sentry/webpack-plugin 5) asks for glob ^13, and only @sentry/webpack-plugin 11, a major update, moves to glob 14.",
+    "Both are lifted to glob 14 here. They call only glob.sync(pattern, options) and glob.glob(patterns, { absolute, nodir, ignore, root }), which glob 14 keeps; @sentry/bundler-plugins 11 makes the same glob.glob call on glob ^14.0.3. Remove an entry once its parent requires glob 14."
+  ],
   "overrides": {
-    "tmp": "^0.2.7"
+    "tmp": "^0.2.7",
+    "archiver-utils": {
+      "glob": "^14.0.2"
+    },
+    "@sentry/bundler-plugins": {
+      "glob": "^14.0.2"
+    }
   }
 }
