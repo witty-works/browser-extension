@@ -7,7 +7,7 @@
   "author": "Solveig Helland <solveig.helland@witty.works>",
   "license": "proprietary",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
   },
   "engineStrict": true,
   "scripts": {
