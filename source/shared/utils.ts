@@ -1,11 +1,11 @@
 import browser from 'webextension-polyfill';
 import {
   apiKeyFromStorage,
-  BaseUrls,
   DefaultBaseUrlKey,
   DEV_ENV,
   getAuthMode,
   registerCustomEndpointFromStorage,
+  resolveBaseUrl,
   STATIC_ACCESS_TOKEN,
   StorageKeys,
   wittyVersion,
@@ -400,7 +400,7 @@ export const makeAuthRequest = () => {
           headers,
         };
 
-        fetch(createUrl(BaseUrls[urls].api, 'v2.0/auth'), config).then(
+        fetch(createUrl(resolveBaseUrl(urls).api, 'v2.0/auth'), config).then(
           async (response) => {
             if (response.ok) {
               const json = await response.json();
@@ -420,7 +420,7 @@ export const makeAuthRequest = () => {
           headers,
         };
 
-        fetch(createUrl(BaseUrls[urls].api, 'v2.0/auth'), config)
+        fetch(createUrl(resolveBaseUrl(urls).api, 'v2.0/auth'), config)
           .then(async (response) => {
             if (response.ok) {
               const json = await response.json();

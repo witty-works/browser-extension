@@ -161,7 +161,7 @@ export const CompiledBaseUrlKeys = Object.keys(BaseUrls);
 /** Key under which a user-configured endpoint is registered at runtime. */
 export const CUSTOM_BASE_URL_KEY = 'Custom';
 
-export const isAllowedBaseUrlKey = (key: string | undefined): boolean =>
+export const isAllowedBaseUrlKey = (key: string | undefined): key is string =>
   !!key && Object.prototype.hasOwnProperty.call(BaseUrls, key);
 
 // Release builds must not default to a developer's localhost API. Fall back to
@@ -174,7 +174,22 @@ export const DefaultBaseUrlKey = CompiledBaseUrlKeys.includes(
   preferredBaseUrlKey
 )
   ? preferredBaseUrlKey
-  : CompiledBaseUrlKeys[0];
+  : // A config without BASE_URLS leaves nothing to fall back to; the preferred
+    // key then names no endpoint, just as an undefined key would.
+    (CompiledBaseUrlKeys[0] ?? preferredBaseUrlKey);
+
+/**
+ * The endpoint a key read from storage selects. A key that is neither compiled
+ * in nor registered falls back to the build default; see `setBaseUrls`.
+ */
+export const resolveBaseUrl = (urlKey: string | undefined): BaseUrl => {
+  const key = isAllowedBaseUrlKey(urlKey) ? urlKey : DefaultBaseUrlKey;
+  const baseUrl = BaseUrls[key];
+  if (!baseUrl) {
+    throw new Error(`witty.config.json defines no BASE_URLS entry '${key}'.`);
+  }
+  return baseUrl;
+};
 
 /**
  * Add or remove the user-configured endpoint.

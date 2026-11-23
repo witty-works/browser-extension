@@ -1,11 +1,5 @@
 import {IAlert, IAlternatives, IRequest, RequestConfig} from '../types';
-import {
-  BaseUrls,
-  DefaultBaseUrlKey,
-  isAllowedBaseUrlKey,
-  wittyVersion,
-  X_KEY,
-} from '../constants';
+import {resolveBaseUrl, wittyVersion, X_KEY} from '../constants';
 import {TxtSentenceNode} from 'sentence-splitter';
 import {apiLocale} from './apiLocale';
 
@@ -31,12 +25,12 @@ export const setBaseUrls = (urlKey: string) => {
   // by a dev build, which would silently keep a release build pointed at
   // localhost) or absent from a self-hosted config. Fall back to the build's
   // default rather than throwing on `BaseUrls[urlKey].api`.
-  const key = isAllowedBaseUrlKey(urlKey) ? urlKey : DefaultBaseUrlKey;
+  const baseUrl = resolveBaseUrl(urlKey);
 
-  BASE_URL_API = BaseUrls[key].api;
-  BASE_URL_DASHBOARD = BaseUrls[key].dashboard;
-  BASE_URL_POSTHOG = BaseUrls[key].posthog_url;
-  BASE_KEY_POSTHOG = BaseUrls[key].posthog_key;
+  BASE_URL_API = baseUrl.api;
+  BASE_URL_DASHBOARD = baseUrl.dashboard;
+  BASE_URL_POSTHOG = baseUrl.posthog_url;
+  BASE_KEY_POSTHOG = baseUrl.posthog_key;
 };
 
 export const getBaseUrls = () => {

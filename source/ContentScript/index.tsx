@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react';
 import {browser, Storage} from 'webextension-polyfill-ts';
 import {
-  BaseUrls,
+  resolveBaseUrl,
   StorageKeys,
   wittyVersion,
   exposeWittyIdAllowList,
@@ -99,7 +99,7 @@ const initialize = () => {
           // only be signed in from its own UI now, via the OAuth flow the
           // background worker runs. A page-supplied URL that hands credentials
           // to the extension is exactly the pattern that was removed.
-          const loginUrl = `${BaseUrls[apiEndpoint].dashboard}login`;
+          const loginUrl = `${resolveBaseUrl(apiEndpoint).dashboard}login`;
           wittyIsInstalledElement.setAttribute('login-url', loginUrl);
         }
       })
