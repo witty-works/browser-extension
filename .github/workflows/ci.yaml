@@ -24,6 +24,11 @@ jobs:
           # SonarCloud attributes issues to authors and works out what is new
           # from the history, so a shallow clone degrades its analysis.
           fetch-depth: 0
+          # Since checkout v6 the persisted token sits in a separate file the
+          # git config points to, which SonarCloud's pull request analysis
+          # failed on ("Illegal base64 character 2d"). Nothing in this job
+          # needs git credentials after the checkout.
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
