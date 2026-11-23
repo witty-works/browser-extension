@@ -225,6 +225,11 @@ Takes login from "broken" to "broken but not exploitable".
       the default. A key read from extension storage is untrusted input: a stale
       `'Local'` left by a dev build would otherwise silently keep a release build
       pointed at localhost, and an unknown key threw on `BaseUrls[key].api`.
+- [x] The fallback is for the URL only. While the stored key names no
+      configured endpoint, no request carries the token or API key stored with
+      it, and the refresh token is not sent. The background then reports the key
+      name to Sentry, clears those credentials and resets the key to the default
+      (`source/shared/storedEndpoint.ts`), so the user signs in again.
 - [x] `ApiSelector` now logs out on *any* endpoint change. It previously only did
       so when switching to `'Prod'`, and compared against a typo'd `' Prod'`, so
       tokens were carried across between any other pair of endpoints.

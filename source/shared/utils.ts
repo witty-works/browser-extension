@@ -5,6 +5,7 @@ import {
   DEV_ENV,
   getAuthMode,
   isAllowedBaseUrlKey,
+  isStoredEndpointConfigured,
   registerCustomEndpointFromStorage,
   resolveBaseUrl,
   STATIC_ACCESS_TOKEN,
@@ -163,6 +164,12 @@ export const getNewAccessToken = async () => {
       StorageKeys.API_ENDPOINT_KEY,
       StorageKeys.CUSTOM_ENDPOINT,
     ]);
+    // The refresh token belongs to the stored endpoint. When that names no
+    // endpoint, refreshing against the default would hand it to the wrong
+    // dashboard; the background clears it instead (see storedEndpoint.ts).
+    if (!isStoredEndpointConfigured(result)) {
+      return;
+    }
     registerCustomEndpointFromStorage(result);
     const urlKey =
       (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey;
@@ -393,12 +400,10 @@ export const makeAuthRequest = () => {
         : DefaultBaseUrlKey;
       // A stored key that names no endpoint (one from an earlier build, or a
       // custom endpoint that is gone) must not fall back to the default here:
-      // the stored token or API key belongs to that other endpoint. Report it
-      // and mark the endpoint as failing, so the user picks one again.
-      if (!isAllowedBaseUrlKey(urls)) {
-        sendErrorToSentry(
-          new Error(`The stored endpoint '${urls}' is not configured.`)
-        );
+      // the stored token or API key belongs to that other endpoint. The
+      // background reports it, clears those credentials and resets the key
+      // (see storedEndpoint.ts); until then this sends nothing.
+      if (!isStoredEndpointConfigured(result) || !isAllowedBaseUrlKey(urls)) {
         storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
         return;
       }

@@ -28,7 +28,8 @@ const main = (args) => {
   if (SENTRY_TRACE_RATE) config.SENTRY_TRACE_RATE = Number(SENTRY_TRACE_RATE);
 
   // Store builds carry no development or local endpoints. A key a user still
-  // has stored (e.g. 'Dev') falls back to the build default.
+  // has stored (e.g. 'Dev') is reset to the build default, and the credentials
+  // stored with it are cleared (source/shared/storedEndpoint.ts).
   if (args.includes('--prod')) {
     config.BASE_URLS = { Prod: config.BASE_URLS.Prod };
   }

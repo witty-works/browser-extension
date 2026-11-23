@@ -228,7 +228,25 @@ const ContentScriptApp: React.FC = () => {
     for (const item of changedItems) {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
+          // Credentials held in memory belong to the previous endpoint. Drop
+          // them before switching, then load the ones stored for the new one:
+          // the custom endpoint has to be registered from storage before its
+          // key resolves, and the token and API key are read back from there.
+          setToken('');
+          setApiKey('');
           setBaseUrls(changes[item].newValue);
+          browser.storage.local
+            .get(null)
+            .then(async (result) => {
+              registerCustomEndpointFromStorage(result);
+              setBaseUrls(
+                (result[StorageKeys.API_ENDPOINT_KEY] as string) ||
+                  DefaultBaseUrlKey
+              );
+              setApiKey(apiKeyFromStorage(result));
+              setToken(await readAccessToken());
+            })
+            .catch((error: unknown) => sendErrorToSentry(error));
           break;
         case StorageKeys.SIGNED_IN:
           // The marker is a boolean; the token itself lives in storage.session,

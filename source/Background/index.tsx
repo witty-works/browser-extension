@@ -8,8 +8,6 @@ import {
   TESTING,
   WittyIconActive,
   wittyVersion,
-  DefaultBaseUrlKey,
-  registerCustomEndpointFromStorage,
   X_KEY,
 } from '../shared/constants';
 import {
@@ -44,6 +42,10 @@ import {sendErrorToSentry} from '../shared/errorUtils';
 import {registerErrorReporter} from '../shared/errorReporting';
 import {isChromeWebstore} from '../shared/DOMutils';
 import {registerStorage} from '../shared/platform/storage';
+import {
+  sanitizeStoredEndpoint,
+  sanitizeStoredEndpointOnChange,
+} from '../shared/storedEndpoint';
 import {webextensionStorage} from '../shared/platform/webextensionStorage';
 
 registerStorage(webextensionStorage);
@@ -84,22 +86,10 @@ if (sentryDSN) {
 /**
  * Resolve which deployment to authenticate against. Read at flow time rather
  * than cached, so a user who switches endpoints in the ApiSelector and then
- * signs in reaches the dashboard they just selected.
+ * signs in reaches the dashboard they just selected. A stored key that names no
+ * endpoint is reset to the default first, with the credentials stored for it.
  */
-const currentUrlKey = async (): Promise<string> => {
-  const stored = await browser.storage.local.get([
-    StorageKeys.API_ENDPOINT_KEY,
-    StorageKeys.CUSTOM_ENDPOINT,
-  ]);
-
-  // Register before resolving the key, or a stored 'Custom' would not yet name
-  // anything and would silently fall back to the build default.
-  registerCustomEndpointFromStorage(stored);
-
-  const key = stored[StorageKeys.API_ENDPOINT_KEY] as string | undefined;
-
-  return key || DefaultBaseUrlKey;
-};
+const currentUrlKey = (): Promise<string> => sanitizeStoredEndpoint();
 
 const handleSignIn = async (register: boolean): Promise<SignInResult> => {
   try {
@@ -161,6 +151,11 @@ const addEventListeners = () => {
   browser.tabs.onActivated.addListener(scanTabsToSetIframeDomains);
   browser.storage.onChanged.addListener(storageChange);
   browser.storage.onChanged.addListener(scanTabsToDetectStatus);
+  browser.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local') {
+      sanitizeStoredEndpointOnChange(changes);
+    }
+  });
 
   browser.runtime.onUpdateAvailable.addListener(() => {
     browser.runtime.reload();
@@ -467,6 +462,11 @@ if (X_KEY) {
 
 addEventListeners();
 addMessageListener();
+
+// A stored endpoint key that names nothing in this build (one left by another
+// build, or 'Custom' without its endpoint) is reset here, with the credentials
+// stored for it; see storedEndpoint.ts.
+sanitizeStoredEndpoint().catch((error) => sendErrorToSentry(error));
 
 // Test-only seam. Lets the live OAuth e2e spec drive a refresh without adding a
 // production message type for it.

@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 
-import {BaseUrls, DefaultBaseUrlKey, isAllowedBaseUrlKey} from '../constants';
+import {BaseUrls, isAllowedBaseUrlKey} from '../constants';
 
 /**
  * OAuth 2.0 Authorization Code + PKCE against the Laravel dashboard.
@@ -91,8 +91,18 @@ const constantTimeEquals = (a: string, b: string): boolean => {
   return mismatch === 0;
 };
 
+/**
+ * The deployment `urlKey` names. Unlike `setBaseUrls` this does not fall back
+ * to the build default for a key that names nothing: the refresh token, and a
+ * sign-in started for that endpoint, belong to it and not to the default.
+ * Callers pass `DefaultBaseUrlKey` themselves when no key is stored.
+ */
 const resolveDeployment = (urlKey: string) => {
-  const key = isAllowedBaseUrlKey(urlKey) ? urlKey : DefaultBaseUrlKey;
+  if (!isAllowedBaseUrlKey(urlKey)) {
+    // Names only the key; it comes from the build config or is 'Custom'.
+    throw new Error(`The endpoint '${urlKey}' is not configured.`);
+  }
+  const key = urlKey;
   const deployment = BaseUrls[key];
 
   if (!deployment?.oauth_client_id) {
