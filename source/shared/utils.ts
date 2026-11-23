@@ -4,6 +4,7 @@ import {
   DefaultBaseUrlKey,
   DEV_ENV,
   getAuthMode,
+  isAllowedBaseUrlKey,
   registerCustomEndpointFromStorage,
   resolveBaseUrl,
   STATIC_ACCESS_TOKEN,
@@ -390,6 +391,17 @@ export const makeAuthRequest = () => {
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
+      // A stored key that names no endpoint (one from an earlier build, or a
+      // custom endpoint that is gone) must not fall back to the default here:
+      // the stored token or API key belongs to that other endpoint. Report it
+      // and mark the endpoint as failing, so the user picks one again.
+      if (!isAllowedBaseUrlKey(urls)) {
+        sendErrorToSentry(
+          new Error(`The stored endpoint '${urls}' is not configured.`)
+        );
+        storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+        return;
+      }
       const {accessToken} = await readTokens();
 
       if (accessToken) {
