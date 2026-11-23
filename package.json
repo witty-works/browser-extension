@@ -5,7 +5,7 @@
   "private": true,
   "workspaces": ["packages/*"],
   "author": "Solveig Helland <solveig.helland@witty.works>",
-  "license": "proprietary",
+  "license": "MIT",
   "engines": {
     "node": ">=22.18"
   },
