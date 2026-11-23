@@ -180,7 +180,8 @@ export const DefaultBaseUrlKey = CompiledBaseUrlKeys.includes(
 
 /**
  * The endpoint a key read from storage selects. A key that is neither compiled
- * in nor registered falls back to the build default; see `setBaseUrls`.
+ * in nor registered falls back to the build default; see `setBaseUrls`, which
+ * then sends no credentials.
  */
 export const resolveBaseUrl = (urlKey: string | undefined): BaseUrl => {
   const key = isAllowedBaseUrlKey(urlKey) ? urlKey : DefaultBaseUrlKey;
@@ -228,6 +229,36 @@ export const registerCustomEndpointFromStorage = (
 };
 
 /**
+ * Whether the endpoint key in a `storage.local` snapshot names an endpoint
+ * that exists: one compiled into this build, or 'Custom' while the snapshot
+ * holds a custom endpoint with an API URL. An unset key selects the build
+ * default and counts as configured.
+ *
+ * A set key that names nothing means the credentials stored with it were
+ * issued for some other endpoint, so no credential may be sent while it is
+ * stored; the background resets it (see storedEndpoint.ts). Reads the snapshot
+ * rather than `BaseUrls`, so the answer does not depend on whether this context
+ * has registered the custom endpoint yet.
+ */
+export const isStoredEndpointConfigured = (
+  result: Record<string, unknown>
+): boolean => {
+  const key = result?.[StorageKeys.API_ENDPOINT_KEY] as unknown;
+  if (key === undefined || key === null || key === '') {
+    return true;
+  }
+  if (typeof key !== 'string') {
+    return false;
+  }
+  if (CompiledBaseUrlKeys.includes(key)) {
+    return true;
+  }
+
+  const custom = result?.[StorageKeys.CUSTOM_ENDPOINT] as BaseUrl | undefined;
+  return key === CUSTOM_BASE_URL_KEY && !!custom?.api;
+};
+
+/**
  * A custom endpoint must be https, with loopback exempted so a self-hoster can
  * point at a local dashboard while developing. Anything else would let the
  * bearer token travel in plaintext.
@@ -268,10 +299,12 @@ export const getAuthMode = (result: Record<string, any>): AuthMode =>
  *    override the signed-in user rather than the other way round.
  * 2. **Endpoint.** The key is stored together with the endpoint it belongs to
  *    and only returned when the two still agree, so switching endpoints cannot
- *    carry a key from one deployment to another.
+ *    carry a key from one deployment to another. The stored endpoint must also
+ *    still exist: a key saved for 'Custom' is not sent once the custom endpoint
+ *    is gone, because `setBaseUrls` would resolve 'Custom' to the default.
  */
 export const apiKeyFromStorage = (result: Record<string, any>): string => {
-  if (getAuthMode(result) !== 'apiKey') {
+  if (getAuthMode(result) !== 'apiKey' || !isStoredEndpointConfigured(result)) {
     return '';
   }
 

@@ -19,6 +19,7 @@ import {
   StorageKeys,
 } from '../shared/constants';
 import {logOut, storeInLocalStorage} from '../shared/utils';
+import {clearTokens} from '../shared/tokenStore';
 import {
   getCategories,
   getConfigOptions,
@@ -225,6 +226,9 @@ const Options: React.FC = () => {
     };
 
     try {
+      // Before the switch, so the old endpoint's token is never stored beside
+      // the new key, where another context could read the two together.
+      await clearTokens();
       registerCustomEndpoint(endpoint);
       await browser.storage.local.set({
         [StorageKeys.CUSTOM_ENDPOINT]: endpoint,
@@ -254,14 +258,22 @@ const Options: React.FC = () => {
     setNotice('');
 
     try {
+      // Credentials first, then the key, then the custom endpoint. Clearing
+      // the credentials after switching the key would leave a moment in which
+      // the custom endpoint's token sits beside the default key; removing the
+      // custom endpoint before switching would leave 'Custom' naming nothing,
+      // for good if the page closes in between.
+      await clearTokens();
+      logOut();
+      await browser.storage.local.set({
+        [StorageKeys.API_ENDPOINT_KEY]: DefaultBaseUrlKey,
+      });
       registerCustomEndpoint(null);
       await browser.storage.local.remove([
         StorageKeys.CUSTOM_ENDPOINT,
         StorageKeys.API_KEY,
         StorageKeys.AUTH_MODE,
       ]);
-      storeInLocalStorage(StorageKeys.API_ENDPOINT_KEY, DefaultBaseUrlKey);
-      logOut();
       setApiKey('');
       setMode('account');
       setDashboard('');

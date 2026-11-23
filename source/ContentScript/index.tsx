@@ -1,5 +1,8 @@
 import * as Sentry from '@sentry/react';
-import {SENTRY_DATA_COLLECTION} from '../shared/sentryOptions';
+import {
+  SENTRY_PRIVACY_OPTIONS,
+  sentryIntegrations,
+} from '../shared/sentryOptions';
 import {browser, Storage} from 'webextension-polyfill-ts';
 import {
   resolveBaseUrl,
@@ -64,10 +67,7 @@ const storageChange = (
 
 const initialize = () => {
   const sentryDSN = defaultConfig.SENTRY_DSN;
-  const {
-    SENTRY_SAMPLE_RATE: sentrySampleRate,
-    SENTRY_TRACE_RATE: sentryTraceRate,
-  } = defaultConfig;
+  const {SENTRY_SAMPLE_RATE: sentrySampleRate} = defaultConfig;
   const domain = getDomainWithoutSubdomain(window.location.hostname);
   const scriptId = uuidv4();
 
@@ -160,11 +160,12 @@ const initialize = () => {
       dsn: sentryDSN,
       // The release the source maps were uploaded to (webpack.config.js).
       release: process.env.SENTRY_RELEASE,
-      integrations: [Sentry.browserTracingIntegration()],
+      // No browserTracingIntegration: it names its spans, and the transaction
+      // of every error event, after the path of the page this runs in.
+      integrations: sentryIntegrations(),
       sampleRate: sentrySampleRate,
-      tracesSampleRate: sentryTraceRate,
-      // Nothing about the user, their pages or requests: see SENTRY_DATA_COLLECTION.
-      dataCollection: SENTRY_DATA_COLLECTION,
+      // Nothing about the user, their pages or requests: see sentryOptions.ts.
+      ...SENTRY_PRIVACY_OPTIONS,
     });
     registerErrorReporter((error) => Sentry.captureException(error));
   }
