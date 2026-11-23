@@ -68,14 +68,14 @@
     }
   },
   "devDependencies": {
-    "@tiptap/core": "3.31.3",
-    "@tiptap/pm": "3.31.3",
-    "@tiptap/starter-kit": "3.31.3",
-    "@vitest/coverage-v8": "5.0.5",
+    "@tiptap/core": "3.34.0",
+    "@tiptap/pm": "3.34.0",
+    "@tiptap/starter-kit": "3.34.0",
+    "@vitest/coverage-v8": "5.1.0",
     "happy-dom": "21.0.4",
-    "vite": "8.3.5",
-    "vite-plugin-css-injected-by-js": "5.0.2",
+    "vite": "8.3.8",
+    "vite-plugin-css-injected-by-js": "5.0.3",
     "vite-plugin-svgr": "5.2.0",
-    "vitest": "5.0.5"
+    "vitest": "5.1.0"
   }
 }

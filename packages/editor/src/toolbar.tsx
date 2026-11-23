@@ -295,7 +295,14 @@ const Toolbar: React.FC<{
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => tool.enabled && tool.run()}
           >
-            {tool.glyph}
+            {/* The glyph is an icon, named by aria-label. Drawn by CSS rather
+                than written as text: a visible "1." that is not part of the
+                name "Numbered list" fails axe's label-content-name-mismatch. */}
+            <span
+              className='witty-editor-tool-glyph'
+              aria-hidden='true'
+              data-glyph={tool.glyph}
+            />
           </button>
         ))}
         <button
