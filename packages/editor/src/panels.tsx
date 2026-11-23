@@ -64,7 +64,7 @@ const Panel: React.FC<{
     // A labelled section is a region. Escape closes the panel from anywhere
     // inside it; the controls in it are the interactive elements, the section
     // itself only takes focus on open.
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    // eslint-disable-next-line jsx-a11y-x/no-noninteractive-element-interactions
     <section
       ref={ref}
       id={id}
