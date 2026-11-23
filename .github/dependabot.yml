@@ -18,12 +18,6 @@ updates:
       default-days: 7
     labels:
       - dependencies
-    ignore:
-      # eslint 10: eslint-plugin-jsx-a11y and eslint-plugin-react have no
-      # release that accepts it yet, so npm cannot install it. Lift once they do.
-      - dependency-name: eslint
-        update-types:
-          - version-update:semver-major
     groups:
       # Minor and patch updates in one weekly pull request; major versions
       # come one pull request each.

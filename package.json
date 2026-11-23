@@ -45,7 +45,6 @@
     "@types/resize-observer-browser": "^0.1.11",
     "advanced-css-reset": "^2.1.3",
     "diff": "^9.0.0",
-    "dotenv": "^18.0.10",
     "emoji-log": "^1.0.2",
     "html-react-parser": "^6.1.9",
     "https-proxy-agent": "^9.1.0",
@@ -76,10 +75,10 @@
     "@babel/preset-env": "^8.0.7",
     "@babel/preset-react": "^8.0.1",
     "@babel/preset-typescript": "^8.0.7",
+    "@eslint-react/eslint-plugin": "^5.30.6",
     "@playwright/test": "^1.65.1",
     "@svgr/webpack": "^8.1.0",
     "@types/chroma-js": "^3.1.3",
-    "@types/diff": "^7.0.2",
     "@types/lodash.throttle": "^4.1.9",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -95,14 +94,13 @@
     "cross-env": "^10.1.0",
     "css-loader": "^7.1.5",
     "css-minimizer-webpack-plugin": "^8.0.0",
-    "eslint": "^9.39.5",
+    "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import-x": "^4.17.1",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-jsx-a11y-x": "^0.2.0",
     "eslint-plugin-n": "^18.5.0",
     "eslint-plugin-prettier": "^5.5.7",
-    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "filemanager-webpack-plugin": "^10.0.1",
     "fork-ts-checker-webpack-plugin": "^9.1.1",
@@ -119,7 +117,7 @@
     "sass-loader": "^17.1.0",
     "terser-webpack-plugin": "^5.6.1",
     "tinymce": "^8.10.2",
-    "typescript": "~5.9",
+    "typescript": "~6.0",
     "webextension-polyfill": "^0.12.0",
     "webpack": "^5.112.2",
     "webpack-cli": "^7.3.1",
@@ -129,18 +127,19 @@
   },
   "main": "index.js",
   "//": [
-    "overrides: glob 9.0.0 to 14.0.1 has GHSA-3g3m-2fjr-6pw4. archiver-utils 5.0.2 (via filemanager-webpack-plugin and archiver 7) asks for glob ^10 and has no newer release; @sentry/bundler-plugins 10 (via @sentry/webpack-plugin 5) asks for glob ^13, and only @sentry/webpack-plugin 11, a major update, moves to glob 14.",
-    "Both are lifted to glob 14 here. They call only glob.sync(pattern, options) and glob.glob(patterns, { absolute, nodir, ignore, root }), which glob 14 keeps; @sentry/bundler-plugins 11 makes the same glob.glob call on glob ^14.0.3. Remove an entry once its parent requires glob 14.",
-    "html-dom-parser 8.0.2, which html-react-parser 6.1.7 and later pin, ships a bundled copy of domelementtype under lib/node_modules without its package.json, so Vite cannot resolve it and the editor build fails. Held at 8.0.1 until a fixed release; remove the entry then."
+    "overrides: glob 9.0.0 to 14.0.1 has GHSA-3g3m-2fjr-6pw4. archiver-utils 5.0.2 (via filemanager-webpack-plugin and archiver 7) asks for glob ^10 and has no newer release.",
+    "It is lifted to glob 14 here. It calls only glob.sync(pattern, options), which glob 14 keeps. Remove the entry once archiver-utils requires glob 14.",
+    "html-dom-parser 8.0.2, which html-react-parser 6.1.7 and later pin, ships a bundled copy of domelementtype under lib/node_modules without its package.json, so Vite cannot resolve it and the editor build fails. Held at 8.0.1 until a fixed release; remove the entry then.",
+    "eslint-plugin-jsx-a11y-x 0.2.0 asks for minimatch ^10.2.5, and minimatch below 11.0.1 has GHSA-g3hv-75wg-m249. The plugin only calls minimatch(name, pattern) on component names from this config, which minimatch 11 keeps. Its main branch has replaced minimatch with picomatch; remove the entry once that is released."
   ],
   "overrides": {
     "tmp": "^0.2.7",
     "archiver-utils": {
       "glob": "^14.0.2"
     },
-    "@sentry/bundler-plugins": {
-      "glob": "^14.0.2"
-    },
-    "html-dom-parser": "8.0.1"
+    "html-dom-parser": "8.0.1",
+    "eslint-plugin-jsx-a11y-x": {
+      "minimatch": "^11.0.1"
+    }
   }
 }
