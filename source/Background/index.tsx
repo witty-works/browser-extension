@@ -1,5 +1,6 @@
 import browser, {Tabs} from 'webextension-polyfill';
 import * as Sentry from '@sentry/react';
+import {SENTRY_DATA_COLLECTION} from '../shared/sentryOptions';
 
 import {
   StorageKeys,
@@ -74,6 +75,8 @@ if (sentryDSN) {
     integrations: [Sentry.browserTracingIntegration()],
     sampleRate: sentrySampleRate,
     tracesSampleRate: sentryTraceRate,
+    // Nothing about the user, their pages or requests: see SENTRY_DATA_COLLECTION.
+    dataCollection: SENTRY_DATA_COLLECTION,
   });
   registerErrorReporter((error) => Sentry.captureException(error));
 }

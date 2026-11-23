@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react';
+import {SENTRY_DATA_COLLECTION} from '../shared/sentryOptions';
 import {browser, Storage} from 'webextension-polyfill-ts';
 import {
   resolveBaseUrl,
@@ -162,6 +163,8 @@ const initialize = () => {
       integrations: [Sentry.browserTracingIntegration()],
       sampleRate: sentrySampleRate,
       tracesSampleRate: sentryTraceRate,
+      // Nothing about the user, their pages or requests: see SENTRY_DATA_COLLECTION.
+      dataCollection: SENTRY_DATA_COLLECTION,
     });
     registerErrorReporter((error) => Sentry.captureException(error));
   }

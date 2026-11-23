@@ -8,6 +8,69 @@ const { test, expect, signIn, signOut } = require('./helpers/extension');
  * asserted against had an upgrade state that no longer exists.
  */
 test.describe('Popup', () => {
+  /** The /v2.0/auth requests the popup makes, and storage's endpoint flag. */
+  const openPopupWithEndpoint = async (page, context, extensionId, key) => {
+    await signIn(context, extensionId);
+    const setup = await context.newPage();
+    await setup.goto(`chrome-extension://${extensionId}/popup.html`);
+    await setup.evaluate(
+      (endpoint) => chrome.storage.local.set({ apiEndpoint: endpoint }),
+      key
+    );
+    await setup.close();
+
+    const authRequests = [];
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname.endsWith('/v2.0/auth')) {
+        authRequests.push(request.url());
+      }
+    });
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    return authRequests;
+  };
+
+  const checkEndpointSuccess = (page) =>
+    page.evaluate(async () => {
+      const stored = await chrome.storage.local.get('checkEndpointSuccess');
+      return stored.checkEndpointSuccess;
+    });
+
+  test('sends no credentials when the stored endpoint is not configured', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // A key from an earlier build, or a custom endpoint that is gone: the
+    // stored token belongs to that endpoint, not to the build default.
+    const authRequests = await openPopupWithEndpoint(
+      page,
+      context,
+      extensionId,
+      'GoneEndpoint'
+    );
+
+    await expect.poll(() => checkEndpointSuccess(page)).toBe(false);
+    expect(authRequests).toEqual([]);
+  });
+
+  test('authenticates against a configured stored endpoint', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    const authRequests = await openPopupWithEndpoint(
+      page,
+      context,
+      extensionId,
+      'Prod'
+    );
+
+    await expect.poll(() => authRequests.length).toBeGreaterThan(0);
+    // To the endpoint the stored key names, as built into this extension.
+    const { BASE_URLS } = require('../source/witty.config.json');
+    expect(authRequests[0].startsWith(BASE_URLS.Prod.api)).toBe(true);
+  });
+
   test('shows the sign-in state when signed out', async ({
     page,
     context,
