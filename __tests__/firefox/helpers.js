@@ -52,9 +52,11 @@ const launchFirefox = () =>
     browser: 'firefox',
     headless: !process.env.HEADED,
     defaultViewport: { width: 1400, height: 900 },
-    // Evaluating in moz-extension:// pages is privileged; without this flag
-    // BiDi refuses script calls there.
-    args: ['-remote-allow-system-access'],
+    // Navigating to and evaluating in moz-extension:// pages is privileged;
+    // without system access BiDi refuses both. Firefox 159 removed the
+    // -remote-allow-system-access flag; only this variable grants it now
+    // (https://bugzilla.mozilla.org/show_bug.cgi?id=2054896).
+    env: { ...process.env, MOZ_REMOTE_ALLOW_SYSTEM_ACCESS: '1' },
     extraPrefsFirefox: {
       'extensions.webextensions.uuids': JSON.stringify({
         [GECKO_ID]: EXTENSION_UUID,

@@ -6,6 +6,7 @@ const {
   setEditorText,
   hasHighlightCanvas,
   typeAndWaitForHighlights,
+  waitForHighlights,
 } = require('./helpers/extension');
 const { SAMPLE_TEXT } = require('./helpers/mockApi');
 
@@ -90,6 +91,25 @@ test.describe('Highlights', () => {
     await expect(page.locator('#editor')).toHaveScreenshot(
       'textarea-highlights.png'
     );
+  });
+
+  test('checks a field that was focused before the extension started', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    await signIn(context, extensionId);
+
+    // The fixture's textarea has `autofocus` and already holds SAMPLE_TEXT, so
+    // it is focused before the content script adds its focusin listener. No
+    // click and no typing: the content script has to pick it up on start.
+    await page.goto('/autofocus.html');
+    expect(await page.evaluate(() => document.activeElement?.id)).toBe(
+      'editor'
+    );
+    await waitForHighlights(page);
+
+    expect(await hasHighlightCanvas(page)).toBe(true);
   });
 
   test('renders highlights in a contenteditable', async ({
