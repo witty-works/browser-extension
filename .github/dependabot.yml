@@ -18,6 +18,12 @@ updates:
       default-days: 7
     labels:
       - dependencies
+    ignore:
+      # The shared compiler settings tsconfig.json extends. 1.5 turned on
+      # stricter checks (noUncheckedIndexedAccess, noImplicitOverride,
+      # node16 module resolution, no JSON imports) that the code does not
+      # meet yet, so moving it is a change of its own, made by hand.
+      - dependency-name: "@abhijithvijayan/tsconfig"
     groups:
       # Minor and patch updates in one weekly pull request; major versions
       # come one pull request each.
