@@ -231,7 +231,12 @@ const reInjectContentScripts = () => {
   const matchPattern = (pattern: string, url: string): boolean => {
     // Parse pattern
     const [patternScheme, patternHost] = pattern.split('://');
-    const [patternDomain, patternPath] = patternHost.split('/', 2);
+    // A pattern without a scheme, such as <all_urls>, is not matched here.
+    if (patternHost === undefined) {
+      return false;
+    }
+    // split() always returns at least one element, so the default never applies.
+    const [patternDomain = '', patternPath] = patternHost.split('/', 2);
 
     // Parse URL
     const urlObj = new URL(url);
@@ -385,17 +390,18 @@ const setSettings = () => {
 
 const scanTabsToSetIframeDomains = () => {
   browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
-    if (tabs.length != 0 && tabs[0].url) {
+    const [tab] = tabs;
+    if (tab?.url) {
       browser.scripting
         .executeScript({
-          target: {tabId: tabs[0].id!},
+          target: {tabId: tab.id!},
           func: () =>
             Array.from(document.getElementsByTagName('iframe')).map(
               (iframe) => iframe.src
             ),
         })
         .then((result) => {
-          const iframes = result[0].result;
+          const iframes = result[0]?.result;
           if (iframes) {
             const iframeDomains = iframes
               .filter((iframe: string) => iframe !== '')
@@ -422,8 +428,9 @@ const scanTabsToSetIframeDomains = () => {
 
 const scanTabsToDetectStatus = () => {
   browser.tabs.query({active: true, currentWindow: true}).then((tabs) => {
-    if (tabs.length != 0 && tabs[0].url) {
-      const domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
+    const [tab] = tabs;
+    if (tab?.url) {
+      const domain = getDomainWithoutSubdomain(new URL(tab.url).hostname);
       updateLabelChrome(domain);
     } else {
       removeBadge();
