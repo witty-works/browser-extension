@@ -112,7 +112,7 @@
     "postcss": "^8.5.33",
     "postcss-loader": "^8.2.1",
     "prettier": "^3.10.1",
-    "puppeteer": "^25.17.0",
+    "puppeteer": "25.16.0",
     "quill": "^2.0.3",
     "resolve-url-loader": "^5.0.0",
     "sass": "^1.108.2",
@@ -131,7 +131,8 @@
   "//": [
     "overrides: glob 9.0.0 to 14.0.1 has GHSA-3g3m-2fjr-6pw4. archiver-utils 5.0.2 (via filemanager-webpack-plugin and archiver 7) asks for glob ^10 and has no newer release; @sentry/bundler-plugins 10 (via @sentry/webpack-plugin 5) asks for glob ^13, and only @sentry/webpack-plugin 11, a major update, moves to glob 14.",
     "Both are lifted to glob 14 here. They call only glob.sync(pattern, options) and glob.glob(patterns, { absolute, nodir, ignore, root }), which glob 14 keeps; @sentry/bundler-plugins 11 makes the same glob.glob call on glob ^14.0.3. Remove an entry once its parent requires glob 14.",
-    "html-dom-parser 8.0.2, which html-react-parser 6.1.7 and later pin, ships a bundled copy of domelementtype under lib/node_modules without its package.json, so Vite cannot resolve it and the editor build fails. Held at 8.0.1 until a fixed release; remove the entry then."
+    "html-dom-parser 8.0.2, which html-react-parser 6.1.7 and later pin, ships a bundled copy of domelementtype under lib/node_modules without its package.json, so Vite cannot resolve it and the editor build fails. Held at 8.0.1 until a fixed release; remove the entry then.",
+    "puppeteer is held at 25.16.0: 25.17.0 rolls its Firefox to 159, with which the Firefox smoke harness (__tests__/firefox/helpers.js) no longer reaches the extension's pages, so every Firefox test times out. Lift it once the harness works with Firefox 159."
   ],
   "overrides": {
     "tmp": "^0.2.7",
