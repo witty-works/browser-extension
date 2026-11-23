@@ -1,8 +1,7 @@
 import {IAlert, IAlternatives, IRequest, RequestConfig} from '../types';
 import {
-  BaseUrls,
-  DefaultBaseUrlKey,
   isAllowedBaseUrlKey,
+  resolveBaseUrl,
   wittyVersion,
   X_KEY,
 } from '../constants';
@@ -15,6 +14,8 @@ let BASE_URL_POSTHOG = '';
 let BASE_KEY_POSTHOG = '';
 let token = '';
 let apiKey = '';
+// False while the endpoint key last passed to `setBaseUrls` names no endpoint.
+let credentialsAllowed = true;
 const configHash = '';
 const organizationConfigHash = '';
 
@@ -31,12 +32,20 @@ export const setBaseUrls = (urlKey: string) => {
   // by a dev build, which would silently keep a release build pointed at
   // localhost) or absent from a self-hosted config. Fall back to the build's
   // default rather than throwing on `BaseUrls[urlKey].api`.
-  const key = isAllowedBaseUrlKey(urlKey) ? urlKey : DefaultBaseUrlKey;
+  //
+  // The fallback is for the URL only, which the unauthenticated requests (the
+  // category list, the config options, the sign-in link) still need. The token
+  // or API key stored with an unknown key was issued for that other endpoint,
+  // so no request built here carries one until the key names an endpoint
+  // again; the background resets the key and clears those credentials (see
+  // storedEndpoint.ts). An unset key means the default, as before.
+  const baseUrl = resolveBaseUrl(urlKey);
+  credentialsAllowed = !urlKey || isAllowedBaseUrlKey(urlKey);
 
-  BASE_URL_API = BaseUrls[key].api;
-  BASE_URL_DASHBOARD = BaseUrls[key].dashboard;
-  BASE_URL_POSTHOG = BaseUrls[key].posthog_url;
-  BASE_KEY_POSTHOG = BaseUrls[key].posthog_key;
+  BASE_URL_API = baseUrl.api;
+  BASE_URL_DASHBOARD = baseUrl.dashboard;
+  BASE_URL_POSTHOG = baseUrl.posthog_url;
+  BASE_KEY_POSTHOG = baseUrl.posthog_key;
 };
 
 export const getBaseUrls = () => {
@@ -102,7 +111,11 @@ export const buildRequestHeaders = (
   useToken?: string
 ): {[key: string]: string} => {
   // Build-time key first (CI only), then the user's runtime key, then the
-  // OAuth bearer token.
+  // OAuth bearer token. None of them while the stored endpoint is unknown; see
+  // `setBaseUrls`.
+  if (!credentialsAllowed) {
+    return {...JSON_HEADERS};
+  }
   return {
     ...JSON_HEADERS,
     ...credentialHeaders({apiKey: X_KEY || apiKey, token: useToken}),

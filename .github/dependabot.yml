@@ -1,0 +1,53 @@
+# Security updates are switched on in the repository settings and open pull
+# requests against the default branch, dev; the options below shape them and
+# add weekly version updates.
+version: 2
+updates:
+  # The root package-lock.json holds the extension's dependencies and those
+  # of the editor workspace (packages/editor), so one entry at / updates both
+  # and keeps the lock file in step. A separate entry for packages/editor
+  # would change its package.json without the root lock file.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Version updates wait a week after a release, so a compromised or broken
+    # release has time to be pulled before it is proposed here.
+    cooldown:
+      default-days: 7
+    labels:
+      - dependencies
+    groups:
+      # Minor and patch updates in one weekly pull request; major versions
+      # come one pull request each.
+      npm:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # The actions in .github/workflows, pinned by commit SHA with the version
+  # in a comment; Dependabot updates both.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # The same one-week wait as for npm.
+    cooldown:
+      default-days: 7
+    labels:
+      - dependencies
+    groups:
+      # Minor and patch updates in one weekly pull request; major versions
+      # come one pull request each.
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch

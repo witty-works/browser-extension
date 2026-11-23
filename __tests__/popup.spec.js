@@ -1,4 +1,11 @@
-const { test, expect, signIn, signOut } = require('./helpers/extension');
+const {
+  test,
+  expect,
+  signIn,
+  signOut,
+  setEditorText,
+} = require('./helpers/extension');
+const { BASE_URLS } = require('../source/witty.config.json');
 
 /**
  * Popup states, with no dashboard involved.
@@ -8,6 +15,68 @@ const { test, expect, signIn, signOut } = require('./helpers/extension');
  * asserted against had an upgrade state that no longer exists.
  */
 test.describe('Popup', () => {
+  /** The /v2.0/auth requests the popup makes, and storage's endpoint flag. */
+  const openPopupWithEndpoint = async (page, context, extensionId, key) => {
+    await signIn(context, extensionId);
+    const setup = await context.newPage();
+    await setup.goto(`chrome-extension://${extensionId}/popup.html`);
+    await setup.evaluate(
+      (endpoint) => chrome.storage.local.set({ apiEndpoint: endpoint }),
+      key
+    );
+    await setup.close();
+
+    const authRequests = [];
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname.endsWith('/v2.0/auth')) {
+        authRequests.push(request.url());
+      }
+    });
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    return authRequests;
+  };
+
+  const checkEndpointSuccess = (page) =>
+    page.evaluate(async () => {
+      const stored = await chrome.storage.local.get('checkEndpointSuccess');
+      return stored.checkEndpointSuccess;
+    });
+
+  test('sends no credentials when the stored endpoint is not configured', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // A key from an earlier build, or a custom endpoint that is gone: the
+    // stored token belongs to that endpoint, not to the build default.
+    const authRequests = await openPopupWithEndpoint(
+      page,
+      context,
+      extensionId,
+      'GoneEndpoint'
+    );
+
+    await expect.poll(() => checkEndpointSuccess(page)).toBe(false);
+    expect(authRequests).toEqual([]);
+  });
+
+  test('authenticates against a configured stored endpoint', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    const authRequests = await openPopupWithEndpoint(
+      page,
+      context,
+      extensionId,
+      'Prod'
+    );
+
+    await expect.poll(() => authRequests.length).toBeGreaterThan(0);
+    // To the endpoint the stored key names, as built into this extension.
+    expect(authRequests[0].startsWith(BASE_URLS.Prod.api)).toBe(true);
+  });
+
   test('shows the sign-in state when signed out', async ({
     page,
     context,
@@ -87,6 +156,191 @@ test.describe('Popup', () => {
 
     const messages = await page.evaluate(() => window.__sentMessages);
     expect(messages).toEqual([{ type: 'witty:sign-in', register: true }]);
+  });
+});
+
+/**
+ * A stored endpoint key that names no configured endpoint: one left by another
+ * build, or 'Custom' after the custom endpoint lost its API URL. The token or
+ * API key stored with it was issued for that endpoint, so it must not reach
+ * the build default the key would otherwise fall back to (storedEndpoint.ts).
+ */
+test.describe('Stored endpoint that is not configured', () => {
+  // The default of this (production, TESTING) build; see DefaultBaseUrlKey.
+  const DEFAULT_KEY = 'Prod';
+  const CUSTOM_API = 'https://api.custom.example/';
+
+  /** Every request, from any page or the service worker, with a credential. */
+  const recordCredentialedRequests = (context) => {
+    const seen = [];
+    const pending = [];
+    const inspect = (request) => {
+      pending.push(
+        request
+          .allHeaders()
+          .then((headers) => {
+            const credential = headers.authorization
+              ? 'authorization'
+              : headers['x-key']
+                ? 'x-key'
+                : '';
+            if (credential) seen.push({ url: request.url(), credential });
+          })
+          .catch(() => {})
+      );
+    };
+    context.on('request', inspect);
+    return async () => {
+      await Promise.all(pending);
+      return seen;
+    };
+  };
+
+  /**
+   * Sign in (as `signIn` does) with `items` stored alongside, in one write.
+   * Done from the options page, whose only requests carry no credential, so
+   * every credentialed request recorded afterwards follows from this state.
+   */
+  const seedSignedIn = async (context, extensionId, items) => {
+    const setup = await context.newPage();
+    await setup.goto(`chrome-extension://${extensionId}/options.html`);
+    await setup.evaluate(async (values) => {
+      await chrome.storage.session?.set({
+        accessToken: 'fixture-access-token',
+      });
+      await chrome.storage.local.set({
+        signedIn: true,
+        refreshToken: 'fixture-refresh-token',
+        accessTokenExpiresAt: Date.now() + 60 * 60 * 1000,
+        checkEndpointSuccess: true,
+        domains: [],
+        organizationDomains: { list: [], type: 'deny' },
+        spellChecking: true,
+        apiDelay: 0,
+        ...values,
+      });
+    }, items);
+    await setup.close();
+  };
+
+  const readStorage = (page) =>
+    page.evaluate(async () => ({
+      local: await chrome.storage.local.get(null),
+      session: (await chrome.storage.session?.get(null)) || {},
+    }));
+
+  /** Type into a fixture page and give the content script time to check it. */
+  const typeOnPage = async (context) => {
+    const page = await context.newPage();
+    await page.goto('/textarea.html');
+    await setEditorText(page);
+    // Longer than the check debounce (apiDelay is 0 after signIn) and the
+    // round trip to the mocked API; a credentialed check would be sent by then.
+    await page.waitForTimeout(3000);
+    await page.close();
+  };
+
+  test('an account token is cleared, not sent to the default endpoint', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    const credentialed = recordCredentialedRequests(context);
+    await seedSignedIn(context, extensionId, { apiEndpoint: 'GoneEndpoint' });
+
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await typeOnPage(context);
+    expect(await credentialed()).toEqual([]);
+
+    await expect
+      .poll(async () => (await readStorage(page)).local.apiEndpoint)
+      .toBe(DEFAULT_KEY);
+    const { local, session } = await readStorage(page);
+    expect(session.accessToken || '').toBe('');
+    expect(local.accessToken || '').toBe('');
+    expect(local.refreshToken || '').toBe('');
+    expect(local.signedIn).toBe(false);
+    expect(local.checkEndpointSuccess).toBe(false);
+  });
+
+  test('an API key for a custom endpoint that lost its API URL is cleared, not sent', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    const credentialed = recordCredentialedRequests(context);
+    await seedSignedIn(context, extensionId, {
+      apiEndpoint: 'Custom',
+      customEndpoint: { api: '', dashboard: '', oauth_client_id: '' },
+      authMode: 'apiKey',
+      apiKey: { endpoint: 'Custom', value: 'stale-api-key' },
+    });
+
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await typeOnPage(context);
+    expect(await credentialed()).toEqual([]);
+
+    await expect
+      .poll(async () => (await readStorage(page)).local.apiEndpoint)
+      .toBe(DEFAULT_KEY);
+    const { local, session } = await readStorage(page);
+    expect(local.apiKey?.value || '').toBe('');
+    expect(local.authMode).not.toBe('apiKey');
+    expect(session.accessToken || '').toBe('');
+    expect(local.signedIn).toBe(false);
+  });
+
+  test('a token for the stored default endpoint is still sent to it', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    const credentialed = recordCredentialedRequests(context);
+    await seedSignedIn(context, extensionId, { apiEndpoint: DEFAULT_KEY });
+
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await typeOnPage(context);
+
+    const sent = await credentialed();
+    expect(sent.length).toBeGreaterThan(0);
+    for (const request of sent) {
+      expect(request.url.startsWith(BASE_URLS[DEFAULT_KEY].api)).toBe(true);
+      expect(request.credential).toBe('authorization');
+    }
+    expect((await readStorage(page)).local.apiEndpoint).toBe(DEFAULT_KEY);
+  });
+
+  test('an API key for a registered custom endpoint is still sent to it', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    const credentialed = recordCredentialedRequests(context);
+    await seedSignedIn(context, extensionId, {
+      apiEndpoint: 'Custom',
+      customEndpoint: {
+        api: CUSTOM_API,
+        dashboard: '',
+        oauth_client_id: '',
+        posthog_url: '',
+        posthog_key: '',
+      },
+      authMode: 'apiKey',
+      apiKey: { endpoint: 'Custom', value: 'custom-api-key' },
+    });
+
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await typeOnPage(context);
+
+    const sent = await credentialed();
+    expect(sent.length).toBeGreaterThan(0);
+    for (const request of sent) {
+      expect(request.url.startsWith(CUSTOM_API)).toBe(true);
+      expect(request.credential).toBe('x-key');
+    }
+    const { local } = await readStorage(page);
+    expect(local.apiEndpoint).toBe('Custom');
+    expect(local.apiKey.value).toBe('custom-api-key');
   });
 });
 

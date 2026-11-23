@@ -4,6 +4,7 @@ import {useTranslation} from 'react-i18next';
 import {namespaces} from '../../../i18n/i18n.constants';
 import {
   CONFIG_OPTION_FIELDS,
+  ConfigOptionField,
   levelFromDisabled,
   LOCKED_PROFICIENCY,
   ProficiencyLevel,
@@ -36,7 +37,7 @@ export interface CheckPreferencesProps {
   idPrefix?: string;
 }
 
-const FORMAT_LABEL_KEYS: Record<string, string> = {
+const FORMAT_LABEL_KEYS: Record<ConfigOptionField, string> = {
   gendered_roles_format: 'genderedRolesFormat',
   german_gender_ending: 'germanGenderEnding',
   french_gender_separator: 'frenchGenderSeparator',
@@ -112,6 +113,7 @@ const CheckPreferences: React.FC<CheckPreferencesProps> = ({
           {CONFIG_OPTION_FIELDS.filter((field) => configOptions[field]).map(
             (field) => {
               const option = configOptions[field];
+              if (!option) return null;
               const labelKey = FORMAT_LABEL_KEYS[field];
 
               return (

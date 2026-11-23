@@ -1,11 +1,13 @@
 import browser from 'webextension-polyfill';
 import {
   apiKeyFromStorage,
-  BaseUrls,
   DefaultBaseUrlKey,
   DEV_ENV,
   getAuthMode,
+  isAllowedBaseUrlKey,
+  isStoredEndpointConfigured,
   registerCustomEndpointFromStorage,
+  resolveBaseUrl,
   STATIC_ACCESS_TOKEN,
   StorageKeys,
   wittyVersion,
@@ -162,6 +164,12 @@ export const getNewAccessToken = async () => {
       StorageKeys.API_ENDPOINT_KEY,
       StorageKeys.CUSTOM_ENDPOINT,
     ]);
+    // The refresh token belongs to the stored endpoint. When that names no
+    // endpoint, refreshing against the default would hand it to the wrong
+    // dashboard; the background clears it instead (see storedEndpoint.ts).
+    if (!isStoredEndpointConfigured(result)) {
+      return;
+    }
     registerCustomEndpointFromStorage(result);
     const urlKey =
       (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey;
@@ -390,6 +398,15 @@ export const makeAuthRequest = () => {
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
+      // A stored key that names no endpoint (one from an earlier build, or a
+      // custom endpoint that is gone) must not fall back to the default here:
+      // the stored token or API key belongs to that other endpoint. The
+      // background reports it, clears those credentials and resets the key
+      // (see storedEndpoint.ts); until then this sends nothing.
+      if (!isStoredEndpointConfigured(result) || !isAllowedBaseUrlKey(urls)) {
+        storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+        return;
+      }
       const {accessToken} = await readTokens();
 
       if (accessToken) {
@@ -400,7 +417,7 @@ export const makeAuthRequest = () => {
           headers,
         };
 
-        fetch(createUrl(BaseUrls[urls].api, 'v2.0/auth'), config).then(
+        fetch(createUrl(resolveBaseUrl(urls).api, 'v2.0/auth'), config).then(
           async (response) => {
             if (response.ok) {
               const json = await response.json();
@@ -420,7 +437,7 @@ export const makeAuthRequest = () => {
           headers,
         };
 
-        fetch(createUrl(BaseUrls[urls].api, 'v2.0/auth'), config)
+        fetch(createUrl(resolveBaseUrl(urls).api, 'v2.0/auth'), config)
           .then(async (response) => {
             if (response.ok) {
               const json = await response.json();

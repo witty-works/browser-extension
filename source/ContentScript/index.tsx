@@ -1,7 +1,11 @@
 import * as Sentry from '@sentry/react';
+import {
+  SENTRY_PRIVACY_OPTIONS,
+  sentryIntegrations,
+} from '../shared/sentryOptions';
 import {browser, Storage} from 'webextension-polyfill-ts';
 import {
-  BaseUrls,
+  resolveBaseUrl,
   StorageKeys,
   wittyVersion,
   exposeWittyIdAllowList,
@@ -44,15 +48,13 @@ const storageChange = (
   scriptId: string
 ) => {
   const currentDomain = getDomainWithoutSubdomain(window.location.hostname);
-  const changedItems = Object.keys(changes);
-
-  for (const item of changedItems) {
+  for (const [item, change] of Object.entries(changes)) {
     if (item === StorageKeys.DOMAINS) {
-      handleDomainsFromDashboard(changes[item].newValue, scriptId);
+      handleDomainsFromDashboard(change.newValue, scriptId);
     }
 
     if (item === StorageKeys.ORGANIZATION_DOMAINS) {
-      const orgDomains = changes[item].newValue;
+      const orgDomains = change.newValue;
       const isOnOrgDomainList =
         (orgDomains?.type === 'deny' &&
           orgDomains.list?.includes(currentDomain)) ||
@@ -65,10 +67,7 @@ const storageChange = (
 
 const initialize = () => {
   const sentryDSN = defaultConfig.SENTRY_DSN;
-  const {
-    SENTRY_SAMPLE_RATE: sentrySampleRate,
-    SENTRY_TRACE_RATE: sentryTraceRate,
-  } = defaultConfig;
+  const {SENTRY_SAMPLE_RATE: sentrySampleRate} = defaultConfig;
   const domain = getDomainWithoutSubdomain(window.location.hostname);
   const scriptId = uuidv4();
 
@@ -99,7 +98,7 @@ const initialize = () => {
           // only be signed in from its own UI now, via the OAuth flow the
           // background worker runs. A page-supplied URL that hands credentials
           // to the extension is exactly the pattern that was removed.
-          const loginUrl = `${BaseUrls[apiEndpoint].dashboard}login`;
+          const loginUrl = `${resolveBaseUrl(apiEndpoint).dashboard}login`;
           wittyIsInstalledElement.setAttribute('login-url', loginUrl);
         }
       })
@@ -161,9 +160,12 @@ const initialize = () => {
       dsn: sentryDSN,
       // The release the source maps were uploaded to (webpack.config.js).
       release: process.env.SENTRY_RELEASE,
-      integrations: [Sentry.browserTracingIntegration()],
+      // No browserTracingIntegration: it names its spans, and the transaction
+      // of every error event, after the path of the page this runs in.
+      integrations: sentryIntegrations(),
       sampleRate: sentrySampleRate,
-      tracesSampleRate: sentryTraceRate,
+      // Nothing about the user, their pages or requests: see sentryOptions.ts.
+      ...SENTRY_PRIVACY_OPTIONS,
     });
     registerErrorReporter((error) => Sentry.captureException(error));
   }

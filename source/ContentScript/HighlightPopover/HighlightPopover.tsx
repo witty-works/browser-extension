@@ -725,16 +725,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       type='button'
                       className='witty-works-ext-wittyworks-popover-alternative-btn witty-works-ext-lato-popover-text-green witty-works-ext-margin-right'
                       onPointerDown={(e) =>
-                        clickAlternative(
-                          e.nativeEvent,
-                          data.alert.data?.alternatives[index]?.text
-                        )
+                        clickAlternative(e.nativeEvent, alternative.text)
                       }
-                      onKeyDown={alternativeKeyDown(
-                        data.alert.data?.alternatives[index]?.text
-                      )}
-                      aria-label={data.alert.data?.alternatives[index]?.text}
-                      title={data.alert.data?.alternatives[index]?.text}
+                      onKeyDown={alternativeKeyDown(alternative.text)}
+                      aria-label={alternative.text}
+                      title={alternative.text}
                     >
                       {renderAlternative(alternative)}
                     </button>

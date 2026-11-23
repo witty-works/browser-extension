@@ -51,15 +51,11 @@ const renderPopup = async () => {
       browser.tabs
         .query({active: true, currentWindow: true})
         .then((tabs) => {
-          if (tabs.length != 0 && tabs[0].url) {
-            domain = getDomainWithoutSubdomain(new URL(tabs[0].url).hostname);
+          const [tab] = tabs;
+          if (tab?.url) {
+            domain = getDomainWithoutSubdomain(new URL(tab.url).hostname);
             if (!domain) return;
-            renderPopupChrome(
-              appId,
-              domain,
-              new URL(tabs[0].url).href,
-              isLocked
-            );
+            renderPopupChrome(appId, domain, new URL(tab.url).href, isLocked);
           } else if (
             defaultConfig.CHROME_AND_FIREFOX_SITES.includes(
               window.location.protocol

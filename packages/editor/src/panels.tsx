@@ -64,7 +64,7 @@ const Panel: React.FC<{
     // A labelled section is a region. Escape closes the panel from anywhere
     // inside it; the controls in it are the interactive elements, the section
     // itself only takes focus on open.
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    // eslint-disable-next-line jsx-a11y-x/no-noninteractive-element-interactions
     <section
       ref={ref}
       id={id}
@@ -167,7 +167,14 @@ export const SwitchPanel: React.FC<{
     setMessage(t('switching'));
     onSwitch(target)
       .then((result) => {
-        if (mounted.current) setMessage(switchMessage(t, result, options));
+        // An adapter: i18next 27 types t as overloads, which do not fit
+        // switchMessage's plain translate function as they are.
+        const translate = (
+          key: string,
+          values?: Record<string, unknown>
+        ): string => t(key, values ?? {});
+        if (mounted.current)
+          setMessage(switchMessage(translate, result, options));
       })
       .catch(() => {
         if (mounted.current) setMessage(t('statusFailed'));

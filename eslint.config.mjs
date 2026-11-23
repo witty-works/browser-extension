@@ -10,6 +10,12 @@
  * Plugin renames that came with it: eslint-plugin-import -> import-x, and
  * eslint-plugin-node -> eslint-plugin-n (so `node/*` rules are now `n/*`).
  *
+ * React and accessibility rules come from @eslint-react/eslint-plugin and
+ * eslint-plugin-jsx-a11y-x rather than the shared config's react preset: that
+ * preset loads eslint-plugin-react and eslint-plugin-jsx-a11y, which do not
+ * accept ESLint 10. The block for .tsx files below carries the same rules
+ * under their new names, with the shared preset's severities.
+ *
  * Flat config resolves a rule only in a block where its plugin is registered,
  * so the override blocks below re-register the same plugin instances the
  * shared config uses rather than relying on them leaking across blocks.
@@ -18,14 +24,13 @@ import globals from 'globals';
 import tseslintPlugin from '@typescript-eslint/eslint-plugin';
 import importXPlugin from 'eslint-plugin-import-x';
 import prettierPlugin from 'eslint-plugin-prettier';
-import reactPlugin from 'eslint-plugin-react';
+import reactPlugin from '@eslint-react/eslint-plugin';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
-import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y-x';
 import nPlugin from 'eslint-plugin-n';
 
 import typescript from '@abhijithvijayan/eslint-config/typescript';
 import node from '@abhijithvijayan/eslint-config/node';
-import react from '@abhijithvijayan/eslint-config/react';
 
 const TS = ['**/*.ts', '**/*.tsx'];
 const JS = ['**/*.js', '**/*.mjs', '**/*.cjs'];
@@ -40,7 +45,11 @@ export default [
       'extension/**',
       'coverage/**',
       'playwright-report/**',
+      'playwright-report-editor/**',
+      'playwright-report-firefox/**',
       'test-results/**',
+      'test-results-editor/**',
+      'test-results-firefox/**',
       // Type-checked against the built declarations (`npm run test:types`),
       // which only exist after a build.
       'packages/editor/types-test/**',
@@ -56,7 +65,81 @@ export default [
       parserOptions: { project: './packages/editor/tsconfig.json' },
     },
   },
-  ...react({ files: ['**/*.tsx'] }),
+
+  // React components. Each rule is the equivalent of one the shared config's
+  // react preset (eslint-plugin-react recommended plus its own additions)
+  // enables, at the same severity. eslint-plugin-react rules without an
+  // equivalent are left out where TypeScript or React 19 already rules the
+  // mistake out (duplicate or undefined JSX names, string refs, isMounted,
+  // unescaped `>` and `}`) or where they only police class components, of
+  // which there are none.
+  {
+    files: ['**/*.tsx'],
+    plugins: {
+      '@eslint-react': reactPlugin,
+      'jsx-a11y-x': jsxA11yPlugin,
+    },
+    languageOptions: {
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+    rules: {
+      // eslint-plugin-react recommended, as raised by the shared config.
+      '@eslint-react/no-missing-component-display-name': 'warn',
+      '@eslint-react/no-missing-key': 'error',
+      '@eslint-react/jsx-no-comment-textnodes': 'error',
+      '@eslint-react/dom-no-unsafe-target-blank': 'error',
+      '@eslint-react/jsx-no-children-prop': 'error',
+      '@eslint-react/dom-no-dangerously-set-innerhtml-with-children': 'error',
+      '@eslint-react/no-direct-mutation-state': 'error',
+      '@eslint-react/dom-no-find-dom-node': 'error',
+      '@eslint-react/dom-no-render-return-value': 'error',
+      '@eslint-react/dom-no-unknown-property': 'error',
+      // react/no-deprecated and react/no-unsafe.
+      '@eslint-react/dom-no-render': 'error',
+      '@eslint-react/dom-no-hydrate': 'error',
+      '@eslint-react/no-component-will-mount': 'error',
+      '@eslint-react/no-component-will-receive-props': 'error',
+      '@eslint-react/no-component-will-update': 'error',
+      '@eslint-react/no-unsafe-component-will-mount': 'error',
+      '@eslint-react/no-unsafe-component-will-receive-props': 'error',
+      '@eslint-react/no-unsafe-component-will-update': 'error',
+
+      // The shared config's own additions.
+      '@eslint-react/dom-no-missing-button-type': 'error',
+      '@eslint-react/no-array-index-key': 'error',
+      '@eslint-react/dom-no-dangerously-set-innerhtml': 'error',
+
+      // eslint-plugin-jsx-a11y-x carries eslint-plugin-jsx-a11y's rules under
+      // the same names; these are the shared config's choices.
+      'jsx-a11y-x/alt-text': 'warn',
+      'jsx-a11y-x/anchor-has-content': 'error',
+      'jsx-a11y-x/anchor-is-valid': ['warn', { aspects: ['invalidHref'] }],
+      'jsx-a11y-x/aria-activedescendant-has-tabindex': 'error',
+      'jsx-a11y-x/aria-props': 'error',
+      'jsx-a11y-x/aria-proptypes': 'error',
+      'jsx-a11y-x/aria-role': 'error',
+      'jsx-a11y-x/aria-unsupported-elements': 'error',
+      'jsx-a11y-x/click-events-have-key-events': 'error',
+      'jsx-a11y-x/heading-has-content': 'error',
+      'jsx-a11y-x/html-has-lang': 'error',
+      'jsx-a11y-x/iframe-has-title': 'error',
+      'jsx-a11y-x/img-redundant-alt': 'error',
+      'jsx-a11y-x/interactive-supports-focus': 'warn',
+      'jsx-a11y-x/lang': 'error',
+      'jsx-a11y-x/media-has-caption': 'warn',
+      'jsx-a11y-x/mouse-events-have-key-events': 'error',
+      'jsx-a11y-x/no-access-key': 'error',
+      'jsx-a11y-x/no-distracting-elements': 'error',
+      'jsx-a11y-x/no-interactive-element-to-noninteractive-role': 'warn',
+      'jsx-a11y-x/no-noninteractive-element-interactions': 'warn',
+      'jsx-a11y-x/no-noninteractive-element-to-interactive-role': 'warn',
+      'jsx-a11y-x/no-redundant-roles': 'error',
+      'jsx-a11y-x/role-has-required-aria-props': 'error',
+      'jsx-a11y-x/role-supports-aria-props': 'error',
+      'jsx-a11y-x/scope': 'error',
+      'jsx-a11y-x/tabindex-no-positive': 'warn',
+    },
+  },
 
   // Build scripts, the Playwright suite and its fixture server are plain CJS
   // running under Node, not part of the TypeScript program.
@@ -68,9 +151,9 @@ export default [
       '@typescript-eslint': tseslintPlugin,
       'import-x': importXPlugin,
       prettier: prettierPlugin,
-      react: reactPlugin,
+      '@eslint-react': reactPlugin,
       'react-hooks': reactHooksPlugin,
-      'jsx-a11y': jsxA11yPlugin,
+      'jsx-a11y-x': jsxA11yPlugin,
     },
     languageOptions: {
       globals: {
@@ -87,8 +170,6 @@ export default [
 
       'no-console': 'off',
       'no-extend-native': 'off',
-      'react/jsx-props-no-spreading': 'off',
-      'jsx-a11y/label-has-associated-control': 'off',
       'class-methods-use-this': 'off',
       'max-classes-per-file': 'off',
 
@@ -117,12 +198,11 @@ export default [
       'no-unused-expressions': 'warn',
       'func-names': 'warn',
       'import-x/no-mutable-exports': 'warn',
-      'jsx-a11y/click-events-have-key-events': 'warn',
-      'jsx-a11y/media-has-caption': 'warn',
-      'react/button-has-type': 'warn',
-      'react/destructuring-assignment': 'warn',
-      'react/no-array-index-key': 'warn',
-      'react/no-danger': 'warn',
+      'jsx-a11y-x/click-events-have-key-events': 'warn',
+      'jsx-a11y-x/media-has-caption': 'warn',
+      '@eslint-react/dom-no-missing-button-type': 'warn',
+      '@eslint-react/no-array-index-key': 'warn',
+      '@eslint-react/dom-no-dangerously-set-innerhtml': 'warn',
 
       // react-hooks defaults this to a warning upstream; the shared config
       // raises it to an error. 39 pre-existing hits, several of which need a
@@ -140,7 +220,7 @@ export default [
 
       // Fires on an array of frames that is indexed one element at a time
       // rather than rendered as a list, so keys would not change anything.
-      'react/jsx-key': 'warn',
+      '@eslint-react/no-missing-key': 'warn',
     },
   },
 
