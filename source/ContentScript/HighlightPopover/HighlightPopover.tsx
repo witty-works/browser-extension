@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useId} from 'react';
 import {useFloating, flip, offset, shift} from '@floating-ui/react-dom';
 
 import {
@@ -30,11 +30,13 @@ import './HighlightPopover.scss';
 import {getColor} from '../../shared/constants';
 import {getActiveDocument} from '../../shared/activeDocument';
 import {
+  containsFocus,
+  eventIsInside,
   getScrollableParentClosestToElement,
   iframePositionRecquired,
 } from '../../shared/DOMutils';
 
-import parse from 'html-react-parser';
+import {renderCuratedHtml} from './curatedHtml';
 import {computeDiff} from '../../shared/diff';
 import type {LLMAlternativesCacheValue} from '../../shared/ApiServices/llmAlternativesService';
 
@@ -102,6 +104,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const {t, i18n} = useTranslation(namespaces.popover);
+  // Ties each alternative button to its rewrite preview (aria-describedby).
+  const previewIdPrefix = useId();
   const {
     analytics,
     alternativeHovered,
@@ -117,6 +121,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     clickAlternative,
     alternativeKeyDown,
     handleIgnoreClick,
+    ignorePermanentlyClick,
     goToAdjacentAlert,
   } = usePopoverViewModel({
     analytics: popoverAnalytics,
@@ -132,6 +137,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     llmAlternativesEnabled,
     ignoreTermPermanently,
     onAlternativeAccepted,
+    popoverHasFocus: () => containsFocus(refs.floating.current),
   });
 
   useEffect(() => {
@@ -248,9 +254,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       }
       e.preventDefault();
       e.stopPropagation();
-      const focusWasInside = refs.floating.current?.contains(
-        document.activeElement
-      );
+      const focusWasInside = containsFocus(refs.floating.current);
       hidePopover(true);
       // Only pull focus back to the input when the popover held it; otherwise
       // the user is somewhere else (e.g. still typing) and focus must stay.
@@ -276,8 +280,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   const handleClickOutside = (event: MouseEvent) => {
-    const hasClickedOutsidePopOver = !refs.floating.current?.contains(
-      event.target as HTMLElement
+    const hasClickedOutsidePopOver = !eventIsInside(
+      refs.floating.current,
+      event
     );
 
     const doc = getActiveDocument().documentElement || getActiveDocument().body;
@@ -334,6 +339,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         return (
           <div
             key={`explanation-${index}-${alternative.text || 'alt'}`}
+            id={previewId(index)}
             style={{
               position: 'relative',
               top: 0,
@@ -356,6 +362,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
     return allAlternatives;
   };
+
+  const previewId = (index: number): string =>
+    `${previewIdPrefix}-preview-${index}`;
+
+  /**
+   * The id of the rewrite preview for the alternative at `index`, once there
+   * is one: a screen reader then reads the rewritten sentence as the button's
+   * description, as a sighted user sees it on hover or focus.
+   */
+  const previewIdFor = (index: number): string | undefined =>
+    llmAlternativesResponse && !llmAlternativesResponse.loading
+      ? previewId(index)
+      : undefined;
 
   const renderExplanation = (alternative: IAlternatives) => {
     let rephrasing = llmAlternativesResponse?.data?.results?.get(
@@ -603,7 +622,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       <a
                         className='witty-works-ext-dropdown-select witty-works-ext-container-row'
                         href={data.alert.data.source.url}
-                        target='_new'
+                        target='_blank'
+                        rel='noopener noreferrer'
                         aria-label={t('visitSource')}
                         title={t('visitSource')}
                       >
@@ -628,13 +648,18 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         >
           <div className='witty-works-ext-learning-bite-dig-deeper'>
             <div>
-              <div>{parse(data.alert.data?.explanation?.long_text ?? '')}</div>
+              <div>
+                {renderCuratedHtml(
+                  data.alert.data?.explanation?.long_text ?? ''
+                )}
+              </div>
               <div>
                 {data.alert.data?.explanation?.url && (
                   <a
                     className='witty-works-dig-deeper witty-works-ext-container-row'
                     href={data.alert.data.explanation.url}
-                    target='_new'
+                    target='_blank'
+                    rel='noopener noreferrer'
                     aria-label={t('leanrMoreExtendedText')}
                     title={t('leanrMoreExtendedText')}
                   >
@@ -689,6 +714,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     onMouseLeave={() => {
                       setAlternativeHovered(null);
                     }}
+                    // Keyboard users see the same preview of what Enter or
+                    // Space will insert.
+                    onFocus={() => {
+                      setAlternativeHovered(alternative);
+                    }}
+                    onBlur={() => {
+                      setAlternativeHovered(null);
+                    }}
                     key={`${index}-${alternative.text || 'alt'}-container`}
                   >
                     <button
@@ -699,6 +732,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         clickAlternative(e.nativeEvent, ' ')
                       }
                       onKeyDown={alternativeKeyDown(' ')}
+                      aria-describedby={previewIdFor(index)}
                       aria-label={`${t('removeText')} ${data.alert.data?.text}`}
                       title={t('removeText')}
                     >
@@ -720,6 +754,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     onMouseLeave={() => {
                       setAlternativeHovered(null);
                     }}
+                    // Keyboard users see the same preview of what Enter or
+                    // Space will insert.
+                    onFocus={() => {
+                      setAlternativeHovered(alternative);
+                    }}
+                    onBlur={() => {
+                      setAlternativeHovered(null);
+                    }}
                   >
                     <button
                       type='button'
@@ -728,6 +770,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         clickAlternative(e.nativeEvent, alternative.text)
                       }
                       onKeyDown={alternativeKeyDown(alternative.text)}
+                      aria-describedby={previewIdFor(index)}
                       aria-label={alternative.text}
                       title={alternative.text}
                     >
@@ -809,7 +852,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </button>
           {dashboardAvailable && data?.alert?.data?.text.length <= 50 && (
             <button
-              onClick={handleIgnoreClick('ignore_permanently')}
+              onClick={ignorePermanentlyClick}
               className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top witty-works-button'
               aria-label={t('ignorePermanently')}
               title={t('ignorePermanently')}

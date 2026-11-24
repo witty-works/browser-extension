@@ -9,6 +9,7 @@ import {
 import {useStateRef} from '../../shared/customHooks/useStateRef';
 import type {LLMAlternativesCacheValue} from '../../shared/ApiServices/llmAlternativesService';
 import type {PopoverData} from './HighlightPopover';
+import {isTrustedEvent} from '../../shared/trustedEvent';
 
 /**
  * Data and behavior of the highlight popover, separated from its rendering
@@ -46,6 +47,8 @@ export interface PopoverViewModelDeps {
   llmAlternativesEnabled: boolean;
   ignoreTermPermanently: (term: string) => Promise<void>;
   onAlternativeAccepted: () => void;
+  /** Whether focus is inside the popover, wherever it is rendered. */
+  popoverHasFocus: () => boolean;
 }
 
 export const usePopoverViewModel = ({
@@ -62,6 +65,7 @@ export const usePopoverViewModel = ({
   llmAlternativesEnabled,
   ignoreTermPermanently,
   onAlternativeAccepted,
+  popoverHasFocus,
 }: PopoverViewModelDeps) => {
   const [alternativeHovered, setAlternativeHovered] =
     useState<IAlternatives | null>(null);
@@ -116,19 +120,16 @@ export const usePopoverViewModel = ({
     logClose && analytics.popoverLogs(data.alert, 'popover_close');
     setShowLearningBite(false);
 
+    // The host unmounts the popover and removes its container.
     hide();
-    //in case input is removed from the dom before popover is closed (clicking outside the element), also remove it here
-    const popoverContainers =
-      window.document.getElementsByTagName('ww-popover');
-    Array.from(popoverContainers).forEach((popoverContainer) => {
-      popoverContainer.remove();
-    });
   };
 
   const clickAlternative = (
     e: MouseEvent | KeyboardEvent,
     alternative: string
   ) => {
+    // Only the user changes their text: not a page script (isTrustedEvent).
+    if (!isTrustedEvent(e)) return;
     //Log the clicked alternative
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -148,6 +149,7 @@ export const usePopoverViewModel = ({
       if (e.key !== 'Enter' && e.key !== ' ') {
         return;
       }
+      if (!isTrustedEvent(e.nativeEvent)) return;
       (element as HTMLElement).focus?.();
       clickAlternative(e.nativeEvent, alternative);
     };
@@ -177,9 +179,7 @@ export const usePopoverViewModel = ({
             // focus back on the input, matching the Escape path — but only
             // when the popover actually held it (a mouse user's focus never
             // left the input and must not be disturbed).
-            const focusWasInside = !!document
-              .getElementById('witty-works-ext-popover')
-              ?.contains(document.activeElement);
+            const focusWasInside = popoverHasFocus();
             hidePopover();
             if (focusWasInside) {
               (element as HTMLElement).focus?.();
@@ -191,6 +191,12 @@ export const usePopoverViewModel = ({
           setIsFailure(ignoreType);
         });
     }
+  };
+
+  /** Writing to the user's dashboard takes the user's own click. */
+  const ignorePermanentlyClick = (e: React.MouseEvent): void => {
+    if (!isTrustedEvent(e.nativeEvent)) return;
+    handleIgnoreClick('ignore_permanently')();
   };
 
   /** Arrow-button navigation collapses the learning bite before moving. */
@@ -214,6 +220,7 @@ export const usePopoverViewModel = ({
     clickAlternative,
     alternativeKeyDown,
     handleIgnoreClick,
+    ignorePermanentlyClick,
     goToAdjacentAlert,
   };
 };

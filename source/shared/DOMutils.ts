@@ -247,3 +247,33 @@ export const getScrollableParentClosestToElement = (element: HTMLElement) => {
   }
   return document.body;
 };
+
+/**
+ * Whether focus is inside `container`, which may sit in a shadow root: there
+ * `document.activeElement` is the shadow host, so the root's own
+ * `activeElement` is the one to ask.
+ */
+export const containsFocus = (container: Element | null): boolean => {
+  if (!container) return false;
+  const root = container.getRootNode() as Document | ShadowRoot;
+  const active = root.activeElement;
+  return !!active && container.contains(active);
+};
+
+/**
+ * Whether `event` happened inside `container`. In a shadow root a listener on
+ * the document sees the event retargeted to the host, and a closed root hides
+ * the rest of the path; the host holds only the container, so reaching the
+ * host counts as inside.
+ */
+export const eventIsInside = (
+  container: Element | null,
+  event: Event
+): boolean => {
+  if (!container) return false;
+  const root = container.getRootNode();
+  if (root instanceof ShadowRoot) {
+    return event.composedPath().includes(root.host);
+  }
+  return container.contains(event.target as Node);
+};

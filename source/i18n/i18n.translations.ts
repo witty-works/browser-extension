@@ -59,6 +59,9 @@ export const de = {
       'Deine Organisation legt die Gender-Form auf {{format}} fest. Der Text wurde nicht geändert.',
   },
   [namespaces.options]: {
+    confirmBeforeChecking: 'Vor dem Prüfen eines Feldes fragen',
+    confirmBeforeCheckingHint:
+      'Witty sendet nichts aus einem Feld, bevor du es bestätigst, einmal pro Feld und Seite.',
     languageHeadline: 'Sprache und Gender-Formen',
     genderedRolesFormat: 'Generisches Maskulinum',
     genderedRolesFormatHint:
@@ -180,6 +183,9 @@ export const de = {
       'API Key Authentifizierung fehlgeschlagen ({{status}}): {{message}} — überprüfe den API Key oder Endpunkt.',
   },
   [namespaces.popover]: {
+    confirmCheckQuestion: 'Dieses Feld mit Witty prüfen?',
+    confirmCheckYes: 'Mit Witty prüfen',
+    confirmCheckDismiss: 'Nicht jetzt',
     insteadTry: "Wie wär's mit ...",
     learnMore: 'Warum',
     leanrMoreExtendedText: 'Warum das so ist',
@@ -303,6 +309,9 @@ export const en = {
       'Your organisation sets the gender format to {{format}}. The text was not changed.',
   },
   [namespaces.options]: {
+    confirmBeforeChecking: 'Ask before checking a field',
+    confirmBeforeCheckingHint:
+      'Witty sends nothing from a field until you confirm it, once per field and page.',
     languageHeadline: 'Language and gender forms',
     genderedRolesFormat: 'Generic masculine',
     genderedRolesFormatHint:
@@ -422,6 +431,9 @@ export const en = {
   },
 
   [namespaces.popover]: {
+    confirmCheckQuestion: 'Check this field with Witty?',
+    confirmCheckYes: 'Check with Witty',
+    confirmCheckDismiss: 'Not now',
     insteadTry: 'Try instead ...',
     learnMore: 'Why',
     leanrMoreExtendedText: 'Dig deeper',
@@ -549,6 +561,9 @@ export const fr = {
       "Votre organisation impose la forme inclusive {{format}}. Le texte n'a pas été modifié.",
   },
   [namespaces.options]: {
+    confirmBeforeChecking: 'Demander avant de vérifier un champ',
+    confirmBeforeCheckingHint:
+      "Witty n'envoie rien d'un champ tant que vous ne l'avez pas confirmé, une fois par champ et par page.",
     languageHeadline: 'Langue et formes de genre',
     genderedRolesFormat: 'Masculin générique',
     genderedRolesFormatHint:
@@ -674,6 +689,9 @@ export const fr = {
       "Échec de l'authentification de la clé API ({{status}}) : {{message}} — vérifiez votre clé API ou le point de terminaison.",
   },
   [namespaces.popover]: {
+    confirmCheckQuestion: 'Vérifier ce champ avec Witty ?',
+    confirmCheckYes: 'Vérifier avec Witty',
+    confirmCheckDismiss: 'Pas maintenant',
     insteadTry: 'Essayez plutôt ...',
     learnMore: 'Pourquoi',
     leanrMoreExtendedText: 'En savoir plus',

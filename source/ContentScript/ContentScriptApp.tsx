@@ -6,7 +6,6 @@ import {CustomInputElement, RequestConfig} from '../shared/types';
 import {useStateRef} from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
-  apiKeyFromStorage,
   WTags,
   StorageKeys,
   DefaultBaseUrlKey,
@@ -17,11 +16,8 @@ import {
   getBaseUrls,
   setAppID,
   setBaseUrls,
-  setApiKey,
   setRequestConfig,
-  setToken,
 } from '../shared/ApiServices/requests';
-import {readAccessToken} from '../shared/tokenStore';
 import {
   isInputElement,
   nodeExistsInDOM,
@@ -43,6 +39,10 @@ import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import throttle from 'lodash.throttle';
 import {getDomainWithoutSubdomain, storeInLocalStorage} from '../shared/utils';
 import renderNotificationToTop from '../Notifications/renderNotification';
+import {createHighlightHost, isHighlightHost} from './shadowHosts';
+
+/** The hover indicators this script put into the page, to remove them again. */
+const hoverIndicators = new Set<HTMLElement>();
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
   z-index: 2147483647 !important;
@@ -96,10 +96,8 @@ const ContentScriptApp: React.FC = () => {
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-        setApiKey(apiKeyFromStorage(result));
-        readAccessToken()
-          .then(setToken)
-          .catch(() => setToken(''));
+        // No credentials here: the background worker adds them to the API
+        // requests it makes for this script (Background/apiProxy.ts).
         storeInLocalStorage(
           StorageKeys.CONFIG_HASH,
           result[StorageKeys.CONFIG_HASH]
@@ -228,34 +226,19 @@ const ContentScriptApp: React.FC = () => {
     for (const item of changedItems) {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
-          // Credentials held in memory belong to the previous endpoint. Drop
-          // them before switching, then load the ones stored for the new one:
-          // the custom endpoint has to be registered from storage before its
-          // key resolves, and the token and API key are read back from there.
-          setToken('');
-          setApiKey('');
+          // The custom endpoint has to be registered from storage before its
+          // key resolves. Credentials stay with the background worker.
           setBaseUrls(changes[item].newValue);
           browser.storage.local
             .get(null)
-            .then(async (result) => {
+            .then((result) => {
               registerCustomEndpointFromStorage(result);
               setBaseUrls(
                 (result[StorageKeys.API_ENDPOINT_KEY] as string) ||
                   DefaultBaseUrlKey
               );
-              setApiKey(apiKeyFromStorage(result));
-              setToken(await readAccessToken());
             })
             .catch((error: unknown) => sendErrorToSentry(error));
-          break;
-        case StorageKeys.SIGNED_IN:
-          // The marker is a boolean; the token itself lives in storage.session,
-          // so re-read it rather than assigning the marker.
-          changes[item].newValue
-            ? readAccessToken()
-                .then(setToken)
-                .catch(() => setToken(''))
-            : setToken('');
           break;
         case StorageKeys.HR_FEATURES_DISABLED_DOMAINS:
           setReqConfig({
@@ -366,6 +349,7 @@ const ContentScriptApp: React.FC = () => {
       }
       const hoveredIndicatorContainer: HTMLElement =
         getActiveDocument().createElement(WTags.WW_MOUSEOVER_INDICATOR);
+      hoverIndicators.add(hoveredIndicatorContainer);
       hoveredIndicatorContainer.style.cssText = WW_CONTAINER_STYLE;
       hoveredElementRef.current.parentElement?.insertBefore(
         hoveredIndicatorContainer,
@@ -395,9 +379,8 @@ const ContentScriptApp: React.FC = () => {
   }, [hoveredElementRef.current]);
 
   const removeAllHoverIndicators = async () => {
-    const indicatorElements = getActiveDocument().querySelectorAll(
-      WTags.WW_MOUSEOVER_INDICATOR
-    );
+    const indicatorElements = [...hoverIndicators];
+    hoverIndicators.clear();
     for (const element of indicatorElements) {
       try {
         const {safeUnmountAndRemove} = await import('./utils');
@@ -443,20 +426,15 @@ const ContentScriptApp: React.FC = () => {
               if (!input?.parentElement) return;
               const sibling = input.previousElementSibling as HTMLElement;
 
-              if (
-                sibling?.tagName?.toLowerCase() ===
-                  WTags.WW_CONTAINER.toLowerCase() ||
-                sibling?.tagName?.toLowerCase() ===
-                  WTags.WW_SHADOW_ROOT_CONTAINER.toLowerCase()
-              )
-                return;
+              // Already set up: the host this script put before the input.
+              // Checked by reference, so a page element with the same tag
+              // name cannot pass for one.
+              if (isHighlightHost(sibling)) return;
 
-              const shadowHost = getActiveDocument().createElement(
-                WTags.WW_SHADOW_ROOT_CONTAINER
-              );
+              const {host: shadowHost, shadowRoot} =
+                createHighlightHost(getActiveDocument());
               getActiveDocument().body.appendChild(shadowHost);
 
-              const shadowRoot = shadowHost.attachShadow({mode: 'open'});
               const highlightsContainer: HTMLElement =
                 getActiveDocument().createElement(WTags.WW_CONTAINER);
               shadowRoot.appendChild(highlightsContainer);

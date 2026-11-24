@@ -40,7 +40,9 @@ const popoverState = (page) =>
       role: popover.getAttribute('role'),
       ariaLabel: popover.getAttribute('aria-label'),
       counter: status ? status.textContent.trim() : null,
-      focusInside: popover.contains(document.activeElement),
+      // The popover is in a shadow root, whose own activeElement holds the
+      // focus inside it (document.activeElement is the host).
+      focusInside: popover.contains(popover.getRootNode().activeElement),
     };
   });
 
@@ -198,10 +200,13 @@ test.describe('Popover keyboard accessibility', () => {
     let onAlternative = false;
     for (let i = 0; i < 15 && !onAlternative; i += 1) {
       await page.keyboard.press('Tab');
-      onAlternative = await page.evaluate(
-        (cls) => document.activeElement?.classList?.contains(cls) ?? false,
-        ALTERNATIVE_BTN
-      );
+      onAlternative = await page.evaluate((cls) => {
+        let active = document.activeElement;
+        while (active?.shadowRoot?.activeElement) {
+          active = active.shadowRoot.activeElement;
+        }
+        return active?.classList?.contains(cls) ?? false;
+      }, ALTERNATIVE_BTN);
     }
     expect(onAlternative, 'Tab never reached an alternative button').toBe(true);
 

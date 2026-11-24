@@ -16,7 +16,7 @@ import {
 import {
   addBadge,
   addNotificationBadge,
-  getNewAccessToken,
+  requestTokenRefresh,
   removeBadge,
   storeInLocalStorage,
   updateConfig,
@@ -36,6 +36,7 @@ import {
   setBaseUrls,
   setToken,
   buildRequestHeaders,
+  isTokenRefused,
 } from '../../shared/ApiServices/requests';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import OptionsLink from '../PopupComponents/OptionsLink';
@@ -44,7 +45,8 @@ import {logTypes, useLog} from '../../shared/customHooks/useLog';
 import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
 import PopupHeaderNotification from '../PopupComponents/PopupHeaderNotification';
 import {useAuthEndpoint} from '../../shared/ApiServices/useAuthEndpoint';
-import {clearTokens, readAccessToken} from '../../shared/tokenStore';
+import {readAccessToken} from '../../shared/tokenStore';
+import {MessageTypes, SignOutMessage} from '../../shared/messages';
 
 interface PopupProps {
   appId: string;
@@ -228,9 +230,12 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
     setHrFeatures(!hrFeatures);
   };
 
-  const logOut = () => {
-    clearTokens().catch(onStorageError);
-    setToken('');
+  // The background revokes the tokens on the dashboard and clears them here;
+  // the popup re-renders signed out from the storage change.
+  const signOut = () => {
+    browser.runtime
+      .sendMessage({type: MessageTypes.SIGN_OUT} as SignOutMessage)
+      .catch(onStorageError);
   };
 
   const handleClickDashboard = () => {
@@ -259,7 +264,7 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
         headers,
       }
     ).then(async (response) => {
-      if (response.status === 403) {
+      if (isTokenRefused(response.status)) {
         setUpdatingDashboardFailed(true);
         setEnabled({enabled: !enabled.enabled, updateDashboard: false});
         browser.alarms.create('resetUpdatingDashboardFailedAlarm', {
@@ -271,7 +276,16 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
           }
         });
 
-        getNewAccessToken();
+        // The background refreshes for every caller at once; the user's
+        // next toggle is sent with the new token.
+        requestTokenRefresh(accessToken)
+          .then((outcome) =>
+            outcome === 'refreshed' ? readAccessToken() : undefined
+          )
+          .then((token) => {
+            if (token !== undefined) setAccessToken(token);
+          })
+          .catch(onStorageError);
       }
     });
   };
@@ -349,19 +363,27 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
       )}
 
       <OptionsLink />
+      {/* Account sign-in only: an API key or a build-time key is not a
+          session the user can end here. */}
+      {dashboardAvailable && !X_KEY && (
+        <div className='witty-works-ext-section'>
+          <div className='witty-works-ext-left'>
+            <button
+              type='button'
+              id='witty-sign-out'
+              className='witty-works-ext-button witty-works-ext-secondary-button-red'
+              onClick={signOut}
+            >
+              {t('signOut')}
+            </button>
+          </div>
+        </div>
+      )}
       {DEV_ENV && (
         <div className='witty-works-ext-section'>
           <h2>{t('developmentSettings')}</h2>
           <ApiSelector />
           <DelaySelector />
-          <div className='witty-works-ext-left'>
-            <button
-              className='witty-works-ext-button witty-works-ext-primary-button-red'
-              onClick={logOut}
-            >
-              {t('signOut')}
-            </button>
-          </div>
         </div>
       )}
     </>

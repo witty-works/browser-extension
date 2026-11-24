@@ -4,6 +4,7 @@ import {useLog, logTypes} from '../customHooks/useLog';
 import {Validator, ValidatorResult, Schema} from 'jsonschema';
 import {DEV_ENV, SCHEMA_VALIDATION_FAILED} from '../constants';
 import {sendErrorToSentry} from '../errorUtils';
+import {backgroundApiRequest} from './backgroundApi';
 
 const validator = new Validator();
 
@@ -46,7 +47,20 @@ const useApiResult = <TResponse,>(
       request.config = {...request.config, signal: controller.signal};
       log('Request:', logTypes.INFO, request);
 
-      fetch(request.url, request.config)
+      // The background worker makes the request with the credentials, which
+      // the content script does not hold (Background/apiProxy.ts).
+      const sent = request.proxy
+        ? backgroundApiRequest(request.proxy)
+        : fetch(request.url, request.config).then(async (response) => {
+            return {
+              ok: response.ok,
+              status: response.status,
+              statusText: response.statusText,
+              data: response.ok ? await response.json() : null,
+            };
+          });
+
+      sent
         .then(async (response) => {
           if (controller.signal.aborted) return;
           log('Response: ', logTypes.INFO, response);
@@ -59,7 +73,7 @@ const useApiResult = <TResponse,>(
             return;
           }
 
-          const responseResults: any = await response.json();
+          const responseResults: any = response.data;
           if (controller.signal.aborted) return;
           const validationResult = validateResponse(responseResults);
 

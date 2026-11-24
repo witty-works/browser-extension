@@ -26,9 +26,11 @@ import {
   updateLabelChrome,
 } from '../shared/utils';
 import {authorize} from '../shared/ApiServices/oauth';
+import {revokeStoredTokens} from '../shared/ApiServices/revoke';
+import {proxyApiRequest} from './apiProxy';
 import {setToken} from '../shared/ApiServices/requests';
 import {
-  allowSessionStorageInContentScripts,
+  restrictSessionStorageToTrustedContexts,
   migrateAccessTokenOffDisk,
   persistTokens,
 } from '../shared/tokenStore';
@@ -137,10 +139,21 @@ const addMessageListener = () => {
       return handleSignIn(message.register);
     }
 
-    if (message.type === MessageTypes.SIGN_OUT) {
-      logOut();
+    if (message.type === MessageTypes.API_REQUEST) {
+      return proxyApiRequest(message);
+    }
 
-      return Promise.resolve({status: 'success'} as SignInResult);
+    if (message.type === MessageTypes.REFRESH_TOKEN) {
+      return getNewAccessToken(message.failedToken);
+    }
+
+    if (message.type === MessageTypes.SIGN_OUT) {
+      // Revoke on the dashboard first, while the token is still stored; it
+      // resolves whether or not that worked, and the local tokens go anyway.
+      return revokeStoredTokens().then(() => {
+        logOut();
+        return {status: 'success'} as SignInResult;
+      });
     }
 
     return undefined;
@@ -482,14 +495,14 @@ sanitizeStoredEndpoint().catch((error) => sendErrorToSentry(error));
 // never runs and nothing is exposed; only the dead branch remains in the bundle.
 if (TESTING) {
   (
-    self as unknown as {__wittyTestRefresh?: () => Promise<void>}
+    self as unknown as {__wittyTestRefresh?: () => Promise<unknown>}
   ).__wittyTestRefresh = getNewAccessToken;
 }
 
-// The access token lives in storage.session, which Chrome hides from content
-// scripts by default — the popover and content script both need it to call the
-// API. Then move any token left on disk by a previous version into session.
-allowSessionStorageInContentScripts()
+// The access token lives in storage.session, kept from content scripts: they
+// ask this worker to make their API requests (apiProxy.ts). Then move any
+// token left on disk by a previous version into session.
+restrictSessionStorageToTrustedContexts()
   .then(migrateAccessTokenOffDisk)
   .catch((error) => sendErrorToSentry(error));
 //TODO Remove Listeners

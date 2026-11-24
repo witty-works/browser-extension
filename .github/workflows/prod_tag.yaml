@@ -13,11 +13,12 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # SENTRY_AUTH_TOKEN is set only on the build steps that upload source
+    # maps, so the install scripts run by `npm ci` cannot read it.
     env:
       SENTRY_DSN: "https://2cb75085e6dba41ead4774395caa4641@o4507044685938688.ingest.de.sentry.io/4507044706713680"
       SENTRY_SAMPLE_RATE: 0.001
       SENTRY_TRACE_RATE: 0.001
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_VERSION_STRING: ${{github.ref_name}}-prod
 
     steps:
@@ -61,6 +62,8 @@ jobs:
           npm ci
 
       - name: Build Prod Firefox artifacts
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           npm run build:firefox-with-sourcemaps
 
@@ -79,6 +82,8 @@ jobs:
           sed -i '/"scripts": \["js\/background.bundle\.js"\],/d' source/manifest.json
 
       - name: Build Prod Chrome artifacts
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           npm run build:chrome-with-sourcemaps
 

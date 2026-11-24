@@ -19,6 +19,10 @@ import {
   StorageKeys,
 } from '../shared/constants';
 import {logOut, storeInLocalStorage} from '../shared/utils';
+import {
+  confirmBeforeChecking,
+  ConfirmBeforeChecking,
+} from '../shared/confirmBeforeChecking';
 import {clearTokens} from '../shared/tokenStore';
 import {
   getCategories,
@@ -67,6 +71,9 @@ const Options: React.FC = () => {
 
   const [orthography, setOrthography] = useState(true);
   const [llmAlternatives, setLlmAlternatives] = useState(false);
+  const [confirmChecking, setConfirmChecking] = useState<ConfirmBeforeChecking>(
+    {enabled: false, forced: false}
+  );
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<ICategoryGroup[]>([]);
   const [categoriesError, setCategoriesError] = useState(false);
@@ -119,6 +126,7 @@ const Options: React.FC = () => {
         setEndpointReady(true);
         setOrthography(result[StorageKeys.ORTHOGRAPHY] !== false);
         setLlmAlternatives(!!result[StorageKeys.LLM_ALTERNATIVES]);
+        setConfirmChecking(confirmBeforeChecking(result));
         setDisabledCategories(
           (result[StorageKeys.DISABLED_CATEGORIES] as string[]) || []
         );
@@ -419,6 +427,33 @@ const Options: React.FC = () => {
             {t('reset')}
           </button>
         </div>
+      </section>
+
+      <section id='confirm-before-checking-section'>
+        <label>
+          <input
+            type='checkbox'
+            id='opt-confirm-before-checking'
+            checked={confirmChecking.enabled}
+            disabled={confirmChecking.forced}
+            aria-describedby='opt-confirm-before-checking-hint'
+            onChange={(event) => {
+              const enabled = event.target.checked;
+              setConfirmChecking({enabled, forced: false});
+              storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING, enabled);
+            }}
+          />
+          &nbsp;{t('confirmBeforeChecking')}
+        </label>
+        <p
+          id='opt-confirm-before-checking-hint'
+          className='witty-options-muted'
+        >
+          {t('confirmBeforeCheckingHint')}
+          {confirmChecking.forced && (
+            <> {t('lockedInfo', {ns: namespaces.pages.popup})}</>
+          )}
+        </p>
       </section>
 
       <CheckPreferences

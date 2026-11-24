@@ -65,6 +65,17 @@ export const setAppID = (id: string) => (appID = id);
 
 export const setToken = (tok: string) => (token = tok);
 
+/** The bearer token requests are sent with, to report which one was refused. */
+export const getToken = (): string => token;
+
+/**
+ * Whether an API status means the bearer token was refused, so a refresh may
+ * help: 401 from the API (`WWW-Authenticate: Bearer error="invalid_token"`),
+ * 403 from versions before it, which answered an expired token with 403.
+ */
+export const isTokenRefused = (status: number | undefined): boolean =>
+  status === 401 || status === 403;
+
 /**
  * Runtime API key, entered by the user on the options page.
  *
@@ -158,24 +169,22 @@ export const buildCheckBody = (
 };
 
 export const getAnalyzedTextResults = (text: string): IRequest => {
+  const body = buildCheckBody({
+    text,
+    id: appID,
+    client: wittyVersion,
+    config: requestConfig,
+    configHash,
+    organizationConfigHash,
+  });
   return {
     url: createUrl(BASE_URL_API, CHECK_PATH),
     config: {
       method: 'POST',
       headers: buildRequestHeaders(token),
-      body: text
-        ? JSON.stringify(
-            buildCheckBody({
-              text,
-              id: appID,
-              client: wittyVersion,
-              config: requestConfig,
-              configHash,
-              organizationConfigHash,
-            })
-          )
-        : null,
+      body: text ? JSON.stringify(body) : null,
     },
+    ...(text ? {proxy: {kind: 'check', body}} : {}),
   };
 };
 
@@ -214,16 +223,16 @@ export const getLLMSuggestion = (
   sentence: TxtSentenceNode,
   alert: IAlert
 ): IRequest => {
+  const body = sentence ? buildLLMSuggestionBody(sentence, alert) : null;
   return {
     url: createUrl(BASE_URL_API, REPHRASE_PATH),
     config: {
       method: 'POST',
       headers: buildRequestHeaders(token),
-      body: sentence
-        ? JSON.stringify(buildLLMSuggestionBody(sentence, alert))
-        : null,
+      body: body ? JSON.stringify(body) : null,
       signal: AbortSignal.timeout(LLM_SUGGESTION_TIMEOUT_MS),
     },
+    ...(body ? {proxy: {kind: 'rephrase', body: {...body}}} : {}),
   };
 };
 
@@ -268,6 +277,7 @@ export const getConfiguration = (): IRequest => {
       method: 'POST',
       headers: buildRequestHeaders(token),
     },
+    proxy: {kind: 'auth'},
   };
 };
 

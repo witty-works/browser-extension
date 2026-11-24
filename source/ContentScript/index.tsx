@@ -11,7 +11,6 @@ import {
   exposeWittyIdAllowList,
   DefaultBaseUrlKey,
   isDashboardAvailable,
-  WTags,
   registerCustomEndpointFromStorage,
 } from '../shared/constants';
 import defaultConfig from '../witty.config.json';
@@ -23,7 +22,7 @@ import {
 } from '../shared/utils';
 import {sendErrorToSentry} from '../shared/errorUtils';
 import {registerErrorReporter} from '../shared/errorReporting';
-import {customRender} from './utils';
+import {customRender, getAppElement} from './utils';
 import {initI18n} from '../i18n/i18n';
 import {setBaseUrls} from '../shared/ApiServices/requests';
 import {v4 as uuidv4} from 'uuid';
@@ -135,7 +134,7 @@ const initialize = () => {
 
   async function unregisterOrphan() {
     if (!browser.runtime.id) {
-      const el = document.querySelector(`${WTags.WW_POPOVER}-${scriptId}`);
+      const el = getAppElement();
       if (el) {
         try {
           const {safeUnmountAndRemove} = await import('./utils');

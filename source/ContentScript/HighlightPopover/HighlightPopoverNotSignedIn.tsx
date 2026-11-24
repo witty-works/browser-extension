@@ -26,6 +26,8 @@ import {setBaseUrls} from '../../shared/ApiServices/requests';
 import {sendErrorToSentry} from '../../shared/errorUtils';
 import {logTypes, useLog} from '../../shared/customHooks/useLog';
 import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
+import {isTrustedEvent} from '../../shared/trustedEvent';
+import {containsFocus, eventIsInside} from '../../shared/DOMutils';
 
 export interface PopoverData {
   index: number;
@@ -210,9 +212,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
       }
       e.preventDefault();
       e.stopPropagation();
-      const focusWasInside = refs.floating.current?.contains(
-        document.activeElement
-      );
+      const focusWasInside = containsFocus(refs.floating.current);
       hidePopover(true);
       if (focusWasInside) {
         (element as HTMLElement).focus?.();
@@ -233,8 +233,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 
   const handleClickOutside = (event: MouseEvent) => {
     const hasClickedOutsidePopOver: boolean | null =
-      refs.floating.current &&
-      !refs.floating.current.contains(event.target as HTMLElement);
+      refs.floating.current && !eventIsInside(refs.floating.current, event);
 
     const doc = getActiveDocument().documentElement || getActiveDocument().body;
     const posX = event.pageX + doc.scrollLeft;
@@ -347,7 +346,9 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
           <button
             type='button'
             className='witty-works-ext-button witty-works-ext-primary-button-red'
-            onClick={() => {
+            onClick={(e) => {
+              // Opening the sign-in window takes the user's own click.
+              if (!isTrustedEvent(e.nativeEvent)) return;
               setSignInError(false);
               logIn().catch((error) => {
                 log(`logIn Error: ${error}`, logTypes.ERROR);
@@ -364,7 +365,8 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
             <button
               type='button'
               className='witty-works-button witty-works-ext-lato-popup-text-purple witty-works-ext-cursor-pointer'
-              onClick={() => {
+              onClick={(e) => {
+                if (!isTrustedEvent(e.nativeEvent)) return;
                 setSignInError(false);
                 logIn(true).catch((error) => {
                   log(`logIn Error: ${error}`, logTypes.ERROR);
