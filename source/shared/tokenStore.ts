@@ -45,11 +45,11 @@ const usingSessionStorage = (): boolean => !!getStorage().session;
  * requests through the background worker instead (Background/apiProxy.ts).
  * Call this once from the background service worker.
  *
- * `setAccessLevel` is a Chrome-specific extension of `storage.session` that
- * `WittyStorage` deliberately does not model (it has no equivalent for a
- * non-extension host), so this one call goes straight through
- * webextension-polyfill rather than through `getStorage()`. Firefox does not
- * give content scripts `storage.session` at all.
+ * `WittyStorage` deliberately does not model `setAccessLevel` (it has no
+ * equivalent for a non-extension host), so this one call goes straight through
+ * webextension-polyfill rather than through `getStorage()`. Where a browser
+ * lacks it, the call is skipped; `storage.session` is closed to content
+ * scripts by default.
  */
 export const restrictSessionStorageToTrustedContexts =
   async (): Promise<void> => {

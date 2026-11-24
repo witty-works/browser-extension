@@ -354,9 +354,25 @@ opt-in via `E2E_DASHBOARD` / `E2E_EMAIL` / `E2E_PASSWORD`):
   unauthenticated valid request to `/login` with 302.
 
 Access token is now split across storage areas — see `source/shared/tokenStore.ts`.
-`storage.session` is opened to content scripts via `setAccessLevel`, since the
-popover and content script both need the bearer token; content scripts are
-isolated worlds, so this grants no more reach than `storage.local` already had.
+
+#### Which credentials content scripts can read
+
+Content scripts make no API request themselves: they ask the background worker
+(`source/Background/apiProxy.ts`), which attaches the credentials. The access
+token is in `storage.session`, which is closed to content scripts unless an
+extension opens it with `setAccessLevel`; an earlier version did, so the worker
+sets it back to `TRUSTED_CONTEXTS` at start-up.
+
+Content scripts can still read the **refresh token** and a user-entered **API
+key**, because both live in `storage.local`, and no browser lets an extension
+keep a `storage.local` key from its own content scripts. Web pages cannot reach
+either; the exposure is to an attacker who compromises the browser's renderer
+process for a page (a browser exploit), which would let them use the refresh
+token until it expires (30 days by default) or the API key until it is revoked.
+
+Keeping them in `storage.session` instead would close this, at the cost of
+signing in again, or entering the API key again, after every browser restart.
+See the open question below.
 
 ### Phase 3 input: what the dashboard actually issues
 
@@ -487,6 +503,13 @@ stays for CI only — the user-entered API key supersedes it for real use, and
 release builds refuse a baked-in one.
 
 Still open:
+
+- **Setting: sign-in only for this browser session.** With it on,
+  `tokenStore.ts` would keep the refresh token and the API key in
+  `storage.session`, out of content scripts' reach and off disk, and the user
+  signs in again after each browser restart. An organisation could force it the
+  way it forces `confirm_before_checking`. See "Which credentials content
+  scripts can read" above.
 
 - **Customisation toggles are overwritten in account mode.** `updateConfig`
   rewrites spell-checking and AI-suggestions from the server whenever the config
