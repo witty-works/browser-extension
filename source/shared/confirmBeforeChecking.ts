@@ -72,3 +72,29 @@ export const confirmField = (field: Element): void => {
 
 export const isFieldConfirmed = (field: Element): boolean =>
   confirmedFields.has(field);
+
+const sameValue = (a: unknown, b: unknown): boolean =>
+  JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+/**
+ * What a `/v2.0/auth` answer changes in storage for ask-before-checking.
+ * Written whatever the config hashes say: signing out resets the marker but
+ * not the hashes, so signing in again with the same account would otherwise
+ * leave the setting pending. Only values that differ are written, because
+ * Firefox reports a write of an unchanged value as a change.
+ */
+export const confirmWrites = (
+  stored: Record<string, unknown>,
+  response: unknown
+): Record<string, unknown> => {
+  const writes: Record<string, unknown> = {};
+  const setting = authConfirmSetting(response);
+  if (!sameValue(stored?.[StorageKeys.CONFIRM_BEFORE_CHECKING_ORG], setting)) {
+    writes[StorageKeys.CONFIRM_BEFORE_CHECKING_ORG] = setting;
+  }
+  if (stored?.[StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN] !== true) {
+    writes[StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN] = true;
+  }
+  return writes;
+};
+

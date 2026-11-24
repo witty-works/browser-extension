@@ -115,6 +115,61 @@ test.describe('Ask before checking a field', () => {
     expect(checks.filter(Boolean)).toEqual([]);
   });
 
+  test('checks again after signing out and back in within the same tab', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // Signing out resets the marker but not the config hashes, and the
+    // same account's answer carries the same hashes.
+    await routeAuth(context, null);
+    const checks = recordChecks(context);
+    await signIn(context, extensionId);
+    await page.goto('/textarea.html');
+    await setEditorText(page);
+    await expect
+      .poll(() => checks.filter(Boolean).length, { timeout: 10000 })
+      .toBeGreaterThan(0);
+
+    const options = await context.newPage();
+    await options.goto(`chrome-extension://${extensionId}/options.html`);
+    // What logOut() leaves behind.
+    await options.evaluate(async () => {
+      await chrome.storage.session.set({ accessToken: '' });
+      await chrome.storage.local.set({
+        signedIn: false,
+        refreshToken: '',
+        checkEndpointSuccess: false,
+        confirmBeforeCheckingOrg: null,
+        confirmBeforeCheckingKnown: false,
+      });
+    });
+    await page.waitForTimeout(500);
+    const before = checks.length;
+    // What a sign-in writes.
+    await options.evaluate(async () => {
+      await chrome.storage.session.set({ accessToken: 'fixture-access-token' });
+      await chrome.storage.local.set({
+        signedIn: true,
+        refreshToken: 'fixture-refresh-token',
+        accessTokenExpiresAt: Date.now() + 60 * 60 * 1000,
+      });
+    });
+    await options.close();
+    await page.waitForTimeout(1000);
+
+    // Sentences checked before are answered from the cache; a new one is
+    // sent. Typed, as the field listens to key events.
+    await page.locator('#editor').click();
+    await page.keyboard.press('End');
+    await page.keyboard.type(' The chairman thanked the policemen.');
+    await expect
+      .poll(() => checks.slice(before).filter(Boolean).length, {
+        timeout: 10000,
+      })
+      .toBeGreaterThan(0);
+  });
+
   test('sends nothing before the user confirms, and checks after', async ({
     page,
     context,

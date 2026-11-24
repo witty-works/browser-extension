@@ -8,6 +8,7 @@ import {
   authConfirmSetting,
   confirmBeforeChecking,
   confirmField,
+  confirmWrites,
   isFieldConfirmed,
 } from '@witty/core/confirmBeforeChecking';
 
@@ -100,5 +101,37 @@ describe('authConfirmSetting', () => {
   it('is null when the answer has none', () => {
     expect(authConfirmSetting({})).toBeNull();
     expect(authConfirmSetting(undefined)).toBeNull();
+  });
+});
+
+describe('confirmWrites', () => {
+  const forced = {value: true, status: 'force'};
+  const answer = {organization_config: {confirm_before_checking: forced}};
+
+  it('marks the answer known after a sign-in whose config hashes are unchanged', () => {
+    // logOut resets the marker but not the hashes, so this write must not
+    // depend on the hashes having changed.
+    expect(
+      confirmWrites(
+        {confirmBeforeCheckingOrg: null, confirmBeforeCheckingKnown: false},
+        answer
+      )
+    ).toEqual({
+      confirmBeforeCheckingOrg: forced,
+      confirmBeforeCheckingKnown: true,
+    });
+  });
+
+  it('writes nothing when the stored values are already the answer', () => {
+    // Firefox reports a write of an unchanged value as a change.
+    expect(
+      confirmWrites(
+        {
+          confirmBeforeCheckingOrg: {value: true, status: 'force'},
+          confirmBeforeCheckingKnown: true,
+        },
+        answer
+      )
+    ).toEqual({});
   });
 });

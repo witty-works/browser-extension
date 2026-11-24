@@ -1,4 +1,4 @@
-import {authConfirmSetting} from './confirmBeforeChecking';
+import {confirmWrites} from './confirmBeforeChecking';
 import browser from 'webextension-polyfill';
 import {
   apiKeyFromStorage,
@@ -440,6 +440,10 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
   getStorage()
     .local.get(null)
     .then((result) => {
+      const confirm = confirmWrites(result, response);
+      if (Object.keys(confirm).length > 0) {
+        getStorage().local.set(confirm);
+      }
       if (
         response?.config_hash === result[StorageKeys.CONFIG_HASH] &&
         response?.organization_config_hash ===
@@ -461,11 +465,6 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
         StorageKeys.LLM_ALTERNATIVES,
         response?.organization_config?.llm_alternatives?.value
       );
-      storeInLocalStorage(
-        StorageKeys.CONFIRM_BEFORE_CHECKING_ORG,
-        authConfirmSetting(response)
-      );
-      storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN, true);
       storeInLocalStorage(
         StorageKeys.ORGANIZATION_DOMAINS,
         response?.organization_domains
