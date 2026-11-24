@@ -6,6 +6,7 @@ import {describe, expect, it} from 'vitest';
 
 import {
   authConfirmSetting,
+  authRetryDelay,
   confirmBeforeChecking,
   confirmField,
   confirmWrites,
@@ -133,5 +134,19 @@ describe('confirmWrites', () => {
         answer
       )
     ).toEqual({});
+  });
+});
+
+describe('authRetryDelay', () => {
+  it('does not retry a refused credential', () => {
+    expect(authRetryDelay(401, 0)).toBeNull();
+    expect(authRetryDelay(403, 0)).toBeNull();
+  });
+
+  it('retries an outage, a rate limit or no answer, backing off to a minute', () => {
+    expect(authRetryDelay(503, 0)).toBe(2000);
+    expect(authRetryDelay(429, 1)).toBe(4000);
+    expect(authRetryDelay(0, 2)).toBe(8000);
+    expect(authRetryDelay(500, 10)).toBe(60000);
   });
 });

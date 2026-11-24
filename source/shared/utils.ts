@@ -1,4 +1,4 @@
-import {confirmWrites} from './confirmBeforeChecking';
+import {authRetryDelay, confirmWrites} from './confirmBeforeChecking';
 import browser from 'webextension-polyfill';
 import {
   apiKeyFromStorage,
@@ -520,12 +520,28 @@ export const makeAuthRequest = () => {
       // An account token (the signedIn marker; the token itself is only for
       // the background) or an API key.
       if (result[StorageKeys.SIGNED_IN] || X_KEY || apiKeyFromStorage(result)) {
-        const response = await backgroundApiRequest({kind: 'auth'});
-        if (response.ok) {
-          updateConfig(response.data as IAuthResponse, true);
-          storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
-        } else {
+        for (let attempt = 0; ; attempt += 1) {
+          const response = await backgroundApiRequest({kind: 'auth'});
+          if (response.ok) {
+            updateConfig(response.data as IAuthResponse, true);
+            storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+            return;
+          }
           storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+          // Until an answer arrives, ask-before-checking is pending and
+          // nothing is checked, so an outage is retried; a refused credential
+          // is not. Another context's answer ends the wait too.
+          const delay = authRetryDelay(response.status, attempt);
+          if (delay === null) return;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          const now = await getStorage().local.get([
+            StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN,
+            StorageKeys.SIGNED_IN,
+          ]);
+          if (now[StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN] === true) return;
+          if (result[StorageKeys.SIGNED_IN] && !now[StorageKeys.SIGNED_IN]) {
+            return;
+          }
         }
       } else if (STATIC_ACCESS_TOKEN) {
         // No token in storage but a default token is available in config — store and use it.

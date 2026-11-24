@@ -98,3 +98,16 @@ export const confirmWrites = (
   return writes;
 };
 
+/**
+ * How long to wait before asking `/v2.0/auth` again after `status` (0 for no
+ * answer), on the `attempt`th retry; null when a retry cannot help, because
+ * the credential was refused. Until an answer arrives, ask-before-checking is
+ * pending and the tab checks nothing, so an outage is retried.
+ */
+export const authRetryDelay = (
+  status: number,
+  attempt: number
+): number | null => {
+  if (status === 401 || status === 403) return null;
+  return Math.min(60000, 2000 * 2 ** attempt);
+};

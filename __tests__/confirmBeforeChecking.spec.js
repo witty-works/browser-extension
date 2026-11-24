@@ -170,6 +170,36 @@ test.describe('Ask before checking a field', () => {
       .toBeGreaterThan(0);
   });
 
+  test('checks once /v2.0/auth answers after an outage', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // Down until every context has made its one request on load.
+    let down = true;
+    await context.route(
+      (url) => url.pathname.endsWith('/v2.0/auth'),
+      (route) => {
+        if (down) return route.fulfill({ status: 503, body: '' });
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(authResponse()),
+        });
+      }
+    );
+    const checks = recordChecks(context);
+    await signIn(context, extensionId);
+    await page.goto('/textarea.html');
+    await setEditorText(page);
+    await page.waitForTimeout(1500);
+    expect(checks.filter(Boolean)).toEqual([]);
+    down = false;
+    await expect
+      .poll(() => checks.filter(Boolean).length, { timeout: 15000 })
+      .toBeGreaterThan(0);
+  });
+
   test('sends nothing before the user confirms, and checks after', async ({
     page,
     context,
