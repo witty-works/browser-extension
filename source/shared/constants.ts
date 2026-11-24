@@ -81,6 +81,8 @@ export enum StorageKeys {
   CONFIRM_BEFORE_CHECKING = 'confirmBeforeChecking',
   /** The organisation's `confirm_before_checking`, `{value, status}`. */
   CONFIRM_BEFORE_CHECKING_ORG = 'confirmBeforeCheckingOrg',
+  /** Whether CONFIRM_BEFORE_CHECKING_ORG holds this sign-in's answer yet. */
+  CONFIRM_BEFORE_CHECKING_KNOWN = 'confirmBeforeCheckingKnown',
 
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 

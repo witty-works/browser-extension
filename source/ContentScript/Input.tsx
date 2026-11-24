@@ -95,6 +95,9 @@ const Input: React.FC<{
   }>({text: [], position: {} as DOMRect});
 
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
+  // The same text for the storage listener, which is registered once and
+  // would otherwise only ever see the first render's value.
+  const currentTextRef = useRef('');
   const prevTextRef = useRef(currentTextToCheck);
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLElement);
   const elementRect = useResizeObserver(element);
@@ -638,6 +641,7 @@ const Input: React.FC<{
       isGoogleDocs(element) ? cloneRef.current : element
     );
     setCurrentTextToCheck(nextText); //for check call after refresh token
+    currentTextRef.current = nextText;
     if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
@@ -666,12 +670,14 @@ const Input: React.FC<{
       .get(null)
       .then((result) => {
         if (!isSignedInResult(result)) return;
+        const setting = confirmBeforeChecking(result);
+        // The organisation's answer has not arrived since sign-in: wait for
+        // it (storageChange checks again) rather than let a forced setting
+        // miss the first check.
+        if (setting.pending) return;
         // Asked to ask first: nothing from this field before the user says
         // so (ConfirmCheckPrompt).
-        if (
-          confirmBeforeChecking(result).enabled &&
-          !isFieldConfirmed(element)
-        ) {
+        if (setting.enabled && !isFieldConfirmed(element)) {
           setConfirmRequired(true);
           if (text && fieldHasFocus() && !promptDismissedRef.current) {
             setPromptOpen(true);
@@ -1619,7 +1625,14 @@ const Input: React.FC<{
           setUserIsSignedIn(changes[item].newValue);
           setConfigHasChanged(changes[item].newValue);
           checkText('');
-          checkText(currentTextToCheck);
+          checkText(currentTextRef.current);
+          break;
+        // The organisation's ask-before-checking answer arrived: the check
+        // that waited for it goes ahead, or asks.
+        case StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN:
+          if (changes[item].newValue === true) {
+            checkText(currentTextRef.current);
+          }
           break;
       }
     }

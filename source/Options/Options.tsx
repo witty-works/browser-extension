@@ -72,7 +72,7 @@ const Options: React.FC = () => {
   const [orthography, setOrthography] = useState(true);
   const [llmAlternatives, setLlmAlternatives] = useState(false);
   const [confirmChecking, setConfirmChecking] = useState<ConfirmBeforeChecking>(
-    {enabled: false, forced: false}
+    {enabled: false, forced: false, pending: false}
   );
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<ICategoryGroup[]>([]);
@@ -439,7 +439,7 @@ const Options: React.FC = () => {
             aria-describedby='opt-confirm-before-checking-hint'
             onChange={(event) => {
               const enabled = event.target.checked;
-              setConfirmChecking({enabled, forced: false});
+              setConfirmChecking({enabled, forced: false, pending: false});
               storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING, enabled);
             }}
           />

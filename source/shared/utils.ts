@@ -275,6 +275,10 @@ export const logOut = () => {
   storeInLocalStorage(StorageKeys.USER_ID, '');
   storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
   storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+  // The next account's organisation decides anew; until its answer arrives,
+  // ask-before-checking is pending rather than this account's value.
+  storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_ORG, null);
+  storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN, false);
   // Goes through the store so the session-held access token is cleared too,
   // not just the on-disk refresh token.
   clearTokens().catch((error) => sendErrorToSentry(error));
@@ -446,6 +450,7 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
           response?.config?.confirm_before_checking ??
           null
       );
+      storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN, true);
       storeInLocalStorage(
         StorageKeys.ORGANIZATION_DOMAINS,
         response?.organization_domains

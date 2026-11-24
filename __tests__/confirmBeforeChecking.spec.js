@@ -29,6 +29,23 @@ const routeAuth = (context, confirmBeforeChecking) =>
     }
   );
 
+/** As routeAuth, but the answer arrives only after `delay` ms. */
+const routeAuthLate = (context, confirmBeforeChecking, delay) =>
+  context.route(
+    (url) => url.pathname.endsWith('/v2.0/auth'),
+    async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      const response = authResponse();
+      response.organization_config.confirm_before_checking =
+        confirmBeforeChecking;
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(response),
+      });
+    }
+  );
+
 /** The texts sent to /v2.4/check, from any page or the service worker. */
 const recordChecks = (context) => {
   const texts = [];
@@ -75,6 +92,28 @@ const signInWith = async (context, extensionId, organization) => {
 
 test.describe('Ask before checking a field', () => {
   const FORCED_ON = { value: true, status: 'force' };
+
+  test('a forced setting holds from the first check after sign-in', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // The organisation's answer comes with /v2.0/auth; until it has arrived,
+    // nothing from the field may be sent.
+    await routeAuthLate(context, FORCED_ON, 2500);
+    const checks = recordChecks(context);
+    await signIn(context, extensionId);
+
+    await page.goto('/textarea.html');
+    await setEditorText(page);
+    await page.waitForTimeout(1500);
+    expect(checks.filter(Boolean)).toEqual([]);
+
+    await expect
+      .poll(() => findInShadow(page, 'witty-confirm-check'), { timeout: 10000 })
+      .not.toBeNull();
+    expect(checks.filter(Boolean)).toEqual([]);
+  });
 
   test('sends nothing before the user confirms, and checks after', async ({
     page,

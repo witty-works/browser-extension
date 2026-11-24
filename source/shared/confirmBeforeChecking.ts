@@ -13,21 +13,29 @@ export interface ConfirmBeforeChecking {
   enabled: boolean;
   /** The organisation forces the value; the user cannot change it. */
   forced: boolean;
+  /**
+   * The organisation's answer has not arrived since sign-in (`/v2.0/auth`
+   * stores it). Until it has, nothing is sent and nothing is asked, so a
+   * forced setting holds from the first check on.
+   */
+  pending: boolean;
 }
 
 export const confirmBeforeChecking = (
   result: Record<string, unknown>
 ): ConfirmBeforeChecking => {
+  const pending = result?.[StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN] !== true;
   const organization = result?.[StorageKeys.CONFIRM_BEFORE_CHECKING_ORG] as
     ConfigProperty | undefined;
   const forced = organization?.status === ConfigPropertyStatus.FORCE;
   if (forced) {
-    return {enabled: organization?.value === true, forced};
+    return {enabled: organization?.value === true, forced, pending};
   }
   const own = result?.[StorageKeys.CONFIRM_BEFORE_CHECKING];
   return {
     enabled: typeof own === 'boolean' ? own : organization?.value === true,
     forced: false,
+    pending,
   };
 };
 
