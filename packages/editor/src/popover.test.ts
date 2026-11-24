@@ -241,6 +241,59 @@ describe('applying from the popover', () => {
   });
 });
 
+describe('rewrite preview', () => {
+  /** The preview wrapper a button is described by, if any. */
+  const previewOf = (button: HTMLButtonElement): HTMLElement | null => {
+    const id = button.getAttribute('aria-describedby');
+    return id ? document.getElementById(id) : null;
+  };
+
+  it('shows the rewrite on keyboard focus and describes the button with it', async () => {
+    rephrase = async () =>
+      new Response(
+        JSON.stringify({
+          sentence: 'Hey guys, the chairman will assume the leadership role.',
+          results: {
+            everyone:
+              'Hey everyone, the chair will assume the leadership role.',
+          },
+        }),
+        {status: 200}
+      );
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() =>
+      expect(previewOf(alternativeButton('everyone')!)).not.toBeNull()
+    );
+    const button = alternativeButton('everyone')!;
+    const preview = previewOf(button)!;
+    // The whole-sentence rewrite, as a diff against the sentence.
+    expect(preview.querySelector('ins')?.textContent).toContain('everyone');
+    expect(preview.textContent).toContain('chair will');
+    expect(preview.style.visibility).toBe('hidden');
+
+    button.focus();
+    await vi.waitFor(() => expect(preview.style.visibility).toBe('visible'));
+
+    button.blur();
+    await vi.waitFor(() => expect(preview.style.visibility).toBe('hidden'));
+  });
+
+  it('describes the buttons with nothing until the rewrites arrive', async () => {
+    rephrase = () => new Promise<Response>(() => {});
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(alternativeButton('everyone')).toBeDefined());
+    expect(
+      alternativeButton('everyone')!.hasAttribute('aria-describedby')
+    ).toBe(false);
+  });
+});
+
 describe('ignore once', () => {
   it('keeps the term ignored when the text is checked again', async () => {
     const editor = mountEditor();

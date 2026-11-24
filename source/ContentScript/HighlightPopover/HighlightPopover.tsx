@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useId} from 'react';
 import {useFloating, flip, offset, shift} from '@floating-ui/react-dom';
 
 import {
@@ -102,6 +102,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 }: PopoverProps) => {
   const doc = document.documentElement || document.body;
   const {t, i18n} = useTranslation(namespaces.popover);
+  // Ties each alternative button to its rewrite preview (aria-describedby).
+  const previewIdPrefix = useId();
   const {
     analytics,
     alternativeHovered,
@@ -334,6 +336,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         return (
           <div
             key={`explanation-${index}-${alternative.text || 'alt'}`}
+            id={previewId(index)}
             style={{
               position: 'relative',
               top: 0,
@@ -356,6 +359,19 @@ const HighlightPopover: React.FC<PopoverProps> = ({
 
     return allAlternatives;
   };
+
+  const previewId = (index: number): string =>
+    `${previewIdPrefix}-preview-${index}`;
+
+  /**
+   * The id of the rewrite preview for the alternative at `index`, once there
+   * is one: a screen reader then reads the rewritten sentence as the button's
+   * description, as a sighted user sees it on hover or focus.
+   */
+  const previewIdFor = (index: number): string | undefined =>
+    llmAlternativesResponse && !llmAlternativesResponse.loading
+      ? previewId(index)
+      : undefined;
 
   const renderExplanation = (alternative: IAlternatives) => {
     let rephrasing = llmAlternativesResponse?.data?.results?.get(
@@ -695,6 +711,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     onMouseLeave={() => {
                       setAlternativeHovered(null);
                     }}
+                    // Keyboard users see the same preview of what Enter or
+                    // Space will insert.
+                    onFocus={() => {
+                      setAlternativeHovered(alternative);
+                    }}
+                    onBlur={() => {
+                      setAlternativeHovered(null);
+                    }}
                     key={`${index}-${alternative.text || 'alt'}-container`}
                   >
                     <button
@@ -705,6 +729,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         clickAlternative(e.nativeEvent, ' ')
                       }
                       onKeyDown={alternativeKeyDown(' ')}
+                      aria-describedby={previewIdFor(index)}
                       aria-label={`${t('removeText')} ${data.alert.data?.text}`}
                       title={t('removeText')}
                     >
@@ -726,6 +751,14 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                     onMouseLeave={() => {
                       setAlternativeHovered(null);
                     }}
+                    // Keyboard users see the same preview of what Enter or
+                    // Space will insert.
+                    onFocus={() => {
+                      setAlternativeHovered(alternative);
+                    }}
+                    onBlur={() => {
+                      setAlternativeHovered(null);
+                    }}
                   >
                     <button
                       type='button'
@@ -734,6 +767,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                         clickAlternative(e.nativeEvent, alternative.text)
                       }
                       onKeyDown={alternativeKeyDown(alternative.text)}
+                      aria-describedby={previewIdFor(index)}
                       aria-label={alternative.text}
                       title={alternative.text}
                     >
