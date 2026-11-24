@@ -118,8 +118,13 @@ export type EditorStatus =
       /** Set once, on the status right after a gender format switch. */
       genderFormatSwitch?: GenderFormatSwitchResult;
     }
-  /** The API refused the key (401), or the token behind it (403). */
-  | {state: 'unauthorized'}
+  /**
+   * The API refused the request. `status` 401: the key or token is not valid
+   * (an access token may have expired, so refresh it and call
+   * `setAccessToken`). 403: the API does not let this user in; a new token
+   * would be refused the same way, so do not refresh.
+   */
+  | {state: 'unauthorized'; status: 401 | 403}
   /**
    * The API no longer supports this version of the editor (400): the host
    * page needs to load a newer one. `message` is the API's explanation.
@@ -200,7 +205,8 @@ export interface WittyEditorHandle {
   setApiKey(key: string): void;
   /**
    * Replace the access token (empty string clears it) and check again: after
-   * a refresh, or on `{state: 'unauthorized'}` once a new one is at hand.
+   * a refresh, or on `{state: 'unauthorized', status: 401}` once a new one is
+   * at hand. Not on status 403: a new token would be refused the same way.
    */
   setAccessToken(token: string): void;
   /**

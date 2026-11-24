@@ -60,7 +60,7 @@ const errorStatus = (
   const message = error instanceof Error ? error.message : String(error);
   if (!(error instanceof CheckHttpError)) return {state: 'error', message};
   if (error.status === 401 || error.status === 403) {
-    return {state: 'unauthorized'};
+    return {state: 'unauthorized', status: error.status};
   }
   // An API version or client version the API no longer supports.
   if (error.status === 400) {
