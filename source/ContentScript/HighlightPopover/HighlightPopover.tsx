@@ -119,6 +119,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     clickAlternative,
     alternativeKeyDown,
     handleIgnoreClick,
+    ignorePermanentlyClick,
     goToAdjacentAlert,
   } = usePopoverViewModel({
     analytics: popoverAnalytics,
@@ -849,7 +850,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
           </button>
           {dashboardAvailable && data?.alert?.data?.text.length <= 50 && (
             <button
-              onClick={handleIgnoreClick('ignore_permanently')}
+              onClick={ignorePermanentlyClick}
               className='witty-works-ext-ignore-section witty-works-ext-ignore-color-transformer witty-works-ext-margin-top witty-works-button'
               aria-label={t('ignorePermanently')}
               title={t('ignorePermanently')}

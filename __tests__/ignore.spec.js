@@ -284,6 +284,53 @@ test.describe('Popover ignore flows', () => {
     );
   });
 
+  test('a page script cannot ignore permanently or apply an alternative', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    const ignoreRequests = [];
+    await context.route(
+      (url) => url.pathname.includes(IGNORE_WORDS_PATH),
+      (route) => {
+        ignoreRequests.push(route.request().method());
+        return route.fulfill({ status: 204, body: '' });
+      }
+    );
+
+    await signIn(context, extensionId);
+    await page.goto('/textarea.html');
+    await typeAndWaitForHighlights(page);
+    await openPopoverForWord(page, 'guys');
+    await page.waitForFunction(existsByAriaLabelBrowser, 'Ignore permanently');
+
+    // The page's own script: its events are not trusted.
+    await page.evaluate(() => {
+      const walk = (root, label) => {
+        for (const el of root.querySelectorAll('*')) {
+          if (el.getAttribute('aria-label') === label) return el;
+          const hit = el.shadowRoot && walk(el.shadowRoot, label);
+          if (hit) return hit;
+        }
+        return null;
+      };
+      walk(document, 'Ignore permanently').click();
+      const alternative = walk(document, 'everyone');
+      alternative.dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true })
+      );
+      alternative.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+      );
+    });
+    await page.waitForTimeout(1000);
+
+    expect(ignoreRequests).toEqual([]);
+    expect(await popoverIsOpen(page)).toBe(true);
+    expect(await counterText(page)).toBe('1 of 3');
+    expect(await page.locator('#editor').inputValue()).toContain('Hey guys,');
+  });
+
   test('ignore permanently shows a failure state and keeps the alert when the request fails', async ({
     page,
     context,

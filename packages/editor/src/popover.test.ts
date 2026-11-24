@@ -11,6 +11,18 @@ import {
   type WittyEditorHandle,
 } from './mount';
 
+// Unit tests can only dispatch synthetic events, which the popover ignores
+// for actions that change the text (trustedEvent.ts). Unless a test turns it
+// off, this stands in for the user's own click or key press.
+const trust = vi.hoisted(() => {
+  return {synthetic: true};
+});
+vi.mock('@witty/core/trustedEvent', () => {
+  return {
+    isTrustedEvent: (event: Event) => trust.synthetic || event.isTrusted,
+  };
+});
+
 let handle: WittyEditorHandle | undefined;
 let statuses: EditorStatus[];
 let rephraseCalls: number;
@@ -19,6 +31,7 @@ let rephraseBodies: Record<string, unknown>[];
 let rephrase: () => Promise<Response>;
 
 beforeEach(() => {
+  trust.synthetic = true;
   statuses = [];
   rephraseCalls = 0;
   rephraseBodies = [];
@@ -225,6 +238,41 @@ describe('applying from the popover', () => {
 
     editor.editor.commands.undo();
     expect(editor.getText()).toContain('Hey guys,');
+  });
+
+  it('ignores a click or key press a page script dispatches', async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(alternativeButton('everyone')).toBeDefined());
+    trust.synthetic = false;
+    const button = alternativeButton('everyone')!;
+    button.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true}));
+    button.dispatchEvent(
+      new KeyboardEvent('keydown', {key: 'Enter', bubbles: true})
+    );
+    button.dispatchEvent(
+      new KeyboardEvent('keydown', {key: ' ', bubbles: true})
+    );
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(popover()).not.toBeNull();
+    expect(editor.getText()).toContain('Hey guys,');
+  });
+
+  it('applies on Enter from the user', async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(alternativeButton('everyone')).toBeDefined());
+    alternativeButton('everyone')!.dispatchEvent(
+      new KeyboardEvent('keydown', {key: 'Enter', bubbles: true})
+    );
+
+    await vi.waitFor(() => expect(popover()).toBeNull());
+    expect(editor.getText()).toContain('Hey everyone,');
   });
 
   it('moves to the next alert', async () => {

@@ -9,6 +9,7 @@ import {
 import {useStateRef} from '../../shared/customHooks/useStateRef';
 import type {LLMAlternativesCacheValue} from '../../shared/ApiServices/llmAlternativesService';
 import type {PopoverData} from './HighlightPopover';
+import {isTrustedEvent} from '../../shared/trustedEvent';
 
 /**
  * Data and behavior of the highlight popover, separated from its rendering
@@ -129,6 +130,8 @@ export const usePopoverViewModel = ({
     e: MouseEvent | KeyboardEvent,
     alternative: string
   ) => {
+    // Only the user changes their text: not a page script (isTrustedEvent).
+    if (!isTrustedEvent(e)) return;
     //Log the clicked alternative
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -148,6 +151,7 @@ export const usePopoverViewModel = ({
       if (e.key !== 'Enter' && e.key !== ' ') {
         return;
       }
+      if (!isTrustedEvent(e.nativeEvent)) return;
       (element as HTMLElement).focus?.();
       clickAlternative(e.nativeEvent, alternative);
     };
@@ -193,6 +197,12 @@ export const usePopoverViewModel = ({
     }
   };
 
+  /** Writing to the user's dashboard takes the user's own click. */
+  const ignorePermanentlyClick = (e: React.MouseEvent): void => {
+    if (!isTrustedEvent(e.nativeEvent)) return;
+    handleIgnoreClick('ignore_permanently')();
+  };
+
   /** Arrow-button navigation collapses the learning bite before moving. */
   const goToAdjacentAlert = (direction: 'previous' | 'next') => {
     movePopoverNextOrPrev(direction);
@@ -214,6 +224,7 @@ export const usePopoverViewModel = ({
     clickAlternative,
     alternativeKeyDown,
     handleIgnoreClick,
+    ignorePermanentlyClick,
     goToAdjacentAlert,
   };
 };
