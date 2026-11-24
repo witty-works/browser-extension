@@ -220,7 +220,9 @@ test.describe('Popover ignore flows', () => {
       .toBe(1);
     expect(ignoreRequests[0].method).toBe('PUT');
     expect(ignoreRequests[0].url).toContain(`${IGNORE_WORDS_PATH}?`);
-    expect(ignoreRequests[0].url).toContain('false_positive=guys');
+    expect(
+      new URL(ignoreRequests[0].url).searchParams.get('false_positive')
+    ).toBe('guys');
 
     /**
      * On success the popover shows the check mark briefly and then closes

@@ -753,7 +753,10 @@ const Input: React.FC<{
     const accessToken = await readAccessToken().catch(() => '');
     const requestUrl = createUrl(
       getBaseUrls().dashboard,
-      `api/user/language/ignore-words?false_positive=${term}`
+      // Encoded: a term with &, # or + would otherwise change the query.
+      `api/user/language/ignore-words?${new URLSearchParams({
+        false_positive: term,
+      })}`
     );
 
     let response: Response;
