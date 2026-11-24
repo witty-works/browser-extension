@@ -278,10 +278,14 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
 
         // The background refreshes for every caller at once; the user's
         // next toggle is sent with the new token.
-        requestTokenRefresh(accessToken).then((outcome) => {
-          outcome === 'refreshed' &&
-            readAccessToken().then(setAccessToken).catch(onStorageError);
-        });
+        requestTokenRefresh(accessToken)
+          .then((outcome) =>
+            outcome === 'refreshed' ? readAccessToken() : undefined
+          )
+          .then((token) => {
+            if (token !== undefined) setAccessToken(token);
+          })
+          .catch(onStorageError);
       }
     });
   };
