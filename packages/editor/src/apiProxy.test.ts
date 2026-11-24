@@ -119,6 +119,40 @@ afterEach(() => {
 });
 
 describe('proxyApiRequest', () => {
+  it('refreshes first when the session has lost the access token', async () => {
+    // A browser restart or an extension update empties storage.session, while
+    // the refresh token and signedIn stay in storage.local.
+    delete session.data.accessToken;
+    apiAnswer = (authorization) =>
+      authorization
+        ? json(200, {results: []})
+        : json(401, {detail: 'no token'});
+
+    const response = await proxyApiRequest({
+      type: MessageTypes.API_REQUEST,
+      ...check,
+    });
+
+    expect(tokenRequests).toBe(1);
+    expect(response.ok).toBe(true);
+    expect(sent.at(-1)!.authorization).toBe('Bearer access-2');
+    expect(sent.every((request) => request.authorization)).toBe(true);
+  });
+
+  it('sends nothing with no token and no refresh token', async () => {
+    delete session.data.accessToken;
+    local.data.refreshToken = '';
+    apiAnswer = () => json(401, {detail: 'no token'});
+
+    const response = await proxyApiRequest({
+      type: MessageTypes.API_REQUEST,
+      ...check,
+    });
+
+    expect(tokenRequests).toBe(0);
+    expect(response.status).toBe(401);
+  });
+
   it('sends a check to the stored endpoint with the stored token', async () => {
     const response = await proxyApiRequest({
       type: MessageTypes.API_REQUEST,

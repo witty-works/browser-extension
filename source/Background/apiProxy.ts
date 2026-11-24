@@ -144,7 +144,17 @@ export const proxyApiRequest = async (
   const apiKey = X_KEY || apiKeyFromStorage(result);
   if (apiKey) return send(target, {apiKey});
 
-  const {accessToken} = await readTokens();
+  const stored = await readTokens();
+  let {accessToken} = stored;
+  // A browser restart or an extension update empties storage.session, where
+  // the access token lives, while the refresh token stays in storage.local.
+  // Refresh before sending: a request without a token is refused, and the
+  // refused-token path below only refreshes a token that was sent.
+  if (!accessToken && stored.refreshToken) {
+    if ((await getNewAccessToken('')) === 'refreshed') {
+      ({accessToken} = await readTokens());
+    }
+  }
   const response = await send(target, {token: accessToken});
   if (!accessToken || !isTokenRefused(response.status)) {
     if (response.ok) refusedAfterRefresh = null;
