@@ -9,15 +9,7 @@ import {
   DEV_ENV,
   isDashboardAvailable,
 } from '../shared/constants';
-import {readAccessToken} from '../shared/tokenStore';
-import {
-  createUrl,
-  getBaseUrls,
-  buildRequestHeaders,
-  getToken,
-  isTokenRefused,
-  setToken,
-} from '../shared/ApiServices/requests';
+import {backgroundApiRequest} from '../shared/ApiServices/backgroundApi';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../i18n/i18n.constants';
 import TextAreaClone from './TextAreaClone';
@@ -33,7 +25,6 @@ import {
 } from '../shared/types';
 import {
   storeInLocalStorage,
-  requestTokenRefresh,
   getDomainWithoutSubdomain,
   updateConfig,
   isSignedInResult,
@@ -146,19 +137,10 @@ const Input: React.FC<{
     hrFeatureDisabled
   );
 
-  /**
-   * The access token a refresh produced and the failed request was retried
-   * with. If that one is refused too, no further refresh is started until a
-   * request succeeds again, so a token the API keeps refusing (an account
-   * that is not allowed in, answered with 403) cannot set off a loop.
-   */
-  const retriedWithTokenRef = useRef<string | null>(null);
-
   const onNewCheckResultsReceived = (
     checkEndpointResponse: ICheckResponse,
     checkedTextLength: number
   ) => {
-    retriedWithTokenRef.current = null;
     userIsSignedIn &&
       checkEventsLogger.checkLog(checkEndpointResponse, checkedTextLength);
     userIsSignedIn &&
@@ -726,28 +708,15 @@ const Input: React.FC<{
   }, []);
 
   const ignoreTermPermanently = async (term: string): Promise<void> => {
-    const accessToken = await readAccessToken().catch(() => '');
-    const requestUrl = createUrl(
-      getBaseUrls().dashboard,
-      // Encoded: a term with &, # or + would otherwise change the query.
-      `api/user/language/ignore-words?${new URLSearchParams({
-        false_positive: term,
-      })}`
-    );
-
-    let response: Response;
-    try {
-      response = await fetch(requestUrl, {
-        method: 'PUT',
-        headers: buildRequestHeaders(accessToken),
-      });
-    } catch (error) {
-      // Network failures are reported; a non-204 below is a user-visible
-      // failure state but not an error condition worth a Sentry event.
-      sendErrorToSentry(error);
-      throw error;
+    // The background sends it with the user's token (apiProxy.ts).
+    const response = await backgroundApiRequest({kind: 'ignoreWord', term});
+    if (response.status === 0) {
+      // No response at all is worth a report; a refusal below is a
+      // user-visible failure state but not an error condition.
+      sendErrorToSentry(
+        new Error(`ignore-words failed: ${response.statusText}`)
+      );
     }
-
     if (response.status !== 204) {
       throw new Error(`ignore-words returned ${response.status}`);
     }
@@ -1554,31 +1523,6 @@ const Input: React.FC<{
         'false'
       );
       setAlerts([]);
-    } else if (
-      isTokenRefused(checkEndpointError?.status) ||
-      (isTokenRefused(authErrorResponse?.status) && userIsSignedIn)
-    ) {
-      // The API answers 401 for an expired or invalid token; versions before
-      // that answer 403. The background refreshes once for every frame and
-      // tab (getNewAccessToken), and signs out only if the dashboard rejects
-      // the refresh token. After a refresh the request is retried once.
-      const failedToken = getToken();
-      if (failedToken && failedToken !== retriedWithTokenRef.current) {
-        requestTokenRefresh(failedToken)
-          .then(async (outcome) => {
-            if (outcome !== 'refreshed') return;
-            const token = await readAccessToken();
-            if (!token || token === failedToken) return;
-            setToken(token);
-            retriedWithTokenRef.current = token;
-            if (authErrorResponse) setConfigHasChanged((changed) => !changed);
-            checkText('');
-            checkText(currentTextToCheck);
-          })
-          .catch((error: unknown) => {
-            sendErrorToSentry(error);
-          });
-      }
     } else if (authErrorResponse?.status === 400 && window.top) {
       //400 means means min version not installed
       try {
@@ -1594,10 +1538,6 @@ const Input: React.FC<{
       );
     }
   }, [checkEndpointError, authErrorResponse]);
-
-  useEffect(() => {
-    if (authResponse) retriedWithTokenRef.current = null;
-  }, [authResponse]);
 
   const ErrorBoundaryFallback = () => (
     <Toast message={t('reloadWebsite')} type='error' />

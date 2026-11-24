@@ -7,7 +7,6 @@ import {
   isAllowedBaseUrlKey,
   isStoredEndpointConfigured,
   registerCustomEndpointFromStorage,
-  resolveBaseUrl,
   STATIC_ACCESS_TOKEN,
   StorageKeys,
   wittyVersion,
@@ -21,14 +20,10 @@ import {
   isTextArea,
   requiresRectRecalculation,
 } from './DOMutils';
-import {
-  createUrl,
-  setApiKey,
-  setToken,
-  buildRequestHeaders,
-} from './ApiServices/requests';
+import {setToken} from './ApiServices/requests';
 import {isRefreshTokenRejected, refresh} from './ApiServices/oauth';
 import {MessageTypes, RefreshTokenMessage} from './messages';
+import {backgroundApiRequest} from './ApiServices/backgroundApi';
 import {clearTokens, persistTokens, readTokens} from './tokenStore';
 import {IAuthResponse} from './types';
 import {getActiveDocument} from './activeDocument';
@@ -474,12 +469,16 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
     });
 };
 
+/**
+ * Ask the API for the user's configuration (`/v2.0/auth`) and store it. The
+ * background worker makes the request with the credentials (apiProxy.ts), so
+ * this works from content scripts, which do not hold them.
+ */
 export const makeAuthRequest = () => {
   getStorage()
     .local.get(null)
     .then(async (result) => {
       registerCustomEndpointFromStorage(result);
-      setApiKey(apiKeyFromStorage(result));
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
@@ -492,60 +491,21 @@ export const makeAuthRequest = () => {
         storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
         return;
       }
-      const {accessToken} = await readTokens();
 
-      if (accessToken) {
-        const headers = buildRequestHeaders(accessToken);
-
-        const config = {
-          method: 'POST',
-          headers,
-        };
-
-        fetch(createUrl(resolveBaseUrl(urls).api, 'v2.0/auth'), config).then(
-          async (response) => {
-            if (response.ok) {
-              const json = await response.json();
-              updateConfig(json, true);
-              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
-            } else {
-              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
-            }
-          }
-        );
-      } else if (X_KEY || apiKeyFromStorage(result)) {
-        // No token in storage but an X_KEY is configured in the extension config.
-        // Try the auth endpoint using the configured X-KEY header. Do NOT store the raw key.
-        const headers = buildRequestHeaders();
-        const config = {
-          method: 'POST',
-          headers,
-        };
-
-        fetch(createUrl(resolveBaseUrl(urls).api, 'v2.0/auth'), config)
-          .then(async (response) => {
-            if (response.ok) {
-              const json = await response.json();
-              updateConfig(json, true);
-              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
-            } else {
-              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
-            }
-          })
-          .catch((e) => {
-            storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
-            sendErrorToSentry(e);
-          });
+      // An account token (the signedIn marker; the token itself is only for
+      // the background) or an API key.
+      if (result[StorageKeys.SIGNED_IN] || X_KEY || apiKeyFromStorage(result)) {
+        const response = await backgroundApiRequest({kind: 'auth'});
+        if (response.ok) {
+          updateConfig(response.data as IAuthResponse, true);
+          storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+        } else {
+          storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+        }
       } else if (STATIC_ACCESS_TOKEN) {
         // No token in storage but a default token is available in config — store and use it.
         storeInLocalStorage(StorageKeys.ACCESS_TOKEN, STATIC_ACCESS_TOKEN);
         storeInLocalStorage(StorageKeys.SIGNED_IN, true);
-        try {
-          setToken(STATIC_ACCESS_TOKEN);
-        } catch (e) {
-          // swallow any errors setting token — best effort fallback
-          sendErrorToSentry(e);
-        }
       }
     })
     .catch((error) => {

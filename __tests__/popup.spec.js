@@ -26,8 +26,9 @@ test.describe('Popup', () => {
     );
     await setup.close();
 
+    // From any page or the service worker, which makes the API requests.
     const authRequests = [];
-    page.on('request', (request) => {
+    context.on('request', (request) => {
       if (new URL(request.url()).pathname.endsWith('/v2.0/auth')) {
         authRequests.push(request.url());
       }
@@ -430,7 +431,12 @@ test.describe('Popup — sign out', () => {
 
     await page.locator('#witty-sign-out').click();
 
-    const messages = await page.evaluate(() => window.__sentMessages);
+    // The popup also asks the background for its API requests.
+    const messages = await page.evaluate(() =>
+      window.__sentMessages.filter(
+        (message) => message.type !== 'witty:api-request'
+      )
+    );
     expect(messages).toEqual([{ type: 'witty:sign-out' }]);
   });
 

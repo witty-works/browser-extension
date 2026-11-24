@@ -169,24 +169,22 @@ export const buildCheckBody = (
 };
 
 export const getAnalyzedTextResults = (text: string): IRequest => {
+  const body = buildCheckBody({
+    text,
+    id: appID,
+    client: wittyVersion,
+    config: requestConfig,
+    configHash,
+    organizationConfigHash,
+  });
   return {
     url: createUrl(BASE_URL_API, CHECK_PATH),
     config: {
       method: 'POST',
       headers: buildRequestHeaders(token),
-      body: text
-        ? JSON.stringify(
-            buildCheckBody({
-              text,
-              id: appID,
-              client: wittyVersion,
-              config: requestConfig,
-              configHash,
-              organizationConfigHash,
-            })
-          )
-        : null,
+      body: text ? JSON.stringify(body) : null,
     },
+    ...(text ? {proxy: {kind: 'check', body}} : {}),
   };
 };
 
@@ -225,16 +223,16 @@ export const getLLMSuggestion = (
   sentence: TxtSentenceNode,
   alert: IAlert
 ): IRequest => {
+  const body = sentence ? buildLLMSuggestionBody(sentence, alert) : null;
   return {
     url: createUrl(BASE_URL_API, REPHRASE_PATH),
     config: {
       method: 'POST',
       headers: buildRequestHeaders(token),
-      body: sentence
-        ? JSON.stringify(buildLLMSuggestionBody(sentence, alert))
-        : null,
+      body: body ? JSON.stringify(body) : null,
       signal: AbortSignal.timeout(LLM_SUGGESTION_TIMEOUT_MS),
     },
+    ...(body ? {proxy: {kind: 'rephrase', body: {...body}}} : {}),
   };
 };
 
@@ -279,6 +277,7 @@ export const getConfiguration = (): IRequest => {
       method: 'POST',
       headers: buildRequestHeaders(token),
     },
+    proxy: {kind: 'auth'},
   };
 };
 

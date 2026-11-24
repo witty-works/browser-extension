@@ -6,7 +6,6 @@ import {CustomInputElement, RequestConfig} from '../shared/types';
 import {useStateRef} from '../shared/customHooks/useStateRef';
 import Input from './Input';
 import {
-  apiKeyFromStorage,
   WTags,
   StorageKeys,
   DefaultBaseUrlKey,
@@ -17,11 +16,8 @@ import {
   getBaseUrls,
   setAppID,
   setBaseUrls,
-  setApiKey,
   setRequestConfig,
-  setToken,
 } from '../shared/ApiServices/requests';
-import {readAccessToken} from '../shared/tokenStore';
 import {
   isInputElement,
   nodeExistsInDOM,
@@ -100,10 +96,8 @@ const ContentScriptApp: React.FC = () => {
             ? result[StorageKeys.API_ENDPOINT_KEY]
             : DefaultBaseUrlKey
         );
-        setApiKey(apiKeyFromStorage(result));
-        readAccessToken()
-          .then(setToken)
-          .catch(() => setToken(''));
+        // No credentials here: the background worker adds them to the API
+        // requests it makes for this script (Background/apiProxy.ts).
         storeInLocalStorage(
           StorageKeys.CONFIG_HASH,
           result[StorageKeys.CONFIG_HASH]
@@ -232,34 +226,19 @@ const ContentScriptApp: React.FC = () => {
     for (const item of changedItems) {
       switch (item) {
         case StorageKeys.API_ENDPOINT_KEY:
-          // Credentials held in memory belong to the previous endpoint. Drop
-          // them before switching, then load the ones stored for the new one:
-          // the custom endpoint has to be registered from storage before its
-          // key resolves, and the token and API key are read back from there.
-          setToken('');
-          setApiKey('');
+          // The custom endpoint has to be registered from storage before its
+          // key resolves. Credentials stay with the background worker.
           setBaseUrls(changes[item].newValue);
           browser.storage.local
             .get(null)
-            .then(async (result) => {
+            .then((result) => {
               registerCustomEndpointFromStorage(result);
               setBaseUrls(
                 (result[StorageKeys.API_ENDPOINT_KEY] as string) ||
                   DefaultBaseUrlKey
               );
-              setApiKey(apiKeyFromStorage(result));
-              setToken(await readAccessToken());
             })
             .catch((error: unknown) => sendErrorToSentry(error));
-          break;
-        case StorageKeys.SIGNED_IN:
-          // The marker is a boolean; the token itself lives in storage.session,
-          // so re-read it rather than assigning the marker.
-          changes[item].newValue
-            ? readAccessToken()
-                .then(setToken)
-                .catch(() => setToken(''))
-            : setToken('');
           break;
         case StorageKeys.HR_FEATURES_DISABLED_DOMAINS:
           setReqConfig({

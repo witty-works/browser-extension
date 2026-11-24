@@ -16,6 +16,7 @@ export enum MessageTypes {
   SIGN_IN = 'witty:sign-in',
   SIGN_OUT = 'witty:sign-out',
   REFRESH_TOKEN = 'witty:refresh-token',
+  API_REQUEST = 'witty:api-request',
   OPEN_POPOVER = 'witty:open-popover',
 }
 
@@ -46,6 +47,60 @@ export interface RefreshTokenMessage {
 }
 
 /**
+ * The API requests a content script asks the background to make. The
+ * background picks the endpoint, path and credentials; the content script
+ * only says which request and with what data, and never holds the token.
+ */
+export const API_REQUEST_KINDS = [
+  'check',
+  'auth',
+  'rephrase',
+  'ignoreWord',
+] as const;
+export type ApiRequestKind = (typeof API_REQUEST_KINDS)[number];
+
+export interface ApiRequestMessage {
+  type: MessageTypes.API_REQUEST;
+  kind: ApiRequestKind;
+  /** The JSON body, for `check` and `rephrase`. */
+  body?: Record<string, unknown>;
+  /** The term, for `ignoreWord`. */
+  term?: string;
+}
+
+/** What the background answers an ApiRequestMessage with. */
+export interface ApiResponse {
+  ok: boolean;
+  /** The HTTP status, or 0 when no response arrived. */
+  status: number;
+  statusText: string;
+  /** The parsed JSON body of a successful response, else null. */
+  data: unknown;
+}
+
+/** Longest ignore term accepted; dashboard terms are words or short phrases. */
+const MAX_TERM_LENGTH = 200;
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' &&
+  value !== null &&
+  Object.getPrototypeOf(value) === Object.prototype;
+
+const isApiRequest = (value: Record<string, unknown>): boolean => {
+  const {kind, body, term} = value;
+  if (!(API_REQUEST_KINDS as readonly unknown[]).includes(kind)) return false;
+  if (kind === 'check' || kind === 'rephrase') return isPlainObject(body);
+  if (kind === 'ignoreWord') {
+    return (
+      typeof term === 'string' &&
+      term.length > 0 &&
+      term.length <= MAX_TERM_LENGTH
+    );
+  }
+  return true;
+};
+
+/**
  * Sent by the background worker to the content scripts of the active tab when
  * the user presses the "open highlight popover" keyboard shortcut. Opens the
  * popover on the first alert, or advances to the next one if already open.
@@ -55,7 +110,11 @@ export interface OpenPopoverMessage {
 }
 
 export type WittyMessage =
-  SignInMessage | SignOutMessage | RefreshTokenMessage | OpenPopoverMessage;
+  | SignInMessage
+  | SignOutMessage
+  | RefreshTokenMessage
+  | ApiRequestMessage
+  | OpenPopoverMessage;
 
 export interface SignInResult {
   status: 'success' | 'cancelled' | 'error';
@@ -69,6 +128,10 @@ export const isWittyMessage = (value: unknown): value is WittyMessage => {
   }
 
   const type = (value as {type?: unknown}).type;
+
+  if (type === MessageTypes.API_REQUEST) {
+    return isApiRequest(value as Record<string, unknown>);
+  }
 
   if (type === MessageTypes.REFRESH_TOKEN) {
     return typeof (value as {failedToken?: unknown}).failedToken === 'string';

@@ -27,9 +27,10 @@ import {
 } from '../shared/utils';
 import {authorize} from '../shared/ApiServices/oauth';
 import {revokeStoredTokens} from '../shared/ApiServices/revoke';
+import {proxyApiRequest} from './apiProxy';
 import {setToken} from '../shared/ApiServices/requests';
 import {
-  allowSessionStorageInContentScripts,
+  restrictSessionStorageToTrustedContexts,
   migrateAccessTokenOffDisk,
   persistTokens,
 } from '../shared/tokenStore';
@@ -136,6 +137,10 @@ const addMessageListener = () => {
       // Returning the promise keeps the message channel open until the flow
       // settles, which can be minutes if the user takes their time logging in.
       return handleSignIn(message.register);
+    }
+
+    if (message.type === MessageTypes.API_REQUEST) {
+      return proxyApiRequest(message);
     }
 
     if (message.type === MessageTypes.REFRESH_TOKEN) {
@@ -494,10 +499,10 @@ if (TESTING) {
   ).__wittyTestRefresh = getNewAccessToken;
 }
 
-// The access token lives in storage.session, which Chrome hides from content
-// scripts by default — the popover and content script both need it to call the
-// API. Then move any token left on disk by a previous version into session.
-allowSessionStorageInContentScripts()
+// The access token lives in storage.session, kept from content scripts: they
+// ask this worker to make their API requests (apiProxy.ts). Then move any
+// token left on disk by a previous version into session.
+restrictSessionStorageToTrustedContexts()
   .then(migrateAccessTokenOffDisk)
   .catch((error) => sendErrorToSentry(error));
 //TODO Remove Listeners

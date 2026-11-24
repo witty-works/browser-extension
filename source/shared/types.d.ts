@@ -1,9 +1,16 @@
 //API REQUEST/RESPONSE
 import {TxtSentenceNode} from 'sentence-splitter';
+import type {ApiRequestMessage} from './messages';
 
 export interface IRequest {
   url: string;
   config: RequestInit | null;
+  /**
+   * In the extension, the request the background worker makes instead
+   * (Background/apiProxy.ts): it adds the credentials. `url` and `config`
+   * are then not used.
+   */
+  proxy?: Omit<ApiRequestMessage, 'type'>;
 }
 
 export interface ICheckRequest {
