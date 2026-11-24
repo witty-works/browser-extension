@@ -4,7 +4,7 @@
 // unit tests because they are the repository's only unit test suite.
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import {getNewAccessToken, logOut} from '@witty/core/utils';
+import {getNewAccessToken, logOut, refreshSettled} from '@witty/core/utils';
 import {registerStorage, type StorageArea} from '@witty/core/platform/storage';
 
 vi.mock('webextension-polyfill', () => {
@@ -39,6 +39,7 @@ const memoryArea = (): StorageArea & {data: Record<string, unknown>} => {
 let local: ReturnType<typeof memoryArea>;
 let session: ReturnType<typeof memoryArea>;
 let tokenRequests: number;
+let lastSignal: AbortSignal | undefined;
 /** How the token endpoint answers the next refresh. */
 let answer: () => Promise<Response>;
 
@@ -83,8 +84,9 @@ beforeEach(() => {
     });
   vi.stubGlobal(
     'fetch',
-    vi.fn(async (url: string | URL) => {
+    vi.fn(async (url: string | URL, init?: RequestInit) => {
       expect(String(url)).toBe(`${DASHBOARD}oauth/token`);
+      lastSignal = init?.signal ?? undefined;
       tokenRequests += 1;
       return answer();
     })
@@ -196,5 +198,31 @@ describe('signing out during a refresh', () => {
     expect(local.data.signedIn).toBe(false);
     expect(local.data.refreshToken).toBe('');
     expect(session.data.accessToken).toBe('');
+  });
+});
+
+describe('a token endpoint that does not answer', () => {
+  it('gives the token request a timeout', async () => {
+    await getNewAccessToken('access-1');
+    expect(lastSignal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('does not keep sign-out waiting for the refresh', async () => {
+    answer = () => new Promise<Response>(() => {});
+    void getNewAccessToken('access-1');
+    await settle();
+
+    vi.useFakeTimers();
+    try {
+      let settled = false;
+      const waiting = refreshSettled().then(() => {
+        settled = true;
+      });
+      await vi.advanceTimersByTimeAsync(3000);
+      await waiting;
+      expect(settled).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

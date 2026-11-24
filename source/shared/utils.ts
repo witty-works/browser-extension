@@ -153,9 +153,23 @@ let refreshInFlight: Promise<RefreshOutcome> | null = null;
 // must not write its tokens back and sign the user in again.
 let signOutGeneration = 0;
 
-/** Settles once no refresh is in flight; signing out waits for it. */
+// How long signing out waits for a refresh under way. A refresh that
+// finishes later is dropped (signOutGeneration), so waiting only spares a
+// rotation the dashboard would otherwise still have to revoke.
+const SIGN_OUT_REFRESH_WAIT_MS = 3000;
+
+/** Settles once no refresh is in flight, or after SIGN_OUT_REFRESH_WAIT_MS;
+ * signing out waits for it. */
 export const refreshSettled = async (): Promise<void> => {
-  await refreshInFlight?.catch(() => undefined);
+  if (!refreshInFlight) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    refreshInFlight.catch(() => undefined),
+    new Promise((resolve) => {
+      timer = setTimeout(resolve, SIGN_OUT_REFRESH_WAIT_MS);
+    }),
+  ]);
+  clearTimeout(timer);
 };
 
 const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
