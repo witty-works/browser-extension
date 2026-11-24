@@ -603,7 +603,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                       <a
                         className='witty-works-ext-dropdown-select witty-works-ext-container-row'
                         href={data.alert.data.source.url}
-                        target='_new'
+                        target='_blank'
+                        rel='noopener noreferrer'
                         aria-label={t('visitSource')}
                         title={t('visitSource')}
                       >
@@ -638,7 +639,8 @@ const HighlightPopover: React.FC<PopoverProps> = ({
                   <a
                     className='witty-works-dig-deeper witty-works-ext-container-row'
                     href={data.alert.data.explanation.url}
-                    target='_new'
+                    target='_blank'
+                    rel='noopener noreferrer'
                     aria-label={t('leanrMoreExtendedText')}
                     title={t('leanrMoreExtendedText')}
                   >
