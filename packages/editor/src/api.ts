@@ -135,6 +135,12 @@ export interface MountOptions {
   endpoint?: string;
   /** Sent as `x-key`. Set later with `setApiKey`; never read from the DOM. */
   apiKey?: string;
+  /**
+   * An OAuth access token, sent as `Authorization: Bearer`, for a page whose
+   * users sign in (the dashboard's tokens). Set later with `setAccessToken`.
+   * An `apiKey` wins when both are set.
+   */
+  accessToken?: string;
   /** Language of the text, or `auto` (the default) to let the API detect it. */
   lang?: CheckLang;
   /**
@@ -192,6 +198,11 @@ export interface WittyEditorHandle {
   editor: Editor;
   /** Replace the API key (empty string clears it) and check again. */
   setApiKey(key: string): void;
+  /**
+   * Replace the access token (empty string clears it) and check again: after
+   * a refresh, or on `{state: 'unauthorized'}` once a new one is at hand.
+   */
+  setAccessToken(token: string): void;
   /**
    * Replace the whole check config — this does not merge — and check again.
    * `{}` goes back to sending no `config`, i.e. the account's own settings.
