@@ -119,6 +119,21 @@ afterEach(() => {
 });
 
 describe('proxyApiRequest', () => {
+  it('remembers a token refused after a refresh across a worker restart', async () => {
+    // The API does not let this user in (403): one refresh, then no more,
+    // also after the service worker stopped and started again.
+    apiAnswer = () => json(403, {detail: 'not let in'});
+    await proxyApiRequest({type: MessageTypes.API_REQUEST, ...check});
+    expect(tokenRequests).toBe(1);
+
+    // Kept in storage.session, which outlives the worker, not in memory.
+    expect(session.data.refusedAfterRefresh).toBe('access-2');
+
+    // As after a restart: only the stored value says it was refused.
+    await proxyApiRequest({type: MessageTypes.API_REQUEST, ...check});
+    expect(tokenRequests).toBe(1);
+  });
+
   it('refreshes first when the session has lost the access token', async () => {
     // A browser restart or an extension update empties storage.session, while
     // the refresh token and signedIn stay in storage.local.

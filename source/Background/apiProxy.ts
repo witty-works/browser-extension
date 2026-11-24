@@ -157,23 +157,36 @@ export const proxyApiRequest = async (
   }
   const response = await send(target, {token: accessToken});
   if (!accessToken || !isTokenRefused(response.status)) {
-    if (response.ok) refusedAfterRefresh = null;
+    if (response.ok) await rememberRefusedAfterRefresh(null);
     return response;
   }
   // Refused straight after a refresh already: refreshing again would not
   // help (an account the API does not let in) and would loop.
-  if (accessToken === refusedAfterRefresh) return response;
+  if (accessToken === (await refusedAfterRefresh())) return response;
 
   if ((await getNewAccessToken(accessToken)) !== 'refreshed') return response;
   const {accessToken: refreshed} = await readTokens();
   if (!refreshed || refreshed === accessToken) return response;
   const retried = await send(target, {token: refreshed});
-  refusedAfterRefresh = isTokenRefused(retried.status) ? refreshed : null;
+  await rememberRefusedAfterRefresh(
+    isTokenRefused(retried.status) ? refreshed : null
+  );
   return retried;
 };
 
 /**
  * A token a refresh produced that the API refused all the same. No refresh is
- * started for it until a request succeeds again.
+ * started for it until a request succeeds again. Kept in storage.session,
+ * not in memory: an MV3 service worker stops when idle, and would otherwise
+ * rotate the token again on every wake-up.
  */
-let refusedAfterRefresh: string | null = null;
+const REFUSED_AFTER_REFRESH = 'refusedAfterRefresh';
+
+const sessionStore = () => getStorage().session ?? getStorage().local;
+
+const refusedAfterRefresh = async (): Promise<string | null> =>
+  ((await sessionStore().get(REFUSED_AFTER_REFRESH))[REFUSED_AFTER_REFRESH] as
+    string | null | undefined) ?? null;
+
+const rememberRefusedAfterRefresh = async (token: string | null) =>
+  sessionStore().set({[REFUSED_AFTER_REFRESH]: token});
