@@ -15,6 +15,14 @@ interface ConfirmCheckPromptProps {
 
 // Inline: the prompt sits in the highlights' closed shadow root, which the
 // page's contentScript.css does not reach.
+// A fieldset's own border, padding and margin, which BOX replaces.
+const FIELDSET_RESET: React.CSSProperties = {
+  margin: 0,
+  padding: 0,
+  border: 'none',
+  minInlineSize: 0,
+};
+
 const BOX: React.CSSProperties = {
   position: 'absolute',
   left: 0,
@@ -59,26 +67,31 @@ const ConfirmCheckPrompt: React.FC<ConfirmCheckPromptProps> = ({
 }) => {
   const {t} = useTranslation(namespaces.popover);
   const questionId = useId();
+  // Escape closes the prompt. Focus inside it is always on one of its
+  // buttons, so the buttons listen rather than the fieldset.
+  const closeOnEscape = (event: React.KeyboardEvent): void => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      onDismiss();
+    }
+  };
 
   return (
-    <div
-      role='group'
+    <fieldset
       aria-labelledby={questionId}
       style={
         open
-          ? {...BOX, top}
-          : {position: 'absolute', width: 0, height: 0, overflow: 'hidden'}
+          ? {...FIELDSET_RESET, ...BOX, top}
+          : {
+              ...FIELDSET_RESET,
+              position: 'absolute',
+              width: 0,
+              height: 0,
+              overflow: 'hidden',
+            }
       }
-      onKeyDown={(event) => {
-        if (event.key === 'Escape') {
-          event.stopPropagation();
-          onDismiss();
-        }
-      }}
     >
-      <span id={questionId} role='status'>
-        {open ? t('confirmCheckQuestion') : ''}
-      </span>
+      <output id={questionId}>{open ? t('confirmCheckQuestion') : ''}</output>
       {open && (
         <>
           <button
@@ -94,6 +107,7 @@ const ConfirmCheckPrompt: React.FC<ConfirmCheckPromptProps> = ({
               if (!isTrustedEvent(event.nativeEvent)) return;
               onConfirm();
             }}
+            onKeyDown={closeOnEscape}
           >
             {t('confirmCheckYes')}
           </button>
@@ -107,12 +121,13 @@ const ConfirmCheckPrompt: React.FC<ConfirmCheckPromptProps> = ({
               border: '1px solid #656565',
             }}
             onClick={onDismiss}
+            onKeyDown={closeOnEscape}
           >
             {t('confirmCheckDismiss')}
           </button>
         </>
       )}
-    </div>
+    </fieldset>
   );
 };
 
