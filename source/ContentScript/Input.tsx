@@ -10,6 +10,12 @@ import {
   isDashboardAvailable,
 } from '../shared/constants';
 import {backgroundApiRequest} from '../shared/ApiServices/backgroundApi';
+import {
+  confirmBeforeChecking,
+  confirmField,
+  isFieldConfirmed,
+} from '../shared/confirmBeforeChecking';
+import ConfirmCheckPrompt from './ConfirmCheckPrompt';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../i18n/i18n.constants';
 import TextAreaClone from './TextAreaClone';
@@ -503,7 +509,58 @@ const Input: React.FC<{
     setActiveIcon('passive');
   };
 
+  const fieldHasFocus = (): boolean => {
+    const active = element.ownerDocument.activeElement;
+    return !!active && (active === element || element.contains(active));
+  };
+
+  // "Ask before checking a field": whether this field still needs the
+  // user's go-ahead, and whether the question is shown.
+  const [confirmRequired, setConfirmRequired] = useState<boolean>(false);
+  const [promptOpen, setPromptOpen] = useState<boolean>(false);
+  // Escape closes the question until the field is focused again.
+  const promptDismissedRef = useRef<boolean>(false);
+  // Set while focus goes back to the field from a dismissed question.
+  const skipNextFocusRef = useRef<boolean>(false);
+
+  const askToConfirm = () => {
+    promptDismissedRef.current = false;
+    if (isFieldConfirmed(element)) return;
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        if (isSignedInResult(result) && confirmBeforeChecking(result).enabled) {
+          setConfirmRequired(true);
+          setPromptOpen(true);
+        }
+      })
+      .catch((error: unknown) => sendErrorToSentry(error));
+  };
+
+  const confirmCheck = () => {
+    confirmField(element);
+    setPromptOpen(false);
+    setConfirmRequired(false);
+    (element as HTMLElement).focus?.();
+    handleTextAndIcon();
+  };
+
+  const dismissConfirmPrompt = () => {
+    promptDismissedRef.current = true;
+    setPromptOpen(false);
+    // Back to the field, without bringing the question straight back.
+    if (!fieldHasFocus()) {
+      skipNextFocusRef.current = true;
+      (element as HTMLElement).focus?.();
+    }
+  };
+
   const handleFocusinEvent = () => {
+    if (skipNextFocusRef.current) {
+      skipNextFocusRef.current = false;
+    } else {
+      askToConfirm();
+    }
     if (isMicrosoftOnlineWord(window.location.href)) {
       const event = new KeyboardEvent('keyup');
       handleKeyupEventDebounced(event);
@@ -608,9 +665,20 @@ const Input: React.FC<{
     browser.storage.local
       .get(null)
       .then((result) => {
-        if (isSignedInResult(result)) {
-          setTextToCheck(text);
+        if (!isSignedInResult(result)) return;
+        // Asked to ask first: nothing from this field before the user says
+        // so (ConfirmCheckPrompt).
+        if (
+          confirmBeforeChecking(result).enabled &&
+          !isFieldConfirmed(element)
+        ) {
+          setConfirmRequired(true);
+          if (text && fieldHasFocus() && !promptDismissedRef.current) {
+            setPromptOpen(true);
+          }
+          return;
         }
+        setTextToCheck(text);
       })
       .catch((error: unknown) => {
         sendErrorToSentry(error);
@@ -1644,6 +1712,16 @@ const Input: React.FC<{
             </Sentry.ErrorBoundary>
           </WTags.WW_HIGHLIGHTS>
         </>
+      )}
+      {confirmRequired && !isFieldConfirmed(element) && (
+        <ConfirmCheckPrompt
+          open={promptOpen}
+          top={
+            (elementRect?.height ?? element.getBoundingClientRect().height) + 4
+          }
+          onConfirm={confirmCheck}
+          onDismiss={dismissConfirmPrompt}
+        />
       )}
       <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon

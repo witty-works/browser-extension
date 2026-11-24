@@ -39,6 +39,7 @@ export interface ResponseConfig {
   orthography: ConfigProperty;
   categories?: any;
   llm_alternatives?: ConfigProperty;
+  confirm_before_checking?: ConfigProperty;
 }
 /** One togglable category from `GET /v2.0/categories`. */
 export interface ICategory {

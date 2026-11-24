@@ -441,6 +441,12 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
         response?.organization_config?.llm_alternatives?.value
       );
       storeInLocalStorage(
+        StorageKeys.CONFIRM_BEFORE_CHECKING_ORG,
+        response?.organization_config?.confirm_before_checking ??
+          response?.config?.confirm_before_checking ??
+          null
+      );
+      storeInLocalStorage(
         StorageKeys.ORGANIZATION_DOMAINS,
         response?.organization_domains
       );

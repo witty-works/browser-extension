@@ -77,6 +77,10 @@ export enum StorageKeys {
   ORGANIZATION_CONFIG_HASH = 'organizationConfigHash',
 
   LLM_ALTERNATIVES = 'llmAlternatives',
+  /** The user's own "ask before checking a field" choice (a boolean). */
+  CONFIRM_BEFORE_CHECKING = 'confirmBeforeChecking',
+  /** The organisation's `confirm_before_checking`, `{value, status}`. */
+  CONFIRM_BEFORE_CHECKING_ORG = 'confirmBeforeCheckingOrg',
 
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 
