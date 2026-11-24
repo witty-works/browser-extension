@@ -35,6 +35,7 @@ import {
   persistTokens,
 } from '../shared/tokenStore';
 import {
+  isFromExtensionPage,
   isWittyMessage,
   MessageTypes,
   OPEN_POPOVER_COMMAND,
@@ -143,11 +144,20 @@ const addMessageListener = () => {
       return proxyApiRequest(message);
     }
 
+    // Signing out and refreshing are for the extension's pages: a content
+    // script, which runs inside any web page, has no reason to ask.
+    const fromExtensionPage = isFromExtensionPage(
+      sender,
+      browser.runtime.getURL('')
+    );
+
     if (message.type === MessageTypes.REFRESH_TOKEN) {
+      if (!fromExtensionPage) return undefined;
       return getNewAccessToken(message.failedToken);
     }
 
     if (message.type === MessageTypes.SIGN_OUT) {
+      if (!fromExtensionPage) return undefined;
       // Revoke on the dashboard first, while the token is still stored; it
       // resolves whether or not that worked, and the local tokens go anyway.
       return revokeStoredTokens().then(() => {
