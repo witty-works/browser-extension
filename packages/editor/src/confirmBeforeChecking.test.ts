@@ -11,6 +11,7 @@ import {
   confirmField,
   confirmWrites,
   isFieldConfirmed,
+  storageValueChanged,
 } from '@witty/core/confirmBeforeChecking';
 
 // As stored once the organisation's answer has arrived (/v2.0/auth).
@@ -134,6 +135,30 @@ describe('confirmWrites', () => {
         answer
       )
     ).toEqual({});
+  });
+});
+
+describe('storageValueChanged', () => {
+  it('is false for a write of an equal value, as Firefox reports one', () => {
+    expect(
+      storageValueChanged({
+        oldValue: {value: true, status: 'force'},
+        newValue: {value: true, status: 'force'},
+      })
+    ).toBe(false);
+    expect(storageValueChanged({oldValue: true, newValue: true})).toBe(false);
+  });
+
+  it('is true for a new, changed or removed value', () => {
+    expect(storageValueChanged({newValue: true})).toBe(true);
+    expect(storageValueChanged({oldValue: false, newValue: true})).toBe(true);
+    expect(
+      storageValueChanged({
+        oldValue: {value: true, status: 'force'},
+        newValue: {value: true, status: 'suggestion'},
+      })
+    ).toBe(true);
+    expect(storageValueChanged({oldValue: true})).toBe(true);
   });
 });
 

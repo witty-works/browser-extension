@@ -14,6 +14,7 @@ import {
   confirmBeforeChecking,
   confirmField,
   isFieldConfirmed,
+  storageValueChanged,
 } from '../shared/confirmBeforeChecking';
 import ConfirmCheckPrompt from './ConfirmCheckPrompt';
 import {useTranslation} from 'react-i18next';
@@ -1659,6 +1660,9 @@ const Input: React.FC<{
   const storageChange = (changes: any) => {
     const changedItems = Object.keys(changes);
     for (const item of changedItems) {
+      // Firefox reports writes of unchanged values, which every page load
+      // makes; acting on them closed an open question in every tab.
+      if (!storageValueChanged(changes[item])) continue;
       switch (item) {
         case StorageKeys.SIGNED_IN:
           if (!changes[item].newValue) {

@@ -99,6 +99,17 @@ export const confirmWrites = (
 };
 
 /**
+ * Whether a `storage.onChanged` entry changed the value. Firefox reports
+ * every `set()`, including one that writes the value already stored.
+ */
+export const storageValueChanged = (change: {
+  oldValue?: unknown;
+  newValue?: unknown;
+}): boolean =>
+  !('oldValue' in change && 'newValue' in change) ||
+  !sameValue(change.oldValue, change.newValue);
+
+/**
  * How long to wait before asking `/v2.0/auth` again after `status` (0 for no
  * answer), on the `attempt`th retry; null when a retry cannot help, because
  * the credential was refused. Until an answer arrives, ask-before-checking is
