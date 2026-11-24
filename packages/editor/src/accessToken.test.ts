@@ -62,6 +62,15 @@ describe('access token', () => {
     expect(checkHeaders.at(-1)!['Authorization']).toBe('Bearer t2');
   });
 
+  it('setAccessToken with an empty string stops sending one', async () => {
+    const editor = mountEditor({accessToken: 't1'});
+    await vi.waitFor(() => expect(checkHeaders.length).toBeGreaterThan(0));
+    const before = checkHeaders.length;
+    editor.setAccessToken('');
+    await vi.waitFor(() => expect(checkHeaders.length).toBeGreaterThan(before));
+    expect(checkHeaders.at(-1)!['Authorization']).toBeUndefined();
+  });
+
   it('an API key wins over a token', async () => {
     mountEditor({apiKey: 'k', accessToken: 't'});
     await vi.waitFor(() => expect(checkHeaders.length).toBeGreaterThan(0));
