@@ -5,6 +5,7 @@
 import {describe, expect, it} from 'vitest';
 
 import {
+  authConfirmSetting,
   confirmBeforeChecking,
   confirmField,
   isFieldConfirmed,
@@ -69,5 +70,35 @@ describe('confirmed fields', () => {
     confirmField(field);
     expect(isFieldConfirmed(field)).toBe(true);
     expect(isFieldConfirmed(document.createElement('textarea'))).toBe(false);
+  });
+});
+
+describe('authConfirmSetting', () => {
+  const force = {value: true, status: 'force'};
+  const suggestion = {value: false, status: 'suggestion'};
+
+  it('takes a forced value from either place', () => {
+    // An API key can force it in `config`; an organisation suggestion in
+    // `organization_config` must not hide that.
+    expect(
+      authConfirmSetting({
+        organization_config: {confirm_before_checking: suggestion},
+        config: {confirm_before_checking: force},
+      })
+    ).toEqual(force);
+  });
+
+  it('prefers the organisation when neither forces', () => {
+    expect(
+      authConfirmSetting({
+        organization_config: {confirm_before_checking: suggestion},
+        config: {confirm_before_checking: {value: true, status: 'suggestion'}},
+      })
+    ).toEqual(suggestion);
+  });
+
+  it('is null when the answer has none', () => {
+    expect(authConfirmSetting({})).toBeNull();
+    expect(authConfirmSetting(undefined)).toBeNull();
   });
 });

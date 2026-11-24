@@ -40,6 +40,27 @@ export const confirmBeforeChecking = (
 };
 
 /**
+ * The setting from a `/v2.0/auth` answer: the organisation's
+ * (`organization_config`) or the credential's own (`config`, which an API key
+ * can force). A forced one wins wherever it is, so an organisation's mere
+ * suggestion cannot hide a key's force; otherwise the organisation's.
+ */
+export const authConfirmSetting = (
+  response: unknown
+): ConfigProperty | null => {
+  const answer = (response ?? {}) as {
+    organization_config?: {confirm_before_checking?: ConfigProperty};
+    config?: {confirm_before_checking?: ConfigProperty};
+  };
+  const organization = answer.organization_config?.confirm_before_checking;
+  const own = answer.config?.confirm_before_checking;
+  for (const candidate of [organization, own]) {
+    if (candidate?.status === ConfigPropertyStatus.FORCE) return candidate;
+  }
+  return organization ?? own ?? null;
+};
+
+/**
  * The fields the user confirmed on this page. Held by reference, so it lasts
  * as long as the element and the page, and a page cannot add to it.
  */

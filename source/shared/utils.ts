@@ -1,3 +1,4 @@
+import {authConfirmSetting} from './confirmBeforeChecking';
 import browser from 'webextension-polyfill';
 import {
   apiKeyFromStorage,
@@ -446,9 +447,7 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
       );
       storeInLocalStorage(
         StorageKeys.CONFIRM_BEFORE_CHECKING_ORG,
-        response?.organization_config?.confirm_before_checking ??
-          response?.config?.confirm_before_checking ??
-          null
+        authConfirmSetting(response)
       );
       storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN, true);
       storeInLocalStorage(
