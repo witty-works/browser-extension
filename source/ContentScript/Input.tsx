@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import browser, {Runtime} from 'webextension-polyfill';
-import {Root, createRoot} from 'react-dom/client';
+import {createRoot} from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import defaultConfig from '../witty.config.json';
 import {
@@ -73,6 +73,12 @@ import {
 } from './utils';
 import {getActiveDocument} from '../shared/activeDocument';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
+import {
+  getPopoverRoot,
+  isInPopover,
+  isPopoverShown,
+  removePopover,
+} from './shadowHosts';
 import {useCheckEndpointWithCache} from '../shared/ApiServices/useCheckEndpointWithCache';
 import {useCheckEventsLogger} from '../shared/ApiServices/useCheckEventsLogger';
 import {useLLMAlternativesCache} from '../shared/ApiServices/useLLMAlternativesCache';
@@ -129,7 +135,6 @@ const Input: React.FC<{
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
-  const [, , popoverRootRef] = useStateRef<Root | null>(null);
   // Set when the popover is opened or advanced via the keyboard shortcut, so
   // the popover knows to take focus. Cleared for the mouse flows, which must
   // never steal focus from the input while the user is typing.
@@ -338,11 +343,7 @@ const Input: React.FC<{
   //GOOGLE DOCS WORKAROUND
   const handleDocumentClickEvent = () => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
-    const activeDocument = getActiveDocument();
-    if (
-      isGoogleDocs(element) &&
-      !activeDocument.getElementById('witty-works-ext-popover')
-    ) {
+    if (isGoogleDocs(element) && !isPopoverShown()) {
       // Recalculate alert rects for Google Docs and pick alerts under the caret/click
       const alertsInRange: IAlert[] = [];
       let selectedNode: Node | null = null;
@@ -513,10 +514,7 @@ const Input: React.FC<{
     // alert needs their client rects.
     const next = (event as FocusEvent | undefined)
       ?.relatedTarget as Node | null;
-    if (
-      next &&
-      document.getElementById('witty-works-ext-popover')?.contains(next)
-    ) {
+    if (isInPopover(next)) {
       return;
     }
     setIsFocused(false);
@@ -694,42 +692,8 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
-    // Unmount any React root and remove DOM on next tick to avoid
-    // 'synchronously unmount a root while React was already rendering' warnings.
-    const rootToUnmount = popoverRootRef.current;
-    popoverRootRef.current = null;
-
-    // schedule unmount and DOM removal after current render completes
-    if (rootToUnmount) {
-      setTimeout(() => {
-        try {
-          rootToUnmount.unmount();
-        } catch (err) {
-          // ignore
-        }
-
-        try {
-          const popoverContainers =
-            window.document.getElementsByTagName('ww-popover');
-          Array.from(popoverContainers).forEach((popoverContainer) => {
-            popoverContainer.remove();
-          });
-        } catch (err) {
-          // ignore
-        }
-      }, 0);
-    } else {
-      // no root, still remove lingering containers synchronously
-      try {
-        const popoverContainers =
-          window.document.getElementsByTagName('ww-popover');
-        Array.from(popoverContainers).forEach((popoverContainer) => {
-          popoverContainer.remove();
-        });
-      } catch (err) {
-        // ignore
-      }
-    }
+    // Unmounts after the current render completes, which React requires.
+    removePopover();
 
     if (popoverDataRef.current !== null)
       previousPopoverDataRef.current = popoverDataRef.current;
@@ -1658,23 +1622,9 @@ const Input: React.FC<{
   }, [LLMSuggestionsCache]);
 
   const renderPopover = () => {
-    if (!popoverRootRef.current) {
-      const existingPopoverElement = document.querySelector(WTags.WW_POPOVER);
-
-      // If an existing popover element is not found, create a new one
-      if (!existingPopoverElement) {
-        const popoverElement = document.createElement(WTags.WW_POPOVER);
-        document.body.appendChild(popoverElement);
-        popoverRootRef.current = createRoot(popoverElement);
-      } else {
-        popoverRootRef.current = createRoot(existingPopoverElement);
-      }
-    }
-    const container = document.querySelector(WTags.WW_POPOVER);
-    if (!container) return;
     //Show/Hide the popover
     if (popoverDataRef.current && userIsSignedIn) {
-      popoverRootRef.current?.render(
+      getPopoverRoot().render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
             analytics={popoverAnalytics}
@@ -1696,7 +1646,7 @@ const Input: React.FC<{
         </Sentry.ErrorBoundary>
       );
     } else if (popoverDataRef.current && !userIsSignedIn) {
-      popoverRootRef.current?.render(
+      getPopoverRoot().render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverNotSignedIn
             element={element}

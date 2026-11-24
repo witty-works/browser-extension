@@ -27,6 +27,7 @@ import {sendErrorToSentry} from '../../shared/errorUtils';
 import {logTypes, useLog} from '../../shared/customHooks/useLog';
 import {useAnalytics} from '../../shared/ApiServices/useAnalytics';
 import {isTrustedEvent} from '../../shared/trustedEvent';
+import {containsFocus, eventIsInside} from '../../shared/DOMutils';
 
 export interface PopoverData {
   index: number;
@@ -211,9 +212,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
       }
       e.preventDefault();
       e.stopPropagation();
-      const focusWasInside = refs.floating.current?.contains(
-        document.activeElement
-      );
+      const focusWasInside = containsFocus(refs.floating.current);
       hidePopover(true);
       if (focusWasInside) {
         (element as HTMLElement).focus?.();
@@ -234,8 +233,7 @@ const HighlightPopoverNotSignedIn: React.FC<PopoverProps> = ({
 
   const handleClickOutside = (event: MouseEvent) => {
     const hasClickedOutsidePopOver: boolean | null =
-      refs.floating.current &&
-      !refs.floating.current.contains(event.target as HTMLElement);
+      refs.floating.current && !eventIsInside(refs.floating.current, event);
 
     const doc = getActiveDocument().documentElement || getActiveDocument().body;
     const posX = event.pageX + doc.scrollLeft;

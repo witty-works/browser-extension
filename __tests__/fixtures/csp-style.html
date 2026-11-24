@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>strict style-src fixture</title>
+    <!--
+      No inline styles for the page. The popover's stylesheet is a <style>
+      element in the extension's shadow root; this shows whether the page's
+      policy lets it apply.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="style-src 'self'" />
+    <link rel="stylesheet" href="/fixture.css" />
+  </head>
+  <body>
+    <textarea id="editor" class="editor" spellcheck="false"></textarea>
+  </body>
+</html>

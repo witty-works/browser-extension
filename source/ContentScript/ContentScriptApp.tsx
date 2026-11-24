@@ -43,6 +43,10 @@ import StateIndicatorIcon from '../shared/StateIndicatorIcons/IconController';
 import throttle from 'lodash.throttle';
 import {getDomainWithoutSubdomain, storeInLocalStorage} from '../shared/utils';
 import renderNotificationToTop from '../Notifications/renderNotification';
+import {createHighlightHost, isHighlightHost} from './shadowHosts';
+
+/** The hover indicators this script put into the page, to remove them again. */
+const hoverIndicators = new Set<HTMLElement>();
 //Witty containers' styling
 const WW_CONTAINER_STYLE = `
   z-index: 2147483647 !important;
@@ -366,6 +370,7 @@ const ContentScriptApp: React.FC = () => {
       }
       const hoveredIndicatorContainer: HTMLElement =
         getActiveDocument().createElement(WTags.WW_MOUSEOVER_INDICATOR);
+      hoverIndicators.add(hoveredIndicatorContainer);
       hoveredIndicatorContainer.style.cssText = WW_CONTAINER_STYLE;
       hoveredElementRef.current.parentElement?.insertBefore(
         hoveredIndicatorContainer,
@@ -395,9 +400,8 @@ const ContentScriptApp: React.FC = () => {
   }, [hoveredElementRef.current]);
 
   const removeAllHoverIndicators = async () => {
-    const indicatorElements = getActiveDocument().querySelectorAll(
-      WTags.WW_MOUSEOVER_INDICATOR
-    );
+    const indicatorElements = [...hoverIndicators];
+    hoverIndicators.clear();
     for (const element of indicatorElements) {
       try {
         const {safeUnmountAndRemove} = await import('./utils');
@@ -443,20 +447,15 @@ const ContentScriptApp: React.FC = () => {
               if (!input?.parentElement) return;
               const sibling = input.previousElementSibling as HTMLElement;
 
-              if (
-                sibling?.tagName?.toLowerCase() ===
-                  WTags.WW_CONTAINER.toLowerCase() ||
-                sibling?.tagName?.toLowerCase() ===
-                  WTags.WW_SHADOW_ROOT_CONTAINER.toLowerCase()
-              )
-                return;
+              // Already set up: the host this script put before the input.
+              // Checked by reference, so a page element with the same tag
+              // name cannot pass for one.
+              if (isHighlightHost(sibling)) return;
 
-              const shadowHost = getActiveDocument().createElement(
-                WTags.WW_SHADOW_ROOT_CONTAINER
-              );
+              const {host: shadowHost, shadowRoot} =
+                createHighlightHost(getActiveDocument());
               getActiveDocument().body.appendChild(shadowHost);
 
-              const shadowRoot = shadowHost.attachShadow({mode: 'open'});
               const highlightsContainer: HTMLElement =
                 getActiveDocument().createElement(WTags.WW_CONTAINER);
               shadowRoot.appendChild(highlightsContainer);

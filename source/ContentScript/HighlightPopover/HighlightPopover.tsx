@@ -30,6 +30,8 @@ import './HighlightPopover.scss';
 import {getColor} from '../../shared/constants';
 import {getActiveDocument} from '../../shared/activeDocument';
 import {
+  containsFocus,
+  eventIsInside,
   getScrollableParentClosestToElement,
   iframePositionRecquired,
 } from '../../shared/DOMutils';
@@ -135,6 +137,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
     llmAlternativesEnabled,
     ignoreTermPermanently,
     onAlternativeAccepted,
+    popoverHasFocus: () => containsFocus(refs.floating.current),
   });
 
   useEffect(() => {
@@ -251,9 +254,7 @@ const HighlightPopover: React.FC<PopoverProps> = ({
       }
       e.preventDefault();
       e.stopPropagation();
-      const focusWasInside = refs.floating.current?.contains(
-        document.activeElement
-      );
+      const focusWasInside = containsFocus(refs.floating.current);
       hidePopover(true);
       // Only pull focus back to the input when the popover held it; otherwise
       // the user is somewhere else (e.g. still typing) and focus must stay.
@@ -279,8 +280,9 @@ const HighlightPopover: React.FC<PopoverProps> = ({
   };
 
   const handleClickOutside = (event: MouseEvent) => {
-    const hasClickedOutsidePopOver = !refs.floating.current?.contains(
-      event.target as HTMLElement
+    const hasClickedOutsidePopOver = !eventIsInside(
+      refs.floating.current,
+      event
     );
 
     const doc = getActiveDocument().documentElement || getActiveDocument().body;

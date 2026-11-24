@@ -256,21 +256,26 @@ test.describe('Popover ignore flows', () => {
 
     // Open via the keyboard shortcut: focus moves into the popover dialog.
     await pressOpenPopoverShortcut(page.context());
-    await page.waitForFunction(() =>
-      document
-        .getElementById('witty-works-ext-popover')
-        ?.contains(document.activeElement)
-    );
+    // The popover sits in a shadow root: focus is that root's activeElement.
+    await page.waitForFunction(() => {
+      let active = document.activeElement;
+      while (active?.shadowRoot?.activeElement) {
+        active = active.shadowRoot.activeElement;
+      }
+      return !!active?.closest('#witty-works-ext-popover');
+    });
 
     // Tab to the "Ignore permanently" button and activate it.
     let onIgnore = false;
     for (let i = 0; i < 20 && !onIgnore; i += 1) {
       await page.keyboard.press('Tab');
-      onIgnore = await page.evaluate(
-        () =>
-          document.activeElement?.getAttribute('aria-label') ===
-          'Ignore permanently'
-      );
+      onIgnore = await page.evaluate(() => {
+        let active = document.activeElement;
+        while (active?.shadowRoot?.activeElement) {
+          active = active.shadowRoot.activeElement;
+        }
+        return active?.getAttribute('aria-label') === 'Ignore permanently';
+      });
     }
     expect(onIgnore, 'Tab never reached "Ignore permanently"').toBe(true);
     await page.keyboard.press('Enter');

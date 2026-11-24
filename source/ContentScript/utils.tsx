@@ -4,8 +4,12 @@ import {WTags} from '../shared/constants';
 import {isGoogleDocs, isInputText, isTextArea} from '../shared/DOMutils';
 import {CustomInputElement, INodes} from '../shared/types';
 import ContentScriptApp from './ContentScriptApp';
-import {getActiveDocument} from '../shared/activeDocument';
 import {diffChars} from 'diff';
+import {
+  forgetHighlightHost,
+  highlightHostList,
+  highlightShadowRoot,
+} from './shadowHosts';
 
 // Moved to shared/diff so the popover can use it outside the content script.
 export {computeDiff, removeHTMLTags} from '../shared/diff';
@@ -39,20 +43,14 @@ export const customRender = (enabled: boolean, scriptId: string) => {
     doc.removeAttribute('witty-is-enabled');
   }
 
-  let popoverElement = body?.querySelector(WTags.WW_POPOVER);
-  if (!popoverElement) {
-    popoverElement = document.createElement(WTags.WW_POPOVER);
-    body?.appendChild(popoverElement);
-  }
-
-  let scriptPopoverElement = body?.querySelector(
-    `${WTags.WW_POPOVER}-${scriptId}`
-  );
-  if (!scriptPopoverElement) {
+  // The app's own element, kept here rather than looked up in the page.
+  let scriptPopoverElement = appElement;
+  if (!scriptPopoverElement?.isConnected) {
     scriptPopoverElement = document.createElement(
       `${WTags.WW_POPOVER}-${scriptId}`
     );
     body?.appendChild(scriptPopoverElement);
+    appElement = scriptPopoverElement;
   }
 
   if (scriptPopoverElement) {
@@ -80,16 +78,18 @@ export const customRender = (enabled: boolean, scriptId: string) => {
     root.render(enabled ? <ContentScriptApp /> : <></>);
   }
 
-  // Remove all extra WW_CONTAINER elements if witty is disabled or more than one is found
-  const containers = getActiveDocument().querySelectorAll(
-    WTags.WW_SHADOW_ROOT_CONTAINER
-  );
-  if (containers) {
-    for (let i = enabled ? 1 : 0; i < containers.length; i++) {
-      safeUnmountAndRemove(containers[i] as HTMLElement);
-    }
+  // Remove all extra highlight hosts if witty is disabled or more than one is found
+  const containers = highlightHostList();
+  for (let i = enabled ? 1 : 0; i < containers.length; i++) {
+    safeUnmountAndRemove(containers[i]);
   }
 };
+
+/** The element ContentScriptApp is rendered into (see customRender). */
+let appElement: Element | null = null;
+
+/** The element customRender renders the app into, if it has. */
+export const getAppElement = (): Element | null => appElement;
 
 export const safeUnmountAndRemove = (el: HTMLElement | null | undefined) => {
   if (!el) return;
@@ -105,6 +105,7 @@ export const safeUnmountAndRemove = (el: HTMLElement | null | undefined) => {
   } catch (err) {
     // ignore
   }
+  forgetHighlightHost(el);
   try {
     el.remove();
   } catch (err) {
@@ -245,16 +246,14 @@ export const getTextDividedByNodes = (
 };
 
 export const findCloneContainer = (): Element | null => {
-  const shadowRootContainer = document.querySelector(
-    WTags.WW_SHADOW_ROOT_CONTAINER
-  );
-  if (!shadowRootContainer) {
+  // The first highlight host this script created; its shadow root is closed,
+  // so it comes from shadowHosts.tsx rather than from `host.shadowRoot`.
+  const [host] = highlightHostList();
+  if (!host) {
     return null;
   }
 
-  return shadowRootContainer.shadowRoot
-    ? shadowRootContainer.shadowRoot.querySelector(WTags.WW_CLONE)
-    : null;
+  return highlightShadowRoot(host)?.querySelector(WTags.WW_CLONE) ?? null;
 };
 
 export const getScrollParent = (

@@ -47,6 +47,8 @@ export interface PopoverViewModelDeps {
   llmAlternativesEnabled: boolean;
   ignoreTermPermanently: (term: string) => Promise<void>;
   onAlternativeAccepted: () => void;
+  /** Whether focus is inside the popover, wherever it is rendered. */
+  popoverHasFocus: () => boolean;
 }
 
 export const usePopoverViewModel = ({
@@ -63,6 +65,7 @@ export const usePopoverViewModel = ({
   llmAlternativesEnabled,
   ignoreTermPermanently,
   onAlternativeAccepted,
+  popoverHasFocus,
 }: PopoverViewModelDeps) => {
   const [alternativeHovered, setAlternativeHovered] =
     useState<IAlternatives | null>(null);
@@ -117,13 +120,8 @@ export const usePopoverViewModel = ({
     logClose && analytics.popoverLogs(data.alert, 'popover_close');
     setShowLearningBite(false);
 
+    // The host unmounts the popover and removes its container.
     hide();
-    //in case input is removed from the dom before popover is closed (clicking outside the element), also remove it here
-    const popoverContainers =
-      window.document.getElementsByTagName('ww-popover');
-    Array.from(popoverContainers).forEach((popoverContainer) => {
-      popoverContainer.remove();
-    });
   };
 
   const clickAlternative = (
@@ -181,9 +179,7 @@ export const usePopoverViewModel = ({
             // focus back on the input, matching the Escape path — but only
             // when the popover actually held it (a mouse user's focus never
             // left the input and must not be disturbed).
-            const focusWasInside = !!document
-              .getElementById('witty-works-ext-popover')
-              ?.contains(document.activeElement);
+            const focusWasInside = popoverHasFocus();
             hidePopover();
             if (focusWasInside) {
               (element as HTMLElement).focus?.();

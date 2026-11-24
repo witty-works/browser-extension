@@ -202,3 +202,47 @@ test.describe('Popover alternatives', () => {
     expect(parsed.className).toBeNull();
   });
 });
+
+test.describe('Popover styles', () => {
+  /** Computed styles inside the popover, which sits in a shadow root. */
+  const popoverStyles = (page) =>
+    page.evaluate(() => {
+      const walk = (root) => {
+        for (const el of root.querySelectorAll('*')) {
+          if (el.id === 'witty-works-ext-popover') return el;
+          const hit = el.shadowRoot && walk(el.shadowRoot);
+          if (hit) return hit;
+        }
+        return null;
+      };
+      const popover = walk(document);
+      const button = popover?.querySelector(
+        '.witty-works-ext-wittyworks-popover-alternative-btn'
+      );
+      return {
+        inShadowRoot: popover?.getRootNode() instanceof ShadowRoot,
+        popoverRadius: popover && getComputedStyle(popover).borderTopLeftRadius,
+        buttonBackground: button && getComputedStyle(button).backgroundColor,
+      };
+    });
+
+  for (const fixture of ['/textarea.html', '/csp-style.html']) {
+    test(`the stylesheet applies inside the shadow root on ${fixture}`, async ({
+      page,
+      context,
+      extensionId,
+    }) => {
+      await signIn(context, extensionId);
+      await page.goto(fixture);
+      await typeAndWaitForHighlights(page);
+      await openPopoverForWord(page, 'guys');
+
+      // HighlightPopover.scss: border-radius 5px, $lightGreen buttons.
+      expect(await popoverStyles(page)).toEqual({
+        inShadowRoot: true,
+        popoverRadius: '5px',
+        buttonBackground: 'rgb(241, 255, 243)',
+      });
+    });
+  }
+});
