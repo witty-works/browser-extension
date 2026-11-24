@@ -34,7 +34,7 @@ import {
   iframePositionRecquired,
 } from '../../shared/DOMutils';
 
-import parse from 'html-react-parser';
+import {renderCuratedHtml} from './curatedHtml';
 import {computeDiff} from '../../shared/diff';
 import type {LLMAlternativesCacheValue} from '../../shared/ApiServices/llmAlternativesService';
 
@@ -628,7 +628,11 @@ const HighlightPopover: React.FC<PopoverProps> = ({
         >
           <div className='witty-works-ext-learning-bite-dig-deeper'>
             <div>
-              <div>{parse(data.alert.data?.explanation?.long_text ?? '')}</div>
+              <div>
+                {renderCuratedHtml(
+                  data.alert.data?.explanation?.long_text ?? ''
+                )}
+              </div>
               <div>
                 {data.alert.data?.explanation?.url && (
                   <a

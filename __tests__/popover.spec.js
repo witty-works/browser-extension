@@ -162,7 +162,8 @@ test.describe('Popover alternatives', () => {
     // The popover feeds the API's long_text through html-react-parser. If that
     // ever returns a string instead of nodes, the explanation still "renders" —
     // it just shows the raw tags — which no geometry or screenshot assertion
-    // here would notice.
+    // here would notice. The allow-list (curatedHtml.tsx) keeps the tag but
+    // drops its attributes, so the fixture's class must not arrive.
     await signIn(context, extensionId);
     await page.goto('/textarea.html');
     await typeAndWaitForHighlights(page);
@@ -171,8 +172,16 @@ test.describe('Popover alternatives', () => {
     const parsed = await page.evaluate(() => {
       const walk = (root) => {
         for (const el of root.querySelectorAll('*')) {
-          if (el.classList.contains('fixture-emphasis')) {
-            return { tag: el.tagName, text: el.textContent };
+          if (
+            el.tagName === 'STRONG' &&
+            el.textContent === 'explanation' &&
+            el.parentElement?.textContent.includes('fixture')
+          ) {
+            return {
+              tag: el.tagName,
+              text: el.textContent,
+              className: el.getAttribute('class'),
+            };
           }
           if (el.shadowRoot) {
             const hit = walk(el.shadowRoot);
@@ -190,5 +199,6 @@ test.describe('Popover alternatives', () => {
     ).not.toBeNull();
     expect(parsed.tag).toBe('STRONG');
     expect(parsed.text).toBe('explanation');
+    expect(parsed.className).toBeNull();
   });
 });
