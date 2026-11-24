@@ -233,6 +233,26 @@ test.describe('Ask before checking a field', () => {
     expect(await page.evaluate(() => window.__firstOutputText)).toBe('');
   });
 
+  test('the question closes when focus leaves the field', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    await routeAuth(context, FORCED_ON);
+    await signInWith(context, extensionId, FORCED_ON);
+    await page.goto('/textarea.html');
+    await setEditorText(page);
+    await expect
+      .poll(() => findInShadow(page, 'witty-confirm-check'))
+      .not.toBeNull();
+
+    // Forward, out of the field and away from the question before it.
+    await page.locator('#editor').evaluate((field) => field.blur());
+    await expect
+      .poll(() => findInShadow(page, 'witty-confirm-check'))
+      .toBeNull();
+  });
+
   test('is off by default: the text is checked without asking', async ({
     page,
     context,

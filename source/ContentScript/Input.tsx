@@ -45,6 +45,7 @@ import {
   isMicrosoftOnlineWord,
   isOutlook,
   isInShadowDOM,
+  containsFocus,
 } from '../shared/DOMutils';
 import {useResizeObserver} from '../shared/customHooks/useResizeObserver';
 import {useMutationObserver} from '../shared/customHooks/useMutationObserver';
@@ -505,6 +506,7 @@ const Input: React.FC<{
     // alert needs their client rects.
     const next = (event as FocusEvent | undefined)
       ?.relatedTarget as Node | null;
+    closePromptIfFocusLeft();
     if (isInPopover(next)) {
       return;
     }
@@ -515,6 +517,21 @@ const Input: React.FC<{
   const fieldHasFocus = (): boolean => {
     const active = element.ownerDocument.activeElement;
     return !!active && (active === element || element.contains(active));
+  };
+
+  // The ask-before-checking prompt's fieldset, inside the extension's root.
+  const promptRef = useRef<HTMLFieldSetElement>(null);
+  /**
+   * Close the prompt once focus is neither in the field nor in the prompt.
+   * Deferred, because during the blur focus has not reached its target yet;
+   * moving from the field to the prompt's buttons (Shift+Tab) keeps it.
+   */
+  const closePromptIfFocusLeft = () => {
+    window.setTimeout(() => {
+      if (!fieldHasFocus() && !containsFocus(promptRef.current)) {
+        setPromptOpen(false);
+      }
+    }, 0);
   };
 
   // "Ask before checking a field": whether this field still needs the
@@ -1644,6 +1661,10 @@ const Input: React.FC<{
     for (const item of changedItems) {
       switch (item) {
         case StorageKeys.SIGNED_IN:
+          if (!changes[item].newValue) {
+            setPromptOpen(false);
+            setConfirmRequired(false);
+          }
           setUserIsSignedIn(changes[item].newValue);
           setConfigHasChanged(changes[item].newValue);
           checkText('');
@@ -1655,6 +1676,14 @@ const Input: React.FC<{
           if (changes[item].newValue === true) {
             checkText(currentTextRef.current);
           }
+          break;
+        // The user's or the organisation's setting changed: decide afresh,
+        // so a prompt for a setting now off does not stay open.
+        case StorageKeys.CONFIRM_BEFORE_CHECKING:
+        case StorageKeys.CONFIRM_BEFORE_CHECKING_ORG:
+          setPromptOpen(false);
+          setConfirmRequired(false);
+          checkText(currentTextRef.current);
           break;
       }
     }
@@ -1756,6 +1785,8 @@ const Input: React.FC<{
           }
           onConfirm={confirmCheck}
           onDismiss={dismissConfirmPrompt}
+          containerRef={promptRef}
+          onFocusLeave={closePromptIfFocusLeft}
         />
       )}
       <WTags.WW_ACTIVITY_INDICATOR>
