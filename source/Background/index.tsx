@@ -21,6 +21,7 @@ import {
   getNewAccessToken,
   isFunction,
   logOut,
+  refreshSettled,
   removeBadge,
   storeInLocalStorage,
   updateLabelChrome,
@@ -160,10 +161,12 @@ const addMessageListener = () => {
       if (!fromExtensionPage) return undefined;
       // Revoke on the dashboard first, while the token is still stored; it
       // resolves whether or not that worked, and the local tokens go anyway.
-      return revokeStoredTokens().then(() => {
-        logOut();
-        return {status: 'success'} as SignInResult;
-      });
+      // A refresh under way finishes first, so the token revoked is the
+      // current one and no refreshed pair is left behind.
+      return refreshSettled()
+        .then(revokeStoredTokens)
+        .then(logOut)
+        .then(() => ({status: 'success'}) as SignInResult);
     }
 
     return undefined;

@@ -4,7 +4,7 @@
 // unit tests because they are the repository's only unit test suite.
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import {getNewAccessToken} from '@witty/core/utils';
+import {getNewAccessToken, logOut} from '@witty/core/utils';
 import {registerStorage, type StorageArea} from '@witty/core/platform/storage';
 
 vi.mock('webextension-polyfill', () => {
@@ -169,5 +169,32 @@ describe('getNewAccessToken', () => {
     local.data.refreshToken = '';
     expect(await getNewAccessToken('access-1')).toBe('signedOut');
     expect(tokenRequests).toBe(0);
+  });
+});
+
+describe('signing out during a refresh', () => {
+  it('does not let a refresh that finishes afterwards sign the user back in', async () => {
+    let release: (response: Response) => void = () => {};
+    answer = () =>
+      new Promise<Response>((resolve) => {
+        release = resolve;
+      });
+
+    const refreshing = getNewAccessToken('access-1');
+    await settle();
+    await logOut();
+    release(
+      json(200, {
+        access_token: 'access-2',
+        refresh_token: 'refresh-2',
+        expires_in: 3600,
+      })
+    );
+    await refreshing;
+    await settle();
+
+    expect(local.data.signedIn).toBe(false);
+    expect(local.data.refreshToken).toBe('');
+    expect(session.data.accessToken).toBe('');
   });
 });

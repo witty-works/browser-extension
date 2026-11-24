@@ -149,8 +149,17 @@ const REFRESH_OUTCOMES: readonly string[] = [
 ];
 
 let refreshInFlight: Promise<RefreshOutcome> | null = null;
+// Counts sign-outs. A refresh that started before one and finishes after it
+// must not write its tokens back and sign the user in again.
+let signOutGeneration = 0;
+
+/** Settles once no refresh is in flight; signing out waits for it. */
+export const refreshSettled = async (): Promise<void> => {
+  await refreshInFlight?.catch(() => undefined);
+};
 
 const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
+  const generation = signOutGeneration;
   const stored = await readTokens();
 
   if (!stored.refreshToken) {
@@ -177,6 +186,8 @@ const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
     // continuing to present the previous refresh token after a successful
     // rotation is rejected.
     const tokens = await refresh(urlKey, stored.refreshToken);
+    // Signed out while the refresh was under way: the new pair is dropped.
+    if (generation !== signOutGeneration) return 'signedOut';
     await persistTokens(tokens);
     setToken(tokens.accessToken);
     return 'refreshed';
@@ -271,7 +282,8 @@ export const requestTokenRefresh = async (
   }
 };
 
-export const logOut = () => {
+export const logOut = async (): Promise<void> => {
+  signOutGeneration += 1;
   storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
   storeInLocalStorage(StorageKeys.USER_ID, '');
   storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
@@ -282,9 +294,13 @@ export const logOut = () => {
   storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN, false);
   // Goes through the store so the session-held access token is cleared too,
   // not just the on-disk refresh token.
-  clearTokens().catch((error) => sendErrorToSentry(error));
   setToken('');
   addBadge('Login');
+  try {
+    await clearTokens();
+  } catch (error) {
+    sendErrorToSentry(error);
+  }
 };
 
 export const removeBadge = () => {
