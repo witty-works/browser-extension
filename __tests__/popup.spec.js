@@ -402,3 +402,92 @@ test.describe('Popup — translations', () => {
     );
   });
 });
+
+test.describe('Popup — sign out', () => {
+  const REVOKE_PATH = '/api/user/revoke-token';
+
+  const readTokens = (page) =>
+    page.evaluate(async () => ({
+      session: (await chrome.storage.session?.get('accessToken')) || {},
+      local: await chrome.storage.local.get(['refreshToken', 'signedIn']),
+    }));
+
+  test('the sign-out button asks the background worker to sign out', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    await signIn(context, extensionId);
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+
+    await page.evaluate(() => {
+      window.__sentMessages = [];
+      chrome.runtime.sendMessage = (message) => {
+        window.__sentMessages.push(message);
+        return Promise.resolve({ status: 'success' });
+      };
+    });
+
+    await page.locator('#witty-sign-out').click();
+
+    const messages = await page.evaluate(() => window.__sentMessages);
+    expect(messages).toEqual([{ type: 'witty:sign-out' }]);
+  });
+
+  test('signing out revokes the token on the dashboard and clears it', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    const revocations = [];
+    await context.route(
+      (url) => url.pathname.endsWith(REVOKE_PATH),
+      (route) => {
+        revocations.push({
+          method: route.request().method(),
+          authorization: route.request().headers().authorization,
+        });
+        return route.fulfill({ status: 204, body: '' });
+      }
+    );
+
+    await signIn(context, extensionId);
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await page.locator('#witty-sign-out').click();
+
+    await expect.poll(() => revocations.length).toBe(1);
+    expect(revocations[0]).toEqual({
+      method: 'POST',
+      authorization: 'Bearer fixture-access-token',
+    });
+    await expect
+      .poll(async () => (await readTokens(page)).local.signedIn)
+      .toBe(false);
+    const { session, local } = await readTokens(page);
+    expect(session.accessToken || '').toBe('');
+    expect(local.refreshToken || '').toBe('');
+  });
+
+  test('signing out clears the tokens when the dashboard cannot revoke them', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // An older dashboard without the route.
+    await context.route(
+      (url) => url.pathname.endsWith(REVOKE_PATH),
+      (route) => route.fulfill({ status: 404, body: '' })
+    );
+
+    await signIn(context, extensionId);
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    const reply = await page.evaluate(() =>
+      chrome.runtime.sendMessage({ type: 'witty:sign-out' })
+    );
+    expect(reply).toEqual({ status: 'success' });
+
+    const { session, local } = await readTokens(page);
+    expect(session.accessToken || '').toBe('');
+    expect(local.refreshToken || '').toBe('');
+  });
+});

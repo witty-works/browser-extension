@@ -26,6 +26,7 @@ import {
   updateLabelChrome,
 } from '../shared/utils';
 import {authorize} from '../shared/ApiServices/oauth';
+import {revokeStoredTokens} from '../shared/ApiServices/revoke';
 import {setToken} from '../shared/ApiServices/requests';
 import {
   allowSessionStorageInContentScripts,
@@ -138,9 +139,12 @@ const addMessageListener = () => {
     }
 
     if (message.type === MessageTypes.SIGN_OUT) {
-      logOut();
-
-      return Promise.resolve({status: 'success'} as SignInResult);
+      // Revoke on the dashboard first, while the token is still stored; it
+      // resolves whether or not that worked, and the local tokens go anyway.
+      return revokeStoredTokens().then(() => {
+        logOut();
+        return {status: 'success'} as SignInResult;
+      });
     }
 
     return undefined;
