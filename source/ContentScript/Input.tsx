@@ -526,15 +526,36 @@ const Input: React.FC<{
   // Set while focus goes back to the field from a dismissed question.
   const skipNextFocusRef = useRef<boolean>(false);
 
+  // How long the prompt's live region stays empty before the question goes
+  // in: screen readers announce a change to a region they already know, not
+  // one inserted with its text.
+  const PROMPT_ANNOUNCE_DELAY_MS = 150;
+
+  /** Render the prompt's empty live region, then the question. */
+  const openPrompt = () => {
+    setConfirmRequired(true);
+    window.setTimeout(() => {
+      if (
+        fieldHasFocus() &&
+        !promptDismissedRef.current &&
+        !isFieldConfirmed(element)
+      ) {
+        setPromptOpen(true);
+      }
+    }, PROMPT_ANNOUNCE_DELAY_MS);
+  };
+
   const askToConfirm = () => {
     promptDismissedRef.current = false;
     if (isFieldConfirmed(element)) return;
     browser.storage.local
       .get(null)
       .then((result) => {
-        if (isSignedInResult(result) && confirmBeforeChecking(result).enabled) {
-          setConfirmRequired(true);
-          setPromptOpen(true);
+        const setting = confirmBeforeChecking(result);
+        // Pending: the organisation's answer has not arrived; checkText asks
+        // once it has.
+        if (isSignedInResult(result) && !setting.pending && setting.enabled) {
+          openPrompt();
         }
       })
       .catch((error: unknown) => sendErrorToSentry(error));
@@ -678,9 +699,10 @@ const Input: React.FC<{
         // Asked to ask first: nothing from this field before the user says
         // so (ConfirmCheckPrompt).
         if (setting.enabled && !isFieldConfirmed(element)) {
-          setConfirmRequired(true);
           if (text && fieldHasFocus() && !promptDismissedRef.current) {
-            setPromptOpen(true);
+            openPrompt();
+          } else {
+            setConfirmRequired(true);
           }
           return;
         }

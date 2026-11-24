@@ -195,6 +195,44 @@ test.describe('Ask before checking a field', () => {
     expect(checks.filter(Boolean).length).toBeGreaterThan(0);
   });
 
+  test('the question appears in a live region that was there empty first', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // Screen readers announce a change to a live region they already know,
+    // not one inserted with its text: the empty <output> comes first.
+    await routeAuth(context, FORCED_ON);
+    await signInWith(context, extensionId, FORCED_ON);
+    await page.goto('/textarea.html');
+    // From here, note the first state of the prompt's <output> seen.
+    await page.evaluate(() => {
+      window.__firstOutputText = undefined;
+      const find = (root) => {
+        for (const el of root.querySelectorAll('*')) {
+          if (el.tagName === 'OUTPUT' && el.closest('fieldset')) return el;
+          const hit = el.shadowRoot && find(el.shadowRoot);
+          if (hit) return hit;
+        }
+        return null;
+      };
+      const poll = () => {
+        const output = find(document);
+        if (output) {
+          window.__firstOutputText = output.textContent;
+          return;
+        }
+        setTimeout(poll, 5);
+      };
+      poll();
+    });
+    await setEditorText(page);
+    await expect
+      .poll(() => findInShadow(page, 'witty-confirm-check'))
+      .not.toBeNull();
+    expect(await page.evaluate(() => window.__firstOutputText)).toBe('');
+  });
+
   test('is off by default: the text is checked without asking', async ({
     page,
     context,
