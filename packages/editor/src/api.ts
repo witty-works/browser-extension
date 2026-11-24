@@ -119,10 +119,11 @@ export type EditorStatus =
       genderFormatSwitch?: GenderFormatSwitchResult;
     }
   /**
-   * The API refused the request. `status` 401: the key or token is not valid
-   * (an access token may have expired, so refresh it and call
-   * `setAccessToken`). 403: the API does not let this user in; a new token
-   * would be refused the same way, so do not refresh.
+   * The API refused the request. From NLP API 4.0.0, `status` 401: the key
+   * or token is not valid (an access token may have expired); 403: the API
+   * does not let this user in. Earlier versions answer 403 for an expired
+   * token too. With an access token, refresh it once and call
+   * `setAccessToken`; if the new one is refused as well, stop.
    */
   | {state: 'unauthorized'; status: 401 | 403}
   /**
@@ -204,9 +205,9 @@ export interface WittyEditorHandle {
   /** Replace the API key (empty string clears it) and check again. */
   setApiKey(key: string): void;
   /**
-   * Replace the access token (empty string clears it) and check again: after
-   * a refresh, or on `{state: 'unauthorized', status: 401}` once a new one is
-   * at hand. Not on status 403: a new token would be refused the same way.
+   * Replace the access token (empty string clears it) and check again:
+   * after a refresh, before the token expires or once after
+   * `{state: 'unauthorized'}`. If the new token is refused too, stop.
    */
   setAccessToken(token: string): void;
   /**

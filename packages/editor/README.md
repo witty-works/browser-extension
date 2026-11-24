@@ -46,12 +46,14 @@ A page whose users sign in, such as a dashboard that issues OAuth tokens the NLP
 ```ts
 const editor = mount(element, {endpoint, accessToken: tokens.accessToken});
 
-// Before it expires, and when the API refused it as invalid
-// (`{state: 'unauthorized', status: 401}`):
+// Before it expires, and once when the API refused it
+// (`{state: 'unauthorized', status: 401 | 403}`):
 editor.setAccessToken((await refresh()).accessToken);
-// On `status: 403` the API does not let this user in: do not refresh, a new
-// token would be refused the same way.
+// If the new token is refused too, stop and ask the user to sign in again:
+// another refresh would be refused the same way.
 ```
+
+From NLP API 4.0.0, `401` means the token is not valid (for example expired) and `403` that the API does not let this user in. Earlier versions answer `403` for an expired token too, so a page that refreshes on `401` only would stop checking there.
 
 Set either a key or a token: when both are set, the key is sent.
 
