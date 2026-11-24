@@ -413,6 +413,28 @@ test.describe('Popup — sign out', () => {
       local: await chrome.storage.local.get(['refreshToken', 'signedIn']),
     }));
 
+  test('the sign-out button says it is signing out while it waits', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    await signIn(context, extensionId);
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    // The revocation can take up to three seconds; here it never answers.
+    await page.evaluate(() => {
+      const send = chrome.runtime.sendMessage.bind(chrome.runtime);
+      chrome.runtime.sendMessage = (message) =>
+        message.type === 'witty:sign-out'
+          ? new Promise(() => {})
+          : send(message);
+    });
+
+    const button = page.locator('#witty-sign-out');
+    await button.click();
+    await expect(button).toBeDisabled();
+    await expect(button).toHaveText('Signing out…');
+  });
+
   test('the sign-out button asks the background worker to sign out', async ({
     page,
     context,

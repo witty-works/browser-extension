@@ -232,10 +232,15 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
 
   // The background revokes the tokens on the dashboard and clears them here;
   // the popup re-renders signed out from the storage change.
+  // Revoking can take up to three seconds; the button says so meanwhile and
+  // cannot be pressed twice.
+  const [signingOut, setSigningOut] = useState(false);
   const signOut = () => {
+    setSigningOut(true);
     browser.runtime
       .sendMessage({type: MessageTypes.SIGN_OUT} as SignOutMessage)
-      .catch(onStorageError);
+      .catch(onStorageError)
+      .finally(() => setSigningOut(false));
   };
 
   const handleClickDashboard = () => {
@@ -373,8 +378,10 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
               id='witty-sign-out'
               className='witty-works-ext-button witty-works-ext-secondary-button-red'
               onClick={signOut}
+              disabled={signingOut}
+              aria-busy={signingOut}
             >
-              {t('signOut')}
+              {signingOut ? t('signingOut') : t('signOut')}
             </button>
           </div>
         </div>
