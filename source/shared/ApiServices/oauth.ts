@@ -116,6 +116,41 @@ const resolveDeployment = (urlKey: string) => {
   return {key, deployment};
 };
 
+/** A refusal from the token endpoint, with its status and OAuth error code. */
+export class TokenEndpointError extends Error {
+  constructor(
+    readonly status: number,
+    /** The `error` field of the response (RFC 6749, 5.2), or ''. */
+    readonly code: string
+  ) {
+    super(`Token endpoint responded ${status}${code ? ` ${code}` : ''}`);
+    this.name = 'TokenEndpointError';
+  }
+}
+
+/**
+ * Error codes with which the token endpoint rejects the grant itself: the
+ * refresh token is expired, revoked, or for another client. Passport answers
+ * `invalid_grant` (400) in current versions and `invalid_request` (401) in
+ * older ones.
+ */
+const GRANT_REJECTED_CODES = new Set([
+  'invalid_grant',
+  'invalid_request',
+  'invalid_client',
+  'unauthorized_client',
+]);
+
+/**
+ * Whether `error` means the refresh token will never work again, so signing
+ * out is the only way on. Network errors, rate limits (429) and server errors
+ * (5xx) are not: the same token may well succeed later.
+ */
+export const isRefreshTokenRejected = (error: unknown): boolean =>
+  error instanceof TokenEndpointError &&
+  (error.status === 400 || error.status === 401) &&
+  GRANT_REJECTED_CODES.has(error.code);
+
 const tokensFromResponse = (payload: {
   access_token?: string;
   refresh_token?: string;
@@ -151,9 +186,14 @@ const postToTokenEndpoint = async (
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Token endpoint responded ${response.status} ${response.statusText}`
-    );
+    let error = '';
+    try {
+      const payload = await response.json();
+      error = typeof payload?.error === 'string' ? payload.error : '';
+    } catch (parseError) {
+      // No JSON body: the status alone decides.
+    }
+    throw new TokenEndpointError(response.status, error);
   }
 
   return tokensFromResponse(await response.json());

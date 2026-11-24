@@ -138,6 +138,10 @@ const addMessageListener = () => {
       return handleSignIn(message.register);
     }
 
+    if (message.type === MessageTypes.REFRESH_TOKEN) {
+      return getNewAccessToken(message.failedToken);
+    }
+
     if (message.type === MessageTypes.SIGN_OUT) {
       // Revoke on the dashboard first, while the token is still stored; it
       // resolves whether or not that worked, and the local tokens go anyway.
@@ -486,7 +490,7 @@ sanitizeStoredEndpoint().catch((error) => sendErrorToSentry(error));
 // never runs and nothing is exposed; only the dead branch remains in the bundle.
 if (TESTING) {
   (
-    self as unknown as {__wittyTestRefresh?: () => Promise<void>}
+    self as unknown as {__wittyTestRefresh?: () => Promise<unknown>}
   ).__wittyTestRefresh = getNewAccessToken;
 }
 

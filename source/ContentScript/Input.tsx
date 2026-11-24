@@ -14,6 +14,9 @@ import {
   createUrl,
   getBaseUrls,
   buildRequestHeaders,
+  getToken,
+  isTokenRefused,
+  setToken,
 } from '../shared/ApiServices/requests';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../i18n/i18n.constants';
@@ -30,7 +33,7 @@ import {
 } from '../shared/types';
 import {
   storeInLocalStorage,
-  getNewAccessToken,
+  requestTokenRefresh,
   getDomainWithoutSubdomain,
   updateConfig,
   isSignedInResult,
@@ -138,10 +141,19 @@ const Input: React.FC<{
     hrFeatureDisabled
   );
 
+  /**
+   * The access token a refresh produced and the failed request was retried
+   * with. If that one is refused too, no further refresh is started until a
+   * request succeeds again, so a token the API keeps refusing (an account
+   * that is not allowed in, answered with 403) cannot set off a loop.
+   */
+  const retriedWithTokenRef = useRef<string | null>(null);
+
   const onNewCheckResultsReceived = (
     checkEndpointResponse: ICheckResponse,
     checkedTextLength: number
   ) => {
+    retriedWithTokenRef.current = null;
     userIsSignedIn &&
       checkEventsLogger.checkLog(checkEndpointResponse, checkedTextLength);
     userIsSignedIn &&
@@ -1579,22 +1591,30 @@ const Input: React.FC<{
       );
       setAlerts([]);
     } else if (
-      checkEndpointError?.status == 403 ||
-      (authErrorResponse?.status === 403 && userIsSignedIn)
+      isTokenRefused(checkEndpointError?.status) ||
+      (isTokenRefused(authErrorResponse?.status) && userIsSignedIn)
     ) {
-      // Refresh via the OAuth2 refresh_token grant. This used to drive
-      // useRefreshTokenEndpoint, which POSTed to the dashboard's
-      // /api/refresh-token — a route deleted with Azure AD B2C, so the whole
-      // path was dead. getNewAccessToken handles rotation and falls back to
-      // logOut() when the refresh token is spent.
-      getNewAccessToken()
-        .then(() => {
-          checkText('');
-          checkText(currentTextToCheck);
-        })
-        .catch((error: unknown) => {
-          sendErrorToSentry(error);
-        });
+      // The API answers 401 for an expired or invalid token; versions before
+      // that answer 403. The background refreshes once for every frame and
+      // tab (getNewAccessToken), and signs out only if the dashboard rejects
+      // the refresh token. After a refresh the request is retried once.
+      const failedToken = getToken();
+      if (failedToken && failedToken !== retriedWithTokenRef.current) {
+        requestTokenRefresh(failedToken)
+          .then(async (outcome) => {
+            if (outcome !== 'refreshed') return;
+            const token = await readAccessToken();
+            if (!token || token === failedToken) return;
+            setToken(token);
+            retriedWithTokenRef.current = token;
+            if (authErrorResponse) setConfigHasChanged((changed) => !changed);
+            checkText('');
+            checkText(currentTextToCheck);
+          })
+          .catch((error: unknown) => {
+            sendErrorToSentry(error);
+          });
+      }
     } else if (authErrorResponse?.status === 400 && window.top) {
       //400 means means min version not installed
       try {
@@ -1610,6 +1630,10 @@ const Input: React.FC<{
       );
     }
   }, [checkEndpointError, authErrorResponse]);
+
+  useEffect(() => {
+    if (authResponse) retriedWithTokenRef.current = null;
+  }, [authResponse]);
 
   const ErrorBoundaryFallback = () => (
     <Toast message={t('reloadWebsite')} type='error' />

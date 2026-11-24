@@ -27,7 +27,8 @@ import {
   setToken,
   buildRequestHeaders,
 } from './ApiServices/requests';
-import {refresh} from './ApiServices/oauth';
+import {isRefreshTokenRejected, refresh} from './ApiServices/oauth';
+import {MessageTypes, RefreshTokenMessage} from './messages';
 import {clearTokens, persistTokens, readTokens} from './tokenStore';
 import {IAuthResponse} from './types';
 import {getActiveDocument} from './activeDocument';
@@ -134,15 +135,88 @@ export const addBadge = (text: string) => {
 };
 
 /**
- * Obtain a fresh access token using the stored refresh token.
+ * What a token refresh came to.
  *
- * Replaces the old POST to the dashboard's `/api/refresh-token`, which routed to
- * a controller method deleted along with Azure AD B2C. This now uses the
- * standard OAuth2 `refresh_token` grant against `/oauth/token`.
+ * - `refreshed`: storage holds an access token other than the one that
+ *   failed; read it back and retry once.
+ * - `signedOut`: the dashboard rejected the refresh token, or there is none;
+ *   the credentials were cleared.
+ * - `failed`: nothing changed (offline, 429, 5xx, an unknown endpoint, a
+ *   build-time key); retrying now would fail the same way.
  */
-export const getNewAccessToken = async () => {
+export type RefreshOutcome = 'refreshed' | 'signedOut' | 'failed';
+
+const REFRESH_OUTCOMES: readonly string[] = [
+  'refreshed',
+  'signedOut',
+  'failed',
+];
+
+let refreshInFlight: Promise<RefreshOutcome> | null = null;
+
+const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
+  const stored = await readTokens();
+
+  if (!stored.refreshToken) {
+    logOut();
+    return 'signedOut';
+  }
+
+  const result = await getStorage().local.get([
+    StorageKeys.API_ENDPOINT_KEY,
+    StorageKeys.CUSTOM_ENDPOINT,
+  ]);
+  // The refresh token belongs to the stored endpoint. When that names no
+  // endpoint, refreshing against the default would hand it to the wrong
+  // dashboard; the background clears it instead (see storedEndpoint.ts).
+  if (!isStoredEndpointConfigured(result)) {
+    return 'failed';
+  }
+  registerCustomEndpointFromStorage(result);
+  const urlKey =
+    (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey;
+
+  try {
+    // Passport rotates refresh tokens, so both values must be written back —
+    // continuing to present the previous refresh token after a successful
+    // rotation is rejected.
+    const tokens = await refresh(urlKey, stored.refreshToken);
+    await persistTokens(tokens);
+    setToken(tokens.accessToken);
+    return 'refreshed';
+  } catch (error) {
+    if (isRefreshTokenRejected(error)) {
+      // Expired, revoked, or issued by a different deployment: only a new
+      // sign-in helps, so fail closed.
+      logOut();
+      return 'signedOut';
+    }
+    // Offline, rate-limited or a server error: keep the tokens, the next
+    // failing request tries again.
+    sendErrorToSentry(error);
+    return 'failed';
+  }
+};
+
+/**
+ * Obtain a fresh access token using the stored refresh token, with the OAuth2
+ * `refresh_token` grant against `/oauth/token`. Runs in the background worker
+ * only: content scripts and the popup ask it with `requestTokenRefresh`.
+ *
+ * One refresh at a time. Passport rotates the refresh token, so two
+ * concurrent refreshes with the same one would see the second rejected and
+ * sign the user out; every caller during a refresh shares its outcome.
+ *
+ * `failedToken` is the access token the caller's request was refused with.
+ * When storage already holds a different one, another caller refreshed in
+ * the meantime and the caller only needs to read it back. Without it, the
+ * refresh always runs.
+ */
+export const getNewAccessToken = async (
+  failedToken?: string
+): Promise<RefreshOutcome> => {
   // If X_KEY is configured, do not attempt to refresh tokens
-  if (X_KEY) return;
+  if (X_KEY) return 'failed';
 
   try {
     const stored = await readTokens();
@@ -152,41 +226,52 @@ export const getNewAccessToken = async () => {
     // is '', and an unauthenticated install also has '' in storage, so an
     // unguarded comparison would match and skip the refresh entirely.
     if (STATIC_ACCESS_TOKEN && stored.accessToken === STATIC_ACCESS_TOKEN) {
-      return;
+      return 'failed';
     }
 
-    if (!stored.refreshToken) {
-      logOut();
-      return;
+    if (
+      failedToken !== undefined &&
+      stored.accessToken &&
+      stored.accessToken !== failedToken
+    ) {
+      return 'refreshed';
     }
-
-    const result = await getStorage().local.get([
-      StorageKeys.API_ENDPOINT_KEY,
-      StorageKeys.CUSTOM_ENDPOINT,
-    ]);
-    // The refresh token belongs to the stored endpoint. When that names no
-    // endpoint, refreshing against the default would hand it to the wrong
-    // dashboard; the background clears it instead (see storedEndpoint.ts).
-    if (!isStoredEndpointConfigured(result)) {
-      return;
-    }
-    registerCustomEndpointFromStorage(result);
-    const urlKey =
-      (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey;
-
-    // Passport rotates refresh tokens, so both values must be written back —
-    // continuing to present the previous refresh token after a successful
-    // rotation is rejected.
-    const tokens = await refresh(urlKey, stored.refreshToken);
-    await persistTokens(tokens);
-    setToken(tokens.accessToken);
   } catch (error) {
-    // A refresh failure means the refresh token is expired, revoked, or was
-    // issued by a different deployment. None of those are recoverable without
-    // the user signing in again, so fail closed rather than leaving stale
-    // credentials that will keep 401-ing.
     sendErrorToSentry(error);
-    logOut();
+    return 'failed';
+  }
+
+  if (!refreshInFlight) {
+    refreshInFlight = refreshStoredTokens()
+      .catch((error: unknown): RefreshOutcome => {
+        sendErrorToSentry(error);
+        return 'failed';
+      })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+};
+
+/**
+ * Ask the background worker to refresh the access token that `failedToken`
+ * was refused with (see `getNewAccessToken`). For content scripts and the
+ * popup; resolves `failed` if the worker cannot be reached.
+ */
+export const requestTokenRefresh = async (
+  failedToken: string
+): Promise<RefreshOutcome> => {
+  try {
+    const outcome = await browser.runtime.sendMessage({
+      type: MessageTypes.REFRESH_TOKEN,
+      failedToken,
+    } as RefreshTokenMessage);
+    return typeof outcome === 'string' && REFRESH_OUTCOMES.includes(outcome)
+      ? (outcome as RefreshOutcome)
+      : 'failed';
+  } catch (error) {
+    return 'failed';
   }
 };
 

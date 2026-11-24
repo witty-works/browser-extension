@@ -65,6 +65,17 @@ export const setAppID = (id: string) => (appID = id);
 
 export const setToken = (tok: string) => (token = tok);
 
+/** The bearer token requests are sent with, to report which one was refused. */
+export const getToken = (): string => token;
+
+/**
+ * Whether an API status means the bearer token was refused, so a refresh may
+ * help: 401 from the API (`WWW-Authenticate: Bearer error="invalid_token"`),
+ * 403 from versions before it, which answered an expired token with 403.
+ */
+export const isTokenRefused = (status: number | undefined): boolean =>
+  status === 401 || status === 403;
+
 /**
  * Runtime API key, entered by the user on the options page.
  *

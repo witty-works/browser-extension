@@ -15,6 +15,7 @@
 export enum MessageTypes {
   SIGN_IN = 'witty:sign-in',
   SIGN_OUT = 'witty:sign-out',
+  REFRESH_TOKEN = 'witty:refresh-token',
   OPEN_POPOVER = 'witty:open-popover',
 }
 
@@ -35,6 +36,16 @@ export interface SignOutMessage {
 }
 
 /**
+ * Sent by a content script or the popup when a request was refused with
+ * `failedToken`. The background refreshes once for all callers and answers
+ * with a `RefreshOutcome` (see `getNewAccessToken`).
+ */
+export interface RefreshTokenMessage {
+  type: MessageTypes.REFRESH_TOKEN;
+  failedToken: string;
+}
+
+/**
  * Sent by the background worker to the content scripts of the active tab when
  * the user presses the "open highlight popover" keyboard shortcut. Opens the
  * popover on the first alert, or advances to the next one if already open.
@@ -43,7 +54,8 @@ export interface OpenPopoverMessage {
   type: MessageTypes.OPEN_POPOVER;
 }
 
-export type WittyMessage = SignInMessage | SignOutMessage | OpenPopoverMessage;
+export type WittyMessage =
+  SignInMessage | SignOutMessage | RefreshTokenMessage | OpenPopoverMessage;
 
 export interface SignInResult {
   status: 'success' | 'cancelled' | 'error';
@@ -57,6 +69,10 @@ export const isWittyMessage = (value: unknown): value is WittyMessage => {
   }
 
   const type = (value as {type?: unknown}).type;
+
+  if (type === MessageTypes.REFRESH_TOKEN) {
+    return typeof (value as {failedToken?: unknown}).failedToken === 'string';
+  }
 
   return (
     type === MessageTypes.SIGN_IN ||

@@ -16,7 +16,7 @@ import {
 import {
   addBadge,
   addNotificationBadge,
-  getNewAccessToken,
+  requestTokenRefresh,
   removeBadge,
   storeInLocalStorage,
   updateConfig,
@@ -36,6 +36,7 @@ import {
   setBaseUrls,
   setToken,
   buildRequestHeaders,
+  isTokenRefused,
 } from '../../shared/ApiServices/requests';
 import PopupHeader from '../PopupComponents/PopupHeader';
 import OptionsLink from '../PopupComponents/OptionsLink';
@@ -263,7 +264,7 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
         headers,
       }
     ).then(async (response) => {
-      if (response.status === 403) {
+      if (isTokenRefused(response.status)) {
         setUpdatingDashboardFailed(true);
         setEnabled({enabled: !enabled.enabled, updateDashboard: false});
         browser.alarms.create('resetUpdatingDashboardFailedAlarm', {
@@ -275,7 +276,12 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
           }
         });
 
-        getNewAccessToken();
+        // The background refreshes for every caller at once; the user's
+        // next toggle is sent with the new token.
+        requestTokenRefresh(accessToken).then((outcome) => {
+          outcome === 'refreshed' &&
+            readAccessToken().then(setAccessToken).catch(onStorageError);
+        });
       }
     });
   };
