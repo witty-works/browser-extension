@@ -27,9 +27,13 @@ const handle: WittyEditorHandle = mount(document.createElement('div'), {
   config: {german_gender_ending: ':in', french_gender_separator: '·'},
   onStatus: (status) => describe(status),
   onSettingsChange: (settings) => settings.config.disabled_categories,
+  accessToken: 'token',
 });
 
 handle.setApiKey('key');
+handle.setAccessToken('token');
+// @ts-expect-error a token is a string
+handle.setAccessToken(42);
 handle.updateSettings({llmAlternatives: false, orthography: true});
 // @ts-expect-error settings are booleans
 handle.updateSettings({llmAlternatives: 'false'});
