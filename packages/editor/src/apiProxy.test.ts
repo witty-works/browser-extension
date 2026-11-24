@@ -6,6 +6,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
 import {proxyApiRequest} from '../../../source/Background/apiProxy';
+import {logOut} from '@witty/core/utils';
 import {isWittyMessage, MessageTypes} from '@witty/core/messages';
 import {registerStorage, type StorageArea} from '@witty/core/platform/storage';
 
@@ -127,7 +128,9 @@ describe('proxyApiRequest', () => {
     expect(tokenRequests).toBe(1);
 
     // Kept in storage.session, which outlives the worker, not in memory.
-    expect(session.data.refusedAfterRefresh).toBe('access-2');
+    expect(session.data.refusedAfterRefresh).toEqual(
+      expect.objectContaining({token: 'access-2'})
+    );
 
     // As after a restart: only the stored value says it was refused.
     await proxyApiRequest({type: MessageTypes.API_REQUEST, ...check});
@@ -208,6 +211,36 @@ describe('proxyApiRequest', () => {
       'Bearer access-1',
       'Bearer access-2',
     ]);
+  });
+
+  it('refreshes again once the refused token has expired', async () => {
+    // A transient refusal must not block refreshes for the rest of the
+    // browser session.
+    apiAnswer = () => json(403, {detail: 'not let in'});
+    await proxyApiRequest({type: MessageTypes.API_REQUEST, ...check});
+    expect(tokenRequests).toBe(1);
+
+    vi.setSystemTime(Date.now() + 2 * 3600 * 1000);
+    try {
+      await proxyApiRequest({type: MessageTypes.API_REQUEST, ...check});
+      expect(tokenRequests).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('forgets the refused token on sign-out', async () => {
+    apiAnswer = () => json(403, {detail: 'not let in'});
+    await proxyApiRequest({type: MessageTypes.API_REQUEST, ...check});
+    expect(session.data.refusedAfterRefresh).toBeTruthy();
+
+    await logOut();
+    expect(session.data.refusedAfterRefresh ?? null).toBeNull();
+  });
+
+  it('writes no marker on a success when none is stored', async () => {
+    await proxyApiRequest({type: MessageTypes.API_REQUEST, ...check});
+    expect('refusedAfterRefresh' in session.data).toBe(false);
   });
 
   it('does not refresh again for a token refused right after a refresh', async () => {

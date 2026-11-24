@@ -84,6 +84,12 @@ export enum StorageKeys {
   /** Whether CONFIRM_BEFORE_CHECKING_ORG holds this sign-in's answer yet. */
   CONFIRM_BEFORE_CHECKING_KNOWN = 'confirmBeforeCheckingKnown',
 
+  /**
+   * In storage.session: `{token, expiresAt}`, an access token a refresh
+   * produced that the API refused all the same (Background/apiProxy.ts).
+   */
+  REFUSED_AFTER_REFRESH = 'refusedAfterRefresh',
+
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',

@@ -176,17 +176,41 @@ export const proxyApiRequest = async (
 
 /**
  * A token a refresh produced that the API refused all the same. No refresh is
- * started for it until a request succeeds again. Kept in storage.session,
- * not in memory: an MV3 service worker stops when idle, and would otherwise
- * rotate the token again on every wake-up.
+ * started for it until a request succeeds again or the token expires, so a
+ * refusal that passes does not block refreshes for the rest of the browser
+ * session. Kept in storage.session, not in memory: an MV3 service worker
+ * stops when idle, and would otherwise rotate the token again on every
+ * wake-up. Never on disk: without storage.session it is not kept.
  */
-const REFUSED_AFTER_REFRESH = 'refusedAfterRefresh';
+interface RefusedToken {
+  token: string;
+  /** When the token expires (ms since the epoch); 0 if unknown. */
+  expiresAt: number;
+}
 
-const sessionStore = () => getStorage().session ?? getStorage().local;
+const refusedAfterRefresh = async (): Promise<string | null> => {
+  const session = getStorage().session;
+  if (!session) return null;
+  const stored = (await session.get(StorageKeys.REFUSED_AFTER_REFRESH))[
+    StorageKeys.REFUSED_AFTER_REFRESH
+  ] as RefusedToken | null | undefined;
+  if (!stored?.token) return null;
+  if (stored.expiresAt && stored.expiresAt <= Date.now()) return null;
+  return stored.token;
+};
 
-const refusedAfterRefresh = async (): Promise<string | null> =>
-  ((await sessionStore().get(REFUSED_AFTER_REFRESH))[REFUSED_AFTER_REFRESH] as
-    string | null | undefined) ?? null;
-
-const rememberRefusedAfterRefresh = async (token: string | null) =>
-  sessionStore().set({[REFUSED_AFTER_REFRESH]: token});
+const rememberRefusedAfterRefresh = async (token: string | null) => {
+  const session = getStorage().session;
+  if (!session) return;
+  if (token === null) {
+    // One write per successful request otherwise: read first.
+    const stored = await session.get(StorageKeys.REFUSED_AFTER_REFRESH);
+    if (!stored[StorageKeys.REFUSED_AFTER_REFRESH]) return;
+    await session.set({[StorageKeys.REFUSED_AFTER_REFRESH]: null});
+    return;
+  }
+  const {expiresAt} = await readTokens();
+  await session.set({
+    [StorageKeys.REFUSED_AFTER_REFRESH]: {token, expiresAt} as RefusedToken,
+  });
+};
