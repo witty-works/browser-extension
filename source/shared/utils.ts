@@ -8,6 +8,7 @@ import {
   isAllowedBaseUrlKey,
   isStoredEndpointConfigured,
   registerCustomEndpointFromStorage,
+  resolveBaseUrl,
   STATIC_ACCESS_TOKEN,
   StorageKeys,
   wittyVersion,
@@ -23,6 +24,7 @@ import {
 } from './DOMutils';
 import {setToken} from './ApiServices/requests';
 import {isRefreshTokenRejected, refresh} from './ApiServices/oauth';
+import {revokeAccessToken} from './ApiServices/revoke';
 import {MessageTypes, RefreshTokenMessage, SignOutMessage} from './messages';
 import {backgroundApiRequest} from './ApiServices/backgroundApi';
 import {clearTokens, persistTokens, readTokens} from './tokenStore';
@@ -250,14 +252,22 @@ const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
   registerCustomEndpointFromStorage(result);
   const urlKey =
     (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey;
+  // The dashboard that issues the new pair. A sign-out can switch the
+  // endpoint before the refresh finishes; a dropped pair is revoked here,
+  // never at the new one.
+  const {dashboard} = resolveBaseUrl(urlKey);
 
   try {
     // Passport rotates refresh tokens, so both values must be written back —
     // continuing to present the previous refresh token after a successful
     // rotation is rejected.
     const tokens = await refresh(urlKey, stored.refreshToken);
-    // Signed out while the refresh was under way: the new pair is dropped.
-    if (generation !== signOutGeneration) return 'signedOut';
+    // Signed out while the refresh was under way: the new pair is dropped,
+    // and revoked so it does not stay valid on the dashboard.
+    if (generation !== signOutGeneration) {
+      await revokeAccessToken(dashboard, tokens.accessToken);
+      return 'signedOut';
+    }
     await persistTokens(tokens);
     setToken(tokens.accessToken);
     return 'refreshed';
