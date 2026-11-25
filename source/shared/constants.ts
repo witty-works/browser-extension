@@ -90,6 +90,12 @@ export enum StorageKeys {
    */
   REFUSED_AFTER_REFRESH = 'refusedAfterRefresh',
 
+  /**
+   * In storage.session: `{failures, until}`, the backoff after failed token
+   * refreshes (shared/utils.ts).
+   */
+  REFRESH_BACKOFF = 'refreshBackoff',
+
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 
   NUMBER_OF_NOTIFICATIONS = 'numberOfNotifications',

@@ -107,6 +107,7 @@ export const clearTokens = async (): Promise<void> => {
   await sessionArea().set({
     [StorageKeys.ACCESS_TOKEN]: '',
     [StorageKeys.REFUSED_AFTER_REFRESH]: null,
+    [StorageKeys.REFRESH_BACKOFF]: null,
   });
 
   await getStorage().local.set({

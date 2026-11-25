@@ -172,6 +172,62 @@ export const refreshSettled = async (): Promise<void> => {
   clearTimeout(timer);
 };
 
+// The longest wait between refreshes after failures.
+const REFRESH_BACKOFF_MAX_MS = 60000;
+
+interface RefreshBackoff {
+  failures: number;
+  /** No refresh before this time (ms since the epoch). */
+  until: number;
+}
+
+/**
+ * After a failed refresh (the dashboard down or rate limiting), no new one
+ * before 2 s, doubling with each failure up to a minute; every request would
+ * otherwise try one. Kept in storage.session, as an MV3 worker stops when
+ * idle; never on disk, so without storage.session there is no backoff.
+ */
+const readRefreshBackoff = async (): Promise<RefreshBackoff | null> => {
+  const session = getStorage().session;
+  if (!session) return null;
+  const stored = await session.get(StorageKeys.REFRESH_BACKOFF);
+  return (stored[StorageKeys.REFRESH_BACKOFF] as RefreshBackoff) ?? null;
+};
+
+const writeRefreshBackoff = async (
+  backoff: RefreshBackoff | null
+): Promise<void> => {
+  await getStorage().session?.set({[StorageKeys.REFRESH_BACKOFF]: backoff});
+};
+
+/** A refresh, unless the backoff after failed ones has not passed. */
+const refreshUnlessBackingOff = async (): Promise<RefreshOutcome> => {
+  const stored = await readRefreshBackoff();
+  const now = Date.now();
+  // A minute without failures starts afresh; a wait longer than any the
+  // backoff sets means the clock was set back.
+  const backoff =
+    stored &&
+    now <= stored.until + REFRESH_BACKOFF_MAX_MS &&
+    stored.until - now <= REFRESH_BACKOFF_MAX_MS
+      ? stored
+      : null;
+  if (backoff && backoff.until > now) return 'failed';
+  const outcome = await refreshStoredTokens();
+  if (outcome === 'failed') {
+    const failures = (backoff?.failures ?? 0) + 1;
+    await writeRefreshBackoff({
+      failures,
+      until:
+        Date.now() +
+        Math.min(REFRESH_BACKOFF_MAX_MS, 2000 * 2 ** (failures - 1)),
+    });
+  } else if (outcome === 'refreshed' && stored) {
+    await writeRefreshBackoff(null);
+  }
+  return outcome;
+};
+
 const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
   const generation = signOutGeneration;
   const stored = await readTokens();
@@ -263,7 +319,7 @@ export const getNewAccessToken = async (
   }
 
   if (!refreshInFlight) {
-    refreshInFlight = refreshStoredTokens()
+    refreshInFlight = refreshUnlessBackingOff()
       .catch((error: unknown): RefreshOutcome => {
         sendErrorToSentry(error);
         return 'failed';
