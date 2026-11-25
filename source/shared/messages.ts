@@ -143,3 +143,14 @@ export const isWittyMessage = (value: unknown): value is WittyMessage => {
     type === MessageTypes.OPEN_POPOVER
   );
 };
+
+/**
+ * Whether a message comes from one of the extension's own pages (the popup,
+ * the options page), not from a content script running in a web page.
+ * `sender.tab` cannot tell: the options page opens in a tab.
+ */
+export const isFromExtensionPage = (
+  sender: {url?: string; tab?: unknown},
+  extensionOrigin: string
+): boolean =>
+  typeof sender.url === 'string' && sender.url.startsWith(extensionOrigin);

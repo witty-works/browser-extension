@@ -172,6 +172,10 @@ const tokensFromResponse = (payload: {
   };
 };
 
+// A dashboard that does not answer must not hold a refresh, and the requests
+// and sign-out waiting on it, until the connection times out.
+const TOKEN_ENDPOINT_TIMEOUT_MS = 10000;
+
 const postToTokenEndpoint = async (
   dashboard: string,
   body: Record<string, string>
@@ -183,6 +187,7 @@ const postToTokenEndpoint = async (
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(TOKEN_ENDPOINT_TIMEOUT_MS),
   });
 
   if (!response.ok) {

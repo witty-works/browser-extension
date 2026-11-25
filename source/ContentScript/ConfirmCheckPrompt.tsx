@@ -11,6 +11,10 @@ interface ConfirmCheckPromptProps {
   top: number;
   onConfirm: () => void;
   onDismiss: () => void;
+  /** The fieldset, so the field can tell whether focus moved into it. */
+  containerRef?: React.Ref<HTMLFieldSetElement>;
+  /** Focus left one of the prompt's buttons. */
+  onFocusLeave?: () => void;
 }
 
 // Inline: the prompt sits in the highlights' closed shadow root, which the
@@ -64,6 +68,8 @@ const ConfirmCheckPrompt: React.FC<ConfirmCheckPromptProps> = ({
   top,
   onConfirm,
   onDismiss,
+  containerRef,
+  onFocusLeave,
 }) => {
   const {t} = useTranslation(namespaces.popover);
   const questionId = useId();
@@ -78,6 +84,8 @@ const ConfirmCheckPrompt: React.FC<ConfirmCheckPromptProps> = ({
 
   return (
     <fieldset
+      ref={containerRef}
+      onBlur={onFocusLeave}
       aria-labelledby={questionId}
       style={
         open

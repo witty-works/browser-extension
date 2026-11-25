@@ -1,3 +1,4 @@
+import {authRetryDelay, confirmWrites} from './confirmBeforeChecking';
 import browser from 'webextension-polyfill';
 import {
   apiKeyFromStorage,
@@ -148,12 +149,35 @@ const REFRESH_OUTCOMES: readonly string[] = [
 ];
 
 let refreshInFlight: Promise<RefreshOutcome> | null = null;
+// Counts sign-outs. A refresh that started before one and finishes after it
+// must not write its tokens back and sign the user in again.
+let signOutGeneration = 0;
+
+// How long signing out waits for a refresh under way. A refresh that
+// finishes later is dropped (signOutGeneration), so waiting only spares a
+// rotation the dashboard would otherwise still have to revoke.
+const SIGN_OUT_REFRESH_WAIT_MS = 3000;
+
+/** Settles once no refresh is in flight, or after SIGN_OUT_REFRESH_WAIT_MS;
+ * signing out waits for it. */
+export const refreshSettled = async (): Promise<void> => {
+  if (!refreshInFlight) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    refreshInFlight.catch(() => undefined),
+    new Promise((resolve) => {
+      timer = setTimeout(resolve, SIGN_OUT_REFRESH_WAIT_MS);
+    }),
+  ]);
+  clearTimeout(timer);
+};
 
 const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
+  const generation = signOutGeneration;
   const stored = await readTokens();
 
   if (!stored.refreshToken) {
-    logOut();
+    await logOut();
     return 'signedOut';
   }
 
@@ -176,6 +200,8 @@ const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
     // continuing to present the previous refresh token after a successful
     // rotation is rejected.
     const tokens = await refresh(urlKey, stored.refreshToken);
+    // Signed out while the refresh was under way: the new pair is dropped.
+    if (generation !== signOutGeneration) return 'signedOut';
     await persistTokens(tokens);
     setToken(tokens.accessToken);
     return 'refreshed';
@@ -183,7 +209,7 @@ const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
     if (isRefreshTokenRejected(error)) {
       // Expired, revoked, or issued by a different deployment: only a new
       // sign-in helps, so fail closed.
-      logOut();
+      await logOut();
       return 'signedOut';
     }
     // Offline, rate-limited or a server error: keep the tokens, the next
@@ -270,16 +296,25 @@ export const requestTokenRefresh = async (
   }
 };
 
-export const logOut = () => {
+export const logOut = async (): Promise<void> => {
+  signOutGeneration += 1;
   storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
   storeInLocalStorage(StorageKeys.USER_ID, '');
   storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
   storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+  // The next account's organisation decides anew; until its answer arrives,
+  // ask-before-checking is pending rather than this account's value.
+  storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_ORG, null);
+  storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN, false);
   // Goes through the store so the session-held access token is cleared too,
   // not just the on-disk refresh token.
-  clearTokens().catch((error) => sendErrorToSentry(error));
   setToken('');
   addBadge('Login');
+  try {
+    await clearTokens();
+  } catch (error) {
+    sendErrorToSentry(error);
+  }
 };
 
 export const removeBadge = () => {
@@ -418,7 +453,11 @@ export const shouldInjectIntoWindow = (windowToCheck: Window) => {
 export const updateConfig = (response: IAuthResponse, force = false) => {
   getStorage()
     .local.get(null)
-    .then((result) => {
+    .then(async (result) => {
+      const confirm = confirmWrites(result, response);
+      if (Object.keys(confirm).length > 0) {
+        await getStorage().local.set(confirm);
+      }
       if (
         response?.config_hash === result[StorageKeys.CONFIG_HASH] &&
         response?.organization_config_hash ===
@@ -439,12 +478,6 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
       storeInLocalStorage(
         StorageKeys.LLM_ALTERNATIVES,
         response?.organization_config?.llm_alternatives?.value
-      );
-      storeInLocalStorage(
-        StorageKeys.CONFIRM_BEFORE_CHECKING_ORG,
-        response?.organization_config?.confirm_before_checking ??
-          response?.config?.confirm_before_checking ??
-          null
       );
       storeInLocalStorage(
         StorageKeys.ORGANIZATION_DOMAINS,
@@ -476,6 +509,33 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
 };
 
 /**
+ * Ask `/v2.0/auth` until it answers. Until an answer arrives,
+ * ask-before-checking is pending and nothing is checked, so an outage is
+ * retried; a refused credential is not. Another context's answer, or a
+ * sign-out, ends the wait too.
+ */
+const askForConfig = async (signedIn: boolean): Promise<void> => {
+  for (let attempt = 0; ; attempt += 1) {
+    const response = await backgroundApiRequest({kind: 'auth'});
+    if (response.ok) {
+      updateConfig(response.data as IAuthResponse, true);
+      storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+      return;
+    }
+    storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+    const delay = authRetryDelay(response.status, attempt);
+    if (delay === null) return;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    const now = await getStorage().local.get([
+      StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN,
+      StorageKeys.SIGNED_IN,
+    ]);
+    if (now[StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN] === true) return;
+    if (signedIn && !now[StorageKeys.SIGNED_IN]) return;
+  }
+};
+
+/**
  * Ask the API for the user's configuration (`/v2.0/auth`) and store it. The
  * background worker makes the request with the credentials (apiProxy.ts), so
  * this works from content scripts, which do not hold them.
@@ -501,13 +561,7 @@ export const makeAuthRequest = () => {
       // An account token (the signedIn marker; the token itself is only for
       // the background) or an API key.
       if (result[StorageKeys.SIGNED_IN] || X_KEY || apiKeyFromStorage(result)) {
-        const response = await backgroundApiRequest({kind: 'auth'});
-        if (response.ok) {
-          updateConfig(response.data as IAuthResponse, true);
-          storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
-        } else {
-          storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
-        }
+        await askForConfig(!!result[StorageKeys.SIGNED_IN]);
       } else if (STATIC_ACCESS_TOKEN) {
         // No token in storage but a default token is available in config — store and use it.
         storeInLocalStorage(StorageKeys.ACCESS_TOKEN, STATIC_ACCESS_TOKEN);

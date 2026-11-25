@@ -36,8 +36,8 @@
       "strict_min_version": "128.0"
     }
   },
-  "__chrome__minimum_chrome_version": "88",
-  "__opera__minimum_opera_version": "88",
+  "__chrome__minimum_chrome_version": "103",
+  "__opera__minimum_opera_version": "89",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

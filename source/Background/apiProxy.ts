@@ -111,6 +111,42 @@ const send = async (
 };
 
 /**
+ * Send with the stored bearer token. A refused token is refreshed once, for
+ * all callers at once (getNewAccessToken), and the request retried once with
+ * the new one.
+ */
+const sendWithToken = async (target: Target): Promise<ApiResponse> => {
+  const stored = await readTokens();
+  let {accessToken} = stored;
+  // A browser restart or an extension update empties storage.session, where
+  // the access token lives, while the refresh token stays in storage.local.
+  // Refresh before sending: a request without a token is refused, and the
+  // refused-token path below only refreshes a token that was sent.
+  if (!accessToken && stored.refreshToken) {
+    if ((await getNewAccessToken('')) === 'refreshed') {
+      ({accessToken} = await readTokens());
+    }
+  }
+  const response = await send(target, {token: accessToken});
+  if (!accessToken || !isTokenRefused(response.status)) {
+    if (response.ok) await rememberRefusedAfterRefresh(null);
+    return response;
+  }
+  // Refused straight after a refresh already: refreshing again would not
+  // help (an account the API does not let in) and would loop.
+  if (accessToken === (await refusedAfterRefresh())) return response;
+
+  if ((await getNewAccessToken(accessToken)) !== 'refreshed') return response;
+  const {accessToken: refreshed} = await readTokens();
+  if (!refreshed || refreshed === accessToken) return response;
+  const retried = await send(target, {token: refreshed});
+  await rememberRefusedAfterRefresh(
+    isTokenRefused(retried.status) ? refreshed : null
+  );
+  return retried;
+};
+
+/**
  * Make an API request for a content script, with the credentials only the
  * background holds, and answer with the status and the parsed data.
  *
@@ -144,26 +180,46 @@ export const proxyApiRequest = async (
   const apiKey = X_KEY || apiKeyFromStorage(result);
   if (apiKey) return send(target, {apiKey});
 
-  const {accessToken} = await readTokens();
-  const response = await send(target, {token: accessToken});
-  if (!accessToken || !isTokenRefused(response.status)) {
-    if (response.ok) refusedAfterRefresh = null;
-    return response;
-  }
-  // Refused straight after a refresh already: refreshing again would not
-  // help (an account the API does not let in) and would loop.
-  if (accessToken === refusedAfterRefresh) return response;
-
-  if ((await getNewAccessToken(accessToken)) !== 'refreshed') return response;
-  const {accessToken: refreshed} = await readTokens();
-  if (!refreshed || refreshed === accessToken) return response;
-  const retried = await send(target, {token: refreshed});
-  refusedAfterRefresh = isTokenRefused(retried.status) ? refreshed : null;
-  return retried;
+  return sendWithToken(target);
 };
 
 /**
  * A token a refresh produced that the API refused all the same. No refresh is
- * started for it until a request succeeds again.
+ * started for it until a request succeeds again or the token expires, so a
+ * refusal that passes does not block refreshes for the rest of the browser
+ * session. Kept in storage.session, not in memory: an MV3 service worker
+ * stops when idle, and would otherwise rotate the token again on every
+ * wake-up. Never on disk: without storage.session it is not kept.
  */
-let refusedAfterRefresh: string | null = null;
+interface RefusedToken {
+  token: string;
+  /** When the token expires (ms since the epoch); 0 if unknown. */
+  expiresAt: number;
+}
+
+const refusedAfterRefresh = async (): Promise<string | null> => {
+  const session = getStorage().session;
+  if (!session) return null;
+  const stored = (await session.get(StorageKeys.REFUSED_AFTER_REFRESH))[
+    StorageKeys.REFUSED_AFTER_REFRESH
+  ] as RefusedToken | null | undefined;
+  if (!stored?.token) return null;
+  if (stored.expiresAt && stored.expiresAt <= Date.now()) return null;
+  return stored.token;
+};
+
+const rememberRefusedAfterRefresh = async (token: string | null) => {
+  const session = getStorage().session;
+  if (!session) return;
+  if (token === null) {
+    // One write per successful request otherwise: read first.
+    const stored = await session.get(StorageKeys.REFUSED_AFTER_REFRESH);
+    if (!stored[StorageKeys.REFUSED_AFTER_REFRESH]) return;
+    await session.set({[StorageKeys.REFUSED_AFTER_REFRESH]: null});
+    return;
+  }
+  const {expiresAt} = await readTokens();
+  await session.set({
+    [StorageKeys.REFUSED_AFTER_REFRESH]: {token, expiresAt} as RefusedToken,
+  });
+};

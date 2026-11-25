@@ -46,9 +46,14 @@ A page whose users sign in, such as a dashboard that issues OAuth tokens the NLP
 ```ts
 const editor = mount(element, {endpoint, accessToken: tokens.accessToken});
 
-// Before it expires, and when the API refused it (`{state: 'unauthorized'}`):
+// Before it expires, and once when the API refused it
+// (`{state: 'unauthorized', status: 401 | 403}`):
 editor.setAccessToken((await refresh()).accessToken);
+// If the new token is refused too, stop and ask the user to sign in again:
+// another refresh would be refused the same way.
 ```
+
+From NLP API 4.0.0, `401` means the token is not valid (for example expired) and `403` that the API does not let this user in. Earlier versions answer `403` for an expired token too, so a page that refreshes on `401` only would stop checking there.
 
 Set either a key or a token: when both are set, the key is sent.
 
@@ -99,7 +104,7 @@ It returns a handle:
 | Status | When | Alerts |
 |---|---|---|
 | `{state: 'idle', alerts, limitReached}` | A check finished; after a gender format switch it also has `genderFormatSwitch` | Shown |
-| `{state: 'unauthorized'}` | The API refused the key (401) or the token behind it (403) | Cleared |
+| `{state: 'unauthorized', status}` | `status` 401: the API refused the key or token (an access token may have expired). 403: the API does not let this user in | Cleared |
 | `{state: 'outdated', message}` | The API no longer supports this editor version (400); `message` is the API's explanation. The page needs to load a newer version | Cleared |
 | `{state: 'unsupportedLanguage'}` | The API could not tell the text's language (422) | Cleared |
 | `{state: 'error', message}` | Anything else, e.g. the API is unreachable, answered 5xx, or gave no answer within 30 seconds | Kept until the next check |

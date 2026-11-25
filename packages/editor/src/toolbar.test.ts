@@ -675,7 +675,7 @@ describe('check failures', () => {
     });
 
     await vi.waitFor(() =>
-      expect(statuses.at(-1)).toEqual({state: 'unauthorized'})
+      expect(statuses.at(-1)).toEqual({state: 'unauthorized', status: 401})
     );
     await vi.waitFor(() =>
       expect(tool('Witty menu').classList).toContain('is-unauthorized')
@@ -780,8 +780,18 @@ describe('refused checks', () => {
   it('clears the alerts of a key no longer accepted', async () => {
     expect(await refuseWith(401, {detail: 'nope'})).toEqual({
       state: 'unauthorized',
+      status: 401,
     });
     expect(alertCount()).toBe(0);
+  });
+
+  it('tells a refused user (403) from a refused credential (401)', async () => {
+    // A host refreshes its token on 401 only: on 403 the API does not let
+    // this user in, and a new token would be refused the same way.
+    expect(await refuseWith(403, {detail: 'not let in'})).toEqual({
+      state: 'unauthorized',
+      status: 403,
+    });
   });
 
   it('keeps the alerts through a server error', async () => {

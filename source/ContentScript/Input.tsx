@@ -14,6 +14,7 @@ import {
   confirmBeforeChecking,
   confirmField,
   isFieldConfirmed,
+  storageValueChanged,
 } from '../shared/confirmBeforeChecking';
 import ConfirmCheckPrompt from './ConfirmCheckPrompt';
 import {useTranslation} from 'react-i18next';
@@ -45,6 +46,7 @@ import {
   isMicrosoftOnlineWord,
   isOutlook,
   isInShadowDOM,
+  containsFocus,
 } from '../shared/DOMutils';
 import {useResizeObserver} from '../shared/customHooks/useResizeObserver';
 import {useMutationObserver} from '../shared/customHooks/useMutationObserver';
@@ -95,6 +97,9 @@ const Input: React.FC<{
   }>({text: [], position: {} as DOMRect});
 
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
+  // The same text for the storage listener, which is registered once and
+  // would otherwise only ever see the first render's value.
+  const currentTextRef = useRef('');
   const prevTextRef = useRef(currentTextToCheck);
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLElement);
   const elementRect = useResizeObserver(element);
@@ -502,6 +507,7 @@ const Input: React.FC<{
     // alert needs their client rects.
     const next = (event as FocusEvent | undefined)
       ?.relatedTarget as Node | null;
+    closePromptIfFocusLeft();
     if (isInPopover(next)) {
       return;
     }
@@ -514,6 +520,21 @@ const Input: React.FC<{
     return !!active && (active === element || element.contains(active));
   };
 
+  // The ask-before-checking prompt's fieldset, inside the extension's root.
+  const promptRef = useRef<HTMLFieldSetElement>(null);
+  /**
+   * Close the prompt once focus is neither in the field nor in the prompt.
+   * Deferred, because during the blur focus has not reached its target yet;
+   * moving from the field to the prompt's buttons (Shift+Tab) keeps it.
+   */
+  const closePromptIfFocusLeft = () => {
+    window.setTimeout(() => {
+      if (!fieldHasFocus() && !containsFocus(promptRef.current)) {
+        setPromptOpen(false);
+      }
+    }, 0);
+  };
+
   // "Ask before checking a field": whether this field still needs the
   // user's go-ahead, and whether the question is shown.
   const [confirmRequired, setConfirmRequired] = useState<boolean>(false);
@@ -523,15 +544,36 @@ const Input: React.FC<{
   // Set while focus goes back to the field from a dismissed question.
   const skipNextFocusRef = useRef<boolean>(false);
 
+  // How long the prompt's live region stays empty before the question goes
+  // in: screen readers announce a change to a region they already know, not
+  // one inserted with its text.
+  const PROMPT_ANNOUNCE_DELAY_MS = 150;
+
+  /** Render the prompt's empty live region, then the question. */
+  const openPrompt = () => {
+    setConfirmRequired(true);
+    window.setTimeout(() => {
+      if (
+        fieldHasFocus() &&
+        !promptDismissedRef.current &&
+        !isFieldConfirmed(element)
+      ) {
+        setPromptOpen(true);
+      }
+    }, PROMPT_ANNOUNCE_DELAY_MS);
+  };
+
   const askToConfirm = () => {
     promptDismissedRef.current = false;
     if (isFieldConfirmed(element)) return;
     browser.storage.local
       .get(null)
       .then((result) => {
-        if (isSignedInResult(result) && confirmBeforeChecking(result).enabled) {
-          setConfirmRequired(true);
-          setPromptOpen(true);
+        const setting = confirmBeforeChecking(result);
+        // Pending: the organisation's answer has not arrived; checkText asks
+        // once it has.
+        if (isSignedInResult(result) && !setting.pending && setting.enabled) {
+          openPrompt();
         }
       })
       .catch((error: unknown) => sendErrorToSentry(error));
@@ -638,6 +680,7 @@ const Input: React.FC<{
       isGoogleDocs(element) ? cloneRef.current : element
     );
     setCurrentTextToCheck(nextText); //for check call after refresh token
+    currentTextRef.current = nextText;
     if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
@@ -666,15 +709,18 @@ const Input: React.FC<{
       .get(null)
       .then((result) => {
         if (!isSignedInResult(result)) return;
+        const setting = confirmBeforeChecking(result);
+        // The organisation's answer has not arrived since sign-in: wait for
+        // it (storageChange checks again) rather than let a forced setting
+        // miss the first check.
+        if (setting.pending) return;
         // Asked to ask first: nothing from this field before the user says
         // so (ConfirmCheckPrompt).
-        if (
-          confirmBeforeChecking(result).enabled &&
-          !isFieldConfirmed(element)
-        ) {
-          setConfirmRequired(true);
+        if (setting.enabled && !isFieldConfirmed(element)) {
           if (text && fieldHasFocus() && !promptDismissedRef.current) {
-            setPromptOpen(true);
+            openPrompt();
+          } else {
+            setConfirmRequired(true);
           }
           return;
         }
@@ -1614,12 +1660,34 @@ const Input: React.FC<{
   const storageChange = (changes: any) => {
     const changedItems = Object.keys(changes);
     for (const item of changedItems) {
+      // Firefox reports writes of unchanged values, which every page load
+      // makes; acting on them closed an open question in every tab.
+      if (!storageValueChanged(changes[item])) continue;
       switch (item) {
         case StorageKeys.SIGNED_IN:
+          if (!changes[item].newValue) {
+            setPromptOpen(false);
+            setConfirmRequired(false);
+          }
           setUserIsSignedIn(changes[item].newValue);
           setConfigHasChanged(changes[item].newValue);
           checkText('');
-          checkText(currentTextToCheck);
+          checkText(currentTextRef.current);
+          break;
+        // The organisation's ask-before-checking answer arrived: the check
+        // that waited for it goes ahead, or asks.
+        case StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN:
+          if (changes[item].newValue === true) {
+            checkText(currentTextRef.current);
+          }
+          break;
+        // The user's or the organisation's setting changed: decide afresh,
+        // so a prompt for a setting now off does not stay open.
+        case StorageKeys.CONFIRM_BEFORE_CHECKING:
+        case StorageKeys.CONFIRM_BEFORE_CHECKING_ORG:
+          setPromptOpen(false);
+          setConfirmRequired(false);
+          checkText(currentTextRef.current);
           break;
       }
     }
@@ -1721,6 +1789,8 @@ const Input: React.FC<{
           }
           onConfirm={confirmCheck}
           onDismiss={dismissConfirmPrompt}
+          containerRef={promptRef}
+          onFocusLeave={closePromptIfFocusLeft}
         />
       )}
       <WTags.WW_ACTIVITY_INDICATOR>

@@ -20,9 +20,9 @@ import {getStorage, StorageArea} from './platform/storage';
  *   sites would each have to become an async two-area read for no security
  *   gain — the flag reveals nothing the badge text doesn't already.
  *
- * `storage.session` needs Chrome 102+ / Firefox 115+, so every access goes
- * through `sessionArea()`, which falls back to `local` on older browsers. The
- * fallback is a functional degradation, not a correctness one.
+ * `storage.session` needs Chrome 102 and Firefox 115; the manifest requires
+ * newer versions (Chrome 103, Opera 89, which is Chromium 103), so
+ * `sessionArea()`'s fallback to `local` is for test environments only.
  */
 
 export interface StoredTokens {
@@ -104,7 +104,10 @@ export const readAccessToken = async (): Promise<string> =>
   (await readTokens()).accessToken;
 
 export const clearTokens = async (): Promise<void> => {
-  await sessionArea().set({[StorageKeys.ACCESS_TOKEN]: ''});
+  await sessionArea().set({
+    [StorageKeys.ACCESS_TOKEN]: '',
+    [StorageKeys.REFUSED_AFTER_REFRESH]: null,
+  });
 
   await getStorage().local.set({
     [StorageKeys.ACCESS_TOKEN]: '',
