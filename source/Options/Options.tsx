@@ -251,7 +251,7 @@ const Options: React.FC = () => {
       });
 
       // Invariant 2: credentials never survive a connection change.
-      logOut();
+      await logOut();
       setApiKey(mode === 'apiKey' ? apiKeyValue.trim() : '');
       setCurrent(CUSTOM_BASE_URL_KEY);
       setNotice(t('saved'));
@@ -272,7 +272,7 @@ const Options: React.FC = () => {
       // custom endpoint before switching would leave 'Custom' naming nothing,
       // for good if the page closes in between.
       await clearTokens();
-      logOut();
+      await logOut();
       await browser.storage.local.set({
         [StorageKeys.API_ENDPOINT_KEY]: DefaultBaseUrlKey,
       });

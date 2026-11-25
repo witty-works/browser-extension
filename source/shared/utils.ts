@@ -177,7 +177,7 @@ const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
   const stored = await readTokens();
 
   if (!stored.refreshToken) {
-    logOut();
+    await logOut();
     return 'signedOut';
   }
 
@@ -209,7 +209,7 @@ const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
     if (isRefreshTokenRejected(error)) {
       // Expired, revoked, or issued by a different deployment: only a new
       // sign-in helps, so fail closed.
-      logOut();
+      await logOut();
       return 'signedOut';
     }
     // Offline, rate-limited or a server error: keep the tokens, the next
@@ -453,10 +453,10 @@ export const shouldInjectIntoWindow = (windowToCheck: Window) => {
 export const updateConfig = (response: IAuthResponse, force = false) => {
   getStorage()
     .local.get(null)
-    .then((result) => {
+    .then(async (result) => {
       const confirm = confirmWrites(result, response);
       if (Object.keys(confirm).length > 0) {
-        getStorage().local.set(confirm);
+        await getStorage().local.set(confirm);
       }
       if (
         response?.config_hash === result[StorageKeys.CONFIG_HASH] &&
