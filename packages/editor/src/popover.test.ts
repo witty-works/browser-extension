@@ -11,6 +11,18 @@ import {
   type WittyEditorHandle,
 } from './mount';
 
+// Unit tests can only dispatch synthetic events, which the popover ignores
+// for actions that change the text (trustedEvent.ts). Unless a test turns it
+// off, this stands in for the user's own click or key press.
+const trust = vi.hoisted(() => {
+  return {synthetic: true};
+});
+vi.mock('@witty/core/trustedEvent', () => {
+  return {
+    isTrustedEvent: (event: Event) => trust.synthetic || event.isTrusted,
+  };
+});
+
 let handle: WittyEditorHandle | undefined;
 let statuses: EditorStatus[];
 let rephraseCalls: number;
@@ -19,6 +31,7 @@ let rephraseBodies: Record<string, unknown>[];
 let rephrase: () => Promise<Response>;
 
 beforeEach(() => {
+  trust.synthetic = true;
   statuses = [];
   rephraseCalls = 0;
   rephraseBodies = [];
@@ -227,6 +240,41 @@ describe('applying from the popover', () => {
     expect(editor.getText()).toContain('Hey guys,');
   });
 
+  it('ignores a click or key press a page script dispatches', async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(alternativeButton('everyone')).toBeDefined());
+    trust.synthetic = false;
+    const button = alternativeButton('everyone')!;
+    button.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true}));
+    button.dispatchEvent(
+      new KeyboardEvent('keydown', {key: 'Enter', bubbles: true})
+    );
+    button.dispatchEvent(
+      new KeyboardEvent('keydown', {key: ' ', bubbles: true})
+    );
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(popover()).not.toBeNull();
+    expect(editor.getText()).toContain('Hey guys,');
+  });
+
+  it('applies on Enter from the user', async () => {
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(alternativeButton('everyone')).toBeDefined());
+    alternativeButton('everyone')!.dispatchEvent(
+      new KeyboardEvent('keydown', {key: 'Enter', bubbles: true})
+    );
+
+    await vi.waitFor(() => expect(popover()).toBeNull());
+    expect(editor.getText()).toContain('Hey everyone,');
+  });
+
   it('moves to the next alert', async () => {
     const editor = mountEditor();
     await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(1));
@@ -238,6 +286,59 @@ describe('applying from the popover', () => {
       .click();
 
     await vi.waitFor(() => expect(popover()?.textContent).toContain('2 of'));
+  });
+});
+
+describe('rewrite preview', () => {
+  /** The preview wrapper a button is described by, if any. */
+  const previewOf = (button: HTMLButtonElement): HTMLElement | null => {
+    const id = button.getAttribute('aria-describedby');
+    return id ? document.getElementById(id) : null;
+  };
+
+  it('shows the rewrite on keyboard focus and describes the button with it', async () => {
+    rephrase = async () =>
+      new Response(
+        JSON.stringify({
+          sentence: 'Hey guys, the chairman will assume the leadership role.',
+          results: {
+            everyone:
+              'Hey everyone, the chair will assume the leadership role.',
+          },
+        }),
+        {status: 200}
+      );
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() =>
+      expect(previewOf(alternativeButton('everyone')!)).not.toBeNull()
+    );
+    const button = alternativeButton('everyone')!;
+    const preview = previewOf(button)!;
+    // The whole-sentence rewrite, as a diff against the sentence.
+    expect(preview.querySelector('ins')?.textContent).toContain('everyone');
+    expect(preview.textContent).toContain('chair will');
+    expect(preview.style.visibility).toBe('hidden');
+
+    button.focus();
+    await vi.waitFor(() => expect(preview.style.visibility).toBe('visible'));
+
+    button.blur();
+    await vi.waitFor(() => expect(preview.style.visibility).toBe('hidden'));
+  });
+
+  it('describes the buttons with nothing until the rewrites arrive', async () => {
+    rephrase = () => new Promise<Response>(() => {});
+    const editor = mountEditor();
+    await vi.waitFor(() => expect(lastAlertCount()).toBeGreaterThan(0));
+
+    openPopoverOn(editor, 'guys');
+    await vi.waitFor(() => expect(alternativeButton('everyone')).toBeDefined());
+    expect(
+      alternativeButton('everyone')!.hasAttribute('aria-describedby')
+    ).toBe(false);
   });
 });
 

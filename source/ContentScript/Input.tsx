@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import browser, {Runtime} from 'webextension-polyfill';
-import {Root, createRoot} from 'react-dom/client';
+import {createRoot} from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import defaultConfig from '../witty.config.json';
 import {
@@ -9,12 +9,14 @@ import {
   DEV_ENV,
   isDashboardAvailable,
 } from '../shared/constants';
-import {readAccessToken} from '../shared/tokenStore';
+import {backgroundApiRequest} from '../shared/ApiServices/backgroundApi';
 import {
-  createUrl,
-  getBaseUrls,
-  buildRequestHeaders,
-} from '../shared/ApiServices/requests';
+  confirmBeforeChecking,
+  confirmField,
+  isFieldConfirmed,
+  storageValueChanged,
+} from '../shared/confirmBeforeChecking';
+import ConfirmCheckPrompt from './ConfirmCheckPrompt';
 import {useTranslation} from 'react-i18next';
 import {namespaces} from '../i18n/i18n.constants';
 import TextAreaClone from './TextAreaClone';
@@ -30,7 +32,6 @@ import {
 } from '../shared/types';
 import {
   storeInLocalStorage,
-  getNewAccessToken,
   getDomainWithoutSubdomain,
   updateConfig,
   isSignedInResult,
@@ -45,6 +46,7 @@ import {
   isMicrosoftOnlineWord,
   isOutlook,
   isInShadowDOM,
+  containsFocus,
 } from '../shared/DOMutils';
 import {useResizeObserver} from '../shared/customHooks/useResizeObserver';
 import {useMutationObserver} from '../shared/customHooks/useMutationObserver';
@@ -70,6 +72,12 @@ import {
 } from './utils';
 import {getActiveDocument} from '../shared/activeDocument';
 import HighlightPopoverNotSignedIn from './HighlightPopover/HighlightPopoverNotSignedIn';
+import {
+  getPopoverRoot,
+  isInPopover,
+  isPopoverShown,
+  removePopover,
+} from './shadowHosts';
 import {useCheckEndpointWithCache} from '../shared/ApiServices/useCheckEndpointWithCache';
 import {useCheckEventsLogger} from '../shared/ApiServices/useCheckEventsLogger';
 import {useLLMAlternativesCache} from '../shared/ApiServices/useLLMAlternativesCache';
@@ -89,6 +97,9 @@ const Input: React.FC<{
   }>({text: [], position: {} as DOMRect});
 
   const [currentTextToCheck, setCurrentTextToCheck] = useState('');
+  // The same text for the storage listener, which is registered once and
+  // would otherwise only ever see the first render's value.
+  const currentTextRef = useRef('');
   const prevTextRef = useRef(currentTextToCheck);
   const [clone, setClone, cloneRef] = useStateRef({} as HTMLElement);
   const elementRect = useResizeObserver(element);
@@ -126,7 +137,6 @@ const Input: React.FC<{
   const [, , firstScrollableParentRef] = useStateRef<HTMLElement>(element);
   const [, , previouslyCheckedPagesGoogleDocs] = useStateRef<number[]>([]);
   const [, , previousScrollTopRef] = useStateRef<number>(0);
-  const [, , popoverRootRef] = useStateRef<Root | null>(null);
   // Set when the popover is opened or advanced via the keyboard shortcut, so
   // the popover knows to take focus. Cleared for the mouse flows, which must
   // never steal focus from the input while the user is typing.
@@ -326,11 +336,7 @@ const Input: React.FC<{
   //GOOGLE DOCS WORKAROUND
   const handleDocumentClickEvent = () => {
     if (getInputText(cloneRef.current).length === 0) debouncedMutation();
-    const activeDocument = getActiveDocument();
-    if (
-      isGoogleDocs(element) &&
-      !activeDocument.getElementById('witty-works-ext-popover')
-    ) {
+    if (isGoogleDocs(element) && !isPopoverShown()) {
       // Recalculate alert rects for Google Docs and pick alerts under the caret/click
       const alertsInRange: IAlert[] = [];
       let selectedNode: Node | null = null;
@@ -501,17 +507,102 @@ const Input: React.FC<{
     // alert needs their client rects.
     const next = (event as FocusEvent | undefined)
       ?.relatedTarget as Node | null;
-    if (
-      next &&
-      document.getElementById('witty-works-ext-popover')?.contains(next)
-    ) {
+    closePromptIfFocusLeft();
+    if (isInPopover(next)) {
       return;
     }
     setIsFocused(false);
     setActiveIcon('passive');
   };
 
+  const fieldHasFocus = (): boolean => {
+    const active = element.ownerDocument.activeElement;
+    return !!active && (active === element || element.contains(active));
+  };
+
+  // The ask-before-checking prompt's fieldset, inside the extension's root.
+  const promptRef = useRef<HTMLFieldSetElement>(null);
+  /**
+   * Close the prompt once focus is neither in the field nor in the prompt.
+   * Deferred, because during the blur focus has not reached its target yet;
+   * moving from the field to the prompt's buttons (Shift+Tab) keeps it.
+   */
+  const closePromptIfFocusLeft = () => {
+    window.setTimeout(() => {
+      if (!fieldHasFocus() && !containsFocus(promptRef.current)) {
+        setPromptOpen(false);
+      }
+    }, 0);
+  };
+
+  // "Ask before checking a field": whether this field still needs the
+  // user's go-ahead, and whether the question is shown.
+  const [confirmRequired, setConfirmRequired] = useState<boolean>(false);
+  const [promptOpen, setPromptOpen] = useState<boolean>(false);
+  // Escape closes the question until the field is focused again.
+  const promptDismissedRef = useRef<boolean>(false);
+  // Set while focus goes back to the field from a dismissed question.
+  const skipNextFocusRef = useRef<boolean>(false);
+
+  // How long the prompt's live region stays empty before the question goes
+  // in: screen readers announce a change to a region they already know, not
+  // one inserted with its text.
+  const PROMPT_ANNOUNCE_DELAY_MS = 150;
+
+  /** Render the prompt's empty live region, then the question. */
+  const openPrompt = () => {
+    setConfirmRequired(true);
+    window.setTimeout(() => {
+      if (
+        fieldHasFocus() &&
+        !promptDismissedRef.current &&
+        !isFieldConfirmed(element)
+      ) {
+        setPromptOpen(true);
+      }
+    }, PROMPT_ANNOUNCE_DELAY_MS);
+  };
+
+  const askToConfirm = () => {
+    promptDismissedRef.current = false;
+    if (isFieldConfirmed(element)) return;
+    browser.storage.local
+      .get(null)
+      .then((result) => {
+        const setting = confirmBeforeChecking(result);
+        // Pending: the organisation's answer has not arrived; checkText asks
+        // once it has.
+        if (isSignedInResult(result) && !setting.pending && setting.enabled) {
+          openPrompt();
+        }
+      })
+      .catch((error: unknown) => sendErrorToSentry(error));
+  };
+
+  const confirmCheck = () => {
+    confirmField(element);
+    setPromptOpen(false);
+    setConfirmRequired(false);
+    (element as HTMLElement).focus?.();
+    handleTextAndIcon();
+  };
+
+  const dismissConfirmPrompt = () => {
+    promptDismissedRef.current = true;
+    setPromptOpen(false);
+    // Back to the field, without bringing the question straight back.
+    if (!fieldHasFocus()) {
+      skipNextFocusRef.current = true;
+      (element as HTMLElement).focus?.();
+    }
+  };
+
   const handleFocusinEvent = () => {
+    if (skipNextFocusRef.current) {
+      skipNextFocusRef.current = false;
+    } else {
+      askToConfirm();
+    }
     if (isMicrosoftOnlineWord(window.location.href)) {
       const event = new KeyboardEvent('keyup');
       handleKeyupEventDebounced(event);
@@ -589,6 +680,7 @@ const Input: React.FC<{
       isGoogleDocs(element) ? cloneRef.current : element
     );
     setCurrentTextToCheck(nextText); //for check call after refresh token
+    currentTextRef.current = nextText;
     if (nextText.length === 0 || !nextText.match(/[a-zA-Z0-9.:;,?!]/i)) {
       setActiveIcon('active');
       setAlerts([]);
@@ -616,9 +708,23 @@ const Input: React.FC<{
     browser.storage.local
       .get(null)
       .then((result) => {
-        if (isSignedInResult(result)) {
-          setTextToCheck(text);
+        if (!isSignedInResult(result)) return;
+        const setting = confirmBeforeChecking(result);
+        // The organisation's answer has not arrived since sign-in: wait for
+        // it (storageChange checks again) rather than let a forced setting
+        // miss the first check.
+        if (setting.pending) return;
+        // Asked to ask first: nothing from this field before the user says
+        // so (ConfirmCheckPrompt).
+        if (setting.enabled && !isFieldConfirmed(element)) {
+          if (text && fieldHasFocus() && !promptDismissedRef.current) {
+            openPrompt();
+          } else {
+            setConfirmRequired(true);
+          }
+          return;
         }
+        setTextToCheck(text);
       })
       .catch((error: unknown) => {
         sendErrorToSentry(error);
@@ -682,42 +788,8 @@ const Input: React.FC<{
   };
 
   const resetPopover = () => {
-    // Unmount any React root and remove DOM on next tick to avoid
-    // 'synchronously unmount a root while React was already rendering' warnings.
-    const rootToUnmount = popoverRootRef.current;
-    popoverRootRef.current = null;
-
-    // schedule unmount and DOM removal after current render completes
-    if (rootToUnmount) {
-      setTimeout(() => {
-        try {
-          rootToUnmount.unmount();
-        } catch (err) {
-          // ignore
-        }
-
-        try {
-          const popoverContainers =
-            window.document.getElementsByTagName('ww-popover');
-          Array.from(popoverContainers).forEach((popoverContainer) => {
-            popoverContainer.remove();
-          });
-        } catch (err) {
-          // ignore
-        }
-      }, 0);
-    } else {
-      // no root, still remove lingering containers synchronously
-      try {
-        const popoverContainers =
-          window.document.getElementsByTagName('ww-popover');
-        Array.from(popoverContainers).forEach((popoverContainer) => {
-          popoverContainer.remove();
-        });
-      } catch (err) {
-        // ignore
-      }
-    }
+    // Unmounts after the current render completes, which React requires.
+    removePopover();
 
     if (popoverDataRef.current !== null)
       previousPopoverDataRef.current = popoverDataRef.current;
@@ -750,25 +822,15 @@ const Input: React.FC<{
   }, []);
 
   const ignoreTermPermanently = async (term: string): Promise<void> => {
-    const accessToken = await readAccessToken().catch(() => '');
-    const requestUrl = createUrl(
-      getBaseUrls().dashboard,
-      `api/user/language/ignore-words?false_positive=${term}`
-    );
-
-    let response: Response;
-    try {
-      response = await fetch(requestUrl, {
-        method: 'PUT',
-        headers: buildRequestHeaders(accessToken),
-      });
-    } catch (error) {
-      // Network failures are reported; a non-204 below is a user-visible
-      // failure state but not an error condition worth a Sentry event.
-      sendErrorToSentry(error);
-      throw error;
+    // The background sends it with the user's token (apiProxy.ts).
+    const response = await backgroundApiRequest({kind: 'ignoreWord', term});
+    if (response.status === 0) {
+      // No response at all is worth a report; a refusal below is a
+      // user-visible failure state but not an error condition.
+      sendErrorToSentry(
+        new Error(`ignore-words failed: ${response.statusText}`)
+      );
     }
-
     if (response.status !== 204) {
       throw new Error(`ignore-words returned ${response.status}`);
     }
@@ -1575,23 +1637,6 @@ const Input: React.FC<{
         'false'
       );
       setAlerts([]);
-    } else if (
-      checkEndpointError?.status == 403 ||
-      (authErrorResponse?.status === 403 && userIsSignedIn)
-    ) {
-      // Refresh via the OAuth2 refresh_token grant. This used to drive
-      // useRefreshTokenEndpoint, which POSTed to the dashboard's
-      // /api/refresh-token — a route deleted with Azure AD B2C, so the whole
-      // path was dead. getNewAccessToken handles rotation and falls back to
-      // logOut() when the refresh token is spent.
-      getNewAccessToken()
-        .then(() => {
-          checkText('');
-          checkText(currentTextToCheck);
-        })
-        .catch((error: unknown) => {
-          sendErrorToSentry(error);
-        });
     } else if (authErrorResponse?.status === 400 && window.top) {
       //400 means means min version not installed
       try {
@@ -1615,12 +1660,34 @@ const Input: React.FC<{
   const storageChange = (changes: any) => {
     const changedItems = Object.keys(changes);
     for (const item of changedItems) {
+      // Firefox reports writes of unchanged values, which every page load
+      // makes; acting on them closed an open question in every tab.
+      if (!storageValueChanged(changes[item])) continue;
       switch (item) {
         case StorageKeys.SIGNED_IN:
+          if (!changes[item].newValue) {
+            setPromptOpen(false);
+            setConfirmRequired(false);
+          }
           setUserIsSignedIn(changes[item].newValue);
           setConfigHasChanged(changes[item].newValue);
           checkText('');
-          checkText(currentTextToCheck);
+          checkText(currentTextRef.current);
+          break;
+        // The organisation's ask-before-checking answer arrived: the check
+        // that waited for it goes ahead, or asks.
+        case StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN:
+          if (changes[item].newValue === true) {
+            checkText(currentTextRef.current);
+          }
+          break;
+        // The user's or the organisation's setting changed: decide afresh,
+        // so a prompt for a setting now off does not stay open.
+        case StorageKeys.CONFIRM_BEFORE_CHECKING:
+        case StorageKeys.CONFIRM_BEFORE_CHECKING_ORG:
+          setPromptOpen(false);
+          setConfirmRequired(false);
+          checkText(currentTextRef.current);
           break;
       }
     }
@@ -1631,23 +1698,9 @@ const Input: React.FC<{
   }, [LLMSuggestionsCache]);
 
   const renderPopover = () => {
-    if (!popoverRootRef.current) {
-      const existingPopoverElement = document.querySelector(WTags.WW_POPOVER);
-
-      // If an existing popover element is not found, create a new one
-      if (!existingPopoverElement) {
-        const popoverElement = document.createElement(WTags.WW_POPOVER);
-        document.body.appendChild(popoverElement);
-        popoverRootRef.current = createRoot(popoverElement);
-      } else {
-        popoverRootRef.current = createRoot(existingPopoverElement);
-      }
-    }
-    const container = document.querySelector(WTags.WW_POPOVER);
-    if (!container) return;
     //Show/Hide the popover
     if (popoverDataRef.current && userIsSignedIn) {
-      popoverRootRef.current?.render(
+      getPopoverRoot().render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopover
             analytics={popoverAnalytics}
@@ -1669,7 +1722,7 @@ const Input: React.FC<{
         </Sentry.ErrorBoundary>
       );
     } else if (popoverDataRef.current && !userIsSignedIn) {
-      popoverRootRef.current?.render(
+      getPopoverRoot().render(
         <Sentry.ErrorBoundary fallback={ErrorBoundaryFallback}>
           <HighlightPopoverNotSignedIn
             element={element}
@@ -1727,6 +1780,18 @@ const Input: React.FC<{
             </Sentry.ErrorBoundary>
           </WTags.WW_HIGHLIGHTS>
         </>
+      )}
+      {confirmRequired && !isFieldConfirmed(element) && (
+        <ConfirmCheckPrompt
+          open={promptOpen}
+          top={
+            (elementRect?.height ?? element.getBoundingClientRect().height) + 4
+          }
+          onConfirm={confirmCheck}
+          onDismiss={dismissConfirmPrompt}
+          containerRef={promptRef}
+          onFocusLeave={closePromptIfFocusLeft}
+        />
       )}
       <WTags.WW_ACTIVITY_INDICATOR>
         <StateIndicatorIcon

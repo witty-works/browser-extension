@@ -41,7 +41,7 @@ export const createSettingsStore = (initial: EditorSettings): SettingsStore =>
 export type CheckStatus =
   | {state: 'checking'}
   | {state: 'idle'; alerts: number; limitReached: boolean}
-  | {state: 'unauthorized'}
+  | {state: 'unauthorized'; status: 401 | 403}
   | {state: 'outdated'; message: string}
   | {state: 'unsupportedLanguage'}
   | {state: 'error'; message: string};

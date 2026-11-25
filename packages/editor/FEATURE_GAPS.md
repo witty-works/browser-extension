@@ -4,7 +4,7 @@ Browser extension features the editor component (`@witty-works/editor`) does not
 
 ## Accounts and configuration
 
-- [ ] **OAuth sign-in** through the dashboard, with token refresh. The editor only takes an API key via `setApiKey`; the plan's `credentialProvider` (short-lived, scoped tokens) is not built either.
+- [ ] **OAuth sign-in** through the dashboard, with token refresh, by the editor itself. A host can pass an access token (`accessToken`, `setAccessToken`) and refresh it, as the dashboard's write page does; the editor does not sign in or refresh on its own, and the plan's `credentialProvider` (short-lived, scoped tokens) is not built.
 - [ ] **Organisation config from `/v2.0/auth`**: organisation defaults for AI suggestions, spell checking and categories, config hashes, and reacting to `config_changed`. Without it the settings panel shows the editor's local settings only, not what the organisation suggests or forces.
 - [ ] **Stored settings**: the extension keeps settings in browser storage; the editor hands changes to the host via `onSettingsChange` and remembers nothing itself.
 

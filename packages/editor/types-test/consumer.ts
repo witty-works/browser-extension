@@ -27,9 +27,13 @@ const handle: WittyEditorHandle = mount(document.createElement('div'), {
   config: {german_gender_ending: ':in', french_gender_separator: '·'},
   onStatus: (status) => describe(status),
   onSettingsChange: (settings) => settings.config.disabled_categories,
+  accessToken: 'token',
 });
 
 handle.setApiKey('key');
+handle.setAccessToken('token');
+// @ts-expect-error a token is a string
+handle.setAccessToken(42);
 handle.updateSettings({llmAlternatives: false, orthography: true});
 // @ts-expect-error settings are booleans
 handle.updateSettings({llmAlternatives: 'false'});
@@ -43,3 +47,10 @@ handle.editor.commands.focus();
 mount(document.createElement('div'), {lang: 'it'});
 // @ts-expect-error not a German gender format
 handle.setConfig({german_gender_ending: '#in'});
+
+// The unauthorized state says why, so a host refreshes on 401 only.
+const refreshOn = (status: EditorStatus): boolean =>
+  status.state === 'unauthorized' && status.status === 401;
+refreshOn({state: 'unauthorized', status: 403});
+// @ts-expect-error the status is 401 or 403
+refreshOn({state: 'unauthorized', status: 500});

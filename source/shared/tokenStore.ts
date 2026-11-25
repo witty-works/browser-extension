@@ -20,9 +20,9 @@ import {getStorage, StorageArea} from './platform/storage';
  *   sites would each have to become an async two-area read for no security
  *   gain — the flag reveals nothing the badge text doesn't already.
  *
- * `storage.session` needs Chrome 102+ / Firefox 115+, so every access goes
- * through `sessionArea()`, which falls back to `local` on older browsers. The
- * fallback is a functional degradation, not a correctness one.
+ * `storage.session` needs Chrome 102 and Firefox 115; the manifest requires
+ * newer versions (Chrome 103, Opera 89, which is Chromium 103), so
+ * `sessionArea()`'s fallback to `local` is for test environments only.
  */
 
 export interface StoredTokens {
@@ -37,33 +37,33 @@ const sessionArea = (): StorageArea =>
 const usingSessionStorage = (): boolean => !!getStorage().session;
 
 /**
- * Let content scripts read `storage.session`.
+ * Keep `storage.session`, and with it the access token, from content scripts.
  *
- * Chrome defaults the session area to TRUSTED_CONTEXTS, which excludes content
- * scripts — and the popover and content script both need the bearer token to
- * call the API. Call this once from the background service worker. Content
- * scripts are isolated worlds, so page JavaScript still cannot reach it; this
- * grants no more access than `storage.local` already had.
+ * Chrome's default is TRUSTED_CONTEXTS, which excludes content scripts; an
+ * earlier version opened it to them. The access level outlasts a service
+ * worker restart, so it is set back explicitly. Content scripts send their API
+ * requests through the background worker instead (Background/apiProxy.ts).
+ * Call this once from the background service worker.
  *
- * `setAccessLevel` is a Chrome-specific extension of `storage.session` that
- * `WittyStorage` deliberately does not model (it has no equivalent for a
- * non-extension host), so this one call goes straight through
- * webextension-polyfill rather than through `getStorage()`.
+ * `WittyStorage` deliberately does not model `setAccessLevel` (it has no
+ * equivalent for a non-extension host), so this one call goes straight through
+ * webextension-polyfill rather than through `getStorage()`. Where a browser
+ * lacks it, the call is skipped; `storage.session` is closed to content
+ * scripts by default.
  */
-export const allowSessionStorageInContentScripts = async (): Promise<void> => {
-  const session = (browser.storage as any).session;
-  if (!session?.setAccessLevel) {
-    return;
-  }
+export const restrictSessionStorageToTrustedContexts =
+  async (): Promise<void> => {
+    const session = (browser.storage as any).session;
+    if (!session?.setAccessLevel) {
+      return;
+    }
 
-  try {
-    await session.setAccessLevel({
-      accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS',
-    });
-  } catch (error) {
-    // Older Chromium builds reject the call; the fallback path still works.
-  }
-};
+    try {
+      await session.setAccessLevel({accessLevel: 'TRUSTED_CONTEXTS'});
+    } catch (error) {
+      // Older Chromium builds reject the call; their default is the same.
+    }
+  };
 
 export const persistTokens = async (tokens: OAuthTokens): Promise<void> => {
   await sessionArea().set({
@@ -104,7 +104,11 @@ export const readAccessToken = async (): Promise<string> =>
   (await readTokens()).accessToken;
 
 export const clearTokens = async (): Promise<void> => {
-  await sessionArea().set({[StorageKeys.ACCESS_TOKEN]: ''});
+  await sessionArea().set({
+    [StorageKeys.ACCESS_TOKEN]: '',
+    [StorageKeys.REFUSED_AFTER_REFRESH]: null,
+    [StorageKeys.REFRESH_BACKOFF]: null,
+  });
 
   await getStorage().local.set({
     [StorageKeys.ACCESS_TOKEN]: '',

@@ -1,9 +1,16 @@
 //API REQUEST/RESPONSE
 import {TxtSentenceNode} from 'sentence-splitter';
+import type {ApiRequestMessage} from './messages';
 
 export interface IRequest {
   url: string;
   config: RequestInit | null;
+  /**
+   * In the extension, the request the background worker makes instead
+   * (Background/apiProxy.ts): it adds the credentials. `url` and `config`
+   * are then not used.
+   */
+  proxy?: Omit<ApiRequestMessage, 'type'>;
 }
 
 export interface ICheckRequest {
@@ -32,6 +39,7 @@ export interface ResponseConfig {
   orthography: ConfigProperty;
   categories?: any;
   llm_alternatives?: ConfigProperty;
+  confirm_before_checking?: ConfigProperty;
 }
 /** One togglable category from `GET /v2.0/categories`. */
 export interface ICategory {

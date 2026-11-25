@@ -77,6 +77,24 @@ export enum StorageKeys {
   ORGANIZATION_CONFIG_HASH = 'organizationConfigHash',
 
   LLM_ALTERNATIVES = 'llmAlternatives',
+  /** The user's own "ask before checking a field" choice (a boolean). */
+  CONFIRM_BEFORE_CHECKING = 'confirmBeforeChecking',
+  /** The organisation's `confirm_before_checking`, `{value, status}`. */
+  CONFIRM_BEFORE_CHECKING_ORG = 'confirmBeforeCheckingOrg',
+  /** Whether CONFIRM_BEFORE_CHECKING_ORG holds this sign-in's answer yet. */
+  CONFIRM_BEFORE_CHECKING_KNOWN = 'confirmBeforeCheckingKnown',
+
+  /**
+   * In storage.session: `{token, expiresAt}`, an access token a refresh
+   * produced that the API refused all the same (Background/apiProxy.ts).
+   */
+  REFUSED_AFTER_REFRESH = 'refusedAfterRefresh',
+
+  /**
+   * In storage.session: `{failures, until}`, the backoff after failed token
+   * refreshes (shared/utils.ts).
+   */
+  REFRESH_BACKOFF = 'refreshBackoff',
 
   CHECK_ENDPOINT_SUCCESS = 'checkEndpointSuccess',
 

@@ -1,11 +1,11 @@
 {
   "name": "witty",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "description": "Witty - inclusive writing assistant",
   "private": true,
   "workspaces": ["packages/*"],
   "author": "Solveig Helland <solveig.helland@witty.works>",
-  "license": "proprietary",
+  "license": "MIT",
   "engines": {
     "node": ">=22.18"
   },
@@ -28,9 +28,10 @@
     "test:ui": "npm run build:test && npx playwright test --ui",
     "test:update-snapshots": "npm run build:test && npx playwright test --update-snapshots",
     "test:firefox": "npm run build:test:firefox && npx playwright test --config playwright.firefox.config.js",
+    "test:release": "npm run build:chrome && npx playwright test --config playwright.release.config.js",
     "test:editor": "npm run build -w @witty-works/editor && npm run test:types -w @witty-works/editor && npx playwright test --config playwright.editor.config.js",
     "test:unit": "npm run test:coverage -w @witty-works/editor",
-    "test:all": "npm run lint && npm run typecheck && npm run test:unit && npm run test:editor && npm test && npm run test:firefox",
+    "test:all": "npm run lint && npm run typecheck && npm run test:unit && npm run test:editor && npm test && npm run test:firefox && npm run test:release",
     "typecheck": "tsc --noEmit && npm run typecheck -w @witty-works/editor",
     "dev:editor": "npm run dev -w @witty-works/editor",
     "release-version": "node build/releaseVersion.js"

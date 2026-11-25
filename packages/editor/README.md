@@ -10,7 +10,7 @@ One self-contained script: no framework, no stylesheet to include. As a script t
 
 ```html
 <div id="editor"></div>
-<script src="https://cdn.jsdelivr.net/npm/@witty-works/editor@2.7.0/dist/witty-editor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@witty-works/editor@2.8.0/dist/witty-editor.js"></script>
 <script>
   const editor = WittyEditor.mount(document.getElementById('editor'), {
     endpoint: 'https://your-nlp-api.example/',
@@ -39,6 +39,24 @@ const editor = mount(document.getElementById('editor')!, {
 editor.setApiKey(keyFromYourBackend);
 ```
 
+### Signing in with an access token
+
+A page whose users sign in, such as a dashboard that issues OAuth tokens the NLP API accepts, passes a token instead of a key. The editor keeps it in memory and sends it as a bearer token; the page refreshes it and hands the editor the new one:
+
+```ts
+const editor = mount(element, {endpoint, accessToken: tokens.accessToken});
+
+// Before it expires, and once when the API refused it
+// (`{state: 'unauthorized', status: 401 | 403}`):
+editor.setAccessToken((await refresh()).accessToken);
+// If the new token is refused too, stop and ask the user to sign in again:
+// another refresh would be refused the same way.
+```
+
+From NLP API 4.0.0, `401` means the token is not valid (for example expired) and `403` that the API does not let this user in. Earlier versions answer `403` for an expired token too, so a page that refreshes on `401` only would stop checking there.
+
+Set either a key or a token: when both are set, the key is sent.
+
 The package's main entry is an ES module (`dist/witty-editor.mjs`) exporting `mount`, with types (`dist/witty-editor.d.ts`) for the options, the handle, `onStatus` and the settings: `MountOptions`, `WittyEditorHandle`, `EditorStatus`, `EditorSettings`, `CheckConfig`, `CheckLang`, `GenderFormatSwitchResult` and the rest. It works like the script: the same editor, React, TipTap and styles included (injected when the module is imported), nothing to configure in the bundler. It is not minified; your bundler does that. It does not share your page's React, so a React app loads a second copy for the editor.
 
 The type of the handle's `editor` property comes from TipTap: install `@tiptap/core` (version 3, an optional peer dependency) if you use it from TypeScript. Nothing else needs it.
@@ -51,6 +69,7 @@ For the script tag in a TypeScript project, the same types describe the global: 
 |---|---|---|
 | `endpoint` | page origin | NLP API base URL; a relative one resolves against the page, and a missing trailing slash is added. Anything but an `http(s)` URL throws a `TypeError` |
 | `apiKey` | none | Sent as `x-key`; prefer `setApiKey` |
+| `accessToken` | none | An OAuth access token, sent as `Authorization: Bearer`; prefer `setAccessToken`. An `apiKey` wins when both are set |
 | `lang` | `'auto'` | Text language: `auto`, `en`, `de`, `fr` or a variant such as `de-CH` |
 | `config` | none | Check config (gender formats, disabled categories, …); only fields you set are sent |
 | `content` | empty | Initial content as HTML |
@@ -69,6 +88,7 @@ For the script tag in a TypeScript project, the same types describe the global: 
 It returns a handle:
 
 - `setApiKey(key)`: replace the API key and check again.
+- `setAccessToken(token)`: replace the access token and check again, for example after refreshing it.
 - `setConfig(config)`: replace the whole check config (no merging) and check again; `{}` sends none. The same config again changes nothing, so a host can pass its config on every render. The editor keeps a copy: changing the object afterwards has no effect.
 - `updateSettings(settings)`: change settings from the host, e.g. its own form, as the settings panel does (the panel follows). The fields given replace the current ones and the rest stay: `updateSettings({llmAlternatives: true})`, `updateSettings({orthography: false})`. `config`, when given, is replaced whole, as with `setConfig`; to change one field of it, start from `getSettings().config`. Calls `onSettingsChange` once if anything changed, and nothing happens if nothing did. A changed `config` checks the text again; popovers opened afterwards follow `llmAlternatives`, an open one keeps what it shows. A value of the wrong type (`llmAlternatives: 'false'`, a `config` that is not an object) throws a `TypeError` and changes nothing. Unlike `setConfig`, which is for the host's own changes, this reports to `onSettingsChange`, so a host that stores the settings there sees changes from its form and from the panel alike.
 - `getSettings()`: the current settings, `{config, llmAlternatives, orthography}`, as a copy; the same object `onSettingsChange` receives.
@@ -84,7 +104,7 @@ It returns a handle:
 | Status | When | Alerts |
 |---|---|---|
 | `{state: 'idle', alerts, limitReached}` | A check finished; after a gender format switch it also has `genderFormatSwitch` | Shown |
-| `{state: 'unauthorized'}` | The API refused the key (401) or the token behind it (403) | Cleared |
+| `{state: 'unauthorized', status}` | `status` 401: the API refused the key or token (an access token may have expired). 403: the API does not let this user in | Cleared |
 | `{state: 'outdated', message}` | The API no longer supports this editor version (400); `message` is the API's explanation. The page needs to load a newer version | Cleared |
 | `{state: 'unsupportedLanguage'}` | The API could not tell the text's language (422) | Cleared |
 | `{state: 'error', message}` | Anything else, e.g. the API is unreachable, answered 5xx, or gave no answer within 30 seconds | Kept until the next check |

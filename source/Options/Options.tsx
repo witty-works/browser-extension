@@ -18,8 +18,15 @@ import {
   registerCustomEndpointFromStorage,
   StorageKeys,
 } from '../shared/constants';
-import {logOut, storeInLocalStorage} from '../shared/utils';
-import {clearTokens} from '../shared/tokenStore';
+import {
+  logOut,
+  signOutThroughBackground,
+  storeInLocalStorage,
+} from '../shared/utils';
+import {
+  confirmBeforeChecking,
+  ConfirmBeforeChecking,
+} from '../shared/confirmBeforeChecking';
 import {
   getCategories,
   getConfigOptions,
@@ -67,6 +74,9 @@ const Options: React.FC = () => {
 
   const [orthography, setOrthography] = useState(true);
   const [llmAlternatives, setLlmAlternatives] = useState(false);
+  const [confirmChecking, setConfirmChecking] = useState<ConfirmBeforeChecking>(
+    {enabled: false, forced: false, pending: false}
+  );
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<ICategoryGroup[]>([]);
   const [categoriesError, setCategoriesError] = useState(false);
@@ -119,6 +129,7 @@ const Options: React.FC = () => {
         setEndpointReady(true);
         setOrthography(result[StorageKeys.ORTHOGRAPHY] !== false);
         setLlmAlternatives(!!result[StorageKeys.LLM_ALTERNATIVES]);
+        setConfirmChecking(confirmBeforeChecking(result));
         setDisabledCategories(
           (result[StorageKeys.DISABLED_CATEGORIES] as string[]) || []
         );
@@ -227,8 +238,9 @@ const Options: React.FC = () => {
 
     try {
       // Before the switch, so the old endpoint's token is never stored beside
-      // the new key, where another context could read the two together.
-      await clearTokens();
+      // the new key, where another context could read the two together, and
+      // is revoked on the dashboard that issued it.
+      await signOutThroughBackground();
       registerCustomEndpoint(endpoint);
       await browser.storage.local.set({
         [StorageKeys.CUSTOM_ENDPOINT]: endpoint,
@@ -243,7 +255,7 @@ const Options: React.FC = () => {
       });
 
       // Invariant 2: credentials never survive a connection change.
-      logOut();
+      await logOut();
       setApiKey(mode === 'apiKey' ? apiKeyValue.trim() : '');
       setCurrent(CUSTOM_BASE_URL_KEY);
       setNotice(t('saved'));
@@ -263,8 +275,8 @@ const Options: React.FC = () => {
       // the custom endpoint's token sits beside the default key; removing the
       // custom endpoint before switching would leave 'Custom' naming nothing,
       // for good if the page closes in between.
-      await clearTokens();
-      logOut();
+      await signOutThroughBackground();
+      await logOut();
       await browser.storage.local.set({
         [StorageKeys.API_ENDPOINT_KEY]: DefaultBaseUrlKey,
       });
@@ -419,6 +431,33 @@ const Options: React.FC = () => {
             {t('reset')}
           </button>
         </div>
+      </section>
+
+      <section id='confirm-before-checking-section'>
+        <label>
+          <input
+            type='checkbox'
+            id='opt-confirm-before-checking'
+            checked={confirmChecking.enabled}
+            disabled={confirmChecking.forced}
+            aria-describedby='opt-confirm-before-checking-hint'
+            onChange={(event) => {
+              const enabled = event.target.checked;
+              setConfirmChecking({enabled, forced: false, pending: false});
+              storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING, enabled);
+            }}
+          />
+          &nbsp;{t('confirmBeforeChecking')}
+        </label>
+        <p
+          id='opt-confirm-before-checking-hint'
+          className='witty-options-muted'
+        >
+          {t('confirmBeforeCheckingHint')}
+          {confirmChecking.forced && (
+            <> {t('lockedInfo', {ns: namespaces.pages.popup})}</>
+          )}
+        </p>
       </section>
 
       <CheckPreferences

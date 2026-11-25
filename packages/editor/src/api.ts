@@ -118,8 +118,14 @@ export type EditorStatus =
       /** Set once, on the status right after a gender format switch. */
       genderFormatSwitch?: GenderFormatSwitchResult;
     }
-  /** The API refused the key (401), or the token behind it (403). */
-  | {state: 'unauthorized'}
+  /**
+   * The API refused the request. From NLP API 4.0.0, `status` 401: the key
+   * or token is not valid (an access token may have expired); 403: the API
+   * does not let this user in. Earlier versions answer 403 for an expired
+   * token too. With an access token, refresh it once and call
+   * `setAccessToken`; if the new one is refused as well, stop.
+   */
+  | {state: 'unauthorized'; status: 401 | 403}
   /**
    * The API no longer supports this version of the editor (400): the host
    * page needs to load a newer one. `message` is the API's explanation.
@@ -135,6 +141,12 @@ export interface MountOptions {
   endpoint?: string;
   /** Sent as `x-key`. Set later with `setApiKey`; never read from the DOM. */
   apiKey?: string;
+  /**
+   * An OAuth access token, sent as `Authorization: Bearer`, for a page whose
+   * users sign in (the dashboard's tokens). Set later with `setAccessToken`.
+   * An `apiKey` wins when both are set.
+   */
+  accessToken?: string;
   /** Language of the text, or `auto` (the default) to let the API detect it. */
   lang?: CheckLang;
   /**
@@ -192,6 +204,12 @@ export interface WittyEditorHandle {
   editor: Editor;
   /** Replace the API key (empty string clears it) and check again. */
   setApiKey(key: string): void;
+  /**
+   * Replace the access token (empty string clears it) and check again:
+   * after a refresh, before the token expires or once after
+   * `{state: 'unauthorized'}`. If the new token is refused too, stop.
+   */
+  setAccessToken(token: string): void;
   /**
    * Replace the whole check config — this does not merge — and check again.
    * `{}` goes back to sending no `config`, i.e. the account's own settings.

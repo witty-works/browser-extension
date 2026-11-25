@@ -164,8 +164,28 @@ module.exports = {
         loader: 'babel-loader',
         exclude: /node_modules/,
       },
+      // `import css from './x.scss?inline'`: the compiled CSS as a string, for
+      // a stylesheet inside the content script's closed shadow roots, which
+      // the page-level contentScript.css cannot reach.
       {
         test: /\.(sa|sc|c)ss$/,
+        resourceQuery: /inline/,
+        type: 'javascript/auto',
+        use: [
+          {
+            loader: 'css-loader',
+            options: { url: false, exportType: 'string' },
+          },
+          {
+            loader: 'postcss-loader',
+            options: { postcssOptions: { plugins: [['autoprefixer', {}]] } },
+          },
+          'sass-loader',
+        ],
+      },
+      {
+        test: /\.(sa|sc|c)ss$/,
+        resourceQuery: { not: [/inline/] },
         use: [
           {
             loader: MiniCssExtractPlugin.loader, // It creates a CSS file per JS file which contains CSS

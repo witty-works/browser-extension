@@ -10,6 +10,7 @@ const {
   ALTERNATIVE_BTN,
   FIXTURE_ORIGIN,
 } = require('./helpers');
+const { SAMPLE_TEXT } = require('../helpers/mockApi');
 
 /**
  * Firefox smoke suite: one test per load-bearing path, not a mirror of the
@@ -144,4 +145,46 @@ test.describe('Firefox smoke', () => {
       { timeout: 15000 }
     );
   });
+});
+
+const hasInShadow = (page, id) =>
+  page.evaluate((wanted) => {
+    const walk = (root) => {
+      for (const el of root.querySelectorAll('*')) {
+        if (el.id === wanted) return true;
+        if (el.shadowRoot && walk(el.shadowRoot)) return true;
+      }
+      return false;
+    };
+    return walk(document);
+  }, id);
+
+test('another page loading leaves an open ask-before-checking question open', async ({
+  firefox,
+}) => {
+  // Every page load writes the auth answer again; Firefox reports writes of
+  // unchanged values, which used to close the question in every tab.
+  await signIn(firefox);
+  const popup = await openExtensionPage(firefox, 'popup.html');
+  await popup.evaluate(() =>
+    browser.storage.local.set({ confirmBeforeChecking: true })
+  );
+  await popup.close();
+  const page = await openFixture(firefox, 'textarea.html');
+  await page.click('#editor');
+  await page.keyboard.type(SAMPLE_TEXT);
+  await poll(() => hasInShadow(page, 'witty-confirm-check'), {
+    timeout: 15000,
+  });
+  // Onto the question, as a keyboard user does.
+  await page.keyboard.down('Shift');
+  await page.keyboard.press('Tab');
+  await page.keyboard.up('Shift');
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  expect(await hasInShadow(page, 'witty-confirm-check')).toBe(true);
+
+  const other = await openFixture(firefox, 'textarea.html');
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  expect(await hasInShadow(page, 'witty-confirm-check')).toBe(true);
+  await other.close();
 });

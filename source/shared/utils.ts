@@ -1,3 +1,4 @@
+import {authRetryDelay, confirmWrites} from './confirmBeforeChecking';
 import browser from 'webextension-polyfill';
 import {
   apiKeyFromStorage,
@@ -21,13 +22,11 @@ import {
   isTextArea,
   requiresRectRecalculation,
 } from './DOMutils';
-import {
-  createUrl,
-  setApiKey,
-  setToken,
-  buildRequestHeaders,
-} from './ApiServices/requests';
-import {refresh} from './ApiServices/oauth';
+import {setToken} from './ApiServices/requests';
+import {isRefreshTokenRejected, refresh} from './ApiServices/oauth';
+import {revokeAccessToken} from './ApiServices/revoke';
+import {MessageTypes, RefreshTokenMessage, SignOutMessage} from './messages';
+import {backgroundApiRequest} from './ApiServices/backgroundApi';
 import {clearTokens, persistTokens, readTokens} from './tokenStore';
 import {IAuthResponse} from './types';
 import {getActiveDocument} from './activeDocument';
@@ -134,15 +133,177 @@ export const addBadge = (text: string) => {
 };
 
 /**
- * Obtain a fresh access token using the stored refresh token.
+ * What a token refresh came to.
  *
- * Replaces the old POST to the dashboard's `/api/refresh-token`, which routed to
- * a controller method deleted along with Azure AD B2C. This now uses the
- * standard OAuth2 `refresh_token` grant against `/oauth/token`.
+ * - `refreshed`: storage holds an access token other than the one that
+ *   failed; read it back and retry once.
+ * - `signedOut`: the dashboard rejected the refresh token, or there is none;
+ *   the credentials were cleared.
+ * - `failed`: nothing changed (offline, 429, 5xx, an unknown endpoint, a
+ *   build-time key); retrying now would fail the same way.
  */
-export const getNewAccessToken = async () => {
+export type RefreshOutcome = 'refreshed' | 'signedOut' | 'failed';
+
+const REFRESH_OUTCOMES: readonly string[] = [
+  'refreshed',
+  'signedOut',
+  'failed',
+];
+
+let refreshInFlight: Promise<RefreshOutcome> | null = null;
+// Counts sign-outs. A refresh that started before one and finishes after it
+// must not write its tokens back and sign the user in again.
+let signOutGeneration = 0;
+
+// How long signing out waits for a refresh under way. A refresh that
+// finishes later is dropped (signOutGeneration), so waiting only spares a
+// rotation the dashboard would otherwise still have to revoke.
+const SIGN_OUT_REFRESH_WAIT_MS = 3000;
+
+/** Settles once no refresh is in flight, or after SIGN_OUT_REFRESH_WAIT_MS;
+ * signing out waits for it. */
+export const refreshSettled = async (): Promise<void> => {
+  if (!refreshInFlight) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    refreshInFlight.catch(() => undefined),
+    new Promise((resolve) => {
+      timer = setTimeout(resolve, SIGN_OUT_REFRESH_WAIT_MS);
+    }),
+  ]);
+  clearTimeout(timer);
+};
+
+// The longest wait between refreshes after failures.
+const REFRESH_BACKOFF_MAX_MS = 60000;
+
+interface RefreshBackoff {
+  failures: number;
+  /** No refresh before this time (ms since the epoch). */
+  until: number;
+}
+
+/**
+ * After a failed refresh (the dashboard down or rate limiting), no new one
+ * before 2 s, doubling with each failure up to a minute; every request would
+ * otherwise try one. Kept in storage.session, as an MV3 worker stops when
+ * idle; never on disk, so without storage.session there is no backoff.
+ */
+const readRefreshBackoff = async (): Promise<RefreshBackoff | null> => {
+  const session = getStorage().session;
+  if (!session) return null;
+  const stored = await session.get(StorageKeys.REFRESH_BACKOFF);
+  return (stored[StorageKeys.REFRESH_BACKOFF] as RefreshBackoff) ?? null;
+};
+
+const writeRefreshBackoff = async (
+  backoff: RefreshBackoff | null
+): Promise<void> => {
+  await getStorage().session?.set({[StorageKeys.REFRESH_BACKOFF]: backoff});
+};
+
+/** A refresh, unless the backoff after failed ones has not passed. */
+const refreshUnlessBackingOff = async (): Promise<RefreshOutcome> => {
+  const stored = await readRefreshBackoff();
+  const now = Date.now();
+  // A minute without failures starts afresh; a wait longer than any the
+  // backoff sets means the clock was set back.
+  const backoff =
+    stored &&
+    now <= stored.until + REFRESH_BACKOFF_MAX_MS &&
+    stored.until - now <= REFRESH_BACKOFF_MAX_MS
+      ? stored
+      : null;
+  if (backoff && backoff.until > now) return 'failed';
+  const outcome = await refreshStoredTokens();
+  if (outcome === 'failed') {
+    const failures = (backoff?.failures ?? 0) + 1;
+    await writeRefreshBackoff({
+      failures,
+      until:
+        Date.now() +
+        Math.min(REFRESH_BACKOFF_MAX_MS, 2000 * 2 ** (failures - 1)),
+    });
+  } else if (outcome === 'refreshed' && stored) {
+    await writeRefreshBackoff(null);
+  }
+  return outcome;
+};
+
+const refreshStoredTokens = async (): Promise<RefreshOutcome> => {
+  const generation = signOutGeneration;
+  const stored = await readTokens();
+
+  if (!stored.refreshToken) {
+    await logOut();
+    return 'signedOut';
+  }
+
+  const result = await getStorage().local.get([
+    StorageKeys.API_ENDPOINT_KEY,
+    StorageKeys.CUSTOM_ENDPOINT,
+  ]);
+  // The refresh token belongs to the stored endpoint. When that names no
+  // endpoint, refreshing against the default would hand it to the wrong
+  // dashboard; the background clears it instead (see storedEndpoint.ts).
+  if (!isStoredEndpointConfigured(result)) {
+    return 'failed';
+  }
+  registerCustomEndpointFromStorage(result);
+  const urlKey =
+    (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey;
+  // The dashboard that issues the new pair. A sign-out can switch the
+  // endpoint before the refresh finishes; a dropped pair is revoked here,
+  // never at the new one.
+  const {dashboard} = resolveBaseUrl(urlKey);
+
+  try {
+    // Passport rotates refresh tokens, so both values must be written back —
+    // continuing to present the previous refresh token after a successful
+    // rotation is rejected.
+    const tokens = await refresh(urlKey, stored.refreshToken);
+    // Signed out while the refresh was under way: the new pair is dropped,
+    // and revoked so it does not stay valid on the dashboard.
+    if (generation !== signOutGeneration) {
+      await revokeAccessToken(dashboard, tokens.accessToken);
+      return 'signedOut';
+    }
+    await persistTokens(tokens);
+    setToken(tokens.accessToken);
+    return 'refreshed';
+  } catch (error) {
+    if (isRefreshTokenRejected(error)) {
+      // Expired, revoked, or issued by a different deployment: only a new
+      // sign-in helps, so fail closed.
+      await logOut();
+      return 'signedOut';
+    }
+    // Offline, rate-limited or a server error: keep the tokens, the next
+    // failing request tries again.
+    sendErrorToSentry(error);
+    return 'failed';
+  }
+};
+
+/**
+ * Obtain a fresh access token using the stored refresh token, with the OAuth2
+ * `refresh_token` grant against `/oauth/token`. Runs in the background worker
+ * only: content scripts and the popup ask it with `requestTokenRefresh`.
+ *
+ * One refresh at a time. Passport rotates the refresh token, so two
+ * concurrent refreshes with the same one would see the second rejected and
+ * sign the user out; every caller during a refresh shares its outcome.
+ *
+ * `failedToken` is the access token the caller's request was refused with.
+ * When storage already holds a different one, another caller refreshed in
+ * the meantime and the caller only needs to read it back. Without it, the
+ * refresh always runs.
+ */
+export const getNewAccessToken = async (
+  failedToken?: string
+): Promise<RefreshOutcome> => {
   // If X_KEY is configured, do not attempt to refresh tokens
-  if (X_KEY) return;
+  if (X_KEY) return 'failed';
 
   try {
     const stored = await readTokens();
@@ -152,54 +313,92 @@ export const getNewAccessToken = async () => {
     // is '', and an unauthenticated install also has '' in storage, so an
     // unguarded comparison would match and skip the refresh entirely.
     if (STATIC_ACCESS_TOKEN && stored.accessToken === STATIC_ACCESS_TOKEN) {
-      return;
+      return 'failed';
     }
 
-    if (!stored.refreshToken) {
-      logOut();
-      return;
+    if (
+      failedToken !== undefined &&
+      stored.accessToken &&
+      stored.accessToken !== failedToken
+    ) {
+      return 'refreshed';
     }
-
-    const result = await getStorage().local.get([
-      StorageKeys.API_ENDPOINT_KEY,
-      StorageKeys.CUSTOM_ENDPOINT,
-    ]);
-    // The refresh token belongs to the stored endpoint. When that names no
-    // endpoint, refreshing against the default would hand it to the wrong
-    // dashboard; the background clears it instead (see storedEndpoint.ts).
-    if (!isStoredEndpointConfigured(result)) {
-      return;
-    }
-    registerCustomEndpointFromStorage(result);
-    const urlKey =
-      (result[StorageKeys.API_ENDPOINT_KEY] as string) || DefaultBaseUrlKey;
-
-    // Passport rotates refresh tokens, so both values must be written back —
-    // continuing to present the previous refresh token after a successful
-    // rotation is rejected.
-    const tokens = await refresh(urlKey, stored.refreshToken);
-    await persistTokens(tokens);
-    setToken(tokens.accessToken);
   } catch (error) {
-    // A refresh failure means the refresh token is expired, revoked, or was
-    // issued by a different deployment. None of those are recoverable without
-    // the user signing in again, so fail closed rather than leaving stale
-    // credentials that will keep 401-ing.
     sendErrorToSentry(error);
-    logOut();
+    return 'failed';
+  }
+
+  if (!refreshInFlight) {
+    refreshInFlight = refreshUnlessBackingOff()
+      .catch((error: unknown): RefreshOutcome => {
+        sendErrorToSentry(error);
+        return 'failed';
+      })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+};
+
+/**
+ * Ask the background worker to refresh the access token that `failedToken`
+ * was refused with (see `getNewAccessToken`). For content scripts and the
+ * popup; resolves `failed` if the worker cannot be reached.
+ */
+export const requestTokenRefresh = async (
+  failedToken: string
+): Promise<RefreshOutcome> => {
+  try {
+    const outcome = await browser.runtime.sendMessage({
+      type: MessageTypes.REFRESH_TOKEN,
+      failedToken,
+    } as RefreshTokenMessage);
+    return typeof outcome === 'string' && REFRESH_OUTCOMES.includes(outcome)
+      ? (outcome as RefreshOutcome)
+      : 'failed';
+  } catch (error) {
+    return 'failed';
   }
 };
 
-export const logOut = () => {
+/**
+ * Sign out from an extension page (options, popup) through the background
+ * worker, which holds the token refresh: it waits for a refresh under way,
+ * so none writes its tokens back afterwards, and revokes the token on the
+ * dashboard that issued it. Call it before switching the endpoint. If the
+ * worker cannot be reached, the tokens are cleared here.
+ */
+export const signOutThroughBackground = async (): Promise<void> => {
+  try {
+    await browser.runtime.sendMessage({
+      type: MessageTypes.SIGN_OUT,
+    } as SignOutMessage);
+  } catch (error) {
+    sendErrorToSentry(error);
+    await clearTokens();
+  }
+};
+
+export const logOut = async (): Promise<void> => {
+  signOutGeneration += 1;
   storeInLocalStorage(StorageKeys.APP_ID, getRandomToken());
   storeInLocalStorage(StorageKeys.USER_ID, '');
   storeInLocalStorage(StorageKeys.ID_WAS_ALIASED, false);
   storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+  // The next account's organisation decides anew; until its answer arrives,
+  // ask-before-checking is pending rather than this account's value.
+  storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_ORG, null);
+  storeInLocalStorage(StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN, false);
   // Goes through the store so the session-held access token is cleared too,
   // not just the on-disk refresh token.
-  clearTokens().catch((error) => sendErrorToSentry(error));
   setToken('');
   addBadge('Login');
+  try {
+    await clearTokens();
+  } catch (error) {
+    sendErrorToSentry(error);
+  }
 };
 
 export const removeBadge = () => {
@@ -338,7 +537,11 @@ export const shouldInjectIntoWindow = (windowToCheck: Window) => {
 export const updateConfig = (response: IAuthResponse, force = false) => {
   getStorage()
     .local.get(null)
-    .then((result) => {
+    .then(async (result) => {
+      const confirm = confirmWrites(result, response);
+      if (Object.keys(confirm).length > 0) {
+        await getStorage().local.set(confirm);
+      }
       if (
         response?.config_hash === result[StorageKeys.CONFIG_HASH] &&
         response?.organization_config_hash ===
@@ -389,12 +592,43 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
     });
 };
 
+/**
+ * Ask `/v2.0/auth` until it answers. Until an answer arrives,
+ * ask-before-checking is pending and nothing is checked, so an outage is
+ * retried; a refused credential is not. Another context's answer, or a
+ * sign-out, ends the wait too.
+ */
+const askForConfig = async (signedIn: boolean): Promise<void> => {
+  for (let attempt = 0; ; attempt += 1) {
+    const response = await backgroundApiRequest({kind: 'auth'});
+    if (response.ok) {
+      updateConfig(response.data as IAuthResponse, true);
+      storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+      return;
+    }
+    storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+    const delay = authRetryDelay(response.status, attempt);
+    if (delay === null) return;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    const now = await getStorage().local.get([
+      StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN,
+      StorageKeys.SIGNED_IN,
+    ]);
+    if (now[StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN] === true) return;
+    if (signedIn && !now[StorageKeys.SIGNED_IN]) return;
+  }
+};
+
+/**
+ * Ask the API for the user's configuration (`/v2.0/auth`) and store it. The
+ * background worker makes the request with the credentials (apiProxy.ts), so
+ * this works from content scripts, which do not hold them.
+ */
 export const makeAuthRequest = () => {
   getStorage()
     .local.get(null)
     .then(async (result) => {
       registerCustomEndpointFromStorage(result);
-      setApiKey(apiKeyFromStorage(result));
       const urls = result[StorageKeys.API_ENDPOINT_KEY]
         ? result[StorageKeys.API_ENDPOINT_KEY]
         : DefaultBaseUrlKey;
@@ -407,60 +641,15 @@ export const makeAuthRequest = () => {
         storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
         return;
       }
-      const {accessToken} = await readTokens();
 
-      if (accessToken) {
-        const headers = buildRequestHeaders(accessToken);
-
-        const config = {
-          method: 'POST',
-          headers,
-        };
-
-        fetch(createUrl(resolveBaseUrl(urls).api, 'v2.0/auth'), config).then(
-          async (response) => {
-            if (response.ok) {
-              const json = await response.json();
-              updateConfig(json, true);
-              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
-            } else {
-              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
-            }
-          }
-        );
-      } else if (X_KEY || apiKeyFromStorage(result)) {
-        // No token in storage but an X_KEY is configured in the extension config.
-        // Try the auth endpoint using the configured X-KEY header. Do NOT store the raw key.
-        const headers = buildRequestHeaders();
-        const config = {
-          method: 'POST',
-          headers,
-        };
-
-        fetch(createUrl(resolveBaseUrl(urls).api, 'v2.0/auth'), config)
-          .then(async (response) => {
-            if (response.ok) {
-              const json = await response.json();
-              updateConfig(json, true);
-              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
-            } else {
-              storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
-            }
-          })
-          .catch((e) => {
-            storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
-            sendErrorToSentry(e);
-          });
+      // An account token (the signedIn marker; the token itself is only for
+      // the background) or an API key.
+      if (result[StorageKeys.SIGNED_IN] || X_KEY || apiKeyFromStorage(result)) {
+        await askForConfig(!!result[StorageKeys.SIGNED_IN]);
       } else if (STATIC_ACCESS_TOKEN) {
         // No token in storage but a default token is available in config — store and use it.
         storeInLocalStorage(StorageKeys.ACCESS_TOKEN, STATIC_ACCESS_TOKEN);
         storeInLocalStorage(StorageKeys.SIGNED_IN, true);
-        try {
-          setToken(STATIC_ACCESS_TOKEN);
-        } catch (e) {
-          // swallow any errors setting token — best effort fallback
-          sendErrorToSentry(e);
-        }
       }
     })
     .catch((error) => {

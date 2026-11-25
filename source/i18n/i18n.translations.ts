@@ -19,7 +19,9 @@ export const de = {
     statusAlerts_one: '{{count}} Hinweis',
     statusAlerts_other: '{{count}} Hinweise',
     statusNoAlerts: 'Keine Hinweise',
-    statusUnauthorized: 'API-Schlüssel fehlt oder wurde nicht akzeptiert',
+    statusUnauthorized:
+      'Anmeldung oder API-Schlüssel fehlt oder wurde nicht akzeptiert',
+    statusForbidden: 'Zugriff auf Witty verweigert',
     statusFailed: 'Prüfung fehlgeschlagen',
     statusOutdated:
       'Diese Version des Witty-Editors wird nicht mehr unterstützt. Die Website muss sie aktualisieren.',
@@ -59,6 +61,9 @@ export const de = {
       'Deine Organisation legt die Gender-Form auf {{format}} fest. Der Text wurde nicht geändert.',
   },
   [namespaces.options]: {
+    confirmBeforeChecking: 'Vor dem Prüfen eines Feldes fragen',
+    confirmBeforeCheckingHint:
+      'Witty sendet nichts aus einem Feld, bevor du es bestätigst, einmal pro Feld und Seite.',
     languageHeadline: 'Sprache und Gender-Formen',
     genderedRolesFormat: 'Generisches Maskulinum',
     genderedRolesFormatHint:
@@ -150,6 +155,7 @@ export const de = {
     teamFeatures: 'Teamfunktionen, inkl. eines geteilten Wörterbuches',
     signIn: 'Anmelden',
     signOut: 'Abmelden',
+    signingOut: 'Wird abgemeldet …',
     haveAccount: 'Hast du schon ein Konto?',
     dontHaveAccount: 'Hast du noch kein Konto?',
     signUp: 'Registrieren',
@@ -180,6 +186,9 @@ export const de = {
       'API Key Authentifizierung fehlgeschlagen ({{status}}): {{message}} — überprüfe den API Key oder Endpunkt.',
   },
   [namespaces.popover]: {
+    confirmCheckQuestion: 'Dieses Feld mit Witty prüfen?',
+    confirmCheckYes: 'Mit Witty prüfen',
+    confirmCheckDismiss: 'Nicht jetzt',
     insteadTry: "Wie wär's mit ...",
     learnMore: 'Warum',
     leanrMoreExtendedText: 'Warum das so ist',
@@ -265,7 +274,8 @@ export const en = {
     statusAlerts_one: '{{count}} suggestion',
     statusAlerts_other: '{{count}} suggestions',
     statusNoAlerts: 'No suggestions',
-    statusUnauthorized: 'API key missing or not accepted',
+    statusUnauthorized: 'Sign-in or API key missing or not accepted',
+    statusForbidden: 'Access to Witty was refused',
     statusFailed: 'Checking failed',
     statusOutdated:
       'This version of the Witty editor is no longer supported. The site needs to update it.',
@@ -303,6 +313,9 @@ export const en = {
       'Your organisation sets the gender format to {{format}}. The text was not changed.',
   },
   [namespaces.options]: {
+    confirmBeforeChecking: 'Ask before checking a field',
+    confirmBeforeCheckingHint:
+      'Witty sends nothing from a field until you confirm it, once per field and page.',
     languageHeadline: 'Language and gender forms',
     genderedRolesFormat: 'Generic masculine',
     genderedRolesFormatHint:
@@ -393,6 +406,7 @@ export const en = {
     teamFeatures: 'Team features, incl. shared dictionaries',
     signIn: 'Sign In',
     signOut: 'Sign out',
+    signingOut: 'Signing out…',
     haveAccount: 'Already have an account?',
     dontHaveAccount: 'Don’t have an account?',
     signUp: 'Sign up',
@@ -422,6 +436,9 @@ export const en = {
   },
 
   [namespaces.popover]: {
+    confirmCheckQuestion: 'Check this field with Witty?',
+    confirmCheckYes: 'Check with Witty',
+    confirmCheckDismiss: 'Not now',
     insteadTry: 'Try instead ...',
     learnMore: 'Why',
     leanrMoreExtendedText: 'Dig deeper',
@@ -509,7 +526,8 @@ export const fr = {
     statusAlerts_one: '{{count}} suggestion',
     statusAlerts_other: '{{count}} suggestions',
     statusNoAlerts: 'Aucune suggestion',
-    statusUnauthorized: 'Clé API manquante ou refusée',
+    statusUnauthorized: 'Connexion ou clé API manquante ou refusée',
+    statusForbidden: 'Accès à Witty refusé',
     statusFailed: 'La vérification a échoué',
     statusOutdated:
       "Cette version de l'éditeur Witty n'est plus prise en charge. Le site doit la mettre à jour.",
@@ -549,6 +567,9 @@ export const fr = {
       "Votre organisation impose la forme inclusive {{format}}. Le texte n'a pas été modifié.",
   },
   [namespaces.options]: {
+    confirmBeforeChecking: 'Demander avant de vérifier un champ',
+    confirmBeforeCheckingHint:
+      "Witty n'envoie rien d'un champ tant que vous ne l'avez pas confirmé, une fois par champ et par page.",
     languageHeadline: 'Langue et formes de genre',
     genderedRolesFormat: 'Masculin générique',
     genderedRolesFormatHint:
@@ -645,6 +666,7 @@ export const fr = {
       "Fonctionnalités d'équipe, y compris des dictionnaires partagés",
     signIn: 'Se connecter',
     signOut: 'Se déconnecter',
+    signingOut: 'Déconnexion…',
     haveAccount: 'Vous avez déjà un compte ?',
     dontHaveAccount: "Vous n'avez pas de compte ?",
     signUp: "S'inscrire",
@@ -674,6 +696,9 @@ export const fr = {
       "Échec de l'authentification de la clé API ({{status}}) : {{message}} — vérifiez votre clé API ou le point de terminaison.",
   },
   [namespaces.popover]: {
+    confirmCheckQuestion: 'Vérifier ce champ avec Witty ?',
+    confirmCheckYes: 'Vérifier avec Witty',
+    confirmCheckDismiss: 'Pas maintenant',
     insteadTry: 'Essayez plutôt ...',
     learnMore: 'Pourquoi',
     leanrMoreExtendedText: 'En savoir plus',

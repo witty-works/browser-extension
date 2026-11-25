@@ -60,7 +60,7 @@ const errorStatus = (
   const message = error instanceof Error ? error.message : String(error);
   if (!(error instanceof CheckHttpError)) return {state: 'error', message};
   if (error.status === 401 || error.status === 403) {
-    return {state: 'unauthorized'};
+    return {state: 'unauthorized', status: error.status};
   }
   // An API version or client version the API no longer supports.
   if (error.status === 400) {
@@ -165,6 +165,7 @@ export const mount: Mount = (
   {
     endpoint: endpointOption,
     apiKey = '',
+    accessToken = '',
     lang = 'auto',
     config,
     content = '',
@@ -188,6 +189,7 @@ export const mount: Mount = (
   element.classList.add('witty-editor');
 
   let key = apiKey;
+  let token = accessToken;
   // Behind `config`/`setConfig`, the settings panel and the popover's AI
   // suggestions alike, so none of them can disagree.
   const settings = createSettingsStore({
@@ -196,7 +198,7 @@ export const mount: Mount = (
     orthography: true,
   });
   const headers = (): Record<string, string> =>
-    credentialHeaders({apiKey: key});
+    credentialHeaders({apiKey: key, token});
   // Set once the editor exists: the gender format switch, whose checks use
   // their own config while it runs.
   const switcherRef: {current?: SwitchController} = {};
@@ -205,8 +207,8 @@ export const mount: Mount = (
   let destroyed = false;
   // Callers waiting for the next complete check (the switch).
   const waiters = createCheckWaiters();
-  // Both are read per request, so `setApiKey` and settings changes reach the
-  // next check without rebuilding the checker.
+  // Both are read per request, so `setApiKey`, `setAccessToken` and settings
+  // changes reach the next check without rebuilding the checker.
   const httpCheck = createHttpChecker({
     endpoint,
     headers,
@@ -410,6 +412,11 @@ export const mount: Mount = (
     editor,
     setApiKey(next: string): void {
       key = next;
+      popover.resetRewrites();
+      requestRecheck(editor.view);
+    },
+    setAccessToken(next: string): void {
+      token = next;
       popover.resetRewrites();
       requestRecheck(editor.view);
     },

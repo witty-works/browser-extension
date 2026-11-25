@@ -13,8 +13,9 @@ const FIXTURE_PORT = Number(process.env.FIXTURE_PORT) || 5174;
  */
 module.exports = defineConfig({
   testDir: './__tests__',
-  // The Firefox smoke suite has its own config (playwright.firefox.config.js).
-  testIgnore: ['firefox/**', 'editor/**'],
+  // The Firefox smoke suite and the release build's suite have their own
+  // configs (playwright.firefox.config.js, playwright.release.config.js).
+  testIgnore: ['firefox/**', 'editor/**', 'release/**'],
   // Extensions need a persistent context, and two contexts loading the same
   // unpacked extension at once interfere with each other.
   workers: 1,

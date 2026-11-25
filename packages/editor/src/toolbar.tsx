@@ -72,11 +72,13 @@ const useStatusText = (
         : count;
       return {text, announce: text};
     }
-    case 'unauthorized':
-      return {
-        text: t('statusUnauthorized'),
-        announce: t('statusUnauthorized'),
-      };
+    case 'unauthorized': {
+      // 401: the credential; 403: the user, whom a new token does not help.
+      const text = t(
+        status.status === 403 ? 'statusForbidden' : 'statusUnauthorized'
+      );
+      return {text, announce: text};
+    }
     case 'outdated':
       return {text: t('statusOutdated'), announce: t('statusOutdated')};
     case 'unsupportedLanguage':
