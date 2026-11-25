@@ -47,9 +47,11 @@ export default [
       'playwright-report/**',
       'playwright-report-editor/**',
       'playwright-report-firefox/**',
+      'playwright-report-release/**',
       'test-results/**',
       'test-results-editor/**',
       'test-results-firefox/**',
+      'test-results-release/**',
       // Type-checked against the built declarations (`npm run test:types`),
       // which only exist after a build.
       'packages/editor/types-test/**',

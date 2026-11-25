@@ -97,6 +97,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       # Extensions need a headed browser.
       - run: xvfb-run npm test
+      # The release build, with closed shadow roots, as users get it.
+      - run: xvfb-run npm run test:release
       - name: Upload test results
         if: ${{ failure() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -104,7 +106,9 @@ jobs:
           name: extension-test-results
           path: |
             test-results
+            test-results-release
             playwright-report
+            playwright-report-release
 
   extension-firefox:
     runs-on: ubuntu-latest
