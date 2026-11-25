@@ -17,6 +17,7 @@ export enum MessageTypes {
   SIGN_OUT = 'witty:sign-out',
   REFRESH_TOKEN = 'witty:refresh-token',
   API_REQUEST = 'witty:api-request',
+  API_CANCEL = 'witty:api-cancel',
   OPEN_POPOVER = 'witty:open-popover',
 }
 
@@ -66,6 +67,18 @@ export interface ApiRequestMessage {
   body?: Record<string, unknown>;
   /** The term, for `ignoreWord`. */
   term?: string;
+  /** Set when the sender may cancel the request (ApiCancelMessage). */
+  requestId?: string;
+}
+
+/**
+ * Cancels an API request the content script no longer needs: a check of text
+ * that changed since, a rephrasing the user closed. Each one, above all a
+ * rephrasing, costs the API a model call.
+ */
+export interface ApiCancelMessage {
+  type: MessageTypes.API_CANCEL;
+  requestId: string;
 }
 
 /** What the background answers an ApiRequestMessage with. */
@@ -81,14 +94,23 @@ export interface ApiResponse {
 /** Longest ignore term accepted; dashboard terms are words or short phrases. */
 const MAX_TERM_LENGTH = 200;
 
+/** Longest request id accepted; the content script sends a UUID (36). */
+const MAX_REQUEST_ID_LENGTH = 64;
+
+const isRequestId = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  value.length > 0 &&
+  value.length <= MAX_REQUEST_ID_LENGTH;
+
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' &&
   value !== null &&
   Object.getPrototypeOf(value) === Object.prototype;
 
 const isApiRequest = (value: Record<string, unknown>): boolean => {
-  const {kind, body, term} = value;
+  const {kind, body, term, requestId} = value;
   if (!(API_REQUEST_KINDS as readonly unknown[]).includes(kind)) return false;
+  if (requestId !== undefined && !isRequestId(requestId)) return false;
   if (kind === 'check' || kind === 'rephrase') return isPlainObject(body);
   if (kind === 'ignoreWord') {
     return (
@@ -114,6 +136,7 @@ export type WittyMessage =
   | SignOutMessage
   | RefreshTokenMessage
   | ApiRequestMessage
+  | ApiCancelMessage
   | OpenPopoverMessage;
 
 export interface SignInResult {
@@ -131,6 +154,10 @@ export const isWittyMessage = (value: unknown): value is WittyMessage => {
 
   if (type === MessageTypes.API_REQUEST) {
     return isApiRequest(value as Record<string, unknown>);
+  }
+
+  if (type === MessageTypes.API_CANCEL) {
+    return isRequestId((value as {requestId?: unknown}).requestId);
   }
 
   if (type === MessageTypes.REFRESH_TOKEN) {

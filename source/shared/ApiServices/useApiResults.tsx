@@ -50,7 +50,7 @@ const useApiResult = <TResponse,>(
       // The background worker makes the request with the credentials, which
       // the content script does not hold (Background/apiProxy.ts).
       const sent = request.proxy
-        ? backgroundApiRequest(request.proxy)
+        ? backgroundApiRequest(request.proxy, controller.signal)
         : fetch(request.url, request.config).then(async (response) => {
             return {
               ok: response.ok,

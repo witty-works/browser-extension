@@ -28,7 +28,7 @@ import {
 } from '../shared/utils';
 import {authorize} from '../shared/ApiServices/oauth';
 import {revokeStoredTokens} from '../shared/ApiServices/revoke';
-import {proxyApiRequest} from './apiProxy';
+import {cancelApiRequest, proxyApiRequest} from './apiProxy';
 import {setToken} from '../shared/ApiServices/requests';
 import {
   restrictSessionStorageToTrustedContexts,
@@ -142,7 +142,12 @@ const addMessageListener = () => {
     }
 
     if (message.type === MessageTypes.API_REQUEST) {
-      return proxyApiRequest(message);
+      return proxyApiRequest(message, sender);
+    }
+
+    if (message.type === MessageTypes.API_CANCEL) {
+      // Answered, so the sender's promise settles rather than rejecting.
+      return Promise.resolve(cancelApiRequest(message, sender));
     }
 
     // Signing out and refreshing are for the extension's pages: a content
