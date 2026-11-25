@@ -168,6 +168,7 @@ test.describe('Ask before checking a field', () => {
         timeout: 10000,
       })
       .toBeGreaterThan(0);
+    expect(await findInShadow(page, 'witty-confirm-check')).toBeNull();
   });
 
   test('checks once /v2.0/auth answers after an outage', async ({
@@ -324,6 +325,7 @@ test.describe('Ask before checking a field', () => {
     extensionId,
   }) => {
     await routeAuth(context, FORCED_ON);
+    const checks = recordChecks(context);
     await signInWith(context, extensionId, FORCED_ON);
     await page.goto('/textarea.html');
     await setEditorText(page);
@@ -336,6 +338,8 @@ test.describe('Ask before checking a field', () => {
     await expect
       .poll(() => findInShadow(page, 'witty-confirm-check'))
       .toBeNull();
+    // Closing the question is not consent: nothing was sent.
+    expect(checks.filter(Boolean)).toEqual([]);
   });
 
   test('is off by default: the text is checked without asking', async ({
