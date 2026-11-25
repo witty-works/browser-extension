@@ -48,6 +48,38 @@ test.describe('Check requests', () => {
     await openPopoverForWord(page, 'guys');
   });
 
+  test('cancels the request a newer one replaced', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // The API would otherwise still check, or rephrase, text nobody waits for.
+    const failed = [];
+    context.on('requestfailed', (request) => {
+      if (new URL(request.url()).pathname.endsWith('/v2.4/check')) {
+        failed.push(JSON.parse(request.postData() || '{}').text || '');
+      }
+    });
+    const requests = await routeCheck(context, {
+      // The first request is never answered.
+      answer: (text, index) =>
+        index === 0 ? new Promise(() => {}) : undefined,
+    });
+
+    await signIn(context, extensionId);
+    await page.goto('/contenteditable.html');
+    await setEditorText(page, 'Hey guys, welcome to the meeting.');
+    await expect.poll(() => requests.length, { timeout: 15000 }).toBe(1);
+
+    await editText(page, 'Hello there, dear guys, nice to see you.');
+    await expect.poll(() => requests.length, { timeout: 15000 }).toBe(2);
+    await expect.poll(() => failed, { timeout: 15000 }).toEqual([requests[0]]);
+    await expect
+      .poll(() => paintedAt(page, 'guys'), { timeout: 15000 })
+      .toBeGreaterThan(0);
+    expect(requests).toHaveLength(2);
+  });
+
   test('asks again for a batch that failed, with the next edit', async ({
     page,
     context,

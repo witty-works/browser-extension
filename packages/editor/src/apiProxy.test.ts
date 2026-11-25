@@ -5,9 +5,18 @@
 // because they are the repository's only unit test suite.
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import {proxyApiRequest} from '../../../source/Background/apiProxy';
+import {
+  cancelApiRequest,
+  proxyApiRequest,
+} from '../../../source/Background/apiProxy';
+import {backgroundApiRequest} from '@witty/core/ApiServices/backgroundApi';
+import browser from 'webextension-polyfill';
 import {logOut} from '@witty/core/utils';
-import {isWittyMessage, MessageTypes} from '@witty/core/messages';
+import {
+  type ApiRequestMessage,
+  isWittyMessage,
+  MessageTypes,
+} from '@witty/core/messages';
 import {registerStorage, type StorageArea} from '@witty/core/platform/storage';
 
 vi.mock('webextension-polyfill', () => {
@@ -363,5 +372,182 @@ describe('API request messages', () => {
     expect(
       isWittyMessage(message({kind: 'ignoreWord', term: 'x'.repeat(201)}))
     ).toBe(false);
+    expect(isWittyMessage(message({...check, requestId: 7}))).toBe(false);
+    expect(isWittyMessage(message({...check, requestId: 'x'.repeat(65)}))).toBe(
+      false
+    );
+  });
+
+  it('accepts a request id and a cancel for one', () => {
+    expect(isWittyMessage(message({...check, requestId: 'r1'}))).toBe(true);
+    expect(
+      isWittyMessage({type: MessageTypes.API_CANCEL, requestId: 'r1'})
+    ).toBe(true);
+    expect(isWittyMessage({type: MessageTypes.API_CANCEL})).toBe(false);
+    expect(
+      isWittyMessage({type: MessageTypes.API_CANCEL, requestId: 'x'.repeat(65)})
+    ).toBe(false);
+  });
+});
+
+describe('cancelling a request', () => {
+  const tab = {tab: {id: 1}, frameId: 0} as browser.Runtime.MessageSender;
+  const otherTab = {tab: {id: 2}, frameId: 0} as browser.Runtime.MessageSender;
+  const request: ApiRequestMessage = {
+    type: MessageTypes.API_REQUEST,
+    ...check,
+    requestId: 'r1',
+  };
+  let signals: AbortSignal[];
+
+  beforeEach(() => {
+    signals = [];
+    const answered = vi.mocked(fetch).getMockImplementation()!;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init: RequestInit) => {
+        if (url.endsWith('oauth/token')) return answered(url, init);
+        signals.push(init.signal!);
+        // An API that answers only once the request is aborted.
+        return new Promise<Response>((_resolve, reject) => {
+          init.signal!.addEventListener('abort', () =>
+            reject(init.signal!.reason)
+          );
+        });
+      })
+    );
+  });
+
+  it('aborts the request the content script cancels', async () => {
+    const answer = proxyApiRequest(request, tab);
+    await vi.waitFor(() => expect(signals).toHaveLength(1));
+    cancelApiRequest({type: MessageTypes.API_CANCEL, requestId: 'r1'}, tab);
+
+    expect(signals[0].aborted).toBe(true);
+    expect(await answer).toEqual(expect.objectContaining({status: 0}));
+  });
+
+  it('leaves a request of another tab alone', async () => {
+    void proxyApiRequest(request, tab);
+    await vi.waitFor(() => expect(signals).toHaveLength(1));
+    cancelApiRequest(
+      {type: MessageTypes.API_CANCEL, requestId: 'r1'},
+      otherTab
+    );
+
+    expect(signals[0].aborted).toBe(false);
+    cancelApiRequest({type: MessageTypes.API_CANCEL, requestId: 'r1'}, tab);
+  });
+
+  it('sends nothing for a request cancelled while the token is restored', async () => {
+    // As after a browser restart: the session lost the access token.
+    session.data.accessToken = '';
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    let restoring = false;
+    const answered = vi.mocked(fetch).getMockImplementation()!;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init: RequestInit) => {
+        if (url.endsWith('oauth/token')) {
+          restoring = true;
+          await gate;
+        }
+        return answered(url, init);
+      })
+    );
+
+    const answer = proxyApiRequest(request, tab);
+    await vi.waitFor(() => expect(restoring).toBe(true));
+    cancelApiRequest({type: MessageTypes.API_CANCEL, requestId: 'r1'}, tab);
+    release();
+
+    expect(await answer).toEqual(expect.objectContaining({status: 0}));
+    expect(signals).toHaveLength(0);
+  });
+});
+
+describe('backgroundApiRequest', () => {
+  it('asks the background to cancel once its signal aborts', async () => {
+    const sendMessage = vi.mocked(browser.runtime.sendMessage);
+    sendMessage.mockReset();
+    sendMessage.mockImplementation(async (message: unknown) =>
+      (message as {type: string}).type === MessageTypes.API_REQUEST
+        ? new Promise(() => {})
+        : undefined
+    );
+    const controller = new AbortController();
+
+    void backgroundApiRequest({kind: 'check', body: {}}, controller.signal);
+    controller.abort();
+
+    const [[requested], [cancel]] = sendMessage.mock.calls as [
+      [{requestId: string}],
+      [unknown],
+    ];
+    expect(cancel).toEqual({
+      type: MessageTypes.API_CANCEL,
+      requestId: requested.requestId,
+    });
+    expect(requested.requestId).toEqual(expect.any(String));
+  });
+
+  it('does not send a request cancelled while the worker was starting', async () => {
+    // The first message finds no listener yet; the request is sent again
+    // 100 ms later, unless it was cancelled in between.
+    const sendMessage = vi.mocked(browser.runtime.sendMessage);
+    sendMessage.mockReset();
+    sendMessage.mockImplementationOnce(async () => {
+      throw new Error(
+        'Could not establish connection. Receiving end does not exist.'
+      );
+    });
+    sendMessage.mockImplementation(async () => undefined);
+    const controller = new AbortController();
+
+    const answer = backgroundApiRequest(
+      {kind: 'check', body: {}},
+      controller.signal
+    );
+    await vi.waitFor(() => expect(sendMessage).toHaveBeenCalledTimes(1));
+    controller.abort();
+
+    expect(await answer).toEqual(expect.objectContaining({status: 0}));
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const requests = sendMessage.mock.calls.filter(
+      ([message]) =>
+        (message as {type: string}).type === MessageTypes.API_REQUEST
+    );
+    expect(requests).toHaveLength(1);
+  });
+
+  it('answers at once when cancelled, without waiting for the background', async () => {
+    const sendMessage = vi.mocked(browser.runtime.sendMessage);
+    sendMessage.mockReset();
+    // A background that never answers, as when the cancel is lost.
+    sendMessage.mockImplementation(() => new Promise(() => {}));
+    const controller = new AbortController();
+
+    const answer = backgroundApiRequest(
+      {kind: 'check', body: {}},
+      controller.signal
+    );
+    controller.abort();
+
+    expect(await answer).toEqual(
+      expect.objectContaining({ok: false, status: 0})
+    );
+  });
+
+  it('sends nothing for a request already cancelled', async () => {
+    const sendMessage = vi.mocked(browser.runtime.sendMessage);
+    sendMessage.mockReset();
+    const controller = new AbortController();
+    controller.abort();
+
+    expect(
+      await backgroundApiRequest({kind: 'check', body: {}}, controller.signal)
+    ).toEqual(expect.objectContaining({ok: false, status: 0}));
+    expect(sendMessage).not.toHaveBeenCalled();
   });
 });

@@ -16,7 +16,13 @@ import {
   LLM_SUGGESTION_TIMEOUT_MS,
   REPHRASE_PATH,
 } from '../shared/ApiServices/requests';
-import {ApiRequestMessage, ApiResponse} from '../shared/messages';
+import type {Runtime} from 'webextension-polyfill';
+
+import {
+  ApiCancelMessage,
+  ApiRequestMessage,
+  ApiResponse,
+} from '../shared/messages';
 import {getStorage} from '../shared/platform/storage';
 import {readTokens} from '../shared/tokenStore';
 import {getNewAccessToken} from '../shared/utils';
@@ -29,6 +35,8 @@ interface Target {
   method: 'POST' | 'PUT';
   body?: string;
   timeout: number;
+  /** Aborts the request when the content script cancels it. */
+  signal?: AbortSignal;
 }
 
 /** Where each kind of request goes. The content script cannot pick a URL. */
@@ -82,32 +90,48 @@ const send = async (
   target: Target,
   credentials: {apiKey?: string; token?: string}
 ): Promise<ApiResponse> => {
-  let response: Response;
+  // Cancelled while the token was restored or refreshed: nothing to send.
+  if (target.signal?.aborted) return noResponse('AbortError');
+  // The timeout or the content script's cancel, whichever comes first
+  // (AbortSignal.any needs Chrome 116).
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(new DOMException('Timed out', 'TimeoutError')),
+    target.timeout
+  );
+  const cancel = (): void => controller.abort(target.signal?.reason);
+  target.signal?.addEventListener('abort', cancel, {once: true});
   try {
-    response = await fetch(target.url, {
-      method: target.method,
-      headers: {...JSON_HEADERS, ...credentialHeaders(credentials)},
-      body: target.body,
-      signal: AbortSignal.timeout(target.timeout),
-    });
-  } catch (error) {
-    return noResponse(error instanceof Error ? error.name : 'Network error');
-  }
-
-  let data: unknown = null;
-  if (response.ok && response.status !== 204) {
+    let response: Response;
     try {
-      data = await response.json();
+      response = await fetch(target.url, {
+        method: target.method,
+        headers: {...JSON_HEADERS, ...credentialHeaders(credentials)},
+        body: target.body,
+        signal: controller.signal,
+      });
     } catch (error) {
-      return noResponse('Invalid JSON');
+      return noResponse(error instanceof Error ? error.name : 'Network error');
     }
+
+    let data: unknown = null;
+    if (response.ok && response.status !== 204) {
+      try {
+        data = await response.json();
+      } catch (error) {
+        return noResponse('Invalid JSON');
+      }
+    }
+    return {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+      data,
+    };
+  } finally {
+    clearTimeout(timer);
+    target.signal?.removeEventListener('abort', cancel);
   }
-  return {
-    ok: response.ok,
-    status: response.status,
-    statusText: response.statusText,
-    data,
-  };
 };
 
 /**
@@ -147,17 +171,15 @@ const sendWithToken = async (target: Target): Promise<ApiResponse> => {
 };
 
 /**
- * Make an API request for a content script, with the credentials only the
- * background holds, and answer with the status and the parsed data.
- *
  * Credentials go only to the endpoint they were stored for: while the stored
  * endpoint key names nothing, a request goes to the build default without
  * any (storedEndpoint.ts). A refused bearer token is refreshed once, for all
  * callers at once (getNewAccessToken), and the request retried once with the
  * new one.
  */
-export const proxyApiRequest = async (
-  message: ApiRequestMessage
+const proxy = async (
+  message: ApiRequestMessage,
+  signal: AbortSignal
 ): Promise<ApiResponse> => {
   const result = await getStorage().local.get(null);
   registerCustomEndpointFromStorage(result);
@@ -174,13 +196,59 @@ export const proxyApiRequest = async (
     }
   }
 
-  const target = targetFor(message, urlKey);
+  const target = {...targetFor(message, urlKey), signal};
   if (!configured) return send(target, {});
 
   const apiKey = X_KEY || apiKeyFromStorage(result);
   if (apiKey) return send(target, {apiKey});
 
   return sendWithToken(target);
+};
+
+/** The requests a content script may still cancel, by sender and id. */
+const cancellable = new Map<string, AbortController>();
+
+const cancelKey = (
+  sender: Runtime.MessageSender | undefined,
+  requestId: string
+): string =>
+  `${sender?.tab?.id ?? 'page'}:${sender?.frameId ?? 0}:${requestId}`;
+
+/**
+ * Make an API request for a content script, with the credentials only the
+ * background holds, and answer with the status and the parsed data. A
+ * request with an id can be cancelled by the same tab and frame
+ * (cancelApiRequest); it then answers as status 0.
+ */
+export const proxyApiRequest = async (
+  message: ApiRequestMessage,
+  sender?: Runtime.MessageSender
+): Promise<ApiResponse> => {
+  const controller = new AbortController();
+  // Registered before anything is awaited: a cancel sent right after the
+  // request finds it.
+  const key = message.requestId
+    ? cancelKey(sender, message.requestId)
+    : undefined;
+  if (key) cancellable.set(key, controller);
+  try {
+    return await proxy(message, controller.signal);
+  } finally {
+    if (key && cancellable.get(key) === controller) cancellable.delete(key);
+  }
+};
+
+/** Abort a request of the same sender; false if none is under way. */
+export const cancelApiRequest = (
+  message: ApiCancelMessage,
+  sender: Runtime.MessageSender
+): boolean => {
+  const key = cancelKey(sender, message.requestId);
+  const controller = cancellable.get(key);
+  if (!controller) return false;
+  cancellable.delete(key);
+  controller.abort();
+  return true;
 };
 
 /**
