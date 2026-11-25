@@ -29,7 +29,9 @@ const handle = mount(document.querySelector<HTMLElement>('#editor')!, {
       next.state === 'idle'
         ? `${next.alerts} alert${next.alerts === 1 ? '' : 's'}`
         : next.state === 'unauthorized'
-          ? 'API key missing or rejected'
+          ? next.status === 403
+            ? 'access refused'
+            : 'sign-in or API key missing or rejected'
           : next.state === 'unsupportedLanguage'
             ? 'language not recognised'
             : next.message;

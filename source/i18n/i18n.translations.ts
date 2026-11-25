@@ -19,7 +19,9 @@ export const de = {
     statusAlerts_one: '{{count}} Hinweis',
     statusAlerts_other: '{{count}} Hinweise',
     statusNoAlerts: 'Keine Hinweise',
-    statusUnauthorized: 'API-Schlüssel fehlt oder wurde nicht akzeptiert',
+    statusUnauthorized:
+      'Anmeldung oder API-Schlüssel fehlt oder wurde nicht akzeptiert',
+    statusForbidden: 'Zugriff auf Witty verweigert',
     statusFailed: 'Prüfung fehlgeschlagen',
     statusOutdated:
       'Diese Version des Witty-Editors wird nicht mehr unterstützt. Die Website muss sie aktualisieren.',
@@ -272,7 +274,8 @@ export const en = {
     statusAlerts_one: '{{count}} suggestion',
     statusAlerts_other: '{{count}} suggestions',
     statusNoAlerts: 'No suggestions',
-    statusUnauthorized: 'API key missing or not accepted',
+    statusUnauthorized: 'Sign-in or API key missing or not accepted',
+    statusForbidden: 'Access to Witty was refused',
     statusFailed: 'Checking failed',
     statusOutdated:
       'This version of the Witty editor is no longer supported. The site needs to update it.',
@@ -523,7 +526,8 @@ export const fr = {
     statusAlerts_one: '{{count}} suggestion',
     statusAlerts_other: '{{count}} suggestions',
     statusNoAlerts: 'Aucune suggestion',
-    statusUnauthorized: 'Clé API manquante ou refusée',
+    statusUnauthorized: 'Connexion ou clé API manquante ou refusée',
+    statusForbidden: 'Accès à Witty refusé',
     statusFailed: 'La vérification a échoué',
     statusOutdated:
       "Cette version de l'éditeur Witty n'est plus prise en charge. Le site doit la mettre à jour.",
