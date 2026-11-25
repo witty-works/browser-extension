@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import browser from 'webextension-polyfill';
 import {useTranslation} from 'react-i18next';
 import {
@@ -23,8 +23,18 @@ import {logTypes, useLog} from '../../shared/customHooks/useLog';
 import {sendErrorToSentry} from '../../shared/errorUtils';
 import {addBadge} from '../../shared/utils';
 
-const PopupLogin: React.FC = () => {
+interface PopupLoginProps {
+  /** Right after a sign-out: the sign-out button is gone, so focus moves
+   * to the sign-in button rather than being lost. */
+  focusSignIn?: boolean;
+}
+
+const PopupLogin: React.FC<PopupLoginProps> = ({focusSignIn = false}) => {
   const {t} = useTranslation([namespaces.pages.popup]);
+  const signInButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (focusSignIn) signInButton.current?.focus();
+  }, [focusSignIn]);
   const [signInError, setSignInError] = useState(false);
   const [urls, setUrls] = useState<string>(DefaultBaseUrlKey);
   const log = useLog('PopupLogin');
@@ -163,7 +173,10 @@ const PopupLogin: React.FC = () => {
         </div>
       </div>
       <div className='witty-works-ext-wittyworks-container witty-works-ext-full-padding witty-works-ext-light-gray-background witty-works-ext-left'>
-        <div
+        <button
+          type='button'
+          id='witty-sign-in'
+          ref={signInButton}
           className='witty-works-ext-button witty-works-ext-primary-button-red'
           onClick={() => {
             setSignInError(false);
@@ -175,7 +188,7 @@ const PopupLogin: React.FC = () => {
           }}
         >
           {t('signIn')}
-        </div>
+        </button>
         <div className='witty-works-ext-lato-popup-text witty-works-ext-margin-top-half'>
           {t('dontHaveAccount')}
           &nbsp;

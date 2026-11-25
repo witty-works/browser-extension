@@ -18,12 +18,15 @@ import {
   registerCustomEndpointFromStorage,
   StorageKeys,
 } from '../shared/constants';
-import {logOut, storeInLocalStorage} from '../shared/utils';
+import {
+  logOut,
+  signOutThroughBackground,
+  storeInLocalStorage,
+} from '../shared/utils';
 import {
   confirmBeforeChecking,
   ConfirmBeforeChecking,
 } from '../shared/confirmBeforeChecking';
-import {clearTokens} from '../shared/tokenStore';
 import {
   getCategories,
   getConfigOptions,
@@ -235,8 +238,9 @@ const Options: React.FC = () => {
 
     try {
       // Before the switch, so the old endpoint's token is never stored beside
-      // the new key, where another context could read the two together.
-      await clearTokens();
+      // the new key, where another context could read the two together, and
+      // is revoked on the dashboard that issued it.
+      await signOutThroughBackground();
       registerCustomEndpoint(endpoint);
       await browser.storage.local.set({
         [StorageKeys.CUSTOM_ENDPOINT]: endpoint,
@@ -271,7 +275,7 @@ const Options: React.FC = () => {
       // the custom endpoint's token sits beside the default key; removing the
       // custom endpoint before switching would leave 'Custom' naming nothing,
       // for good if the page closes in between.
-      await clearTokens();
+      await signOutThroughBackground();
       await logOut();
       await browser.storage.local.set({
         [StorageKeys.API_ENDPOINT_KEY]: DefaultBaseUrlKey,

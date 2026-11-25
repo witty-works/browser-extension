@@ -201,6 +201,93 @@ describe('signing out during a refresh', () => {
   });
 });
 
+describe('a failing token endpoint', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({toFake: ['Date']});
+    answer = async () => json(503, {});
+    // As after a browser restart: the session lost the access token.
+    session.data.accessToken = '';
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('is not asked again until the backoff has passed', async () => {
+    expect(await getNewAccessToken('')).toBe('failed');
+    expect(await getNewAccessToken('')).toBe('failed');
+    expect(tokenRequests).toBe(1);
+
+    vi.advanceTimersByTime(2000);
+    expect(await getNewAccessToken('')).toBe('failed');
+    expect(tokenRequests).toBe(2);
+  });
+
+  it('waits longer after each failure, up to a minute', async () => {
+    const waits: number[] = [];
+    for (let failure = 0; failure < 7; failure += 1) {
+      await getNewAccessToken('');
+      const before = tokenRequests;
+      let waited = 0;
+      while (tokenRequests === before && waited < 120000) {
+        vi.advanceTimersByTime(1000);
+        waited += 1000;
+        await getNewAccessToken('');
+      }
+      waits.push(waited);
+    }
+    expect(waits).toEqual([2000, 4000, 8000, 16000, 32000, 60000, 60000]);
+  });
+
+  it('starts again from 2 s once a minute has passed without a failure', async () => {
+    for (let failure = 0; failure < 6; failure += 1) {
+      await getNewAccessToken('');
+      vi.advanceTimersByTime(60000);
+    }
+    // More than a minute after the last wait ended, a failure counts as the
+    // first again.
+    vi.advanceTimersByTime(61000);
+    await getNewAccessToken('');
+    const before = tokenRequests;
+    vi.advanceTimersByTime(2000);
+    await getNewAccessToken('');
+    expect(tokenRequests).toBe(before + 1);
+  });
+
+  it('ignores a backoff further ahead than the longest wait', async () => {
+    // As after the system clock was set back by an hour.
+    session.data.refreshBackoff = {failures: 3, until: Date.now() + 3600000};
+    await getNewAccessToken('');
+    expect(tokenRequests).toBe(1);
+  });
+
+  it('keeps the backoff in storage.session, which outlives the worker', async () => {
+    await getNewAccessToken('');
+    expect(session.data.refreshBackoff).toEqual(
+      expect.objectContaining({failures: 1})
+    );
+    expect(local.data.refreshBackoff).toBeUndefined();
+  });
+
+  it('forgets the backoff once a refresh succeeds', async () => {
+    await getNewAccessToken('');
+    vi.advanceTimersByTime(2000);
+    answer = async () =>
+      json(200, {
+        access_token: 'access-2',
+        refresh_token: 'refresh-2',
+        expires_in: 3600,
+      });
+    expect(await getNewAccessToken('')).toBe('refreshed');
+    expect(session.data.refreshBackoff).toBeNull();
+  });
+
+  it('forgets the backoff on sign-out', async () => {
+    await getNewAccessToken('');
+    await logOut();
+    expect(session.data.refreshBackoff).toBeNull();
+  });
+});
+
 describe('a token endpoint that does not answer', () => {
   it('gives the token request a timeout', async () => {
     await getNewAccessToken('access-1');

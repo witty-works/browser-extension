@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {signOutStartedHere} from '../signOutFocus';
 import browser from 'webextension-polyfill';
 import {useTranslation} from 'react-i18next';
 
@@ -237,9 +238,13 @@ const Popup: React.FC<PopupProps> = ({appId, domain, isLocked}: PopupProps) => {
   const [signingOut, setSigningOut] = useState(false);
   const signOut = () => {
     setSigningOut(true);
+    signOutStartedHere(true);
     browser.runtime
       .sendMessage({type: MessageTypes.SIGN_OUT} as SignOutMessage)
-      .catch(onStorageError)
+      .catch((error: unknown) => {
+        signOutStartedHere(false);
+        onStorageError(error);
+      })
       .finally(() => setSigningOut(false));
   };
 

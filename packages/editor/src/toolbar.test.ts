@@ -662,6 +662,37 @@ describe('check failures', () => {
       vi.fn(async () => new Response('{"detail":"nope"}', {status}))
     );
 
+  const statusTextAfter = async (status: number): Promise<string> => {
+    failWith(status);
+    const element = document.createElement('div');
+    document.body.append(element);
+    handle = mount(element, {
+      endpoint: 'https://api.example/',
+      content: '<p>Hey guys</p>',
+      delay: 0,
+    });
+    await vi.waitFor(() =>
+      expect(tool('Witty menu').classList).toContain('is-unauthorized')
+    );
+    return (
+      document.querySelector('.witty-editor-toolbar ~ [role="status"]')
+        ?.textContent ?? ''
+    );
+  };
+
+  it('names both a sign-in and an API key for a refused credential (401)', async () => {
+    // A host may hold either; the editor does not know which.
+    expect(await statusTextAfter(401)).toBe(
+      'Sign-in or API key missing or not accepted'
+    );
+  });
+
+  it('says access was refused when the user is refused (403)', async () => {
+    // Neither an account nor an API key: a site may hold either, and an API
+    // before 4.0.0 answers 403 for an expired token, too.
+    expect(await statusTextAfter(403)).toBe('Access to Witty was refused');
+  });
+
   it('reports a rejected key and shows the warning W', async () => {
     failWith(401);
     const statuses: unknown[] = [];
@@ -683,7 +714,7 @@ describe('check failures', () => {
     expect(
       document.querySelector('.witty-editor-toolbar ~ [role="status"]')
         ?.textContent
-    ).toBe('API key missing or not accepted');
+    ).toBe('Sign-in or API key missing or not accepted');
   });
 
   it('reports other failures with the API detail', async () => {

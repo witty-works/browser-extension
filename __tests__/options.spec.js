@@ -57,6 +57,39 @@ test.describe('Options — custom endpoint', () => {
     expect(stored.session.accessToken || '').toBe('');
   });
 
+  test('saving a custom endpoint ends the session on the old dashboard', async ({
+    context,
+    extensionId,
+  }) => {
+    // The background signs out: it waits for a token refresh under way, so
+    // none can write its tokens back afterwards, and revokes the token on
+    // the dashboard that issued it.
+    const revocations = [];
+    await context.route(
+      (url) => url.pathname.endsWith('/api/user/revoke-token'),
+      (route) => {
+        revocations.push({
+          host: new URL(route.request().url()).host,
+          authorization: route.request().headers().authorization,
+        });
+        return route.fulfill({ status: 204, body: '' });
+      }
+    );
+    await signIn(context, extensionId);
+
+    const options = await openOptions(context, extensionId);
+    await fillForm(options, {
+      dashboard: 'https://dashboard.example.com/',
+      api: 'https://api.example.com/',
+      clientId: '42',
+    });
+    await expect(options.locator('.witty-options-notice')).toBeVisible();
+
+    expect(revocations).toHaveLength(1);
+    expect(revocations[0].host).not.toBe('dashboard.example.com');
+    expect(revocations[0].authorization).toBe('Bearer fixture-access-token');
+  });
+
   test('rejects a plaintext http endpoint but allows localhost', async ({
     context,
     extensionId,
