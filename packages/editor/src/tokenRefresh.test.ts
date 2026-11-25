@@ -39,6 +39,7 @@ const memoryArea = (): StorageArea & {data: Record<string, unknown>} => {
 let local: ReturnType<typeof memoryArea>;
 let session: ReturnType<typeof memoryArea>;
 let tokenRequests: number;
+let revocations: {url: string; authorization: string | null}[];
 let lastSignal: AbortSignal | undefined;
 /** How the token endpoint answers the next refresh. */
 let answer: () => Promise<Response>;
@@ -76,6 +77,7 @@ beforeEach(() => {
   session.data.accessToken = 'access-1';
 
   tokenRequests = 0;
+  revocations = [];
   answer = async () =>
     json(200, {
       access_token: 'access-2',
@@ -85,6 +87,13 @@ beforeEach(() => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string | URL, init?: RequestInit) => {
+      if (String(url).endsWith('api/user/revoke-token')) {
+        revocations.push({
+          url: String(url),
+          authorization: new Headers(init?.headers).get('Authorization'),
+        });
+        return new Response(null, {status: 204});
+      }
       expect(String(url)).toBe(`${DASHBOARD}oauth/token`);
       lastSignal = init?.signal ?? undefined;
       tokenRequests += 1;
@@ -198,6 +207,38 @@ describe('signing out during a refresh', () => {
     expect(local.data.signedIn).toBe(false);
     expect(local.data.refreshToken).toBe('');
     expect(session.data.accessToken).toBe('');
+  });
+
+  it('revokes the dropped pair on the dashboard that issued it', async () => {
+    let release: (response: Response) => void = () => {};
+    answer = () =>
+      new Promise<Response>((resolve) => {
+        release = resolve;
+      });
+
+    const refreshing = getNewAccessToken('access-1');
+    await settle();
+    await logOut();
+    // Signed out to switch to another dashboard: the pair still belongs to
+    // the old one and must not be shown to the new one.
+    local.data.customEndpoint = {
+      ...(local.data.customEndpoint as object),
+      dashboard: 'https://dashboard.other.example/',
+    };
+    release(
+      json(200, {
+        access_token: 'access-2',
+        refresh_token: 'refresh-2',
+        expires_in: 3600,
+      })
+    );
+    await refreshing;
+    await vi.waitFor(() => expect(revocations).toHaveLength(1));
+
+    expect(revocations[0]).toEqual({
+      url: `${DASHBOARD}api/user/revoke-token`,
+      authorization: 'Bearer access-2',
+    });
   });
 });
 

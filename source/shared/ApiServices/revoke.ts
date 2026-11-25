@@ -17,6 +17,30 @@ import {isExpired, refresh} from './oauth';
 export const REVOKE_TIMEOUT_MS = 3000;
 
 /**
+ * Ask `dashboard` to revoke an access token and its refresh tokens. Best
+ * effort: it resolves whatever happens, and gives up after `signal`.
+ */
+export const revokeAccessToken = async (
+  dashboard: string,
+  accessToken: string,
+  signal: AbortSignal = AbortSignal.timeout(REVOKE_TIMEOUT_MS)
+): Promise<void> => {
+  try {
+    await fetch(new URL('api/user/revoke-token', dashboard), {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      signal,
+    });
+  } catch (error) {
+    // Offline, timed out, refused or an older dashboard: the tokens are
+    // cleared locally either way, and none of these is worth a report.
+  }
+};
+
+/**
  * Ask the dashboard to revoke the stored access token and its refresh tokens
  * (`POST api/user/revoke-token`, answered with 204).
  *
@@ -65,16 +89,10 @@ export const revokeStoredTokens = async (): Promise<void> => {
     }
     if (!accessToken || deadline.aborted) return;
 
-    await fetch(
-      new URL('api/user/revoke-token', resolveBaseUrl(urlKey).dashboard),
-      {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        signal: deadline,
-      }
+    await revokeAccessToken(
+      resolveBaseUrl(urlKey).dashboard,
+      accessToken,
+      deadline
     );
   } catch (error) {
     // Offline, timed out, refused or an older dashboard: the tokens are
