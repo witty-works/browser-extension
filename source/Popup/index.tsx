@@ -13,6 +13,7 @@ import {
   renderUserNotLoggedIn,
 } from './PopupUtils';
 import {initI18n} from '../i18n/i18n';
+import {takeSignOutStartedHere} from './signOutFocus';
 import {registerStorage} from '../shared/platform/storage';
 import {webextensionStorage} from '../shared/platform/webextensionStorage';
 
@@ -78,7 +79,9 @@ const storageChange = (changes: any) => {
   for (const item of changedItems) {
     switch (item) {
       case StorageKeys.SIGNED_IN:
-        !changes[item].newValue && renderUserNotLoggedIn();
+        // Signed out from the popup: focus goes to sign-in.
+        !changes[item].newValue &&
+          renderUserNotLoggedIn(takeSignOutStartedHere());
         break;
       case StorageKeys.CHECK_ENDPOINT_SUCCESS:
         // If check endpoint becomes false, show login. If it becomes true, re-render popup.

@@ -12,8 +12,8 @@ if (container) {
   root = createRoot(container);
 }
 
-export const renderUserNotLoggedIn = () => {
-  root?.render(<PopupLogin />);
+export const renderUserNotLoggedIn = (focusSignIn = false) => {
+  root?.render(<PopupLogin focusSignIn={focusSignIn} />);
 };
 
 export const renderDomainDeactivated = (appId: string, domain: string) => {

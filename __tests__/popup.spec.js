@@ -496,6 +496,51 @@ test.describe('Popup — sign out', () => {
     expect(local.refreshToken || '').toBe('');
   });
 
+  test('focus moves to the sign-in button after signing out', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    // The sign-out button is gone once the popup shows the sign-in view; a
+    // keyboard or screen reader user would otherwise be left on the page.
+    await context.route(
+      (url) => url.pathname.endsWith(REVOKE_PATH),
+      (route) => route.fulfill({ status: 204, body: '' })
+    );
+    await signIn(context, extensionId);
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await page.locator('#witty-sign-out').focus();
+    await page.keyboard.press('Enter');
+
+    const signInButton = page.getByRole('button', { name: 'Sign in' });
+    await expect(signInButton).toBeFocused();
+  });
+
+  test('a sign-out from another page leaves focus where it was', async ({
+    page,
+    context,
+    extensionId,
+  }) => {
+    await context.route(
+      (url) => url.pathname.endsWith(REVOKE_PATH),
+      (route) => route.fulfill({ status: 204, body: '' })
+    );
+    await signIn(context, extensionId);
+    await page.goto(`chrome-extension://${extensionId}/popup.html`);
+    await expect(page.locator('#witty-sign-out')).toBeVisible();
+
+    const options = await context.newPage();
+    await options.goto(`chrome-extension://${extensionId}/options.html`);
+    await options.evaluate(() =>
+      chrome.runtime.sendMessage({ type: 'witty:sign-out' })
+    );
+    await options.close();
+
+    const signInButton = page.getByRole('button', { name: 'Sign in' });
+    await expect(signInButton).toBeVisible();
+    await expect(signInButton).not.toBeFocused();
+  });
+
   test('signing out clears the tokens when the dashboard cannot revoke them', async ({
     page,
     context,
