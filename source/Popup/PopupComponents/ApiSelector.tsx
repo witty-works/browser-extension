@@ -5,7 +5,7 @@ import Dropdown, {OptionProp} from '../../shared/components/Dropdown/Dropdown';
 import {BaseUrls, DefaultBaseUrlKey, StorageKeys} from '../../shared/constants';
 import {logTypes, useLog} from '../../shared/customHooks/useLog';
 import {sendErrorToSentry} from '../../shared/errorUtils';
-import {logOut} from '../../shared/utils';
+import {logOut, signOutThroughBackground} from '../../shared/utils';
 
 const ApiSelector: React.FC = () => {
   const [dropdownOptions, setDropdownOptions] = useState<OptionProp[]>([]);
@@ -40,19 +40,21 @@ const ApiSelector: React.FC = () => {
   }, []);
 
   const handleDropdownChange = (value: string) => {
-    browser.storage.local
-      .set({
-        [StorageKeys.API_ENDPOINT_KEY]: value,
-      })
+    // Always drop credentials when the endpoint changes. Tokens are issued
+    // by one dashboard and are meaningless — and must not be presented — to
+    // another. Signed out before the switch, so the token is revoked on the
+    // dashboard that issued it.
+    const signOut =
+      value !== selectedOption
+        ? signOutThroughBackground().then(logOut)
+        : Promise.resolve();
+    signOut
+      .then(() =>
+        browser.storage.local.set({
+          [StorageKeys.API_ENDPOINT_KEY]: value,
+        })
+      )
       .then(() => {
-        // Always drop credentials when the endpoint changes. Tokens are issued
-        // by one dashboard and are meaningless — and must not be presented — to
-        // another. The previous check only logged out for 'Prod' (and compared
-        // against a typo'd ' Prod'), so switching between any other pair of
-        // endpoints carried the old tokens across.
-        if (value !== selectedOption) {
-          logOut();
-        }
         setSelectedOption(value);
         log(`New api endpoint ${value} saved`);
       })

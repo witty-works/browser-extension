@@ -23,7 +23,7 @@ import {
 } from './DOMutils';
 import {setToken} from './ApiServices/requests';
 import {isRefreshTokenRejected, refresh} from './ApiServices/oauth';
-import {MessageTypes, RefreshTokenMessage} from './messages';
+import {MessageTypes, RefreshTokenMessage, SignOutMessage} from './messages';
 import {backgroundApiRequest} from './ApiServices/backgroundApi';
 import {clearTokens, persistTokens, readTokens} from './tokenStore';
 import {IAuthResponse} from './types';
@@ -349,6 +349,24 @@ export const requestTokenRefresh = async (
       : 'failed';
   } catch (error) {
     return 'failed';
+  }
+};
+
+/**
+ * Sign out from an extension page (options, popup) through the background
+ * worker, which holds the token refresh: it waits for a refresh under way,
+ * so none writes its tokens back afterwards, and revokes the token on the
+ * dashboard that issued it. Call it before switching the endpoint. If the
+ * worker cannot be reached, the tokens are cleared here.
+ */
+export const signOutThroughBackground = async (): Promise<void> => {
+  try {
+    await browser.runtime.sendMessage({
+      type: MessageTypes.SIGN_OUT,
+    } as SignOutMessage);
+  } catch (error) {
+    sendErrorToSentry(error);
+    await clearTokens();
   }
 };
 
