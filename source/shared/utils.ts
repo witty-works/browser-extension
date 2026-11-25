@@ -509,6 +509,33 @@ export const updateConfig = (response: IAuthResponse, force = false) => {
 };
 
 /**
+ * Ask `/v2.0/auth` until it answers. Until an answer arrives,
+ * ask-before-checking is pending and nothing is checked, so an outage is
+ * retried; a refused credential is not. Another context's answer, or a
+ * sign-out, ends the wait too.
+ */
+const askForConfig = async (signedIn: boolean): Promise<void> => {
+  for (let attempt = 0; ; attempt += 1) {
+    const response = await backgroundApiRequest({kind: 'auth'});
+    if (response.ok) {
+      updateConfig(response.data as IAuthResponse, true);
+      storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
+      return;
+    }
+    storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
+    const delay = authRetryDelay(response.status, attempt);
+    if (delay === null) return;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    const now = await getStorage().local.get([
+      StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN,
+      StorageKeys.SIGNED_IN,
+    ]);
+    if (now[StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN] === true) return;
+    if (signedIn && !now[StorageKeys.SIGNED_IN]) return;
+  }
+};
+
+/**
  * Ask the API for the user's configuration (`/v2.0/auth`) and store it. The
  * background worker makes the request with the credentials (apiProxy.ts), so
  * this works from content scripts, which do not hold them.
@@ -534,29 +561,7 @@ export const makeAuthRequest = () => {
       // An account token (the signedIn marker; the token itself is only for
       // the background) or an API key.
       if (result[StorageKeys.SIGNED_IN] || X_KEY || apiKeyFromStorage(result)) {
-        for (let attempt = 0; ; attempt += 1) {
-          const response = await backgroundApiRequest({kind: 'auth'});
-          if (response.ok) {
-            updateConfig(response.data as IAuthResponse, true);
-            storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, true);
-            return;
-          }
-          storeInLocalStorage(StorageKeys.CHECK_ENDPOINT_SUCCESS, false);
-          // Until an answer arrives, ask-before-checking is pending and
-          // nothing is checked, so an outage is retried; a refused credential
-          // is not. Another context's answer ends the wait too.
-          const delay = authRetryDelay(response.status, attempt);
-          if (delay === null) return;
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          const now = await getStorage().local.get([
-            StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN,
-            StorageKeys.SIGNED_IN,
-          ]);
-          if (now[StorageKeys.CONFIRM_BEFORE_CHECKING_KNOWN] === true) return;
-          if (result[StorageKeys.SIGNED_IN] && !now[StorageKeys.SIGNED_IN]) {
-            return;
-          }
-        }
+        await askForConfig(!!result[StorageKeys.SIGNED_IN]);
       } else if (STATIC_ACCESS_TOKEN) {
         // No token in storage but a default token is available in config — store and use it.
         storeInLocalStorage(StorageKeys.ACCESS_TOKEN, STATIC_ACCESS_TOKEN);

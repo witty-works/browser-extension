@@ -111,6 +111,42 @@ const send = async (
 };
 
 /**
+ * Send with the stored bearer token. A refused token is refreshed once, for
+ * all callers at once (getNewAccessToken), and the request retried once with
+ * the new one.
+ */
+const sendWithToken = async (target: Target): Promise<ApiResponse> => {
+  const stored = await readTokens();
+  let {accessToken} = stored;
+  // A browser restart or an extension update empties storage.session, where
+  // the access token lives, while the refresh token stays in storage.local.
+  // Refresh before sending: a request without a token is refused, and the
+  // refused-token path below only refreshes a token that was sent.
+  if (!accessToken && stored.refreshToken) {
+    if ((await getNewAccessToken('')) === 'refreshed') {
+      ({accessToken} = await readTokens());
+    }
+  }
+  const response = await send(target, {token: accessToken});
+  if (!accessToken || !isTokenRefused(response.status)) {
+    if (response.ok) await rememberRefusedAfterRefresh(null);
+    return response;
+  }
+  // Refused straight after a refresh already: refreshing again would not
+  // help (an account the API does not let in) and would loop.
+  if (accessToken === (await refusedAfterRefresh())) return response;
+
+  if ((await getNewAccessToken(accessToken)) !== 'refreshed') return response;
+  const {accessToken: refreshed} = await readTokens();
+  if (!refreshed || refreshed === accessToken) return response;
+  const retried = await send(target, {token: refreshed});
+  await rememberRefusedAfterRefresh(
+    isTokenRefused(retried.status) ? refreshed : null
+  );
+  return retried;
+};
+
+/**
  * Make an API request for a content script, with the credentials only the
  * background holds, and answer with the status and the parsed data.
  *
@@ -144,34 +180,7 @@ export const proxyApiRequest = async (
   const apiKey = X_KEY || apiKeyFromStorage(result);
   if (apiKey) return send(target, {apiKey});
 
-  const stored = await readTokens();
-  let {accessToken} = stored;
-  // A browser restart or an extension update empties storage.session, where
-  // the access token lives, while the refresh token stays in storage.local.
-  // Refresh before sending: a request without a token is refused, and the
-  // refused-token path below only refreshes a token that was sent.
-  if (!accessToken && stored.refreshToken) {
-    if ((await getNewAccessToken('')) === 'refreshed') {
-      ({accessToken} = await readTokens());
-    }
-  }
-  const response = await send(target, {token: accessToken});
-  if (!accessToken || !isTokenRefused(response.status)) {
-    if (response.ok) await rememberRefusedAfterRefresh(null);
-    return response;
-  }
-  // Refused straight after a refresh already: refreshing again would not
-  // help (an account the API does not let in) and would loop.
-  if (accessToken === (await refusedAfterRefresh())) return response;
-
-  if ((await getNewAccessToken(accessToken)) !== 'refreshed') return response;
-  const {accessToken: refreshed} = await readTokens();
-  if (!refreshed || refreshed === accessToken) return response;
-  const retried = await send(target, {token: refreshed});
-  await rememberRefusedAfterRefresh(
-    isTokenRefused(retried.status) ? refreshed : null
-  );
-  return retried;
+  return sendWithToken(target);
 };
 
 /**
