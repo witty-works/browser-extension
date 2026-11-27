@@ -377,6 +377,7 @@ export const CONFIG_OPTION_FIELDS = [
   'gendered_roles_format',
   'german_gender_ending',
   'french_gender_separator',
+  'french_gender_suffix',
 ] as const;
 
 export type ConfigOptionField = (typeof CONFIG_OPTION_FIELDS)[number];

@@ -102,6 +102,7 @@ export interface RequestConfig {
    */
   german_gender_ending?: string;
   french_gender_separator?: string;
+  french_gender_suffix?: string;
   gendered_roles_format?: string;
 }
 export interface ConfigProperty {

@@ -403,6 +403,21 @@ test.describe('Options — gender forms', () => {
       gendered_roles_format: 'inclusive_gender',
     });
   });
+
+  test('stores the French feminine ending', async ({
+    context,
+    extensionId,
+  }) => {
+    const options = await openOptions(context, extensionId);
+    await options.waitForSelector('#language-format-section');
+
+    const select = '[data-field="french_gender_suffix"]';
+    await expect(options.locator(`${select} option[value="full"]`)).toHaveText(
+      'Full ending, f.e. utilisateur·trice, vendeur·euse'
+    );
+    await options.selectOption(select, 'full');
+    expect(await stored(options)).toEqual({ french_gender_suffix: 'full' });
+  });
 });
 
 test.describe('Options — gender form labels', () => {
