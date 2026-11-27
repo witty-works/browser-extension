@@ -54,7 +54,10 @@ export type StatusStore = Store<{
 
 type FormatField = keyof Pick<
   CheckConfig,
-  'gendered_roles_format' | 'german_gender_ending' | 'french_gender_separator'
+  | 'gendered_roles_format'
+  | 'german_gender_ending'
+  | 'french_gender_separator'
+  | 'french_gender_suffix'
 >;
 
 /** The gender formats set in `config`, as the preferences UI shows them. */
@@ -66,6 +69,7 @@ export const languageFormatOf = (
     'gendered_roles_format',
     'german_gender_ending',
     'french_gender_separator',
+    'french_gender_suffix',
   ] as FormatField[]) {
     const value = config[field];
     if (value) format[field] = value;

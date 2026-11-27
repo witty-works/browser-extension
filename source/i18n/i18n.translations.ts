@@ -72,6 +72,9 @@ export const de = {
     germanGenderEndingHint: 'Witty empfiehlt den Gendestern.',
     frenchGenderSeparator: 'Französisches Gender-Trennzeichen',
     frenchGenderSeparatorHint: 'Witty empfiehlt den Point médian.',
+    frenchGenderSuffix: 'Französische weibliche Endung',
+    frenchGenderSuffixHint:
+      'Wo beides geht, die weibliche Endung kurz oder vollständig: utilisateur·rice oder utilisateur·trice.',
     useApiDefault: 'Standard des Servers',
     levelOff: 'Aus',
     levelBasic: 'Basis',
@@ -324,6 +327,9 @@ export const en = {
     germanGenderEndingHint: 'Witty recommends the genderstar.',
     frenchGenderSeparator: 'French gender separator',
     frenchGenderSeparatorHint: 'Witty recommends the point médian.',
+    frenchGenderSuffix: 'French feminine ending',
+    frenchGenderSuffixHint:
+      'Where both are possible, the feminine ending short or in full: utilisateur·rice or utilisateur·trice.',
     useApiDefault: 'Server default',
     levelOff: 'Off',
     levelBasic: 'Basic',
@@ -578,6 +584,9 @@ export const fr = {
     germanGenderEndingHint: 'Witty recommande le genderstar.',
     frenchGenderSeparator: 'Séparateur de genre français',
     frenchGenderSeparatorHint: 'Witty recommande le point médian.',
+    frenchGenderSuffix: 'Terminaison féminine en français',
+    frenchGenderSuffixHint:
+      'Quand les deux sont possibles, la terminaison féminine courte ou complète : utilisateur·rice ou utilisateur·trice.',
     useApiDefault: 'Valeur par défaut du serveur',
     levelOff: 'Désactivé',
     levelBasic: 'Base',

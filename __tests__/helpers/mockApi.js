@@ -241,6 +241,14 @@ const CONFIG_OPTIONS = {
       default: '·',
       labels: { '·': 'Point médian, f.e. expert·es' },
     },
+    french_gender_suffix: {
+      values: ['short', 'full'],
+      default: 'short',
+      labels: {
+        short: 'Short ending, f.e. utilisateur·rice, vendeur·se',
+        full: 'Full ending, f.e. utilisateur·trice, vendeur·euse',
+      },
+    },
   },
 };
 

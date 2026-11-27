@@ -128,7 +128,7 @@ The formats offered depend on the text's language:
 
 The language is the one the host fixed with `lang`, or else what the API detected. A text with both German and French gets both groups, headed "German" and "French", the language of most of the text first; a text in neither (or not checked yet) gets both too. The API detects one language per request, and a short text goes in one request, so a short text mixing both languages is taken as the language of most of it; only longer texts, checked in several requests, show both groups.
 
-A switch sets the target in its language's field (`german_gender_ending` or `french_gender_separator`) and leaves the other language's alone. It rewrites, as far as the API marks them:
+A switch sets the target in its language's field (`german_gender_ending` or `french_gender_separator`) and leaves the other language's alone. A French switch keeps `french_gender_suffix` as configured (with an NLP API that offers it in `/v2.0/config-options`; an older one ignores the field): with `full`, `utilisateur.trice` switched to `·` becomes `utilisateur·trice`, and a form written with the other suffix (`utilisateur·rice`) is rewritten too. It rewrites, as far as the API marks them:
 
 - forms in another format: `Lehrer*innen` → `Lehrer:innen`, `enseignant.e.s` → `enseignant·es`, and the articles and short endings that go with them (`die*der`, `jede/-r`, `la·le`, `un·e`);
 - roles in the generic masculine: `Der Lehrer` → `Die:der Lehrer:in`, `le directeur` → `la·le responsable`;

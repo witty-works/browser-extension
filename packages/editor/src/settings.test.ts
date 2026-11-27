@@ -22,6 +22,12 @@ describe('settings helpers', () => {
     ).toEqual({german_gender_ending: ':in'});
   });
 
+  it('shows the French feminine ending with the gender formats', () => {
+    expect(languageFormatOf({french_gender_suffix: 'full'})).toEqual({
+      french_gender_suffix: 'full',
+    });
+  });
+
   it('sets and clears a gender format without touching the rest', () => {
     const config = {german_gender_ending: ':in' as const, addons: ['hr']};
 

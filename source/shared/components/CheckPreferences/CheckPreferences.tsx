@@ -41,6 +41,7 @@ const FORMAT_LABEL_KEYS: Record<ConfigOptionField, string> = {
   gendered_roles_format: 'genderedRolesFormat',
   german_gender_ending: 'germanGenderEnding',
   french_gender_separator: 'frenchGenderSeparator',
+  french_gender_suffix: 'frenchGenderSuffix',
 };
 
 /**
@@ -132,7 +133,9 @@ const CheckPreferences: React.FC<CheckPreferencesProps> = ({
                   >
                     <option value=''>
                       {t('useApiDefault')}
-                      {option.default ? ` (${option.default})` : ''}
+                      {option.default
+                        ? ` (${formatValueLabel(field, option.default)})`
+                        : ''}
                     </option>
                     {option.values.map((value) => (
                       <option value={value} key={value}>

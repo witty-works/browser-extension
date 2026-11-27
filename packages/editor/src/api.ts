@@ -41,6 +41,11 @@ export interface CheckConfig {
   german_gender_ending?:
     '/in' | '/-in' | '_in' | '*in' | ':in' | '(-)' | '()' | 'In' | 'de-e';
   french_gender_separator?: '·' | '·s' | '.' | '.s' | '/' | '/s';
+  /**
+   * French feminine suffix where a role has two: `short` (utilisateur·rice)
+   * or `full` (utilisateur·trice). Combines with `french_gender_separator`.
+   */
+  french_gender_suffix?: 'short' | 'full';
   gendered_roles_format?:
     'none' | 'both' | 'inclusive_gender' | 'binary_gender';
   /**
