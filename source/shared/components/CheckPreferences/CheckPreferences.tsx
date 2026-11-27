@@ -132,7 +132,9 @@ const CheckPreferences: React.FC<CheckPreferencesProps> = ({
                   >
                     <option value=''>
                       {t('useApiDefault')}
-                      {option.default ? ` (${option.default})` : ''}
+                      {option.default
+                        ? ` (${formatValueLabel(field, option.default)})`
+                        : ''}
                     </option>
                     {option.values.map((value) => (
                       <option value={value} key={value}>
